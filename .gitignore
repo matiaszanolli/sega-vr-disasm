@@ -1,0 +1,77 @@
+# ============================================================================
+# Virtua Racing Deluxe Disassembly - .gitignore
+# ============================================================================
+
+# ROMs - Users must provide their own legal ROM dumps
+*.32x
+*.bin
+*.smd
+*.gen
+*.iso
+*.cue
+*.ccd
+*.7z
+*.zip
+*.rar
+
+# Build output
+build/
+*.o
+*.obj
+*.elf
+
+# Disassembly binary blobs (regenerated from user's ROM)
+disasm/rom_data_remainder.bin
+
+# Emulators and BIOS files
+emu/
+emulators/
+gens/
+Gens*/
+fusion/
+retroarch/
+*BIOS*/
+*.exe
+*.app
+
+# PDFs and proprietary documentation
+*.pdf
+*.doc
+*.docx
+
+# Development cartridge images (proprietary)
+*.srm
+*.sav
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Editor/IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.bak
+
+# vasm build artifacts (tool itself is built from source)
+tools/vasm
+
+# OS-specific
+.directory
+desktop.ini
+
+# Keep these directories but ignore their contents except .gitkeep
+build/.gitkeep
+!build/.gitkeep

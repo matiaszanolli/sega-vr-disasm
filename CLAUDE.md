@@ -2,6 +2,32 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Core Development Principles
+
+### DRY (Don't Repeat Yourself) - STRICTLY ENFORCED
+
+**NEVER create duplicate files, versions, or documentation.** Fix existing files in place.
+
+❌ **WRONG:**
+- `tool.py`, `tool_v2.py`, `tool_v3.py`, `tool_working.py`
+- `README.md`, `README_old.md`, `README_new.md`
+- Multiple versions of the same documentation with slight variations
+
+✅ **RIGHT:**
+- Fix `tool.py` directly when you find bugs
+- Update `README.md` in place
+- One canonical source for each piece of information
+
+**If you need to try different approaches:**
+1. Use git branches (not duplicate files)
+2. Or delete the old approach when replacing it
+3. Or clearly comment out old code within the same file
+
+**Breaking this rule creates:**
+- Confusion about which version is current
+- Maintenance nightmares (fixing bugs in multiple places)
+- Wasted disk space and mental overhead
+
 ## Repository Purpose
 
 This is a **Sega 32X development playground** - a knowledge base and development environment for creating games and software for the Sega 32X hardware (1994). The 32X is a power-up booster for the Sega Mega Drive/Genesis featuring:

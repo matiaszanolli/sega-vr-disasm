@@ -9,14 +9,12 @@
 
 | Metric | Value |
 |--------|-------|
-| Functions Annotated | 14 of 109 |
-| Completion Percentage | 13% |
-| Lines of Annotation | 1,600+ |
-| Estimated Hotspot Coverage | 85% |
+| Functions Annotated | 16 of 109 |
+| Completion Percentage | 15% |
+| Lines of Annotation | 1,800+ |
+| Estimated Hotspot Coverage | 90% |
 
-## Completed Work (Priority 1 - Rendering Primitives)
-
-### Status: ✅ 100% COMPLETE (9/9 functions)
+## Completed Work
 
 All rendering primitive functions called directly by func_023 (the main dispatcher) have been fully annotated with:
 - Complete disassembly with per-instruction comments
@@ -62,9 +60,27 @@ All rendering primitive functions called directly by func_023 (the main dispatch
    - Micro-optimization for quick filtering
    - RTS in delay slot of BF for efficiency
 
+### Priority 3 - Indirect Call Dispatchers: 🟨 33% COMPLETE (2/6 functions)
+
+Function dispatch/factory pattern implementations:
+
+1. **func_078** (0x24320, 68 bytes) - Basic 6-handler dispatcher
+   - Parameter setup: R1=0x01, R6=0x10, R7/R10/R11=addresses
+   - Sequential JSR @R0 calls with embedded literal pool
+
+2. **func_079** (0x24366, 84 bytes) - Extended dispatcher variant
+   - More setup code: dereference operation, address parameter initialization
+   - Alternative rendering path implementation
+
+**Remaining (4 functions)**:
+- func_100 (1112 bytes) - Very large, complex dispatch
+- func_101 (136 bytes) - Register save/restore wrapper with JSR @R0
+- func_105 (150 bytes) - Bit manipulation with nested loops
+- func_106 (366 bytes) - Calls helper functions (not pure dispatcher)
+
 ## Annotated Functions Reference
 
-**Total Annotated Functions**: 14 (5 initial + 9 Priority 1)
+**Total Annotated Functions**: 16 (5 initial + 9 Priority 1 + 2 Priority 3)
 
 ### Initial Hotspot Functions (5)
 - func_001 (0x2301C) - Display list interpreter
@@ -76,7 +92,10 @@ All rendering primitive functions called directly by func_023 (the main dispatch
 ### Priority 1 - Rendering Primitives (9)
 - func_024, func_026, func_029, func_032, func_033, func_034, func_036, func_037, func_038
 
-**Location**: `disasm/sh2_3d_engine_annotated.asm` (1,600+ lines)
+### Priority 3 - Indirect Dispatchers (2 of 6)
+- func_078, func_079
+
+**Location**: `disasm/sh2_3d_engine_annotated.asm` (1,800+ lines)
 
 ## Remaining Work by Priority
 
@@ -93,8 +112,11 @@ Functions:
 - func_044 (0x239CA, 152 bytes) - Scene graph dispatch
 - func_094 (0x24598, 38 bytes) - Recursive traversal
 
-### Priority 3 - Indirect Call Dispatchers (6 functions, 0%)
-- func_078, func_079, func_100, func_101, func_105, func_106
+### Priority 3 - Indirect Call Dispatchers (6 functions, 33% - 2 COMPLETED)
+
+Completed: func_078, func_079 (basic dispatcher patterns)
+
+Remaining: func_100 (1112 bytes), func_101 (136 bytes), func_105 (150 bytes), func_106 (366 bytes)
 
 ### Priority 4 - func_065 Callers (5 functions, 0%)
 - func_060, func_061, func_062, func_063, func_064

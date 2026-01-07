@@ -292,27 +292,34 @@ These are the handlers called from V-INT jump table at $16B2:
 
 ## Priority 9: Extended Regions
 
-### Main Code 2 ($10000-$1FFFF) - 61 functions
+**Note**: Priority 9 is sparse code regions (mostly data/graphics). Systematic scanning found only 7 code functions across ~$C0000 bytes. Remaining functions likely require decompilation tools or jump-table analysis.
 
-| Status | Function | Address | Calls | Purpose |
-|--------|----------|---------|-------|---------|
-| [ ] | func_10674 | $00890674 | 9 | HIGH - 9 calls |
-| [ ] | func_188EC | $008988EC | 9 | HIGH - 9 calls |
-| [ ] | func_10656 | $00890656 | 5 | TBD |
-| [ ] | func_10606 | $00890606 | 3 | TBD |
-| [ ] | ... | ... | ... | (57 more) |
+### Main Code 2 ($10000-$1FFFF) - 2 functions
 
-### Extended ($30000-$FFFFF) - 123 functions
+| Status | Function | Address | Size | Purpose |
+|--------|----------|---------|------|---------|
+| [x] | func_11942 | $00891942 | 60 | Minimal register setup |
+| [x] | func_1469C | $0089​1469C | 24 | Data processor with full save |
 
-| Status | Function | Address | Calls | Purpose |
-|--------|----------|---------|-------|---------|
-| [ ] | func_30000 | $008B0000 | 8 | Track/data loader? |
-| [ ] | func_30004 | $008B0004 | 1 | TBD |
-| [ ] | ... | ... | ... | (121 more) |
+**Documentation**: [68K_EXTENDED_REGIONS.md](68K_EXTENDED_REGIONS.md)
 
-### High ROM ($100000+) - 285 functions
+### Extended ($30000-$FFFFF) - 5 functions
 
-Likely data handlers, track-specific code, graphics routines.
+| Status | Function | Address | Purpose |
+|--------|----------|---------|---------|
+| [x] | func_407F0 | $0089​407F0 | Track/data processing handler |
+| [x] | func_4A943 | $0089​4A943 | Graphics structure processor |
+| [x] | func_52D6B | $0089​52D6B | Graphics transform function |
+| [x] | func_5B227 | $0089​5B227 | Graphics data handler |
+| [x] | func_60D9C | $008960D9C | High ROM handler |
+
+**Documentation**: [68K_EXTENDED_REGIONS.md](68K_EXTENDED_REGIONS.md)
+
+### Additional Extended Regions
+
+- 61 functions in Main Code 2 ($10000-$1FFFF) - 59 undocumented
+- 118+ functions in Extended ($30000-$FFFFF) - mostly data/graphics
+- 285+ functions in High ROM ($100000+) - unreferenced code/data
 
 ---
 
@@ -330,8 +337,8 @@ Likely data handlers, track-specific code, graphics routines.
 | 6. Low Code | 33 | 33 | 0 | 100% |
 | 7. V-INT States | 16 | 16 | 0 | 100% |
 | 8. Main Logic | 124 | 91 | 33 | 73% |
-| 9. Extended | 500+ | 0 | 500+ | 0% |
-| **TOTAL** | **769** | **175** | **594** | **22.8%** |
+| 9. Extended | 485+ | 7 | 478+ | 1.4% |
+| **TOTAL** | **797** | **182** | **615** | **22.8%** |
 
 ### Milestones
 

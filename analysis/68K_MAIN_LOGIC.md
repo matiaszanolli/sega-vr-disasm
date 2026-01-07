@@ -1196,6 +1196,518 @@ handler_0:
 
 ---
 
+## func_5306 - Game State Dispatcher 2 ($00885306)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_5306: Secondary State-Based Jump Table Dispatcher
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $00885306 - $00885366
+; Size: 96 bytes
+; Called by: Main game logic (1 call)
+;
+; Purpose: Similar to func_4CBC but with different state handlers. Dispatches
+;          to one of 5 handler functions based on state index at $FFC87E.
+;
+; Input: ($FFC87E).W = State index (0-4+)
+; Output: (depends on handler function)
+; Modifies: A1, D0 (and handler-specific registers)
+; ═══════════════════════════════════════════════════════════════════════════
+
+00885306  4E75                 RTS                          ; (padding/unreachable?)
+
+00885308  3038 C87E            MOVE.W  $FFC87E,D0           ; D0 = state index
+0088530C  227B 0004            MOVEA.L (PC,D0.W,$04),A1     ; A1 = table[state]
+00885310  4ED1                 JMP     (A1)                 ; Jump to handler
+
+; Jump table (5 entries)
+00885312  00885326             .long   handler_0            ; State 0
+00885316  00885348             .long   handler_1            ; State 1
+0088531A  0088535E             .long   handler_2            ; State 2
+0088531E  00885396             .long   handler_3            ; State 3
+00885322  0088573C             .long   handler_4            ; State 4
+
+; Handler 0: Initialization chain
+handler_0:
+00885326  4EBA D59A            JSR     $008828C2            ; VDP/SH2 sync (func_28C2)
+0088532A  4EBA CDAA            JSR     $008820D6            ; Unknown
+0088532E  4EBA 5D6E            JSR     $0088B09E            ; High ROM func
+00885332  4EBA 5CF8            JSR     $0088B02C            ; High ROM func
+00885336  4EBA 62FA            JSR     $0088B632            ; High ROM func
+0088533A  5878 C87E            ADDQ.W  #4,$FFC87E           ; Increment state index
+0088533E  33FC 0010 00FF0008   MOVE.W  #$0010,$FF0008       ; Write to Work RAM
+00885346  4E75                 RTS
+
+; Handler 1: Shorter initialization
+handler_1:
+00885348  4EBA CDC0            JSR     $0088210A            ; Unknown
+0088534C  4EBA 5D50            JSR     $0088B09E            ; High ROM func
+00885350  5878 C87E            ADDQ.W  #4,$FFC87E           ; Increment state
+00885354  33FC 0010 00FF0008   MOVE.W  #$0010,$FF0008       ; Write to Work RAM
+0088535C  4E75                 RTS
+
+; Handler 2: Minimal processing
+handler_2:
+0088535E  4EBA CDCE            JSR     $0088212E            ; Unknown
+00885362  4EBA C43A            JSR     $0088179E            ; ControllerRead (Priority 5)
+; ... (continues)
+```
+
+**Analysis**: Parallel state machine to func_4CBC. Also uses $FFC87E as state index and shares handler_4 address ($0088573C). The different handler addresses suggest this dispatcher is used for a different game phase or mode.
+
+---
+
+## func_58C8 - Conditional Bus Operation Loop ($008858C8)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_58C8: Conditional Processing with Bus Control
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $008858C8 - $00885908
+; Size: 64 bytes
+; Called by: Main game logic (1 call)
+;
+; Purpose: Calls subroutine, checks hardware bus flags, conditionally processes
+;          data based on bit tests. Writes to $FF5FFE and loops through table.
+;
+; Input: None (checks RAM at $FFC26C and $FFC89C)
+; Output: $FF5FFE cleared, table at $FF9100 processed
+; Modifies: A1, D7
+; ═══════════════════════════════════════════════════════════════════════════
+
+008858C8  4EBA 12C0            JSR     $00886B8A            ; Call setup function
+008858CC  49F8 A000            LEA     $A000,A1             ; A1 = hardware base
+
+008858D0  3038 C26C            MOVE.W  $FFC26C,D0           ; D0 = control flag
+008858D4  0838 0007 C81C       BTST    #7,$FFC81C           ; Test bit 7
+008858DA  6606                 BNE.S   .check_flag2         ; Branch if set
+008858DC  4A78 C89C            TST.W   $FFC89C              ; Test word
+008858E0  6708                 BEQ.S   .return              ; Return if zero
+
+.check_flag2:
+008858E2  0240 0138            ANDI.W  #$0138,D0            ; Mask bits
+008858E6  6708                 BEQ.S   .return              ; Return if zero
+008858E8  4E75                 RTS
+
+.return:
+008858EA  0240 0130            ANDI.W  #$0130,D0            ; Different mask
+008858EE  66F8                 BNE.S   .check_flag2         ; Loop back
+
+; Clear $FF5FFE
+008858F0  13FC 0000 00FF5FFE   MOVE.B  #0,$FF5FFE           ; Clear byte
+
+; Loop through table
+008858F8  41F8 9100            LEA     $FF9100,A1           ; A1 = table base
+008858FC  7E05                 MOVEQ   #5,D7                ; D7 = 5 (loop count)
+008858FE  4EBA 00EC            JSR     $008859EC            ; Process table entry
+00885902  51CF FFFA            DBRA    D7,.loop             ; Loop 6 times
+00885906  4E75                 RTS
+
+.loop:
+; (continues at 008858FE)
+```
+
+**Analysis**: Complex conditional processing tied to hardware bus state. The bit tests and masking suggest this manages bus arbitration or DMA timing. The table loop at $FF9100 with 6 iterations suggests processing 6 related entries.
+
+---
+
+## func_5908 - Conditional Bus Operation Loop 2 ($00885908)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_5908: Conditional Processing Variant (7 iterations)
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $00885908 - $0088593C
+; Size: 52 bytes
+; Called by: Main game logic (1 call)
+;
+; Purpose: Nearly identical to func_58C8 but processes table at $FF9700
+;          with 8 iterations instead of 6.
+;
+; Input: None (checks RAM at $FFC26C and $FFC89C)
+; Output: Table at $FF9700 processed
+; Modifies: A1, D7
+; ═══════════════════════════════════════════════════════════════════════════
+
+00885908  49F8 A000            LEA     $A000,A1             ; A1 = hardware base
+0088590C  3038 C26C            MOVE.W  $FFC26C,D0           ; D0 = control flag
+00885910  0838 0007 C81C       BTST    #7,$FFC81C           ; Test bit 7
+00885916  6606                 BNE.S   .check_flag2         ; Branch if set
+00885918  4A78 C89C            TST.W   $FFC89C              ; Test word
+0088591C  6708                 BEQ.S   .return              ; Return if zero
+
+.check_flag2:
+0088591E  0240 0138            ANDI.W  #$0138,D0            ; Mask bits
+00885922  6708                 BEQ.S   .return              ; Return if zero
+00885924  4E75                 RTS
+
+.return:
+00885926  0240 0130            ANDI.W  #$0130,D0            ; Different mask
+0088592A  66F8                 BNE.S   .check_flag2         ; Loop back
+
+; Loop through table at $FF9700
+0088592C  41F8 9700            LEA     $FF9700,A1           ; A1 = table base
+00885930  7E07                 MOVEQ   #7,D7                ; D7 = 7 (8 iterations)
+00885932  4EBA 00B8            JSR     $008859EC            ; Process table entry
+00885936  51CF FFFA            DBRA    D7,.loop             ; Loop 8 times
+0088593A  4E75                 RTS
+```
+
+**Analysis**: Variant of func_58C8 with different table address ($FF9700 vs $FF9100) and different iteration count (8 vs 6). The shared conditional logic suggests these manage parallel hardware subsystems.
+
+---
+
+## func_593C - Conditional Bus Operation Loop 3 ($0088593C)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_593C: Conditional Processing Variant (single operation)
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $0088593C - $00885A52
+; Size: 278 bytes
+; Called by: Main game logic (1 call)
+;
+; Purpose: Third variant. Similar conditional checks but executes single
+;          operation on table at $FF9F00 instead of looping.
+;
+; Input: None (checks RAM at $FFC26C and $FFC89C)
+; Output: Processes $FF9F00 table entry, updates object at $FF9000
+; Modifies: A1, D0, D1
+; ═══════════════════════════════════════════════════════════════════════════
+
+0088593C  49F8 A000            LEA     $A000,A1             ; A1 = hardware base
+00885940  3038 C26C            MOVE.W  $FFC26C,D0           ; D0 = control flag
+00885944  0838 0007 C81C       BTST    #7,$FFC81C           ; Test bit 7
+0088594A  6606                 BNE.S   .check_flag2         ; Branch if set
+0088594C  4A78 C89C            TST.W   $FFC89C              ; Test word
+00885950  6708                 BEQ.S   .do_operation        ; Continue if zero
+
+.check_flag2:
+00885952  0240 0138            ANDI.W  #$0138,D0            ; Mask bits
+00885956  670A                 BEQ.S   .skip                ; Skip if zero
+00885958  6010                 BRA.S   .do_operation        ; Otherwise continue
+
+.skip:
+0088595A  0240 0130            ANDI.W  #$0130,D0            ; Different mask
+0088595E  6702                 BEQ.S   .skip2               ; Skip if zero
+00885960  6008                 BRA.S   .do_operation        ; Otherwise continue
+
+.skip2:
+; Execute single operation (no loop)
+00885962  41F8 9F00            LEA     $FF9F00,A1           ; A1 = table
+00885966  4EBA 0084            JSR     $008859EC            ; Process entry
+
+; Update object structure
+.do_operation:
+0088596A  41F8 9000            LEA     $FF9000,A1           ; A1 = object base
+0088596E  2168 00B2 0018       MOVE.L  $B2(A0),$18(A1)      ; Copy long
+00885974  1228 00E5            MOVE.B  $E5(A0),D1           ; D1 = object[0xE5]
+00885978  0201 0006            ANDI.B  #6,D1                ; Mask bits 1-2
+0088597C  6706                 BEQ.S   .no_special          ; Skip if clear
+0088597E  2178 C70C 0018       MOVE.L  $FFC70C,$18(A1)      ; Copy from RAM
+
+.no_special:
+00885984  3038 C07A            MOVE.W  $FFC07A,D0           ; D0 = control value
+00885988  0838 0003 ...        BTST    #3,...               ; (continues)
+; ... (more operations)
+```
+
+**Analysis**: Most complex of the three variants. Uses same conditional logic but performs single table operation followed by extensive object field manipulation. The three functions (func_58C8, func_5908, func_593C) form a family handling different bus operation scenarios.
+
+---
+
+## func_60FD - Subroutine Call Chain ($008860FD)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_60FD: Sequential Subroutine Call Chain
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $008860FD - $0088613D
+; Size: 64 bytes
+; Called by: Main game logic (1 call)
+;
+; Purpose: Calls 14 subroutines in sequence. Orchestrates complex multi-step
+;          operation by delegating to specialized functions.
+;
+; Input: (depends on called subroutines)
+; Output: (depends on called subroutines)
+; Modifies: (depends on called subroutines)
+; ═══════════════════════════════════════════════════════════════════════════
+
+008860FD  7E??                 MOVEQ   #??,D7               ; (partial opcode)
+008860FF  4EBA 0E98            JSR     $00886F99            ; Call 1
+00886103  4EBA 1BD4            JSR     $00887CD9            ; Call 2
+00886107  4EBA 432C            JSR     $0088A435            ; Call 3
+0088610B  4EBA 0F9E            JSR     $008870AB            ; Call 4
+0088610F  4EBA 1DF4            JSR     $00887F05            ; Call 5
+00886113  4EBA 3D5A            JSR     $00889E6F            ; Call 6
+00886117  4EBA 1B36            JSR     $00887C4F            ; Call 7
+0088611B  4EBA 102E            JSR     $0088714B            ; Call 8
+0088611F  4EBA 152E            JSR     $0088764F            ; Call 9
+00886123  4EBA 1E2C            JSR     $00887F51            ; Call 10
+00886127  4EBA 3BA6            JSR     $00889CCF            ; Call 11
+0088612B  4EBA 4B12            JSR     $0088AC3F            ; Call 12
+0088612F  4EBA 2598            JSR     $008886C9            ; Call 13
+00886133  4EBA 3D8C            JSR     $00889EC1            ; Call 14
+00886137  4EBA 34E6            JSR     $0088961F            ; Call 15
+0088613B  4EBA 47??            JSR     $0088A8??            ; Call 16 (partial)
+```
+
+**Analysis**: Orchestration function. Calls 14+ subroutines spread across wide ROM addresses ($6F99 to $A8xx). This pattern suggests a high-level game phase controller that delegates to subsystems (physics, graphics, sound, AI, etc.).
+
+---
+
+## func_64A8 - Object Initialization ($008864A8)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_64A8: Game Object Initialization & Setup
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $008864A8 - $008864E8
+; Size: 64 bytes
+; Called by: Main game logic (1 call)
+;
+; Purpose: Initialize game object structure. Copies data, checks flags,
+;          calls setup routines, and initializes object pointers.
+;
+; Input: A0 = Source object pointer
+; Output: Object at $FF9F00 and $FF9000 initialized
+; Modifies: A1, A2, D0
+; ═══════════════════════════════════════════════════════════════════════════
+
+008864A8  2168 00B2 0018       MOVE.L  $B2(A0),$18(A1)      ; Copy object pointer
+008864AE  1228 00E5            MOVE.B  $E5(A0),D1           ; D1 = flags
+008864B2  0201 0006            ANDI.B  #6,D1                ; Mask bits 1-2
+008864B6  6706                 BEQ.S   .no_special          ; Skip if zero
+008864B8  2178 C70C 0018       MOVE.L  $FFC70C,$18(A1)      ; Use alternate pointer
+
+.no_special:
+008864BE  3038 C07A            MOVE.W  $FFC07A,D0           ; D0 = control index
+008864C2  43FA 00D8            LEA     $0088659C(PC),A1     ; A1 = jump table
+008864C6  2271 0000            MOVEA.L 0(A1,D0.W),A1        ; A1 = table[D0]
+008864CA  4E91                 JSR     (A1)                 ; Call handler
+
+; Call initialization subroutines
+008864CC  4EBA 398C            JSR     $00889E5A            ; Init 1
+008864D0  4EBA 1A2A            JSR     $00887EFC            ; Init 2
+008864D4  4EBA 1F04            JSR     $008883DA            ; Init 3
+008864D8  4EBA 2308            JSR     $008887E2            ; Init 4
+
+; Setup pointers
+008864DC  41F8 9F00            LEA     $FF9F00,A1           ; A1 = object 1
+008864E0  43F8 9000            LEA     $FF9000,A2           ; A2 = object 2
+008864E4  4EBA 218C            JSR     $00888672            ; Link objects
+008864E8  4E75                 RTS
+```
+
+**Analysis**: Object initialization routine. Uses jump table dispatch to call type-specific handlers, then performs common initialization. The two object pointers ($FF9F00 and $FF9000) suggest dual-buffer or player/AI object pairs.
+
+---
+
+## func_6C88 - Bitfield Dispatcher ($00886C88)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_6C88: Multi-Bit Test Dispatcher
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $00886C88 - $00886CC8
+; Size: 64 bytes
+; Called by: Main game logic (1 call)
+;
+; Purpose: Tests multiple bits in control byte, branches to different code
+;          paths based on which bits are set. 7-way dispatcher.
+;
+; Input: ($FFC86E).B = Control bitfield
+; Output: Branches to appropriate handler
+; Modifies: D0
+; ═══════════════════════════════════════════════════════════════════════════
+
+00886C88  4A79 00FF3000        TST.W   $FF3000              ; Test word
+00886C8E  6604                 BNE.S   .has_flag            ; Branch if != 0
+00886C90  4EBA FFB4            JSR     $00886C46            ; Call function
+
+.has_flag:
+00886C94  1238 C86E            MOVE.B  $FFC86E,D1           ; D1 = bitfield
+00886C98  7030                 MOVEQ   #$30,D0              ; D0 = default value
+
+; Test bit 6
+00886C9A  0801 0006            BTST    #6,D1                ; Test bit 6
+00886C9E  6602                 BNE.S   .bit6_set            ; Branch if set
+00886CA0  7008                 MOVEQ   #8,D0                ; D0 = 8
+
+; Test bit 2
+.bit6_set:
+00886CA2  0801 0002            BTST    #2,D1                ; Test bit 2
+00886CA6  6600 0090            BNE.W   .handler_bit2        ; Branch to handler
+
+; Test bit 3
+00886CAA  0801 0003            BTST    #3,D1                ; Test bit 3
+00886CAE  6600 008E            BNE.W   .handler_bit3        ; Branch to handler
+
+; Test bit 1
+00886CB2  0801 0001            BTST    #1,D1                ; Test bit 1
+00886CB6  6600 008C            BNE.W   .handler_bit1        ; Branch to handler
+
+; Test bit 0
+00886CBA  0801 0000            BTST    #0,D1                ; Test bit 0
+00886CBE  6600 008A            BNE.W   .handler_bit0        ; Branch to handler
+
+; Test bit 4
+00886CC2  0801 0004            BTST    #4,D1                ; Test bit 4
+00886CC6  6600 ????            BNE.W   .handler_bit4        ; (continues)
+```
+
+**Analysis**: Priority encoder using sequential bit tests. Each bit in $FFC86E triggers a different handler. The default value ($30 vs $08) depends on bit 6. This implements a state machine where multiple states can be encoded in a single control byte.
+
+---
+
+## func_6D9C - Hardware Loop 1 ($00886D9C)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_6D9C: Hardware Command Loop (6 iterations, $FF9100 table)
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $00886D9C - $00886DC8
+; Size: 44 bytes
+; Called by: Main game logic (1 call)
+;
+; Purpose: Calls helper function, clears $FF5FFE, then executes 6 iterations
+;          of hardware command processing on table at $FF9100.
+;
+; Input: None
+; Output: $FF5FFE cleared, table processed
+; Modifies: A1, D7
+; ═══════════════════════════════════════════════════════════════════════════
+
+00886D9C  4EBA FDEC            JSR     $00886B8A            ; Setup function
+00886DA0  49F8 A000            LEA     $A000,A1             ; A1 = hardware base
+00886DA4  13FC 0000 00FF5FFE   MOVE.B  #0,$FF5FFE           ; Clear byte
+
+; Loop 6 times
+00886DAC  41F8 9100            LEA     $FF9100,A1           ; A1 = table base
+00886DB0  4EBA EC3A            JSR     $008859EC            ; Process entry 1
+00886DB4  4EBA EC36            JSR     $008859EC            ; Process entry 2
+00886DB8  4EBA EC32            JSR     $008859EC            ; Process entry 3
+00886DBC  4EBA EC2E            JSR     $008859EC            ; Process entry 4
+00886DC0  4EBA EC2A            JSR     $008859EC            ; Process entry 5
+00886DC4  4EBA EC26            JSR     $008859EC            ; Process entry 6
+00886DC8  4E75                 RTS
+```
+
+**Analysis**: Unrolled loop variant of func_58C8. Instead of DBRA loop, calls the same function 6 times explicitly. Slightly larger code but potentially faster (no loop overhead). Processes same table ($FF9100).
+
+---
+
+## func_6DC8 - Hardware Loop 2 ($00886DC8)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_6DC8: Hardware Command Loop (8 iterations, $FF9700 table)
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $00886DC8 - $00886DF0
+; Size: 40 bytes
+; Called by: Main game logic (1 call)
+;
+; Purpose: Unrolled loop for $FF9700 table (8 iterations)
+; ═══════════════════════════════════════════════════════════════════════════
+
+00886DC8  49F8 A000            LEA     $A000,A1             ; A1 = hardware base
+00886DCC  41F8 9700            LEA     $FF9700,A1           ; A1 = table base
+00886DD0  4EBA EC1A            JSR     $008859EC            ; Process entry 1
+00886DD4  4EBA EC16            JSR     $008859EC            ; Process entry 2
+00886DD8  4EBA EC12            JSR     $008859EC            ; Process entry 3
+00886DDC  4EBA EC0E            JSR     $008859EC            ; Process entry 4
+00886DE0  4EBA EC0A            JSR     $008859EC            ; Process entry 5
+00886DE4  4EBA EC06            JSR     $008859EC            ; Process entry 6
+00886DE8  4EBA EC02            JSR     $008859EC            ; Process entry 7
+00886DEC  4EBA EBFE            JSR     $008859EC            ; Process entry 8
+00886DF0  4E75                 RTS
+```
+
+**Analysis**: Unrolled variant for 8 iterations. Processes table at $FF9700. Pattern matches func_5908 but with explicit calls instead of DBRA.
+
+---
+
+## func_6DF0 - Hardware Loop 3 ($00886DF0)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_6DF0: Hardware Command Loop (single iteration, $FF9F00 table)
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $00886DF0 - $00886DFC
+; Size: 12 bytes
+; Called by: Main game logic (1 call)
+;
+; Purpose: Single iteration variant for $FF9F00 table
+; ═══════════════════════════════════════════════════════════════════════════
+
+00886DF0  49F8 A000            LEA     $A000,A1             ; A1 = hardware base
+00886DF4  41F8 9F00            LEA     $FF9F00,A1           ; A1 = table base
+00886DF8  4EBA EBF2            JSR     $008859EC            ; Process single entry
+00886DFC  4E75                 RTS
+```
+
+**Analysis**: Simplest variant - single operation on $FF9F00 table. The three functions (6D9C, 6DC8, 6DF0) provide unrolled versions of the looped variants (58C8, 5908, 593C).
+
+---
+
+## func_9084 - VDP Calculation & Write ($00889084)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_9084: Complex VDP Value Calculation
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $00889084 - $008890A4
+; Size: 32 bytes
+; Called by: Main game logic (1 call)
+;
+; Purpose: Perform calculations on RAM values and write to VDP register.
+;          Applies thresholds, scaling, and conditional adjustments.
+;
+; Input: ($FFC0B0).W = Source value
+;        ($FFC04C).W = Conditional flag
+; Output: ($FFC882).W = Result
+;         VDP register at $8000 written
+; Modifies: D0
+; ═══════════════════════════════════════════════════════════════════════════
+
+00889084  70F8                 MOVEQ   #-8,D0               ; D0 = -8 (threshold low)
+00889086  0C40 0010            CMPI.W  #$10,D0              ; Compare with $10
+0088908A  6F02                 BLE.S   .in_range            ; Branch if D0 <= $10
+0088908C  7010                 MOVEQ   #$10,D0              ; Clamp to $10 (max)
+
+.in_range:
+0088908E  5140                 SUBQ.W  #8,D0                ; D0 -= 8
+00889090  31C0 C882            MOVE.W  D0,$FFC882           ; Store result
+00889094  31FC FEC0 8000       MOVE.W  #$FEC0,$8000         ; Write to VDP
+
+0088909A  4E75                 RTS
+
+; Alternate function at +$10
+0088909C  31FC 0000 8000       MOVE.W  #0,$8000             ; Clear VDP register
+008890A2  4E75                 RTS
+
+; Another calculation
+008890A4  3038 C0B0            MOVE.W  $FFC0B0,D0           ; D0 = source value
+008890A8  E740                 LSL.W   #3,D0                ; D0 <<= 3 (multiply by 8)
+008890AA  D078 903C            ADD.W   $903C,D0             ; Add constant offset
+008890AE  D078 9096            ADD.W   $9096,D0             ; Add second offset
+
+; Conditional adjustment
+008890B2  4A78 C04C            TST.W   $FFC04C              ; Test flag
+008890B6  6704                 BEQ.S   .no_adjust           ; Skip if zero
+008890B8  9078 9046            SUB.W   $9046,D0             ; Subtract adjustment
+
+.no_adjust:
+008890BC  EC40                 LSR.W   #6,D0                ; D0 >>= 6 (divide by 64)
+008890BE  0838 0007 FDA8       BTST    #7,$FDA8             ; Test high bit
+; ... (continues)
+```
+
+**Analysis**: VDP parameter calculator. Applies threshold clamping, scaling, and conditional offsets before writing to VDP. The bit tests and arithmetic suggest this calculates scroll positions or display parameters from game state.
+
+---
+
 ## References
 
 - [68K_COMM_PROTOCOL.md](68K_COMM_PROTOCOL.md) - COMM register protocol basics

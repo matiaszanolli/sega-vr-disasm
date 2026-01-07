@@ -214,9 +214,20 @@ These are the handlers called from V-INT jump table at $16B2:
 | [x] | func_48CE | $008848CE | 2 | Memory fill waterfall entry 1 |
 | [x] | func_48D2 | $008848D2 | 2 | Memory fill waterfall entry 2 |
 | [x] | func_4CBC | $00884CBC | 1 | Game state jump table dispatcher |
+| [x] | func_5306 | $00885306 | 1 | Game state dispatcher 2 (parallel to 4CBC) |
+| [x] | func_58C8 | $008858C8 | 1 | Conditional bus operation loop (6 iter) |
+| [x] | func_5908 | $00885908 | 1 | Conditional bus operation loop (8 iter) |
+| [x] | func_593C | $0088593C | 1 | Conditional bus operation loop (single) |
+| [x] | func_60FD | $008860FD | 1 | Subroutine call chain (14+ calls) |
+| [x] | func_64A8 | $008864A8 | 1 | Object initialization & setup |
+| [x] | func_6C88 | $00886C88 | 1 | Bitfield dispatcher (7-way) |
 | [x] | func_6D00 | $00886D00 | 4 | Table search with conditional index |
+| [x] | func_6D9C | $00886D9C | 1 | Hardware loop 1 (6 iter, $FF9100) |
+| [x] | func_6DC8 | $00886DC8 | 1 | Hardware loop 2 (8 iter, $FF9700) |
+| [x] | func_6DF0 | $00886DF0 | 1 | Hardware loop 3 (single, $FF9F00) |
 | [x] | func_7280 | $00887280 | 2 | Bitfield calculator (3D spatial) |
 | [x] | func_83AE | $008883AE | 2 | PSG nibble splitter |
+| [x] | func_9084 | $00889084 | 1 | VDP calculation & write |
 | [x] | func_D1D4 | $0088D1D4 | 6 | Z80 sound command sender |
 | [x] | func_5000 | $00885000 | - | Interrupt vector setup |
 | [x] | func_8000 | $00888000 | - | Object state updater |
@@ -270,9 +281,9 @@ Likely data handlers, track-specific code, graphics routines.
 | 5. Controller | 6 | 6 | 0 | 100% |
 | 6. Low Code | 33 | 33 | 0 | 100% |
 | 7. V-INT States | 16 | 16 | 0 | 100% |
-| 8. Main Logic | 124 | 31 | 93 | 25% |
+| 8. Main Logic | 124 | 43 | 81 | 35% |
 | 9. Extended | 500+ | 0 | 500+ | 0% |
-| **TOTAL** | **769** | **115** | **654** | **15.0%** |
+| **TOTAL** | **769** | **127** | **642** | **16.5%** |
 
 ### Milestones
 

@@ -198,19 +198,24 @@ These are the handlers called from V-INT jump table at $16B2:
 
 | Status | Function | Address | Calls | Purpose |
 |--------|----------|---------|-------|---------|
-| [x] | WaitForVBlank | $00884998 | 21 | V-INT sync |
-| [x] | SetDisplayParams | $008849AA | 21 | Display init |
-| [ ] | func_4920 | $00884920 | 6 | TBD |
-| [ ] | func_4922 | $00884922 | 2 | TBD |
-| [ ] | func_6D00 | $00886D00 | 4 | TBD |
-| [ ] | func_7280 | $00887280 | 2 | TBD |
-| [ ] | func_83AE | $008883AE | 2 | TBD |
-| [ ] | func_E316 | $0088E316 | 6 | TBD |
-| [ ] | func_E35A | $0088E35A | 7 | TBD |
-| [ ] | func_E406 | $0088E406 | 6 | TBD |
-| [ ] | func_E4BC | $0088E4BC | 6 | TBD |
-| [ ] | func_E52C | $0088E52C | 8 | TBD |
-| [ ] | func_FB36 | $0088FB36 | 17 | HIGH PRIORITY |
+| [x] | WaitForVBlank | $00884998 | 21 | V-INT sync (Priority 2) |
+| [x] | SetDisplayParams | $008849AA | 21 | Display init (Priority 2) |
+| [x] | func_4920 | $00884920 | 6 | Fast 20-byte memory copy (A1→A2) |
+| [ ] | func_4922 | $00884922 | 2 | Large block copy (needs verification) |
+| [x] | func_6D00 | $00886D00 | 4 | Table search with conditional index |
+| [x] | func_7280 | $00887280 | 2 | Bitfield calculator (3D spatial) |
+| [x] | func_83AE | $008883AE | 2 | PSG nibble splitter |
+| [x] | func_D1D4 | $0088D1D4 | 6 | Z80 sound command sender |
+| [x] | func_5000 | $00885000 | - | Interrupt vector setup |
+| [x] | func_8000 | $00888000 | - | Object state updater |
+| [x] | func_E316 | $0088E316 | 6 | Send COMM command $25 to SH2 |
+| [x] | func_E35A | $0088E35A | 7 | Send COMM command $22 (multi-phase) |
+| [x] | func_E406 | $0088E406 | 6 | Send COMM command $2F (4 params) |
+| [x] | func_E4BC | $0088E4BC | 6 | Compute + send COMM command $21 |
+| [x] | func_E52C | $0088E52C | 8 | Multi-table processor (HIGHEST P8 calls) |
+| [x] | SendDREQCommand | $0088FB36 | 17 | DMA request to SH2 (Priority 4) |
+
+**Documentation**: [68K_MAIN_LOGIC.md](68K_MAIN_LOGIC.md)
 
 ---
 
@@ -253,9 +258,9 @@ Likely data handlers, track-specific code, graphics routines.
 | 5. Controller | 6 | 6 | 0 | 100% |
 | 6. Low Code | 33 | 33 | 0 | 100% |
 | 7. V-INT States | 16 | 16 | 0 | 100% |
-| 8. Main Logic | 124 | 4 | 120 | 3% |
+| 8. Main Logic | 124 | 16 | 108 | 13% |
 | 9. Extended | 500+ | 0 | 500+ | 0% |
-| **TOTAL** | **769** | **88** | **681** | **11.4%** |
+| **TOTAL** | **769** | **100** | **669** | **13.0%** |
 
 ### Milestones
 
@@ -268,7 +273,7 @@ Likely data handlers, track-specific code, graphics routines.
 - [x] Priority 7 Complete (16 state handlers) ✅
 - [x] 50 functions annotated ✅
 - [x] **Priority 1-7 ALL COMPLETE** (88 functions) ✅ **MILESTONE!**
-- [ ] 100 functions annotated (88/100 - 88%)
+- [x] **100 functions annotated** ✅ **MILESTONE ACHIEVED!** 🎉
 - [ ] 200 functions annotated
 - [ ] 50% of high-priority functions
 
@@ -318,3 +323,4 @@ From hotspot analysis:
 - [68K_ENTRY_INIT.md](68K_ENTRY_INIT.md) - Boot sequence and initialization
 - [68K_COMM_PROTOCOL.md](68K_COMM_PROTOCOL.md) - 68K↔SH2 communication protocol
 - [68K_ANNOTATION_PLAN.md](68K_ANNOTATION_PLAN.md) - Original planning document
+- [68K_MAIN_LOGIC.md](68K_MAIN_LOGIC.md) - Priority 8 main game logic functions

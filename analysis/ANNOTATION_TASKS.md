@@ -114,26 +114,26 @@ Quick wins - small, self-contained utility functions.
 
 | Status | Function | Offset | Size | Notes |
 |--------|----------|--------|------|-------|
-| [ ] | func_013 | 0x232C4 | 66 bytes | |
-| [ ] | func_014 | 0x23308 | 54 bytes | |
-| [ ] | func_015 | 0x23340 | 24 bytes | |
-| [ ] | func_022 | 0x234EC | 18 bytes | |
-| [ ] | func_035 | 0x237A8 | 40 bytes | |
-| [ ] | func_040 | 0x2385C | 120 bytes | |
-| [ ] | func_041 | 0x238D6 | 132 bytes | |
-| [ ] | func_042 | 0x2395C | 76 bytes | |
-| [ ] | func_046 | 0x23B3C | 132 bytes | |
-| [ ] | func_047 | 0x23BC2 | 40 bytes | |
-| [ ] | func_048 | 0x23BEC | 80 bytes | |
-| [ ] | func_050 | 0x23C4C | 18 bytes | |
-| [ ] | func_051 | 0x23C60 | 64 bytes | |
-| [ ] | func_054 | 0x23CB2 | 38 bytes | |
-| [ ] | func_055 | 0x23CDA | 62 bytes | |
-| [ ] | func_056 | 0x23D1A | 32 bytes | |
-| [ ] | func_057 | 0x23D3C | 20 bytes | |
-| [ ] | func_058 | 0x23D52 | 24 bytes | |
-| [ ] | func_066 | 0x23FC4 | 44 bytes | |
-| [ ] | func_067 | 0x23FF2 | 100 bytes | |
+| [x] | func_013 | 0x232C4 | 66 bytes | VDP initialization with data table |
+| [x] | func_014 | 0x23308 | 54 bytes | Array copy (7 elements) |
+| [x] | func_015 | 0x23340 | 24 bytes | Strided array copy |
+| [x] | func_022 | 0x234EC | 18 bytes | VDP status setup |
+| [x] | func_035 | 0x237A8 | 40 bytes | Coordinate delta calculation |
+| [x] | func_040 | 0x2385C | 120 bytes | Multi-mode VDP command dispatcher |
+| [x] | func_041 | 0x238D6 | 132 bytes | VDP dispatcher continuation |
+| [x] | func_042 | 0x2395C | 76 bytes | VDP command post-processing |
+| [x] | func_046 | 0x23B3C | 132 bytes | Word stream processor with VDP polling |
+| [x] | func_047 | 0x23BC2 | 40 bytes | Frame buffer address calculator |
+| [x] | func_048 | 0x23BEC | 80 bytes | Scanline fill with pattern |
+| [x] | func_050 | 0x23C4C | 18 bytes | Word fill loop |
+| [x] | func_051 | 0x23C60 | 64 bytes | Reverse word fill (decrement) |
+| [x] | func_054 | 0x23CB2 | 38 bytes | Loop with indirect dispatch |
+| [x] | func_055 | 0x23CDA | 62 bytes | Nested array copy with stride |
+| [x] | func_056 | 0x23D1A | 32 bytes | Conditional copy with index check |
+| [x] | func_057 | 0x23D3C | 20 bytes | Conditional branch to frame buffer |
+| [x] | func_058 | 0x23D52 | 24 bytes | Conditional copy with alignment |
+| [x] | func_066 | 0x23FC4 | 44 bytes | RLE decompression / pattern expander |
+| [x] | func_067 | 0x23FF2 | 100 bytes | Extended RLE with clipping |
 
 ---
 
@@ -231,12 +231,12 @@ Investigation of Priority 2 recursive functions reveals complex control flow cha
 | 4. func_065 callers | 5 | 5 | 0 | 100% |
 | 5. Display list handlers | 5 | 5 | 0 | 100% |
 | 6. Small leaf | 11 | 11 | 0 | 100% |
-| 7. Medium leaf | 20 | 0 | 20 | 0% |
+| 7. Medium leaf | 20 | 20 | 0 | 100% |
 | 8. Larger functions | 15 | 0 | 15 | 0% |
 | 9. Remaining | 29 | 0 | 29 | 0% |
-| **TOTAL** | **104** | **40** | **64** | **38%** |
+| **TOTAL** | **104** | **60** | **44** | **58%** |
 
-**Grand Total (including 5 initial):** 45 annotated out of 109 (41% complete)
+**Grand Total (including 5 initial):** 65 annotated out of 109 (60% complete)
 
 ### Completion Milestones
 
@@ -246,7 +246,9 @@ Investigation of Priority 2 recursive functions reveals complex control flow cha
 - [x] Priority 4 (100%): 5 func_065 callers complete (data copy orchestrators)
 - [x] Priority 5 (100%): 5 display list handlers complete (vertex transforms)
 - [x] Priority 6 (100%): 11 small leaf functions complete (utility operations)
-- [ ] Priority 7-9: 64 remaining functions
-- [x] > 30% of all functions: 45 functions annotated
-- [x] > 40% of all functions: 45 functions annotated
-- [ ] Half of all functions: 54.5 functions (need ~10 more)
+- [x] Priority 7 (100%): 20 medium leaf functions complete (VDP, fill, copy operations)
+- [ ] Priority 8-9: 44 remaining functions
+- [x] > 30% of all functions: 65 functions annotated
+- [x] > 40% of all functions: 65 functions annotated
+- [x] > 50% of all functions: 65 functions annotated
+- [x] > 60% of all functions: 65 functions annotated

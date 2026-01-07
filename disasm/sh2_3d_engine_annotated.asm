@@ -3081,7 +3081,1466 @@ func_010:
 
 
 ; ═══════════════════════════════════════════════════════════════════════════
-; End of Annotated Disassembly (Hotspot Functions)
+; PRIORITY 7 - MEDIUM LEAF FUNCTIONS (20 functions)
+; ═══════════════════════════════════════════════════════════════════════════
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_013: VDP Register Initialization
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x0232C4 - 0x023308
+; Size: 66 bytes
+; Type: Leaf function with embedded data table
+; Called by: Unknown (setup/initialization function)
+;
+; Purpose: Initializes VDP registers with a predefined data table, then performs
+; additional VDP setup by writing value 0x08 to multiple VDP registers at 0x40-byte
+; intervals.
+;
+; Input:
+;   R0 = Source data pointer (PC-relative)
+;   R14 = RenderingContext pointer (0xC0000700)
+;
+; Output:
+;   VDP registers configured
+;   [R14+0x24] updated
+;
+; Data Structure:
+;   Embedded data table from 0x0232C6-0x0232D2 (7 words)
+;   Followed by initialization loop copying 14 elements
+;   Then VDP register write loop (variable count in R7)
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_013:
+; Data table embedded in function (7 words = 14 bytes)
+022232C4  1EB9     MOV.L   R11,@($24,R14)  ; [R14+0x24] = R11 (save R11)
+022232C6  0000     DW      $0000            ; Data: 0x0000
+022232C8  C000     DW      $C000            ; Data: 0xC000
+022232CA  0740     DW      $0740            ; Data: 0x0740
+022232CC  C000     DW      $C000            ; Data: 0xC000
+022232CE  0770     DW      $0770            ; Data: 0x0770
+022232D0  0020     DW      $0020            ; Data: 0x0020
+022232D2  0000     DW      $0000            ; Data: 0x0000
+
+; Initialization code starts here
+022232D4  DE0D     MOV.L   @($0222330C,PC),R14  ; R14 = 0xC0000700 (RenderingContext ptr)
+022232D6  C70F     DW      $C70F            ; Data or instruction (unclear)
+022232D8  E70E     MOV     #$0E,R7          ; R7 = 14 (loop counter)
+022232DA  6DE3     MOV     R14,R13          ; R13 = R14 (context pointer copy)
+022232DC  7D0C     ADD     #$0C,R13         ; R13 = R14 + 12 (destination pointer)
+
+; Copy loop: 14 elements from R0 to R13
+loop_copy:
+022232DE  6106     MOV.L   @R0+,R1          ; R1 = [R0++] (read source, post-increment)
+022232E0  2D12     MOV.L   R1,@R13          ; [R13] = R1 (write destination)
+022232E2  4710     DT      R7               ; R7--; T = (R7 == 0)
+022232E4  8FFB     BF/S    $022232DE        ; if (T==0) goto loop_copy (delay slot)
+022232E6  7D04     ADD     #$04,R13         ; [DS] R13 += 4 (advance destination)
+
+; VDP register setup
+022232E8  D009     MOV.L   @($02223310,PC),R0   ; R0 = 0x20000000 (VDP base?)
+022232EA  51E9     MOV.L   @($24,R14),R1    ; R1 = [R14+0x24] (retrieve saved value)
+022232EC  210B     OR      R0,R1            ; R1 |= R0 (combine with VDP base)
+022232EE  E008     MOV     #$08,R0          ; R0 = 0x08 (value to write)
+022232F0  970B     MOV.W   @(${target:08X},PC),R7  ; R7 = loop count from PC-relative data
+
+; VDP register write loop: writes 0x08 to [R1+0x0E] with 0x40-byte stride
+loop_vdp:
+022232F2  811E     MOV.B   R0,@($E,R1)      ; [R1+0x0E] = 0x08 (write to VDP register)
+022232F4  7140     ADD     #$40,R1          ; R1 += 0x40 (next VDP register)
+022232F6  811E     MOV.B   R0,@($E,R1)      ; [R1+0x0E] = 0x08
+022232F8  7140     ADD     #$40,R1          ; R1 += 0x40
+022232FA  811E     MOV.B   R0,@($E,R1)      ; [R1+0x0E] = 0x08
+022232FC  7140     ADD     #$40,R1          ; R1 += 0x40
+022232FE  811E     MOV.B   R0,@($E,R1)      ; [R1+0x0E] = 0x08
+02223300  4710     DT      R7               ; R7--; T = (R7 == 0)
+02223302  8FF6     BF/S    $022232F2        ; if (T==0) goto loop_vdp (delay slot)
+02223304  7140     ADD     #$40,R1          ; [DS] R1 += 0x40 (next VDP register)
+02223306  000B     RTS                       ; Return
+02223308  0009     NOP                       ; [DS] No operation
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_014: Array Copy (7 elements)
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x023308 - 0x023340
+; Size: 54 bytes
+; Type: Leaf function with embedded data table
+;
+; Purpose: Copies 7 longwords from source array (R1) to destination (R2).
+; First half of function is an embedded data table.
+;
+; Input:
+;   R1 = Source pointer
+;   R2 = Destination pointer (PC-relative, loaded from 0x02223344)
+;
+; Output:
+;   7 longwords copied from [R1] to [R2]
+;   R1 += 28 (0x1C), R2 += 28 (0x1C)
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_014:
+; Embedded data table (starts at previous function's end)
+02223308  0009     NOP                       ; Alignment padding
+0222330A  0040     DW      $0040            ; Data
+0222330C  C000     DW      $C000            ; Data (RenderingContext base?)
+0222330E  0700     DW      $0700            ; Data
+02223310  2000     MOV.B   R0,@R0           ; Data or instruction
+02223312  0000     DW      $0000            ; Data
+02223314  0000     DW      $0000            ; Data
+02223316  00A0     DW      $00A0            ; Data
+02223318  0000     DW      $0000            ; Data
+0222331A  0070     DW      $0070            ; Data
+0222331C  0000     DW      $0000            ; Data
+0222331E  0010     DW      $0010            ; Data
+02223320  0000     DW      $0000            ; Data
+02223322  00CF     MAC.L   @R12+,@R0+       ; Data (looks like instruction)
+02223324  0000     DW      $0000            ; Data
+02223326  0000     DW      $0000            ; Data
+02223328  0000     DW      $0000            ; Data
+0222332A  013F     MAC.L   @R3+,@R1+        ; Data (looks like instruction)
+0222332C  0601     DW      $0601            ; Data
+0222332E  8000     MOV.B   R0,@($0,R0)      ; Data (looks like instruction)
+
+; Actual function code starts here
+02223330  D204     MOV.L   @($02223344,PC),R2  ; R2 = 0xC000070C (destination base)
+02223332  E706     MOV     #$06,R7          ; R7 = 6 (loop counter, will iterate 7 times total)
+
+; Copy loop: reads from R1, writes to R2, 7 iterations
+loop_copy:
+02223334  6016     MOV.L   @R1+,R0          ; R0 = [R1++] (read source, post-increment)
+02223336  2202     MOV.L   R0,@R2           ; [R2] = R0 (write destination)
+02223338  4710     DT      R7               ; R7--; T = (R7 == 0)
+0222333A  8FFB     BF/S    $02223334        ; if (T==0) goto loop_copy (delay slot)
+0222333C  7204     ADD     #$04,R2          ; [DS] R2 += 4 (advance destination)
+0222333E  000B     RTS                       ; Return
+02223340  0009     NOP                       ; [DS] No operation
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_015: Strided Array Copy
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x023340 - 0x02335A
+; Size: 24 bytes
+; Type: Leaf
+;
+; Purpose: Copies array data with automatic stride calculation. Similar to func_014
+; but uses PC-relative loading for both source and destination pointers.
+;
+; Input:
+;   None (pointers loaded from PC-relative data)
+;
+; Output:
+;   Data copied from source to destination
+;   Number of elements determined by R7 (loaded from PC-relative word)
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_015:
+02223340  0009     NOP                       ; Alignment padding
+02223342  0000     DW      $0000            ; Data alignment
+02223344  C000     DW      $C000            ; Data (used by func_014)
+02223346  070C     DW      $070C            ; Data (used by func_014)
+02223348  D105     MOV.L   @($02223360,PC),R1  ; R1 = destination pointer
+0222334A  D006     MOV.L   @($02223364,PC),R0  ; R0 = source pointer
+0222334C  9706     MOV.W   @(${target:08X},PC),R7  ; R7 = element count
+
+; Copy loop
+loop_copy:
+0222334E  6206     MOV.L   @R0+,R2          ; R2 = [R0++] (read source)
+02223350  2122     MOV.L   R2,@R1           ; [R1] = R2 (write destination)
+02223352  4710     DT      R7               ; R7--; T = (R7 == 0)
+02223354  8FFB     BF/S    $0222334E        ; if (T==0) goto loop_copy (delay slot)
+02223356  7104     ADD     #$04,R1          ; [DS] R1 += 4 (advance destination)
+02223358  000B     RTS                       ; Return
+0222335A  0009     NOP                       ; [DS] No operation
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_022: VDP Status Setup
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x0234EC - 0x023500
+; Size: 18 bytes
+; Type: Leaf
+; Called by: Unknown
+;
+; Purpose: Performs VDP status check/polling, then writes value 0x06 to VDP register.
+; Appears to be a VDP synchronization or mode setup function.
+;
+; Input:
+;   R14 = RenderingContext pointer (0xC0000700)
+;   R5 = VDP register base pointer
+;
+; Output:
+;   VDP register configured
+;   [R1+0x0E] = 0x06
+;
+; Registers Modified: R0, R1
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_022:
+0222234EC  0009     NOP                       ; Alignment padding
+022234EE  D005     MOV.L   @($02223504,PC),R0  ; R0 = 0x20000000 (VDP base address)
+022234F0  51E9     MOV.L   @($24,R14),R1    ; R1 = [R14+0x24] (context value)
+022234F2  210B     OR      R0,R1            ; R1 |= R0 (combine with VDP base)
+022234F4  851E     MOV.B   R0,@($E,R5)      ; [R5+0x0E] = low_byte(R0) (VDP write)
+022234F6  C808     DW      $C808            ; Data or TST instruction
+022234F8  89FC     BT      $022234F4        ; if (T==1) goto $022234F4 (poll loop?)
+022234FA  51E9     MOV.L   @($24,R14),R1    ; R1 = [R14+0x24] (reload context value)
+022234FC  E006     MOV     #$06,R0          ; R0 = 0x06 (status value)
+022234FE  000B     RTS                       ; Return
+02223500  811E     MOV.B   R0,@($E,R1)      ; [DS] [R1+0x0E] = 0x06 (write to VDP)
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_035: Coordinate Delta Calculation
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x0237A8 - 0x0237D2
+; Size: 40 bytes
+; Type: Leaf (but disassembly shows BSR at end - may be misaligned)
+; Called by: Unknown
+;
+; Purpose: Calculates coordinate differences and performs fixed-point arithmetic
+; for slope/delta calculations. Uses signed word extension (EXTS.W) and
+; multiplication (MULS.W).
+;
+; Input:
+;   R1 = Coordinate 1 (Y coordinate, upper word)
+;   R2 = Coordinate 2 (Y coordinate, lower word)
+;   R3 = Coordinate 3 (X coordinate, upper word)
+;   R4 = Multiplier value
+;   R13 = Output structure pointer
+;
+; Output:
+;   [R13+0x00] = R5 (delta Y stored)
+;   [R13+0x04] = R7 (product result from MAC)
+;   R3 = Packed coordinate result
+;
+; Algorithm:
+;   delta_y = extend_sign(R3) - extend_sign(R1)
+;   delta_x = extend_sign(R2) - extend_sign(R6)
+;   product = R4 × delta_y
+;   Output upper/lower parts of coordinate
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_035:
+022237A8  237B     OR      R7,R3            ; R3 |= R7 (combine values)
+022237AA  FF01     DW      $FF01            ; Data
+022237AC  0600     DW      $0600            ; Data
+022237AE  48D0     DW      $48D0            ; Data (lookup table address?)
+022237B0  651F     EXTS.W  R1,R5            ; R5 = sign_extend_word(R1)
+022237B2  673F     EXTS.W  R3,R7            ; R7 = sign_extend_word(R3)
+022237B4  3758     SUB     R5,R7            ; R7 = R7 - R5 (delta Y)
+022237B6  247F     MULS.W  R7,R4            ; MAC = R4 × R7 (fixed-point multiply)
+022237B8  9D0C     MOV.W   @(${target:08X},PC),R13  ; R13 = output pointer
+022237BA  662F     EXTS.W  R2,R6            ; R6 = sign_extend_word(R2)
+022237BC  3568     SUB     R6,R5            ; R5 = R5 - R6 (delta X)
+022237BE  071A     STS     MACL,R7          ; R7 = MAC[31:0] (lower 32 bits of product)
+022237C0  1D50     MOV.L   R5,@($0,R13)    ; [R13+0x00] = R5 (store delta X)
+022237C2  1D71     MOV.L   R7,@($4,R13)    ; [R13+0x04] = R7 (store product)
+022237C4  633D     EXTU.W  R3,R3            ; R3 = zero_extend_word(R3) (clear upper bits)
+022237C6  6419     SWAP.W  R1,R4            ; R4 = swap_words(R1)
+022237C8  644F     EXTS.W  R4,R4            ; R4 = sign_extend_word(R4)
+022237CA  57D7     MOV.L   @($1C,R13),R7    ; R7 = [R13+0x1C]
+022237CC  374C     ADD     R4,R7            ; R7 += R4
+022237CE  4728     SHLL16  R7               ; R7 <<= 16 (shift to upper word)
+022237D0  000B     RTS                       ; Return
+022237D2  237B     OR      R7,R3            ; [DS] R3 |= R7 (pack coordinate)
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_040: Multi-Mode VDP Command Dispatcher
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x02385C - 0x0238D6
+; Size: 120 bytes
+; Type: Dispatcher with embedded jump table
+; Called by: Unknown
+;
+; Purpose: Reads VDP command byte and dispatches to appropriate handler based on
+; command value. Processes two lists stored at R8 and R9, filtering and copying
+; data based on command stream values.
+;
+; Input:
+;   R14 = RenderingContext pointer (0xC0000700)
+;   R5 = VDP status register base
+;
+; Output:
+;   R10/R11 = Updated buffer pointers
+;   Data copied from R8/R9 lists to R10/R11 buffers
+;
+; Data Structure:
+;   Two source lists at 0xC0000 7C0 and 0xC00007E0
+;   Command stream processed, 0xFF terminates list
+;   Jump table embedded at 0x0223887C
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_040:
+02223585C  7904     ADD     #$04,R9          ; R9 += 4 (not part of function - misalignment?)
+0222385E  D811     MOV.L   @($022238A4,PC),R8  ; R8 = 0xC00007C0 (source list 1)
+02223860  D911     MOV.L   @($022238A8,PC),R9  ; R9 = 0xC00007E0 (source list 2)
+02223862  56E9     MOV.L   @($24,R14),R6    ; R6 = [R14+0x24] (VDP base address)
+02223864  D111     MOV.L   @($022238AC,PC),R1  ; R1 = 0x20000000
+02223866  216B     OR      R6,R1            ; R1 = R6 | 0x20000000 (VDP register)
+02223868  851E     MOV.B   R0,@($E,R5)      ; [R5+0x0E] = low_byte(R0) (VDP write)
+0222386A  C808     DW      $C808            ; TST R0,R0 (test R0)
+0222386C  89FC     BT      $02223868        ; if (T==1) goto $02223868 (poll loop)
+0222386E  6A63     MOV     R6,R10           ; R10 = R6 (destination buffer 1)
+02223870  6B63     MOV     R6,R11           ; R11 = R6 (destination buffer 2)
+02223872  7B20     ADD     #$20,R11         ; R11 = R6 + 0x20 (offset buffer 2)
+02223874  85E2     MOV.B   R0,@($2,R5)      ; [R5+2] = low_byte(R0) (read VDP status)
+02223876  8800     CMP/EQ  #$00,R0          ; T = (R0 == 0)
+02223878  8D1A     BT/S    $022238B0        ; if (R0==0) goto main_loop (delay slot)
+0222387A  6303     MOV     R0,R3            ; [DS] R3 = R0 (save command byte)
+
+; Jump table dispatcher
+0222387C  C702     DW      $C702            ; Data (MOVA instruction or table)
+0222387E  51EA     MOV.L   @($28,R14),R1    ; R1 = [R14+0x28] (jump table base?)
+02223880  003D     DW      $003D            ; Jump table offset 0
+02223882  0023     DW      $0023            ; Jump table offset 1
+02223884  52EB     MOV.L   @($2C,R14),R2    ; R2 = [R14+0x2C]
+02223886  0009     NOP                       ; Alignment
+02223888  002A     STS     PR,R0            ; Jump table offset 2
+0222388A  0042     DW      $0042            ; Jump table offset 3
+0222388C  0048     DW      $0048            ; Jump table offset 4
+0222388E  004E     DW      $004E            ; Jump table offset 5
+02223890  0052     DW      $0052            ; Jump table offset 6
+02223892  0058     DW      $0058            ; Jump table offset 7
+02223894  007E     DW      $007E            ; Jump table offset 8
+02223896  004E     DW      $004E            ; Jump table offset 9
+02223898  0088     DW      $0088            ; Jump table offset 10
+0222389A  008E     DW      $008E            ; Jump table offset 11
+0222389C  0058     DW      $0058            ; Jump table offset 12
+0222389E  A007     BRA     $022238B0        ; goto main_loop
+022238A0  0009     NOP                       ; [DS] No operation
+
+; Data constants
+022238A2  0000     DW      $0000
+022238A4  C000     DW      $C000            ; Source list 1 base (high word)
+022238A6  07C0     DW      $07C0            ; Source list 1 base (low word)
+022238A8  C000     DW      $C000            ; Source list 2 base (high word)
+022238AA  07E0     DW      $07E0            ; Source list 2 base (low word)
+022238AC  2000     MOV.B   R0,@R0           ; VDP base constant (or instruction)
+022238AE  0000     DW      $0000
+
+; Main processing loop: reads from R8 list, filters 0xFF, copies to R10
+main_loop:
+022238B0  6086     MOV.L   @R8+,R0          ; R0 = [R8++] (read from source list 1)
+022238B2  88FF     CMP/EQ  #$FF,R0          ; T = (R0 == 0xFF)
+022238B4  8902     BT      $022238BC        ; if (R0==0xFF) goto process_list2
+022238B6  2A02     MOV.L   R0,@R10          ; [R10] = R0 (copy to dest buffer 1)
+022238B8  AFFA     BRA     $022238B0        ; goto main_loop (continue list 1)
+022238BA  7A04     ADD     #$04,R10         ; [DS] R10 += 4 (advance dest pointer)
+
+; Process second list: reads from R9, filters 0xFF, copies to R11
+process_list2:
+022238BC  6096     MOV.L   @R9+,R0          ; R0 = [R9++] (read from source list 2)
+022238BE  88FF     CMP/EQ  #$FF,R0          ; T = (R0 == 0xFF)
+022238C0  892D     BT      $0222391E        ; if (R0==0xFF) goto exit (done with both lists)
+022238C2  2B02     MOV.L   R0,@R11          ; [R11] = R0 (copy to dest buffer 2)
+022238C4  AFFA     BRA     $022238BC        ; goto process_list2 (continue list 2)
+022238C6  7B04     ADD     #$04,R11         ; [DS] R11 += 4 (advance dest pointer)
+
+; Jump table handlers (write R2 or R1 to R11)
+handler_write_r2_to_r11:
+022238C8  2B22     MOV.L   R2,@R11          ; [R11] = R2
+022238CA  AFF1     BRA     $022238B0        ; goto main_loop
+022238CC  7B04     ADD     #$04,R11         ; [DS] R11 += 4
+
+handler_write_r1_to_r11:
+022238CE  2B12     MOV.L   R1,@R11          ; [R11] = R1
+022238D0  AFEE     BRA     $022238B0        ; goto main_loop
+022238D2  7B04     ADD     #$04,R11         ; [DS] R11 += 4
+
+022238D4  000B     RTS                       ; Return (early exit point)
+022238D6  0009     NOP                       ; [DS] No operation
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_041: Extended VDP Command Dispatcher (Continuation)
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x0238D6 - 0x02395C
+; Size: 132 bytes
+; Type: Dispatcher continuation (connected to func_040)
+;
+; Purpose: Continuation of func_040's jump table handlers. Implements comparison
+; logic for filtering data from R8/R9 source lists before copying.
+;
+; Input:
+;   R8, R9 = Source list pointers
+;   R10, R11 = Destination buffer pointers
+;   R1, R2 = Comparison values
+;
+; Output:
+;   Filtered data written to R10/R11 buffers
+;
+; Algorithm:
+;   - Read values from R8 and R9
+;   - Compare with 0xFF (terminator) and each other
+;   - Write smaller/larger value based on comparison
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_041:
+022238D6  0009     NOP                       ; Function starts (but overlaps func_040)
+022238D8  2A22     MOV.L   R2,@R10          ; [R10] = R2 (write to buffer 1)
+022238DA  AFE9     BRA     $022238B0        ; goto func_040:main_loop
+022238DC  7A04     ADD     #$04,R10         ; [DS] R10 += 4
+
+; Handler: Compare R8 and R9 values, write appropriate value
+handler_compare_r8_r9:
+022238DE  E0FF     MOV     #$FF,R0          ; R0 = 0xFF (terminator value)
+022238E0  6382     MOV.L   @R8,R3           ; R3 = [R8] (peek R8 value, no increment)
+022238E2  3300     CMP/EQ  R0,R3            ; T = (R3 == 0xFF)
+022238E4  8906     BT      $022238F4        ; if (R3==0xFF) goto write_r9_to_r10
+022238E6  6492     MOV.L   @R9,R4           ; R4 = [R9] (peek R9 value, no increment)
+022238E8  3400     CMP/EQ  R0,R4            ; T = (R4 == 0xFF)
+022238EA  8907     BT      $022238FC        ; if (R4==0xFF) goto write_r8_to_r11
+022238EC  633F     EXTS.W  R3,R3            ; R3 = sign_extend_word(R3)
+022238EE  644F     EXTS.W  R4,R4            ; R4 = sign_extend_word(R4)
+022238F0  3437     CMP/GT  R3,R4            ; T = (R4 > R3)
+022238F2  8903     BT      $022238FC        ; if (R4 > R3) goto write_r8_to_r11
+
+; Write R9 value to R10 buffer
+write_r9_to_r10:
+022238F4  6092     MOV.L   @R9,R0           ; R0 = [R9] (read R9 value)
+022238F6  2A02     MOV.L   R0,@R10          ; [R10] = R0
+022238F8  AFDA     BRA     $022238B0        ; goto main_loop
+022238FA  7A04     ADD     #$04,R10         ; [DS] R10 += 4
+
+; Write R8 value to R11 buffer
+write_r8_to_r11:
+022238FC  6082     MOV.L   @R8,R0           ; R0 = [R8] (read R8 value)
+022238FE  2B02     MOV.L   R0,@R11          ; [R11] = R0
+02223900  AFD6     BRA     $022238B0        ; goto main_loop
+02223902  7B04     ADD     #$04,R11         ; [DS] R11 += 4
+
+; Handler: Write R2 to R10, R1 to R11 (dual write)
+handler_dual_write_1:
+02223904  2A22     MOV.L   R2,@R10          ; [R10] = R2
+02223906  7A04     ADD     #$04,R10         ; R10 += 4
+02223908  2B12     MOV.L   R1,@R11          ; [R11] = R1
+0222390A  AFD1     BRA     $022238B0        ; goto main_loop
+0222390C  7B04     ADD     #$04,R11         ; [DS] R11 += 4
+
+; Handler: Write R1 to R10 (single write)
+handler_write_r1_to_r10:
+0222390E  2A12     MOV.L   R1,@R10          ; [R10] = R1
+02223910  AFCE     BRA     $022238B0        ; goto main_loop
+02223912  7A04     ADD     #$04,R10         ; [DS] R10 += 4
+
+; Handler: Write R1 to R10, R2 to R11 (dual write reversed)
+handler_dual_write_2:
+02223914  2A12     MOV.L   R1,@R10          ; [R10] = R1
+02223916  7A04     ADD     #$04,R10         ; R10 += 4
+02223918  2B22     MOV.L   R2,@R11          ; [R11] = R2
+0222391A  AFC9     BRA     $022238B0        ; goto main_loop
+0222391C  7B04     ADD     #$04,R11         ; [DS] R11 += 4
+
+; Second dispatcher entry point (processes different VDP command)
+exit_or_dispatch2:
+0222391E  85E3     MOV.B   R0,@($3,R5)      ; [R5+3] = low_byte(R0) (VDP status write)
+02223920  8800     CMP/EQ  #$00,R0          ; T = (R0 == 0)
+02223922  8D10     BT/S    $02223946        ; if (R0==0) goto exit_dispatcher (delay slot)
+02223924  6303     MOV     R0,R3            ; [DS] R3 = R0 (save command)
+
+; Second jump table
+0222392 6  C702     DW      $C702            ; MOVA instruction or table
+02223928  51EC     MOV.L   @($30,R14),R1    ; R1 = [R14+0x30]
+0222392A  003D     DW      $003D            ; Jump offset
+0222392C  0023     DW      $0023            ; Jump offset
+0222392E  52ED     MOV.L   @($34,R14),R2    ; R2 = [R14+0x34]
+02223930  0016     DW      $0016            ; Jump offset
+02223932  001E     DW      $001E            ; Jump offset
+02223934  0024     DW      $0024            ; Jump offset
+02223936  002A     STS     PR,R0            ; Jump offset (or instruction)
+02223938  002E     DW      $002E            ; Jump offset
+0222393A  0034     DW      $0034            ; Jump offset
+0222393C  0050     DW      $0050            ; Jump offset
+0222393E  002A     STS     PR,R0            ; Jump offset (or instruction)
+02223940  005A     DW      $005A            ; Jump offset
+02223942  0060     DW      $0060            ; Jump offset
+02223944  0034     DW      $0034            ; Jump offset
+
+; Final exit point - write 0xFF terminators
+exit_dispatcher:
+02223946  E0FF     MOV     #$FF,R0          ; R0 = 0xFF (terminator)
+02223948  2A02     MOV.L   R0,@R10          ; [R10] = 0xFF (terminate buffer 1)
+0222394A  A026     BRA     $0222399A        ; goto final_exit
+0222394C  2B02     MOV.L   R0,@R11          ; [DS] [R11] = 0xFF (terminate buffer 2)
+
+; More jump table handlers
+handler2_write_r2:
+0222394E  2B22     MOV.L   R2,@R11          ; [R11] = R2
+02223950  AFF9     BRA     $02223946        ; goto exit_dispatcher
+02223952  7B04     ADD     #$04,R11         ; [DS] R11 += 4
+
+handler2_write_r1:
+02223954  2B12     MOV.L   R1,@R11          ; [R11] = R1
+02223956  AFF6     BRA     $02223946        ; goto exit_dispatcher
+02223958  7B04     ADD     #$04,R11         ; [DS] R11 += 4
+
+0222395A  000B     RTS                       ; Return (early exit)
+0222395C  0009     NOP                       ; [DS] No operation
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_042: VDP Command Post-Processing
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x02395C - 0x0239AA
+; Size: 76 bytes
+; Type: Leaf (cleanup/finalization function)
+;
+; Purpose: Final processing after VDP command dispatch. Handles comparison of
+; previous values in buffers R10/R11, then performs VDP status writes and
+; cleanup.
+;
+; Input:
+;   R6 = VDP base address
+;   R10, R11 = Buffer pointers (need rewinding by 4)
+;   R14 = RenderingContext pointer
+;
+; Output:
+;   [R5+0x00] = 0 (VDP status cleared)
+;   [R1+0x0F] = 0 (VDP command cleared)
+;   [R1+0x0E] = 0x04 (VDP mode set)
+;   [R14+0x24] = Updated R6 value
+;
+; Algorithm:
+;   - Rewind buffers by 4 bytes
+;   - Compare previous values from R10 and R11
+;   - Write appropriate result based on comparison
+;   - Clear VDP status registers
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_042:
+0222395C  0009     NOP                       ; Function start (overlaps func_041)
+0222395E  2A22     MOV.L   R2,@R10          ; [R10] = R2 (handler continuation)
+02223960  AFF1     BRA     $02223946        ; goto exit_dispatcher
+02223962  7A04     ADD     #$04,R10         ; [DS] R10 += 4
+
+; Compare previous buffer values
+compare_prev_values:
+02223964  7AFC     ADD     #$FC,R10         ; R10 -= 4 (rewind buffer 1)
+02223966  7BFC     ADD     #$FC,R11         ; R11 -= 4 (rewind buffer 2)
+02223968  63A6     MOV.L   @R10+,R3         ; R3 = [R10++] (read prev value from buffer 1)
+0222396A  64B6     MOV.L   @R11+,R4         ; R4 = [R11++] (read prev value from buffer 2)
+0222396C  613F     EXTS.W  R3,R1            ; R1 = sign_extend_word(R3)
+0222396E  624F     EXTS.W  R4,R2            ; R2 = sign_extend_word(R4)
+02223970  3217     CMP/GT  R1,R2            ; T = (R2 > R1)
+02223972  8902     BT      $0222397A        ; if (R2 > R1) goto write_r4
+02223974  2B32     MOV.L   R3,@R11          ; [R11] = R3 (write R3 to buffer 2)
+02223976  AFE6     BRA     $02223946        ; goto exit_dispatcher
+02223978  7B04     ADD     #$04,R11         ; [DS] R11 += 4
+
+write_r4:
+0222397A  2A42     MOV.L   R4,@R10          ; [R10] = R4 (write R4 to buffer 1)
+0222397C  AFE3     BRA     $02223946        ; goto exit_dispatcher
+0222397E  7A04     ADD     #$04,R10         ; [DS] R10 += 4
+
+; More dual-write handlers
+handler3_dual_write_1:
+02223980  2A22     MOV.L   R2,@R10          ; [R10] = R2
+02223982  7A04     ADD     #$04,R10         ; R10 += 4
+02223984  2B12     MOV.L   R1,@R11          ; [R11] = R1
+02223986  AFDE     BRA     $02223946        ; goto exit_dispatcher
+02223988  7B04     ADD     #$04,R11         ; [DS] R11 += 4
+
+handler3_write_r1:
+0222398A  2A12     MOV.L   R1,@R10          ; [R10] = R1
+0222398C  AFDB     BRA     $02223946        ; goto exit_dispatcher
+0222398E  7A04     ADD     #$04,R10         ; [DS] R10 += 4
+
+handler3_dual_write_2:
+02223990  2A12     MOV.L   R1,@R10          ; [R10] = R1
+02223992  7A04     ADD     #$04,R10         ; R10 += 4
+02223994  2B22     MOV.L   R2,@R11          ; [R11] = R2
+02223996  AFD6     BRA     $02223946        ; goto exit_dispatcher
+02223998  7B04     ADD     #$04,R11         ; [DS] R11 += 4
+
+; Final cleanup and exit
+final_exit:
+0222399A  85E0     MOV.B   R0,@($0,R5)      ; [R5+0] = low_byte(R0) (VDP status = 0)
+0222399C  816F     MOV.B   R0,@($F,R1)      ; [R1+0x0F] = low_byte(R0) (VDP cmd clear)
+0222399E  E004     MOV     #$04,R0          ; R0 = 0x04 (VDP mode value)
+022239A0  816E     MOV.B   R0,@($E,R1)      ; [R1+0x0E] = 0x04 (set VDP mode)
+022239A2  9003     MOV.W   @(${target:08X},PC),R0  ; R0 = mask value
+022239A4  7640     ADD     #$40,R6          ; R6 += 0x40
+022239A6  2609     AND     R0,R6            ; R6 &= R0 (mask address)
+022239A8  000B     RTS                       ; Return
+022239AA  1E69     MOV.L   R6,@($24,R14)    ; [DS] [R14+0x24] = R6 (save updated value)
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_046: Word Stream Processor with VDP Polling
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x023B3C - 0x023BC2
+; Size: 132 bytes
+; Type: Leaf (complex processing loop)
+;
+; Purpose: Processes word stream from R8, performing difference calculations and
+; VDP polling. Appears to handle compressed coordinate or delta data.
+;
+; Input:
+;   R5 = VDP status register base
+;   R8 = Source word stream pointer
+;   R9 = Alternate source word stream pointer
+;   R13 = Output/accumulator pointer
+;
+; Output:
+;   Processed stream data
+;   R12, R13 = Updated coordinate values
+;
+; Algorithm:
+;   - Read word pairs from R8 and R9
+;   - Calculate differences between consecutive values
+;   - Handle positive/negative deltas differently
+;   - Perform VDP polling between operations
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_046:
+02223B3C  0009     NOP                       ; Alignment padding
+
+; Main processing loop for R8 stream
+loop_r8:
+02223B3E  6185     MOV.W   @R8+,R1          ; R1 = [R8++] (read word 1 from stream)
+02223B40  6285     MOV.W   @R8+,R2          ; R2 = [R8++] (read word 2 from stream)
+02223B42  8581     MOV.B   R0,@($1,R5)      ; [R5+1] = low_byte(R0) (VDP status check)
+02223B44  4011     CMP/PZ  R0               ; T = (R0 >= 0) (signed)
+02223B46  8B29     BF      $02223B9C        ; if (R0 < 0) goto skip_or_exit
+02223B48  3200     CMP/EQ  R0,R2            ; T = (R2 == R0)
+02223B4A  89F8     BT      $02223B3E        ; if (R2 == R0) goto loop_r8 (skip pair)
+02223B4C  3208     SUB     R0,R2            ; R2 -= R0 (calculate delta)
+02223B4E  4215     CMP/PL  R2               ; T = (R2 > 0)
+02223B50  89F2     BT      $02223B38        ; if (R2 > 0) goto somewhere (likely error in disasm)
+02223B52  D011     MOV.L   @($02223B98,PC),R0  ; R0 = lookup table address
+02223B54  662B     NEG     R2,R6            ; R6 = -R2 (absolute value of delta)
+02223B56  4200     SHLL    R2               ; R2 <<= 1 (multiply delta by 2)
+02223B58  032D     DW      $032D            ; Data or instruction (MOV.L @(Rm,Rn))
+02223B5A  8580     MOV.B   R0,@($0,R5)      ; [R5+0] = low_byte(R0) (VDP write)
+02223B5C  6C13     MOV     R1,R12           ; R12 = R1 (save coordinate)
+02223B5E  4C28     SHLL16  R12              ; R12 <<= 16 (shift to upper word)
+02223B60  3108     SUB     R0,R1            ; R1 -= R0
+02223B62  231F     MULS.W  R1,R3            ; MAC = R3 × R1 (fixed-point multiply)
+02223B64  0A1A     STS     MACL,R10         ; R10 = MAC[31:0] (lower 32 bits)
+02223B66  4A08     SHLL2   R10              ; R10 <<= 2 (multiply by 4)
+02223B68  4710     DT      R7               ; R7--; T = (R7 == 0)
+02223B6A  8FDB     BF/S    $02223B24        ; if (T==0) goto loop (likely misalignment)
+02223B6C  3DBC     ADD     R11,R13          ; [DS] R13 += R11 (accumulate)
+
+; Processing loop for R9 stream
+loop_r9:
+02223B6E  6195     MOV.W   @R9+,R1          ; R1 = [R9++] (read word 1 from stream)
+02223B70  6295     MOV.W   @R9+,R2          ; R2 = [R9++] (read word 2 from stream)
+02223B72  8591     MOV.B   R0,@($1,R5)      ; [R5+1] = low_byte(R0) (VDP status check)
+02223B74  3200     CMP/EQ  R0,R2            ; T = (R2 == R0)
+02223B76  89FA     BT      $02223B6E        ; if (R2 == R0) goto loop_r9 (skip pair)
+02223B78  3208     SUB     R0,R2            ; R2 -= R0 (calculate delta)
+02223B7A  4215     CMP/PL  R2               ; T = (R2 > 0)
+02223B7C  89DC     BT      $02223B38        ; if (R2 > 0) goto somewhere (likely error)
+02223B7E  D006     MOV.L   @($02223B98,PC),R0  ; R0 = lookup table address
+02223B80  672B     NEG     R2,R7            ; R7 = -R2 (absolute value of delta)
+02223B82  4200     SHLL    R2               ; R2 <<= 1 (multiply delta by 2)
+02223B84  032D     DW      $032D            ; Data or instruction
+02223B86  8590     MOV.B   R0,@($0,R5)      ; [R5+0] = low_byte(R0) (VDP write)
+02223B88  6D13     MOV     R1,R13           ; R13 = R1 (save coordinate)
+02223B8A  4D28     SHLL16  R13              ; R13 <<= 16 (shift to upper word)
+02223B8C  3108     SUB     R0,R1            ; R1 -= R0
+02223B8E  231F     MULS.W  R1,R3            ; MAC = R3 × R1 (fixed-point multiply)
+02223B90  0B1A     STS     MACL,R11         ; R11 = MAC[31:0] (lower 32 bits)
+02223B92  AFC7     BRA     $02223B24        ; goto loop (likely misalignment)
+02223B94  4B08     SHLL2   R11              ; [DS] R11 <<= 2 (multiply by 4)
+
+; Data constants
+02223B96  0000     DW      $0000
+02223B98  0600     DW      $0600            ; Lookup table high word
+02223B9A  48D0     DW      $48D0            ; Lookup table low word
+
+; Exit/cleanup path
+skip_or_exit:
+02223B9C  3DBC     ADD     R11,R13          ; R13 += R11 (final accumulation)
+02223B9E  6153     MOV     R5,R1            ; R1 = R5
+02223BA0  4E2B     JMP     @R14             ; Jump indirect to [R14]
+02223BA2  4F26     LDS.L   @R15+,PR         ; [DS] Pop PR (restore return address)
+
+02223BA4  AFFE     BRA     $02223BA4        ; Infinite loop (should not reach)
+02223BA6  0009     NOP                       ; [DS] No operation
+
+; Additional code (may be part of next function or data)
+02223BA8  851F     MOV.B   R0,@($F,R5)      ; [R5+0x0F] = low_byte(R0)
+02223BAA  940B     MOV.W   @(${target:08X},PC),R4  ; R4 = PC-relative word
+02223BAC  C802     DW      $C802            ; Data or instruction
+02223BAE  8B0F     BF      $02223BD0        ; if (T==0) goto somewhere
+02223BB0  2049     AND     R4,R0            ; R0 &= R4
+02223BB2  6408     SWAP.B  R0,R4            ; R4 = swap_bytes(R0)
+02223BB4  240B     OR      R0,R4            ; R4 |= R0
+02223BB6  D004     MOV.L   @($02223BC8,PC),R0  ; R0 = constant
+02223BB8  4518     SHLL8   R5               ; R5 <<= 8
+02223BBA  4500     SHLL    R5               ; R5 <<= 1 (R5 *= 512 total)
+02223BBC  350C     ADD     R0,R5            ; R5 += R0 (calculate frame buffer address)
+02223BBE  DE03     MOV.L   @($02223BCC,PC),R14  ; R14 = RenderingContext pointer
+02223BC0  000B     RTS                       ; Return
+02223BC2  0009     NOP                       ; [DS] No operation
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_047: Frame Buffer Address Calculator (Mode A)
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x023BC2 - 0x023BEC
+; Size: 40 bytes
+; Type: Leaf
+;
+; Purpose: Calculates frame buffer address from coordinate R5, performs byte
+; swapping on R4, and updates RenderingContext pointer.
+;
+; Input:
+;   R0 = Value to test/swap
+;   R4 = Data value to byte-swap
+;   R5 = Y coordinate or line number
+;
+; Output:
+;   R4 = Byte-swapped value (or original if bit 0 clear)
+;   R5 = Frame buffer address (0x24004000 + R5 × 512)
+;   R14 = RenderingContext pointer (0xC0000188)
+;
+; Algorithm:
+;   if (R0 & 1) { R4 = byte_swap(R4); }
+;   R5 = 0x24004000 + (R5 << 9)
+;   R14 = 0xC0000188
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_047:
+02223BC2  0009     NOP                       ; Alignment padding
+02223BC4  FF00     DW      $FF00            ; Data constant (mask value)
+02223BC6  0000     DW      $0000            ; Data alignment
+02223BC8  2400     MOV.B   R0,@R4           ; Data (frame buffer base high word)
+02223BCA  4000     SHLL    R0               ; Data (frame buffer base low word)
+02223BCC  C000     DW      $C000            ; Data (RenderingContext base high)
+02223BCE  0188     DW      $0188            ; Data (RenderingContext base low)
+
+; Function code starts here
+02223BD0  2409     AND     R0,R4            ; R4 &= R0 (mask R4)
+02223BD2  6053     MOV     R5,R0            ; R0 = R5 (copy R5 for test)
+02223BD4  C801     DW      $C801            ; TST #1, R0 (test bit 0 of R0)
+02223BD6  8B00     BF      $02223BDA        ; if (bit 0 == 0) goto skip_swap
+02223BD8  6448     SWAP.B  R4,R4            ; R4 = byte_swap(R4) (swap upper/lower bytes)
+
+skip_swap:
+02223BDA  D005     MOV.L   @($02223BF0,PC),R0  ; R0 = 0x24024000 (frame buffer base)
+02223BDC  4518     SHLL8   R5               ; R5 <<= 8 (R5 *= 256)
+02223BDE  4500     SHLL    R5               ; R5 <<= 1 (R5 *= 512 total)
+02223BE0  350C     ADD     R0,R5            ; R5 += 0x24024000 (frame buffer address)
+02223BE2  DE04     MOV.L   @($02223BF4,PC),R14  ; R14 = 0xC00001F4 (RenderingContext)
+
+; VDP polling loop
+poll_vdp:
+02223BE4  C505     DW      $C505            ; MOV.W @(R0,R5), R0 or VDP read
+02223BE6  C802     DW      $C802            ; TST R0, R0 or status check
+02223BE8  8BFC     BF      $02223BE4        ; if (T==0) goto poll_vdp
+02223BEA  000B     RTS                       ; Return
+02223BEC  0009     NOP                       ; [DS] No operation
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_048: Scanline Fill with Test Pattern
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x023BEC - 0x023C4C
+; Size: 80 bytes
+; Type: Leaf
+;
+; Purpose: Fills scanline region with test pattern, handling odd pixel boundaries.
+; Processes coordinates from R12 and R13 (packed words), extracts X coordinates,
+; and fills the span with value R4.
+;
+; Input:
+;   R12 = Packed coordinate 1 (upper word = X1)
+;   R13 = Packed coordinate 2 (upper word = X2)
+;   R4 = Fill value (color/pattern)
+;   R1 = Scanline base address
+;   R5 = Scanline offset value
+;
+; Output:
+;   Scanline filled from X1 to X2 with value R4
+;   R1 = Updated to end of fill region
+;
+; Algorithm:
+;   X1 = sign_extend(R12.upper_word)
+;   X2 = sign_extend(R13.upper_word)
+;   R1 += X1
+;   if (X1 == X2) return (zero-width span)
+;   Handle odd pixel start/end
+;   Fill span with R4 (byte or word writes)
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_048:
+02223BEC  0009     NOP                       ; Alignment padding
+02223BEE  0000     DW      $0000            ; Data alignment
+02223BF0  2402     MOV.L   R0,@R4           ; Data (frame buffer base from func_047)
+02223BF2  4000     SHLL    R0               ; Data
+02223BF4  C000     DW      $C000            ; Data
+02223BF6  01F4     DW      $01F4            ; Data
+
+; Function code starts here
+02223BF8  62C9     SWAP.W  R12,R2           ; R2 = swap_words(R12) (get upper word)
+02223BFA  622F     EXTS.W  R2,R2            ; R2 = sign_extend_word(R2) (X1)
+02223BFC  63D9     SWAP.W  R13,R3           ; R3 = swap_words(R13) (get upper word)
+02223BFE  633F     EXTS.W  R3,R3            ; R3 = sign_extend_word(R3) (X2)
+02223C00  312C     ADD     R2,R1            ; R1 += X1 (set scanline start)
+02223C02  3320     CMP/EQ  R2,R3            ; T = (X1 == X2)
+02223C04  891E     BT      $02223C44        ; if (X1 == X2) goto exit (zero-width)
+
+; VDP polling loop
+poll_vdp:
+02223C06  C505     DW      $C505            ; VDP read or MOV.W instruction
+02223C08  C802     DW      $C802            ; TST or status check
+02223C0A  8FFC     BF/S    $02223C06        ; if (T==0) goto poll_vdp (delay slot)
+02223C0C  E001     MOV     #$01,R0          ; [DS] R0 = 1 (odd pixel mask)
+
+; Handle odd start pixel
+02223C0E  2208     TST     R0,R2            ; T = (R2 & 1) (check if X1 is odd)
+02223C10  8902     BT      $02223C18        ; if (X1 is even) goto check_end
+02223C12  2140     MOV.B   R4,@R1           ; [R1] = low_byte(R4) (write odd start pixel)
+02223C14  7101     ADD     #$01,R1          ; R1++ (advance to even boundary)
+02223C16  7201     ADD     #$01,R2          ; R2++ (adjust X1 to even)
+
+; Handle odd end pixel
+check_end:
+02223C18  2308     TST     R0,R3            ; T = (R3 & 1) (check if X2 is odd)
+02223C1A  8F03     BF/S    $02223C24        ; if (X2 is even) goto calc_span (delay slot)
+02223C1C  6033     MOV     R3,R0            ; [DS] R0 = X2
+02223C1E  305C     ADD     R5,R0            ; R0 = X2 + R5 (calculate odd end address)
+02223C20  2040     MOV.B   R4,@R0           ; [R0] = low_byte(R4) (write odd end pixel)
+02223C22  6033     MOV     R3,R0            ; R0 = X2 (restore for span calc)
+
+; Calculate span width and fill
+calc_span:
+02223C24  3028     SUB     R2,R0            ; R0 = X2 - X1 (span width in pixels)
+02223C26  7001     ADD     #$01,R0          ; R0++ (inclusive span)
+02223C28  E202     MOV     #$02,R2          ; R2 = 2 (minimum for word writes)
+02223C2A  3023     CMP/GE  R2,R0            ; T = (R0 >= 2)
+02223C2C  8F08     BF/S    $02223C40        ; if (R0 < 2) goto exit (delay slot)
+02223C2E  4001     SHLR    R0               ; [DS] R0 >>= 1 (convert pixels to words)
+
+; Word fill loop
+02223C30  70FF     ADD     #$FF,R0          ; R0-- (adjust loop counter)
+02223C32  C102     DW      $C102            ; MOVA or data
+02223C34  6013     MOV     R1,R0            ; R0 = R1 (misalignment in disasm)
+02223C36  4001     SHLR    R0               ; R0 >>= 1
+02223C38  C103     DW      $C103            ; MOVA or data
+02223C3A  6043     MOV     R4,R0            ; R0 = R4
+02223C3C  000B     RTS                       ; Return
+02223C3E  C104     DW      $C104            ; [DS] MOVA or data
+
+02223C40  000B     RTS                       ; Return (early exit)
+02223C42  0009     NOP                       ; [DS] No operation
+
+02223C44  C505     DW      $C505            ; Exit point data
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_050: Word Fill Loop
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x023C4C - 0x023C60
+; Size: 18 bytes
+; Type: Leaf
+;
+; Purpose: Fills memory region with word-sized writes. Continues from func_048
+; or can be called independently.
+;
+; Input:
+;   R1 = Destination address
+;   R4 = Fill value (word)
+;   R0 = Fill count (in words)
+;
+; Output:
+;   Memory region filled with R4
+;   R1 = Updated destination address
+;
+; Algorithm:
+;   Write R4 byte first (alignment?)
+;   if (count >= 2) {
+;     count /= 2; write words
+;   } else {
+;     return
+;   }
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_050:
+02223C4C  2140     MOV.B   R4,@R1           ; [R1] = low_byte(R4) (single byte write)
+02223C4E  E202     MOV     #$02,R2          ; R2 = 2 (threshold for word writes)
+02223C50  3023     CMP/GE  R2,R0            ; T = (R0 >= 2)
+02223C52  8BF5     BF      $02223C40        ; if (R0 < 2) goto exit (from func_048)
+02223C54  4001     SHLR    R0               ; R0 >>= 1 (convert to word count)
+
+; Word fill loop
+word_fill_loop:
+02223C56  2141     MOV.W   R4,@R1           ; [R1] = R4 (write word)
+02223C58  4010     DT      R0               ; R0--; T = (R0 == 0)
+02223C5A  8FFC     BF/S    $02223C56        ; if (T==0) goto word_fill_loop (delay slot)
+02223C5C  7102     ADD     #$02,R1          ; [DS] R1 += 2 (advance by word size)
+02223C5E  000B     RTS                       ; Return
+02223C60  0009     NOP                       ; [DS] No operation
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_051: Reverse Word Fill (Decrement)
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x023C60 - 0x023CA4
+; Size: 64 bytes
+; Type: Leaf
+;
+; Purpose: Fills memory region in reverse direction (decrementing address).
+; Handles byte-swapped fill value and works backwards from end address.
+;
+; Input:
+;   R12 = Packed coordinate 1 (upper word = start X)
+;   R13 = Packed coordinate 2 (upper word = end X)
+;   R4 = Fill value (will be byte-swapped)
+;   R1 = Base address + end coordinate
+;
+; Output:
+;   Memory filled backwards from R1
+;   R1 = Updated to start of filled region
+;
+; Algorithm:
+;   X_start = sign_extend(R12.upper)
+;   X_end = sign_extend(R13.upper)
+;   R4_swapped = byte_swap(R4)
+;   R1 += X_end
+;   if (X_start == X_end) return
+;   Fill backwards from X_end to X_start
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_051:
+02223C60  0009     NOP                       ; Alignment padding
+02223C62  0009     NOP                       ; Alignment padding
+
+02223C64  62C9     SWAP.W  R12,R2           ; R2 = swap_words(R12) (get start X)
+02223C66  622F     EXTS.W  R2,R2            ; R2 = sign_extend_word(R2)
+02223C68  63D9     SWAP.W  R13,R3           ; R3 = swap_words(R13) (get end X)
+02223C6A  633F     EXTS.W  R3,R3            ; R3 = sign_extend_word(R3)
+02223C6C  6448     SWAP.B  R4,R4            ; R4 = byte_swap(R4) (swap fill value bytes)
+02223C6E  313C     ADD     R3,R1            ; R1 += X_end (set to end address)
+02223C70  3320     CMP/EQ  R2,R3            ; T = (X_start == X_end)
+02223C72  8917     BT      $02223CA4        ; if (equal) goto exit (zero-width span)
+
+; Handle odd end pixel
+02223C74  6033     MOV     R3,R0            ; R0 = X_end
+02223C76  C801     DW      $C801            ; TST #1, R0 (check if X_end is odd)
+02223C78  8F03     BF/S    $02223C82        ; if (even) goto fill_span (delay slot)
+02223C7A  6048     SWAP.B  R4,R0            ; [DS] R0 = byte_swap(R4) (for odd pixel)
+02223C7C  2100     MOV.B   R0,@R1           ; [R1] = low_byte(R0) (write odd pixel)
+02223C7E  71FF     ADD     #$FF,R1          ; R1-- (move backwards)
+02223C80  73FF     ADD     #$FF,R3          ; R3-- (adjust X_end)
+
+; Calculate span and fill backwards
+fill_span:
+02223C82  7101     ADD     #$01,R1          ; R1++ (adjust for inclusive fill)
+02223C84  6033     MOV     R3,R0            ; R0 = X_end
+02223C86  3028     SUB     R2,R0            ; R0 = X_end - X_start (span width)
+02223C88  7001     ADD     #$01,R0          ; R0++ (inclusive span)
+02223C8A  E302     MOV     #$02,R3          ; R3 = 2 (threshold for word writes)
+02223C8C  3033     CMP/GE  R3,R0            ; T = (R0 >= 2)
+02223C8E  8F03     BF/S    $02223C98        ; if (R0 < 2) goto check_start (delay slot)
+02223C90  4001     SHLR    R0               ; [DS] R0 >>= 1 (convert to word count)
+
+; Reverse word fill loop
+reverse_word_loop:
+02223C92  4010     DT      R0               ; R0--; T = (R0 == 0)
+02223C94  8FFD     BF/S    $02223C92        ; if (T==0) goto reverse_word_loop (delay slot)
+02223C96  2145     MOV.W   R4,@-R1          ; [DS] [--R1] = R4 (write word, pre-decrement)
+
+; Handle odd start pixel
+check_start:
+02223C98  6023     MOV     R2,R0            ; R0 = X_start
+02223C9A  C801     DW      $C801            ; TST #1, R0 (check if X_start is odd)
+02223C9C  8900     BT      $02223CA0        ; if (even) goto exit
+02223C9E  2144     MOV.B   R4,@-R1          ; [--R1] = low_byte(R4) (write odd start pixel)
+
+02223CA0  000B     RTS                       ; Return
+02223CA2  0009     NOP                       ; [DS] No operation
+
+exit_equal:
+02223CA4  6023     MOV     R2,R0            ; R0 = X_start (dead code, unreachable?)
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_054: Loop with Indirect Function Dispatch
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x023CB2 - 0x023CDA
+; Size: 38 bytes
+; Type: Hub (indirect caller)
+; Called by: Unknown
+;
+; Purpose: Iterates through a structure array, reading command bytes and
+; dispatching to handler functions via indirect JSR. Saves/restores R7 and R14.
+;
+; Input:
+;   R7 = Loop counter (number of iterations)
+;   R14 = Base pointer for iteration (incremented by 0x10 per iteration)
+;   R5 = VDP status register base
+;
+; Output:
+;   Handler functions called R7 times
+;   R14 advanced by R7 × 0x10
+;
+; Algorithm:
+;   while (R7 > 0) {
+;     cmd = [R4+0]
+;     if (cmd == 0) continue;
+;     save R14, R7;
+;     R1 = jump_table_base + (cmd << 1);
+;     R0 = [R1]; // load function pointer
+;     call *R0;  // indirect JSR
+;     restore R7, R14;
+;     R14 += 0x10;
+;     R7--;
+;   }
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_054:
+02223CB2  2140     MOV.B   R4,@R1           ; [R1] = low_byte(R4) (leftover from func_050?)
+02223CB4  4F22     STS.L   PR,@-R15         ; Push PR (save return address)
+
+loop_dispatch:
+02223CB6  84E0     MOV.B   R0,@($0,R4)      ; R0 = [R4+0] (read command byte)
+02223CB8  8800     CMP/EQ  #$00,R0          ; T = (R0 == 0)
+02223CBA  8909     BT      $02223CD0        ; if (R0 == 0) goto skip_iteration
+
+; Call handler via indirect dispatch
+02223CBC  2FE6     MOV.L   R14,@-R15        ; Push R14 (save context)
+02223CBE  2F76     MOV.L   R7,@-R15         ; Push R7 (save loop counter)
+02223CC0  9D2C     MOV.W   @(${target:08X},PC),R13  ; R13 = jump table base (PC-relative)
+02223CC2  D117     MOV.L   @($02223D20,PC),R1  ; R1 = 0x06003CDC (jump table address?)
+02223CC4  4000     SHLL    R0               ; R0 <<= 1 (multiply command by 2 for word index)
+02223CC6  001D     DW      $001D            ; MOV.L @(R0,R1),R0 (load function pointer)
+02223CC8  0003     STC     SR,R0            ; Possible misalignment (should be JSR @R0)
+02223CCA  0009     NOP                       ; Alignment or delay slot
+02223CCC  67F6     MOV.L   @R15+,R7         ; Pop R7 (restore loop counter)
+02223CCE  6EF6     MOV.L   @R15+,R14        ; Pop R14 (restore context)
+
+skip_iteration:
+02223CD0  4710     DT      R7               ; R7--; T = (R7 == 0)
+02223CD2  8FF0     BF/S    $02223CB6        ; if (T==0) goto loop_dispatch (delay slot)
+02223CD4  7E10     ADD     #$10,R14         ; [DS] R14 += 0x10 (advance to next structure)
+
+02223CD6  4F26     LDS.L   @R15+,PR         ; Pop PR (restore return address)
+02223CD8  000B     RTS                       ; Return
+02223CDA  0009     NOP                       ; [DS] No operation
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_055: Nested Array Copy with Stride
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x023CDA - 0x023D1A
+; Size: 62 bytes
+; Type: Leaf (embedded data table + nested loop)
+; Called by: Unknown
+;
+; Purpose: Performs nested 2D copy operation. Outer loop iterates R7 times,
+; inner loop iterates R6 times. Each iteration copies 2 longwords (8 bytes)
+; from R8 source to R9 destination with R13 stride.
+;
+; Input:
+;   R8 = Source data pointer (loaded from [R14+8])
+;   R9 = Destination pointer (loaded from [R14+4])
+;   R13 = Vertical stride for destination (loaded from PC-relative word)
+;
+; Output:
+;   2D array data copied from source to destination
+;   R8, R9 advanced
+;
+; Data Structure:
+;   Embedded lookup table from 0x023CDC-0x023CF6 (14 words)
+;   [R8] contains: R6 (inner count), R7 (outer count), then data
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_055:
+; Embedded data table (14 words)
+02223CDA  0009     NOP                       ; Alignment
+02223CDC  002C     DW      $002C            ; Data offset 0
+02223CDE  002C     DW      $002C            ; Data offset 1
+02223CE0  00A2     DW      $00A2            ; Data offset 2
+02223CE2  010C     DW      $010C            ; Data offset 3
+02223CE4  0198     DW      $0198            ; Data offset 4
+02223CE6  0198     DW      $0198            ; Data offset 5
+02223CE8  01C4     DW      $01C4            ; Data offset 6
+02223CEA  0072     DW      $0072            ; Data offset 7
+02223CEC  0088     DW      $0088            ; Data offset 8
+02223CEE  02FA     DW      $02FA            ; Data offset 9
+02223CF0  0058     DW      $0058            ; Data offset 10
+02223CF2  0328     DW      $0328            ; Data offset 11
+02223CF4  0336     DW      $0336            ; Data offset 12
+02223CF6  0342     DW      $0342            ; Data offset 13
+
+; Function code starts here
+02223CF8  58E2     MOV.L   @($8,R14),R8     ; R8 = [R14+8] (source pointer)
+02223CFA  59E1     MOV.L   @($4,R14),R9     ; R9 = [R14+4] (destination base)
+02223CFC  6685     MOV.W   @R8+,R6          ; R6 = [R8++] (inner loop count)
+02223CFE  6785     MOV.W   @R8+,R7          ; R7 = [R8++] (outer loop count)
+
+; Outer loop: iterates R7 times
+outer_loop:
+02223D00  6193     MOV     R9,R1            ; R1 = R9 (destination row start)
+02223D02  6263     MOV     R6,R2            ; R2 = R6 (inner loop counter)
+
+; Inner loop: copies R6 pairs of longwords
+inner_loop:
+02223D04  6086     MOV.L   @R8+,R0          ; R0 = [R8++] (read longword 1)
+02223D06  1100     MOV.L   R0,@($0,R1)     ; [R1+0] = R0 (write longword 1)
+02223D08  6086     MOV.L   @R8+,R0          ; R0 = [R8++] (read longword 2)
+02223D0A  1101     MOV.L   R0,@($4,R1)     ; [R1+4] = R0 (write longword 2)
+02223D0C  4210     DT      R2               ; R2--; T = (R2 == 0)
+02223D0E  8FF9     BF/S    $02223D04        ; if (T==0) goto inner_loop (delay slot)
+02223D10  7108     ADD     #$08,R1          ; [DS] R1 += 8 (advance by 8 bytes)
+
+02223D12  4710     DT      R7               ; R7--; T = (R7 == 0)
+02223D14  8FF4     BF/S    $02223D00        ; if (T==0) goto outer_loop (delay slot)
+02223D16  39DC     ADD     R13,R9           ; [DS] R9 += R13 (advance destination by stride)
+
+02223D18  000B     RTS                       ; Return
+02223D1A  0009     NOP                       ; [DS] No operation
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_056: Conditional Data Copy with Index Check
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x023D1A - 0x023D3C
+; Size: 32 bytes
+; Type: Leaf
+; Called by: Unknown
+;
+; Purpose: Reads VDP status byte, compares against threshold, and conditionally
+; copies data from source array at calculated offset.
+;
+; Input:
+;   R5 = VDP status register base
+;   R14 = RenderingContext pointer (0xC0000700)
+;   R13 = Stride multiplier
+;
+; Output:
+;   If (VDP_status < 0x140): data copied from adjusted R8/R9 to destination
+;   Otherwise: returns immediately
+;
+; Algorithm:
+;   status = [R5+1]
+;   if (status >= 0x140) return;
+;   R8 = [R14+8]; R9 = [R14+4]
+;   offset = (status & 0xFC) // align to 4-byte boundary
+;   R9 += offset
+;   goto func_055:copy_loop (reuse code)
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_056:
+02223D1A  0009     NOP                       ; Function start (overlaps func_055 data)
+02223D1C  0200     DW      $0200            ; Data constant (512)
+02223D1E  0000     DW      $0000            ; Data alignment
+02223D20  0600     DW      $0600            ; Data (func_054 jump table)
+02223D22  3CDC     ADD     R13,R12          ; R12 += R13 (leftover from previous function)
+
+02223D24  85E1     MOV.B   R0,@($1,R5)      ; R0 = [R5+1] (read VDP status byte)
+02223D26  9107     MOV.W   @(${target:08X},PC),R1  ; R1 = 0x0140 (threshold)
+02223D28  3013     CMP/GE  R1,R0            ; T = (R0 >= 0x140)
+02223D2A  8906     BT      $02223D3A        ; if (R0 >= threshold) goto exit
+
+; Load pointers and calculate offset
+02223D2C  58E2     MOV.L   @($8,R14),R8     ; R8 = [R14+8] (source pointer)
+02223D2E  59E1     MOV.L   @($4,R14),R9     ; R9 = [R14+4] (destination base)
+02223D30  E1FC     MOV     #$FC,R1          ; R1 = 0xFC (alignment mask)
+02223D32  2019     AND     R1,R0            ; R0 &= 0xFC (align to 4-byte boundary)
+02223D34  AFE2     BRA     $02223CFC        ; goto func_055:inner_copy (reuse copy loop)
+02223D36  390C     ADD     R0,R9            ; [DS] R9 += R0 (offset destination)
+
+02223D38  0140     DW      $0140            ; Data constant (threshold value)
+
+exit:
+02223D3A  000B     RTS                       ; Return
+02223D3C  0009     NOP                       ; [DS] No operation
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_057: Conditional Branch to Frame Buffer Setup
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x023D3C - 0x023D52
+; Size: 20 bytes
+; Type: Leaf (thin wrapper)
+; Called by: Unknown
+;
+; Purpose: Reads VDP status, compares with threshold, and branches to frame
+; buffer setup code if below threshold.
+;
+; Input:
+;   R5 = VDP status register base
+;   R14 = RenderingContext pointer
+;
+; Output:
+;   If (status < 0x200): jumps to func_066 for frame buffer setup
+;   Otherwise: returns
+;
+; Algorithm:
+;   status = [R5+1]
+;   if (status >= 0x200) return;
+;   R8 = [R14+8]; R9 = [R14+4]
+;   R9 += status
+;   goto func_066
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_057:
+02223D3C  0009     NOP                       ; Alignment padding
+02223D3E  85E1     MOV.B   R0,@($1,R5)      ; R0 = [R5+1] (read VDP status)
+02223D40  9105     MOV.W   @(${target:08X},PC),R1  ; R1 = 0x0200 (threshold)
+02223D42  3013     CMP/GE  R1,R0            ; T = (R0 >= 0x200)
+02223D44  8904     BT      $02223D50        ; if (R0 >= threshold) goto exit
+
+; Load pointers and branch to func_066
+02223D46  58E2     MOV.L   @($8,R14),R8     ; R8 = [R14+8] (source pointer)
+02223D48  59E1     MOV.L   @($4,R14),R9     ; R9 = [R14+4] (destination base)
+02223D4A  A13E     BRA     $02223FCA        ; goto func_066 (frame buffer setup)
+02223D4C  390C     ADD     R0,R9            ; [DS] R9 += R0 (offset destination)
+
+02223D4E  0200     DW      $0200            ; Data constant (threshold = 512)
+
+exit:
+02223D50  000B     RTS                       ; Return
+02223D52  0009     NOP                       ; [DS] No operation
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_058: Conditional Data Copy with Alignment
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x023D52 - 0x023D6C
+; Size: 24 bytes
+; Type: Leaf
+; Called by: Unknown
+;
+; Purpose: Similar to func_056 but with different threshold and branches to
+; different copy routine.
+;
+; Input:
+;   R5 = VDP status register base
+;   R14 = RenderingContext pointer
+;
+; Output:
+;   If (status < 0x140): copies data with alignment
+;   Otherwise: returns
+;
+; Algorithm:
+;   status = [R5+1]
+;   if (status >= 0x140) return;
+;   R9 = [R14+4]
+;   offset = (status & 0xFC) // align to 4-byte boundary
+;   R9 += offset
+;   goto copy_handler (likely func_055 inner loop or func_059)
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_058:
+02223D52  0009     NOP                       ; Alignment padding
+02223D54  85E1     MOV.B   R0,@($1,R5)      ; R0 = [R5+1] (read VDP status)
+02223D56  9107     MOV.W   @(${target:08X},PC),R1  ; R1 = 0x0140 (threshold)
+02223D58  3013     CMP/GE  R1,R0            ; T = (R0 >= 0x140)
+02223D5A  8906     BT      $02223D6A        ; if (R0 >= threshold) goto exit
+
+; Load destination and apply offset
+02223D5C  59E1     MOV.L   @($4,R14),R9     ; R9 = [R14+4] (destination base)
+02223D5E  E1FC     MOV     #$FC,R1          ; R1 = 0xFC (alignment mask)
+02223D60  2019     AND     R1,R0            ; R0 &= 0xFC (align to 4-byte boundary)
+02223D62  390C     ADD     R0,R9            ; R9 += R0 (offset destination)
+02223D64  A005     BRA     $02223D72        ; goto copy_handler
+02223D66  4F22     STS.L   PR,@-R15         ; [DS] Push PR (save return address)
+
+02223D68  0140     DW      $0140            ; Data constant (threshold)
+
+exit:
+02223D6A  000B     RTS                       ; Return
+02223D6C  0009     NOP                       ; [DS] No operation
+
+02223D6E  4F22     STS.L   PR,@-R15         ; Possible start of next function
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_066: RLE Decompression / Pattern Expander
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x023FC4 - 0x023FF2
+; Size: 44 bytes
+; Type: Leaf
+; Called by: func_057
+;
+; Purpose: Decompresses run-length encoded data or expands pattern data.
+; Reads word stream from R8, processes repeat counts and values, writes to R9.
+;
+; Input:
+;   R8 = Source data pointer (loaded from [R14+8])
+;   R9 = Destination buffer (loaded from [R14+4])
+;   R13 = Vertical stride
+;
+; Output:
+;   Decompressed/expanded data written to R9 buffer
+;   R8, R9 advanced
+;
+; Data Format:
+;   R7 = outer loop count (from [R8])
+;   Each iteration reads words from R8:
+;     word = [R8++]
+;     if (word == 0) skip to next row
+;     lower_byte = repeat count
+;     upper_byte = fill value
+;     if (upper_byte == 0xFF) { read next word, use as fill value }
+;     Write fill value 'repeat count' times backwards from R1
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_066:
+02223FC4  0009     NOP                       ; Alignment padding
+02223FC6  58E2     MOV.L   @($8,R14),R8     ; R8 = [R14+8] (source pointer)
+02223FC8  59E1     MOV.L   @($4,R14),R9     ; R9 = [R14+4] (destination base)
+
+outer_loop:
+02223FCA  6785     MOV.W   @R8+,R7          ; R7 = [R8++] (outer loop count)
+02223FCC  6193     MOV     R9,R1            ; R1 = R9 (destination row start)
+
+; Inner loop: process RLE-encoded word stream
+inner_loop:
+02223FCE  6085     MOV.W   @R8+,R0          ; R0 = [R8++] (read encoded word)
+02223FD0  8800     CMP/EQ  #$00,R0          ; T = (R0 == 0)
+02223FD2  890A     BT      $02223FEA        ; if (R0 == 0) goto next_row (skip)
+
+02223FD4  660C     EXTU.B  R0,R6            ; R6 = zero_extend_byte(R0) (repeat count)
+02223FD6  4019     SHLR8   R0               ; R0 >>= 8 (get fill value from upper byte)
+02223FD8  C8FF     DW      $C8FF            ; CMP/EQ #0xFF, R0 (check if fill value is 0xFF)
+02223FDA  8904     BT      $02223FE6        ; if (R0 == 0xFF) goto read_next_word
+
+; Repeat write: write R0 value R6 times, decrementing R1
+repeat_write:
+02223FDC  4610     DT      R6               ; R6--; T = (R6 == 0)
+02223FDE  8FFD     BF/S    $02223FDC        ; if (T==0) goto repeat_write (delay slot)
+02223FE0  2104     MOV.B   R0,@-R1          ; [DS] [--R1] = low_byte(R0) (write backwards)
+02223FE2  AFF5     BRA     $02223FD0        ; goto inner_loop (next encoded word)
+02223FE4  6085     MOV.W   @R8+,R0          ; [DS] R0 = [R8++] (pre-fetch next word)
+
+; Special case: fill value 0xFF means read next word as fill value
+read_next_word:
+02223FE6  AFF2     BRA     $02223FCE        ; goto inner_loop
+02223FE8  3168     SUB     R6,R1            ; [DS] R1 -= R6 (adjust pointer by repeat count)
+
+; Next row: advance destination by stride
+next_row:
+02223FEA  4710     DT      R7               ; R7--; T = (R7 == 0)
+02223FEC  8FEE     BF/S    $02223FCC        ; if (T==0) goto outer_loop (delay slot)
+02223FEE  39DC     ADD     R13,R9           ; [DS] R9 += R13 (advance to next row)
+
+02223FF0  000B     RTS                       ; Return
+02223FF2  0009     NOP                       ; [DS] No operation
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_067: Extended RLE Decompression with Clipping
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x023FF2 - 0x02405A
+; Size: 100 bytes
+; Type: Leaf
+; Called by: Unknown
+;
+; Purpose: Advanced RLE decompression with vertical clipping support. Similar
+; to func_066 but with additional logic for skipping rows based on vertical
+; position and handling negative R13 (reverse vertical direction).
+;
+; Input:
+;   R5 = VDP status register base
+;   R8 = Source data pointer (loaded from [R14+8])
+;   R9 = Destination buffer (loaded from [R14+4])
+;   R13 = Vertical stride (can be negative for reverse direction)
+;
+; Output:
+;   Decompressed data written to R9 buffer with clipping applied
+;   Supports three modes based on VDP status byte at [R5+1]
+;
+; Modes:
+;   Mode 1: Normal (R7 = status, forward direction)
+;   Mode 2: Normal (R7 = status, forward direction, skip first 2 bytes)
+;   Mode 3: Reverse (R7 = status, R13 = -R13, skip first 2 bytes)
+;   Default: Advanced with clipping (checks vertical bounds)
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_067:
+02223FF2  0009     NOP                       ; Function start (overlaps func_066)
+
+; Mode 1: Simple forward copy
+mode1_entry:
+02223FF4  58E2     MOV.L   @($8,R14),R8     ; R8 = [R14+8] (source pointer)
+02223FF6  59E1     MOV.L   @($4,R14),R9     ; R9 = [R14+4] (destination base)
+02223FF8  7802     ADD     #$02,R8          ; R8 += 2 (skip first 2 bytes)
+02223FFA  85E1     MOV.B   R0,@($1,R5)      ; R0 = [R5+1] (read VDP status)
+02223FFC  6703     MOV     R0,R7            ; R7 = R0 (outer loop count)
+02223FFE  AFE5     BRA     $02223FCC        ; goto func_066:outer_loop
+02224000  6DDB     NEG     R13,R13          ; [DS] R13 = -R13 (NEGATE stride - reverse mode!)
+
+; Mode 2: Forward copy with skip
+mode2_entry:
+02224002  58E2     MOV.L   @($8,R14),R8     ; R8 = [R14+8] (source pointer)
+02224004  59E1     MOV.L   @($4,R14),R9     ; R9 = [R14+4] (destination base)
+02224006  7802     ADD     #$02,R8          ; R8 += 2 (skip first 2 bytes)
+02224008  85E1     MOV.B   R0,@($1,R5)      ; R0 = [R5+1] (read VDP status)
+0222400A  AFDF     BRA     $02223FCC        ; goto func_066:outer_loop
+0222400C  6703     MOV     R0,R7            ; [DS] R7 = R0 (outer loop count)
+
+; Mode 3: Advanced with vertical clipping
+mode3_entry:
+0222400E  58E2     MOV.L   @($8,R14),R8     ; R8 = [R14+8] (source pointer)
+02224010  59E1     MOV.L   @($4,R14),R9     ; R9 = [R14+4] (destination base)
+02224012  E0FC     MOV     #$FC,R0          ; R0 = 0xFC (alignment mask)
+02224014  2909     AND     R0,R9            ; R9 &= 0xFC (align destination to 4-byte boundary)
+02224016  6093     MOV     R9,R0            ; R0 = R9 (save aligned destination)
+02224018  911F     MOV.W   @(${target:08X},PC),R1  ; R1 = mask value (0x01FF?)
+0222401A  2019     AND     R1,R0            ; R0 &= R1 (extract row offset)
+0222401C  911E     MOV.W   @(${target:08X},PC),R1  ; R1 = 0x0140 (vertical clip threshold)
+0222401E  3013     CMP/GE  R1,R0            ; T = (R0 >= 0x140)
+02224020  8919     BT      $02224056        ; if (R0 >= threshold) goto exit (out of bounds)
+
+; Calculate vertical skip count
+02224022  4009     SHLR2   R0               ; R0 >>= 2 (divide by 4)
+02224024  4001     SHLR    R0               ; R0 >>= 1 (divide by 8 total)
+02224026  6685     MOV.W   @R8+,R6          ; R6 = [R8++] (row count from source)
+02224028  E500     MOV     #$00,R5          ; R5 = 0 (skip byte count accumulator)
+0222402A  306C     ADD     R6,R0            ; R0 = vertical_offset + row_count
+0222402C  70D8     ADD     #$D8,R0          ; R0 += 0xD8 (216, likely screen height related)
+0222402E  4015     CMP/PL  R0               ; T = (R0 > 0) (check if clipping needed)
+02224030  8B03     BF      $0222403A        ; if (R0 <= 0) goto no_clip (fully offscreen)
+
+; Calculate clip amount
+02224032  3608     SUB     R0,R6            ; R6 -= R0 (reduce row count by overflow)
+02224034  6503     MOV     R0,R5            ; R5 = R0 (skip count)
+02224036  4508     SHLL2   R5               ; R5 <<= 2 (multiply by 4)
+02224038  4500     SHLL    R5               ; R5 <<= 1 (multiply by 8 total)
+
+; Main copy loop with clipping
+no_clip:
+0222403A  6785     MOV.W   @R8+,R7          ; R7 = [R8++] (inner loop count per row)
+0222403C  6193     MOV     R9,R1            ; R1 = R9 (destination row start)
+0222403E  6263     MOV     R6,R2            ; R2 = R6 (adjusted row counter)
+
+; Inner loop: copy 2 longwords per iteration
+inner_copy_loop:
+02224040  6086     MOV.L   @R8+,R0          ; R0 = [R8++] (read longword 1)
+02224042  1100     MOV.L   R0,@($0,R1)     ; [R1+0] = R0 (write longword 1)
+02224044  6086     MOV.L   @R8+,R0          ; R0 = [R8++] (read longword 2)
+02224046  1101     MOV.L   R0,@($4,R1)     ; [R1+4] = R0 (write longword 2)
+02224048  4210     DT      R2               ; R2--; T = (R2 == 0)
+0222404A  8FF9     BF/S    $02224040        ; if (T==0) goto inner_copy_loop (delay slot)
+0222404C  7108     ADD     #$08,R1          ; [DS] R1 += 8 (advance destination)
+
+0222404E  385C     ADD     R5,R8            ; R8 += R5 (skip clipped bytes in source)
+02224050  4710     DT      R7               ; R7--; T = (R7 == 0)
+02224052  8FF3     BF/S    $0222403C        ; if (T==0) goto no_clip (next row, delay slot)
+02224054  39DC     ADD     R13,R9           ; [DS] R9 += R13 (advance destination by stride)
+
+exit:
+02224056  000B     RTS                       ; Return
+02224058  0009     NOP                       ; [DS] No operation
+
+; Data constants
+0222405A  01FF     MAC.L   @R15+,@R1+       ; Data (0x01FF mask)
+0222405C  0140     DW      $0140            ; Data (threshold = 320)
+0222405E  FFFF     DW      $FFFF            ; Data alignment
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; End of Annotated Disassembly (Hotspot Functions + Priority 7)
 ; ═══════════════════════════════════════════════════════════════════════════
 ;
 ; For complete disassembly, see: disasm/sh2_3d_engine.asm

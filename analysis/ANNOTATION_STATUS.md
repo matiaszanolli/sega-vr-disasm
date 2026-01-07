@@ -9,9 +9,9 @@
 
 | Metric | Value |
 |--------|-------|
-| Functions Annotated | 45 of 109 |
-| Completion Percentage | 41% |
-| Lines of Annotation | 4,200+ |
+| Functions Annotated | 65 of 109 |
+| Completion Percentage | 60% |
+| Lines of Annotation | 5,660+ |
 | Estimated Hotspot Coverage | 99% |
 
 ## Completed Work
@@ -91,7 +91,7 @@ All indirect dispatcher patterns documented:
 
 ## Annotated Functions Reference
 
-**Total Annotated Functions**: 45 (5 initial + 9 Priority 1 + 4 Priority 2 + 6 Priority 3 + 5 Priority 4 + 5 Priority 5 + 11 Priority 6)
+**Total Annotated Functions**: 65 (5 initial + 9 Priority 1 + 4 Priority 2 + 6 Priority 3 + 5 Priority 4 + 5 Priority 5 + 11 Priority 6 + 20 Priority 7)
 
 ### Initial Hotspot Functions (5)
 - func_001 (0x2301C) - Display list interpreter
@@ -129,7 +129,29 @@ All indirect dispatcher patterns documented:
 ### Priority 6 - Small Leaf Functions (11 of 11) ✅
 - func_000, func_003, func_004, func_025, func_027, func_028, func_030, func_031, func_049, func_052, func_053
 
-**Location**: `disasm/sh2_3d_engine_annotated.asm` (4,200+ lines)
+### Priority 7 - Medium Leaf Functions (20 of 20) ✅
+- func_013 (VDP register initialization with data table)
+- func_014 (array copy - 7 elements)
+- func_015 (strided array copy)
+- func_022 (VDP status setup)
+- func_035 (coordinate delta calculation)
+- func_040 (multi-mode VDP command dispatcher)
+- func_041 (VDP dispatcher continuation)
+- func_042 (VDP command post-processing)
+- func_046 (word stream processor with VDP polling)
+- func_047 (frame buffer address calculator)
+- func_048 (scanline fill with pattern)
+- func_050 (word fill loop)
+- func_051 (reverse word fill with decrement)
+- func_054 (loop with indirect dispatch)
+- func_055 (nested array copy with stride)
+- func_056 (conditional copy with index check)
+- func_057 (conditional branch to frame buffer)
+- func_058 (conditional copy with alignment)
+- func_066 (RLE decompression / pattern expander)
+- func_067 (extended RLE with clipping)
+
+**Location**: `disasm/sh2_3d_engine_annotated.asm` (5,660+ lines)
 
 ## Remaining Work by Priority
 
@@ -180,8 +202,21 @@ Vertex transformation and command processing documented:
 - func_009 (0x231E4, 28 bytes) - 4-element command handler with packed output
 - func_010 (0x23202, 24 bytes) - 3-element command handler with packed output
 
-### Priority 7 - Medium Leaf Functions (20 functions, 0%)
-- Self-contained operations (18-120 bytes)
+### Priority 7 - Medium Leaf Functions (20 functions, 100% - ALL COMPLETED) ✅
+
+All medium-complexity self-contained operations fully documented:
+- **VDP Operations**: func_013 (register init with embedded table), func_022 (status setup), func_040-042 (connected dispatcher chain)
+- **Data Copy**: func_014 (7-element array), func_015 (strided copy), func_055 (nested stride), func_056-058 (conditional copies)
+- **Rendering Support**: func_035 (coordinate delta), func_047 (frame buffer address calculation), func_048 (scanline fill), func_050-051 (word fill loops)
+- **Decompression**: func_066 (RLE decompression), func_067 (RLE with clipping)
+- **Processing**: func_046 (word stream processor with VDP polling), func_054 (indirect dispatch loop)
+
+**Key Discoveries**:
+- VDP polling pattern: Read status byte, compare threshold, branch (func_022, 040-042, 046, 056-058)
+- RLE format: Lower byte = repeat count, upper byte = fill value, 0xFF signals extended format
+- Scanline fill: Handles odd/even pixel boundaries with SWAP.B byte operations
+- Frame buffer addressing: Y × 512 + base address calculation
+- Embedded data tables: func_013 contains 7-word constant table within function code
 
 ### Priority 8 - Larger Functions (15 functions, 0%)
 - 100+ byte functions requiring careful analysis
@@ -265,22 +300,11 @@ func_023 (Frustum Culler / Dispatcher)
 
 ## Recommendations for Continuing Work
 
-### Immediate Next Steps (Priority 7-9)
+### Immediate Next Steps (Priority 8-9)
 
-With Priorities 1-6 complete, the remaining work consists of:
+With Priorities 1-7 complete (60% of all functions), the remaining work consists of:
 
-**Priority 7 - Medium Leaf Functions (20 functions, 18-120 bytes)**
-
-Self-contained operations with clearer semantics:
-- func_013-015: Coordinate processing helpers
-- func_022: Setup function
-- func_035: Support function
-- func_040-042: Processing stages
-- func_046-048: Loop helpers
-- func_050-051, func_054-058: Utility operations
-- func_066-067: Additional handlers
-
-**Priority 8 - Larger Functions (15 functions, 100+ bytes)**
+**Priority 8 - Larger Functions (15 functions, 100+ bytes)** ⬅️ NEXT TARGET
 
 More complex functions requiring careful analysis:
 - func_002: Display list processor caller
@@ -312,15 +336,27 @@ Miscellaneous operations (func_073-108 range):
 - func_008 uses MAC.L hardware for efficient fixed-point matrix multiply
 - func_009/010 handle 4-element and 3-element command output respectively
 
+✅ **Priority 7 Completion Summary**:
+
+**Priority 7 (Medium Leaf Functions)** - Key findings:
+- VDP operations use consistent polling pattern: status read + threshold compare + branch
+- RLE decompression implements two-stage format: byte count + fill value (0xFF triggers extended mode)
+- Scanline fill handles pixel-level odd/even boundaries using SWAP.B byte operations
+- Frame buffer Y-coordinate addressing: multiplies Y by 512 then adds base address
+- func_013 has embedded 7-word data table within executable code (unusual pattern)
+- func_040-042 form connected dispatcher chain (not separate functions, continuous flow)
+- Conditional copy functions (056-058) check VDP status before executing copy operations
+
 ### Timeline Considerations
 
-- **Priorities 1-6**: 45 functions complete (41%)
-- **Priority 7**: 20 functions remaining
+- **Priorities 1-7**: 65 functions complete (60%) ✅
 - **Priority 8**: 15 functions remaining
 - **Priority 9**: 29 functions remaining
-- **Total remaining**: 64 functions (59%)
+- **Total remaining**: 44 functions (40%)
 
-**Estimate**: 8-15 sessions to complete remaining functions, depending on complexity encountered.
+**Estimate**: 5-10 sessions to complete remaining functions, depending on complexity encountered.
+
+**Milestone Achieved**: 60% completion - passed halfway point!
 
 ## Files Modified/Created
 
@@ -331,7 +367,7 @@ Miscellaneous operations (func_073-108 range):
 - `analysis/ANNOTATION_STATUS.md` (this file)
 
 ### Modified
-- `disasm/sh2_3d_engine_annotated.asm` (+1,625 lines of annotations)
+- `disasm/sh2_3d_engine_annotated.asm` (+3,085 lines total - Priority 1-7 complete)
 
 ### Unchanged
 - `CLAUDE.md` (guidelines preserved)
@@ -347,4 +383,4 @@ Miscellaneous operations (func_073-108 range):
 
 ---
 
-*For next session: Priority 7 (medium leaf functions) recommended as next target - 20 self-contained functions with clearer semantics. All Priority 1-6 now complete (45/109 = 41%). Remaining work: 64 functions across Priority 7-9. The core rendering pipeline, data copy system, display list handlers, and utility functions are now fully documented.*
+*For next session: Priority 8 (larger functions) recommended as next target - 15 functions requiring careful analysis. All Priority 1-7 now complete (65/109 = 60%). **Milestone: Passed halfway point!** Remaining work: 44 functions across Priority 8-9. The core rendering pipeline, data copy system, display list handlers, VDP operations, fill/copy utilities, and RLE decompression are now fully documented.*

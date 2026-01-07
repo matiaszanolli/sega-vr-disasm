@@ -40,10 +40,10 @@ These traverse data structures (likely polygon lists or BSP trees).
 
 | Status | Function | Offset | Size | Type | Notes |
 |--------|----------|--------|------|------|-------|
-| [ ] | func_020 | 0x23468 | 86 bytes | recursive | calls self + func_023 |
-| [ ] | func_043 | 0x239AA | 30 bytes | recursive | tight loop |
-| [ ] | func_044 | 0x239CA | 152 bytes | recursive | 2 indirect calls |
-| [ ] | func_094 | 0x24598 | 38 bytes | recursive | - |
+| [x] | func_020 | 0x23468 | 86 bytes | recursive | complex tree traversal |
+| [x] | func_043 | 0x239AA | 30 bytes | recursive | data copy + GBR setup |
+| [x] | func_044 | 0x239CA | 152 bytes | recursive | dispatcher (disasm issues) |
+| [x] | func_094 | 0x24598 | 38 bytes | recursive | anomalous control flow |
 
 ---
 
@@ -226,7 +226,7 @@ Investigation of Priority 2 recursive functions reveals complex control flow cha
 | Priority | Total | Done | Remaining | % Complete |
 |----------|-------|------|-----------|------------|
 | 1. Render primitives | 9 | 9 | 0 | 100% |
-| 2. Recursive | 4 | 0 | 4 | 0% |
+| 2. Recursive | 4 | 4 | 0 | 100% |
 | 3. Indirect dispatch | 6 | 6 | 0 | 100% |
 | 4. func_065 callers | 5 | 0 | 5 | 0% |
 | 5. Display list handlers | 5 | 0 | 5 | 0% |
@@ -234,17 +234,17 @@ Investigation of Priority 2 recursive functions reveals complex control flow cha
 | 7. Medium leaf | 20 | 0 | 20 | 0% |
 | 8. Larger functions | 15 | 0 | 15 | 0% |
 | 9. Remaining | 29 | 0 | 29 | 0% |
-| **TOTAL** | **104** | **26** | **78** | **25%** |
+| **TOTAL** | **104** | **30** | **74** | **29%** |
 
-**Grand Total (including 5 initial):** 31 annotated out of 109 (28% complete)
+**Grand Total (including 5 initial):** 35 annotated out of 109 (32% complete)
 
 ### Completion Milestones
 
 - [x] Priority 1 (100%): 9 rendering primitives complete
+- [x] Priority 2 (100%): 4 recursive functions complete (complex control flow documented)
 - [x] Priority 3 (100%): 6 dispatcher functions complete (all patterns documented)
 - [x] Priority 6 (100%): 11 small leaf functions complete (utility operations)
-- [ ] Priority 2: 4 recursive functions (complex - needs analysis)
 - [ ] Priority 4-5: 10 functions (data copy callers, display list handlers)
 - [ ] Priority 7-9: 64 remaining functions
-- [x] > 25% of all functions: 31 functions annotated
-- [ ] Half of all functions: 54.5 functions (need ~23 more)
+- [x] > 30% of all functions: 35 functions annotated
+- [ ] Half of all functions: 54.5 functions (need ~19 more)

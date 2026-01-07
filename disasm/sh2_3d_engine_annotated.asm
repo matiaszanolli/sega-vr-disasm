@@ -2053,6 +2053,404 @@ func_053:
 
 
 ; ═══════════════════════════════════════════════════════════════════════════
+; PRIORITY 2: RECURSIVE FUNCTIONS (Complex Control Flow & Tree Traversal)
+; ═══════════════════════════════════════════════════════════════════════════
+;
+; These 4 functions implement recursive algorithms, likely for tree/graph
+; traversal in the 3D engine. They use self-calls (recursive) + stack
+; management. Control flow is significantly more complex than Priority 1-6.
+;
+; ⚠️ CRITICAL NOTE: These functions show disassembly alignment issues,
+; particularly func_044 and func_094. Some instructions may represent:
+; (1) Data embedded in code, (2) Misaligned disassembly due to SH2 encoding,
+; (3) Cross-function tail calls. These require runtime validation.
+;
+; Call Graph Dependencies:
+;   func_043 ← func_044 (func_044 calls func_043)
+;   func_020 → func_023 (also calls main rendering dispatcher)
+;   func_044 → func_043, func_044 (self), JSR @R0 (indirect)
+;   func_094 → func_094 (self-recursive only)
+;
+; ═══════════════════════════════════════════════════════════════════════════
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_043: Recursive Data Copy with GBR Register Setup
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x022239AA - 0x022239C8
+; Size: 30 bytes
+; Type: Recursive leaf (calls only itself)
+; Called by: func_044 (once from dispatcher)
+; Calls: func_043 (itself - recursive)
+;
+; Purpose: Initializes data block(s) by copying from one location to another
+; with GBR (Global Base Register) configuration. The recursion mechanism is
+; unusual and requires investigation. Likely implements either:
+;   1. Multi-block copy with recursive loop unrolling
+;   2. Initialization of thread-local or context-specific memory
+;   3. Data setup before handing control to rendering pipeline
+;
+; Input:
+;   R6  = Source/config value (written to R14 context at +0x24)
+;   R14 = RenderingContext pointer
+;   R0  = Data buffer or loop data
+;
+; Output:
+;   Memory at [R14+0x24] = R6 (context updated)
+;   GBR = Set from PC-relative address (0x2000xxxx)
+;   R13 = Pointer (R14 + 0x0C)
+;   R7  = Loop counter (14 = 0x0E iterations)
+;
+; Registers Modified: R1, R7, R13, R14, GBR, R0, R6 (context)
+; Stack Usage: Single stack frame for recursion management
+;
+; Recursion Mechanism:
+;   The function uses "BFFF BSR $022239AE" which appears to branch to
+;   the instruction following the BSR. This is an unusual pattern that may
+;   indicate: (1) Special branch encoding, (2) Cross-function recursion,
+;   (3) Disassembly misalignment. Requires runtime validation to understand
+;   exact control flow.
+;
+; Loop Pattern: Simple countdown loop (DT R7, BF/S) copying 14 blocks
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_043:
+022239AA  1E69     MOV.L   R6,@($24,R14)   ; [RenderingContext+0x24] = R6 (write to context)
+022239AC  BFFF     BSR     $022239AE       ; RECURSIVE CALL ⚠️ unusual target
+022239AE  0009     NOP                     ; Delay slot NOP
+022239B0  DE06     MOV.L   @($022239CC,PC),R14  ; R14 = [PC + 0x18] = 0xC0000700 (context)
+022239B2  C708     DW      $C708           ; ⚠️ Data word or misaligned instruction
+022239B4  E70E     MOV     #$0E,R7         ; R7 = 14 (loop counter for 14 iterations)
+022239B6  6DE3     MOV     R14,R13         ; R13 = R14 (copy context pointer to stream ptr)
+022239B8  7D0C     ADD     #$0C,R13        ; R13 += 0x0C (offset into context)
+022239BA  6106     MOV.L   @R0+,R1         ; R1 = [R0++] (load 32-bit from input stream)
+022239BC  2D12     MOV.L   R1,@R13         ; [R13] = R1 (store to context)
+022239BE  4710     DT      R7              ; R7--; T = (R7 == 0)
+022239C0  8FFB     BF/S    $022239BA       ; If not zero, loop back to MOV.L @R0+
+022239C2  7D04     ADD     #$04,R13        ; [delay slot] R13 += 4 (advance context pointer)
+022239C4  D002     MOV.L   @($022239D0,PC),R0  ; R0 = [PC+0x0C]
+022239C6  401E     LDC     R0,GBR          ; GBR = R0 (load Global Base Register)
+022239C8  000B     RTS                     ; Return from function
+
+;
+; Analysis:
+;   This function sets up rendering context and global register state.
+;   Copies R6 to context slot +0x24, then loads a 14-word block into
+;   context from input stream (R0). Finally configures GBR for thread-local
+;   or global data access. The recursion mechanism is unclear.
+;
+; ⚠️ DISASSEMBLY CONCERNS:
+;   - BFFF BSR target is highly suspicious (branches to next-line NOP)
+;   - DW $C708 may be actual data or misaligned instruction boundary
+;   - GBR usage (0x2000xxxx) suggests hardware register initialization
+;   - Actual recursion mechanism cannot be determined from this disassembly
+;
+; Recommendations: Requires runtime execution trace or GDB breakpoints to
+; understand control flow and recursion mechanics.
+; ═══════════════════════════════════════════════════════════════════════════
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_020: Complex Recursive Tree/List Traversal with Context Updates
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x02223468 - 0x022234BE
+; Size: 86 bytes
+; Type: Recursive hub (calls func_023 dispatcher + itself)
+; Called by: func_018, func_019 (transformation functions)
+; Calls: func_020 (itself - recursive), func_023 (frustum culler)
+;
+; Purpose: Traverses a tree or linked list structure, performing recursive
+; depth-first traversal. For each node, extracts data, updates rendering
+; context, and either recurses or dispatches to func_023 (main rendering).
+; Likely implements scene graph traversal or polygon BSP tree walk.
+;
+; Input:
+;   R10 = Node pointer or data buffer (decremented by 0x04 before write)
+;   R14 = RenderingContext pointer (for context updates)
+;   R4  = Temporary/index value
+;   R7  = Iteration counter
+;   R11 = Accumulator or state value
+;
+; Output:
+;   Context fields updated at R14+0x09, R14+0x0B (via MOV.B R0,@(disp,R4))
+;   Recursion continues or branches to func_023 for rendering
+;   R10 = Updated node pointer (R10 += R11 + offset)
+;
+; Registers Modified: R0, R1, R4, R6, R7, R10, R11, R14 (context)
+; Stack Usage: Multiple frames for recursive calls + PR save
+;
+; Control Flow:
+;   1. Initialize R1 = 0, write to [R10]
+;   2. Decrement R10 by 0x04 (pointer adjustment)
+;   3. Shift right R0 (SHLR), write to context at [R14+0x08]
+;   4. Save registers (R6, R7, R10) to stack for recursion
+;   5. Two conditional blocks: if (R0 != 0), call BSR to sub-function
+;   6. Update context with byte writes to [R4+0x0B] and [R4+0x09]
+;   7. Loop control: DT R7, BF/S loop back with R11 += 0xE0 increment
+;   8. Final unconditional branch (BRA) to exit point
+;   9. Return
+;
+; Recursion Mechanism:
+;   The function uses BSR calls (self-recursion) with conditional branches
+;   (CMP/EQ #$00, R0; BT skip_recurse; BSR $022234A0). The inner function
+;   at 022234A0 manages the recursive list/tree traversal.
+;
+; Algorithm Complexity: HIGH
+;   - Nested loops (DT R7 outer loop)
+;   - Nested inner function calls (func_020 @ 022234A0)
+;   - Multiple conditional paths based on data values
+;   - Context state management through byte-level updates
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_020:
+02223468  0009     NOP                     ; Alignment padding
+0222346A  E100     MOV     #$00,R1         ; R1 = 0 (zero initialization)
+0222346C  2A12     MOV.L   R1,@R10         ; [R10] = R1 (store zero)
+0222346E  7AFC     ADD     #$FC,R10        ; R10 += -4 (decrement pointer for next block)
+02223470  4001     SHLR    R0              ; R0 >>= 1 (logical shift right)
+02223472  1E02     MOV.L   R0,@($8,R14)   ; [R14+0x08] = R0 (write to context)
+02223474  2F66     MOV.L   R6,@-R15        ; [--R15] = R6 (push R6 to stack)
+02223476  2F76     MOV.L   R7,@-R15        ; [--R15] = R7 (push R7 to stack)
+02223478  2FA6     MOV.L   R10,@-R15       ; [--R15] = R10 (push R10 to stack)
+0222347A  84EB     MOV.B   R0,@($B,R4)    ; [R4+0x0B] = low_byte(R0) (byte write)
+0222347C  8800     CMP/EQ  #$00,R0        ; T = (R0 == 0) (test for recursion condition)
+0222347E  8901     BT      $02223484      ; If T=1, branch to first exit
+02223480  B00E     BSR     $022234A0      ; Call inner recursive function (self)
+02223482  4F22     STS.L   PR,@-R15       ; [--R15] = PR (save return address)
+02223484  7BE0     ADD     #$E0,R11       ; R11 += 0xE0 (state/offset increment)
+02223486  84E9     MOV.B   R0,@($9,R4)   ; [R4+0x09] = low_byte(R0) (byte write)
+02223488  8800     CMP/EQ  #$00,R0        ; T = (R0 == 0) (second recursion test)
+0222348A  8901     BT      $02223490      ; If T=1, skip second recursion
+0222348C  B008     BSR     $022234A0      ; Call inner recursive function (second time)
+0222348E  4F22     STS.L   PR,@-R15       ; [--R15] = PR (save return address)
+02223490  6AF6     MOV.L   @R15+,R10      ; R10 = [R15++] (restore R10 from stack)
+02223492  67F6     MOV.L   @R15+,R7       ; R7 = [R15++] (restore R7 from stack)
+02223494  66F6     MOV.L   @R15+,R6       ; R6 = [R15++] (restore R6 from stack)
+02223496  4710     DT      R7              ; R7--; T = (R7 == 0) (decrement loop counter)
+02223498  8FDD     BF/S    $02223456      ; If not zero, loop back
+0222349A  7BE0     ADD     #$E0,R11       ; [delay slot] R11 += 0xE0
+0222349C  AFE2     BRA     $02223464      ; Unconditional branch to exit
+0222349E  0009     NOP                     ; Delay slot NOP
+022234A0  2FB6     MOV.L   R11,@-R15       ; [Inner function] Save R11 to stack
+022234A2  61B5     MOV.W   @R11+,R1       ; R1 = *(int16_t*)R11; R11++ (load halfword)
+022234A4  D807     MOV.L   @($022234C4,PC),R8  ; R8 = [PC+0x1C] (load table pointer)
+022234A6  611D     EXTU.W  R1,R1           ; R1 = zero_extend(R1[15:0]) (unsigned extend)
+022234A8  381C     ADD     R1,R8           ; R8 += R1 (compute table offset)
+022234AA  2FB6     MOV.L   R11,@-R15       ; Save R11 again
+022234AC  2F06     MOV.L   R0,@-R15        ; Save R0
+022234AE  B02C     BSR     $0222350A       ; Call another function (not defined in range)
+022234B0  4F22     STS.L   PR,@-R15       ; Save PR
+022234B2  60F6     MOV.L   @R15+,R0       ; R0 = [R15++] (restore R0)
+022234B4  6BF6     MOV.L   @R15+,R11      ; R11 = [R15++] (restore R11)
+022234B6  4010     DT      R0              ; R0--; T = (R0 == 0) (inner loop counter)
+022234B8  8BF3     BF      $022234A2      ; If not zero, loop back to load next
+022234BA  6BF6     MOV.L   @R15+,R11      ; R11 = [R15++] (restore R11 final)
+022234BC  4F26     LDS.L   @R15+,PR       ; PR = [R15++] (restore return address)
+022234BE  000B     RTS                     ; Return
+
+;
+; Analysis of Inner Function (0x022234A0):
+;   This inner routine handles per-node processing:
+;   - Loads a halfword from [R11++]
+;   - Uses it as offset into table at R8
+;   - Calls another function (out of range)
+;   - Loops through data blocks with DT/BF pattern
+;   This suggests recursive tree node processing with lookup table dispatch.
+;
+; Cycle Count: ~50-80 cycles per node (highly variable with recursion depth)
+;
+; ⚠️ CONTROL FLOW CHALLENGES:
+;   - Nested recursion with multiple function calls
+;   - Inner function calls external code (0x0222350A) not in disassembly range
+;   - Stack management complex due to multiple BSR calls
+;   - Actual tree structure not obvious from code alone
+;   - Requires understanding of data format at R11 (tree nodes)
+;
+; Recommendations: Study with tree structure documentation and runtime traces
+; ═══════════════════════════════════════════════════════════════════════════
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_044: Complex Multi-Level Dispatcher with Recursion & Indirection
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x022239CA - 0x02223A62
+; Size: 152 bytes
+; Type: Recursive hub (calls func_043, itself, JSR @R0)
+; Called by: func_001 (display list processor) or higher-level dispatcher
+; Calls: func_043 (initialization), func_044 (itself - recursive),
+;        JSR @R0 (indirect - multiple dispatch paths)
+;
+; Purpose: High-level rendering dispatcher that orchestrates multi-path
+; polygon rendering. Combines:
+;   1. Initialization via func_043 (GBR + context setup)
+;   2. Recursive processing (possible for scene graphs or LOD trees)
+;   3. Indirect dispatch through function pointers (polygon type selection)
+;   4. Dynamic conditional branching based on data values
+;
+; ⚠️ CRITICAL: This disassembly is HEAVILY COMPROMISED
+;   The function appears to have embedded data tables mixed with instructions.
+;   Analysis is unreliable and requires alternative tools or runtime traces.
+;
+; Partial Control Flow Analysis:
+;   1. Save PR (return address) to stack
+;   2. Multiple JSR @R0 indirect calls (function pointer dispatch)
+;   3. BSR to func_043 for initialization
+;   4. Conditional branches (BT, BF) based on bit tests
+;   5. Loop control with DT/BF patterns
+;   6. Data accesses: MOV.L to context offsets +0x24, +0x0E
+;   7. Possible tail-call optimization with JMP @R0
+;
+; Input:
+;   R14 = RenderingContext pointer
+;   R0, R1 = Command/parameter data from display list
+;   R5 = Parameter or buffer pointer
+;
+; Output:
+;   Rendering state modified through context updates and indirect calls
+;   Final return with LDS.L @R15+,PR; RTS
+;
+; Registers Modified: R0, R1, R5, R6, R7, R14, and all via JSR @R0
+;
+; ⚠️ DISASSEMBLY SEVERELY COMPROMISED
+;   Lines like:
+;     - "022239CA  0009     NOP" followed by data words (C000, 0700)
+;     - "022239D2  4100     SHLL    R1" mixed with "0000     DW      $0000"
+;     - "022239E2  00CF     MAC.L" and other suspicious patterns
+;
+;   This suggests: (1) Data table embedded in code section
+;   (2) Disassembler alignment errors with SH2 encoding
+;   (3) Possible 16-bit data values misinterpreted as instructions
+;
+;   CANNOT RELIABLY ANNOTATE - Requires Runtime Validation
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_044:
+; ⚠️ WARNING: The following disassembly is UNRELIABLE
+; The intermixing of data words and apparent instructions suggests either:
+; - Embedded lookup tables or data blocks
+; - Disassembler misalignment in SH2 instruction boundaries
+; - Cross-function code mixing
+;
+; Key recognizable patterns (assuming valid):
+; 022239F0  4F22     STS.L   PR,@-R15    ; Save return address
+; 022239F2  D00E     MOV.L   @($02223A2C,PC),R0  ; Load address from literal
+; 022239F4  400B     JSR     @R0         ; Indirect call #1
+; 022239F8  B02B     BSR     $02223A52   ; Call helper
+; 022239FC  BFD8     BSR     $022239B0   ; Call func_043
+; 02223A02  51E9     MOV.L   @($24,R14),R1  ; Read context
+; 02223A06  210B     OR      R0,R1       ; Bitwise OR
+; 02223A10  D008     MOV.L   @($02223A34,PC),R0  ; Load from literal
+; 02223A12  400B     JSR     @R0         ; Indirect call #2
+; 02223A40  4F26     LDS.L   @R15+,PR    ; Restore return address
+; 02223A42  000B     RTS                 ; Return
+;
+; Recognizable structure:
+; 1. Stack save (PR save)
+; 2. Indirect dispatch (JSR @R0) x 2+
+; 3. Call to func_043 (initialization)
+; 4. Context field updates (MOV.L, OR operations)
+; 5. Stack restore + RTS
+;
+; ⚠️ ACTUAL FUNCTION BODY UNKNOWN
+; Full disassembly from 022239CA to 02223A62 contains too many anomalies
+; to interpret reliably without:
+; - GDB execution traces
+; - Specialized SH2 analysis tools
+; - Cross-reference with polygon rendering algorithms
+; - Runtime memory access patterns
+;
+; Recommendation: DEFER detailed analysis until runtime tools available
+; ═══════════════════════════════════════════════════════════════════════════
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_094: Simple Recursive Loop with Branch Target Before Function Entry
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x02224598 - 0x022245BE
+; Size: 38 bytes
+; Type: Recursive leaf (calls only itself)
+; Called by: Unknown (not visible in call graph from main entry points)
+; Calls: func_094 (itself - recursive)
+;
+; Purpose: Recursive loop processor, likely for tree/list traversal or
+; polygon batch processing. Loads data in pairs (two 16-bit values),
+; decrements counter, and conditionally branches.
+;
+; ⚠️ CRITICAL DISASSEMBLY ISSUE:
+;   At offset 022245BC, instruction is "BF $022244F6"
+;   This branches to address 0x022244F6, which is BEFORE the function entry
+;   at 0x02224598. This indicates either:
+;   1. Cross-function tail-call or control transfer
+;   2. Severe disassembly misalignment
+;   3. Unusual SH2 encoding not properly decoded
+;
+;   The function cannot be reliably analyzed without understanding this
+;   control flow anomaly.
+;
+; Partial Pattern Analysis:
+;   - STS.L PR,@-R15: Save return address (function prologue)
+;   - BSR $022245B4: Call sub-routine (recursive setup)
+;   - Loop at 022245B4:
+;     - MOV.W @R4+,R3: Load halfword
+;     - MOV.W @R4+,R1: Load another halfword
+;     - DT R3: Decrement counter
+;     - BF $022244F6: Branch if not zero (TARGET BEFORE ENTRY!)
+;   - LDS.L @R15+,PR: Restore return address
+;   - RTS: Return
+;
+; Input:
+;   R4 = Data pointer (loaded from literal at 022245A8 or 022245B2)
+;   R3 = Loop counter (loaded via MOV.W @R4+)
+;
+; Output:
+;   R3, R1 = Processed values from input stream
+;   Control flow: recursion with counter-based termination
+;
+; ⚠️ CANNOT RELIABLY ANNOTATE
+;   The branch target pointing before function entry makes this function's
+;   semantics unclear. This could indicate:
+;   - Linked list processing where func_094 is one node in a chain
+;   - Tail recursion optimization with unusual control flow
+;   - Misalignment in the disassembler output
+;
+;   REQUIRES: Runtime execution trace or GDB breakpoint analysis
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_094:
+; ⚠️ WARNING: DISASSEMBLY CONTAINS ANOMALIES
+; The following is the raw disassembly, but control flow is unreliable.
+
+02224598  0009     NOP                     ; Padding
+0222459A  009F     MAC.L   @R9+,@R0+     ; ⚠️ Suspicious instruction (why MAC.L here?)
+0222459C-022245B0: [DATA/INSTRUCTION MIX - UNRELIABLE]
+022245AA  4F22     STS.L   PR,@-R15        ; Save return address
+022245AC  B002     BSR     $022245B4       ; Call sub-routine (self-recursive setup)
+022245AE  4F26     LDS.L   @R15+,PR       ; Restore return address
+022245B2  D405     MOV.L   @($022245C8,PC),R4  ; Load data pointer
+022245B4  6345     MOV.W   @R4+,R3         ; R3 = *(int16_t*)R4; R4++
+022245B6  6145     MOV.W   @R4+,R1         ; R1 = *(int16_t*)R4; R4++
+022245B8  9203     MOV.W   @($PC),R2       ; Load immediate (format unclear)
+022245BA  4310     DT      R3              ; R3--; T = (R3 == 0)
+022245BC  8B9B     BF      $022244F6      ; ⚠️ BRANCH TO ADDRESS BEFORE ENTRY!
+022245BE  000B     RTS                     ; Return
+
+;
+; ⚠️ ANALYSIS SUSPENDED
+; The branch target at 022244F6 (before function entry at 02224598) indicates
+; control flow that cannot be understood without additional context. Possibilities:
+;
+; 1. **Linked List Chain**: func_094 may be part of a dynamically linked structure
+;    where the branch jumps to previous/sibling function
+; 2. **Tail Recursion with Trampoline**: The BF may implement tail call optimization
+; 3. **Misaligned Disassembly**: SH2 instruction boundary misdetection
+; 4. **Cross-Module Optimization**: Branch may target code in different module
+;
+; CANNOT PROCEED without: GDB execution traces, runtime memory inspection, or
+; alternative analysis tools for SH2 code with complex control flow.
+; ═══════════════════════════════════════════════════════════════════════════
+
+
+; ═══════════════════════════════════════════════════════════════════════════
 ; End of Annotated Disassembly (Hotspot Functions)
 ; ═══════════════════════════════════════════════════════════════════════════
 ;

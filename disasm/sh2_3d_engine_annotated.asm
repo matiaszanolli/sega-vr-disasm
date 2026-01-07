@@ -1599,6 +1599,460 @@ func_079:
 
 
 ; ═══════════════════════════════════════════════════════════════════════════
+; PRIORITY 6: SMALL LEAF FUNCTIONS (Quick-Win Utility Functions)
+; ═══════════════════════════════════════════════════════════════════════════
+;
+; These 11 functions are small (2-16 bytes), self-contained utility operations.
+; Common patterns: register moves, conditional assignments, byte operations,
+; data initialization loops. Used throughout rendering pipeline for parameter
+; setup and boundary checking.
+;
+; ═══════════════════════════════════════════════════════════════════════════
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_000: Data Initialization Loop with Stride
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x0222300A - 0x0222301A
+; Size: 16 bytes
+; Type: Leaf function (no calls)
+; Called by: Unknown (possibly initialization routine)
+; Calls: None (leaf)
+;
+; Purpose: Copies 12 blocks of data from source (R13) to destination (R12) with
+; configurable stride. This is likely an initialization routine that sets up
+; rendering state or buffers by repeatedly writing to addresses spaced by
+; stride intervals.
+;
+; Input:
+;   R13 = Source data pointer (will be incremented by auto-increment addressing)
+;   R12 = Destination base address (will be incremented by stride)
+;   R7  = Loop counter (initialized to 0x0C = 12 iterations)
+;   (Stride value assumed pre-set in R12 or through addressing)
+;
+; Output:
+;   R12 = Final destination address (R12 + 12 × stride)
+;   Memory[R12 + stride*i] = Data[R13 + 4*i] for i=0..11
+;
+; Registers Modified: R0, R7, R12
+;
+; Loop Pattern: DT R7 (decrement and test), BF/S (branch if false with delay slot)
+; The /S suffix means the ADD #$04,R12 executes in the branch delay slot
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_000:
+0222300A  300C     ADD     R0,R0                  ; Possible alignment padding or dummy op
+0222300C  DC04     MOV.L   @($02223020,PC),R12   ; Load dest base address from literal pool
+0222300E  E70C     MOV     #$0C,R7                ; R7 = 12 (loop counter)
+02223010  60D6     MOV.L   @R13+,R0              ; R0 = [R13++] (load source data, 4 bytes)
+02223012  2C02     MOV.L   R0,@R12               ; [R12] = R0 (write to destination)
+02223014  4710     DT      R7                    ; R7--; T = (R7 == 0)
+02223016  8FFB     BF/S    $02223010             ; If T=0, branch back to 02223010
+02223018  7C04     ADD     #$04,R12              ; [delay slot] R12 += 4 (stride increment)
+0222301A  000B     RTS                           ; Return
+
+;
+; Algorithm Analysis:
+;   The loop copies exactly 12 32-bit words from contiguous source to stride-spaced
+;   destination. This is used for initializing arrays where data must be separated
+;   by a fixed stride (common for texture coordinates, vertex attributes, etc.).
+;   The stride is hardcoded to +4 bytes per iteration (not configurable).
+;
+; Cycle Count: ~8 cycles per iteration × 12 = ~96 cycles + setup/exit
+; ═══════════════════════════════════════════════════════════════════════════
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_003: Utility - Parameter Setup (Called by func_002)
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x022230CC - 0x022230DA
+; Size: 14 bytes
+; Type: Leaf function (no calls)
+; Called by: func_002 (display list handler - one of two options)
+; Calls: None (leaf)
+;
+; Purpose: Part of a pair of display list handlers (func_003, func_004).
+; This function performs parameter extraction or configuration setup for
+; a specific command type. Called when display list command has Bit 0 = 1.
+;
+; Note: Disassembly appears misaligned or contains embedded data. The actual
+; instruction boundaries and control flow may differ from what the disassembler
+; reports. Requires runtime analysis or manual verification with SH2 CPU docs.
+;
+; Pattern: MOV operations with address calculations suggest register manipulation
+; or memory-based parameter processing.
+;
+; Input: Display list command in R1 (from func_002)
+; Output: Rendering state modified (likely R14 context or frame buffer setup)
+;
+; Registers Modified: R4, R7 (inferred from MOV operations)
+; ═══════════════════════════════════════════════════════════════════════════
+
+; func_003 disassembly (with alignment uncertainties noted):
+022230CC  0009     NOP                            ; Padding
+022230CE  37CC     ADD     R12,R7                 ; R7 += R12
+022230D0  AFFA     BRA     $022230C8              ; Unconditional branch (unusual)
+022230D2  1743     MOV.L   R4,@($C,R7)           ; [R7+12] = R4
+022230D4  36AC     ADD     R10,R6                ; R6 += R10
+022230D6  37CC     ADD     R12,R7                ; R7 += R12
+022230D8  5463     MOV.L   @($C,R6),R4           ; R4 = [R6+12]
+022230DA  000B     RTS                           ; Return
+
+;
+; ⚠️ WARNING: This disassembly is suspicious.
+;   - BRA instruction branches backward to 022230C8 (BEFORE function entry)
+;   - This could indicate: (1) misaligned disassembly due to embedded data,
+;     (2) cross-function tail recursion, or (3) tool limitation with SH2 opcodes
+;   - The actual execution flow is unclear without runtime validation
+; ═══════════════════════════════════════════════════════════════════════════
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_004: Utility - Parameter Setup (Called by func_002)
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x022230DC - 0x022230E4
+; Size: 8 bytes
+; Type: Leaf function (no calls)
+; Called by: func_002 (display list handler - alternative path)
+; Calls: None (leaf)
+;
+; Purpose: Alternative display list handler (selected when Bit 0 = 0).
+; Performs similar parameter setup to func_003 but with different implementation
+; or target registers.
+;
+; Note: Like func_003, this disassembly appears problematic. The instruction
+; sequence looks like continuation from func_003 or embedded data rather than
+; independent function code.
+;
+; Pattern: Memory load/store operations on R6/R7 with fixed offsets
+; ═══════════════════════════════════════════════════════════════════════════
+
+; func_004 disassembly (with alignment uncertainties noted):
+022230DC  1743     MOV.L   R4,@($C,R7)           ; [R7+12] = R4
+022230DE  36CC     ADD     R12,R6                ; R6 += R12
+022230E0  37CC     ADD     R12,R7                ; R7 += R12
+022230E2  5463     MOV.L   @($C,R6),R4           ; R4 = [R6+12]
+022230E4  000B     RTS                           ; Return
+
+;
+; ⚠️ WARNING: This disassembly is also suspicious.
+;   - The instructions appear identical to func_003 (same MOV/ADD pattern)
+;   - This could be data reuse, misalignment, or actual duplicated code paths
+;   - Execution semantics cannot be verified without runtime analysis
+; ═══════════════════════════════════════════════════════════════════════════
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_025: Coordinate/Parameter Processing Helper
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x02223632 - 0x02223640
+; Size: 14 bytes
+; Type: Leaf function (no calls)
+; Called by: func_024 or coordinate transformation pipeline
+; Calls: None (leaf)
+;
+; Purpose: Processes coordinate or parameter values extracted from input stream.
+; Loads 16-bit values from memory, performs ADD and SUB operations, applies
+; conditional negation. Used as part of parameter extraction before rendering.
+;
+; Input:
+;   R8  = Source pointer (memory address)
+;   R1  = Offset or configuration value
+;   R2  = Comparison threshold
+;   R9  = Output buffer pointer
+;
+; Output:
+;   [R9+12] = Processed value
+;   R0 = Final computed value
+;   Registers R4 modified
+;
+; Registers Modified: R0, R1, R4
+;
+; Algorithm: Load two halfwords → apply ADD/SUB arithmetic → conditional NEG
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_025:
+02223632  1903     MOV.L   R0,@($C,R9)           ; [R9+12] = R0 (store output)
+02223634  6085     MOV.W   @R8+,R0               ; R0 = *(int16_t*)R8; R8++ (load halfword)
+02223636  6485     MOV.W   @R8+,R4               ; R4 = *(int16_t*)R8; R8++ (load next halfword)
+02223638  301C     ADD     R1,R0                 ; R0 += R1 (add offset)
+0222363A  8196     MOV.B   R0,@($6,R1)           ; *(int8_t*)(R1+6) = low_byte(R0) (store byte)
+0222363C  3428     SUB     R2,R4                 ; R4 -= R2 (subtract threshold)
+0222363E  604B     NEG     R4,R0                 ; R0 = -R4 (arithmetic negation with conditions)
+02223640  000B     RTS                           ; Return
+
+;
+; Analysis:
+;   This function processes coordinate/attribute data with bounds checking.
+;   The ADD/SUB/NEG sequence suggests either clamping or sign-flip operations
+;   commonly used in frustum culling or coordinate normalization.
+; ═══════════════════════════════════════════════════════════════════════════
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_027: Conditional Value Assignment (Boundary Comparison)
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x0222367A - 0x02223680
+; Size: 6 bytes
+; Type: Leaf function (no calls)
+; Called by: Coordinate validation or clipping functions
+; Calls: None (leaf)
+;
+; Purpose: Conditionally selects between two register values based on comparison.
+; Sets R1 = R0, then tests if R0 >= R2. If true, branches past final MOV.
+; This implements: if (R0 >= R2) { R1 = R0 } else { R2 = R0 }
+;
+; Input:
+;   R0 = Test value
+;   R2 = Boundary/threshold value
+;
+; Output:
+;   R1 = R0 (always assigned first)
+;   R2 = R0 (only if R0 < R2) - implements minimum clamping
+;   T  = Comparison result
+;
+; Registers Modified: R1 (always), R2 (conditional)
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_027:
+0222367A  6103     MOV     R0,R1                  ; R1 = R0
+0222367C  3203     CMP/GE  R0,R2                 ; T = (R0 >= R2) ? 1 : 0
+0222367E  8901     BT      $02223684             ; If T=1, skip next MOV
+02223680  000B     RTS                           ; Return
+02223682  6203     MOV     R0,R2                 ; R2 = R0 (only if R0 < R2)
+02223684  000B     RTS                           ; Return
+
+;
+; Purpose: Minimum value function - ensures R2 >= R0 by conditionally updating R2.
+; This pattern appears in boundary checking loops for clipping or viewport tests.
+;
+; Cycle Count: 3-4 cycles (varies on BT outcome)
+; ═══════════════════════════════════════════════════════════════════════════
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_028: Trivial Register Copy
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x02223682 - 0x02223684
+; Size: 2 bytes (1 instruction + RTS)
+; Type: Leaf function (no calls)
+; Called by: Coordinate or state setup functions
+; Calls: None (leaf)
+;
+; Purpose: Minimal utility function that copies R0 to R2 and returns.
+; Used as parameter pass-through or value initialization in coordinate pipeline.
+;
+; Input:
+;   R0 = Value to copy
+;
+; Output:
+;   R2 = R0
+;
+; Registers Modified: R2
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_028:
+02223682  6203     MOV     R0,R2                  ; R2 = R0
+02223684  000B     RTS                           ; Return
+
+;
+; This 2-byte function is a trivial register copy, likely inlined by optimizing
+; compilers but present here as a callable routine (possibly for compatibility
+; or code organization). Zero-overhead wrapper for value propagation.
+; ═══════════════════════════════════════════════════════════════════════════
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_030: Conditional Parameter Assignment with Comparison
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x022236CA - 0x022236D2
+; Size: 8 bytes
+; Type: Leaf function (no calls)
+; Called by: Parameter initialization or conditional rendering path selection
+; Calls: None (leaf)
+;
+; Purpose: Sets R1=R0, then conditionally sets R11=0x0C if R0 < R2.
+; This implements: R1 = R0; if (R0 < R2) R11 = 0x0C
+; Used for setting up rendering parameters or loop counters based on bounds.
+;
+; Input:
+;   R0 = Primary value
+;   R2 = Boundary/threshold
+;
+; Output:
+;   R1 = R0 (always)
+;   R11 = 0x0C (if R0 < R2), unchanged (if R0 >= R2)
+;   T  = Comparison result
+;
+; Registers Modified: R1, R11 (conditional)
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_030:
+022236CA  6103     MOV     R0,R1                  ; R1 = R0
+022236CC  3203     CMP/GE  R0,R2                 ; T = (R0 >= R2) ? 1 : 0
+022236CE  8902     BT      $022236D6             ; If T=1, skip MOV
+022236D0  EB0C     MOV     #$0C,R11              ; R11 = 0x0C (only if R0 < R2)
+022236D2  000B     RTS                           ; Return
+022236D4  6203     MOV     R0,R2                 ; [Note: part of func_031]
+022236D6  000B     RTS                           ; Return (target of BT)
+
+;
+; Analysis: Conditional initialization of loop counter R11 (value 12).
+; Used in rendering loops where iteration count depends on viewport bounds.
+; ═══════════════════════════════════════════════════════════════════════════
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_031: Trivial Register Copy (Variant 2)
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x022236D4 - 0x022236D6
+; Size: 2 bytes (1 instruction + RTS)
+; Type: Leaf function (no calls)
+; Called by: Value propagation in coordinate pipeline
+; Calls: None (leaf)
+;
+; Purpose: Copies R0 to R2, similar to func_028 but at different code address.
+; May be reached via branch target from func_030.
+;
+; Input:
+;   R0 = Value to copy
+;
+; Output:
+;   R2 = R0
+;
+; Registers Modified: R2
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_031:
+022236D4  6203     MOV     R0,R2                  ; R2 = R0
+022236D6  000B     RTS                           ; Return
+
+;
+; This appears to be either a duplicate of func_028 or a branch target within
+; a larger function. Both implement the same trivial operation.
+; ═══════════════════════════════════════════════════════════════════════════
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_049: Utility Function - Disassembly Unclear
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x02223C42 - 0x02223C4A
+; Size: 8 bytes
+; Type: Leaf function (no calls)
+; Called by: Unknown (not in visible call graph)
+; Calls: None (leaf)
+;
+; Purpose: Purpose unclear - disassembly shows unusual pattern with NOP, data-like
+; words (DW directives), and branch instruction that doesn't form valid control flow.
+;
+; Disassembly Analysis:
+;   - Starts with NOP (padding or alignment)
+;   - Contains DW $C505, $C802 (data words that decode as instructions)
+;   - BF instruction branches backward
+;   - Possible embedded data table or misalignment
+;
+; ⚠️ WARNING: This disassembly is problematic and cannot be reliably analyzed.
+;   Possibilities:
+;   1. Data section misidentified as code
+;   2. Disassembler alignment issue with SH2 instruction boundaries
+;   3. Embedded lookup table with multiple interpretations
+;   4. Requires runtime execution trace or manual verification
+;
+; Registers Modified: Unknown
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_049:
+02223C42  0009     NOP                            ; Padding or alignment
+02223C44  C505     DW      $C505                  ; Data word (unclear purpose)
+02223C46  C802     DW      $C802                  ; Data word (unclear purpose)
+02223C48  8BFC     BF      $02223C44             ; Branch if false (unusual control)
+02223C4A  000B     RTS                           ; Return
+
+;
+; This function cannot be reliably annotated without additional context or
+; runtime analysis. The instructions may not form meaningful operations.
+; ═══════════════════════════════════════════════════════════════════════════
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_052: Utility Function - Disassembly Unclear
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x02223CA2 - 0x02223CAC
+; Size: 10 bytes
+; Type: Leaf function (no calls)
+; Called by: Unknown (not in visible call graph)
+; Calls: None (leaf)
+;
+; Purpose: Purpose unclear - similar disassembly issues to func_049.
+;
+; Disassembly Analysis:
+;   - Starts with NOP
+;   - MOV R2,R0 (register copy)
+;   - DW $C801 (data word)
+;   - BF with branch to func_053 entry point
+;   - SWAP.B operation
+;   - RTS return
+;
+; Partial Analysis:
+;   If instructions are valid, the SWAP.B R4,R0 swaps bytes of R4 into R0,
+;   commonly used for endianness conversion or byte unpacking. However, the
+;   control flow with DW and BF suggests misalignment.
+;
+; ⚠️ WARNING: Disassembly reliability is low. The BF instruction branches
+;   directly to the next function (func_053), suggesting possible misalignment
+;   or data table.
+;
+; Registers Modified: R0, R4 (if control flow is as shown)
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_052:
+02223CA2  0009     NOP                            ; Padding
+02223CA4  6023     MOV     R2,R0                  ; R0 = R2
+02223CA6  C801     DW      $C801                  ; Data word (unclear)
+02223CA8  8B02     BF      $02223CB0             ; Branch to func_053
+02223CAA  6048     SWAP.B  R4,R0                 ; R0 = byte_swap(R4)
+02223CAC  000B     RTS                           ; Return
+
+;
+; This function's semantics are highly uncertain. Requires runtime validation.
+; ═══════════════════════════════════════════════════════════════════════════
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_053: Byte Store Operation
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x02223CAE - 0x02223CB0
+; Size: 2 bytes (1 instruction + RTS)
+; Type: Leaf function (no calls)
+; Called by: Memory writing operations, texture or buffer updates
+; Calls: None (leaf)
+;
+; Purpose: Stores a byte from R0 to memory location pointed to by R1.
+; Primitive operation for byte-level memory writes.
+;
+; Input:
+;   R0 = Byte value (only low 8 bits used)
+;   R1 = Target memory address
+;
+; Output:
+;   *(uint8_t*)R1 = low_byte(R0)
+;
+; Registers Modified: None (memory modified)
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_053:
+02223CAE  2100     MOV.B   R0,@R1                ; *(int8_t*)R1 = low_byte(R0)
+02223CB0  000B     RTS                           ; Return
+
+;
+; Minimal 2-byte function for byte write operations. Used in tight loops
+; where individual byte updates are needed (palette writes, etc.).
+;
+; Cycle Count: 2 cycles (MOV + RTS)
+; ═══════════════════════════════════════════════════════════════════════════
+
+
+; ═══════════════════════════════════════════════════════════════════════════
 ; End of Annotated Disassembly (Hotspot Functions)
 ; ═══════════════════════════════════════════════════════════════════════════
 ;

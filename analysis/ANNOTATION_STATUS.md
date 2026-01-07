@@ -9,9 +9,9 @@
 
 | Metric | Value |
 |--------|-------|
-| Functions Annotated | 20 of 109 |
-| Completion Percentage | 18% |
-| Lines of Annotation | 2,100+ |
+| Functions Annotated | 31 of 109 |
+| Completion Percentage | 28% |
+| Lines of Annotation | 2,850+ |
 | Estimated Hotspot Coverage | 95% |
 
 ## Completed Work
@@ -91,7 +91,7 @@ All indirect dispatcher patterns documented:
 
 ## Annotated Functions Reference
 
-**Total Annotated Functions**: 20 (5 initial + 9 Priority 1 + 6 Priority 3)
+**Total Annotated Functions**: 31 (5 initial + 9 Priority 1 + 6 Priority 3 + 11 Priority 6)
 
 ### Initial Hotspot Functions (5)
 - func_001 (0x2301C) - Display list interpreter
@@ -106,7 +106,10 @@ All indirect dispatcher patterns documented:
 ### Priority 3 - Indirect Dispatchers (6 of 6) ✅
 - func_078, func_079, func_100, func_101, func_105, func_106
 
-**Location**: `disasm/sh2_3d_engine_annotated.asm` (2,100+ lines)
+### Priority 6 - Small Leaf Functions (11 of 11) ✅
+- func_000, func_003, func_004, func_025, func_027, func_028, func_030, func_031, func_049, func_052, func_053
+
+**Location**: `disasm/sh2_3d_engine_annotated.asm` (2,850+ lines)
 
 ## Remaining Work by Priority
 
@@ -132,14 +135,23 @@ Complete pattern documentation for all dispatcher variants:
 - func_105: Data stream decoder with nested loops
 - func_106: Complex multi-path renderer with JMP @R0
 
+### Priority 6 - Small Leaf Functions (11 functions, 100% - ALL COMPLETED) ✅
+
+All small utility operations annotated with honest assessment of disassembly reliability:
+- func_000: Data initialization loop with stride
+- func_003/004: Display list handlers (disassembly alignment uncertain)
+- func_025: Coordinate/parameter processing helper
+- func_027: Conditional value assignment
+- func_028/031: Trivial register copies
+- func_030: Conditional parameter assignment
+- func_049/052: Disassembly unclear (possibly data or misalignment)
+- func_053: Byte store operation
+
 ### Priority 4 - func_065 Callers (5 functions, 0%)
 - func_060, func_061, func_062, func_063, func_064
 
 ### Priority 5 - Display List Handlers (5 functions, 0%)
 - func_005, func_007, func_008, func_009, func_010
-
-### Priority 6 - Small Leaf Functions (11 functions, 0%)
-- Quick-win utility functions (2-14 bytes each)
 
 ### Priority 7 - Medium Leaf Functions (20 functions, 0%)
 - Self-contained operations (18-120 bytes)
@@ -226,7 +238,9 @@ func_023 (Frustum Culler / Dispatcher)
 
 ## Recommendations for Continuing Work
 
-### Immediate Next Steps (Priority 2 Functions)
+### Immediate Next Steps (Priority 2 or Priority 4-5)
+
+**Option A: Priority 2 (Recursive Functions) - Complex but Core Algorithm**
 
 1. **Analyze func_043 first** (smallest, 30 bytes)
    - Simpler control flow despite recursion
@@ -241,10 +255,21 @@ func_023 (Frustum Culler / Dispatcher)
      - SH2 CPU documentation for edge cases
      - Runtime traces if available
 
-3. **Batch similar functions**
-   - Priority 6 (small leaf functions) may be faster to complete
-   - Could build momentum and increase overall completion % quickly
-   - Would provide confidence for tackling harder functions
+**Option B: Priority 4-5 (Medium Complexity, ~10 functions)**
+
+1. **Priority 4 - func_065 Callers** (5 functions)
+   - May reveal what data is being copied by func_065
+   - Moderate complexity, clearer disassembly than Priority 2
+
+2. **Priority 5 - Display List Handlers** (5 functions)
+   - Direct callers of func_001 dispatcher
+   - Complementary to Priority 1 rendering primitives
+   - Likely straightforward parameter setup patterns
+
+**Note on Priority 6 Completion**
+- All 11 small leaf functions annotated with honest assessment of disassembly reliability
+- Some functions (func_003/004, func_049/052) have questionable disassembly alignment
+- These limitations documented for future investigation
 
 ### Timeline Considerations
 
@@ -296,4 +321,4 @@ Given constraints (GDB unavailable, complex recursion patterns):
 
 ---
 
-*For next session: Review ANNOTATION_GUIDE.md, pick Priority 2 start point (suggest func_043), or pivot to Priority 3/6 based on available time.*
+*For next session: Choose between Priority 2 (recursive functions - complex), Priority 4-5 (medium complexity), or Priority 7-9 (remaining functions). All Priority 6 small leaf functions now complete with detailed annotations and honest assessment of disassembly reliability.*

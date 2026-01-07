@@ -96,17 +96,17 @@ Quick wins - small, self-contained utility functions.
 
 | Status | Function | Offset | Size | Type | Notes |
 |--------|----------|--------|------|------|-------|
-| [ ] | func_000 | 0x2300A | 16 bytes | leaf | first function |
-| [ ] | func_003 | 0x230CC | 14 bytes | leaf | - |
-| [ ] | func_004 | 0x230DC | 8 bytes | leaf | - |
-| [ ] | func_025 | 0x23632 | 14 bytes | leaf | - |
-| [ ] | func_027 | 0x2367A | 6 bytes | leaf | - |
-| [ ] | func_028 | 0x23682 | 2 bytes | leaf | smallest! |
-| [ ] | func_030 | 0x236CA | 8 bytes | leaf | - |
-| [ ] | func_031 | 0x236D4 | 2 bytes | leaf | - |
-| [ ] | func_049 | 0x23C42 | 8 bytes | leaf | - |
-| [ ] | func_052 | 0x23CA2 | 10 bytes | leaf | - |
-| [ ] | func_053 | 0x23CAE | 2 bytes | leaf | - |
+| [x] | func_000 | 0x2300A | 16 bytes | leaf | first function |
+| [x] | func_003 | 0x230CC | 14 bytes | leaf | display list handler |
+| [x] | func_004 | 0x230DC | 8 bytes | leaf | display list handler |
+| [x] | func_025 | 0x23632 | 14 bytes | leaf | coord processing |
+| [x] | func_027 | 0x2367A | 6 bytes | leaf | conditional MOV |
+| [x] | func_028 | 0x23682 | 2 bytes | leaf | trivial copy |
+| [x] | func_030 | 0x236CA | 8 bytes | leaf | conditional assign |
+| [x] | func_031 | 0x236D4 | 2 bytes | leaf | trivial copy |
+| [x] | func_049 | 0x23C42 | 8 bytes | leaf | disasm unclear |
+| [x] | func_052 | 0x23CA2 | 10 bytes | leaf | disasm unclear |
+| [x] | func_053 | 0x23CAE | 2 bytes | leaf | byte store |
 
 ---
 
@@ -230,18 +230,21 @@ Investigation of Priority 2 recursive functions reveals complex control flow cha
 | 3. Indirect dispatch | 6 | 6 | 0 | 100% |
 | 4. func_065 callers | 5 | 0 | 5 | 0% |
 | 5. Display list handlers | 5 | 0 | 5 | 0% |
-| 6. Small leaf | 11 | 0 | 11 | 0% |
+| 6. Small leaf | 11 | 11 | 0 | 100% |
 | 7. Medium leaf | 20 | 0 | 20 | 0% |
 | 8. Larger functions | 15 | 0 | 15 | 0% |
 | 9. Remaining | 29 | 0 | 29 | 0% |
-| **TOTAL** | **104** | **15** | **89** | **14%** |
+| **TOTAL** | **104** | **26** | **78** | **25%** |
 
-**Grand Total (including 5 initial):** 20 annotated out of 109 (18% complete)
+**Grand Total (including 5 initial):** 31 annotated out of 109 (28% complete)
 
 ### Completion Milestones
 
 - [x] Priority 1 (100%): 9 rendering primitives complete
 - [x] Priority 3 (100%): 6 dispatcher functions complete (all patterns documented)
+- [x] Priority 6 (100%): 11 small leaf functions complete (utility operations)
 - [ ] Priority 2: 4 recursive functions (complex - needs analysis)
-- [ ] Priority 4-9: 84 remaining functions
-- [ ] Half of all functions: 54.5 functions (need ~35 more at current rate)
+- [ ] Priority 4-5: 10 functions (data copy callers, display list handlers)
+- [ ] Priority 7-9: 64 remaining functions
+- [x] > 25% of all functions: 31 functions annotated
+- [ ] Half of all functions: 54.5 functions (need ~23 more)

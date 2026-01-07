@@ -378,20 +378,61 @@ From hotspot analysis:
 
 ---
 
-## Next Steps
+## Documentation Completed
 
-1. ~~**Complete Priority 2**~~ ✅ - Annotate remaining 5 hotspot functions
-2. ~~**Trace Entry Point**~~ ✅ - Follow $3F0 → initialization chain
-3. ~~**Map COMM Usage**~~ ✅ - Find all 68K↔SH2 communication
-4. ~~**Document V-INT States**~~ ✅ - Analyze each state handler
-5. **Complete Priority 5** - Finish controller/input system documentation
-6. **Complete Priority 6** - Document low code utilities (33 functions)
-7. **Build Call Graph** - Understand function relationships
+### Annotation Progress
+- ✅ **Complete Priority 1** (3/3 functions, 100%)
+- ✅ **Complete Priority 2** (9/9 functions, 100%)
+- ✅ **Complete Priority 3** (14/14 functions, 100%)
+- ✅ **Complete Priority 4** (3/3 functions, 100%)
+- ✅ **Complete Priority 5** (6/6 functions, 100%)
+- ✅ **Complete Priority 6** (33/33 functions, 100%)
+- ✅ **Complete Priority 7** (16/16 functions, 100%)
+- 🔶 **Priority 8 Partial** (91/124 functions, 73%)
+- 🔶 **Priority 9 Initial** (7/485+ functions, 1.4%)
+
+### Architecture & Pattern Analysis
+- ✅ **68K_ARCHITECTURE_PATTERNS.md** - Design patterns, register strategies, control flow
+- ✅ **68K_FUNCTION_FAMILIES.md** - Function family reference, quick lookup guide
+- ✅ **68K_MAIN_LOGIC.md** - Priority 8 function annotations (91 functions)
+- ✅ **68K_EXTENDED_REGIONS.md** - Priority 9 extended region documentation
+
+### Remaining Work Options
+
+**For Priority 8** (33 remaining functions):
+1. Build jump table analyzer to extract function entry points
+2. Implement call graph generation tool
+3. Manual disassembly of gap regions
+
+**For Priority 9** (478+ remaining functions):
+1. Decompilation tools for graphics/data regions
+2. Track data format documentation
+3. Graphics rendering pipeline analysis
+
+**For Overall Coverage**:
+1. API reference generation from documented functions
+2. Code examples for common patterns
+3. Performance profiling guide
 
 ---
 
 ## References
 
+### Architecture & Design Documentation
+- [68K_ARCHITECTURE_PATTERNS.md](68K_ARCHITECTURE_PATTERNS.md) - **START HERE** - Design patterns, register strategies, optimization techniques
+- [68K_FUNCTION_FAMILIES.md](68K_FUNCTION_FAMILIES.md) - Function family reference and quick lookup guide
+
+### Annotated Functions
+- [68K_MAIN_LOGIC.md](68K_MAIN_LOGIC.md) - Priority 8 main game logic functions (91 documented)
+- [68K_EXTENDED_REGIONS.md](68K_EXTENDED_REGIONS.md) - Priority 9 extended region functions (7 documented)
+- [68K_HOTSPOT_FUNCTIONS.md](68K_HOTSPOT_FUNCTIONS.md) - High-call-count functions (Priority 2)
+- [68K_INTERRUPT_HANDLERS.md](68K_INTERRUPT_HANDLERS.md) - Interrupt documentation (Priority 1)
+- [68K_VINT_STATES.md](68K_VINT_STATES.md) - V-INT state machine (Priority 7)
+- [68K_CONTROLLER_INPUT.md](68K_CONTROLLER_INPUT.md) - Controller/input system (Priority 5)
+- [68K_ENTRY_INIT.md](68K_ENTRY_INIT.md) - Boot sequence and initialization (Priority 3)
+- [68K_COMM_PROTOCOL.md](68K_COMM_PROTOCOL.md) - 68K↔SH2 communication (Priority 4)
+
+### Reference Material
 - [68K_MEMORY_MAP.md](68K_MEMORY_MAP.md) - Hardware registers
 - [68K_INTERRUPT_HANDLERS.md](68K_INTERRUPT_HANDLERS.md) - Interrupt documentation
 - [68K_VINT_STATES.md](68K_VINT_STATES.md) - V-INT state machine (16 handlers)

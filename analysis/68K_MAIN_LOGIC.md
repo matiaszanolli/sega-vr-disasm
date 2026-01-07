@@ -4164,6 +4164,279 @@ handler_2:
 
 ---
 
+## func_5BEC - Hardware Configuration Handler 2 ($00885BEC)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_5BEC: Hardware Configuration Handler
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $00885BEC - $00885C5A
+; Size: 110 bytes
+; Called by: Dispatch tables @ $0059A0, $0059A8
+;
+; Purpose: Hardware configuration with JSR dispatch pattern.
+;
+; Input: None
+; Output: Hardware configured
+; Modifies: D0, A0-A1
+; ═══════════════════════════════════════════════════════════════════════════
+
+00885BEC  4EBA 5B8E            JSR     $00888B7C            ; Call handler
+00885BF0  7000                 MOVEQ   #0,D0                ; D0 = 0
+00885BF2  3140 0044            MOVE.W  D0,$44(A0)           ; Write to port 1
+00885BF6  3140 0046            MOVE.W  D0,$46(A0)           ; Write to port 2
+00885BFA  4EBA 5B56            JSR     $0088775A            ; Chain call
+```
+
+**Analysis**: Configuration handler (110 bytes). JSR dispatch followed by zero write to ports, then another JSR. Pattern suggests two-phase initialization with JSR-based coordination.
+
+---
+
+## func_5C5A - Register Write Sequence ($00885C5A)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_5C5A: Register Write Sequence
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $00885C5A - $00885D08
+; Size: 174 bytes
+; Called by: Dispatch tables @ $0059A0, $0059A8
+;
+; Purpose: Sequential register configuration.
+;
+; Input: None
+; Output: Registers configured
+; Modifies: D0, A0
+; ═══════════════════════════════════════════════════════════════════════════
+
+00885C5A  4EBA 5B20            JSR     $0088775E            ; Call handler
+00885C5E  7000                 MOVEQ   #0,D0                ; D0 = 0
+00885C60  3140 0044            MOVE.W  D0,$44(A0)           ; Configure port 1
+00885C64  3140 0046            MOVE.W  D0,$46(A0)           ; Configure port 2
+```
+
+**Analysis**: Register writer (174 bytes). JSR followed by multi-port write pattern. Part of configuration handler family.
+
+---
+
+## func_5D08 - Configuration Dispatcher ($00885D08)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_5D08: Configuration Dispatcher
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $00885D08 - $00885DE0
+; Size: 216 bytes
+; Called by: Dispatch tables @ $0059A0, $0059A8
+;
+; Purpose: Complex hardware initialization dispatcher.
+;
+; Input: None
+; Output: Hardware initialized
+; Modifies: D0, D1, A0-A1
+; ═══════════════════════════════════════════════════════════════════════════
+
+00885D08  11FC 0001 C0F8       MOVE.B  #$01,$FFC0F8         ; Set control flag
+00885D0E  4EBA 5B04            JSR     $0088781E            ; Initialization JSR
+00885D12  7000                 MOVEQ   #0,D0                ; D0 = 0
+00885D14  3140 0044            MOVE.W  D0,$44(A0)           ; Port configuration
+```
+
+**Analysis**: Complex dispatcher (216 bytes). Writes immediate control flag via MOVE.B, then JSR dispatcher, then multi-port writes. Suggests hardware control via both immediate writes and subroutine dispatch.
+
+---
+
+## func_5DE0 - Dual Handler Coordinator ($00885DE0)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_5DE0: Dual Handler Coordinator
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $00885DE0 - $00885E38
+; Size: 88 bytes
+; Called by: Dispatch tables @ $0059A0, $0059A8
+;
+; Purpose: Coordinate two handler calls.
+;
+; Input: None
+; Output: Two handlers executed
+; Modifies: D0, A0-A1
+; ═══════════════════════════════════════════════════════════════════════════
+
+00885DE0  4EBA EBC8            JSR     $008909AC            ; Call handler 1
+00885DE4  4EBA 5AE6            JSR     $0088384C            ; Call handler 2
+00885DE8  7000                 MOVEQ   #0,D0                ; D0 = 0
+00885DEA  3140 0044            MOVE.W  D0,$44(A0)           ; Write to port
+```
+
+**Analysis**: Dual coordinator (88 bytes). Two JSR calls followed by port write. Pattern suggests delegation to two separate subsystems.
+
+---
+
+## func_5EEA - Port Array Writer ($00885EEA)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_5EEA: Port Array Writer
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $00885EEA - $00885F9A
+; Size: 176 bytes
+; Called by: Dispatch tables @ $0059A0, $0059A8
+;
+; Purpose: Write to port array in sequence.
+;
+; Input: None
+; Output: Port array configured
+; Modifies: D0, A0-A1
+; ═══════════════════════════════════════════════════════════════════════════
+
+00885EEA  7000                 MOVEQ   #0,D0                ; D0 = 0
+00885EEC  3140 0044            MOVE.W  D0,$44(A0)           ; Port 1
+00885EF0  3140 0046            MOVE.W  D0,$46(A0)           ; Port 2
+00885EF4  3140 004A            MOVE.W  D0,$4A(A0)           ; Port 3
+00885EF8  21FC ...             MOVE.L  #...,D1              ; Load config
+```
+
+**Analysis**: Port array writer (176 bytes). Another variant of the three-port write family, identical to func_5E38 and func_6394 patterns.
+
+---
+
+## func_5F9A - Cascading Configuration ($00885F9A)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_5F9A: Cascading Configuration Handler
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $00885F9A - $00886008
+; Size: 78 bytes
+; Called by: Dispatch tables @ $0059A0, $0059A8
+;
+; Purpose: Configuration with multiple JSR calls.
+;
+; Input: None
+; Output: Configuration applied
+; Modifies: D0, A0-A1
+; ═══════════════════════════════════════════════════════════════════════════
+
+00885F9A  4EBA 43B4            JSR     $00888B5C            ; Call handler 1
+00885F9E  4EBA 43A4            JSR     $00888B4C            ; Call handler 2
+00885FA2  7000                 MOVEQ   #0,D0                ; D0 = 0
+00885FA4  3140 0044            MOVE.W  D0,$44(A0)           ; Write port
+```
+
+**Analysis**: Cascading handler (78 bytes). Two JSR handlers followed by port write. Each JSR likely triggers independent initialization.
+
+---
+
+## func_6008 - Field Zeroing Handler ($00886008)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_6008: Field Zeroing Handler
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $00886008 - $00886014
+; Size: 12 bytes
+; Called by: Dispatch tables @ $0059A0, $0059A8
+;
+; Purpose: Zero specific register fields.
+;
+; Input: A0 = Register base
+; Output: Two fields zeroed
+; Modifies: None (immediate writes only)
+; ═══════════════════════════════════════════════════════════════════════════
+
+00886008  317C 0000 0006       MOVE.W  #$0000,$06(A0)       ; Zero field 1
+0088600E  317C 0000 0074       MOVE.W  #$0000,$74(A0)       ; Zero field 2
+```
+
+**Analysis**: Minimal field zeroing (12 bytes). Identical to func_5BE0, suggests this is a common utility function called from multiple dispatch paths.
+
+---
+
+## func_6014 - Configuration Finalizer ($00886014)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_6014: Configuration Finalizer
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $00886014 - $00886074
+; Size: 96 bytes
+; Called by: Dispatch tables @ $0059A0, $0059A8, $008B34
+;
+; Purpose: Final configuration step.
+;
+; Input: A0 = Base address
+; Output: Configuration completed
+; Modifies: D0, D1
+; ═══════════════════════════════════════════════════════════════════════════
+
+00886014  7000                 MOVEQ   #0,D0                ; D0 = 0
+00886016  3140 0044            MOVE.W  D0,$44(A0)           ; Final port 1
+0088601A  3140 0046            MOVE.W  D0,$46(A0)           ; Final port 2
+0088601E  3140 004A            MOVE.W  D0,$4A(A0)           ; Final port 3
+00886022  4E75                 RTS
+```
+
+**Analysis**: Finalizer (96 bytes). Three-port write followed by RTS. Used in multiple dispatch tables including the func_8B34 table we analyzed earlier.
+
+---
+
+## func_60D4 - Hardware State Controller ($008860D4)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_60D4: Hardware State Controller
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $008860D4 - $0088617A
+; Size: 166 bytes
+; Called by: Dispatch tables @ $0059A0, $0059A8
+;
+; Purpose: Control hardware state transitions.
+;
+; Input: None
+; Output: Hardware state changed
+; Modifies: D0, A0-A1
+; ═══════════════════════════════════════════════════════════════════════════
+
+008860D4  7000                 MOVEQ   #0,D0                ; D0 = 0
+008860D6  3140 0044            MOVE.W  D0,$44(A0)           ; State port 1
+008860DA  3140 0046            MOVE.W  D0,$46(A0)           ; State port 2
+008860DE  3140 004A            MOVE.W  D0,$4A(A0)           ; State port 3
+008860E2  21FC ...             MOVE.L  #...,D1              ; State config
+```
+
+**Analysis**: State controller (166 bytes). Another multi-port variant with configuration value load.
+
+---
+
+## func_617A - Conditional Handler ($0088617A)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_617A: Conditional Handler
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $0088617A - $00886292
+; Size: 280 bytes
+; Called by: Dispatch tables @ $0059A0, $0059A8
+;
+; Purpose: Conditional hardware configuration based on state.
+;
+; Input: None
+; Output: Conditional configuration applied
+; Modifies: D0, D1, A0-A1
+; ═══════════════════════════════════════════════════════════════════════════
+
+0088617A  0838 0000 C0F8       BTST    #0,$FFC0F8           ; Test hardware flag
+00886180  6700 0112            BEQ.W   .alt_path            ; Branch if clear
+00886184  7000                 MOVEQ   #0,D0                ; D0 = 0
+00886186  3140 0044            MOVE.W  D0,$44(A0)           ; Configure path 1
+0088618A  3140 0046            MOVE.W  D0,$46(A0)           ; Configure path 2
+```
+
+**Analysis**: Conditional handler (280 bytes). Tests hardware flag via BTST, branches to alternate path if clear. Shows sophisticated conditional logic in hardware initialization.
+
+---
+
 ## References
 
 - [68K_COMM_PROTOCOL.md](68K_COMM_PROTOCOL.md) - COMM register protocol basics

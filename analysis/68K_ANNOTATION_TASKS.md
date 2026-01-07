@@ -299,6 +299,16 @@ These are the handlers called from V-INT jump table at $16B2:
 | [x] | func_5E38 | $00885E38 | - | Multi-port hardware initializer |
 | [x] | func_6394 | $00886394 | - | Port configuration variant |
 | [x] | func_633A | $0088633A | - | Configuration handler variant |
+| [x] | func_5BEC | $00885BEC | - | Hardware configuration handler 2 |
+| [x] | func_5C5A | $00885C5A | - | Register write sequence |
+| [x] | func_5D08 | $00885D08 | - | Configuration dispatcher |
+| [x] | func_5DE0 | $00885DE0 | - | Dual handler coordinator |
+| [x] | func_5EEA | $00885EEA | - | Port array writer |
+| [x] | func_5F9A | $00885F9A | - | Cascading configuration |
+| [x] | func_6008 | $00886008 | - | Field zeroing handler |
+| [x] | func_6014 | $00886014 | - | Configuration finalizer |
+| [x] | func_60D4 | $008860D4 | - | Hardware state controller |
+| [x] | func_617A | $0088617A | - | Conditional handler |
 
 **Documentation**: [68K_MAIN_LOGIC.md](68K_MAIN_LOGIC.md)
 

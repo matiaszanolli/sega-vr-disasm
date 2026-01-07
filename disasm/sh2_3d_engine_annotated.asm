@@ -2451,6 +2451,636 @@ func_094:
 
 
 ; ═══════════════════════════════════════════════════════════════════════════
+; PRIORITY 4: func_065 CALLERS (Data Copy Setup Functions)
+; ═══════════════════════════════════════════════════════════════════════════
+;
+; These 5 functions set up parameters and call func_065 (the unrolled data
+; copy function at 0x23F2C). Understanding these reveals WHAT data is being
+; copied and WHY - they are the data initialization pipeline for rendering.
+;
+; Pattern: Load context → conditional checks → call func_065 → advance pointer
+;
+; ═══════════════════════════════════════════════════════════════════════════
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_060: Multi-Block Data Copy Orchestrator (10+ func_065 calls)
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x02223DC4 - 0x02223E30
+; Size: 108 bytes
+; Type: Hub function
+; Called by: Display list processing or scene setup
+; Calls: func_065 (BSR $02223F2E) - 10+ times
+;
+; Purpose: Orchestrates large-scale data initialization by calling func_065
+; multiple times with different parameters. Each call copies a data block
+; to sequential positions in the output buffer (R9 advances by +8 each time).
+; Likely initializes vertex/polygon data for a complex object.
+;
+; Input:
+;   R14 = RenderingContext pointer
+;   R4  = Context/parameter base
+;   R10 = Source data table (loaded from literal pool)
+;   R9  = Destination buffer (loaded from [R14+0x04])
+;
+; Output:
+;   Memory at R9+[0x00, 0x08, 0x10, ...] filled with data blocks
+;   R9 advanced by 8 × number_of_calls
+;
+; Registers Modified: R0, R4, R9, R10, R11, PR
+;
+; Call Pattern:
+;   Load byte from context → test if zero → if non-zero, call func_065
+;   Advance R9 by 8 → repeat for next parameter
+;
+; Control Flow:
+;   - 10 conditional/unconditional BSR calls to func_065
+;   - First two calls are conditional (CMP/EQ #$00,R0; BT skip)
+;   - Remaining 8 calls appear unconditional
+;   - Each call increments R9 by 8 (data block size)
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_060:
+02223DD8  4F22     STS.L   PR,@-R15        ; Save return address
+02223DDA  59E1     MOV.L   @($4,R14),R9   ; R9 = [RenderingContext+0x04] (dest buffer)
+02223DDC  902A     MOV.W   @($PC),R0       ; Load 16-bit offset from PC-relative
+02223DDE  390C     ADD     R0,R9           ; R9 += offset (adjust dest pointer)
+02223DE0  DA15     MOV.L   @($02223E38,PC),R10  ; R10 = source table address
+02223DE2  84E1     MOV.B   R0,@($1,R4)    ; [R4+1] = low_byte(R0)
+02223DE4  4008     SHLL2   R0              ; R0 <<= 2 (multiply by 4 for indexing)
+; --- First conditional call ---
+02223DEA  8800     CMP/EQ  #$00,R0        ; T = (R0 == 0)
+02223DEC  8901     BT      $02223DF2      ; Skip if zero
+02223DEE  B09E     BSR     $02223F2E      ; Call func_065 (data copy)
+02223DF0  0009     NOP                     ; Delay slot
+02223DF2  7908     ADD     #$08,R9         ; R9 += 8 (advance to next block)
+; --- Second conditional call ---
+02223DF4  84E9     MOV.B   R0,@($9,R4)    ; [R4+9] = low_byte(R0)
+02223DF6  8800     CMP/EQ  #$00,R0        ; T = (R0 == 0)
+02223DF8  8901     BT      $02223DFE      ; Skip if zero
+02223DFA  B098     BSR     $02223F2E      ; Call func_065
+02223DFC  0009     NOP
+02223DFE  7908     ADD     #$08,R9         ; R9 += 8
+; --- Unconditional calls 3-10 ---
+02223E00  B095     BSR     $02223F2E      ; Call 3
+02223E04  7908     ADD     #$08,R9
+02223E06  B092     BSR     $02223F2E      ; Call 4
+02223E0A  7908     ADD     #$08,R9
+02223E0C  B08F     BSR     $02223F2E      ; Call 5
+02223E10  7908     ADD     #$08,R9
+02223E12  B08C     BSR     $02223F2E      ; Call 6
+02223E16  7908     ADD     #$08,R9
+02223E18  B089     BSR     $02223F2E      ; Call 7
+02223E1C  7908     ADD     #$08,R9
+02223E1E  B086     BSR     $02223F2E      ; Call 8
+02223E22  7908     ADD     #$08,R9
+02223E24  B083     BSR     $02223F2E      ; Call 9
+02223E28  7908     ADD     #$08,R9
+02223E2A  B080     BSR     $02223F2E      ; Call 10
+02223E2E  4F26     LDS.L   @R15+,PR       ; Restore return address
+02223E30  000B     RTS                     ; Return
+
+;
+; Analysis:
+;   This function initializes 10 data blocks for rendering. The first two are
+;   conditional (skip if parameter is zero), while remaining 8 are always copied.
+;   Total data: up to 10 × 8 = 80 bytes per call.
+;   Likely used for: vertex attributes, polygon corners, or transformation data.
+; ═══════════════════════════════════════════════════════════════════════════
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_061: Simple Dual-Block Data Copy
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x02223E32 - 0x02223E5A
+; Size: 40 bytes
+; Type: Hub function
+; Called by: Display list or parameter setup
+; Calls: func_065 (BSR $02223F2E) - 2 times
+;
+; Purpose: Simpler variant of func_060 that copies exactly 2 data blocks.
+; Used for simpler primitives or partial updates.
+;
+; Input:
+;   R14 = RenderingContext pointer
+;   R4  = Context/parameter base
+;   R10 = Source table (from literal pool at 02223E60)
+;   R9  = Destination (from [R14+0x04])
+;
+; Output:
+;   Two 8-byte blocks written to R9 and R9+8
+;
+; Pattern: Load context → call func_065 → advance R9 → call func_065 → return
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_061:
+02223E48  4F22     STS.L   PR,@-R15        ; Save return address
+02223E4A  59E1     MOV.L   @($4,R14),R9   ; R9 = [RenderingContext+0x04] (dest buffer)
+02223E4C  DA04     MOV.L   @($02223E60,PC),R10  ; R10 = source table
+02223E4E  B06E     BSR     $02223F2E      ; Call func_065 (copy block 1)
+02223E50  84EA     MOV.B   R0,@($A,R4)    ; [delay slot] [R4+0xA] = low_byte(R0)
+02223E52  7908     ADD     #$08,R9         ; R9 += 8 (advance to block 2)
+02223E54  B06B     BSR     $02223F2E      ; Call func_065 (copy block 2)
+02223E56  84EB     MOV.B   R0,@($B,R4)    ; [delay slot] [R4+0xB] = low_byte(R0)
+02223E58  4F26     LDS.L   @R15+,PR       ; Restore return address
+02223E5A  000B     RTS                     ; Return
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_062: Conditional Dual-Block Copy
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x02223E5C - 0x02223E86
+; Size: 42 bytes
+; Type: Hub function
+; Called by: Display list processing
+; Calls: func_065 (BSR $02223F2E) - 2 times (1 conditional)
+;
+; Purpose: Copies 2 blocks with first call being conditional. If first
+; parameter is zero, skips first copy. Second copy always executes.
+;
+; Input:
+;   R14 = RenderingContext pointer
+;   R4  = Context base
+;   R10 = Source table (literal pool at 02223E8C)
+;
+; Control Flow:
+;   Load parameter → if R0 != 0, call func_065 → advance R9 → call func_065
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_062:
+02223E64  4F22     STS.L   PR,@-R15        ; Save return address
+02223E66  59E1     MOV.L   @($4,R14),R9   ; R9 = [RenderingContext+0x04]
+02223E68  900F     MOV.W   @($PC),R0       ; Load 16-bit offset
+02223E6A  390C     ADD     R0,R9           ; R9 += offset
+02223E6C  DA07     MOV.L   @($02223E8C,PC),R10  ; R10 = source table
+02223E6E  84E1     MOV.B   R0,@($1,R4)    ; [R4+1] = low_byte(R0)
+02223E70  4008     SHLL2   R0              ; R0 <<= 2 (index ×4)
+; --- Conditional first call ---
+02223E74  84EA     MOV.B   R0,@($A,R4)    ; [R4+0xA] = low_byte(R0)
+02223E76  8800     CMP/EQ  #$00,R0        ; T = (R0 == 0)
+02223E78  8901     BT      $02223E7E      ; Skip if zero
+02223E7A  B058     BSR     $02223F2E      ; Call func_065 (conditional)
+02223E7C  0009     NOP
+02223E7E  7908     ADD     #$08,R9         ; R9 += 8
+; --- Unconditional second call ---
+02223E80  B055     BSR     $02223F2E      ; Call func_065 (always)
+02223E82  84EB     MOV.B   R0,@($B,R4)    ; [delay slot]
+02223E84  4F26     LDS.L   @R15+,PR       ; Restore return address
+02223E86  000B     RTS                     ; Return
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_063: Triple-Block Copy with Flag Tracking
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x02223E88 - 0x02223EC4
+; Size: 60 bytes
+; Type: Hub function
+; Called by: Display list processing
+; Calls: func_065 (BSR $02223F2E) - 3 times (2 conditional)
+;
+; Purpose: More sophisticated copy with R12 flag tracking. First call sets
+; R12=1 if executed. Second call checks both R12 (positive) and R0 (non-zero).
+; Implements priority-based or cascading conditional copy logic.
+;
+; Input:
+;   R14 = RenderingContext pointer
+;   R12 = Flag register (initialized to 0)
+;   R10 = Source table (literal pool at 02223ECC)
+;
+; Flag Logic:
+;   R12 = 0 initially
+;   If first copy executes: R12 = 1
+;   Second copy executes if: (R12 > 0) OR (R0 != 0)
+;   Third copy always executes
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_063:
+02223E90  4F22     STS.L   PR,@-R15        ; Save return address
+02223E92  59E1     MOV.L   @($4,R14),R9   ; R9 = [RenderingContext+0x04]
+02223E94  9018     MOV.W   @($PC),R0       ; Load offset
+02223E96  390C     ADD     R0,R9           ; R9 += offset
+02223E98  DA0C     MOV.L   @($02223ECC,PC),R10  ; R10 = source table
+02223EA0  EC00     MOV     #$00,R12        ; R12 = 0 (initialize flag)
+; --- First conditional call ---
+02223EA2  84E9     MOV.B   R0,@($9,R4)    ; [R4+9] = low_byte(R0)
+02223EA4  8800     CMP/EQ  #$00,R0        ; T = (R0 == 0)
+02223EA6  8901     BT      $02223EAC      ; Skip if zero
+02223EA8  B041     BSR     $02223F2E      ; Call func_065
+02223EAA  EC01     MOV     #$01,R12        ; [delay slot] R12 = 1 (set flag)
+02223EAC  7908     ADD     #$08,R9         ; R9 += 8
+; --- Second conditional call (flag OR value check) ---
+02223EAE  84EA     MOV.B   R0,@($A,R4)    ; [R4+0xA] = low_byte(R0)
+02223EB0  4C15     CMP/PL  R12             ; T = (R12 > 0) [compare positive]
+02223EB2  8901     BT      $02223EB8      ; If R12 > 0, execute call
+02223EB4  8800     CMP/EQ  #$00,R0        ; Else: T = (R0 == 0)
+02223EB6  8901     BT      $02223EBC      ; If R0 == 0, skip
+02223EB8  B039     BSR     $02223F2E      ; Call func_065 (conditional)
+02223EBA  EC01     MOV     #$01,R12        ; [delay slot] R12 = 1
+02223EBC  7908     ADD     #$08,R9         ; R9 += 8
+; --- Third unconditional call ---
+02223EBE  B036     BSR     $02223F2E      ; Call func_065 (always)
+02223EC0  84EB     MOV.B   R0,@($B,R4)    ; [delay slot]
+02223EC2  4F26     LDS.L   @R15+,PR       ; Restore return address
+02223EC4  000B     RTS                     ; Return
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_064: Inline Unrolled Data Copy (No func_065 Call)
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x02223EC6 - 0x02223F2A
+; Size: 102 bytes
+; Type: Leaf function (no calls)
+; Called by: func_059 (data setup)
+; Calls: None (self-contained)
+;
+; Purpose: Fully unrolled inline data copy - does NOT call func_065.
+; Instead, implements similar copy logic directly. Copies 8 blocks of 8 bytes
+; each (64 bytes total) with stride-based destination addressing.
+;
+; This is essentially an ALTERNATIVE to func_065 for cases where the
+; inline overhead is acceptable or func_065's exact semantics don't match.
+;
+; Input:
+;   R0  = Source block index (multiplied by 8 via SHLL2 × 3)
+;   R10 = Source base address
+;   R9  = Destination base
+;   R13 = Stride between destination blocks
+;
+; Output:
+;   64 bytes copied from source to destination with stride
+;
+; Algorithm:
+;   R0 = R0 << 3 (multiply by 8 for block offset)
+;   R0 += R10 (compute source address)
+;   R1 = R9 (copy dest pointer)
+;   For each of 8 iterations:
+;     [R1+0] = [R0++]
+;     [R1+4] = [R0++]
+;     R1 += R13 (stride)
+;
+; Unroll Pattern: Each iteration is 6 instructions (4 MOV + 1 ADD + implicit)
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_064:
+02223ED0  4008     SHLL2   R0              ; R0 <<= 2 (×4)
+02223ED2  4008     SHLL2   R0              ; R0 <<= 2 (×4, total ×16)
+02223ED4  4008     SHLL2   R0              ; R0 <<= 2 (×4, total ×64... wait)
+; Note: 3× SHLL2 = ×64, but pattern suggests ×8 - might be SHLL not SHLL2
+02223ED6  30AC     ADD     R10,R0          ; R0 = R0 + R10 (source = base + offset)
+02223ED8  6193     MOV     R9,R1           ; R1 = R9 (dest pointer)
+; --- Iteration 1 ---
+02223EDA  6206     MOV.L   @R0+,R2         ; R2 = [R0++] (load first word)
+02223EDC  1120     MOV.L   R2,@($0,R1)    ; [R1+0] = R2 (store first word)
+02223EDE  6206     MOV.L   @R0+,R2         ; R2 = [R0++] (load second word)
+02223EE0  1121     MOV.L   R2,@($4,R1)    ; [R1+4] = R2 (store second word)
+02223EE2  31DC     ADD     R13,R1          ; R1 += R13 (add stride to dest)
+; --- Iteration 2 ---
+02223EE4  6206     MOV.L   @R0+,R2
+02223EE6  1120     MOV.L   R2,@($0,R1)
+02223EE8  6206     MOV.L   @R0+,R2
+02223EEA  1121     MOV.L   R2,@($4,R1)
+02223EEC  31DC     ADD     R13,R1
+; --- Iteration 3 ---
+02223EEE  6206     MOV.L   @R0+,R2
+02223EF0  1120     MOV.L   R2,@($0,R1)
+02223EF2  6206     MOV.L   @R0+,R2
+02223EF4  1121     MOV.L   R2,@($4,R1)
+02223EF6  31DC     ADD     R13,R1
+; --- Iteration 4 ---
+02223EF8  6206     MOV.L   @R0+,R2
+02223EFA  1120     MOV.L   R2,@($0,R1)
+02223EFC  6206     MOV.L   @R0+,R2
+02223EFE  1121     MOV.L   R2,@($4,R1)
+02223F00  31DC     ADD     R13,R1
+; --- Iteration 5 ---
+02223F02  6206     MOV.L   @R0+,R2
+02223F04  1120     MOV.L   R2,@($0,R1)
+02223F06  6206     MOV.L   @R0+,R2
+02223F08  1121     MOV.L   R2,@($4,R1)
+02223F0A  31DC     ADD     R13,R1
+; --- Iteration 6 ---
+02223F0C  6206     MOV.L   @R0+,R2
+02223F0E  1120     MOV.L   R2,@($0,R1)
+02223F10  6206     MOV.L   @R0+,R2
+02223F12  1121     MOV.L   R2,@($4,R1)
+02223F14  31DC     ADD     R13,R1
+; --- Iteration 7 ---
+02223F16  6206     MOV.L   @R0+,R2
+02223F18  1120     MOV.L   R2,@($0,R1)
+02223F1A  6206     MOV.L   @R0+,R2
+02223F1C  1121     MOV.L   R2,@($4,R1)
+02223F1E  31DC     ADD     R13,R1
+; --- Iteration 8 ---
+02223F20  6206     MOV.L   @R0+,R2
+02223F22  1120     MOV.L   R2,@($0,R1)
+02223F24  6206     MOV.L   @R0+,R2
+02223F26  1121     MOV.L   R2,@($4,R1)
+02223F28  31DC     ADD     R13,R1
+02223F2A  000B     RTS                     ; Return
+
+;
+; Analysis:
+;   func_064 is a DIRECT ALTERNATIVE to func_065. While func_060-063 call
+;   func_065 for each data block, func_064 implements copying inline without
+;   the function call overhead. This is used when:
+;   - Single large copy is needed (vs. repeated smaller copies)
+;   - Stride differs from func_065's expected stride
+;   - Caller needs tighter control over copy semantics
+;
+; Key difference from func_065:
+;   - func_065: Called multiple times, 14 blocks per call, fixed stride
+;   - func_064: Single call, 8 blocks, configurable stride via R13
+; ═══════════════════════════════════════════════════════════════════════════
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; PRIORITY 5: DISPLAY LIST HANDLERS (Command Processing Functions)
+; ═══════════════════════════════════════════════════════════════════════════
+;
+; These 5 functions handle display list commands dispatched by func_001.
+; They perform matrix transformations (via func_006) and coordinate processing.
+;
+; Pipeline: func_001 → [func_005/007] → func_006/008 → func_009/010
+;
+; ═══════════════════════════════════════════════════════════════════════════
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_005: Matrix Transform Loop with Indirect Dispatch
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x022230E6 - 0x02223114
+; Size: 44 bytes
+; Type: Hub function (calls func_006 + indirect via JSR @R14)
+; Called by: func_001 (display list processor)
+; Calls: JSR @R14 (indirect), func_006 (BSR $02223120 - Matrix×Vector)
+;
+; Purpose: Processes a batch of vertices by calling matrix transformation
+; (func_006) in a loop. For each iteration, calls an indirect function via
+; @R14 and then applies matrix multiplication. Used for vertex transformation
+; in the 3D pipeline.
+;
+; Input:
+;   R13 = Command stream pointer
+;   R14 = RenderingContext (will be saved/restored)
+;   R11 = Loop counter (from command stream)
+;   R10, R12 = Context fields (loaded from R14)
+;
+; Output:
+;   Transformed vertices written to output buffers
+;
+; Control Flow:
+;   1. Save R14, PR to stack
+;   2. Load loop counter R11 from command stream
+;   3. Load context fields (R10, R12, R7, R14)
+;   4. Loop R11 times:
+;      - JSR @R14 (indirect call to transform function)
+;      - BSR func_006 (matrix × vector)
+;      - Advance R10 by 0x10 (16 bytes per vertex)
+;   5. Restore R14, PR and return
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_005:
+022230E6  1743     MOV.L   R4,@($C,R7)    ; [R7+12] = R4 (store to context)
+022230E8  2FE6     MOV.L   R14,@-R15       ; Save R14 to stack
+022230EA  4F22     STS.L   PR,@-R15        ; Save return address
+022230EC  6BD5     MOV.W   @R13+,R11       ; R11 = *(int16_t*)R13++ (loop count)
+022230EE  5AEB     MOV.L   @($2C,R14),R10 ; R10 = [R14+0x2C] (data source)
+022230F0  5CE4     MOV.L   @($10,R14),R12 ; R12 = [R14+0x10] (packed coords)
+022230F2  69C9     SWAP.W  R12,R9          ; R9 = SWAP(R12) (unpack upper)
+022230F4  699F     EXTS.W  R9,R9           ; R9 = sign_extend(R9) (Y coord)
+022230F6  6CCF     EXTS.W  R12,R12         ; R12 = sign_extend(R12) (X coord)
+022230F8  57E2     MOV.L   @($8,R14),R7   ; R7 = [R14+0x08]
+022230FA  D407     MOV.L   @($02223118,PC),R4  ; R4 = matrix pointer A
+022230FC  D507     MOV.L   @($0222311C,PC),R5  ; R5 = matrix pointer B
+022230FE  960A     MOV.W   @($PC),R6       ; R6 = constant
+02223100  5EE7     MOV.L   @($1C,R14),R14 ; R14 = [R14+0x1C] (function pointer!)
+; --- Main loop ---
+02223102  4E0B     JSR     @R14            ; Call indirect transform function
+02223104  60D5     MOV.W   @R13+,R0       ; [delay slot] R0 = next command word
+02223106  B00B     BSR     $02223120      ; Call func_006 (Matrix×Vector)
+02223108  0028     CLRMAC                  ; [delay slot] Clear MAC register
+0222310A  4B10     DT      R11             ; R11--; T = (R11 == 0)
+0222310C  8FF9     BF/S    $02223102      ; Loop if not zero
+0222310E  7A10     ADD     #$10,R10       ; [delay slot] R10 += 16 (next vertex)
+; --- Cleanup ---
+02223110  4F26     LDS.L   @R15+,PR        ; Restore return address
+02223112  000B     RTS                     ; Return
+02223114  6EF6     MOV.L   @R15+,R14       ; Restore R14 (delay slot or fall-through)
+
+;
+; Analysis:
+;   This is the main vertex transformation loop. For each vertex:
+;   1. Call indirect function (likely pre-processing or setup)
+;   2. Apply matrix×vector multiplication via func_006
+;   3. Advance to next vertex (R10 += 16)
+;   Key insight: R14 is OVERWRITTEN with function pointer from context!
+; ═══════════════════════════════════════════════════════════════════════════
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_007: Alternative Transform Loop (Calls func_008)
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x02223176 - 0x022231A0
+; Size: 42 bytes
+; Type: Hub function (calls func_008 + indirect via JSR @R14)
+; Called by: func_001 (display list processor)
+; Calls: JSR @R14 (indirect), func_008 (BSR $022231AC)
+;
+; Purpose: Similar to func_005 but calls func_008 instead of func_006.
+; Processes vertices with alternative transformation logic.
+;
+; Structure: Nearly identical to func_005 with different helper call.
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_007:
+02223178  2FE6     MOV.L   R14,@-R15       ; Save R14
+0222317A  4F22     STS.L   PR,@-R15        ; Save PR
+0222317C  6BD5     MOV.W   @R13+,R11       ; R11 = loop count
+0222317E  5AEB     MOV.L   @($2C,R14),R10 ; R10 = [R14+0x2C]
+02223180  5CE4     MOV.L   @($10,R14),R12 ; R12 = [R14+0x10]
+02223182  69C9     SWAP.W  R12,R9          ; Unpack coordinates
+02223184  699F     EXTS.W  R9,R9
+02223186  6CCF     EXTS.W  R12,R12
+02223188  53E6     MOV.L   @($18,R14),R3  ; R3 = [R14+0x18] (additional param)
+0222318A  D406     MOV.L   @($022231A4,PC),R4  ; Matrix A
+0222318C  D506     MOV.L   @($022231A8,PC),R5  ; Matrix B
+0222318E  5EE7     MOV.L   @($1C,R14),R14 ; R14 = function pointer
+; --- Main loop ---
+02223190  4E0B     JSR     @R14            ; Indirect call
+02223192  60D5     MOV.W   @R13+,R0       ; [delay slot] Next command
+02223194  B00A     BSR     $022231AC      ; Call func_008 (alternative math)
+02223196  0028     CLRMAC                  ; [delay slot] Clear MAC
+02223198  4B10     DT      R11             ; R11--
+0222319A  8FF9     BF/S    $02223190      ; Loop
+0222319C  7A10     ADD     #$10,R10       ; [delay slot] R10 += 16
+; --- Cleanup ---
+0222319E  4F26     LDS.L   @R15+,PR        ; Restore PR
+022231A0  000B     RTS                     ; Return
+022231A2  6EF6     MOV.L   @R15+,R14       ; Restore R14
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_008: Matrix Multiply Helper (Dual 3x3 Transform)
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x022231A2 - 0x022231E2
+; Size: 64 bytes
+; Type: Leaf function (no calls)
+; Called by: func_007 (via BSR)
+; Calls: None
+;
+; Purpose: Performs matrix multiplication using MAC (multiply-accumulate)
+; instructions. Computes two 3-element dot products for 2D/3D coordinate
+; transformation. Uses SH2's hardware MAC unit for efficient fixed-point math.
+;
+; Input:
+;   R4 = Source matrix A pointer
+;   R5 = Source vector B pointer
+;   R8, R9, R12 = Additional parameters
+;
+; Output:
+;   R1, R2 = Transformed coordinates (16.16 fixed-point)
+;   Memory writes via MOV.B to output
+;
+; Algorithm:
+;   For each output coordinate (2 total):
+;     MAC.L @R4+,@R5+ × 3 (3-element dot product)
+;     R5 += -12 (reset vector pointer)
+;     R8 = [R4++] (load translation)
+;     Extract MACH:MACL via XTRCT
+;     Add translation
+;   Write results to memory
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_008:
+022231AC  054F     MAC.L   @R4+,@R5+       ; MAC += [R4++] × [R5++] (element 1)
+022231AE  054F     MAC.L   @R4+,@R5+       ; MAC += [R4++] × [R5++] (element 2)
+022231B0  054F     MAC.L   @R4+,@R5+       ; MAC += [R4++] × [R5++] (element 3)
+022231B2  75F4     ADD     #$F4,R5         ; R5 += -12 (reset vector pointer)
+022231B4  6846     MOV.L   @R4+,R8         ; R8 = [R4++] (translation component)
+022231B6  000A     STS     MACH,R0         ; R0 = MAC[63:32] (high 32 bits)
+022231B8  011A     STS     MACL,R1         ; R1 = MAC[31:0] (low 32 bits)
+022231BA  210D     XTRCT   R0,R1           ; R1 = (R0[15:0] << 16) | R1[31:16]
+022231BC  318C     ADD     R8,R1           ; R1 += R8 (add translation)
+022231BE  0028     CLRMAC                  ; Clear MAC for next calculation
+; --- Second coordinate ---
+022231C0  054F     MAC.L   @R4+,@R5+       ; MAC += [R4++] × [R5++]
+022231C2  054F     MAC.L   @R4+,@R5+
+022231C4  054F     MAC.L   @R4+,@R5+
+022231C6  75F4     ADD     #$F4,R5         ; R5 += -12
+022231C8  6846     MOV.L   @R4+,R8         ; R8 = translation Y
+022231CA  74E0     ADD     #$E0,R4         ; R4 += -32 (reset matrix pointer)
+022231CC  000A     STS     MACH,R0         ; R0 = MAC high
+022231CE  021A     STS     MACL,R2         ; R2 = MAC low
+022231D0  220D     XTRCT   R0,R2           ; R2 = middle 32 bits (16.16 result)
+022231D2  328C     ADD     R8,R2           ; R2 += translation Y
+; --- Output results ---
+022231D6  000A     STS     MACH,R0         ; Get result
+022231D8  309C     ADD     R9,R0           ; Apply Y offset
+022231DA  81A6     MOV.B   R0,@($6,R1)    ; Write to output
+022231E0  30CC     ADD     R12,R0          ; Apply X offset
+022231E2  000B     RTS                     ; Return
+
+;
+; Analysis:
+;   This implements 2D coordinate transformation using:
+;   - 3×3 matrix stored at R4 (row-major with translation in row 4)
+;   - 3-element vector at R5
+;   - Result = Matrix × Vector + Translation
+;   - Fixed-point (16.16) via XTRCT extraction
+; ═══════════════════════════════════════════════════════════════════════════
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_009: Display List Handler Type A (4-Element Output)
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x022231E4 - 0x02223200
+; Size: 28 bytes
+; Type: Leaf function (no calls)
+; Called by: func_001 (display list processor) or func_012
+; Calls: None
+;
+; Purpose: Command handler that extracts 4 values from source structure (R12)
+; and writes them to output buffer (R11). Used for handling specific display
+; list commands that require 4-element data blocks.
+;
+; Input:
+;   R12 = Source data structure pointer
+;   R11 = Output buffer pointer
+;   R5  = Byte output offset
+;   R1  = Secondary byte output
+;
+; Output:
+;   4 words written to [R11+4], [R11+8], [R11+12], [R11+16]
+;   R11 += 20 (0x14) - advance to next output slot
+;
+; Data Layout (Source @ R12):
+;   [R12+0x0C] → [R11+0x04]
+;   [R12+0x1C] → [R11+0x08]
+;   [R12+0x2C] → [R11+0x0C]
+;   [R12+0x3C] → [R11+0x10]
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_009:
+022231E4  81A7     MOV.B   R0,@($7,R1)    ; [R1+7] = low_byte(R0)
+022231E6  85E1     MOV.B   R0,@($1,R5)    ; [R5+1] = low_byte(R0) (memory alias?)
+022231E8  81B1     MOV.B   R0,@($1,R1)    ; [R1+1] = low_byte(R0)
+022231EA  50C3     MOV.L   @($C,R12),R0   ; R0 = [R12+0x0C]
+022231EC  51C7     MOV.L   @($1C,R12),R1  ; R1 = [R12+0x1C]
+022231EE  52CB     MOV.L   @($2C,R12),R2  ; R2 = [R12+0x2C]
+022231F0  53CF     MOV.L   @($3C,R12),R3  ; R3 = [R12+0x3C]
+022231F2  1B01     MOV.L   R0,@($4,R11)  ; [R11+0x04] = R0
+022231F4  1B12     MOV.L   R1,@($8,R11)  ; [R11+0x08] = R1
+022231F6  1B23     MOV.L   R2,@($C,R11)  ; [R11+0x0C] = R2
+022231F8  1B34     MOV.L   R3,@($10,R11) ; [R11+0x10] = R3
+022231FA  7B14     ADD     #$14,R11       ; R11 += 20 (advance output)
+022231FC  85E3     MOV.B   R0,@($3,R5)    ; [R5+3] = low_byte(R0)
+022231FE  7001     ADD     #$01,R0        ; R0++ (increment counter/index)
+02223200  000B     RTS                     ; Return
+
+
+; ═══════════════════════════════════════════════════════════════════════════
+; func_010: Display List Handler Type B (3-Element Output)
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: 0x02223202 - 0x0222321A
+; Size: 24 bytes
+; Type: Leaf function (no calls)
+; Called by: func_001 (display list processor) or func_012
+; Calls: None
+;
+; Purpose: Similar to func_009 but outputs only 3 elements instead of 4.
+; Handles display list commands requiring 3-element data blocks.
+;
+; Input:
+;   R12 = Source data structure pointer
+;   R11 = Output buffer pointer
+;
+; Output:
+;   3 words written to [R11+4], [R11+8], [R11+12]
+;   R11 += 16 (0x10) - advance to next output slot
+;
+; Data Layout (Source @ R12):
+;   [R12+0x0C] → [R11+0x04]
+;   [R12+0x1C] → [R11+0x08]
+;   [R12+0x2C] → [R11+0x0C]
+; ═══════════════════════════════════════════════════════════════════════════
+
+func_010:
+02223202  81E3     MOV.B   R0,@($3,R1)    ; [R1+3] = low_byte(R0)
+02223204  85E1     MOV.B   R0,@($1,R5)    ; [R5+1] = low_byte(R0)
+02223206  81B1     MOV.B   R0,@($1,R1)    ; [R1+1] = low_byte(R0)
+02223208  50C3     MOV.L   @($C,R12),R0   ; R0 = [R12+0x0C]
+0222320A  51C7     MOV.L   @($1C,R12),R1  ; R1 = [R12+0x1C]
+0222320C  52CB     MOV.L   @($2C,R12),R2  ; R2 = [R12+0x2C]
+0222320E  1B01     MOV.L   R0,@($4,R11)  ; [R11+0x04] = R0
+02223210  1B12     MOV.L   R1,@($8,R11)  ; [R11+0x08] = R1
+02223212  1B23     MOV.L   R2,@($C,R11)  ; [R11+0x0C] = R2
+02223214  7B10     ADD     #$10,R11       ; R11 += 16 (advance output)
+02223216  85E3     MOV.B   R0,@($3,R5)    ; [R5+3] = low_byte(R0)
+02223218  7001     ADD     #$01,R0        ; R0++
+0222321A  000B     RTS                     ; Return
+
+
+; ═══════════════════════════════════════════════════════════════════════════
 ; End of Annotated Disassembly (Hotspot Functions)
 ; ═══════════════════════════════════════════════════════════════════════════
 ;

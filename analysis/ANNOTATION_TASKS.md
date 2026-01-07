@@ -68,11 +68,11 @@ These set up the data copy - understanding them reveals what's being copied.
 
 | Status | Function | Offset | Size | Type | Notes |
 |--------|----------|--------|------|------|-------|
-| [ ] | func_060 | 0x23DC4 | 108 bytes | calls func_065 | texture setup? |
-| [ ] | func_061 | 0x23E32 | 40 bytes | calls func_065 | - |
-| [ ] | func_062 | 0x23E5C | 42 bytes | calls func_065 | - |
-| [ ] | func_063 | 0x23E88 | 60 bytes | calls func_065 | - |
-| [ ] | func_064 | 0x23EC6 | 102 bytes | leaf | called by func_059 |
+| [x] | func_060 | 0x23DC4 | 108 bytes | hub | Multi-block copy orchestrator (10+ calls) |
+| [x] | func_061 | 0x23E32 | 40 bytes | calls func_065 | Conditional copy (R2 check) |
+| [x] | func_062 | 0x23E5C | 42 bytes | calls func_065 | Conditional copy (R3 check) |
+| [x] | func_063 | 0x23E88 | 60 bytes | calls func_065 | Dual-source copy orchestrator |
+| [x] | func_064 | 0x23EC6 | 102 bytes | leaf | Inline unrolled copy (8 elements) |
 
 ---
 
@@ -82,11 +82,11 @@ Called by func_001 (command processor).
 
 | Status | Function | Offset | Size | Type | Notes |
 |--------|----------|--------|------|------|-------|
-| [ ] | func_005 | 0x230E6 | 44 bytes | indirect | calls func_006, JSR @R14 |
-| [ ] | func_007 | 0x23176 | 42 bytes | indirect | calls func_008, JSR @R14 |
-| [ ] | func_008 | 0x231A2 | 64 bytes | leaf | - |
-| [ ] | func_009 | 0x231E4 | 28 bytes | leaf | handler A |
-| [ ] | func_010 | 0x23202 | 24 bytes | leaf | handler B |
+| [x] | func_005 | 0x230E6 | 44 bytes | indirect | Vertex transform loop (calls func_006) |
+| [x] | func_007 | 0x23176 | 42 bytes | indirect | Alternate transform loop (calls func_008) |
+| [x] | func_008 | 0x231A2 | 64 bytes | leaf | Matrix multiply helper (MAC.L×3) |
+| [x] | func_009 | 0x231E4 | 28 bytes | leaf | 4-element command handler |
+| [x] | func_010 | 0x23202 | 24 bytes | leaf | 3-element command handler |
 
 ---
 
@@ -228,23 +228,25 @@ Investigation of Priority 2 recursive functions reveals complex control flow cha
 | 1. Render primitives | 9 | 9 | 0 | 100% |
 | 2. Recursive | 4 | 4 | 0 | 100% |
 | 3. Indirect dispatch | 6 | 6 | 0 | 100% |
-| 4. func_065 callers | 5 | 0 | 5 | 0% |
-| 5. Display list handlers | 5 | 0 | 5 | 0% |
+| 4. func_065 callers | 5 | 5 | 0 | 100% |
+| 5. Display list handlers | 5 | 5 | 0 | 100% |
 | 6. Small leaf | 11 | 11 | 0 | 100% |
 | 7. Medium leaf | 20 | 0 | 20 | 0% |
 | 8. Larger functions | 15 | 0 | 15 | 0% |
 | 9. Remaining | 29 | 0 | 29 | 0% |
-| **TOTAL** | **104** | **30** | **74** | **29%** |
+| **TOTAL** | **104** | **40** | **64** | **38%** |
 
-**Grand Total (including 5 initial):** 35 annotated out of 109 (32% complete)
+**Grand Total (including 5 initial):** 45 annotated out of 109 (41% complete)
 
 ### Completion Milestones
 
 - [x] Priority 1 (100%): 9 rendering primitives complete
 - [x] Priority 2 (100%): 4 recursive functions complete (complex control flow documented)
 - [x] Priority 3 (100%): 6 dispatcher functions complete (all patterns documented)
+- [x] Priority 4 (100%): 5 func_065 callers complete (data copy orchestrators)
+- [x] Priority 5 (100%): 5 display list handlers complete (vertex transforms)
 - [x] Priority 6 (100%): 11 small leaf functions complete (utility operations)
-- [ ] Priority 4-5: 10 functions (data copy callers, display list handlers)
 - [ ] Priority 7-9: 64 remaining functions
-- [x] > 30% of all functions: 35 functions annotated
-- [ ] Half of all functions: 54.5 functions (need ~19 more)
+- [x] > 30% of all functions: 45 functions annotated
+- [x] > 40% of all functions: 45 functions annotated
+- [ ] Half of all functions: 54.5 functions (need ~10 more)

@@ -8,6 +8,105 @@ import struct
 import sys
 
 class M68KDisassembler:
+    # Hardware register addresses and symbolic names (from Super MD Manual / 32X Hardware Manual)
+    HARDWARE_REGISTERS = {
+        # Mega Drive I/O Registers
+        0xA10001: "MD_VERSION",         # Version register (region, NTSC/PAL)
+        0xA10003: "MD_DATA1",            # Controller Port 1 Data
+        0xA10005: "MD_DATA2",            # Controller Port 2 Data
+        0xA10007: "MD_DATAEXP",          # Expansion Port Data
+        0xA10009: "MD_CTRL1",            # Controller Port 1 Control
+        0xA1000B: "MD_CTRL2",            # Controller Port 2 Control
+        0xA1000D: "MD_CTRLEXP",          # Expansion Port Control
+        0xA1000F: "MD_TXDATA1",          # Controller Port 1 Serial TX
+        0xA10011: "MD_RXDATA1",          # Controller Port 1 Serial RX
+        0xA10013: "MD_SCTRL1",           # Controller Port 1 Serial Control
+        0xA10015: "MD_TXDATA2",          # Controller Port 2 Serial TX
+        0xA10017: "MD_RXDATA2",          # Controller Port 2 Serial RX
+        0xA10019: "MD_SCTRL2",           # Controller Port 2 Serial Control
+        0xA1001B: "MD_TXDATAEXP",        # Expansion Port Serial TX
+        0xA1001D: "MD_RXDATAEXP",        # Expansion Port Serial RX
+        0xA1001F: "MD_SCTRLEXP",         # Expansion Port Serial Control
+
+        # Z80 Control
+        0xA11100: "Z80_BUSREQ",          # Z80 Bus Request
+        0xA11200: "Z80_RESET",           # Z80 Reset
+
+        # TMSS Register
+        0xA14000: "TMSS",                # Trademark Security System
+        0xA14001: "TMSS+1",
+        0xA14002: "TMSS+2",
+        0xA14003: "TMSS+3",
+
+        # 32X System Registers (MARS)
+        0xA15100: "MARS_SYS_INTCTL",     # Adapter Control (FM, REN, RES, ADEN)
+        0xA15101: "MARS_SYS_INTCTL+1",
+        0xA15102: "MARS_SYS_INTMASK",    # Interrupt Control (INTS, INTM)
+        0xA15103: "MARS_SYS_INTMASK+1",
+        0xA15104: "MARS_SYS_HCOUNT",     # H Interrupt Vector / Bank Set
+        0xA15105: "MARS_SYS_HCOUNT+1",
+        0xA15106: "MARS_DREQ_CTRL",      # DREQ Control Register
+        0xA15107: "MARS_DREQ_CTRL+1",
+        0xA15108: "MARS_DREQ_SRC_H",     # DREQ Source Address (high)
+        0xA1510A: "MARS_DREQ_SRC_L",     # DREQ Source Address (low)
+        0xA1510C: "MARS_DREQ_DST_H",     # DREQ Destination Address (high)
+        0xA1510E: "MARS_DREQ_DST_L",     # DREQ Destination Address (low)
+        0xA15110: "MARS_DREQ_LEN",       # DREQ Length
+        0xA15112: "MARS_FIFO",           # FIFO Data Register
+
+        # 32X Communication Ports (68K ↔ SH2)
+        0xA15120: "COMM0",               # Communication Port 0
+        0xA15122: "COMM1",               # Communication Port 1
+        0xA15124: "COMM2",               # Communication Port 2
+        0xA15126: "COMM3",               # Communication Port 3
+        0xA15128: "COMM4",               # Communication Port 4
+        0xA1512A: "COMM5",               # Communication Port 5
+        0xA1512C: "COMM6",               # Communication Port 6
+        0xA1512E: "COMM7",               # Communication Port 7
+
+        # 32X PWM Sound Registers
+        0xA15130: "PWM_CTRL",            # PWM Control
+        0xA15132: "PWM_CYCLE",           # PWM Cycle Register
+        0xA15134: "PWM_LDATA",           # PWM Left Channel Data
+        0xA15136: "PWM_RDATA",           # PWM Right Channel Data
+        0xA15138: "PWM_MONO",            # PWM Mono Data
+
+        # 32X VDP Registers
+        0xA15180: "MARS_VDP_MODE",       # Bitmap Mode Register
+        0xA15182: "MARS_VDP_SHIFT",      # Screen Shift Control
+        0xA15184: "MARS_VDP_FILLEN",     # Auto Fill Length
+        0xA15186: "MARS_VDP_FILLADR",    # Auto Fill Start Address
+        0xA15188: "MARS_VDP_FILLDATA",   # Auto Fill Data
+        0xA1518A: "MARS_VDP_FBCTL",      # Frame Buffer Control
+
+        # Mega Drive VDP
+        0xC00000: "VDP_DATA",            # VDP Data Port
+        0xC00002: "VDP_DATA2",           # VDP Data Port (mirror)
+        0xC00004: "VDP_CTRL",            # VDP Control Port
+        0xC00006: "VDP_CTRL2",           # VDP Control Port (mirror)
+        0xC00008: "VDP_HVCNT",           # HV Counter
+        0xC0000A: "VDP_HVCNT2",          # HV Counter (mirror)
+        0xC00011: "PSG",                 # PSG Sound
+
+        # Bank Switching Registers
+        0xA130F0: "DRAM_CTRL",           # D-RAM Board Control (dev kit)
+        0xA130F1: "SRAM_BANK0",          # SRAM Enable / Bank 0
+        0xA130F3: "BANK1",               # Bank 1 ($080000-$0FFFFF)
+        0xA130F5: "BANK2",               # Bank 2 ($100000-$17FFFF)
+        0xA130F7: "BANK3",               # Bank 3 ($180000-$1FFFFF)
+        0xA130F9: "BANK4",               # Bank 4 ($200000-$27FFFF)
+        0xA130FB: "BANK5",               # Bank 5 ($280000-$2FFFFF)
+        0xA130FD: "BANK6",               # Bank 6 ($300000-$37FFFF)
+        0xA130FF: "BANK7",               # Bank 7 ($380000-$3FFFFF)
+
+        # Common Memory Regions
+        0xFF0000: "WORK_RAM",            # Main Work RAM start
+        0xFFFFFF: "WORK_RAM_END",        # Work RAM end
+        0xA00000: "Z80_RAM",             # Z80 RAM start
+        0xA10000: "MD_IO_BASE",          # MD I/O Base
+        0xA15100: "MARS_SYS_BASE",       # 32X System Register Base
+    }
+
     def __init__(self, rom_data, start_offset=0, base_address=0x00880000):
         self.rom = rom_data
         self.offset = start_offset
@@ -32,9 +131,13 @@ class M68KDisassembler:
         return self.base_address + self.offset
 
     def format_address(self, addr):
-        """Format address for display"""
+        """Format address for display with symbolic names"""
+        # Check user-defined labels first
         if addr in self.labels:
             return self.labels[addr]
+        # Check hardware registers
+        if addr in self.HARDWARE_REGISTERS:
+            return self.HARDWARE_REGISTERS[addr]
         return f"${addr:08X}"
 
     def disassemble_instruction(self):

@@ -277,6 +277,10 @@ These are the handlers called from V-INT jump table at $16B2:
 | [x] | func_D19C | $0088D19C | - | Comparison selector with state updates |
 | [x] | func_D42C | $0088D42C | - | Dispatcher with data copy |
 | [x] | func_D450 | $0088D450 | - | Conditional data processing |
+| [x] | func_6D8C | $00886D8C | - | Register save/restore wrapper |
+| [x] | func_7768 | $00887768 | - | Complex conditional handler |
+| [x] | func_77B2 | $008877B2 | - | Configuration initializer |
+| [x] | func_9458 | $00889458 | - | Loop-based data updater |
 
 **Documentation**: [68K_MAIN_LOGIC.md](68K_MAIN_LOGIC.md)
 
@@ -321,9 +325,9 @@ Likely data handlers, track-specific code, graphics routines.
 | 5. Controller | 6 | 6 | 0 | 100% |
 | 6. Low Code | 33 | 33 | 0 | 100% |
 | 7. V-INT States | 16 | 16 | 0 | 100% |
-| 8. Main Logic | 124 | 83 | 41 | 67% |
+| 8. Main Logic | 124 | 87 | 37 | 70% |
 | 9. Extended | 500+ | 0 | 500+ | 0% |
-| **TOTAL** | **769** | **167** | **602** | **21.7%** |
+| **TOTAL** | **769** | **171** | **598** | **22.2%** |
 
 ### Milestones
 

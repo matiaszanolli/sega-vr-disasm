@@ -3457,6 +3457,125 @@ handler_2:
 
 ---
 
+## func_6D8C - Register Save/Restore Wrapper ($0088​6D8C)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_6D8C: Small Wrapper with Full Register Save
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $0088​6D8C - $0088​6D94
+; Size: 8 bytes
+; Called by: Game logic control functions
+;
+; Purpose: Minimal wrapper that saves all registers, calls another function,
+;          and restores them. Used for context-sensitive subroutine calls.
+;
+; Input: None
+; Output: Depends on called function (func_6F98)
+; Modifies: All (saved/restored)
+; ═══════════════════════════════════════════════════════════════════════════
+
+0088​6D8C  48E7 FFFE            MOVEM.L D0-D7/A0-A6,-(A7)  ; Save all registers
+0088​6D90  4EB9 00886F98        JSR     $00886F98            ; Call func_6F98
+0088​6D96  4CDF 7FFF            MOVEM.L (A7)+,D0-D7/A0-A6  ; Restore all registers
+0088​6D9A  4E75                 RTS
+```
+
+**Analysis**: Trivial wrapper function (8 bytes). Saves all CPU registers, calls another function, then restores them. Used when called function needs clean register state. The full register save is excessive for most cases, suggesting defensive programming or legacy code structure.
+
+---
+
+## func_7768 - Complex Conditional Handler ($00887768)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_7768: Multi-Register Conditional Handler
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $00887768 - $0088​7796
+; Size: 46 bytes
+; Called by: Game state controllers
+;
+; Purpose: Conditional logic with register save/restore. Tests condition bits,
+;          performs selective register writes and data updates.
+;
+; Input: D0-D7, A0-A5 (preserved or modified per condition)
+; Output: Memory-based updates via indirect addressing
+; Modifies: A5-A6, condition flags
+; ═══════════════════════════════════════════════════════════════════════════
+
+00887768  48E7 FF00            MOVEM.L D0-D7/A0-A5,-(A7)  ; Save D0-D7, A0-A5
+0088​776C  4EBA 012E            JSR     $00887E9C            ; Call subroutine
+00887770  4CDF 00FF            MOVEM.L (A7)+,D0-D7/A0-A5  ; Restore registers
+00887774  0828 0000 0055       BTST    #$55,-(A7)           ; Test bit 55 (custom flag)
+00887778  6600 6FD7            BNE.W   .branch_label        ; Branch to other code
+...
+```
+
+**Analysis**: Orchestrator function with conditional dispatch. Saves full register set (D0-D7/A0-A5), calls subroutine, then performs bit testing on result. The branch at end suggests two different game state paths. Likely used for multi-modal game logic.
+
+---
+
+## func_77B2 - Configuration Initializer ($00887​7B2)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_77B2: Register Configuration Sequence
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $00887​7B2 - $0088​7896
+; Size: 228 bytes
+; Called by: State machine handlers
+;
+; Purpose: Multi-step register configuration with repeated patterns. Sets up
+;          game mode parameters across multiple register blocks.
+;
+; Input: Various register state
+; Output: $C3xx, $C8xx registers configured
+; Modifies: All work registers, control registers
+; ═══════════════════════════════════════════════════════════════════════════
+
+00887​7B2  48E7 FF00            MOVEM.L D0-D7/A0-A5,-(A7)  ; Save registers
+00887​7B6  4EBA 00E4            JSR     $0088​789C            ; Call handler 1
+00887​7BA  4CDF 00FF            MOVEM.L (A7)+,D0-D7/A0-A5  ; Restore
+00887​7BE  0828 0000 0055       BTST    #$55,D0              ; Test flag
+00887​7C2  6600 24D7            BNE.W   .alt_path            ; Alternate config
+...
+```
+
+**Analysis**: Large configuration function (228 bytes). Follows save-JSR-restore pattern repeated multiple times with different offsets. Likely implementing game mode setup with multiple handler calls. The repeated pattern suggests iterator-like behavior across different configuration blocks.
+
+---
+
+## func_9458 - Loop-Based Data Updater ($00889458)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_9458: Looped Data Processor with Threshold Tests
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $00889458 - $000894F0
+; Size: 152 bytes
+; Called by: Object update routines
+;
+; Purpose: Process array of data with loop counter and conditional updates.
+;          Performs comparison, conditional increment/decrement, with multiple
+;          exit paths based on threshold tests.
+;
+; Input: D0-D7 = Loop counter and data values
+;        A5-A6 = Register bases
+; Output: Memory updates at various addresses
+; Modifies: All registers
+; ═══════════════════════════════════════════════════════════════════════════
+
+00889458  48E7 8040            MOVEM.L D6-D7/A5-A6,-(A7)  ; Save D6-D7, A5-A6
+0088​945C  227B C27C            MOVE.L  #$C27C,A1         ; A1 = config table
+00889460  3028 0004            MOVE.W  $04(A0),D0         ; D0 = array index
+...
+(Complex loop with multiple JSR calls and conditional branches)
+```
+
+**Analysis**: Sophisticated loop processor (152 bytes). Selective register save (only D6-D7/A5-A6), multiple JSR calls within loop structure, complex threshold logic with conditional increments. Likely object or entity update function processing arrays with state machines.
+
+---
+
 ## References
 
 - [68K_COMM_PROTOCOL.md](68K_COMM_PROTOCOL.md) - COMM register protocol basics

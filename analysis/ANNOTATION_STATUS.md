@@ -9,10 +9,10 @@
 
 | Metric | Value |
 |--------|-------|
-| Functions Annotated | 16 of 109 |
-| Completion Percentage | 15% |
-| Lines of Annotation | 1,800+ |
-| Estimated Hotspot Coverage | 90% |
+| Functions Annotated | 20 of 109 |
+| Completion Percentage | 18% |
+| Lines of Annotation | 2,100+ |
+| Estimated Hotspot Coverage | 95% |
 
 ## Completed Work
 
@@ -60,27 +60,38 @@ All rendering primitive functions called directly by func_023 (the main dispatch
    - Micro-optimization for quick filtering
    - RTS in delay slot of BF for efficiency
 
-### Priority 3 - Indirect Call Dispatchers: 🟨 33% COMPLETE (2/6 functions)
+### Priority 3 - Indirect Call Dispatchers: ✅ 100% COMPLETE (6/6 functions)
 
-Function dispatch/factory pattern implementations:
+All indirect dispatcher patterns documented:
 
 1. **func_078** (0x24320, 68 bytes) - Basic 6-handler dispatcher
-   - Parameter setup: R1=0x01, R6=0x10, R7/R10/R11=addresses
-   - Sequential JSR @R0 calls with embedded literal pool
+   - Pattern: Sequential JSR @R0 calls with parameter setup
+   - Parameters: R1=0x01, R6=0x10, R7/R10/R11=addresses
 
 2. **func_079** (0x24366, 84 bytes) - Extended dispatcher variant
-   - More setup code: dereference operation, address parameter initialization
+   - Pattern: Enhanced setup with dereference operation
    - Alternative rendering path implementation
 
-**Remaining (4 functions)**:
-- func_100 (1112 bytes) - Very large, complex dispatch
-- func_101 (136 bytes) - Register save/restore wrapper with JSR @R0
-- func_105 (150 bytes) - Bit manipulation with nested loops
-- func_106 (366 bytes) - Calls helper functions (not pure dispatcher)
+3. **func_100** (0x24692, 1112 bytes) - Mathematical lookup table
+   - Content: Sine/cosine or transformation coefficient values
+   - Format: Normalized fixed-point values (-64 to -1 range)
+
+4. **func_101** (0x24AEC, 136 bytes) - Register save/restore wrapper
+   - Pattern: Full 15-register preservation for caller transparency
+   - Calls indirect function with complete context isolation
+
+5. **func_105** (0x24C7E, 150 bytes) - Data stream decoder
+   - Pattern: Bit field extraction with variable-length decoding
+   - Purpose: Polygon attribute or command opcode decompression
+
+6. **func_106** (0x24D16, 366 bytes) - Multi-path rendering dispatcher
+   - Pattern: Complex JMP @R0 indirect dispatch with multiple paths
+   - Purpose: Mode-based polygon processing (triangles/quads/sprites)
+   - Calls: func_107, func_108 helpers
 
 ## Annotated Functions Reference
 
-**Total Annotated Functions**: 16 (5 initial + 9 Priority 1 + 2 Priority 3)
+**Total Annotated Functions**: 20 (5 initial + 9 Priority 1 + 6 Priority 3)
 
 ### Initial Hotspot Functions (5)
 - func_001 (0x2301C) - Display list interpreter
@@ -92,10 +103,10 @@ Function dispatch/factory pattern implementations:
 ### Priority 1 - Rendering Primitives (9)
 - func_024, func_026, func_029, func_032, func_033, func_034, func_036, func_037, func_038
 
-### Priority 3 - Indirect Dispatchers (2 of 6)
-- func_078, func_079
+### Priority 3 - Indirect Dispatchers (6 of 6) ✅
+- func_078, func_079, func_100, func_101, func_105, func_106
 
-**Location**: `disasm/sh2_3d_engine_annotated.asm` (1,800+ lines)
+**Location**: `disasm/sh2_3d_engine_annotated.asm` (2,100+ lines)
 
 ## Remaining Work by Priority
 
@@ -112,11 +123,14 @@ Functions:
 - func_044 (0x239CA, 152 bytes) - Scene graph dispatch
 - func_094 (0x24598, 38 bytes) - Recursive traversal
 
-### Priority 3 - Indirect Call Dispatchers (6 functions, 33% - 2 COMPLETED)
+### Priority 3 - Indirect Call Dispatchers (6 functions, 100% - ALL COMPLETED) ✅
 
-Completed: func_078, func_079 (basic dispatcher patterns)
-
-Remaining: func_100 (1112 bytes), func_101 (136 bytes), func_105 (150 bytes), func_106 (366 bytes)
+Complete pattern documentation for all dispatcher variants:
+- func_078/079: Basic sequential dispatchers (6 handlers each)
+- func_100: Lookup table (sine/cosine or coefficient data)
+- func_101: Register wrapper for context preservation
+- func_105: Data stream decoder with nested loops
+- func_106: Complex multi-path renderer with JMP @R0
 
 ### Priority 4 - func_065 Callers (5 functions, 0%)
 - func_060, func_061, func_062, func_063, func_064

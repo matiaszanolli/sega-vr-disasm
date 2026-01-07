@@ -2769,6 +2769,440 @@ handler_2:
 
 ---
 
+## func_CC06 - SH2 COMM Setup with Table Lookup ($0088CC06)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_CC06: SH2 Communication Setup & Control
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $0088CC06 - $0088CC56
+; Size: 80 bytes
+; Called by: Main game logic (JSR from unknown locations)
+;
+; Purpose: Configure SH2 COMM registers with indexed table lookup.
+;          Performs register write sequence with conditional offset calculation.
+;
+; Input: $FFC8CC = Index value
+; Output: Multiple COMM registers written ($FF6018, $FF62xx, etc.)
+; Modifies: D0, A1, A2, A3
+; ═══════════════════════════════════════════════════════════════════════════
+
+0088CC06  49F9 008958B4        LEA     $008958B4,A4         ; A4 = ROM table base
+0088CC0C  3238 C8CC            MOVE.W  $FFC8CC,D1           ; D1 = index
+0088CC10  2874 1000            MOVEA.L (A4,D1.L),A4         ; A4 = table[index]
+0088CC14  7001                 MOVEQ   #1,D0                ; D0 = 1 (loop count)
+0088CC16  43F9 00FF6218        LEA     $00FF6218,A1         ; A1 = COMM base
+0088CC1C  7E0E                 MOVEQ   #14,D7               ; D7 = 14 (16 iterations)
+
+; Burst write sequence
+0088CC1E  24C4                 MOVE.L  A4,(A1)+             ; Write to COMM
+0088CC20  26CC                 MOVE.L  (A4),-(A1)           ; Read from table
+0088CC22  3340 0000            MOVE.W  D0,$00(A1)           ; Write control
+0088CC26  3340 0014            MOVE.W  D0,$14(A1)           ; Write status
+0088CC2A  2353 0010            MOVE.L  (A3),$10(A1)         ; Copy long value
+0088CC2E  235B 0024            MOVE.L  (A3)+,$24(A1)        ; Copy with increment
+0088CC32  23D3 0038            MOVE.L  (A3),$38(A1)         ; More data
+0088CC36  4E75                 RTS
+```
+
+**Analysis**: SH2 communication setup using table-driven approach. Loads handler pointer from indexed table at $958B4, then performs sequential register writes. The burst pattern ($FF6218 base) suggests configurable COMM channel setup.
+
+---
+
+## func_CC74 - Register and Flag Initialization ($0088CC74)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_CC74: Hardware Register Control & State Initialization
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $0088CC74 - $0088CCC4
+; Size: 80 bytes
+; Called by: Main game logic (JSR from unknown locations)
+;
+; Purpose: Initialize hardware control registers and game state flags.
+;          Performs multi-stage register setup for subsystem initialization.
+;
+; Input: $FFC8CC = Control selector
+; Output: Multiple control registers configured
+; Modifies: D0, A1
+; ═══════════════════════════════════════════════════════════════════════════
+
+0088CC74  43F9 008997EC        LEA     $008997EC,A1         ; A1 = control table
+0088CC7A  43F1 0000            LEA     0(A1,D0.W),A1        ; A1 += offset
+0088CC7E  45F8 C08C            LEA     $FFC08C,A2           ; A2 = reg base 1
+0088CC82  4EF9 00884922        JMP     $00884922            ; Jump to handler
+
+; Register control sequence
+0088CC88  11F8 FEA9 C30F       MOVE.B  #$FEA9,$FFC30F       ; Set control 1
+0088CC8E  41F8 9000            LEA     $FF9000,A0           ; A0 = RAM base
+0088CC92  11FC 0000 C819       MOVE.B  #0,$FFC819           ; Clear flag 1
+0088CC98  31F8 C094 C07A       MOVE.W  $FFC094,$FFC07A      ; Transfer register
+0088CC9E  11FC 0000 C311       MOVE.B  #0,$FFC311           ; Clear flag 2
+0088CCA4  31FC 0001 C048       MOVE.W  #1,$FFC048           ; Set value 1
+0088CCAA  11FC 0004 C302       MOVE.B  #4,$FFC302           ; Set control 2
+0088CCB0  31FC 0000 C086       MOVE.W  #0,$FFC086           ; Clear value
+0088CCB6  31FC 0040 C0E4       MOVE.W  #$40,$FFC0E4         ; Set param
+```
+
+**Analysis**: Multi-stage hardware initialization. Sets flags, transfers register values, and configures control parameters. Uses table-based offset calculation for different configuration modes. The register addresses ($C08C, $C819, $C094) suggest graphics/display subsystem.
+
+---
+
+## func_CC88 - Control Register Continuation ($0088CC88)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_CC88: Register Setup Continuation (Variant of func_CC74)
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $0088CC88 - $0088CCBC
+; Size: 52 bytes
+; Called by: func_CC74 (as continuation point)
+;
+; Purpose: Second-stage hardware initialization. Continuation of func_CC74
+;          with additional register and state setup.
+;
+; Input: (from previous stage)
+; Output: Additional registers configured
+; Modifies: A1, A3
+; ═══════════════════════════════════════════════════════════════════════════
+
+0088CC88  11F8 FEA9 C30F       MOVE.B  #$FEA9,$FFC30F       ; Set control
+0088CC8E  41F8 9000            LEA     $FF9000,A0           ; Load base
+0088CC92  11FC 0000 C819       MOVE.B  #0,$FFC819           ; Clear state
+0088CC98  31F8 C094 C07A       MOVE.W  $FFC094,$FFC07A      ; Transfer value
+0088CC9E  11FC 0000 C311       MOVE.B  #0,$FFC311           ; Clear flag
+0088CCA4  31FC 0001 C048       MOVE.W  #1,$FFC048           ; Set value
+0088CCAA  11FC 0004 C302       MOVE.B  #4,$FFC302           ; Set param
+0088CCB0  31FC 0000 C086       MOVE.W  #0,$FFC086           ; Clear register
+0088CCB6  31FC 0040 C0E4       MOVE.W  #$40,$FFC0E4         ; Set control
+```
+
+**Analysis**: Effectively identical to func_CC74 body, suggesting this is an alternate entry point or fallthrough continuation. Multiple calls from different code paths may route here directly.
+
+---
+
+## func_CD4C - Loop-Based Array Processor ($0088CD4C)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_CD4C: Multi-Field Object Array Processor with Loop
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $0088CD4C - $0088CD8C
+; Size: 64 bytes
+; Called by: Main game logic (JSR from unknown locations)
+;
+; Purpose: Process array of objects with field-by-field updates.
+;          Performs DBRA loop with conditional increments and calculations.
+;
+; Input: A0 = Object array base, D0 = Field index
+; Output: Object fields updated
+; Modifies: D0-D2, A0-A2, A3
+; ═══════════════════════════════════════════════════════════════════════════
+
+0088CD4C  43F9 00898A7C        LEA     $00898A7C,A1         ; A1 = table 1
+0088CD52  3E38 C8A0            MOVE.W  $FFC8A0,D7           ; D7 = control index
+0088CD56  2271 70CC             MOVEA.L (A1,D7.W),A1        ; A1 = table[index]
+0088CD5A  41F8 9100            LEA     $FF9100,A0           ; A0 = object base
+0088CD5E  47F9 009381 4E        LEA     $009381 4E,A3         ; A3 = data table
+0088CD64  7000                 MOVEQ   #0,D0                ; D0 = 0 (counter)
+0088CD66  7202                 MOVEQ   #2,D1                ; D1 = 2
+
+.loop:
+0088CD68  2459                 MOVEA.L (A1)+,A2             ; A2 = handler
+0088CD6A  214A 0018            MOVE.L  A2,$18(A0)           ; Store handler
+0088CD6E  315B 00C2            MOVE.W  (A3)+,$C2(A0)        ; Copy field $C2
+0088CD72  3140 00A4            MOVE.W  D0,$A4(A0)           ; Store counter
+0088CD76  3141 00A6            MOVE.W  D1,$A6(A0)           ; Store variant
+0088CD7A  5240                 ADDQ.W  #1,D0                ; Increment counter
+0088CD7C  5241                 ADDQ.W  #1,D1                ; Increment variant
+0088CD7E  0240 000F            ANDI.W  #$0F,D0              ; Clamp to 0-15
+0088CD82  0241 000F            ANDI.W  #$0F,D1              ; Clamp to 0-15
+0088CD86  41E8 0100            LEA     $100(A0),A0          ; Advance 256 bytes
+0088CD8A  51CF FFDC            DBRA    D7,.loop             ; Loop control times
+0088CD8E  4E75                 RTS
+```
+
+**Analysis**: Object array processor. Loads handler pointers from table, stores to each 256-byte object structure, and updates variant counters. The 0-15 clamping suggests 16-entry state machines.
+
+---
+
+## func_CD92 - Conditional Push with Setup ($0088CD92)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_CD92: Stack Push & Conditional Handler Setup
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $0088CD92 - $0088CDC8
+; Size: 54 bytes
+; Called by: Main game logic (JSR from unknown locations)
+;
+; Purpose: Save state to stack, then execute conditional handler setup.
+;          Used for state preservation during complex operations.
+;
+; Input: $FFC2C0 = Control flag
+; Output: Data on stack, registers configured
+; Modifies: A7 (stack pointer), D0, D1, A0
+; ═══════════════════════════════════════════════════════════════════════════
+
+0088CD92  2F38 C260            MOVEM.L A0-A2,(A7)           ; Push registers
+0088CD96  43F8 C000            LEA     $FFC000,A1           ; A1 = register base
+0088CD9A  7200                 MOVEQ   #0,D2                ; D2 = 0
+0088CD9C  4EB9 00884842        JSR     $00884842            ; Call handler 1
+0088CDA2  21DF C260            MOVE.L  (A7)+,$FFC260        ; Pop to register
+
+; Conditional execution
+0088CDA6  43F8 9000            LEA     $FF9000,A1           ; A1 = object base
+0088CDAA  7200                 MOVEQ   #0,D2                ; D2 = 0
+0088CDAC  7E0F                 MOVEQ   #15,D7               ; D7 = 15 (loop count)
+0088CDAE  4EB9 00884842        JSR     $00884842            ; Call handler 2
+
+.loop:
+0088CDB4  51CF FFF8            DBRA    D7,.loop             ; Loop 16 times
+0088CDB8  7200                 MOVEQ   #0,D2                ; D2 = 0
+0088CDBA  11C1 C30E            MOVE.B  D1,$FFC30E           ; Write to control
+0088CDBE  31C1 C8AA            MOVE.W  D1,$FFC8AA           ; Write to state 1
+0088CDC2  31C1 C8AC            MOVE.W  D1,$FFC8AC           ; Write to state 2
+0088CDC6  31C1 C8AE            MOVE.W  D1,$FFC8AE           ; Write to state 3
+0088CDCA  31FC FFFF C026       MOVE.W  #$FFFF,$FFC026       ; Set final value
+0088CDD0  4E75                 RTS
+```
+
+**Analysis**: State preservation function. Pushes registers to stack, executes setup handlers with 16-iteration loop, and finalizes state registers. The multiple state writes ($C8AA-$C8AE) suggest multi-level state machines.
+
+---
+
+## func_CDD2 - Table Lookup with Loop Update ($0088CDD2)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_CDD2: Table-Based Loop Processor
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $0088CDD2 - $0088CDFE
+; Size: 44 bytes
+; Called by: Main game logic (JSR from unknown locations)
+;
+; Purpose: Loop through objects, perform table lookups, and update fields.
+;          Processes 15 objects with 256-byte spacing.
+;
+; Input: A0 = Object base, D0 = Control index
+; Output: Object fields updated from table data
+; Modifies: D0, A0, A1
+; ═══════════════════════════════════════════════════════════════════════════
+
+0088CDD2  7E0F                 MOVEQ   #15,D7               ; D7 = 15 (loop count)
+0088CDD4  D078 C8A0            ADD.W   $FFC8A0,D0           ; D0 += control offset
+0088CDD8  41F8 9000            LEA     $FF9100,A0           ; A0 = object base
+0088CDDC  3438 C8CC            MOVE.W  $FFC8CC,D2           ; D2 = selector
+0088CDE0  43F9 008382BA        LEA     $008382BA,A1         ; A1 = data table
+0088CDE6  2271 2000            MOVEA.L (A1,D2.W),A1         ; A1 = table[selector]
+0088CDEA  2271 0000            MOVEA.L 0(A1),A1             ; Dereference
+0088CDEE  6134                 BSR.S   $0088CE4C            ; Call subroutine
+
+.loop:
+0088CDF0  41E8 0100            LEA     $100(A0),A0          ; Advance 256 bytes
+0088CDF4  51CF FFF8            DBRA    D7,.loop             ; Loop 15 times
+0088CDF8  21FC 0000 0000 902C  MOVE.L  #0,$00FF902C         ; Final write
+
+```
+
+**Analysis**: Table-driven loop processor. Loads table address from indexed lookup, then applies to 15 sequential objects (256-byte spacing). The BSR to $CE4C suggests per-object processing routine.
+
+---
+
+## func_CE02 - Field Manipulation with Conditional Paths ($0088CE02)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_CE02: Multi-Path Object Field Update
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $0088CE02 - $0088CE22
+; Size: 32 bytes
+; Called by: Main game logic (JSR from unknown locations)
+;
+; Purpose: Conditional update of object fields with three variant paths.
+;          Each path applies different field modifications.
+;
+; Input: A0 = Object pointer
+; Output: Object fields updated
+; Modifies: D0, D1
+; ═══════════════════════════════════════════════════════════════════════════
+
+0088CE02  7200                 MOVEQ   #0,D2                ; D2 = 0
+0088CE04  611C                 BSR.S   $0088CE22            ; Branch if equal
+0088CE06  317C 000F 00A4       MOVE.W  #$0F,$FFC...(A0)     ; Set field 1
+0088CE0C  317C 000F 00A6       MOVE.W  #$0F,$FFC...(A0)     ; Set field 2
+0088CE12  41F8 9F00            LEA     $FF9F00,A0           ; A0 = alt base
+0088CE16  6124                 BSR.S   $0088CE3C            ; Branch to alt handler
+
+; Alternate path
+0088CE18  31D8 00A4            MOVE.W  (A0)+,$A4(A1)        ; Copy field 1
+0088CE1C  31D8 00A6            MOVE.W  (A0)+,$A6(A1)        ; Copy field 2
+0088CE20  4E75                 RTS
+```
+
+**Analysis**: Conditional path selector for object updates. Tests control value and branches to apply different field modifications to either main or alternate object bases ($9100 vs $9F00).
+
+---
+
+## func_CE76 - Multi-Handler Orchestration ($0088CE76)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_CE76: Sequential Handler Call Orchestrator
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $0088CE76 - $0088CEA6
+; Size: 48 bytes
+; Called by: Main game logic (JSR from unknown locations)
+;
+; Purpose: Call 3 sequential handler functions, perform state updates between
+;          them. Implements multi-stage processing pipeline.
+;
+; Input: None (uses fixed tables)
+; Output: State updated via handler calls
+; Modifies: D0, A0, A1
+; ═══════════════════════════════════════════════════════════════════════════
+
+0088CE76  7200                 MOVEQ   #0,D2                ; D2 = 0
+0088CE78  43F8 A800            LEA     $FFA800,A1           ; A1 = handler base
+0088CE7C  4EB9 00884842        JSR     $00884842            ; Call handler 1
+0088CE82  4EB9 00884846        JSR     $00884846            ; Call handler 2
+0088CE88  4EB9 00884856        JSR     $00884856            ; Call handler 3
+0088CE8E  11C1 C81D            MOVE.B  D1,$FFC81D           ; Update flag 1
+0088CE92  11C1 C81F            MOVE.B  D1,$FFC81F           ; Update flag 2
+0088CE96  11C1 C820            MOVE.B  D1,$FFC820           ; Update flag 3
+0088CE9A  31C1 A9E0            MOVE.W  D1,$FFA9E0           ; Update param 1
+0088CE9E  21FC 0000 C4C4 A9E2  MOVE.L  #0,$FFC4C4,$FFA9E2   ; Multi-write
+0088CEA6  4E75                 RTS
+```
+
+**Analysis**: Sequential handler orchestrator. Calls 3 handlers in sequence (likely memory fill functions from func_4842/4846/4856), then performs burst updates to flags and parameters. Implements multi-stage initialization with intermediate state updates.
+
+---
+
+## func_CEC2 & func_CECC - Bit Calculation Variants ($0088CEC2 & $0088CECC)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_CEC2: Bitwise Calculation with Shifts
+; Address: $0088CEC2 - $0088CEEC
+; ═══════════════════════════════════════════════════════════════════════════
+
+0088CEC2  41F8 9000            LEA     $FF9000,A0           ; A0 = object base
+0088CEC6  1038 FEA4            MOVE.B  $FFFEAD,D0           ; D0 = flag byte
+0088CECA  6008                 BRA.S   .check               ; Check value
+0088CECC  41F8 9F00            LEA     $FF9F00,A0           ; A0 = alt object base
+0088CED0  1038 FEAE            MOVE.B  $FFFEA E,D0          ; D0 = alt flag
+0088CED4  3238 C8CC            MOVE.W  $FFC8CC,D1           ; D1 = selector
+0088CED8  D241                 ADD.W   D1,D1                ; D1 *= 2
+0088CEDA  D278 C8CA            ADD.W   $FFC8CA,D2           ; D2 += offset
+0088CEDE  4880                 BKPT    D0                   ; Breakpoint
+0088CEE0  D040                 ADD.W   D0,D0                ; D0 *= 2
+0088CEE2  D041                 ADD.W   D1,D0                ; D0 += D1
+0088CEE4  303B 0008            MOVE.W  0(A3,D0.W),D0        ; D0 = lookup
+0088CEE8  D178 C0E8            ADD.W   $FFC0E8,D1           ; Add parameter
+0088CEEC  4E75                 RTS
+
+; func_CECC: Variant with Different Base
+0088CECC  41F8 9F00            LEA     $FF9F00,A0           ; Alt object base
+0088CED0  1038 FEAE            MOVE.B  $FFFEA E,D0          ; (identical pattern follows)
+```
+
+**Analysis**: Bitwise arithmetic for coordinate/parameter calculation. Performs 2x scaling, offset accumulation, and table lookups. Two variants (CEC2/CECC) operate on different object bases ($9100 vs $9F00), suggesting split-screen or dual-player support.
+
+---
+
+## func_CF0C - Multi-JSR Orchestration with Loop ($0088CF0C)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_CF0C: Chained Function Caller with Array Processor
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $0088CF0C - $0088CF54
+; Size: 72 bytes
+; Called by: Main game logic (JSR from unknown locations)
+;
+; Purpose: Call 10+ sequential helper functions in a chain, then apply
+;          results to object array via loop.
+;
+; Input: A0 = Object array base
+; Output: Objects updated via sequential handlers
+; Modifies: D0, D7, A0
+; ═══════════════════════════════════════════════════════════════════════════
+
+0088CF0C  41F8 9100            LEA     $FF9100,A0           ; A0 = object base
+0088CF10  7E0E                 MOVEQ   #14,D7               ; D7 = 14 (15 iterations)
+0088CF12  3F07                 MOVE.W  D7,-(A7)             ; Save counter
+0088CF14  4EBA ABA0            JSR     $00888AB6            ; Call func 1
+0088CF18  4EBA AB9C            JSR     $00888AB8            ; Call func 2
+0088CF1C  4EBA AB98            JSR     $00888ABC            ; Call func 3
+0088CF20  4EBA AB94            JSR     $00888AC0            ; Call func 4
+0088CF24  4EBA AB90            JSR     $00888AC4            ; Call func 5
+0088CF28  4EBA AB8C            JSR     $00888AC8            ; Call func 6
+0088CF2C  4EBA AB88            JSR     $00888ACC            ; Call func 7
+0088CF30  4EBA AB84            JSR     $00888AD0            ; Call func 8
+0088CF34  4EBA AB80            JSR     $00888AD4            ; Call func 9
+0088CF38  43F9 0093AC2C        LEA     $0093AC2C,A1         ; A1 = data table
+0088CF3E  3028 C8C8            MOVE.W  $C8C8,D0             ; D0 = selector
+0088CF42  9068 0032            SUB.W   $32(A0),D0           ; D0 -= object field
+0088CF46  D040                 ADD.W   D0,D0                ; D0 *= 2
+0088CF48  6B0A                 BMI.S   .negative            ; Branch if < 0
+0088CF4A  0240 03FF            ANDI.W  #$03FF,D0            ; Clamp to 10-bit
+0088CF4E  3031 0000            MOVE.W  (A1,D0.W),D0         ; Lookup result
+
+.loop:
+0088CF52  51CF FFDC            DBRA    D7,.loop             ; Loop 15 times
+```
+
+**Analysis**: Chained handler caller followed by array processor. Executes 9 sequential JSR calls, then applies lookup-based update to 15 objects (likely object update pipeline). The negative branch suggests signed arithmetic.
+
+---
+
+## func_CFAE - Complex Data Copy with Mode Handling ($0088CFAE)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_CFAE: Mode-Dependent Data Copy & Integration
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $0088CFAE - $0088CFFA
+; Size: 76 bytes
+; Called by: Main game logic (JSR from unknown locations)
+;
+; Purpose: Copy data from ROM to RAM with mode-specific handling.
+;          Integrates multiple ROM tables based on game mode.
+;
+; Input: $FFC8CC = Mode selector
+; Output: Data copied to multiple RAM regions ($FAD8+, $FBF8+)
+; Modifies: D0, A1, A2
+; ═══════════════════════════════════════════════════════════════════════════
+
+0088CFAE  3038 C8CC            MOVE.W  $FFC8CC,D0           ; D0 = mode
+0088CFB2  43F9 008955CC        LEA     $008955CC,A1         ; A1 = mode table
+0088CFB8  2271 0000            MOVEA.L (A1,D0.W),A1         ; A1 = data[mode]
+0088CFBC  45F9 00FF6178        LEA     $00FF6178,A2         ; A2 = dest region 1
+0088CFC2  7E07                 MOVEQ   #7,D7                ; D7 = 7 (8 iterations)
+
+.loop1:
+0088CFC4  2559 0002            MOVE.L  (A1)+,(A2)           ; Copy to region 1
+0088CFC8  3559 0006            MOVE.W  (A1)+,$06(A2)        ; Copy to region 1
+0088CFCC  45EA 0014            LEA     $14(A2),A2           ; Advance 20 bytes
+0088CFD0  51CF FFF2            DBRA    D7,.loop1            ; Loop 8 times
+
+; Secondary copy phase
+0088CFD4  4E75                 RTS                          ; Return
+
+; Alternate entry point
+0088CFD6  3038 C8CC            MOVE.W  $FFC8CC,D0           ; D0 = mode
+0088CFDA  43F9 008955CC        LEA     $008955CC,A1         ; A1 = mode table
+0088CFE0  2271 0000            MOVEA.L (A1,D0.W),A1         ; A1 = data[mode]
+0088CFE4  2649                 MOVEA.L A1,A3                ; A3 = copy of A1
+0088CFE6  45F9 00FF6178        LEA     $00FF6178,A2         ; A2 = dest region
+0088CFEC  61D4                 BSR.S   $0088CFC2            ; Call copy routine
+```
+
+**Analysis**: Mode-dependent data integration. Loads mode-specific ROM table, then copies to display region with 20-byte stride (8 iterations). Alternate entry allows direct processing. Used during mode transitions or track loading.
+
+---
+
 ## References
 
 - [68K_COMM_PROTOCOL.md](68K_COMM_PROTOCOL.md) - COMM register protocol basics

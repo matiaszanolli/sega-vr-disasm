@@ -259,6 +259,18 @@ These are the handlers called from V-INT jump table at $16B2:
 | [x] | func_BA18 | $0088BA18 | - | Triple jump table dispatcher |
 | [x] | func_CA20 | $0088CA20 | - | Hardware register configuration (VDP) |
 | [x] | func_CA9A | $0088CA9A | - | Game mode initialization |
+| [x] | func_CC06 | $0088CC06 | - | SH2 COMM setup with table lookup |
+| [x] | func_CC74 | $0088CC74 | - | Register and flag initialization |
+| [x] | func_CC88 | $0088CC88 | - | Control register continuation |
+| [x] | func_CD4C | $0088CD4C | - | Loop-based array processor |
+| [x] | func_CD92 | $0088CD92 | - | Conditional push with setup |
+| [x] | func_CDD2 | $0088CDD2 | - | Table lookup with loop update |
+| [x] | func_CE02 | $0088CE02 | - | Field manipulation (conditional paths) |
+| [x] | func_CE76 | $0088CE76 | - | Multi-handler orchestration |
+| [x] | func_CEC2 | $0088CEC2 | - | Bit calculation with shifts |
+| [x] | func_CECC | $0088CECC | - | Bit calculation (alt variant) |
+| [x] | func_CF0C | $0088CF0C | - | Multi-JSR orchestration with loop |
+| [x] | func_CFAE | $0088CFAE | - | Complex data copy (mode handling) |
 
 **Documentation**: [68K_MAIN_LOGIC.md](68K_MAIN_LOGIC.md)
 
@@ -303,9 +315,9 @@ Likely data handlers, track-specific code, graphics routines.
 | 5. Controller | 6 | 6 | 0 | 100% |
 | 6. Low Code | 33 | 33 | 0 | 100% |
 | 7. V-INT States | 16 | 16 | 0 | 100% |
-| 8. Main Logic | 124 | 65 | 59 | 52% |
+| 8. Main Logic | 124 | 77 | 47 | 62% |
 | 9. Extended | 500+ | 0 | 500+ | 0% |
-| **TOTAL** | **769** | **149** | **620** | **19.4%** |
+| **TOTAL** | **769** | **161** | **608** | **20.9%** |
 
 ### Milestones
 

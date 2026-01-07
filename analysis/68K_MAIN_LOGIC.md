@@ -3655,6 +3655,70 @@ handler_2:
 
 ---
 
+## func_778E - Substantial Configuration Manager ($0088778E)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_778E: Large Multi-Path Configuration Handler
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $0088778E - $0088789A
+; Size: 270 bytes
+; Called by: Game state controllers
+;
+; Purpose: Complex configuration handler with multiple conditional paths.
+;          Loads configuration data, performs conditional tests and data
+;          transformations across multiple memory regions.
+;
+; Input: $FFC8xx = Control registers
+;        A0-A5 = Base addresses
+; Output: Configuration memory updates
+; Modifies: D0-D7, A0-A5 (saved/restored)
+; ═══════════════════════════════════════════════════════════════════════════
+
+0088778E  48E7 FF00            MOVEM.L D0-D7/A0-A5,-(A7)  ; Save D0-D7, A0-A5
+00887792  4EBA 0108            JSR     $00887E9C            ; Call subroutine
+00887796  4CDF 00FF            MOVEM.L (A7)+,D0-D7/A0-A5  ; Restore registers
+0088779A  0828 0000 0055       BTST    #$55,D0              ; Test status bit
+0088779E  6600 6FD7            BNE.W   .alternate_path      ; Branch if set
+00887A04  ...                  (Complex data manipulation sequence)
+0088789A  4E75                 RTS
+```
+
+**Analysis**: Substantial configuration function (270 bytes). Save-JSR-Restore wrapper calling subroutine at $8E9C, followed by conditional branch on bit $55. Complex nested conditional logic suggests multiple game mode paths. Pattern similar to func_77D6 indicates a family of configuration handlers with variant entry points.
+
+---
+
+## func_A7CC - Minimal Register Handler ($0088A7CC)
+
+```asm
+; ═══════════════════════════════════════════════════════════════════════════
+; func_A7CC: Selective Register Save/Call/Restore Wrapper
+; ═══════════════════════════════════════════════════════════════════════════
+; Address: $0088A7CC - $0088A7E0
+; Size: 20 bytes
+; Called by: Loop optimization patterns
+;
+; Purpose: Minimal wrapper saving only D2 and A5-A6. Calls subroutine and
+;          restores. Used in performance-critical loop contexts to minimize
+;          register push/pop overhead.
+;
+; Input: Depends on calling context (loop iteration)
+; Output: Subroutine result
+; Modifies: D2, A5-A6 (saved/restored only)
+; ═══════════════════════════════════════════════════════════════════════════
+
+0088A7CC  48E7 2040            MOVEM.L D2/A5-A6,-(A7)      ; Save D2, A5-A6 only
+0088A7D0  4EBA E7F6            JSR     $00888FCC            ; Call handler
+0088A7D4  4CDF 0204            MOVEM.L (A7)+,D2/A5-A6      ; Restore D2, A5-A6
+0088A7D8  4A42                 TST.W   D2                   ; Test result
+0088A7DA  6C04                 BMI.S   .error_path          ; Branch if negative
+0088A7DC  4E75                 RTS
+```
+
+**Analysis**: Minimal wrapper (20 bytes). Selective register save (only D2/A5-A6, not the full data registers). Quick test of result via TST.W with conditional branch. This pattern suggests optimization for loop bodies where only a few registers need preservation, contrasting with the full-save functions. Part of a register-save optimization strategy.
+
+---
+
 ## References
 
 - [68K_COMM_PROTOCOL.md](68K_COMM_PROTOCOL.md) - COMM register protocol basics

@@ -139,25 +139,25 @@ Quick wins - small, self-contained utility functions.
 
 ## Priority 8: Larger Functions (100+ bytes)
 
-These need more careful analysis.
+Complex multi-call hubs requiring careful analysis.
 
 | Status | Function | Offset | Size | Notes |
 |--------|----------|--------|------|-------|
-| [ ] | func_002 | 0x23066 | 100 bytes | calls func_003, func_004 |
-| [ ] | func_011 | 0x2321C | 74 bytes | calls func_012 |
-| [ ] | func_012 | 0x23268 | 90 bytes | calls func_008, func_009 |
-| [ ] | func_017 | 0x23388 | 24 bytes | calls func_016 |
-| [ ] | func_018 | 0x233A2 | 104 bytes | calls func_016, func_020 |
-| [ ] | func_019 | 0x2340C | 90 bytes | calls func_016, func_020 |
-| [ ] | func_021 | 0x234C0 | 42 bytes | calls func_016, func_023 |
-| [ ] | func_039 | 0x2383A | 32 bytes | calls func_034 |
-| [ ] | func_045 | 0x23A64 | 214 bytes | calls func_046, JSR @R14 |
-| [ ] | func_059 | 0x23D6C | 86 bytes | calls func_064 |
-| [ ] | func_068 | 0x24058 | 40 bytes | calls func_069, func_070 |
-| [ ] | func_069 | 0x24082 | 120 bytes | leaf |
-| [ ] | func_070 | 0x240FC | 208 bytes | calls func_071 |
-| [ ] | func_071 | 0x241CC | 54 bytes | leaf |
-| [ ] | func_072 | 0x24204 | 30 bytes | calls func_071 |
+| [x] | func_002 | 0x23066 | 100 bytes | Display list dispatcher (embedded data table) |
+| [x] | func_011 | 0x2321C | 74 bytes | Matrix transform setup (calls func_012) |
+| [x] | func_012 | 0x23268 | 90 bytes | Matrix transform orchestrator (4× MAC.L) |
+| [x] | func_017 | 0x23388 | 24 bytes | Coordinate pack loop wrapper |
+| [x] | func_018 | 0x233A2 | 104 bytes | Multi-branch coord processor (4 conditional calls) |
+| [x] | func_019 | 0x2340C | 90 bytes | Dual-mode coord processor (2 conditional calls) |
+| [x] | func_021 | 0x234C0 | 42 bytes | Coord pack + frustum dispatcher bridge |
+| [x] | func_039 | 0x2383A | 32 bytes | Context-selective Bresenham wrapper |
+| [x] | func_045 | 0x23A64 | 214 bytes | Complex word stream + register swapping (LARGEST) |
+| [x] | func_059 | 0x23D6C | 86 bytes | Data copy orchestrator (10 func_064 calls) |
+| [x] | func_068 | 0x24058 | 40 bytes | Dual loop processor (func_069 + func_071) |
+| [x] | func_069 | 0x24082 | 120 bytes | VDP register initialization |
+| [x] | func_070 | 0x240FC | 208 bytes | DATA SECTION (ASCII strings, not code) |
+| [x] | func_071 | 0x241CC | 54 bytes | Indexed data loader with helper |
+| [x] | func_072 | 0x24204 | 30 bytes | Byte stream loader |
 
 ---
 
@@ -232,11 +232,11 @@ Investigation of Priority 2 recursive functions reveals complex control flow cha
 | 5. Display list handlers | 5 | 5 | 0 | 100% |
 | 6. Small leaf | 11 | 11 | 0 | 100% |
 | 7. Medium leaf | 20 | 20 | 0 | 100% |
-| 8. Larger functions | 15 | 0 | 15 | 0% |
+| 8. Larger functions | 15 | 15 | 0 | 100% |
 | 9. Remaining | 29 | 0 | 29 | 0% |
-| **TOTAL** | **104** | **60** | **44** | **58%** |
+| **TOTAL** | **104** | **75** | **29** | **72%** |
 
-**Grand Total (including 5 initial):** 65 annotated out of 109 (60% complete)
+**Grand Total (including 5 initial):** 80 annotated out of 109 (73% complete)
 
 ### Completion Milestones
 
@@ -247,8 +247,10 @@ Investigation of Priority 2 recursive functions reveals complex control flow cha
 - [x] Priority 5 (100%): 5 display list handlers complete (vertex transforms)
 - [x] Priority 6 (100%): 11 small leaf functions complete (utility operations)
 - [x] Priority 7 (100%): 20 medium leaf functions complete (VDP, fill, copy operations)
-- [ ] Priority 8-9: 44 remaining functions
-- [x] > 30% of all functions: 65 functions annotated
-- [x] > 40% of all functions: 65 functions annotated
-- [x] > 50% of all functions: 65 functions annotated
-- [x] > 60% of all functions: 65 functions annotated
+- [x] Priority 8 (100%): 15 larger hub functions complete (complex orchestration)
+- [ ] Priority 9: 29 remaining functions
+- [x] > 30% of all functions: 80 functions annotated
+- [x] > 40% of all functions: 80 functions annotated
+- [x] > 50% of all functions: 80 functions annotated
+- [x] > 60% of all functions: 80 functions annotated
+- [x] > 70% of all functions: 80 functions annotated

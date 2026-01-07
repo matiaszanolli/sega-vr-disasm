@@ -9,9 +9,9 @@
 
 | Metric | Value |
 |--------|-------|
-| Functions Annotated | 65 of 109 |
-| Completion Percentage | 60% |
-| Lines of Annotation | 5,660+ |
+| Functions Annotated | 80 of 109 |
+| Completion Percentage | 73% |
+| Lines of Annotation | 6,200+ |
 | Estimated Hotspot Coverage | 99% |
 
 ## Completed Work
@@ -91,7 +91,7 @@ All indirect dispatcher patterns documented:
 
 ## Annotated Functions Reference
 
-**Total Annotated Functions**: 65 (5 initial + 9 Priority 1 + 4 Priority 2 + 6 Priority 3 + 5 Priority 4 + 5 Priority 5 + 11 Priority 6 + 20 Priority 7)
+**Total Annotated Functions**: 80 (5 initial + 9 Priority 1 + 4 Priority 2 + 6 Priority 3 + 5 Priority 4 + 5 Priority 5 + 11 Priority 6 + 20 Priority 7 + 15 Priority 8)
 
 ### Initial Hotspot Functions (5)
 - func_001 (0x2301C) - Display list interpreter
@@ -151,7 +151,24 @@ All indirect dispatcher patterns documented:
 - func_066 (RLE decompression / pattern expander)
 - func_067 (extended RLE with clipping)
 
-**Location**: `disasm/sh2_3d_engine_annotated.asm` (5,660+ lines)
+### Priority 8 - Larger Functions (15 of 15) ✅
+- func_002 (display list command dispatcher with embedded data)
+- func_011 (matrix transform setup - context stride 0x3C)
+- func_012 (matrix transform orchestrator - 4× MAC.L transforms)
+- func_017 (coordinate pack loop wrapper)
+- func_018 (multi-branch processor - 4 conditional func_020 calls)
+- func_019 (dual-mode processor - 2 conditional calls)
+- func_021 (coordinate pack + frustum dispatcher bridge)
+- func_039 (context-selective Bresenham wrapper)
+- func_045 (complex word stream processor - register swapping, JSR @R14)
+- func_059 (data copy orchestrator - 10 func_064 calls)
+- func_068 (dual loop processor - func_069 + func_071)
+- func_069 (VDP register initialization sequence)
+- func_070 (DATA SECTION - ASCII strings, not code)
+- func_071 (indexed data loader with helper function)
+- func_072 (byte stream loader)
+
+**Location**: `disasm/sh2_3d_engine_annotated.asm` (6,200+ lines)
 
 ## Remaining Work by Priority
 
@@ -218,11 +235,32 @@ All medium-complexity self-contained operations fully documented:
 - Frame buffer addressing: Y × 512 + base address calculation
 - Embedded data tables: func_013 contains 7-word constant table within function code
 
-### Priority 8 - Larger Functions (15 functions, 0%)
-- 100+ byte functions requiring careful analysis
+### Priority 8 - Larger Functions (15 functions, 100% - ALL COMPLETED) ✅
 
-### Priority 9 - Remaining Functions (29 functions, 0%)
+Complex multi-call hub functions fully documented:
+- **Display List**: func_002 (command dispatcher with 4-word embedded data table)
+- **Matrix Operations**: func_011/012 (transform setup + 4× MAC.L orchestration)
+- **Coordinate Processing**: func_017 (loop wrapper), func_018 (4-branch), func_019 (2-branch), func_021 (dispatcher bridge)
+- **Rendering**: func_039 (context-selective Bresenham wrapper)
+- **Stream Processing**: func_045 (most complex - 214 bytes, register swapping, indirect JSR @R14)
+- **Data Copy**: func_059 (10-call orchestrator)
+- **VDP Chain**: func_068-072 (initialization sequence with ASCII data tables)
+
+**Key Discoveries**:
+- Embedded data tables within executable code (func_002, func_045, func_070)
+- PC-relative constant loading for addresses (0x00100000, 0xC0000000)
+- Multi-path branching with status byte testing (func_002, func_018)
+- Register set swapping for coordinate ordering (func_045: 6 pairs swapped)
+- Indirect function calls via JSR @Rn (func_045)
+- VDP cache-through addressing patterns (0xC0000000, 0x06004000)
+- MAC.L hardware utilization for matrix math (func_012)
+- Data misidentified as code (func_070: ASCII strings for "1st", "2nd", etc.)
+- Context strides: 0x3C (60), 0x14 (20), 0x20 (32) bytes
+- Byte lane masking: 0xFF00FF00 vs 0x00FF00FF
+
+### Priority 9 - Remaining Functions (29 functions, 0%)  ⬅️ FINAL PRIORITY
 - Miscellaneous functions (func_073-108)
+- VDP polling loops, data processing helpers, additional dispatchers
 
 ## Documentation Created
 
@@ -300,26 +338,19 @@ func_023 (Frustum Culler / Dispatcher)
 
 ## Recommendations for Continuing Work
 
-### Immediate Next Steps (Priority 8-9)
+### Immediate Next Steps (Priority 9 - FINAL)
 
-With Priorities 1-7 complete (60% of all functions), the remaining work consists of:
+With Priorities 1-8 complete (73% of all functions), only Priority 9 remains:
 
-**Priority 8 - Larger Functions (15 functions, 100+ bytes)** ⬅️ NEXT TARGET
-
-More complex functions requiring careful analysis:
-- func_002: Display list processor caller
-- func_011-012: Transform chain
-- func_017-019, func_021: Coordinate processing with recursion calls
-- func_039, func_045: Specialized handlers
-- func_059: func_064 caller
-- func_068-072: Processing chain
-
-**Priority 9 - Remaining Functions (29 functions)**
+**Priority 9 - Remaining Functions (29 functions)** ⬅️ FINAL TARGET
 
 Miscellaneous operations (func_073-108 range):
 - VDP polling loops (func_080-084)
 - Data processing helpers
 - Additional dispatcher functions
+- Utility operations
+
+**Estimated effort**: 3-5 sessions to complete final 29 functions
 
 ### Completed Priority Notes
 
@@ -347,16 +378,28 @@ Miscellaneous operations (func_073-108 range):
 - func_040-042 form connected dispatcher chain (not separate functions, continuous flow)
 - Conditional copy functions (056-058) check VDP status before executing copy operations
 
+✅ **Priority 8 Completion Summary**:
+
+**Priority 8 (Larger Functions)** - Key findings:
+- func_002 uses embedded 4-word data table (0x24, 0x3C, 0x48, 0x5A) for dispatch configuration
+- func_011/012 implement 4-stage matrix transformation with MAC.L hardware and ±0x00100000 adjustments
+- func_018/019 implement multi-branch conditional processors (4-branch vs 2-branch variants) using complementary byte lane masks (0xFF00FF00 vs 0x00FF00FF)
+- func_045 is most complex function (214 bytes) with word-pair stream processing, MULS.W signed multiply, MAC extraction, coordinate comparison, and conditional 6-pair register swapping (R6↔R7, R8↔R9, R10↔R11, R12↔R13, etc.)
+- func_059 orchestrates 10 sequential func_064 calls (2 conditional, 8 unconditional) processing 80 bytes total
+- func_068-072 form VDP initialization chain with cache-through addressing (0xC0000000, 0x06004000)
+- func_070 is DATA SECTION containing ASCII position strings ("  1st", "  2nd"...) - not executable code
+- Indirect function calls via JSR @Rn provide dynamic dispatch (func_045)
+- Context strides vary by function: 0x3C (60), 0x14 (20), 0x20 (32) bytes
+- PC-relative loads used extensively for constants and base addresses
+
 ### Timeline Considerations
 
-- **Priorities 1-7**: 65 functions complete (60%) ✅
-- **Priority 8**: 15 functions remaining
-- **Priority 9**: 29 functions remaining
-- **Total remaining**: 44 functions (40%)
+- **Priorities 1-8**: 80 functions complete (73%) ✅
+- **Priority 9**: 29 functions remaining (27%)
 
-**Estimate**: 5-10 sessions to complete remaining functions, depending on complexity encountered.
+**Estimate**: 3-5 sessions to complete final 29 functions.
 
-**Milestone Achieved**: 60% completion - passed halfway point!
+**Milestone Achieved**: 73% completion - approaching 80% mark!
 
 ## Files Modified/Created
 
@@ -367,7 +410,7 @@ Miscellaneous operations (func_073-108 range):
 - `analysis/ANNOTATION_STATUS.md` (this file)
 
 ### Modified
-- `disasm/sh2_3d_engine_annotated.asm` (+3,085 lines total - Priority 1-7 complete)
+- `disasm/sh2_3d_engine_annotated.asm` (+540 lines Priority 8 summary - Priorities 1-8 complete)
 
 ### Unchanged
 - `CLAUDE.md` (guidelines preserved)
@@ -383,4 +426,4 @@ Miscellaneous operations (func_073-108 range):
 
 ---
 
-*For next session: Priority 8 (larger functions) recommended as next target - 15 functions requiring careful analysis. All Priority 1-7 now complete (65/109 = 60%). **Milestone: Passed halfway point!** Remaining work: 44 functions across Priority 8-9. The core rendering pipeline, data copy system, display list handlers, VDP operations, fill/copy utilities, and RLE decompression are now fully documented.*
+*For next session: Priority 9 (remaining functions) is the FINAL target - 29 miscellaneous functions to complete the project. All Priority 1-8 now complete (80/109 = 73%). **Milestone: Approaching 80% completion!** Remaining work: Only 29 functions (27%). The core rendering pipeline, data copy system, display list handlers, VDP operations, fill/copy utilities, RLE decompression, matrix transformations, and complex orchestration hubs are now fully documented.*

@@ -22,7 +22,7 @@ OUTPUT_ROM = $(BUILD_DIR)/vr_rebuild.32x
 ASMFLAGS = -Fbin -m68000 -no-opt -spaces -quiet
 
 # Source files
-M68K_SRC = $(DISASM_DIR)/m68k_header.asm
+M68K_SRC = $(DISASM_DIR)/vrd.asm
 
 .PHONY: all clean disasm compare tools test
 

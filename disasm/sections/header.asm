@@ -1,13 +1,7 @@
 ; ============================================================================
-; Virtua Racing Deluxe (USA) - Sega 32X
-; Disassembly by Claude Code
+; ROM Header ($000000 - $0001FF)
 ; ============================================================================
-;
-; Product: V.R.DX
-; Serial: GM MK-84601-00
-; Copyright: (C)SEGA 1994.SEP
-; ROM Size: 3MB (3,145,728 bytes)
-;
+; Standard Sega 32X ROM header with exception vectors and console info.
 ; ============================================================================
 
 ; ============================================================================
@@ -55,8 +49,10 @@ SH2_FRAME_BUFFER        equ $2400000    ; Frame Buffer
 SH2_OVERWRITE           equ $2402000    ; Overwrite Image
 
 ; ============================================================================
-; ROM Header ($000000 - $0001FF)
+; Exception Vector Table ($000000 - $0000FF)
 ; ============================================================================
+
+        org     $000000
 
 ; Initial Stack Pointer and Program Counter
 InitialSP:      dc.l    $01000000       ; Initial Stack Pointer
@@ -90,7 +86,10 @@ InitialPC:      dc.l    $000003F0       ; Initial Program Counter (relocated)
 ; Vectors 48-63: Reserved (zeros)
     dcb.l   16, $00000000   ; 48-63: Reserved
 
+; ============================================================================
 ; Sega Header ($000100 - $0001FF)
+; ============================================================================
+
 ConsoleID:      dc.b    'SEGA 32X U      '          ; Console name
 Copyright:      dc.b    '(C)SEGA 1994.SEP'          ; Copyright
 DomesticName:   dc.b    'V.R.DX                                          '
@@ -107,21 +106,5 @@ RAMEnd:         dc.l    $00FFFFFF                   ; RAM End
 Region:         dc.b    'U               '          ; Region (USA)
 
 ; ============================================================================
-; Remainder of ROM - Binary Blob (from $200 onwards)
+; End of Header Section
 ; ============================================================================
-; Include the rest of the original ROM data from offset $200 onwards
-; This contains:
-;   - 32X Jump Table ($200-$3FF)
-;   - MARS Security Code ($3C0-$512)
-;   - 68000 executable code
-;   - SH2 Master/Slave code
-;   - Graphics data
-;   - Sound data
-;   - Track data
-; TODO: Disassemble and replace sections incrementally
-
-    org     $000200
-    incbin  "disasm/rom_data_remainder.bin"
-
-; End of ROM
-; =============================================================================

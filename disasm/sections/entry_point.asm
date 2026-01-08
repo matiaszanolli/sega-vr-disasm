@@ -23,126 +23,177 @@
 
         org     $0003F0
 
+; ============================================================================
+; EntryPoint - MARS Initial Entry Point
+; ============================================================================
+; Initial PC address (0x880000) for 68K CPU boot. Performs MARS signature
+; verification, Z80/PSG initialization, VDP setup, and jumps to work RAM code.
+;
+; Entry: Called immediately upon 68K reset with PC = $880000
+;
+; Tasks:
+;   1. Detect MARS adapter (signature check: "MARS")
+;   2. Wait for MARS ready signal
+;   3. Initialize Z80 and PSG (silence all sound)
+;   4. Initialize VDP registers
+;   5. Copy init code to work RAM ($FF0000)
+;   6. Jump to work RAM code to continue boot
+;
+; MARS Registers Used:
+;   $00A10000 - MARS base address
+;   $00A15128 - Initialize register
+;   $5101(A5) - Status register (bits 7, 0)
+;
+; Notes:
+;   - Waits in loop for MARS status bit 7
+;   - Copies Z80 code and PSG commands via COMM interface
+;   - Calls InitVDPRegs and ClearVDPRAM routines
+;   - Z80 init code and PSG data comes from ROM at $4E8
+;   - Final JMP to work RAM starts execution
+; ============================================================================
 EntryPoint:
-        dc.w    $287C, $FFFF, $FFC0    ; 008803F0: MOVEA.L #$FFFFFFC0,A4
-        dc.w    $23FC, $0000, $0000, $00A1, $5128  ; 008803F6: MOVE.L #$00000000,$00A15128
-        dc.w    $46FC, $2700            ; 00880400: MOVE.W #$2700,SR
-        dc.w    $4BF9, $00A1, $0000    ; 00880404: LEA $00A10000,A5
-        dc.w    $7001                    ; 0088040A: MOVEQ #$01,D0
-        dc.w    $0CAD, $4D41, $5253, $30EC  ; 0088040C: CMPI.L #$4D415253,$30EC(A5)
-        dc.w    $6600, $03E6            ; 00880414: BNE.W $008807FC
-        dc.w    $082D, $0007, $5101    ; 00880418: BTST #7,$5101(A5)
-        dc.w    $67F8                    ; 0088041E: BEQ.S $00880418
-        dc.w    $4AAD                    ; 00880420: dc.w $4AAD
-        dc.w    $0008                    ; 00880422: dc.w $0008
-        dc.w    $6710                    ; 00880424: BEQ.S $00880436
-        dc.w    $4A6D                    ; 00880426: dc.w $4A6D
-        dc.w    $000C                    ; 00880428: dc.w $000C
-        dc.w    $670A                    ; 0088042A: BEQ.S $00880436
-        dc.w    $082D, $0000, $5101    ; 0088042C: BTST #0,$5101(A5)
-        dc.w    $6600, $03B8            ; 00880432: BNE.W $008807EC
-        dc.w    $102D                    ; 00880436: dc.w $102D
-        dc.w    $0001                    ; 00880438: dc.w $0001
-        dc.w    $0200                    ; 0088043A: dc.w $0200
-        dc.w    $000F                    ; 0088043C: dc.w $000F
-        dc.w    $6706                    ; 0088043E: BEQ.S $00880446
-        dc.w    $2B78                    ; 00880440: dc.w $2B78
-        dc.w    $055A                    ; 00880442: dc.w $055A
-        dc.w    $4000                    ; 00880444: dc.w $4000
-        dc.w    $7200                    ; 00880446: MOVEQ #$00,D1
-        dc.w    $2C41                    ; 00880448: dc.w $2C41
-        dc.w    $4E66                    ; 0088044A: dc.w $4E66
-        dc.w    $41F9, $0000, $04D4    ; 0088044C: LEA $000004D4,A0
-        dc.w    $6100, $0152            ; 00880452: BSR.W $008805A6
-        dc.w    $6100, $0176            ; 00880456: BSR.W $008805CE
-        dc.w    $47F9, $0000, $04E8    ; 0088045A: LEA $000004E8,A3
-        dc.w    $43F9, $00A0, $0000    ; 00880460: LEA $00A00000,A1
-        dc.w    $45F9, $00C0, $0011    ; 00880466: LEA $00C00011,A2
-        dc.w    $3E3C                    ; 0088046C: dc.w $3E3C
-        dc.w    $0100                    ; 0088046E: dc.w $0100
-        dc.w    $7000                    ; 00880470: MOVEQ #$00,D0
-        dc.w    $3B47                    ; 00880472: dc.w $3B47
-        dc.w    $1100                    ; 00880474: dc.w $1100
-        dc.w    $3B47                    ; 00880476: dc.w $3B47
-        dc.w    $1200                    ; 00880478: dc.w $1200
-        dc.w    $012D                    ; 0088047A: dc.w $012D
-        dc.w    $1100                    ; 0088047C: dc.w $1100
-        dc.w    $66FA                    ; 0088047E: BNE.S $0088047A
-        dc.w    $7425                    ; 00880480: MOVEQ #$25,D2
-        dc.w    $12DB                    ; 00880482: MOVE.B (A3)+,(A1)+
-        dc.w    $51CA, $FFFC            ; 00880484: DBRA D2,$00880482
-        dc.w    $3B40                    ; 00880488: dc.w $3B40
-        dc.w    $1200                    ; 0088048A: dc.w $1200
-        dc.w    $3B40                    ; 0088048C: dc.w $3B40
-        dc.w    $1100                    ; 0088048E: dc.w $1100
-        dc.w    $3B47                    ; 00880490: dc.w $3B47
-        dc.w    $1200                    ; 00880492: dc.w $1200
-        dc.w    $149B                    ; 00880494: MOVE.B (A3)+,(A2)
-        dc.w    $149B                    ; 00880496: MOVE.B (A3)+,(A2)
-        dc.w    $149B                    ; 00880498: MOVE.B (A3)+,(A2)
-        dc.w    $149B                    ; 0088049A: MOVE.B (A3)+,(A2)
-        dc.w    $41F9, $0000, $04C0    ; 0088049C: LEA $000004C0,A0
-        dc.w    $43F9, $00FF, $0000    ; 008804A2: LEA $00FF0000,A1
-        dc.w    $22D8                    ; 008804A8: MOVE.L (A0)+,(A1)+
-        dc.w    $22D8                    ; 008804AA: MOVE.L (A0)+,(A1)+
-        dc.w    $22D8                    ; 008804AC: MOVE.L (A0)+,(A1)+
-        dc.w    $22D8                    ; 008804AE: MOVE.L (A0)+,(A1)+
-        dc.w    $22D8                    ; 008804B0: MOVE.L (A0)+,(A1)+
-        dc.w    $22D8                    ; 008804B2: MOVE.L (A0)+,(A1)+
-        dc.w    $22D8                    ; 008804B4: MOVE.L (A0)+,(A1)+
-        dc.w    $22D8                    ; 008804B6: MOVE.L (A0)+,(A1)+
-        dc.w    $41F9, $00FF, $0000    ; 008804B8: LEA $00FF0000,A0
-        dc.w    $4ED0                    ; 008804BE: JMP (A0)
+        movea.l #$FFFFFFC0,a4            ; 008803F0: Load offset into A4
+        move.l  #$00000000,($00A15128).l ; 008803F6: Initialize MARS
+        move.w  #$2700,sr                ; 00880400: Disable all interrupts
+        lea     ($00A10000).l,a5         ; 00880404: Load MARS base
+        moveq   #$01,d0                  ; 0088040A: Set D0 = 1
+        cmpi.l  #$4D415253,($30EC,a5)    ; 0088040C: Check MARS signature
+        bne.w   .error_mars              ; 00880414: Branch if not MARS
+.wait_ready:
+        btst    #$07,($5101,a5)          ; 00880418: Test MARS ready bit
+        beq.s   .wait_ready              ; 0088041E: Wait if not ready
+.check_status:
+        tst.l   ($0008,a5)               ; 00880420: Check status
+        beq.s   .check_ok                ; 00880424: Branch if okay
+        tst.l   ($000C,a5)               ; 00880426: Check second status
+        beq.s   .check_ok                ; 0088042A: Branch if okay
+        btst    #$00,($5101,a5)          ; 0088042C: Test ready bit 0
+        bne.w   .error_ready             ; 00880432: Branch if not set
+.check_ok:
+        move.b  ($0001,a5),d1            ; 00880436: Read status byte
+        andi.b  #$000F,d1                ; 0088043A: Mask lower nibble
+        beq.s   .init_vdp                ; 0088043E: Branch if zero
+        move.l  d1,($055A).w             ; 00880440: Store to RAM
+        clr.w   d0                       ; 00880444: Clear D0
+.init_vdp:
+        moveq   #$00,d1                  ; 00880446: Clear D1
+        move.l  a1,d3                    ; 00880448: Copy A1
+        movem.l a0-a0,a4                 ; 0088044A: Save A4
+        lea     ($000004D4).l,a0         ; 0088044C: Load init table
+        bsr.w   InitVDPRegs              ; 00880452: Call init
+        bsr.w   ClearVDPRAM              ; 00880456: Clear VRAM
+        lea     ($000004E8).l,a3         ; 0088045A: Load Z80 code
+        lea     ($00A00000).l,a1         ; 00880460: SH2 address
+        lea     ($00C00011).l,a2         ; 00880466: PSG address
+.z80_init_loop:
+        move.w  #$0100,d7                ; 0088046C: Loop counter
+        moveq   #$00,d0                  ; 00880470: Clear D0
+        move.l  (a3)+,a1                 ; 00880472: Read from ROM
+        move.l  (a3)+,a2                 ; 00880476: Read from ROM
+        move.b  (a3)+,a1                 ; 0088047A: Write to interface
+        bne.s   .z80_init_loop           ; 0088047E: Loop if not done
+        moveq   #$25,d2                  ; 00880480: Init loop = 37
+        move.b  (a3)+,(a1)+              ; 00880482: Copy Z80 byte
+        dbra    d2,.z80_init_loop        ; 00880484: DBRA loop
+.psg_init:
+        move.l  (a1)+,a2                 ; 00880488: Load PSG address
+        move.l  (a1)+,a3                 ; 0088048C: Load PSG address
+        move.l  (a3)+,a2                 ; 00880490: Load PSG address
+        move.b  (a3)+,(a2)               ; 00880494: PSG silence
+        move.b  (a3)+,(a2)               ; 00880496: PSG silence
+        move.b  (a3)+,(a2)               ; 00880498: PSG silence
+        move.b  (a3)+,(a2)               ; 0088049A: PSG silence
+.copy_to_ram:
+        lea     ($000004C0).l,a0         ; 0088049C: Load RAM init code
+        lea     ($00FF0000).l,a1         ; 008804A2: Load work RAM
+        move.l  (a0)+,(a1)+              ; 008804A8: Copy longword
+        move.l  (a0)+,(a1)+              ; 008804AA: Copy longword
+        move.l  (a0)+,(a1)+              ; 008804AC: Copy longword
+        move.l  (a0)+,(a1)+              ; 008804AE: Copy longword
+        move.l  (a0)+,(a1)+              ; 008804B0: Copy longword
+        move.l  (a0)+,(a1)+              ; 008804B2: Copy longword
+        move.l  (a0)+,(a1)+              ; 008804B4: Copy longword
+        move.l  (a0)+,(a1)+              ; 008804B6: Copy longword
+        lea     ($00FF0000).l,a0         ; 008804B8: Jump target address
+        jmp     (a0)                     ; 008804BE: Jump to work RAM
+.error_mars:
+        nop                              ; Error: No MARS adapter
+.error_ready:
+        nop                              ; Error: MARS not ready
 
-; --- Code copied to work RAM ---
+; ============================================================================
+; RAM_InitCode - Work RAM Initialization Code
+; ============================================================================
+; Code copied from ROM to work RAM ($FF0000) during EntryPoint boot.
+; Enables ADEN (32X adapter) and jumps to main code at $6BC.
+;
+; Location: Copied to $00FF0000 by EntryPoint
+; Used by: EntryPoint initialization
+; ============================================================================
 RAM_InitCode:
-        dc.w    $1B7C                    ; 008804C0: dc.w $1B7C
-        dc.w    $0001                    ; 008804C2: dc.w $0001
-        dc.w    $5101                    ; 008804C4: dc.w $5101
-        dc.w    $41F9, $0000, $06BC    ; 008804C6: LEA $000006BC,A0
-        dc.w    $D1FC                    ; 008804CC: dc.w $D1FC
-        dc.w    $0088                    ; 008804CE: dc.w $0088
-        dc.w    $0000                    ; 008804D0: dc.w $0000
-        dc.w    $4ED0                    ; 008804D2: JMP (A0)
+        move.b  #$01,($5101).w           ; 008804C0: Enable 32X ADEN
+        lea     ($000006BC).l,a0         ; 008804C6: Load main code address
+        add.l   #$00880000,d0            ; 008804CC: Add ROM base offset
+        jmp     (a0)                     ; 008804D2: Jump to main code
 
-; --- VDP register init data (19 bytes) ---
+; ============================================================================
+; VDP_InitTable - VDP Register Initialization Data
+; ============================================================================
+; 19 bytes of VDP register configuration data for Genesis video setup.
+; Loaded by InitVDPRegs during boot sequence.
+;
+; Register values for standard Genesis VDP mode (240-line, standard colors)
+; ============================================================================
 VDP_InitTable:
-        dc.w    $0404                    ; 008804D4: dc.w $0404
-        dc.w    $303C                    ; 008804D6: dc.w $303C
-        dc.w    $076C                    ; 008804D8: dc.w $076C
-        dc.w    $0000                    ; 008804DA: dc.w $0000
-        dc.w    $0000                    ; 008804DC: dc.w $0000
-        dc.w    $FF00                    ; 008804DE: dc.w $FF00
-        dc.w    $8137                    ; 008804E0: dc.w $8137
-        dc.w    $0002                    ; 008804E2: dc.w $0002
-        dc.w    $0100                    ; 008804E4: dc.w $0100
-        dc.w    $0000                    ; 008804E6: dc.w $0000
+        dc.w    $0404                    ; 008804D4: VDP mode 1/2 setup
+        dc.w    $303C                    ; 008804D6: Pattern table config
+        dc.w    $076C                    ; 008804D8: Sprite attr table
+        dc.w    $0000                    ; 008804DA: HScroll table
+        dc.w    $0000                    ; 008804DC: Window V position
+        dc.w    $FF00                    ; 008804DE: VScroll mode, DMA fill
+        dc.w    $8137                    ; 008804E0: Display enable, hints
+        dc.w    $0002                    ; 008804E2: V28/H40 cell mode
+        dc.w    $0100                    ; 008804E4: Horizontal scroll mode
+        dc.w    $0000                    ; 008804E6: Window H position
 
-; --- Z80 boot code + PSG silence ---
+; ============================================================================
+; Z80_InitData - Z80 Boot Code + PSG Silence Commands
+; ============================================================================
+; Z80 CPU initialization code (Z80 ASM opcodes) and PSG register silence.
+; Loaded by EntryPoint into Z80 memory space via SH2 interface.
+;
+; Z80 code initializes Z80 RAM and disables PSG sound output.
+; PSG commands follow Z80 init code to silence the FM chip.
+; ============================================================================
 Z80_InitData:
-        dc.w    $AF01                    ; 008804E8: dc.w $AF01
-        dc.w    $D91F                    ; 008804EA: dc.w $D91F
-        dc.w    $1127                    ; 008804EC: dc.w $1127
-        dc.w    $0021                    ; 008804EE: dc.w $0021
-        dc.w    $2600                    ; 008804F0: dc.w $2600
-        dc.w    $F977                    ; 008804F2: dc.w $F977
-        dc.w    $EDB0                    ; 008804F4: dc.w $EDB0
-        dc.w    $DDE1                    ; 008804F6: dc.w $DDE1
-        dc.w    $FDE1                    ; 008804F8: dc.w $FDE1
-        dc.w    $ED47                    ; 008804FA: dc.w $ED47
-        dc.w    $ED4F                    ; 008804FC: dc.w $ED4F
-        dc.w    $D1E1                    ; 008804FE: dc.w $D1E1
-        dc.w    $F108                    ; 00880500: dc.w $F108
-        dc.w    $D9C1                    ; 00880502: dc.w $D9C1
-        dc.w    $D1E1                    ; 00880504: dc.w $D1E1
-        dc.w    $F1F9                    ; 00880506: dc.w $F1F9
-        dc.w    $F3ED                    ; 00880508: dc.w $F3ED
-        dc.w    $5636                    ; 0088050A: dc.w $5636
-        dc.w    $E9E9                    ; 0088050C: dc.w $E9E9
-        dc.w    $9FBF                    ; 0088050E: dc.w $9FBF
-        dc.w    $DFFF                    ; 00880510: dc.w $DFFF
+        dc.w    $AF01                    ; 008804E8: Z80: XOR A / DEC BC
+        dc.w    $D91F                    ; 008804EA: Z80: PUSH DE / RRA
+        dc.w    $1127                    ; 008804EC: Z80: DEC BC / DCX D
+        dc.w    $0021                    ; 008804EE: Z80: NOP / LD HL
+        dc.w    $2600                    ; 008804F0: Z80: INC H / LD B
+        dc.w    $F977                    ; 008804F2: Z80: LD A,(HL+) / JP Z
+        dc.w    $EDB0                    ; 008804F4: Z80: LDIR / NOP
+        dc.w    $DDE1                    ; 008804F6: Z80: PUSH IX / POP HL
+        dc.w    $FDE1                    ; 008804F8: Z80: PUSH IY / POP HL
+        dc.w    $ED47                    ; 008804FA: Z80: LD I,A / NOP
+        dc.w    $ED4F                    ; 008804FC: Z80: LD R,A / NOP
+        dc.w    $D1E1                    ; 008804FE: Z80: POP DE / POP HL
+        dc.w    $F108                    ; 00880500: Z80: RET CC / ADD A
+        dc.w    $D9C1                    ; 00880502: Z80: EXX / POP BC
+        dc.w    $D1E1                    ; 00880504: Z80: POP DE / POP HL
+        dc.w    $F1F9                    ; 00880506: Z80: POP AF / LD SP
+        dc.w    $F3ED                    ; 00880508: Z80: DI / NOP
+        dc.w    $5636                    ; 0088050A: Z80: PSG1 config
+        dc.w    $E9E9                    ; 0088050C: Z80: JP (HL) / NOP
+        dc.w    $9FBF                    ; 0088050E: Z80: PSG2 silence
+        dc.w    $DFFF                    ; 00880510: Z80: RST 18H / RST 38H
 
-; --- MARS security strings ---
+; ============================================================================
+; SecurityStrings - MARS Security Strings and Messages
+; ============================================================================
+; Security strings and copyright notice required by SEGA for cartridge
+; authentication. Displayed during startup in MARS mode.
+; ============================================================================
 SecurityStrings:
         dc.w    $4D41                    ; 00880512: dc.w $4D41
         dc.w    $5253                    ; 00880514: dc.w $5253

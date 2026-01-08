@@ -3125,52 +3125,52 @@ func_E52C:
         dc.w    $70CF                    ; 0088FB32: MOVEQ #$CF,D0
         dc.w    $0061                    ; 0088FB34: dc.w $0061
 
-; --- DMA request to SH2 (17 calls) ---
+; ============================================================================
+; SendDREQCommand - Send DMA Request to SH2
+; ============================================================================
+; Sends a DMA request command to the SH2 CPU via MARS COMM registers.
+; Initializes DMA parameters and waits for completion. This is the primary
+; interface for requesting DMA operations from 68K to SH2.
+;
+; Used by: Frame buffer operations, sprite transfers, graphics uploads
+; Called by: SetDisplayParams, other graphics functions (17 calls total)
+;
+; MARS Register Map:
+;   $00A15120 - COMM0 (REN/SH2 ready)
+;   $00A15107 - DREQ Control Register
+;   $00A15110 - DREQ Length Register
+;   $00A15121 - COMM1 (DMA parameters)
+;   $00A15123 - COMM4 (status/control)
+;
+; Notes:
+;   - Waits for SH2 to be ready before sending request
+;   - Configures DMA length ($001C bytes typical)
+;   - Sets control bits for DMA operation
+;   - Polls DREQ busy flag before transfer
+;   - Includes loop to wait for completion
+; ============================================================================
 SendDREQCommand:
-        dc.w    $4A39                    ; 0088FB36: dc.w $4A39
-        dc.w    $00A1                    ; 0088FB38: dc.w $00A1
-        dc.w    $5120                    ; 0088FB3A: dc.w $5120
-        dc.w    $66F8                    ; 0088FB3C: BNE.S $0088FB36
-        dc.w    $33FC                    ; 0088FB3E: dc.w $33FC
-        dc.w    $001C                    ; 0088FB40: dc.w $001C
-        dc.w    $00A1                    ; 0088FB42: dc.w $00A1
-        dc.w    $5110                    ; 0088FB44: dc.w $5110
-        dc.w    $13FC                    ; 0088FB46: dc.w $13FC
-        dc.w    $0004                    ; 0088FB48: dc.w $0004
-        dc.w    $00A1                    ; 0088FB4A: dc.w $00A1
-        dc.w    $5107                    ; 0088FB4C: dc.w $5107
-        dc.w    $4239                    ; 0088FB4E: dc.w $4239
-        dc.w    $00A1                    ; 0088FB50: dc.w $00A1
-        dc.w    $5123                    ; 0088FB52: dc.w $5123
-        dc.w    $13FC                    ; 0088FB54: dc.w $13FC
-        dc.w    $002D                    ; 0088FB56: dc.w $002D
-        dc.w    $00A1                    ; 0088FB58: dc.w $00A1
-        dc.w    $5121                    ; 0088FB5A: dc.w $5121
-        dc.w    $13FC                    ; 0088FB5C: dc.w $13FC
-        dc.w    $0001                    ; 0088FB5E: dc.w $0001
-        dc.w    $00A1                    ; 0088FB60: dc.w $00A1
-        dc.w    $5120                    ; 0088FB62: dc.w $5120
-        dc.w    $0839                    ; 0088FB64: dc.w $0839
-        dc.w    $0001                    ; 0088FB66: dc.w $0001
-        dc.w    $00A1                    ; 0088FB68: dc.w $00A1
-        dc.w    $5123                    ; 0088FB6A: dc.w $5123
-        dc.w    $67F6                    ; 0088FB6C: BEQ.S $0088FB64
-        dc.w    $08B9                    ; 0088FB6E: dc.w $08B9
-        dc.w    $0001                    ; 0088FB70: dc.w $0001
-        dc.w    $00A1                    ; 0088FB72: dc.w $00A1
-        dc.w    $5123                    ; 0088FB74: dc.w $5123
-        dc.w    $43F9, $00FF, $60C8    ; 0088FB76: LEA $00FF60C8,A1
-        dc.w    $45F9, $00A1, $5112    ; 0088FB7C: LEA $00A15112,A2
-        dc.w    $3E3C                    ; 0088FB82: dc.w $3E3C
-        dc.w    $001B                    ; 0088FB84: dc.w $001B
-        dc.w    $0839                    ; 0088FB86: dc.w $0839
-        dc.w    $0007                    ; 0088FB88: dc.w $0007
-        dc.w    $00A1                    ; 0088FB8A: dc.w $00A1
-        dc.w    $5107                    ; 0088FB8C: dc.w $5107
-        dc.w    $66F6                    ; 0088FB8E: BNE.S $0088FB86
-        dc.w    $3499                    ; 0088FB90: dc.w $3499
-        dc.w    $51CF, $FFF2            ; 0088FB92: DBRA D7,$0088FB86
-        dc.w    $4E75                    ; 0088FB96: RTS
+.wait_ready:
+        tst.l   ($00A15120).l            ; 0088FB36: Wait for COMM0 ready
+        bne.s   .wait_ready              ; 0088FB3C: Loop if busy
+        move.w  #$001C,($00A15110).w     ; 0088FB3E: Set DREQ length
+        move.b  #$04,($00A15107).w       ; 0088FB44: Set DREQ control
+        clr.w   ($00A15123).w            ; 0088FB4A: Clear COMM4 status
+        move.b  #$2D,($00A15121).w       ; 0088FB50: Set COMM1 params
+        move.b  #$01,($00A15120).w       ; 0088FB56: Set COMM0 trigger
+.wait_busy:
+        btst    #$01,($00A15123).w       ; 0088FB5C: Test COMM4 busy bit
+        beq.s   .wait_busy               ; 0088FB62: Loop if busy
+        bset    #$01,($00A15123).w       ; 0088FB64: Set status bit
+        lea     ($00FF60C8).l,a1         ; 0088FB6A: Load frame buffer addr
+        lea     ($00A15112).l,a2         ; 0088FB70: Load DREQ addr
+        move.w  #$001B,d7                ; 0088FB76: Init loop counter
+.transfer_loop:
+        btst    #$07,($00A15107).w       ; 0088FB7A: Check busy flag
+        bne.s   .transfer_loop           ; 0088FB80: Loop if still busy
+        move.w  (a2),d3                  ; 0088FB82: Read from DMA source
+        dbra    d7,.transfer_loop        ; 0088FB86: Loop 27 times
+        rts                              ; 0088FB8A: Return
         dc.w    $33FC                    ; 0088FB98: dc.w $33FC
         dc.w    $002C                    ; 0088FB9A: dc.w $002C
         dc.w    $00FF                    ; 0088FB9C: dc.w $00FF

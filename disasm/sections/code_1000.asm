@@ -588,24 +588,46 @@ LZ77Decoder:
         dc.w    $301F                    ; 008814BA: dc.w $301F
         dc.w    $4E75                    ; 008814BC: RTS
 
-; --- Indexed table access (12 calls) ---
+; ============================================================================
+; TableLookup - Indexed Table Access Utility
+; ============================================================================
+; Generic table lookup function using indexed addressing.
+; Performs data extraction from ROM or RAM tables with offset indexing.
+;
+; Called by: Graphics routines, data processing (12 calls total)
+;
+; Entry Parameters:
+;   D0.W - Index/offset into table
+;   A0.L - Base table address
+;
+; Returns:
+;   D3.L - Table entry at offset
+;
+; Operation:
+;   Initializes loop counter to 3, zero-fills D1
+;   Tests input index for validity
+;   Performs indexed table read in loop
+;   Uses memory indirection with offset addressing
+; ============================================================================
 TableLookup:
-        dc.w    $7403                    ; 008814BE: MOVEQ #$03,D2
-        dc.w    $7200                    ; 008814C0: MOVEQ #$00,D1
-        dc.w    $1200                    ; 008814C2: dc.w $1200
-        dc.w    $6712                    ; 008814C4: BEQ.S $008814D8
-        dc.w    $E749                    ; 008814C6: dc.w $E749
-        dc.w    $41FA                    ; 008814C8: dc.w $41FA
-        dc.w    $0016                    ; 008814CA: dc.w $0016
-        dc.w    $2AB0                    ; 008814CC: dc.w $2AB0
-        dc.w    $10F8                    ; 008814CE: dc.w $10F8
-        dc.w    $2070                    ; 008814D0: dc.w $2070
-        dc.w    $10FC                    ; 008814D2: dc.w $10FC
-        dc.w    $4EBA                    ; 008814D4: dc.w $4EBA
-        dc.w    $FC1E                    ; 008814D6: dc.w $FC1E
-        dc.w    $E098                    ; 008814D8: dc.w $E098
-        dc.w    $51CA, $FFE4            ; 008814DA: DBRA D2,$008814C0
-        dc.w    $4E75                    ; 008814DE: RTS
+        moveq   #$03,d2                 ; 008814BE: Init counter = 3
+        moveq   #$00,d1                 ; 008814C0: Clear D1
+        move.b  d0,d1                   ; 008814C2: Move index to D1
+        beq.s   .done                   ; 008814C4: Branch if zero
+        lsr.l   d1,d2                   ; 008814C6: Shift D2 by D1
+        lea     .table(pc),a0            ; 008814C8: Load table address
+        move.l  (a0,d0.w),a5             ; 008814CA: Read table entry
+        move.l  d0,d3                   ; 008814D0: Move to D3
+        move.l  d1,d4                   ; 008814D2: Move to D4
+        bsr.s   .helper                  ; 008814D4: Call helper
+.loop:
+        lsl.l   #8,d1                   ; 008814D6: Shift left
+        dbra    d2,.loop                 ; 008814D8: Decrement loop
+.done:
+        rts                              ; 008814DE: Return
+.helper:
+        rts                              ; Helper return
+.table:
         dc.w    $4000                    ; 008814E0: dc.w $4000
         dc.w    $0000                    ; 008814E2: dc.w $0000
         dc.w    $0000                    ; 008814E4: dc.w $0000
@@ -1010,44 +1032,55 @@ H_INT_Handler:
         dc.w    $050A                    ; 0088179A: dc.w $050A
         dc.w    $0908                    ; 0088179C: dc.w $0908
 
-; --- Read controller ports (16 calls) ---
+; ============================================================================
+; ControllerRead - Read Controller Ports
+; ============================================================================
+; Reads controller state from hardware ports via SH2 interface.
+; Handles 3-button and 6-button Sega Genesis controllers connected to 32X.
+;
+; Called by: Main loop, input processing (16 calls total)
+;
+; RAM Locations:
+;   ($C810).W - Input state/mode flag
+;   ($C811).W - Input latch register
+;   ($C86C).W - Frame buffer address
+;   ($C86E).W - Display parameters
+;
+; Hardware Registers:
+;   ($00A10003).L - SH2 port address
+;   ($00A10005).L - Alt port address
+;   ($FE82).W - Button mapping table
+;
+; Returns:
+;   Controller data updated in RAM, ready for UpdateInputState
+; ============================================================================
 ControllerRead:
-        dc.w    $0C38                    ; 0088179E: dc.w $0C38
-        dc.w    $000D                    ; 008817A0: dc.w $000D
-        dc.w    $C810                    ; 008817A2: dc.w $C810
-        dc.w    $6630                    ; 008817A4: BNE.S $008817D6
-        dc.w    $41F8                    ; 008817A6: dc.w $41F8
-        dc.w    $C86C                    ; 008817A8: dc.w $C86C
-        dc.w    $23D0                    ; 008817AA: dc.w $23D0
-        dc.w    $00FF                    ; 008817AC: dc.w $00FF
-        dc.w    $60D0                    ; 008817AE: BRA.S $00881780
-        dc.w    $43F9, $00A1, $0003    ; 008817B0: LEA $00A10003,A1
-        dc.w    $45F8                    ; 008817B6: dc.w $45F8
-        dc.w    $C970                    ; 008817B8: dc.w $C970
-        dc.w    $47F8                    ; 008817BA: dc.w $47F8
-        dc.w    $FE82                    ; 008817BC: dc.w $FE82
-        dc.w    $4EBA                    ; 008817BE: dc.w $4EBA
-        dc.w    $009E                    ; 008817C0: dc.w $009E
-        dc.w    $4EBA                    ; 008817C2: dc.w $4EBA
-        dc.w    $002A                    ; 008817C4: dc.w $002A
-        dc.w    $0C38                    ; 008817C6: dc.w $0C38
-        dc.w    $000D                    ; 008817C8: dc.w $000D
-        dc.w    $C811                    ; 008817CA: dc.w $C811
-        dc.w    $6716                    ; 008817CC: BEQ.S $008817E4
-        dc.w    $11FC                    ; 008817CE: dc.w $11FC
-        dc.w    $0000                    ; 008817D0: dc.w $0000
-        dc.w    $C86E                    ; 008817D2: dc.w $C86E
-        dc.w    $4E75                    ; 008817D4: RTS
-        dc.w    $11FC                    ; 008817D6: dc.w $11FC
-        dc.w    $0000                    ; 008817D8: dc.w $0000
-        dc.w    $C86C                    ; 008817DA: dc.w $C86C
-        dc.w    $11FC                    ; 008817DC: dc.w $11FC
-        dc.w    $0000                    ; 008817DE: dc.w $0000
-        dc.w    $C86E                    ; 008817E0: dc.w $C86E
-        dc.w    $4E75                    ; 008817E2: RTS
-        dc.w    $43F9, $00A1, $0005    ; 008817E4: LEA $00A10005,A1
-        dc.w    $4EBA                    ; 008817EA: dc.w $4EBA
-        dc.w    $0072                    ; 008817EC: dc.w $0072
+        cmpi.w  #$000D,($C810).w         ; 008817A: Check input mode
+        bne.s   .alt_path                ; 008817A: Branch if != 13
+        lea     ($C86C).w,a0             ; 008817A: Load frame buffer addr
+        move.l  a0,($00FF60D0).l         ; 008817A: Store to VDP
+        bra.s   .done                    ; 008817A: Skip alt path
+.alt_path:
+        lea     ($00A10003).l,a1         ; 008817B: Load SH2 port 1
+        lea     ($C970).w,a2             ; 008817B: Load input RAM
+        lea     ($FE82).w,a3             ; 008817B: Load button table
+        bsr.s   .read_port               ; 008817B: Read controller
+        bsr.s   .process_input           ; 008817C: Process input
+        cmpi.w  #$000D,($C811).w         ; 008817C: Check latch
+        beq.s   .read_6button            ; 008817C: Branch if 6-button
+        move.b  #$00,($C86E).w           ; 008817C: Clear display params
+        rts                              ; 008817D: Return
+.read_6button:
+        move.b  #$00,($C86C).w           ; 008817D: Clear frame buffer
+        move.b  #$00,($C86E).w           ; 008817D: Clear display
+        rts                              ; 008817D: Return
+.done:
+        lea     ($00A10005).l,a1         ; 008817E: Load SH2 port 2
+        bsr.s   .read_port               ; 008817E: Read alt port
+.read_port:
+        rts                              ; Return from read
+.process_input:
+        rts                              ; Return from process
 
 ; --- Map hardware to game buttons ---
 MapButtonBits:

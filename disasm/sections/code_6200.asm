@@ -2613,73 +2613,56 @@ ConfigPathHandler:
 
 ; --- 16-entry jump table dispatcher ---
 JumpTableDispatcher16:
-        dc.w    $102A        ; $007BE4
-        dc.w    $0018        ; $007BE6
-        dc.w    $0240        ; $007BE8
-        dc.w    $000F        ; $007BEA
-        dc.w    $D040        ; $007BEC
-        dc.w    $D040        ; $007BEE
-        dc.w    $227B        ; $007BF0
-        dc.w    $0004        ; $007BF2
-        dc.w    $4ED1        ; $007BF4
-        dc.w    $0088        ; $007BF6
-        dc.w    $7C2E        ; $007BF8
-        dc.w    $0088        ; $007BFA
-        dc.w    $7C32        ; $007BFC
-        dc.w    $0088        ; $007BFE
-        dc.w    $7C36        ; $007C00
-        dc.w    $0088        ; $007C02
-        dc.w    $7C3A        ; $007C04
-        dc.w    $0088        ; $007C06
-        dc.w    $7C42        ; $007C08
-        dc.w    $0088        ; $007C0A
-        dc.w    $7C46        ; $007C0C
-        dc.w    $0088        ; $007C0E
-        dc.w    $7C46        ; $007C10
-        dc.w    $0088        ; $007C12
-        dc.w    $7C46        ; $007C14
-        dc.w    $0088        ; $007C16
-        dc.w    $7C3E        ; $007C18
-        dc.w    $0088        ; $007C1A
-        dc.w    $7C46        ; $007C1C
-        dc.w    $0088        ; $007C1E
-        dc.w    $7C46        ; $007C20
-        dc.w    $0088        ; $007C22
-        dc.w    $7C46        ; $007C24
-        dc.w    $0088        ; $007C26
-        dc.w    $7C46        ; $007C28
-        dc.w    $0088        ; $007C2A
-        dc.w    $7C42        ; $007C2C
+        MOVE.B $0018(A2),D0        ; $007BE4
+        BCHG #15,D0        ; $007BE8
+        ADD.W D0,D0        ; $007BEC
+        ADD.W D0,D0        ; $007BEE
+        MOVEA.L <EA:3B>,A1        ; $007BF0
+        BTST #209,D4        ; $007BF2
+        BCLR #46,A0        ; $007BF6
+        BCLR #50,A0        ; $007BFA
+        BCLR #54,A0        ; $007BFE
+        BCLR #58,A0        ; $007C02
+        BCLR #66,A0        ; $007C06
+        BCLR #70,A0        ; $007C0A
+        BCLR #70,A0        ; $007C0E
+        BCLR #70,A0        ; $007C12
+        BCLR #62,A0        ; $007C16
+        BCLR #70,A0        ; $007C1A
+        BCLR #70,A0        ; $007C1E
+        BCLR #70,A0        ; $007C22
+        BCLR #70,A0        ; $007C26
+        BCLR #66,A0        ; $007C2A
 
 ; --- func_7BE4 dispatch handler 1 ---
 Dispatch7BE4Handler1:
-        dc.w    $7001        ; $007C2E
-        dc.w    $4E75        ; $007C30
+        MOVEQ #$01,D0        ; $007C2E
+        RTS        ; $007C30
 
 ; --- func_7BE4 dispatch handler 2 ---
 Dispatch7BE4Handler2:
-        dc.w    $7002        ; $007C32
-        dc.w    $4E75        ; $007C34
+        MOVEQ #$02,D0        ; $007C32
+        RTS        ; $007C34
 
 ; --- func_7BE4 dispatch handler 3 ---
 Dispatch7BE4Handler3:
-        dc.w    $7004        ; $007C36
-        dc.w    $4E75        ; $007C38
+        MOVEQ #$04,D0        ; $007C36
+        RTS        ; $007C38
 
 ; --- func_7BE4 dispatch handler 4 ---
 Dispatch7BE4Handler4:
-        dc.w    $7008        ; $007C3A
-        dc.w    $4E75        ; $007C3C
+        MOVEQ #$08,D0        ; $007C3A
+        RTS        ; $007C3C
 
 ; --- func_7BE4 dispatch handler 5 ---
 Dispatch7BE4Handler5:
-        dc.w    $7010        ; $007C3E
-        dc.w    $4E75        ; $007C40
+        MOVEQ #$10,D0        ; $007C3E
+        RTS        ; $007C40
 
 ; --- func_7BE4 dispatch handler 6 ---
 Dispatch7BE4Handler6:
-        dc.w    $7002        ; $007C42
-        dc.w    $4E75        ; $007C44
+        MOVEQ #$02,D0        ; $007C42
+        RTS        ; $007C44
         dc.w    $7002        ; $007C46
         dc.w    $4E75        ; $007C48
         dc.w    $80FC        ; $007C4A

@@ -147,40 +147,18 @@ code_e200:
 
 ; --- Send COMM command $25 to SH2 ---
 SendCOMMCmd25:
-        dc.w    $4A39        ; $00E316
-        dc.w    $00A1        ; $00E318
-        dc.w    $5120        ; $00E31A
-        dc.w    $66F8        ; $00E31C
-        dc.w    $D1FC        ; $00E31E
-        dc.w    $0200        ; $00E320
-        dc.w    $0000        ; $00E322
-        dc.w    $23C8        ; $00E324
-        dc.w    $00A1        ; $00E326
-        dc.w    $5128        ; $00E328
-        dc.w    $33FC        ; $00E32A
-        dc.w    $0101        ; $00E32C
-        dc.w    $00A1        ; $00E32E
-        dc.w    $512C        ; $00E330
-        dc.w    $13FC        ; $00E332
-        dc.w    $0025        ; $00E334
-        dc.w    $00A1        ; $00E336
-        dc.w    $5121        ; $00E338
-        dc.w    $13FC        ; $00E33A
-        dc.w    $0001        ; $00E33C
-        dc.w    $00A1        ; $00E33E
-        dc.w    $5120        ; $00E340
-        dc.w    $4A39        ; $00E342
-        dc.w    $00A1        ; $00E344
-        dc.w    $512C        ; $00E346
-        dc.w    $66F8        ; $00E348
-        dc.w    $23C9        ; $00E34A
-        dc.w    $00A1        ; $00E34C
-        dc.w    $5128        ; $00E34E
-        dc.w    $33FC        ; $00E350
-        dc.w    $0101        ; $00E352
-        dc.w    $00A1        ; $00E354
-        dc.w    $512C        ; $00E356
-        dc.w    $4E75        ; $00E358
+        TST.B COMM0        ; $00E316
+        BNE $0088E316        ; $00E31C
+        ADDA.L #$02000000,A0        ; $00E31E
+        MOVE.L A0,COMM4        ; $00E324
+        MOVE.W #$0101,COMM6        ; $00E32A
+        MOVE.B #$0025,$00A15121        ; $00E332
+        MOVE.B #$0001,COMM0        ; $00E33A
+        TST.B COMM6        ; $00E342
+        BNE $0088E342        ; $00E348
+        MOVE.L A1,COMM4        ; $00E34A
+        MOVE.W #$0101,COMM6        ; $00E350
+        RTS        ; $00E358
 
 ; --- Send COMM command $22 (multi-phase) ---
 SendCOMMCmd22:
@@ -3250,55 +3228,24 @@ MultiTableProcessor:
 
 ; --- DMA request to SH2 (17 calls) ---
 SendDREQCommand:
-        dc.w    $4A39        ; $00FB36
-        dc.w    $00A1        ; $00FB38
-        dc.w    $5120        ; $00FB3A
-        dc.w    $66F8        ; $00FB3C
-        dc.w    $33FC        ; $00FB3E
-        dc.w    $001C        ; $00FB40
-        dc.w    $00A1        ; $00FB42
-        dc.w    $5110        ; $00FB44
-        dc.w    $13FC        ; $00FB46
-        dc.w    $0004        ; $00FB48
-        dc.w    $00A1        ; $00FB4A
-        dc.w    $5107        ; $00FB4C
-        dc.w    $4239        ; $00FB4E
-        dc.w    $00A1        ; $00FB50
-        dc.w    $5123        ; $00FB52
-        dc.w    $13FC        ; $00FB54
-        dc.w    $002D        ; $00FB56
-        dc.w    $00A1        ; $00FB58
-        dc.w    $5121        ; $00FB5A
-        dc.w    $13FC        ; $00FB5C
-        dc.w    $0001        ; $00FB5E
-        dc.w    $00A1        ; $00FB60
-        dc.w    $5120        ; $00FB62
-        dc.w    $0839        ; $00FB64
-        dc.w    $0001        ; $00FB66
-        dc.w    $00A1        ; $00FB68
-        dc.w    $5123        ; $00FB6A
-        dc.w    $67F6        ; $00FB6C
-        dc.w    $08B9        ; $00FB6E
-        dc.w    $0001        ; $00FB70
-        dc.w    $00A1        ; $00FB72
-        dc.w    $5123        ; $00FB74
-        dc.w    $43F9        ; $00FB76
-        dc.w    $00FF        ; $00FB78
-        dc.w    $60C8        ; $00FB7A
-        dc.w    $45F9        ; $00FB7C
-        dc.w    $00A1        ; $00FB7E
-        dc.w    $5112        ; $00FB80
-        dc.w    $3E3C        ; $00FB82
-        dc.w    $001B        ; $00FB84
-        dc.w    $0839        ; $00FB86
-        dc.w    $0007        ; $00FB88
-        dc.w    $00A1        ; $00FB8A
-        dc.w    $5107        ; $00FB8C
-        dc.w    $66F6        ; $00FB8E
-        dc.w    $3499        ; $00FB90
-        dc.w    $51CF        ; $00FB92
-        dc.w    $FFF2        ; $00FB94
-        dc.w    $4E75        ; $00FB96
+        TST.B COMM0        ; $00FB36
+        BNE $0088FB36        ; $00FB3C
+        MOVE.W #$001C,MARS_DREQ_LEN        ; $00FB3E
+        MOVE.B #$0004,MARS_DREQ_CTRL+1        ; $00FB46
+        CLR $00A15123        ; $00FB4E
+        MOVE.B #$002D,$00A15121        ; $00FB54
+        MOVE.B #$0001,COMM0        ; $00FB5C
+        BTST #1,$00A15123        ; $00FB64
+        BEQ $0088FB64        ; $00FB6C
+        BCLR #1,$00A15123        ; $00FB6E
+        LEA $00FF60C8,A1        ; $00FB76
+        LEA MARS_FIFO,A2        ; $00FB7C
+        MOVE.W #$001B,D7        ; $00FB82
+        BTST #7,MARS_DREQ_CTRL+1        ; $00FB86
+        BNE $0088FB86        ; $00FB8E
+        MOVE.W (A1)+,(A2)        ; $00FB90
+        DBRA D7,$0088FB86        ; $00FB92
+        RTS        ; $00FB96
 
 ; --- High address region handler ---
 HighAddrRegionHandler:

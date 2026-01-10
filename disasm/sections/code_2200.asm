@@ -656,39 +656,21 @@ VDPOp2:
 
 ; --- Frame buffer FM toggle (10 calls) ---
 VDPFrameControl:
-        dc.w    $49F9        ; $0026C8
-        dc.w    $00A1        ; $0026CA
-        dc.w    $5100        ; $0026CC
-        dc.w    $08AC        ; $0026CE
-        dc.w    $0000        ; $0026D0
-        dc.w    $008B        ; $0026D2
-        dc.w    $616C        ; $0026D4
-        dc.w    $4EBA        ; $0026D6
-        dc.w    $00C8        ; $0026D8
-        dc.w    $4EBA        ; $0026DA
-        dc.w    $0142        ; $0026DC
-        dc.w    $08EC        ; $0026DE
-        dc.w    $0000        ; $0026E0
-        dc.w    $008B        ; $0026E2
-        dc.w    $615C        ; $0026E4
-        dc.w    $4EBA        ; $0026E6
-        dc.w    $00B8        ; $0026E8
-        dc.w    $4EBA        ; $0026EA
-        dc.w    $0132        ; $0026EC
-        dc.w    $08AC        ; $0026EE
-        dc.w    $0000        ; $0026F0
-        dc.w    $008B        ; $0026F2
-        dc.w    $11FC        ; $0026F4
-        dc.w    $0000        ; $0026F6
-        dc.w    $C80C        ; $0026F8
-        dc.w    $7000        ; $0026FA
-        dc.w    $4EBA        ; $0026FC
-        dc.w    $0084        ; $0026FE
-        dc.w    $33FC        ; $002700
-        dc.w    $8000        ; $002702
-        dc.w    $00A1        ; $002704
-        dc.w    $5202        ; $002706
-        dc.w    $4E75        ; $002708
+        LEA MARS_SYS_BASE,A4        ; $0026C8
+        BCLR #0,$008B(A4)        ; $0026CE
+        BSR $00882742        ; $0026D4
+        JSR $008827A0(PC)        ; $0026D6
+        JSR $0088281E(PC)        ; $0026DA
+        BSET #0,$008B(A4)        ; $0026DE
+        BSR $00882742        ; $0026E4
+        JSR $008827A0(PC)        ; $0026E6
+        JSR $0088281E(PC)        ; $0026EA
+        BCLR #0,$008B(A4)        ; $0026EE
+        MOVE.B #$0000,$C80C.W        ; $0026F4
+        MOVEQ #$00,D0        ; $0026FA
+        JSR $00882782(PC)        ; $0026FC
+        MOVE.W #$8000,$00A15202        ; $002700
+        RTS        ; $002708
 
 ; --- VDP operation 3 ---
 VDPOp3:

@@ -2804,34 +2804,22 @@ H_INT_Handler:
 
 ; --- Read controller ports (16 calls) ---
 ControllerRead:
-        dc.w    $0C38        ; $00179E
-        dc.w    $000D        ; $0017A0
-        dc.w    $C810        ; $0017A2
-        dc.w    $6630        ; $0017A4
-        dc.w    $41F8        ; $0017A6
-        dc.w    $C86C        ; $0017A8
-        dc.w    $23D0        ; $0017AA
-        dc.w    $00FF        ; $0017AC
-        dc.w    $60D0        ; $0017AE
-        dc.w    $43F9        ; $0017B0
-        dc.w    $00A1        ; $0017B2
-        dc.w    $0003        ; $0017B4
-        dc.w    $45F8        ; $0017B6
-        dc.w    $C970        ; $0017B8
-        dc.w    $47F8        ; $0017BA
-        dc.w    $FE82        ; $0017BC
-        dc.w    $4EBA        ; $0017BE
-        dc.w    $009E        ; $0017C0
-        dc.w    $4EBA        ; $0017C2
-        dc.w    $002A        ; $0017C4
-        dc.w    $0C38        ; $0017C6
-        dc.w    $000D        ; $0017C8
-        dc.w    $C811        ; $0017CA
-        dc.w    $6716        ; $0017CC
-        dc.w    $11FC        ; $0017CE
-        dc.w    $0000        ; $0017D0
-        dc.w    $C86E        ; $0017D2
-        dc.w    $4E75        ; $0017D4
+        CMPI.B #$0D,$C810.W        ; $00179E
+        BNE $008817D6        ; $0017A4
+        DC.W $41F8 ; Unknown        ; $0017A6
+        AND.W $23D0(A4),D4        ; $0017A8
+        BSET #208,<EA:3F>        ; $0017AC
+        LEA MD_DATA1,A1        ; $0017B0
+        DC.W $45F8 ; Unknown        ; $0017B6
+        AND.W D4,<EA:30>        ; $0017B8
+        DC.W $47F8 ; Unknown        ; $0017BA
+        DC.W $FE82 ; Unknown        ; $0017BC
+        JSR $0088185E(PC)        ; $0017BE
+        JSR $008817EE(PC)        ; $0017C2
+        CMPI.B #$0D,$C811.W        ; $0017C6
+        BEQ $008817E4        ; $0017CC
+        MOVE.B #$0000,$C86E.W        ; $0017CE
+        RTS        ; $0017D4
         dc.w    $11FC        ; $0017D6
         dc.w    $0000        ; $0017D8
         dc.w    $C86C        ; $0017DA
@@ -2906,59 +2894,48 @@ MapButtonBits:
 
 ; --- 6-button detection via TH toggle ---
 Read6ButtonPad:
-        dc.w    $33FC        ; $00185E
-        dc.w    $0100        ; $001860
-        dc.w    $00A1        ; $001862
-        dc.w    $1100        ; $001864
-        dc.w    $0839        ; $001866
-        dc.w    $0000        ; $001868
-        dc.w    $00A1        ; $00186A
-        dc.w    $1100        ; $00186C
-        dc.w    $66F6        ; $00186E
-        dc.w    $12BC        ; $001870
-        dc.w    $0040        ; $001872
-        dc.w    $7C00        ; $001874
-        dc.w    $723F        ; $001876
-        dc.w    $C211        ; $001878
-        dc.w    $1286        ; $00187A
-        dc.w    $7E40        ; $00187C
-        dc.w    $7030        ; $00187E
-        dc.w    $C011        ; $001880
-        dc.w    $E508        ; $001882
-        dc.w    $8041        ; $001884
-        dc.w    $1287        ; $001886
-        dc.w    $4E71        ; $001888
-        dc.w    $4E71        ; $00188A
-        dc.w    $4E71        ; $00188C
-        dc.w    $4E71        ; $00188E
-        dc.w    $1211        ; $001890
-        dc.w    $1286        ; $001892
-        dc.w    $3A3C        ; $001894
-        dc.w    $00FF        ; $001896
-        dc.w    $1211        ; $001898
-        dc.w    $1287        ; $00189A
-        dc.w    $1211        ; $00189C
-        dc.w    $1286        ; $00189E
-        dc.w    $4E71        ; $0018A0
-        dc.w    $4E71        ; $0018A2
-        dc.w    $4E71        ; $0018A4
-        dc.w    $720F        ; $0018A6
-        dc.w    $C211        ; $0018A8
-        dc.w    $661C        ; $0018AA
-        dc.w    $1287        ; $0018AC
-        dc.w    $4E71        ; $0018AE
-        dc.w    $4E71        ; $0018B0
-        dc.w    $4E71        ; $0018B2
-        dc.w    $720F        ; $0018B4
-        dc.w    $C211        ; $0018B6
-        dc.w    $E149        ; $0018B8
-        dc.w    $8041        ; $0018BA
-        dc.w    $4640        ; $0018BC
-        dc.w    $33FC        ; $0018BE
-        dc.w    $0000        ; $0018C0
-        dc.w    $00A1        ; $0018C2
-        dc.w    $1100        ; $0018C4
-        dc.w    $4E75        ; $0018C6
+        MOVE.W #$0100,Z80_BUSREQ        ; $00185E
+        BTST #0,Z80_BUSREQ        ; $001866
+        BNE $00881866        ; $00186E
+        MOVE.B #$0040,(A1)        ; $001870
+        MOVEQ #$00,D6        ; $001874
+        MOVEQ #$3F,D1        ; $001876
+        AND.B (A1),D1        ; $001878
+        MOVE.B D6,(A1)        ; $00187A
+        MOVEQ #$40,D7        ; $00187C
+        MOVEQ #$30,D0        ; $00187E
+        AND.B (A1),D0        ; $001880
+        LSL.B #2,D0        ; $001882
+        OR.W D1,D0        ; $001884
+        MOVE.B D7,(A1)        ; $001886
+        NOP        ; $001888
+        NOP        ; $00188A
+        NOP        ; $00188C
+        NOP        ; $00188E
+        MOVE.B (A1),D1        ; $001890
+        MOVE.B D6,(A1)        ; $001892
+        MOVE.W #$00FF,D5        ; $001894
+        MOVE.B (A1),D1        ; $001898
+        MOVE.B D7,(A1)        ; $00189A
+        MOVE.B (A1),D1        ; $00189C
+        MOVE.B D6,(A1)        ; $00189E
+        NOP        ; $0018A0
+        NOP        ; $0018A2
+        NOP        ; $0018A4
+        MOVEQ #$0F,D1        ; $0018A6
+        AND.B (A1),D1        ; $0018A8
+        BNE $008818C8        ; $0018AA
+        MOVE.B D7,(A1)        ; $0018AC
+        NOP        ; $0018AE
+        NOP        ; $0018B0
+        NOP        ; $0018B2
+        MOVEQ #$0F,D1        ; $0018B4
+        AND.B (A1),D1        ; $0018B6
+        LSL.W #8,D1        ; $0018B8
+        OR.W D1,D0        ; $0018BA
+        NOT.W D0        ; $0018BC
+        MOVE.W #$0000,Z80_BUSREQ        ; $0018BE
+        RTS        ; $0018C6
         dc.w    $4640        ; $0018C8
         dc.w    $C045        ; $0018CA
         dc.w    $1287        ; $0018CC
@@ -3998,41 +3975,26 @@ InitInputSystem:
 
 ; --- Controller state machine (21 calls) ---
 UpdateInputState:
-        dc.w    $1038        ; $002080
-        dc.w    $C822        ; $002082
-        dc.w    $6710        ; $002084
-        dc.w    $11C0        ; $002086
-        dc.w    $8509        ; $002088
-        dc.w    $7000        ; $00208A
-        dc.w    $11C0        ; $00208C
-        dc.w    $C822        ; $00208E
-        dc.w    $21C0        ; $002090
-        dc.w    $C8A4        ; $002092
-        dc.w    $6030        ; $002094
-        dc.w    $1038        ; $002096
-        dc.w    $C8A5        ; $002098
-        dc.w    $6716        ; $00209A
-        dc.w    $B038        ; $00209C
-        dc.w    $C8A7        ; $00209E
-        dc.w    $6708        ; $0020A0
-        dc.w    $11C0        ; $0020A2
-        dc.w    $850A        ; $0020A4
-        dc.w    $11C0        ; $0020A6
-        dc.w    $C8A7        ; $0020A8
-        dc.w    $11FC        ; $0020AA
-        dc.w    $0000        ; $0020AC
-        dc.w    $C8A5        ; $0020AE
-        dc.w    $6014        ; $0020B0
-        dc.w    $1038        ; $0020B2
-        dc.w    $C8A4        ; $0020B4
-        dc.w    $670E        ; $0020B6
-        dc.w    $11C0        ; $0020B8
-        dc.w    $850A        ; $0020BA
-        dc.w    $11C0        ; $0020BC
-        dc.w    $C8A6        ; $0020BE
-        dc.w    $11FC        ; $0020C0
-        dc.w    $0000        ; $0020C2
-        dc.w    $C8A4        ; $0020C4
+        MOVE.B $C822.W,D0        ; $002080
+        BEQ $00882096        ; $002084
+        MOVE.B D0,$8509.W        ; $002086
+        MOVEQ #$00,D0        ; $00208A
+        MOVE.B D0,$C822.W        ; $00208C
+        MOVE.L D0,$C8A4.W        ; $002090
+        BRA $008820C6        ; $002094
+        MOVE.B $C8A5.W,D0        ; $002096
+        BEQ $008820B2        ; $00209A
+        CMP.B $C8A7.W,D0        ; $00209C
+        BEQ $008820AA        ; $0020A0
+        MOVE.B D0,$850A.W        ; $0020A2
+        MOVE.B D0,$C8A7.W        ; $0020A6
+        MOVE.B #$0000,$C8A5.W        ; $0020AA
+        BRA $008820C6        ; $0020B0
+        MOVE.B $C8A4.W,D0        ; $0020B2
+        BEQ $008820C6        ; $0020B6
+        MOVE.B D0,$850A.W        ; $0020B8
+        MOVE.B D0,$C8A6.W        ; $0020BC
+        MOVE.B #$0000,$C8A4.W        ; $0020C0
 
 ; --- V-INT state 11 input handler ---
 ExtendedInputProcess:

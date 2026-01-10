@@ -1060,21 +1060,11 @@ WaitForVBlank:
 
 ; --- Init display buffers (21 calls) ---
 SetDisplayParams:
-        dc.w    $31FC        ; $0049AA
-        dc.w    $FF00        ; $0049AC
-        dc.w    $C86C        ; $0049AE
-        dc.w    $31FC        ; $0049B0
-        dc.w    $FF00        ; $0049B2
-        dc.w    $C86E        ; $0049B4
-        dc.w    $21FC        ; $0049B6
-        dc.w    $FFFF        ; $0049B8
-        dc.w    $0000        ; $0049BA
-        dc.w    $C970        ; $0049BC
-        dc.w    $21FC        ; $0049BE
-        dc.w    $FFFF        ; $0049C0
-        dc.w    $0000        ; $0049C2
-        dc.w    $C974        ; $0049C4
-        dc.w    $4E75        ; $0049C6
+        MOVE.W #$FF00,$C86C.W        ; $0049AA
+        MOVE.W #$FF00,$C86E.W        ; $0049B0
+        MOVE.L #$FFFF0000,$C970.W        ; $0049B6
+        MOVE.L #$FFFF0000,$C974.W        ; $0049BE
+        RTS        ; $0049C6
         dc.w    $31FC        ; $0049C8
         dc.w    $FF00        ; $0049CA
         dc.w    $C86C        ; $0049CC

@@ -223,13 +223,12 @@ code_8200:
 
 ; --- PSG nibble splitter ---
 PSGNibbleSplitter:
-        dc.w    $1401        ; $0083AE
-        dc.w    $E80A        ; $0083B0
-        dc.w    $12C2        ; $0083B2
-        dc.w    $0201        ; $0083B4
-        dc.w    $000F        ; $0083B6
-        dc.w    $12C1        ; $0083B8
-        dc.w    $4E75        ; $0083BA
+        MOVE.B D1,D2        ; $0083AE
+        LSR.B #4,D2        ; $0083B0
+        MOVE.B D2,(A1)+        ; $0083B2
+        BTST #15,D1        ; $0083B4
+        MOVE.B D1,(A1)+        ; $0083B8
+        RTS        ; $0083BA
         dc.w    $0828        ; $0083BC
         dc.w    $0006        ; $0083BE
         dc.w    $0002        ; $0083C0

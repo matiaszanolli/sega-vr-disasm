@@ -1,7 +1,7 @@
-# 3D Rendering Pipeline Architecture
+# SH2 3D Rendering Pipeline Architecture
 
 **Virtua Racing Deluxe - SH2 3D Engine**
-**ROM Region**: 0x23000-0x25000 (8KB)
+**ROM Region**: 0x23000-0x24000+ (several KB of highly optimized code)
 **Analysis Date**: January 6, 2026
 
 ---
@@ -113,24 +113,26 @@ The Virtua Racing Deluxe 3D engine consists of **109 functions** spanning 8KB of
 
 ### Stage 3: Vertex Transformation
 
-**Function**: Multiple MAC.L sequences throughout codebase
-**Primary Examples**: 0x02223120, 0x022231AC
+**Functions**: func_006 (0x02223114-0x02223174) and func_008 (0x022231A2-0x022231E2)
 
 **Purpose**: Transform 3D vertices from model space to screen coordinates using matrix multiplication.
 
-**Matrix Math (MAC.L Operations)**:
+**Matrix Math (MAC.L Operations)** - func_006 example:
 ```assembly
-; 3x3 Matrix × Vector multiplication
-0222314  54F     MAC.L   @R4+,@R5+     ; M[0][0] * V[0]
-02223148  054F     MAC.L   @R4+,@R5+     ; M[0][1] * V[1]
-0222314A  054F     MAC.L   @R4+,@R5+     ; M[0][2] * V[2]
-0222314C  75F4     ADD     #$F4,R5       ; Reset R5 pointer (-12)
-0222314E  6846     MOV.L   @R4+,R8       ; Load translation offset
-02223150  000A     STS     MACH,R0       ; Get high 32 bits of result
-02223152  011A     STS     MACL,R1       ; Get low 32 bits
-02223154  210D     XTRCT   R0,R1         ; Extract middle 32 bits (fixed-point)
-02223156  318C     ADD     R8,R1         ; Add translation
+; 3x3 Matrix × Vector multiplication (0x02223114-0x02223174)
+02223120  054F     MAC.L   @R4+,@R5+      ; M[0][0] * V[0]
+02223122  054F     MAC.L   @R4+,@R5+      ; M[0][1] * V[1]
+02223124  054F     MAC.L   @R4+,@R5+      ; M[0][2] * V[2]
+02223126  75F4     ADD     #$F4,R5        ; Reset R5 pointer (-12)
+02223128  6846     MOV.L   @R4+,R8        ; Load translation offset
+0222312A  74D0     ADD     #$D0,R4        ; Adjust R4 pointer
+0222312C  000A     STS     MACH,R0        ; Get high 32 bits of result
+0222312E  031A     STS     MACL,R3        ; Get low 32 bits into R3
+02223130  230D     XTRCT   R0,R3          ; Extract middle 32 bits (16.16 fixed-point)
+02223132  338C     ADD     R8,R3          ; Add translation
+02223134  1630     MOV.L   R3,@($0,R6)    ; Store result X
 ```
+**Repeat 3 times** for X, Y, Z components. func_008 uses similar MAC.L pattern.
 
 **Key Features**:
 - Uses SH2 MAC (Multiply-Accumulate) for efficiency
@@ -153,13 +155,15 @@ The Virtua Racing Deluxe 3D engine consists of **109 functions** spanning 8KB of
 
 **Polygon Descriptor Structure** (0x14 = 20 bytes):
 ```c
-struct Polygon {
-    // Offset 0x00-0x03: Unknown (flags/type?)
-    // Offset 0x04-0x07: Unknown (vertex indices?)
-    // Offset 0x08-0x0B: Unknown (color/texture?)
-    // Offset 0x0C-0x0F: Unknown
-    // Offset 0x10-0x13: Unknown
-};
+struct PolygonDescriptor {
+    uint8_t  active_flag;       // +0x00 - 0=skip, 1=render
+    uint8_t  poly_type;         // +0x01 - Triangle/quad/etc
+    uint8_t  flags;             // +0x02
+    uint8_t  reserved;          // +0x03
+    uint16_t vertex_idx[4];     // +0x04-0x0B - Vertex indices
+    uint32_t color;             // +0x0C - RGB color/palette
+    uint32_t texture;           // +0x10 - Texture ID or UV data
+};  // Total: 20 bytes
 ```
 
 **Processing Loop**:
@@ -252,9 +256,10 @@ struct Polygon {
 0x2203FFFF
 ```
 
-### Frame Buffer (0x24000000, 2x 256KB)
-- Buffer 0: 0x24000000 (128KB visible + 128KB overrun)
-- Buffer 1: 0x24020000 (double buffered)
+### Frame Buffer (Dual-Buffer, 128KB per buffer)
+- Frame Buffer 0: 0x24000000 (primary rendering target)
+- Frame Buffer 1: 0x24020000 (overwrite image, double-buffering)
+- Each buffer: 128KB (Packed Pixel Mode with Line Table)
 
 ### Hardware Registers (Cache-Through, 0x20004000+)
 - VDP registers: 0x20004100-0x2000410A
@@ -347,7 +352,8 @@ The Virtua Racing Deluxe 3D engine represents professional-grade early-90s 3D pr
 
 ## References
 
-- [SH2_3D_ENGINE_DATA_STRUCTURES.md](SH2_3D_ENGINE_DATA_STRUCTURES.md) - Structure definitions
-- [SH2_3D_FUNCTION_REFERENCE.md](SH2_3D_FUNCTION_REFERENCE.md) - Complete function list
-- [SH2_3D_CALL_GRAPH.md](SH2_3D_CALL_GRAPH.md) - Function relationships
+- [SH2_3D_ENGINE_DATA_STRUCTURES.md](SH2_3D_ENGINE_DATA_STRUCTURES.md) - Structure definitions (Polygon descriptor, matrices, buffers)
+- [SH2_3D_FUNCTION_REFERENCE.md](SH2_3D_FUNCTION_REFERENCE.md) - Complete function list with addresses (func_006, func_008 MAC.L sequences)
+- [SH2_3D_CALL_GRAPH.md](SH2_3D_CALL_GRAPH.md) - Function relationships and call chains
+- [32X_FRAME_BUFFER_FORMAT.md](32X_FRAME_BUFFER_FORMAT.md) - Frame buffer architecture and VDP modes
 - [OPTIMIZATION_OPPORTUNITIES.md](OPTIMIZATION_OPPORTUNITIES.md) - Performance improvements

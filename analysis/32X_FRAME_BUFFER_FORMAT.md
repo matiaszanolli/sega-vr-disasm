@@ -7,7 +7,7 @@
 
 ## Overview
 
-The Sega 32X uses a dual-buffer frame buffer system with three display modes. VRD (Virtua Racing Deluxe) uses the **Packed Pixel Mode** for all gameplay rendering. This document explains the frame buffer architecture discovered during FPS counter implementation.
+The Sega 32X uses a dual-buffer frame buffer system with four display modes. VRD (Virtua Racing Deluxe) uses the **Packed Pixel Mode** for all gameplay rendering. This document explains the frame buffer architecture discovered during FPS counter implementation.
 
 ---
 
@@ -27,8 +27,10 @@ The Sega 32X uses a dual-buffer frame buffer system with three display modes. VR
 
 | Address Range | Description |
 |---------------|-------------|
-| `$04020000` / `$24020000` | Frame Buffer (cache/cache-through) |
-| `$04040000` / `$24040000` | Overwrite Image |
+| `$02000000` / `$22000000` | Frame Buffer (uncached, direct access) |
+| `$02020000` / `$22020000` | Overwrite Image (uncached, direct access) |
+| `$04000000` / `$24000000` | Frame Buffer (cached) |
+| `$04020000` / `$24020000` | Overwrite Image (cached) |
 | `$20004100` | VDP Registers (cache-through only) |
 | `$20004200` | Color Palette |
 
@@ -36,7 +38,7 @@ The Sega 32X uses a dual-buffer frame buffer system with three display modes. VR
 
 ## VDP Modes
 
-The 32X VDP supports three graphics modes, selected via MARS_VDP_MODE register:
+The 32X VDP supports four graphics modes, selected via MARS_VDP_MODE register:
 
 | M1 | M0 | Mode | Bits/Pixel | Colors |
 |----|-----|------|------------|--------|
@@ -102,12 +104,12 @@ Bits 4-0: Red (5 bits, 0-31)
 
 ## Access Control (FM Bit)
 
-The **FM (Frame access Mode) bit** controls which CPU can access the frame buffer:
+The **FM (Frame access Mode) bit** controls which CPU can access the frame buffer. It is located in the MARS_VDP_FBCTL register at bit 0:
 
 | Register | Bit | Value | Access |
 |----------|-----|-------|--------|
-| `$A15100` | 7 | 0 | 68K has frame buffer access |
-| `$A15100` | 7 | 1 | SH2 has frame buffer access |
+| `$A1518A` (MARS_VDP_FBCTL) | 0 | 0 | 68K has frame buffer access |
+| `$A1518A` (MARS_VDP_FBCTL) | 0 | 1 | SH2 has frame buffer access |
 
 **CRITICAL**: Only one CPU should access the frame buffer at a time. Writes while the wrong CPU has access are ignored; reads return undefined data.
 
@@ -173,8 +175,8 @@ The 32X uses double buffering:
 ### Basic Write Procedure
 
 ```asm
-; 1. Check FM bit
-    BTST    #7,$A15100          ; Test FM bit
+; 1. Check FM bit (bit 0 of MARS_VDP_FBCTL at $A1518A)
+    BTST    #0,$A1518A          ; Test FM bit
     BNE.S   skip_write          ; Skip if SH2 has access
 
 ; 2. Read line table to find pixel address

@@ -1849,31 +1849,21 @@ DispatcherDataCopy:
 
 ; --- Conditional data processing ---
 ConditionalDataProc:
-        dc.w    $7000        ; $00D450
-        dc.w    $1038        ; $00D452
-        dc.w    $FEA8        ; $00D454
-        dc.w    $1238        ; $00D456
-        dc.w    $C80F        ; $00D458
-        dc.w    $6704        ; $00D45A
-        dc.w    $1038        ; $00D45C
-        dc.w    $FEAC        ; $00D45E
-        dc.w    $11FB        ; $00D460
-        dc.w    $00EA        ; $00D462
-        dc.w    $C81A        ; $00D464
-        dc.w    $41F9        ; $00D466
-        dc.w    $0089        ; $00D468
-        dc.w    $8BFC        ; $00D46A
-        dc.w    $E548        ; $00D46C
-        dc.w    $D1C0        ; $00D46E
-        dc.w    $23D0        ; $00D470
-        dc.w    $00FF        ; $00D472
-        dc.w    $6828        ; $00D474
-        dc.w    $4A01        ; $00D476
-        dc.w    $6706        ; $00D478
-        dc.w    $23D0        ; $00D47A
-        dc.w    $00FF        ; $00D47C
-        dc.w    $68B8        ; $00D47E
-        dc.w    $4E75        ; $00D480
+        MOVEQ #$00,D0        ; $00D450
+        MOVE.B $FEA8.W,D0        ; $00D452
+        MOVE.B $C80F.W,D1        ; $00D456
+        BEQ $0088D460        ; $00D45A
+        MOVE.B $FEAC.W,D0        ; $00D45C
+        MOVE.B <EA:3B>,$00EA.W        ; $00D460
+        AND.B (A2)+,D4        ; $00D464
+        LEA $00898BFC,A0        ; $00D466
+        LSL.W #2,D0        ; $00D46C
+        ADDA.L D0,A0        ; $00D46E
+        MOVE.L (A0),$00FF6828        ; $00D470
+        TST.B D1        ; $00D476
+        BEQ $0088D480        ; $00D478
+        MOVE.L (A0),$00FF68B8        ; $00D47A
+        RTS        ; $00D480
         dc.w    $0088        ; $00D482
         dc.w    $0088        ; $00D484
         dc.w    $00DC        ; $00D486

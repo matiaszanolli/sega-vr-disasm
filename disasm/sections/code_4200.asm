@@ -409,25 +409,17 @@ NibbleExtractor:
 
 ; --- Early initialization handler 1 ---
 EarlyInitHandler1:
-        dc.w    $4E75        ; $004536
+        RTS        ; $004536
 
 ; --- Early initialization handler 2 ---
 EarlyInitHandler2:
-        dc.w    $4EBA        ; $004538
-        dc.w    $6D24        ; $00453A
-        dc.w    $5878        ; $00453C
-        dc.w    $C07C        ; $00453E
-        dc.w    $B0FC        ; $004540
-        dc.w    $9000        ; $004542
-        dc.w    $6610        ; $004544
-        dc.w    $11FC        ; $004546
-        dc.w    $00AA        ; $004548
-        dc.w    $C8A5        ; $00454A
-        dc.w    $13FC        ; $00454C
-        dc.w    $0000        ; $00454E
-        dc.w    $00FF        ; $004550
-        dc.w    $6930        ; $004552
-        dc.w    $4E75        ; $004554
+        JSR $0088B25E(PC)        ; $004538
+        SUBQ.W #4,$C07C.W        ; $00453C
+        CMPA.W #$9000,A0        ; $004540
+        BNE $00884556        ; $004544
+        MOVE.B #$00AA,$C8A5.W        ; $004546
+        MOVE.B #$0000,$00FF6930        ; $00454C
+        RTS        ; $004554
         dc.w    $11FC        ; $004556
         dc.w    $00AB        ; $004558
         dc.w    $C8A5        ; $00455A
@@ -439,61 +431,33 @@ EarlyInitHandler2:
 
 ; --- Early initialization handler 3 ---
 EarlyInitHandler3:
-        dc.w    $5878        ; $004566
-        dc.w    $C07C        ; $004568
-        dc.w    $4E75        ; $00456A
+        SUBQ.W #4,$C07C.W        ; $004566
+        RTS        ; $00456A
 
 ; --- Early initialization handler 4 ---
 EarlyInitHandler4:
-        dc.w    $7000        ; $00456C
-        dc.w    $1038        ; $00456E
-        dc.w    $C819        ; $004570
-        dc.w    $E548        ; $004572
-        dc.w    $227B        ; $004574
-        dc.w    $0004        ; $004576
-        dc.w    $4ED1        ; $004578
-        dc.w    $0088        ; $00457A
-        dc.w    $4636        ; $00457C
-        dc.w    $0088        ; $00457E
-        dc.w    $458A        ; $004580
-        dc.w    $0088        ; $004582
-        dc.w    $45CE        ; $004584
-        dc.w    $0088        ; $004586
-        dc.w    $4630        ; $004588
-        dc.w    $45F9        ; $00458A
-        dc.w    $00FF        ; $00458C
-        dc.w    $69E0        ; $00458E
-        dc.w    $14BC        ; $004590
-        dc.w    $0007        ; $004592
-        dc.w    $357C        ; $004594
-        dc.w    $01AE        ; $004596
-        dc.w    $0002        ; $004598
-        dc.w    $257C        ; $00459A
-        dc.w    $222E        ; $00459C
-        dc.w    $DB1A        ; $00459E
-        dc.w    $0008        ; $0045A0
-        dc.w    $11FC        ; $0045A2
-        dc.w    $0000        ; $0045A4
-        dc.w    $C816        ; $0045A6
-        dc.w    $257C        ; $0045A8
-        dc.w    $0402        ; $0045AA
-        dc.w    $C000        ; $0045AC
-        dc.w    $0004        ; $0045AE
-        dc.w    $B0FC        ; $0045B0
-        dc.w    $9000        ; $0045B2
-        dc.w    $670E        ; $0045B4
-        dc.w    $11FC        ; $0045B6
-        dc.w    $0001        ; $0045B8
-        dc.w    $C816        ; $0045BA
-        dc.w    $257C        ; $0045BC
-        dc.w    $0403        ; $0045BE
-        dc.w    $8000        ; $0045C0
-        dc.w    $0004        ; $0045C2
-        dc.w    $5238        ; $0045C4
-        dc.w    $C819        ; $0045C6
-        dc.w    $5878        ; $0045C8
-        dc.w    $C07C        ; $0045CA
-        dc.w    $4E75        ; $0045CC
+        MOVEQ #$00,D0        ; $00456C
+        MOVE.B $C819.W,D0        ; $00456E
+        LSL.W #2,D0        ; $004572
+        MOVEA.L <EA:3B>,A1        ; $004574
+        BTST #209,D4        ; $004576
+        BCLR #54,A0        ; $00457A
+        BCLR #138,A0        ; $00457E
+        BCLR #206,A0        ; $004582
+        BCLR #48,A0        ; $004586
+        LEA $00FF69E0,A2        ; $00458A
+        MOVE.B #$0007,(A2)        ; $004590
+        MOVE.W #$01AE,$0002(A2)        ; $004594
+        MOVE.L #$222EDB1A,$0008(A2)        ; $00459A
+        MOVE.B #$0000,$C816.W        ; $0045A2
+        MOVE.L #$0402C000,$0004(A2)        ; $0045A8
+        CMPA.W #$9000,A0        ; $0045B0
+        BEQ $008845C4        ; $0045B4
+        MOVE.B #$0001,$C816.W        ; $0045B6
+        MOVE.L #$04038000,$0004(A2)        ; $0045BC
+        SUBQ.B #1,$C819.W        ; $0045C4
+        SUBQ.W #4,$C07C.W        ; $0045C8
+        RTS        ; $0045CC
         dc.w    $14BC        ; $0045CE
         dc.w    $0007        ; $0045D0
         dc.w    $357C        ; $0045D2
@@ -550,62 +514,39 @@ EarlyInitHandler4:
 
 ; --- Early initialization handler 5 ---
 EarlyInitHandler5:
-        dc.w    $11FC        ; $004638
-        dc.w    $00F2        ; $00463A
-        dc.w    $C822        ; $00463C
-        dc.w    $5D79        ; $00463E
-        dc.w    $00FF        ; $004640
-        dc.w    $69E2        ; $004642
-        dc.w    $5878        ; $004644
-        dc.w    $C07C        ; $004646
-        dc.w    $4E75        ; $004648
+        MOVE.B #$00F2,$C822.W        ; $004638
+        DC.W $5D79 ; Unknown        ; $00463E
+        BSET #226,<EA:3F>        ; $004640
+        SUBQ.W #4,$C07C.W        ; $004644
+        RTS        ; $004648
 
 ; --- Early initialization handler 6 ---
 EarlyInitHandler6:
-        dc.w    $11FC        ; $00464A
-        dc.w    $0096        ; $00464C
-        dc.w    $C8A5        ; $00464E
-        dc.w    $5D79        ; $004650
-        dc.w    $00FF        ; $004652
-        dc.w    $69E2        ; $004654
-        dc.w    $5878        ; $004656
-        dc.w    $C07C        ; $004658
-        dc.w    $4E75        ; $00465A
+        MOVE.B #$0096,$C8A5.W        ; $00464A
+        DC.W $5D79 ; Unknown        ; $004650
+        BSET #226,<EA:3F>        ; $004652
+        SUBQ.W #4,$C07C.W        ; $004656
+        RTS        ; $00465A
 
 ; --- Early initialization handler 7 ---
 EarlyInitHandler7:
-        dc.w    $317C        ; $00465C
-        dc.w    $0014        ; $00465E
-        dc.w    $002C        ; $004660
-        dc.w    $45F9        ; $004662
-        dc.w    $00FF        ; $004664
-        dc.w    $69E0        ; $004666
-        dc.w    $046A        ; $004668
-        dc.w    $000A        ; $00466A
-        dc.w    $0002        ; $00466C
-        dc.w    $0C6A        ; $00466E
-        dc.w    $00E6        ; $004670
-        dc.w    $0002        ; $004672
-        dc.w    $6E0A        ; $004674
-        dc.w    $357C        ; $004676
-        dc.w    $00E6        ; $004678
-        dc.w    $0002        ; $00467A
-        dc.w    $5878        ; $00467C
-        dc.w    $C07C        ; $00467E
-        dc.w    $4E75        ; $004680
+        MOVE.W #$0014,$002C(A0)        ; $00465C
+        LEA $00FF69E0,A2        ; $004662
+        BCHG #10,$0002(A2)        ; $004668
+        CMPI.W #$00E6,$0002(A2)        ; $00466E
+        BGT $00884680        ; $004674
+        MOVE.W #$00E6,$0002(A2)        ; $004676
+        SUBQ.W #4,$C07C.W        ; $00467C
+        RTS        ; $004680
 
 ; --- Early initialization handler 8 ---
 EarlyInitHandler8:
-        dc.w    $7000        ; $004682
-        dc.w    $0838        ; $004684
-        dc.w    $0002        ; $004686
-        dc.w    $C8AB        ; $004688
-        dc.w    $6602        ; $00468A
-        dc.w    $7007        ; $00468C
-        dc.w    $13C0        ; $00468E
-        dc.w    $00FF        ; $004690
-        dc.w    $69E0        ; $004692
-        dc.w    $4E75        ; $004694
+        MOVEQ #$00,D0        ; $004682
+        BTST #2,$C8AB.W        ; $004684
+        BNE $0088468E        ; $00468A
+        MOVEQ #$07,D0        ; $00468C
+        MOVE.B D0,$00FF69E0        ; $00468E
+        RTS        ; $004694
         dc.w    $0C38        ; $004696
         dc.w    $0003        ; $004698
         dc.w    $C819        ; $00469A

@@ -328,7 +328,9 @@ class M68KDisassembler:
 
         # TST
         if (opcode & 0xFF00) == 0x4A00:
-            size_str = [".B", ".W", ".L"][((opcode >> 6) & 3) - 1] if ((opcode >> 6) & 3) != 0 else ""
+            size = (opcode >> 6) & 3
+            size_map = {0: ".B", 1: ".W", 2: ".L"}
+            size_str = size_map.get(size, "")
             ea, ea_size = self.decode_ea(opcode & 0x3F, size_str)
             return f"TST{size_str:4s}{ea}", 2 + ea_size
 
@@ -650,17 +652,20 @@ class M68KDisassembler:
 
         src_ea, src_size = self.decode_ea(opcode & 0x3F, size_str)
 
+        # Destination: bits 11-9 = register, bits 8-6 = mode
+        # EA code format: bits 5-3 = mode, bits 2-0 = register
         dst_mode = (opcode >> 6) & 7
         dst_reg = (opcode >> 9) & 7
-        dst_ea_code = (dst_reg << 3) | dst_mode
+        dst_ea_code = (dst_mode << 3) | dst_reg  # mode in upper bits, reg in lower
         dst_ea, dst_size = self.decode_ea(dst_ea_code, size_str)
 
         return f"MOVE{size_str:4s}{src_ea},{dst_ea}", 2 + src_size + dst_size
 
     def decode_ea(self, ea_code, size_str):
         """Decode effective address - returns (ea_string, additional_bytes)"""
-        mode = ea_code & 0x07
-        reg = (ea_code >> 3) & 0x07
+        # EA encoding: bits 5-3 = mode, bits 2-0 = register
+        mode = (ea_code >> 3) & 0x07
+        reg = ea_code & 0x07
 
         if mode == 0:  # Dn
             return f"D{reg}", 0

@@ -11,7 +11,7 @@ PYTHON = python3
 BUILD_DIR = build
 DISASM_DIR = disasm
 TOOLS_DIR = tools
-ORIGINAL_ROM = "Virtua Racing Deluxe (USA).32x"
+ORIGINAL_ROM = Virtua Racing Deluxe (USA).32x
 OUTPUT_ROM = $(BUILD_DIR)/vr_rebuild.32x
 
 # Assembly flags
@@ -22,7 +22,7 @@ OUTPUT_ROM = $(BUILD_DIR)/vr_rebuild.32x
 ASMFLAGS = -Fbin -m68000 -no-opt -spaces -quiet
 
 # Source files
-M68K_SRC = $(DISASM_DIR)/m68k_header.asm
+M68K_SRC = $(DISASM_DIR)/vrd.asm
 
 .PHONY: all clean disasm compare tools test
 
@@ -50,11 +50,11 @@ disasm: disasm-m68k disasm-sh2
 
 disasm-m68k:
 	@echo "==> Disassembling 68000 code..."
-	$(PYTHON) $(TOOLS_DIR)/m68k_disasm.py $(ORIGINAL_ROM) 0x0 100
+	$(PYTHON) $(TOOLS_DIR)/m68k_disasm.py "$(ORIGINAL_ROM)" 0x0 100
 
 disasm-sh2:
 	@echo "==> Disassembling SH2 code..."
-	$(PYTHON) $(TOOLS_DIR)/sh2_disasm.py $(ORIGINAL_ROM) 0x245E4 100
+	$(PYTHON) $(TOOLS_DIR)/sh2_disasm.py "$(ORIGINAL_ROM)" 0x245E4 100
 
 # ============================================================================
 # Verification targets
@@ -63,7 +63,7 @@ disasm-sh2:
 # Compare rebuilt ROM with original
 compare: $(OUTPUT_ROM)
 	@echo "==> Comparing ROM files..."
-	@if [ ! -f $(ORIGINAL_ROM) ]; then \
+	@if [ ! -f "$(ORIGINAL_ROM)" ]; then \
 		echo "ERROR: Original ROM not found: $(ORIGINAL_ROM)"; \
 		exit 1; \
 	fi
@@ -74,8 +74,8 @@ compare: $(OUTPUT_ROM)
 	if [ $$ORIG_SIZE -eq $$BUILD_SIZE ]; then \
 		echo "✓ Sizes match!"; \
 		echo "==> Comparing bytes..."; \
-		cmp -l $(ORIGINAL_ROM) $(OUTPUT_ROM) | head -20; \
-		DIFF_COUNT=$$(cmp -l $(ORIGINAL_ROM) $(OUTPUT_ROM) | wc -l); \
+		cmp -l "$(ORIGINAL_ROM)" "$(OUTPUT_ROM)" | head -20; \
+		DIFF_COUNT=$$(cmp -l "$(ORIGINAL_ROM)" "$(OUTPUT_ROM)" | wc -l); \
 		if [ $$DIFF_COUNT -eq 0 ]; then \
 			echo "✓✓✓ PERFECT MATCH! ROMs are identical! ✓✓✓"; \
 		else \
@@ -88,10 +88,10 @@ compare: $(OUTPUT_ROM)
 # Quick hex dump comparison
 hexdump: $(OUTPUT_ROM)
 	@echo "==> Original ROM (first 512 bytes):"
-	@hexdump -C $(ORIGINAL_ROM) | head -32
+	@hexdump -C "$(ORIGINAL_ROM)" | head -32
 	@echo ""
 	@echo "==> Rebuilt ROM (first 512 bytes):"
-	@hexdump -C $(OUTPUT_ROM) | head -32
+	@hexdump -C "$(OUTPUT_ROM)" | head -32
 
 # ============================================================================
 # Analysis targets

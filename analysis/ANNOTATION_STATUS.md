@@ -307,9 +307,9 @@ Complex multi-call hub functions fully documented:
    - Checkbox tracking for completion
    - Progress metrics and milestones
 
-3. **SH2_DATA_STRUCTURES.md** (188 lines)
+3. **SH2_3D_ENGINE_DATA_STRUCTURES.md** (399 lines - consolidated)
    - RenderingContext structure (56 bytes at 0xC0000700)
-   - Display list command format
+   - 8 data structures documented with SDRAM memory layout
    - Matrix and vector structures
    - Loop pattern documentation
    - Memory map reference
@@ -433,7 +433,7 @@ All 29 remaining functions analyzed with comprehensive functional summaries:
 ### Created
 - `analysis/ANNOTATION_GUIDE.md`
 - `analysis/ANNOTATION_TASKS.md`
-- `analysis/SH2_DATA_STRUCTURES.md`
+- `analysis/SH2_3D_ENGINE_DATA_STRUCTURES.md`
 - `analysis/ANNOTATION_STATUS.md` (this file)
 
 ### Modified

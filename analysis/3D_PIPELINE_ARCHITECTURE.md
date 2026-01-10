@@ -347,7 +347,7 @@ The Virtua Racing Deluxe 3D engine represents professional-grade early-90s 3D pr
 
 ## References
 
-- [3D_DATA_STRUCTURES.md](3D_DATA_STRUCTURES.md) - Structure definitions
+- [SH2_3D_ENGINE_DATA_STRUCTURES.md](SH2_3D_ENGINE_DATA_STRUCTURES.md) - Structure definitions
 - [3D_FUNCTION_REFERENCE.md](3D_FUNCTION_REFERENCE.md) - Complete function list
 - [3D_CALL_GRAPH.md](3D_CALL_GRAPH.md) - Function relationships
 - [OPTIMIZATION_OPPORTUNITIES.md](OPTIMIZATION_OPPORTUNITIES.md) - Performance improvements

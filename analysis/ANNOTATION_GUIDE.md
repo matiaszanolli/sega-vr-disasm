@@ -22,7 +22,7 @@ python3 tools/sh2_disasm.py "Virtua Racing Deluxe (USA).32x" <offset> <instructi
 - `disasm/sh2_3d_engine_callgraph.txt` - Which functions call which
 - `disasm/sh2_3d_engine_structures.txt` - Loop and structure analysis
 - `disasm/sh2_3d_engine_annotated.asm` - Existing annotations (append here)
-- `analysis/SH2_DATA_STRUCTURES.md` - Known data structures
+- `analysis/SH2_3D_ENGINE_DATA_STRUCTURES.md` - Known data structures
 
 ## Function List
 

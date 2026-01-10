@@ -48,6 +48,9 @@ slave_main_loop:
     mov.l @(DISPLAY_LIST_OFFSET, r14), r13
     mov.l @(FRAME_BUFFER_OFFSET, r14), r9
 
+    bsr parse_polygon_bounds
+    nop
+
     bsr slave_process_polygons
     nop
 
@@ -102,6 +105,17 @@ done_magic:
 .align 2
 
 parse_polygon_bounds:
+    mov.l   bounds_base_addr, r1
+    mov.l   default_bounds_val, r0
+    mov.l   poly_count_val, r2
+
+.init_loop:
+    mov.l   r0, @r1
+    add     #4, r1
+
+    dt      r2
+    bf      .init_loop
+
     rts
     nop
 
@@ -111,3 +125,14 @@ slave_func_032:
 slave_func_033:
     rts
     nop
+
+.align 4
+
+bounds_base_addr:
+    .long   0x22001000
+
+default_bounds_val:
+    .long   0x01C00000
+
+poly_count_val:
+    .long   800

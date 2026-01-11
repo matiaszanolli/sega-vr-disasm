@@ -34,6 +34,10 @@ retroarch/
 *.exe
 *.app
 
+# Third-party source clones (for analysis only)
+/tmp/
+blastem/
+
 # PDFs and proprietary documentation
 *.pdf
 *.doc

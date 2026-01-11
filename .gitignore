@@ -19,9 +19,14 @@ build/
 *.o
 *.obj
 *.elf
+a.out
+*.so
+*.a
+*.dylib
 
 # Disassembly binary blobs (regenerated from user's ROM)
 disasm/rom_data_remainder.bin
+disasm/listing.txt
 
 # Emulators and BIOS files
 emu/

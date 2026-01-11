@@ -292,13 +292,55 @@ void pd_halt(pd_t *emu)
  */
 int pd_get_sh2_regs(pd_t *emu, pd_cpu_t cpu, pd_sh2_regs_t *out)
 {
+    SH2 *sh2;
+    int i;
+
     if (!emu || !out) return PD_ERR_INVALID_PARAM;
 
     memset(out, 0, sizeof(pd_sh2_regs_t));
 
-    /* TODO: Copy registers from SH2 context */
-    PDCORE_ERROR(emu, "Not implemented");
-    return PD_ERR_UNSUPPORTED;
+    /* Get SH2 instance */
+    if (cpu == PD_CPU_MASTER) {
+        sh2 = pdcore_get_sh2_master();
+    } else if (cpu == PD_CPU_SLAVE) {
+        sh2 = pdcore_get_sh2_slave();
+    } else {
+        PDCORE_ERROR(emu, "Invalid CPU specified");
+        return PD_ERR_INVALID_PARAM;
+    }
+
+    if (!sh2) {
+        PDCORE_ERROR(emu, "SH2 not initialized");
+        return PD_ERR_UNSUPPORTED;
+    }
+
+    /* Copy general purpose registers */
+    for (i = 0; i < 16; i++) {
+        out->r[i] = sh2->r[i];
+    }
+
+    /* Copy special registers */
+    out->pc = sh2->pc;
+    out->sr = sh2->sr;
+    out->pr = sh2->pr;
+    out->gbr = sh2->gbr;
+    out->vbr = sh2->vbr;
+    out->mach = sh2->mach;
+    out->macl = sh2->macl;
+
+    /* Copy informational fields */
+    if (cpu == PD_CPU_MASTER) {
+        out->cycle_count = (uint32_t)emu->master_cycles;
+        out->instruction_count = (uint32_t)emu->master_instructions;
+    } else {
+        out->cycle_count = (uint32_t)emu->slave_cycles;
+        out->instruction_count = 0;  /* Not tracked for slave */
+    }
+
+    out->in_delay_slot = (sh2->delay != 0) ? 1 : 0;
+    out->in_interrupt = (sh2->pending_level > 0) ? 1 : 0;
+
+    return 0;
 }
 
 /**
@@ -306,11 +348,45 @@ int pd_get_sh2_regs(pd_t *emu, pd_cpu_t cpu, pd_sh2_regs_t *out)
  */
 int pd_set_sh2_regs(pd_t *emu, pd_cpu_t cpu, const pd_sh2_regs_t *in)
 {
+    SH2 *sh2;
+    int i;
+
     if (!emu || !in) return PD_ERR_INVALID_PARAM;
 
-    /* TODO: Copy registers to SH2 context */
-    PDCORE_ERROR(emu, "Not implemented");
-    return PD_ERR_UNSUPPORTED;
+    /* Get SH2 instance */
+    if (cpu == PD_CPU_MASTER) {
+        sh2 = pdcore_get_sh2_master();
+    } else if (cpu == PD_CPU_SLAVE) {
+        sh2 = pdcore_get_sh2_slave();
+    } else {
+        PDCORE_ERROR(emu, "Invalid CPU specified");
+        return PD_ERR_INVALID_PARAM;
+    }
+
+    if (!sh2) {
+        PDCORE_ERROR(emu, "SH2 not initialized");
+        return PD_ERR_UNSUPPORTED;
+    }
+
+    /* Copy general purpose registers */
+    for (i = 0; i < 16; i++) {
+        sh2->r[i] = in->r[i];
+    }
+
+    /* Copy special registers */
+    sh2->pc = in->pc;
+    sh2->sr = in->sr;
+    sh2->pr = in->pr;
+    sh2->gbr = in->gbr;
+    sh2->vbr = in->vbr;
+    sh2->mach = in->mach;
+    sh2->macl = in->macl;
+
+    /* Note: cycle_count, instruction_count, in_delay_slot, in_interrupt
+     * are read-only informational fields and are not written back
+     */
+
+    return 0;
 }
 
 /**

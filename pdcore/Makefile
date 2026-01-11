@@ -12,7 +12,7 @@ CFLAGS = -Wall -Wextra -O2 -fPIC -Iinclude
 LDFLAGS = -shared
 
 # Source files
-SOURCES = src/pdcore.c src/pdcore_bp.c
+SOURCES = src/pdcore.c src/pdcore_bp.c src/pdcore_exec.c
 HEADERS = include/pdcore.h include/pdcore_internal.h include/pdcore_bp.h
 OBJECTS = $(SOURCES:.c=.o)
 

@@ -253,39 +253,12 @@ int pd_reset(pd_t *emu)
  * ============================================================================
  */
 
-/**
- * Run for N cycles
+/* Execution control functions are implemented in pdcore_exec.c
+ * Declarations here for reference:
+ * - pd_run_cycles()
+ * - pd_run_frames()
+ * - pd_step_instruction()
  */
-pd_stop_reason_t pd_run_cycles(pd_t *emu, uint64_t cycles, pd_stop_info_t *out_stop_info)
-{
-    if (!emu || !out_stop_info) return PD_STOP_NONE;
-
-    memset(out_stop_info, 0, sizeof(pd_stop_info_t));
-
-    /* TODO: Implement cycle execution */
-    out_stop_info->reason = PD_STOP_CYCLE_LIMIT;
-    out_stop_info->master_cycles = emu->master_cycles;
-    out_stop_info->frame_number = emu->frame_count;
-
-    return PD_STOP_CYCLE_LIMIT;
-}
-
-/**
- * Run for N frames
- */
-pd_stop_reason_t pd_run_frames(pd_t *emu, uint32_t frame_count, pd_stop_info_t *out_stop_info)
-{
-    if (!emu || !out_stop_info) return PD_STOP_NONE;
-
-    memset(out_stop_info, 0, sizeof(pd_stop_info_t));
-
-    /* TODO: Implement frame execution */
-    out_stop_info->reason = PD_STOP_FRAME_BOUNDARY;
-    out_stop_info->frame_number = emu->frame_count + frame_count;
-    out_stop_info->master_cycles = emu->master_cycles;
-
-    return PD_STOP_FRAME_BOUNDARY;
-}
 
 /**
  * Run until condition
@@ -294,24 +267,8 @@ pd_stop_reason_t pd_run_until(pd_t *emu, uint64_t cycle_limit, pd_stop_info_t *o
 {
     if (!emu || !out_stop_info) return PD_STOP_NONE;
 
-    /* TODO: Implement execution with cycle limit */
+    /* Simply delegate to pd_run_cycles */
     return pd_run_cycles(emu, cycle_limit, out_stop_info);
-}
-
-/**
- * Single instruction step
- */
-pd_stop_reason_t pd_step_instruction(pd_t *emu, pd_cpu_t cpu, pd_stop_info_t *out_stop_info)
-{
-    if (!emu || !out_stop_info) return PD_STOP_NONE;
-
-    memset(out_stop_info, 0, sizeof(pd_stop_info_t));
-
-    /* TODO: Implement instruction decode and temp breakpoint step */
-    out_stop_info->reason = PD_STOP_NONE;
-    out_stop_info->cpu = cpu;
-
-    return PD_STOP_NONE;
 }
 
 /**
@@ -667,10 +624,11 @@ void *pd_mem_snapshot(pd_t *emu, pd_bus_t bus, uint32_t address, size_t size)
  * ============================================================================
  */
 
-/* Forward declaration of global emulator instance
- * We need this to map from SH2* back to pd_t in the callback
+/* Global emulator instance
+ * Used to map from SH2* back to pd_t in breakpoint/V-BLANK callbacks
+ * Shared with pdcore_exec.c
  */
-static pd_t *g_pdcore_emu = NULL;
+pd_t *g_pdcore_emu = NULL;
 
 /**
  * Breakpoint dispatcher callback

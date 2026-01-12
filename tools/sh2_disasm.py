@@ -173,7 +173,7 @@ class SH2Disassembler:
             n = (opcode >> 8) & 0xF
             disp = (opcode & 0xFF) * 2
             target = (addr & 0xFFFFFFFC) + 4 + disp
-            return f"MOV.W   @(${{target:08X}},PC),R{n}", 2
+            return f"MOV.W   @(${target:08X},PC),R{n}", 2
 
         # MOV.L @(disp,PC),Rn (Dndd)
         if (opcode & 0xF000) == 0xD000:

@@ -1,4 +1,5 @@
 target remote localhost:6871
+set architecture sh2
 # Watch COMM register writes (Master→Slave communication)
 watch *(unsigned short*)0x20004020
 commands

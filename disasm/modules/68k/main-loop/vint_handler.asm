@@ -1,42 +1,106 @@
-; ============================================================================
-; Virtua Racing Deluxe - Main Loop   Vint_Handler
-; Module: 68k/main-loop/vint_handler.asm
-; Address: $001684-$0017ED (362 bytes)
-; ============================================================================
-;
-; TODO: Add function annotations and documentation
-;
-; ============================================================================
+; Generated assembly for $001684-$0017EE
+; Branch targets: 8
+; Labels: 6
+; Format: DC.W with decoded mnemonics as comments
 
         org     $001684
 
-vint_handler:
-
-; --- Function #01 @ $001684 ---
-        DC.W    $4A78,$C87A,$6726,$46FC,$2700,$48E7,$FFFE,$3038; $001684 TST.W  $4A78.W ; BEQ     $000016B0 ; MOVE.W  #$46FC,SR ; MOVEM.L D0/D1/D2/D5/D6/D7/A3/A6,-(A7) ; $3038...
-        DC.W    $C87A,$31FC,$0000,$C87A,$227B,$0014,$4E91,$52B8; $001694 AND.W  <EA:3A>,D4 ; MOVE.W  #$31FC,$0000.W ; MOVEA.L <EA:3B>,A1 ; BTST    #20,(A4) ; $52B8...
-        DC.W    $C964,$4CDF,$7FFF,$46FC,$2300,$4E73,$4E73,$0088; $0016A4 AND.W  D4,-(A4) ; MOVEM.L D0/D1/D2/D3/D4/D6/D7/A2/A3/A6,(A7)+ ; MOVE.W  #$46FC,SR ; RTE ; RTE ; $0088...
-        DC.W    $19FE,$0088,$19FE,$0088,$19FE,$0001,$8200,$0088; $0016B4 MOVE.B  <EA:3E>,#$19FE ; MOVE.B  <EA:3E>,#$19FE ; MOVE.B  <EA:3E>,#$19FE ; OR.B  D0,D1 ; $0088...
-        DC.W    $1A6E,$0088,$1A72,$0088,$1C66,$0088,$1ACA,$0088; $0016C4 MOVE.B  $1A6E(A6),A5 ; MOVE.B  <EA:32>,A5 ; BCLR    #136,A0 ; BCLR    #136,A0 ; $0088...
-        DC.W    $19FE,$0088,$1E42,$0088,$1B14,$0088,$1A64,$0088; $0016D4 MOVE.B  <EA:3E>,#$19FE ; MOVE.B  D2,A7 ; BCLR    #136,A0 ; BCLR    #136,A0 ; $0088...
-        DC.W    $1BA8,$0088,$1E94,$0088,$1F4A,$0088,$2010,$0000; $0016E4 MOVE.B  $1BA8(A0),<EA:35> ; MOVE.B  (A4),(A7) ; BCLR    #136,A0 ; BCLR    #136,A0 ; $0000...
-        DC.W    $0001,$0088,$1DBE,$0000,$0001,$0000,$0001,$0000; $0016F4 BTST    #1,D1 ; MOVE.B  <EA:3E>,<EA:36> ; BTST    #0,D0 ; BTST    #0,D0 ; $0000...
-        DC.W    $0001,$0088,$1D0C,$4E73,$11FC,$0000,$FE92,$11FC; $001704 BTST    #1,D1 ; MOVE.B  A4,-(A6) ; RTE ; MOVE.B  #$11FC,$0000.W ; $11FC...
-        DC.W    $0000,$FE93,$43F8,$FE82,$12FC,$0004,$12FC,$0006; $001714 BTST    #0,D0 ; DC.W    $43F8  ; Unknown ; DC.W    $FE82  ; Unknown ; MOVE.B  #$12FC,(A1)+ ; MOVE.B  #$12FC,(A1)+
-        DC.W    $12FC,$0001,$12FC,$0000,$12FC,$0005,$12FC,$000A; $001724 MOVE.B  #$12FC,(A1)+ ; MOVE.B  #$12FC,(A1)+ ; MOVE.B  #$12FC,(A1)+ ; MOVE.B  #$12FC,(A1)+
-        DC.W    $12FC,$0009,$12FC,$0008,$12FC,$0004,$12FC,$0006; $001734 MOVE.B  #$12FC,(A1)+ ; MOVE.B  #$12FC,(A1)+ ; MOVE.B  #$12FC,(A1)+ ; MOVE.B  #$12FC,(A1)+
-        DC.W    $12FC,$0001,$12FC,$0000,$12FC,$0005,$12FC,$000A; $001744 MOVE.B  #$12FC,(A1)+ ; MOVE.B  #$12FC,(A1)+ ; MOVE.B  #$12FC,(A1)+ ; MOVE.B  #$12FC,(A1)+
-        DC.W    $12FC,$0009,$12BC,$0008,$43F8,$FE94,$47FA,$0034; $001754 MOVE.B  #$12FC,(A1)+ ; MOVE.B  #$12BC,(A1) ; DC.W    $43F8  ; Unknown ; DC.W    $FE94  ; Unknown ; LEA     $00005F5C(PC),A3
-        DC.W    $0838,$0000,$C818,$6604,$47FA,$0020,$4EBA,$0012; $001764 BTST    #56,$0000.W ; BNE     $00001770 ; LEA     $00005F68(PC),A3 ; JSR     $0000662C(PC)
-        DC.W    $47FA,$0020,$0838,$0001,$C818,$6604,$47FA,$000C; $001774 LEA     $00005F70(PC),A3 ; BTST    #56,$0001.W ; BNE     $00001784 ; LEA     $00005F7C(PC),A3
-        DC.W    $7E07,$12DB,$51CF,$FFFC,$4E75,$0406,$0100,$0500; $001784 MOVEQ   #$07,D7 ; MOVE.B  (A3)+,(A1)+ ; DBRA    D7,$00006959 ; RTS ; BTST    #6,D6 ; BTST    D2,D0
-        DC.W    $0000,$0406,$0100,$050A,$0908,$0C38,$000D,$C810; $001794 BTST    #0,D0 ; BTST    D0,D0 ; BTST    D2,A2 ; BTST    D4,A0 ; CMPI.B  #$C38,$000D.W
-        DC.W    $6630,$41F8,$C86C,$23D0,$00FF,$60D0,$43F9,$00A1; $0017A4 BNE     $000017D6 ; DC.W    $41F8  ; Unknown ; AND.W  $C86C(A4),D4 ; BSET    #255,<EA:3F> ; $43F9... ; $00A1...
-        DC.W    $0003,$45F8,$C970,$47F8,$FE82,$4EBA,$009E,$4EBA; $0017B4 BTST    #3,D3 ; AND.W  D4,<EA:30> ; DC.W    $47F8  ; Unknown ; DC.W    $FE82  ; Unknown ; JSR     $0000667A(PC) ; $4EBA...
-        DC.W    $002A,$0C38,$000D,$C811,$6716,$11FC,$0000,$C86E; $0017C4 BTST    #42,$0C38(A2) ; AND.B  (A1),D4 ; BEQ     $000017E4 ; MOVE.B  #$11FC,$0000.W
-        DC.W    $4E75,$11FC,$0000,$C86C,$11FC,$0000,$C86E,$4E75; $0017D4 RTS ; MOVE.B  #$11FC,$0000.W ; MOVE.B  #$11FC,$0000.W ; RTS
-        DC.W    $43F9,$00A1,$0005,$4EBA,$0072; $0017E4 LEA     $43F900A1,A1 ; JSR     $000066A6(PC)
-
-; ============================================================================
-; End of Main Loop   Vint_Handler
-; ============================================================================
+        DC.W    $4A78,$C87A         ; $001684 TST.W  $C87A.W
+        DC.W    $6726               ; $001688 BEQ.S  loc_0016B0
+        DC.W    $46FC,$2700         ; $00168A NOT    #$2700
+        DC.W    $48E7,$FFFE         ; $00168E MOVEM.L -(A7),D1/D2/D3/D4/D5/D6/D7/A0/A1/A2/A3/A4/A5/A6/A7
+        DC.W    $3038,$C87A         ; $001692 MOVE.W  $C87A.W,D0
+        DC.W    $31FC,$0000,$C87A   ; $001696 MOVE.W  #$0000,$C87A.W
+        DC.W    $227B,$0014         ; $00169C MOVEA.L $14(PC,D0.W),A1
+        DC.W    $4E91               ; $0016A0 JSR     (A1)
+        DC.W    $52B8,$C964         ; $0016A2 ADDQ.L  #1,$C964.W
+        DC.W    $4CDF,$7FFF         ; $0016A6 MOVEM.L D0/D1/D2/D3/D4/D5/D6/D7/A0/A1/A2/A3/A4/A5/A6,(A7)+
+        DC.W    $46FC,$2300         ; $0016AA NOT    #$2300
+        DC.W    $4E73               ; $0016AE RTE
+loc_0016B0:
+        DC.W    $4E73               ; $0016B0 RTE
+        DC.W    $0088,$19FE,$0088   ; $0016B2 ORI.L  #$19FE0088,A0
+        DC.W    $19FE,$0088         ; $0016B8 MOVE.B  <EA:3E>,#$0088
+        DC.W    $19FE,$0001         ; $0016BC MOVE.B  <EA:3E>,#$0001
+        DC.W    $8200               ; $0016C0 OR.B   D0,D1
+        DC.W    $0088,$1A6E,$0088   ; $0016C2 ORI.L  #$1A6E0088,A0
+        DC.W    $1A72,$0088         ; $0016C8 MOVEA.B -$78(A2,D0.W),A5
+        DC.W    $1C66               ; $0016CC MOVEA.B -(A6),A6
+        DC.W    $0088,$1ACA,$0088   ; $0016CE ORI.L  #$1ACA0088,A0
+        DC.W    $19FE,$0088         ; $0016D4 MOVE.B  <EA:3E>,#$0088
+        DC.W    $1E42               ; $0016D8 MOVEA.B D2,A7
+        DC.W    $0088,$1B14,$0088   ; $0016DA ORI.L  #$1B140088,A0
+        DC.W    $1A64               ; $0016E0 MOVEA.B -(A4),A5
+        DC.W    $0088,$1BA8,$0088   ; $0016E2 ORI.L  #$1BA80088,A0
+        DC.W    $1E94               ; $0016E8 MOVE.B  (A4),(A7)
+        DC.W    $0088,$1F4A,$0088   ; $0016EA ORI.L  #$1F4A0088,A0
+        DC.W    $2010               ; $0016F0 MOVE.L  (A0),D0
+        DC.W    $0000,$0001         ; $0016F2 ORI.B  #$0001,D0
+        DC.W    $0088,$1DBE,$0000   ; $0016F6 ORI.L  #$1DBE0000,A0
+        DC.W    $0001,$0000         ; $0016FC ORI.B  #$0000,D1
+        DC.W    $0001,$0000         ; $001700 ORI.B  #$0000,D1
+        DC.W    $0001,$0088         ; $001704 ORI.B  #$0088,D1
+        DC.W    $1D0C               ; $001708 MOVE.B  A4,-(A6)
+        DC.W    $4E73               ; $00170A RTE
+        DC.W    $11FC,$0000,$FE92   ; $00170C MOVE.B  #$0000,$FE92.W
+        DC.W    $11FC,$0000,$FE93   ; $001712 MOVE.B  #$0000,$FE93.W
+        DC.W    $43F8,$FE82         ; $001718 LEA     $FE82.W,A1
+        DC.W    $12FC,$0004         ; $00171C MOVE.B  #$0004,(A1)+
+        DC.W    $12FC,$0006         ; $001720 MOVE.B  #$0006,(A1)+
+        DC.W    $12FC,$0001         ; $001724 MOVE.B  #$0001,(A1)+
+        DC.W    $12FC,$0000         ; $001728 MOVE.B  #$0000,(A1)+
+        DC.W    $12FC,$0005         ; $00172C MOVE.B  #$0005,(A1)+
+        DC.W    $12FC,$000A         ; $001730 MOVE.B  #$000A,(A1)+
+        DC.W    $12FC,$0009         ; $001734 MOVE.B  #$0009,(A1)+
+        DC.W    $12FC,$0008         ; $001738 MOVE.B  #$0008,(A1)+
+        DC.W    $12FC,$0004         ; $00173C MOVE.B  #$0004,(A1)+
+        DC.W    $12FC,$0006         ; $001740 MOVE.B  #$0006,(A1)+
+        DC.W    $12FC,$0001         ; $001744 MOVE.B  #$0001,(A1)+
+        DC.W    $12FC,$0000         ; $001748 MOVE.B  #$0000,(A1)+
+        DC.W    $12FC,$0005         ; $00174C MOVE.B  #$0005,(A1)+
+        DC.W    $12FC,$000A         ; $001750 MOVE.B  #$000A,(A1)+
+        DC.W    $12FC,$0009         ; $001754 MOVE.B  #$0009,(A1)+
+        DC.W    $12BC,$0008         ; $001758 MOVE.B  #$0008,(A1)
+        DC.W    $43F8,$FE94         ; $00175C LEA     $FE94.W,A1
+        DC.W    $47FA,$0034         ; $001760 LEA     $0034(PC),A3
+        DC.W    $0838,$0000,$C818   ; $001764 BTST    #0,$C818.W
+        DC.W    $6604               ; $00176A BNE.S  loc_001770
+        DC.W    $47FA,$0020         ; $00176C LEA     $0020(PC),A3
+loc_001770:
+        DC.W    $4EBA,$0012         ; $001770 JSR     loc_001784(PC)
+        DC.W    $47FA,$0020         ; $001774 LEA     $0020(PC),A3
+        DC.W    $0838,$0001,$C818   ; $001778 BTST    #1,$C818.W
+        DC.W    $6604               ; $00177E BNE.S  loc_001784
+        DC.W    $47FA,$000C         ; $001780 LEA     $000C(PC),A3
+loc_001784:
+        DC.W    $7E07               ; $001784 MOVEQ   #$07,D7
+loc_001786:
+        DC.W    $12DB               ; $001786 MOVE.B  (A3)+,(A1)+
+        DC.W    $51CF,$FFFC         ; $001788 DBRA    D7,loc_001786
+        DC.W    $4E75               ; $00178C RTS
+        DC.W    $0406,$0100         ; $00178E SUBI.B  #$0100,D6
+        DC.W    $0500               ; $001792 BTST    D2,D0
+        DC.W    $0000,$0406         ; $001794 ORI.B  #$0406,D0
+        DC.W    $0100               ; $001798 BTST    D0,D0
+        DC.W    $050A               ; $00179A BTST    D2,A2
+        DC.W    $0908               ; $00179C BTST    D4,A0
+        DC.W    $0C38,$000D,$C810   ; $00179E CMPI.B  #$000D,$C810.W
+        DC.W    $6630               ; $0017A4 BNE.S  loc_0017D6
+        DC.W    $41F8,$C86C         ; $0017A6 LEA     $C86C.W,A0
+        DC.W    $23D0,$00FF,$60D0   ; $0017AA MOVE.L  (A0),$00FF60D0
+        DC.W    $43F9,$00A1,$0003   ; $0017B0 LEA     $00A10003,A1
+        DC.W    $45F8,$C970         ; $0017B6 LEA     $C970.W,A2
+        DC.W    $47F8,$FE82         ; $0017BA LEA     $FE82.W,A3
+        DC.W    $4EBA,$009E         ; $0017BE JSR     $00185E(PC)
+        DC.W    $4EBA,$002A         ; $0017C2 JSR     $0017EE(PC)
+        DC.W    $0C38,$000D,$C811   ; $0017C6 CMPI.B  #$000D,$C811.W
+        DC.W    $6716               ; $0017CC BEQ.S  loc_0017E4
+        DC.W    $11FC,$0000,$C86E   ; $0017CE MOVE.B  #$0000,$C86E.W
+        DC.W    $4E75               ; $0017D4 RTS
+loc_0017D6:
+        DC.W    $11FC,$0000,$C86C   ; $0017D6 MOVE.B  #$0000,$C86C.W
+        DC.W    $11FC,$0000,$C86E   ; $0017DC MOVE.B  #$0000,$C86E.W
+        DC.W    $4E75               ; $0017E2 RTS
+loc_0017E4:
+        DC.W    $43F9,$00A1,$0005   ; $0017E4 LEA     $00A10005,A1
+        DC.W    $4EBA,$0072         ; $0017EA JSR     $00185E(PC)

@@ -1,88 +1,176 @@
-; ============================================================================
-; Virtua Racing Deluxe - ROM Header and Exception Vectors
-; Module: modules/68k/boot/rom_header.asm
-; Address: $000000-$0001FF (512 bytes)
-; ============================================================================
-;
-; 68000 Exception Vector Table ($000-$0FF)
-; Sega 32X ROM Header ($100-$1FF)
-;
-; Key Entry Points:
-;   Reset Vector:    $00880832 (main init sequence)
-;   V-INT Handler:   $00881684 (vertical blank interrupt)
-;   H-INT Handler:   $0088170A (horizontal interrupt)
-;
-; ============================================================================
+; Generated assembly for $000000-$000200
+; Branch targets: 0
+; Labels: 0
+; Format: DC.W with decoded mnemonics as comments
 
         org     $000000
 
-; ============================================================================
-; Exception Vector Table ($000-$0FF)
-; ============================================================================
-
-vectors:
-        DC.W    $0100,$0000             ; $000: Initial SSP ($01000000) BTST    D0,D0 ; BTST    #0,D0
-        DC.W    $0000,$03F0             ; $004: Reset PC (MARS security jump) BTST    #0,D0
-        DC.W    $0088,$0832             ; $008: Bus Error -> main_init BCLR    #136,A0
-        DC.W    $0088,$0832             ; $00C: Address Error -> main_init BCLR    #136,A0
-        DC.W    $0088,$0832             ; $010: Illegal Instruction BCLR    #136,A0
-        DC.W    $0088,$0832             ; $014: Divide by Zero BCLR    #136,A0
-        DC.W    $0088,$0832             ; $018: CHK Instruction BCLR    #136,A0
-        DC.W    $0088,$0832             ; $01C: TRAPV Instruction BCLR    #136,A0
-        DC.W    $0088,$0832             ; $020: Privilege Violation BCLR    #136,A0
-        DC.W    $0088,$0832             ; $024: Trace BCLR    #136,A0
-        DC.W    $0088,$0832             ; $028: Line 1010 Emulator BCLR    #136,A0
-        DC.W    $0088,$0832             ; $02C: Line 1111 Emulator BCLR    #136,A0
-
-        ; Reserved vectors ($030-$05F) - all zero
-        DC.W    $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000  ; $030 BTST    #0,D0 ; BTST    #0,D0 ; BTST    #0,D0 ; BTST    #0,D0
-        DC.W    $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000  ; $040 BTST    #0,D0 ; BTST    #0,D0 ; BTST    #0,D0 ; BTST    #0,D0
-        DC.W    $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000  ; $050 BTST    #0,D0 ; BTST    #0,D0 ; BTST    #0,D0 ; BTST    #0,D0
-
-        ; Interrupt Vectors ($060-$07F)
-        DC.W    $0088,$0832             ; $060: Spurious Interrupt BCLR    #136,A0
-        DC.W    $0088,$0832             ; $064: IRQ1 (External) BCLR    #136,A0
-        DC.W    $0088,$0832             ; $068: IRQ2 (External) BCLR    #136,A0
-        DC.W    $0088,$0832             ; $06C: IRQ3 (External) BCLR    #136,A0
-        DC.W    $0088,$170A             ; $070: IRQ4 - H-INT Handler BCLR    #136,A0
-        DC.W    $0088,$0832             ; $074: IRQ5 (External) BCLR    #136,A0
-        DC.W    $0088,$1684             ; $078: IRQ6 - V-INT Handler BCLR    #136,A0
-        DC.W    $0088,$0832             ; $07C: IRQ7 (NMI) BCLR    #136,A0
-
-        ; TRAP Vectors ($080-$0BF)
-        DC.W    $0088,$0832,$0088,$0832,$0088,$0832,$0088,$0832  ; $080: TRAP #0-3 BCLR    #136,A0 ; BCLR    #136,A0 ; BCLR    #136,A0 ; BCLR    #136,A0
-        DC.W    $0088,$0832,$0088,$0832,$0088,$0832,$0088,$0832  ; $090: TRAP #4-7 BCLR    #136,A0 ; BCLR    #136,A0 ; BCLR    #136,A0 ; BCLR    #136,A0
-        DC.W    $0088,$0832,$0088,$0832,$0088,$0832,$0088,$0832  ; $0A0: TRAP #8-11 BCLR    #136,A0 ; BCLR    #136,A0 ; BCLR    #136,A0 ; BCLR    #136,A0
-        DC.W    $0088,$0832,$0088,$0832,$0088,$0832,$0088,$0832  ; $0B0: TRAP #12-15 BCLR    #136,A0 ; BCLR    #136,A0 ; BCLR    #136,A0 ; BCLR    #136,A0
-
-        ; Reserved ($0C0-$0FF) - all zero
-        DC.W    $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000  ; $0C0 BTST    #0,D0 ; BTST    #0,D0 ; BTST    #0,D0 ; BTST    #0,D0
-        DC.W    $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000  ; $0D0 BTST    #0,D0 ; BTST    #0,D0 ; BTST    #0,D0 ; BTST    #0,D0
-        DC.W    $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000  ; $0E0 BTST    #0,D0 ; BTST    #0,D0 ; BTST    #0,D0 ; BTST    #0,D0
-        DC.W    $0000,$0000,$0000,$0000,$0000,$0000,$0000,$0000  ; $0F0 BTST    #0,D0 ; BTST    #0,D0 ; BTST    #0,D0 ; BTST    #0,D0
-
-; ============================================================================
-; Sega 32X ROM Header ($100-$1FF)
-; ============================================================================
-
-sega_header:
-        DC.W    $5345,$4741,$2033,$3258,$2055,$2020,$2020,$2020  ; $100: "SEGA 32X U      " DC.W    $5345  ; Unknown ; DC.W    $4741  ; Unknown ; MOVE.L  <EA:33>,D0 ; MOVEA.W (A0)+,A1 ; MOVEA.L (A5),A0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0
-        DC.W    $2843,$2953,$4547,$4120,$3139,$3934,$2E53,$4550  ; $110: "(C)SEGA 1994.SEP" MOVEA.L D3,A4 ; MOVE.L  (A3),$2953(A4) ; DC.W    $4120  ; Unknown ; MOVE.W  $31393934,-(A0) ; DC.W    $4550  ; Unknown
-        DC.W    $562E,$522E,$4458,$2020,$2020,$2020,$2020,$2020  ; $120: "V.R.DX          " SUBQ.B  #3,$562E(A6) ; NEG.W  (A0)+ ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0
-        DC.W    $2020,$2020,$2020,$2020,$2020,$2020,$2020,$2020  ; $130: (domestic name cont.) MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0
-        DC.W    $2020,$2020,$2020,$2020,$2020,$2020,$2020,$2020  ; $140 MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0
-        DC.W    $562E,$522E,$4458,$2020,$2020,$2020,$2020,$2020  ; $150: "V.R.DX          " SUBQ.B  #3,$562E(A6) ; NEG.W  (A0)+ ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0
-        DC.W    $2020,$2020,$2020,$2020,$2020,$2020,$2020,$2020  ; $160: (overseas name cont.) MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0
-        DC.W    $2020,$2020,$2020,$2020,$2020,$2020,$2020,$2020  ; $170 MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0
-        DC.W    $474D,$204D,$4B2D,$3834,$3630,$312D,$3030,$1E4D  ; $180: "GM MK-84601-00" + checksum DC.W    $474D  ; Unknown ; MOVEA.L A5,A0 ; DC.W    $4B2D  ; Unknown ; MOVE.W  <EA:34>,D4 ; MOVE.W  <EA:30>,D3 ; MOVE.W  $312D(A5),-(A0) ; MOVE.B  A5,A7
-        DC.W    $4A36,$2020,$2020,$2020,$2020,$2020,$2020,$2020  ; $190: "J6" (I/O support) TST.B  <EA:36> ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0
-        DC.W    $0000,$0000,$002F,$FFFF,$00FF,$0000,$00FF,$FFFF  ; $1A0: ROM/RAM addresses BTST    #0,D0 ; BTST    #47,$FFFF(A7) ; BTST    #0,D0 ; DC.W    $FFFF  ; Unknown
-        DC.W    $2020,$2020,$2020,$2020,$2020,$2020,$2020,$2020  ; $1B0: SRAM info (none) MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0
-        DC.W    $2020,$2020,$2020,$2020,$2020,$2020,$2020,$2020  ; $1C0: Modem info (none) MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0
-        DC.W    $2020,$2020,$2020,$2020,$2020,$2020,$2020,$2020  ; $1D0: Memo MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0
-        DC.W    $2020,$2020,$2020,$2020,$2020,$2020,$2020,$2020  ; $1E0 MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0
-        DC.W    $5520,$2020,$2020,$2020,$2020,$2020,$2020,$2020  ; $1F0: "U" (region) DC.W    $5520  ; Unknown ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0 ; MOVE.L  -(A0),D0
-
-; ============================================================================
-; End of ROM Header - Total: 512 bytes ($200)
-; ============================================================================
+        DC.W    $0100               ; $000000 BTST    D0,D0
+        DC.W    $0000,$0000         ; $000002 ORI.B  #$0000,D0
+        DC.W    $03F0,$0088         ; $000006 BSET    D1,-$78(A0,D0.W)
+        DC.W    $0832,$0088,$0832   ; $00000A BTST    #8,$32(A2,D0.L)
+        DC.W    $0088,$0832,$0088   ; $000010 ORI.L  #$08320088,A0
+        DC.W    $0832,$0088,$0832   ; $000016 BTST    #8,$32(A2,D0.L)
+        DC.W    $0088,$0832,$0088   ; $00001C ORI.L  #$08320088,A0
+        DC.W    $0832,$0088,$0832   ; $000022 BTST    #8,$32(A2,D0.L)
+        DC.W    $0088,$0832,$0088   ; $000028 ORI.L  #$08320088,A0
+        DC.W    $0832,$0000,$0000   ; $00002E BTST    #0,$00(A2,D0.W)
+        DC.W    $0000,$0000         ; $000034 ORI.B  #$0000,D0
+        DC.W    $0000,$0000         ; $000038 ORI.B  #$0000,D0
+        DC.W    $0000,$0000         ; $00003C ORI.B  #$0000,D0
+        DC.W    $0000,$0000         ; $000040 ORI.B  #$0000,D0
+        DC.W    $0000,$0000         ; $000044 ORI.B  #$0000,D0
+        DC.W    $0000,$0000         ; $000048 ORI.B  #$0000,D0
+        DC.W    $0000,$0000         ; $00004C ORI.B  #$0000,D0
+        DC.W    $0000,$0000         ; $000050 ORI.B  #$0000,D0
+        DC.W    $0000,$0000         ; $000054 ORI.B  #$0000,D0
+        DC.W    $0000,$0000         ; $000058 ORI.B  #$0000,D0
+        DC.W    $0000,$0000         ; $00005C ORI.B  #$0000,D0
+        DC.W    $0088,$0832,$0088   ; $000060 ORI.L  #$08320088,A0
+        DC.W    $0832,$0088,$0832   ; $000066 BTST    #8,$32(A2,D0.L)
+        DC.W    $0088,$0832,$0088   ; $00006C ORI.L  #$08320088,A0
+        DC.W    $170A               ; $000072 MOVE.B  A2,-(A3)
+        DC.W    $0088,$0832,$0088   ; $000074 ORI.L  #$08320088,A0
+        DC.W    $1684               ; $00007A MOVE.B  D4,(A3)
+        DC.W    $0088,$0832,$0088   ; $00007C ORI.L  #$08320088,A0
+        DC.W    $0832,$0088,$0832   ; $000082 BTST    #8,$32(A2,D0.L)
+        DC.W    $0088,$0832,$0088   ; $000088 ORI.L  #$08320088,A0
+        DC.W    $0832,$0088,$0832   ; $00008E BTST    #8,$32(A2,D0.L)
+        DC.W    $0088,$0832,$0088   ; $000094 ORI.L  #$08320088,A0
+        DC.W    $0832,$0088,$0832   ; $00009A BTST    #8,$32(A2,D0.L)
+        DC.W    $0088,$0832,$0088   ; $0000A0 ORI.L  #$08320088,A0
+        DC.W    $0832,$0088,$0832   ; $0000A6 BTST    #8,$32(A2,D0.L)
+        DC.W    $0088,$0832,$0088   ; $0000AC ORI.L  #$08320088,A0
+        DC.W    $0832,$0088,$0832   ; $0000B2 BTST    #8,$32(A2,D0.L)
+        DC.W    $0088,$0832,$0088   ; $0000B8 ORI.L  #$08320088,A0
+        DC.W    $0832,$0000,$0000   ; $0000BE BTST    #0,$00(A2,D0.W)
+        DC.W    $0000,$0000         ; $0000C4 ORI.B  #$0000,D0
+        DC.W    $0000,$0000         ; $0000C8 ORI.B  #$0000,D0
+        DC.W    $0000,$0000         ; $0000CC ORI.B  #$0000,D0
+        DC.W    $0000,$0000         ; $0000D0 ORI.B  #$0000,D0
+        DC.W    $0000,$0000         ; $0000D4 ORI.B  #$0000,D0
+        DC.W    $0000,$0000         ; $0000D8 ORI.B  #$0000,D0
+        DC.W    $0000,$0000         ; $0000DC ORI.B  #$0000,D0
+        DC.W    $0000,$0000         ; $0000E0 ORI.B  #$0000,D0
+        DC.W    $0000,$0000         ; $0000E4 ORI.B  #$0000,D0
+        DC.W    $0000,$0000         ; $0000E8 ORI.B  #$0000,D0
+        DC.W    $0000,$0000         ; $0000EC ORI.B  #$0000,D0
+        DC.W    $0000,$0000         ; $0000F0 ORI.B  #$0000,D0
+        DC.W    $0000,$0000         ; $0000F4 ORI.B  #$0000,D0
+        DC.W    $0000,$0000         ; $0000F8 ORI.B  #$0000,D0
+        DC.W    $0000,$0000         ; $0000FC ORI.B  #$0000,D0
+        DC.W    $5345               ; $000100 SUBQ.W  #1,D5
+        DC.W    $4741               ; $000102 DC.W    $4741
+        DC.W    $2033,$3258         ; $000104 MOVE.L  $58(A3,D3.W),D0
+        DC.W    $2055               ; $000108 MOVEA.L (A5),A0
+        DC.W    $2020               ; $00010A MOVE.L  -(A0),D0
+        DC.W    $2020               ; $00010C MOVE.L  -(A0),D0
+        DC.W    $2020               ; $00010E MOVE.L  -(A0),D0
+        DC.W    $2843               ; $000110 MOVEA.L D3,A4
+        DC.W    $2953,$4547         ; $000112 MOVE.L  (A3),$4547(A4)
+        DC.W    $4120               ; $000116 DC.W    $4120
+        DC.W    $3139,$3934,$2E53   ; $000118 MOVE.W  $39342E53,-(A0)
+        DC.W    $4550               ; $00011E DC.W    $4550
+        DC.W    $562E,$522E         ; $000120 ADDQ.B  #3,$522E(A6)
+        DC.W    $4458               ; $000124 NEG.W  (A0)+
+        DC.W    $2020               ; $000126 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $000128 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $00012A MOVE.L  -(A0),D0
+        DC.W    $2020               ; $00012C MOVE.L  -(A0),D0
+        DC.W    $2020               ; $00012E MOVE.L  -(A0),D0
+        DC.W    $2020               ; $000130 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $000132 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $000134 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $000136 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $000138 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $00013A MOVE.L  -(A0),D0
+        DC.W    $2020               ; $00013C MOVE.L  -(A0),D0
+        DC.W    $2020               ; $00013E MOVE.L  -(A0),D0
+        DC.W    $2020               ; $000140 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $000142 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $000144 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $000146 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $000148 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $00014A MOVE.L  -(A0),D0
+        DC.W    $2020               ; $00014C MOVE.L  -(A0),D0
+        DC.W    $2020               ; $00014E MOVE.L  -(A0),D0
+        DC.W    $562E,$522E         ; $000150 ADDQ.B  #3,$522E(A6)
+        DC.W    $4458               ; $000154 NEG.W  (A0)+
+        DC.W    $2020               ; $000156 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $000158 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $00015A MOVE.L  -(A0),D0
+        DC.W    $2020               ; $00015C MOVE.L  -(A0),D0
+        DC.W    $2020               ; $00015E MOVE.L  -(A0),D0
+        DC.W    $2020               ; $000160 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $000162 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $000164 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $000166 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $000168 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $00016A MOVE.L  -(A0),D0
+        DC.W    $2020               ; $00016C MOVE.L  -(A0),D0
+        DC.W    $2020               ; $00016E MOVE.L  -(A0),D0
+        DC.W    $2020               ; $000170 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $000172 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $000174 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $000176 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $000178 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $00017A MOVE.L  -(A0),D0
+        DC.W    $2020               ; $00017C MOVE.L  -(A0),D0
+        DC.W    $2020               ; $00017E MOVE.L  -(A0),D0
+        DC.W    $474D               ; $000180 DC.W    $474D
+        DC.W    $204D               ; $000182 MOVEA.L A5,A0
+        DC.W    $4B2D               ; $000184 DC.W    $4B2D
+        DC.W    $3834,$3630         ; $000186 MOVE.W  $30(A4,D3.W),D4
+        DC.W    $312D,$3030         ; $00018A MOVE.W  $3030(A5),-(A0)
+        DC.W    $1E4D               ; $00018E MOVEA.B A5,A7
+        DC.W    $4A36,$2020         ; $000190 TST.B  $20(A6,D2.W)
+        DC.W    $2020               ; $000194 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $000196 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $000198 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $00019A MOVE.L  -(A0),D0
+        DC.W    $2020               ; $00019C MOVE.L  -(A0),D0
+        DC.W    $2020               ; $00019E MOVE.L  -(A0),D0
+        DC.W    $0000,$0000         ; $0001A0 ORI.B  #$0000,D0
+        DC.W    $002F,$FFFF,$00FF   ; $0001A4 ORI.B  #$FFFF,$00FF(A7)
+        DC.W    $0000,$00FF         ; $0001AA ORI.B  #$00FF,D0
+        DC.W    $FFFF               ; $0001AE MOVE.W  <EA:3F>,<EA:3F>
+        DC.W    $2020               ; $0001B0 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001B2 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001B4 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001B6 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001B8 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001BA MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001BC MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001BE MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001C0 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001C2 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001C4 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001C6 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001C8 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001CA MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001CC MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001CE MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001D0 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001D2 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001D4 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001D6 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001D8 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001DA MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001DC MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001DE MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001E0 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001E2 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001E4 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001E6 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001E8 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001EA MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001EC MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001EE MOVE.L  -(A0),D0
+        DC.W    $5520               ; $0001F0 SUBQ.B  #2,-(A0)
+        DC.W    $2020               ; $0001F2 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001F4 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001F6 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001F8 MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001FA MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001FC MOVE.L  -(A0),D0
+        DC.W    $2020               ; $0001FE MOVE.L  -(A0),D0

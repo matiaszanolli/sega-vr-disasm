@@ -188,10 +188,18 @@ Detailed architecture documentation for critical game subsystems.
   - Text/digit rendering for time display (MM:SS.MS format)
   - Input handling for menu navigation (D-pad, buttons, wrapping)
   - 2,267 lines, 190 functions, 115 JSR calls - complete UI system
+- **GAME_LOGIC_NAME_ENTRY.md** - Name entry & character selection ($010200-$012200)
+  - On-screen character grid keyboard (52 chars: A-Z, a-z + specials)
+  - Uppercase/lowercase toggle with index offset ($1A = 26)
+  - 3-character name buffer per player with backspace support
+  - D-pad grid navigation with cursor movement sound ($A8/$A9)
+  - Split-screen simultaneous entry (P1/P2 mirrored buffers)
+  - ASCII table at $010974 (27 words packed with character pairs)
+  - 2,251 lines, 201 functions, 178 JSR calls - full name entry system
 - **68K_SH2_COMMUNICATION.md** - CPU communication patterns (COMM registers)
 - **SH2_3D_PIPELINE_ARCHITECTURE.md** - 3D rendering engine (SH2)
 
-**Status:** ✅ V-INT, state handlers, controller, initialization, timers, AI/physics, sequencer, and graphics/menus fully documented (2026-01-17)
+**Status:** ✅ V-INT, state handlers, controller, initialization, timers, AI/physics, sequencer, graphics/menus, and name entry fully documented (2026-01-17)
 
 ---
 
@@ -216,14 +224,14 @@ Detailed architecture documentation for critical game subsystems.
 | Debugger Design | 10 | ✅ Complete |
 | 68K Analysis | 28 | ✅ Phase 6 Complete |
 | SH2 Analysis | 9 | ✅ Phase 4 Complete |
-| System Architecture (NEW) | 10 | ✅ 8 Documented |
+| System Architecture (NEW) | 11 | ✅ 9 Documented |
 | Code Conversion (NEW) | 1 | ✅ Complete |
 | Optimization | 9 | ✅ Identified Paths |
 | Profiling | 5 | ✅ Methodology Ready |
 | Phase Reports | 6 | ✅ Current |
 | Architecture | 7 | ✅ Complete |
 | Graphics/VDP | 1 | ✅ Complete |
-| **Total** | **~86** | **✅ Ready** |
+| **Total** | **~87** | **✅ Ready** |
 
 ---
 
@@ -244,6 +252,7 @@ Detailed architecture documentation for critical game subsystems.
 - **AI opponent behavior and physics (collision avoidance, drafting, trigonometric motion)**
 - **Scene sequencer and state manager (hierarchical FSMs, 32X sync, timeline events)**
 - **Graphics, menus & UI rendering (4 state machines, 8 SH2 commands, split-screen support)**
+- **Name entry system (52-char grid keyboard, 3-char buffers, uppercase/lowercase toggle)**
 
 ### ✅ Latest Addition: pdcore Debugger Design
 - Complete C API specification (18 functions, MVP-1)

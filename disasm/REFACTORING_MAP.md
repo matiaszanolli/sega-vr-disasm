@@ -2,9 +2,9 @@
 
 This document maps the current address-based section files to the new feature-based module structure in `modules/`.
 
-**Status:** Phase 1 Complete - Infrastructure ready, working build verified
-**Build Method:** `make all` (sections-based) or `make modular` (will use modules/ after migration)
-**Current State:** All code in `disasm/sections/`, target structure in `disasm/modules/`
+**Status:** Phase 2a In Progress - Foundation modules extracted
+**Build Method:** `make all` (sections-based) or `make modular` (uses modules/ + sections/)
+**Current State:** Hybrid build - 2 modules integrated, 1 module extracted (integration deferred)
 
 ---
 
@@ -13,8 +13,11 @@ This document maps the current address-based section files to the new feature-ba
 | Component | Status | Notes |
 |-----------|--------|-------|
 | sections/ | Working | Fixed 2,901 invalid mnemonics, builds successfully |
-| modules/ | Ready | 427 stub files created, awaiting code migration |
-| Build System | ✅ | ROM builds (3.0 MB), not byte-perfect but functional |
+| modules/shared/definitions.asm | ✅ Integrated | Hardware register definitions (all platforms) |
+| modules/68k/boot/rom_header.asm | ✅ Integrated | Exception vectors + ROM header ($000000-$0001FF) |
+| modules/68k/memory/fill_copy_operations.asm | ⏸️ Extracted | Memory utils ($004836-$004996), integration deferred |
+| vrd_modular.asm | ✅ Building | Hybrid: 2 modules + sections/, 3,145,728 bytes, 68,305 byte diff |
+| Build System | ✅ | Both `make all` and `make modular` work |
 
 **Build Verification:**
 ```bash
@@ -56,10 +59,10 @@ Phase 1: Infrastructure (✅ COMPLETED)
 ├── Hardware register definitions added to vrd.asm
 └── Build system verified working
 
-Phase 2a: Foundation Modules (NEXT - No dependencies)
-├── 1. Boot & Initialization
-├── 2. Hardware Definitions (move from vrd.asm inline to modules/shared/)
-└── 3. Memory Utilities
+Phase 2a: Foundation Modules (✅ IN PROGRESS - 2/3 integrated, 1/3 extracted)
+├── 1. Boot & Initialization → ✅ modules/68k/boot/rom_header.asm (integrated)
+├── 2. Hardware Definitions → ✅ modules/shared/definitions.asm (integrated)
+└── 3. Memory Utilities → ⏸️ modules/68k/memory/fill_copy_operations.asm (extracted, deferred)
 
 Phase 2b: I/O Systems (Depend on foundation)
 ├── 4. Input/Controller System
@@ -435,13 +438,32 @@ wc -l sections/code_4200.asm
 ## Next Steps
 
 1. ✅ **Phase 1 Complete** - Infrastructure ready
-2. ⏭️ **Begin Phase 2a** - Extract Memory Utilities (no dependencies)
-3. **Update vrd_modular.asm** - Add module includes as extracted
-4. **Verify after each** - `make modular` must build
-5. **Document findings** - Update this map with actual addresses
+2. ✅ **Phase 2a: 2/3 Complete** - Hardware Defs & Boot integrated, Memory extracted
+3. **Phase 2b Preparation** - Continue extracting I/O subsystems (Display, Input, Sound)
+4. **Address Mixed Sections** - code_4200.asm contains Memory + Display + Input (needs splitting)
+5. **Integration Strategy** - Create code_4200_partial.asm after all extractions complete
 
 ---
 
-**Last Updated:** 2026-01-17
-**Status:** Ready for Phase 2a extraction
-**Working Build:** ✅ 3,145,728 bytes
+## Phase 2a Findings
+
+**Discovery:** Section files are not cleanly organized by subsystem:
+- `code_4200.asm` contains Memory Utils ($004836-$004996), Display ($004998+), and Input
+- `code_2200.asm` contains both Memory/VDP ops (mixed)
+
+**Integration Strategy for Mixed Sections:**
+1. Extract all subsystems from a mixed section file first
+2. Create a "partial" version with extracted code removed (e.g., code_4200_partial.asm)
+3. Update vrd_modular.asm to include modules + partial section
+4. Verify build after each major subsystem extraction
+
+**Module Files Created (Phase 2a):**
+- `modules/shared/definitions.asm` - Integrated ✅
+- `modules/68k/boot/rom_header.asm` - Integrated ✅
+- `modules/68k/memory/fill_copy_operations.asm` - Extracted, awaiting integration ⏸️
+
+---
+
+**Last Updated:** 2026-01-17 (Phase 2a session)
+**Status:** Phase 2a In Progress - 2/3 modules integrated
+**Working Build:** ✅ 3,145,728 bytes (make modular verified)

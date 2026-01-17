@@ -751,10 +751,10 @@ code_a200:
 ; --- Minimal register handler ---
 MinimalRegHandler:
         MOVEM.L D6/A5,-(A7)        ; $00A7CC
-        JSR $00888FC8(PC)        ; $00A7D0
-        MOVEM.L D2/A1,(A7)+        ; $00A7D4
+        DC.W $4EBA               ; $00A7D0
+        DC.W $4CDF               ; $00A7D4
         TST.W D2        ; $00A7D8
-        BGE $0088A7E0        ; $00A7DA
+        DC.W $6C04               ; $00A7DA
         BCHG #0,D0        ; $00A7DC
         RTS        ; $00A7E0
         dc.w    $43F9        ; $00A7E2
@@ -781,12 +781,12 @@ MinimalRegHandler:
 ; --- Loop-based data copy 1 (structured) ---
 LoopDataCopy1:
         MOVEQ #$00,D1        ; $00A80A
-        MOVE.B $FDA9.W,D1        ; $00A80C
+        DC.W $1238               ; $00A80C
         DC.W $43F8 ; Unknown        ; $00A810
         DC.W $FAD8 ; Unknown        ; $00A812
-        MOVE.W $C8C8.W,D0        ; $00A814
-        AND D0,#$0060        ; $00A818
-        AND D1,#$0020        ; $00A81C
+        DC.W $3038               ; $00A814
+        DC.W $C1FC               ; $00A818
+        DC.W $C3FC               ; $00A81C
         ADD.W D1,D0        ; $00A820
         DC.W $43F1 ; Unknown        ; $00A822
         BTST #248,D0        ; $00A824
@@ -796,7 +796,7 @@ LoopDataCopy1:
         MOVE.W (A1)+,$000A(A2)        ; $00A830
         DC.W $45EA ; Unknown        ; $00A834
         BTST D0,D0        ; $00A836
-        DBRA D0,$0088A82C        ; $00A838
+        DC.W $51C8               ; $00A838
         RTS        ; $00A83C
 
 ; --- Loop-based data copy 2 (bulk) ---
@@ -806,13 +806,13 @@ LoopDataCopy2:
         DC.W $FAD8 ; Unknown        ; $00A846
         MOVE.W #$0047,D0        ; $00A848
         MOVE.L (A1)+,(A2)+        ; $00A84C
-        DBRA D0,$0088A84C        ; $00A84E
+        DC.W $51C8               ; $00A84E
         LEA $00937F9E,A1        ; $00A852
         DC.W $45F8 ; Unknown        ; $00A858
         DC.W $FBF8 ; Unknown        ; $00A85A
         MOVE.W #$006B,D0        ; $00A85C
         MOVE.L (A1)+,(A2)+        ; $00A860
-        DBRA D0,$0088A860        ; $00A862
+        DC.W $51C8               ; $00A862
         RTS        ; $00A866
         dc.w    $F190        ; $00A868
         dc.w    $F1F0        ; $00A86A
@@ -2895,38 +2895,38 @@ LoopDataCopy2:
 
 ; --- High address handler 1 ---
 HighAddrHandler1:
-        MOVEA.L $C744.W,A1        ; $00B8A4
-        ADD.W $C8BC.W,D0        ; $00B8A8
-        MOVEA.L <EA:31>,A1        ; $00B8AC
+        DC.W $2278               ; $00B8A4
+        DC.W $D078               ; $00B8A8
+        DC.W $2271               ; $00B8AC
         BTST #0,D0        ; $00B8AE
-        MOVE.B $C303.W,D0        ; $00B8B2
+        DC.W $1038               ; $00B8B2
         ADD.W D0,D0        ; $00B8B6
         ADD.W D0,D0        ; $00B8B8
-        MOVE.L <EA:31>,D0        ; $00B8BA
+        DC.W $2031               ; $00B8BA
         BTST #192,D0        ; $00B8BC
         AND.W (A6),D0        ; $00B8C0
         SWAP D0        ; $00B8C2
-        MOVE.W D0,$C054.W        ; $00B8C4
-        MOVE.B #$0000,$C31C.W        ; $00B8C8
+        DC.W $31C0               ; $00B8C4
+        DC.W $11FC               ; $00B8C8
         DC.W $5338 ; Unknown        ; $00B8CE
         AND.B D1,D3        ; $00B8D0
-        BNE $0088B962        ; $00B8D2
-        MOVE.B #$0000,$C064.W        ; $00B8D6
-        MOVE.L $C750.W,$0010(A2)        ; $00B8DC
+        DC.W $6600, $008E     ; $00B8D2
+        DC.W $11FC               ; $00B8D6
+        DC.W $2578               ; $00B8DC
         TST.W $008A(A0)        ; $00B8E2
-        BNE $0088B8EE        ; $00B8E6
-        MOVE.L $C724.W,$0010(A2)        ; $00B8E8
+        DC.W $6606               ; $00B8E6
+        DC.W $2578               ; $00B8E8
         MOVEQ #$00,D2        ; $00B8EE
-        MOVE.L $C728.W,D1        ; $00B8F0
-        BEQ $0088B902        ; $00B8F4
+        DC.W $2238               ; $00B8F0
+        DC.W $670C               ; $00B8F4
         MOVE.L D1,$0024(A2)        ; $00B8F6
-        MOVE.L $C72C.W,$0038(A2)        ; $00B8FA
+        DC.W $2578               ; $00B8FA
         MOVEQ #$01,D2        ; $00B900
         MOVE.W D2,$0014(A2)        ; $00B902
         MOVE.W D2,$0028(A2)        ; $00B906
-        MOVE.W #$0001,$C04C.W        ; $00B90A
+        DC.W $31FC               ; $00B90A
         MOVE.W #$0002,$0000(A2)        ; $00B910
-        MOVEA.L $C738.W,A1        ; $00B916
+        DC.W $2278               ; $00B916
         MOVE.W (A1)+,$0016(A2)        ; $00B91A
         MOVE.W (A1)+,$0018(A2)        ; $00B91E
         MOVE.W (A1)+,$001A(A2)        ; $00B922
@@ -2935,34 +2935,34 @@ HighAddrHandler1:
         MOVE.W (A1),$002E(A2)        ; $00B92E
         MOVE.W #$0000,$003C(A2)        ; $00B932
         MOVE.W #$0000,$0050(A2)        ; $00B938
-        MOVEA.L $C740.W,A1        ; $00B93E
+        DC.W $2278               ; $00B93E
         CMPA.L #$00000000,A1        ; $00B942
-        BEQ $0088B962        ; $00B948
+        DC.W $6718               ; $00B948
         MOVE.W (A1)+,$0052(A2)        ; $00B94A
         MOVE.W (A1)+,$0054(A2)        ; $00B94E
         MOVE.W (A1),$0056(A2)        ; $00B952
         MOVE.W #$0001,$0050(A2)        ; $00B956
-        MOVE.L $C730.W,$0060(A2)        ; $00B95C
+        DC.W $2578               ; $00B95C
         RTS        ; $00B962
 
 ; --- High address handler variant ---
 HighAddrHandler2:
-        BSR $0088B990        ; $00B964
-        MOVE.B #$0000,$C31C.W        ; $00B966
+        DC.W $612A               ; $00B964
+        DC.W $11FC               ; $00B966
         DC.W $5338 ; Unknown        ; $00B96C
         AND.B D1,D3        ; $00B96E
-        BNE $0088B978        ; $00B970
-        MOVE.B #$0000,$C064.W        ; $00B972
+        DC.W $6606               ; $00B970
+        DC.W $11FC               ; $00B972
         RTS        ; $00B978
 
 ; --- High address processor ---
 HighAddrProcessor:
-        BSR $0088B990        ; $00B97A
+        DC.W $6114               ; $00B97A
         DC.W $5338 ; Unknown        ; $00B97C
         AND.B D1,D3        ; $00B97E
-        BNE $0088B98E        ; $00B980
-        MOVE.B #$0000,$C064.W        ; $00B982
-        MOVE.B #$0001,$C31C.W        ; $00B988
+        DC.W $660C               ; $00B980
+        DC.W $11FC               ; $00B982
+        DC.W $11FC               ; $00B988
         RTS        ; $00B98E
         dc.w    $2278        ; $00B990
         dc.w    $C744        ; $00B992

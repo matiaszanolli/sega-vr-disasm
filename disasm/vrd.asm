@@ -13,6 +13,9 @@
 ;
 ; ============================================================================
 
+; Include shared hardware definitions (must be before any org directives)
+        include "modules/shared/definitions.asm"
+
         include "sections/header.asm"
         include "sections/code_200.asm"
         include "sections/code_2200.asm"

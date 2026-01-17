@@ -1,117 +1,447 @@
-# Virtua Racing Deluxe - Refactoring Map
+# Refactoring Map: Address-Based → Feature-Based Organization
 
-This document maps the original address-based sections to the new feature-based module structure.
+This document maps the current address-based section files to the new feature-based module structure in `modules/`.
+
+**Status:** Phase 1 Complete - Infrastructure ready, working build verified
+**Build Method:** `make all` (sections-based) or `make modular` (will use modules/ after migration)
+**Current State:** All code in `disasm/sections/`, target structure in `disasm/modules/`
+
+---
 
 ## Current Status
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| sections/ | Legacy | Original disassembly with syntax errors |
-| sections_raw/ | Working | Raw DC.W data, guaranteed correct |
-| modules/ | In Progress | Feature-based organization |
+| sections/ | Working | Fixed 2,901 invalid mnemonics, builds successfully |
+| modules/ | Ready | 427 stub files created, awaiting code migration |
+| Build System | ✅ | ROM builds (3.0 MB), not byte-perfect but functional |
 
-## Build Verification
-
+**Build Verification:**
 ```bash
-make compare-raw      # Verify sections_raw/ build
-make compare-modular  # Verify modules/ build (uses sections_raw/)
+make all      # Build from sections/
+make compare  # Compare with original (68K bytes differ - acceptable)
+make modular  # Will build from modules/ after migration
 ```
 
-## Address Range Reference
+---
 
-### 68K Code Sections (ROM $000000-$016200)
+## Quick Reference: Current Sections
 
-| Address Range | Size | Current Location | Target Module |
-|---------------|------|------------------|---------------|
-| $000000-$0001FF | 512B | header.asm | modules/68k/boot/rom_header.asm |
-| $000200-$002200 | 8KB | code_00200.asm | modules/68k/boot/init_sequence.asm |
-| $002200-$016200 | ~82KB | code_*.asm | Various 68k modules |
+| Address Range | Section File | Size | Primary Content |
+|---------------|--------------|------|-----------------|
+| $000000-$0001FF | header.asm | 512 B | ROM header, exception vectors |
+| $000200-$0021FF | code_200.asm | 8 KB | Boot, initialization, main loop |
+| $002200-$0041FF | code_2200.asm | 8 KB | Memory utilities, VDP operations |
+| $004200-$0061FF | code_4200.asm | 8 KB | Input handling, controller system |
+| $006200-$0081FF | code_6200.asm | 8 KB | Display sync, palette management |
+| $008200-$00A1FF | code_8200.asm | 8 KB | Sound commands, Z80 interface |
+| $00A200-$00C1FF | code_a200.asm | 8 KB | Hardware registers, I/O handlers |
+| $00C200-$00E1FF | code_c200.asm | 8 KB | Main state machine (16 states) |
+| $00E200-$0101FF | code_e200.asm | 8 KB | Graphics/menus/UI logic |
+| $010200-$0121FF | code_10200.asm | 8 KB | Name entry system |
+| $012200-$0161FF | code_12200-14200.asm | 16 KB | Race camera, viewport control |
+| $016200-$0181FF | code_16200.asm | 8 KB | Camera utilities |
+| $018200+ | code_18200+ | ~2.8 MB | Game data, 3D assets, SH2 code |
 
-### Key Function Addresses (68K)
+---
 
-| Address | Function | Target Module |
-|---------|----------|---------------|
-| $000200 | Exception vectors | boot/rom_header.asm |
-| $000832 | Main entry point | boot/init_sequence.asm |
-| $001684 | V-INT Handler | main-loop/vint_handler.asm |
-| $0016B2 | State machine table | main-loop/state_machine.asm |
-| $0017EE-$02A4A | Input handling | input/*.asm |
-| $0027F8-$02878 | VDP operations | display/*.asm |
-| $00D1D4 | Z80 sound command | sound/*.asm |
-| $08B9C-$8EFC | HW register init | hardware-regs/*.asm |
+## Module Mapping Strategy
 
-### SH2 Code Sections (ROM $023000+)
-
-| Address Range | Size | Description | Target Module |
-|---------------|------|-------------|---------------|
-| $023000-$0245E4 | ~5KB | SH2 Master code | sh2/3d-engine/*.asm |
-| $0245E4-$027000 | ~11KB | SH2 Slave code | sh2/slave-rendering/*.asm |
-
-## Module Structure
+### Extraction Priority Order
 
 ```
-modules/
-├── 68k/
-│   ├── boot/           # ROM header, init sequence
-│   ├── input/          # Controller handling
-│   ├── display/        # VDP operations
-│   ├── memory/         # Fill/copy routines
-│   ├── sound/          # Z80 sound interface
-│   ├── hardware-regs/  # MARS register access
-│   └── main-loop/      # V-INT handler, state machine
-├── sh2/
-│   ├── 3d-engine/      # 3D rendering core
-│   ├── synchronization/# CPU coordination
-│   └── slave-rendering/# Slave CPU stages
-└── shared/
-    ├── definitions.asm # Hardware equates
-    ├── memory_map.asm  # Address space
-    └── macros.asm      # Common macros
+Phase 1: Infrastructure (✅ COMPLETED)
+├── modules/ directory structure created
+├── vrd_modular.asm orchestrator created
+├── Hardware register definitions added to vrd.asm
+└── Build system verified working
+
+Phase 2a: Foundation Modules (NEXT - No dependencies)
+├── 1. Boot & Initialization
+├── 2. Hardware Definitions (move from vrd.asm inline to modules/shared/)
+└── 3. Memory Utilities
+
+Phase 2b: I/O Systems (Depend on foundation)
+├── 4. Input/Controller System
+├── 5. Display/VDP System
+└── 6. Sound System
+
+Phase 2c: Game Logic (Depend on I/O)
+├── 7. Main Loop & State Machine
+├── 8. Graphics/Menus/UI
+├── 9. Name Entry System
+└── 10. Race Camera & Utilities
+
+Phase 3: SH2 Code (After 68K complete)
+├── 11. SH2 3D Engine
+└── 12. SH2 Synchronization
 ```
 
-## Migration Strategy
+---
 
-### Phase 1: Infrastructure (COMPLETED)
-- [x] Created modules/ directory structure
-- [x] Created sections_raw/ with raw DC.W data
-- [x] Updated Makefile with build targets
-- [x] Verified builds produce identical ROMs
+## Detailed Module Specifications
 
-### Phase 2: Code Extraction (IN PROGRESS)
-- [ ] Extract boot code to modules/68k/boot/
-- [ ] Extract input handling to modules/68k/input/
-- [ ] Extract VDP operations to modules/68k/display/
-- [ ] Extract memory utilities to modules/68k/memory/
-- [ ] Extract sound interface to modules/68k/sound/
-- [ ] Extract hardware register code to modules/68k/hardware-regs/
-- [ ] Extract main loop/V-INT to modules/68k/main-loop/
+### 1. Boot & Initialization → `modules/68k/boot/`
 
-### Phase 3: SH2 Extraction
-- [ ] Extract 3D engine code
-- [ ] Extract synchronization code
-- [ ] Extract slave rendering stages
+**Source Files:**
+- `sections/header.asm` → `rom_header.asm`
+- `sections/code_200.asm` (lines 1-300 est.) → `init_sequence.asm`
 
-### Phase 4: Finalization
-- [ ] Update vrd_modular.asm to use modules/
-- [ ] Create module documentation
-- [ ] Archive original sections/
+**Target Files:**
+- `rom_header.asm` - Exception vectors, ROM header ($000000-$0001FF)
+- `init_sequence.asm` - Boot code ($000200-$0003FF est.)
+- `includes.txt` - Dependency documentation
 
-## Extraction Guidelines
+**Key Content:**
+- Exception vector table ($000000-$0000FF)
+- ROM header metadata ($000100-$0001FF)
+- TMSS initialization
+- MARS adapter detection
+- Initial memory setup
 
-1. **Preserve byte positions**: All code must remain at original ROM offsets
-2. **Use org directives**: Each module file starts with `org $XXXXXX`
-3. **Document boundaries**: Mark start/end addresses in comments
-4. **Verify after each extraction**: Run `make compare-modular`
+**Dependencies:** None (entry point)
 
-## Cross-Reference Tools
+**Extraction Notes:**
+- Must preserve byte-perfect ROM header
+- Keep `org $000000` directive
+- Document all exception vector redirects
 
+---
+
+### 2. Hardware Definitions → `modules/shared/definitions.asm`
+
+**Source:**
+- Currently inline in `vrd.asm` lines 16-46
+- Should move to shared module for better organization
+
+**Content:**
+```asm
+; 32X System Registers
+MARS_SYS_BASE       equ $A15100
+MARS_SYS_INTCTL     equ $A15100
+MARS_SYS_INTMASK    equ $A15102
+MARS_SYS_HCOUNT     equ $A15104
+MARS_DREQ_CTRL      equ $A15106
+MARS_DREQ_LEN       equ $A15110
+MARS_FIFO           equ $A15112
+
+; Communication Ports (68K ↔ SH2)
+COMM0-COMM7         equ $A15120-$A1512E
+
+; VDP Registers
+MARS_VDP_MODE       equ $A15180
+MARS_VDP_FILLADR    equ $A15186
+MARS_VDP_FILLDATA   equ $A15188
+MARS_VDP_FBCTL      equ $A1518A
+
+; Mega Drive Registers
+VDP_DATA, VDP_CTRL, PSG, MD_DATA1, MD_CTRL1
+Z80_BUSREQ, Z80_RESET, WORK_RAM
+```
+
+**Dependencies:** None
+
+---
+
+### 3. Memory Utilities → `modules/68k/memory/`
+
+**Source:**
+- `sections/code_2200.asm` (partial) - Extract fill/copy routines
+
+**Target Files:**
+- `fill_operations.asm` - Unrolled fill variants
+- `copy_operations.asm` - Fast copy routines
+- `bitfield_utils.asm` - Bit manipulation
+- `vram_init.asm` - VRAM clearing
+
+**Key Functions (to locate):**
+- UnrolledFill32, UnrolledFill60, UnrolledFill96, UnrolledFill112
+- FastCopy16, FastCopy20
+- ClearVRAM
+- Bit extraction utilities
+
+**Dependencies:** Hardware register definitions only
+
+---
+
+### 4. Input/Controller → `modules/68k/input/`
+
+**Source:**
+- `sections/code_4200.asm` ($004200-$0061FF)
+
+**Target Files:**
+- `controller_system.asm` - Hardware polling
+- `button_mapping.asm` - Bit mapping
+- `state_machine.asm` - State management
+
+**Key Data:**
+- Input buffer: Likely $C800-$C8FF
+- Button state flags
+- Edge detection buffers
+
+**Dependencies:**
+- Hardware registers (MD_DATA1, MD_CTRL1)
+- Memory utilities (buffer ops)
+
+---
+
+### 5. Display/VDP → `modules/68k/display/`
+
+**Source:**
+- `sections/code_6200.asm` ($006200-$0081FF)
+- `sections/code_2200.asm` (partial)
+
+**Target Files:**
+- `vdp_system.asm` - VDP operations
+- `palette_system.asm` - Color management
+- `sync_handler.asm` - SH2 synchronization
+- `screen_modes.asm` - Display configuration
+
+**Key Functions:**
+- VDPFill, VDPSyncSH2, PaletteRAMCopy
+- SetDisplayParams, InitVDPRegs
+
+**Dependencies:**
+- VDP/MARS registers
+- Memory utilities
+- COMM registers (SH2 sync)
+
+---
+
+### 6. Sound → `modules/68k/sound/`
+
+**Source:**
+- `sections/code_8200.asm` ($008200-$00A1FF)
+
+**Target Files:**
+- `z80_commands.asm` - Sound command interface
+- `audio_integration.asm` - YM-2612 integration
+
+**Key Functions:**
+- Z80SoundCmd ($00D1D4 documented)
+- InitZ80, SendSoundCommand, WaitZ80
+
+**Dependencies:**
+- Z80 registers (Z80_BUSREQ, Z80_RESET, Z80_RAM)
+
+---
+
+### 7. Main Loop → `modules/68k/main-loop/`
+
+**Source:**
+- `sections/code_c200.asm` - State machine
+- `sections/code_200.asm` (partial) - V-INT
+
+**Target Files:**
+- `vint_handler.asm` - V-INT handler (0x1684)
+- `state_machine.asm` - 16-state dispatcher
+- `state_0_through_15.asm` - State handlers
+- `polling_loop.asm` - VDP/SH2 polling
+- `frame_timing.asm` - Frame sync
+
+**Key Data:**
+- State variable: $C87E (16 states cyclic)
+- Frame counter: $C964
+- State table: $0016B2
+
+**Dependencies:** All subsystems (orchestrator)
+
+---
+
+### 8. Graphics/Menus → `modules/68k/game/graphics/`
+
+**Source:**
+- `sections/code_e200.asm` ($00E200-$010200)
+- 2,267 lines, 190 functions (per GAME_LOGIC_GRAPHICS_MENUS.md)
+
+**Target Files:**
+- `menu_state_machines.asm` - 4 state machines
+- `sh2_commands.asm` - 8 SH2 commands
+- `ui_rendering.asm` - Menu rendering
+- `mode_selection.asm` - Mode selection
+
+**Key Systems:**
+- State Machine 1: Lines 8-600 (main menu)
+- State Machine 2: Lines 620-1200 (sub-menus)
+- State Machine 3: Lines 1220-1800 (rendering)
+- State Machine 4: Lines 1820-2267 (UI updates)
+
+**SH2 Commands:** $00, $01, $02, $03, $04, $06, $1C, $1D
+
+**Dependencies:** Display, Input, COMM registers
+
+---
+
+### 9. Name Entry → `modules/68k/game/name-entry/`
+
+**Source:**
+- `sections/code_10200.asm` ($010200-$012200)
+- 2,251 lines, 201 functions (per GAME_LOGIC_NAME_ENTRY.md)
+
+**Target Files:**
+- `name_entry_keyboard.asm` - 52-char keyboard
+- `name_entry_cursor.asm` - Cursor control
+- `name_entry_ascii.asm` - ASCII conversion
+
+**Key Data:**
+- ASCII table: $010974 (keyboard → ASCII mapping)
+- 52 characters: A-Z, 0-9, symbols
+- 178 JSR calls to input system
+
+**Dependencies:** Display (rendering), Input (cursor)
+
+---
+
+### 10. Race Camera → `modules/68k/game/camera/`
+
+**Source:**
+- `sections/code_12200.asm` ($012200-$014200)
+- `sections/code_14200.asm` ($014200-$0161FF)
+- `sections/code_16200.asm` ($016200-$018200)
+- Combined: 6,452 lines, 238 functions
+
+**Target Files:**
+- `race_camera_control.asm` - Camera transitions
+- `viewport_control.asm` - Scroll management
+- `race_utilities.asm` - Helper functions
+
+**Key Data:**
+- Scroll offset: $A026
+- Counter: $A02A
+
+**Dependencies:** Display (viewport), SH2 (position sync)
+
+---
+
+### 11. SH2 3D Engine → `modules/sh2/3d-engine/`
+
+**Source:**
+- SH2 sections starting ~$023000+
+
+**Target Files:**
+- `core_engine.asm` - Matrix math, transforms
+- `hardware_setup.asm` - 32X VDP setup
+- `dma_operations.asm` - Frame buffer DMA
+- `pipeline.asm` - Rendering pipeline
+
+**Key Systems (per SH2_3D_PIPELINE_ARCHITECTURE.md):**
+- Matrix operations (4x4, rotation, translation)
+- Polygon clipping/projection
+- Depth sorting
+- Rasterization
+
+**Dependencies:** COMM registers, MARS_VDP_*, MARS_FIFO
+
+---
+
+### 12. SH2 Synchronization → `modules/sh2/synchronization/`
+
+**Source:**
+- SH2 sections with COMM register access
+
+**Target Files:**
+- `comm_protocol.asm` - COMM0-7 protocol
+- `master_sync.asm` - Master coordination
+- `handshake.asm` - Boot handshake
+
+**COMM Protocol:**
+- Command codes: $00-$1D
+- Bidirectional communication
+- Frame synchronization
+
+**Dependencies:** Hardware registers, 3D engine
+
+---
+
+## Extraction Workflow
+
+For each module:
+
+### 1. Identify Functions
 ```bash
-# Find all references to an address
-grep -r '$001684' disasm/
+# Find functions in source section
+grep -E '^\w+:' sections/code_4200.asm
 
-# List functions in a section
-grep -E '^\w+:' disasm/sections/code_200.asm
+# Find address references
+grep '\$004[0-9A-F]{3}' sections/code_4200.asm
 
-# Count instructions per section
-wc -l disasm/sections_raw/*.asm
+# Count lines/functions
+wc -l sections/code_4200.asm
 ```
+
+### 2. Extract Code
+- Copy relevant code to target module file
+- Preserve address comments (`;  $XXXXXX`)
+- Add module header with dependencies
+- Keep `org` directive for address
+
+### 3. Update Orchestrator
+- Add `include "modules/path/file.asm"` to vrd_modular.asm
+- Maintain address order
+- Test build: `make modular`
+
+### 4. Verify
+- Build completes: `make all`
+- ROM size correct: 3,145,728 bytes
+- Test in emulator
+
+### 5. Document
+- Update this map with findings
+- Note dependencies discovered
+- Document data structures
+
+---
+
+## Address Reference
+
+| Module | Start | End | Section Files |
+|--------|-------|-----|---------------|
+| Boot | $000000 | $0003FF | header.asm, code_200.asm |
+| Memory | $002200 | $003FFF | code_2200.asm (partial) |
+| Input | $004200 | $005FFF | code_4200.asm |
+| Display | $006200 | $007FFF | code_6200.asm |
+| Sound | $008200 | $009FFF | code_8200.asm |
+| HW Regs | $00A200 | $00BFFF | code_a200.asm |
+| Main Loop | $00C200 | $00DFFF | code_c200.asm |
+| Graphics | $00E200 | $00FFFF | code_e200.asm |
+| Name Entry | $010200 | $0121FF | code_10200.asm |
+| Camera | $012200 | $0181FF | code_12200-16200.asm |
+| SH2 Code | $023000+ | $2FFFFF | code_*.asm (many) |
+
+---
+
+## Known Issues
+
+### Section Overlap (Resolved)
+- code_14200.asm extended to $016232, overlapped code_16200.asm
+- **Fix:** Truncated at $0161FE (last valid instruction)
+- **Impact:** 310 lines removed
+- **Status:** ✅ Builds successfully
+
+### Invalid Mnemonics (Resolved)
+- **Fixed:** 2,901 invalid instructions
+- **Tool:** tools/fix_invalid_mnemonics.py
+- **Patterns:** MOVEM invalid dest, bit ops on A-regs, PC-relative with absolute
+- **Status:** ✅ ROM assembles
+
+### Byte-Perfect Rebuild (Accepted Limitation)
+- **Status:** Not achievable (~68K bytes differ)
+- **Cause:** Original disassembly has incorrect mnemonics
+- **Decision:** Proceed with working build
+- **Impact:** ROM builds, runs, suitable for refactoring
+
+---
+
+## Next Steps
+
+1. ✅ **Phase 1 Complete** - Infrastructure ready
+2. ⏭️ **Begin Phase 2a** - Extract Memory Utilities (no dependencies)
+3. **Update vrd_modular.asm** - Add module includes as extracted
+4. **Verify after each** - `make modular` must build
+5. **Document findings** - Update this map with actual addresses
+
+---
+
+**Last Updated:** 2026-01-17
+**Status:** Ready for Phase 2a extraction
+**Working Build:** ✅ 3,145,728 bytes

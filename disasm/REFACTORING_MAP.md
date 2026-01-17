@@ -2,9 +2,9 @@
 
 This document maps the current address-based section files to the new feature-based module structure in `modules/`.
 
-**Status:** Phase 2a In Progress - Foundation modules extracted
-**Build Method:** `make all` (sections-based) or `make modular` (uses modules/ + sections/)
-**Current State:** Hybrid build - 2 modules integrated, 1 module extracted (integration deferred)
+**Status:** Phase 3 COMPLETE - Module integration with partial sections
+**Build Method:** `make all` (sections-based) or `make modular` (modules/ + partial sections/)
+**Current State:** Hybrid build - 5 modules integrated, working ROM (64.6K byte diff from original)
 
 ---
 
@@ -15,11 +15,13 @@ This document maps the current address-based section files to the new feature-ba
 | sections/ | Working | Fixed 2,901 invalid mnemonics, builds successfully |
 | modules/shared/definitions.asm | ✅ Integrated | Hardware register definitions (all platforms) |
 | modules/68k/boot/rom_header.asm | ✅ Integrated | Exception vectors + ROM header ($000000-$0001FF) |
-| modules/68k/memory/fill_copy_operations.asm | ⏸️ Extracted | Memory utils ($004836-$004996) from code_4200.asm |
-| modules/68k/display/vdp_operations.asm | ⏸️ Extracted | VDP ops ($0027F8-$002982) from code_2200.asm |
-| modules/68k/display/sync_functions.asm | ⏸️ Extracted | V-INT sync ($004998-$0049C6) from code_4200.asm |
-| vrd_modular.asm | ✅ Building | Hybrid: 2 integrated + 3 extracted, 3,145,728 bytes |
-| Build System | ✅ | Both `make all` and `make modular` work |
+| modules/68k/memory/fill_copy_operations.asm | ✅ Integrated | Memory utils ($004836-$004996) from code_4200.asm |
+| modules/68k/display/vdp_operations.asm | ✅ Integrated | VDP ops ($0027F8-$002982) from code_2200.asm |
+| modules/68k/display/sync_functions.asm | ✅ Integrated | V-INT sync ($004998-$0049C6) from code_4200.asm |
+| sections/code_2200_partial.asm | ✅ Created | Original code_2200 with VDP ops removed, org $002984 |
+| sections/code_4200_partial.asm | ✅ Created | Original code_4200 with Memory+Display removed, org $0049C8 |
+| vrd_modular.asm | ✅ Building | Hybrid: 5 modules + partial sections, 3,145,728 bytes |
+| Build System | ✅ | Both `make all` and `make modular` work, 64.6K diff |
 
 **Build Verification:**
 ```bash
@@ -61,25 +63,31 @@ Phase 1: Infrastructure (✅ COMPLETED)
 ├── Hardware register definitions added to vrd.asm
 └── Build system verified working
 
-Phase 2a: Foundation Modules (✅ IN PROGRESS - 2/3 integrated, 1/3 extracted)
-├── 1. Boot & Initialization → ✅ modules/68k/boot/rom_header.asm (integrated)
-├── 2. Hardware Definitions → ✅ modules/shared/definitions.asm (integrated)
-└── 3. Memory Utilities → ⏸️ modules/68k/memory/fill_copy_operations.asm (extracted, deferred)
+Phase 2: Foundation Module Extraction (✅ COMPLETED)
+├── 1. Boot & Initialization → ✅ modules/68k/boot/rom_header.asm
+├── 2. Hardware Definitions → ✅ modules/shared/definitions.asm
+├── 3. Memory Utilities → ✅ modules/68k/memory/fill_copy_operations.asm
+├── 4. Display/VDP Operations → ✅ modules/68k/display/vdp_operations.asm
+└── 5. Display Sync Functions → ✅ modules/68k/display/sync_functions.asm
 
-Phase 2b: I/O Systems (Depend on foundation)
-├── 4. Input/Controller System
-├── 5. Display/VDP System
-└── 6. Sound System
+Phase 3: Module Integration (✅ COMPLETED)
+├── Created code_2200_partial.asm (VDP ops removed, org $002984)
+├── Created code_4200_partial.asm (Memory+Display removed, org $0049C8)
+├── Updated vrd_modular.asm to include modules in address order
+├── Verified build: 3,145,728 bytes, 64,596 byte diff (improved from 68,305)
+└── All modules building correctly with partial sections
 
-Phase 2c: Game Logic (Depend on I/O)
-├── 7. Main Loop & State Machine
-├── 8. Graphics/Menus/UI
-├── 9. Name Entry System
-└── 10. Race Camera & Utilities
+Phase 4: Continue Extraction (NEXT)
+├── 6. Input/Controller System
+├── 7. Sound System
+├── 8. Main Loop & State Machine
+├── 9. Graphics/Menus/UI
+├── 10. Name Entry System
+└── 11. Race Camera & Utilities
 
-Phase 3: SH2 Code (After 68K complete)
-├── 11. SH2 3D Engine
-└── 12. SH2 Synchronization
+Phase 5: SH2 Code (After 68K complete)
+├── 12. SH2 3D Engine
+└── 13. SH2 Synchronization
 ```
 
 ---

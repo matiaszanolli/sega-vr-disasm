@@ -136,19 +136,39 @@ VDP register documentation, frame buffer format, and graphics mode analysis.
 
 ---
 
+### System Architecture Documentation - **NEW: Core Game Systems**
+Detailed architecture documentation for critical game subsystems.
+
+**Key Documents:**
+- **VINT_HANDLER_ARCHITECTURE.md** - V-INT handler and 16-state machine ($001684)
+  - Frame counter at $C964.L
+  - State dispatch via jump table
+  - Interrupt priority management
+- **CONTROLLER_INPUT_ARCHITECTURE.md** - 3-button controller protocol ($00185E)
+  - Z-Bus arbitration
+  - TH line timing with NOPs
+  - Button remapping and delta detection
+- **68K_SH2_COMMUNICATION.md** - CPU communication patterns (COMM registers)
+- **SH2_3D_PIPELINE_ARCHITECTURE.md** - 3D rendering engine (SH2)
+
+**Status:** ✅ V-INT and controller systems fully documented (2026-01-17)
+
+---
+
 ## 📊 Summary Statistics
 
 | Category | Files | Status |
 |----------|-------|--------|
-| Debugger Design (NEW) | 10 | ✅ Complete |
+| Debugger Design | 10 | ✅ Complete |
 | 68K Analysis | 28 | ✅ Phase 6 Complete |
 | SH2 Analysis | 9 | ✅ Phase 4 Complete |
+| System Architecture (NEW) | 4 | ✅ 2 Documented |
 | Optimization | 9 | ✅ Identified Paths |
 | Profiling | 5 | ✅ Methodology Ready |
 | Phase Reports | 6 | ✅ Current |
 | Architecture | 7 | ✅ Complete |
 | Graphics/VDP | 1 | ✅ Complete |
-| **Total** | **~80** | **✅ Ready** |
+| **Total** | **~82** | **✅ Ready** |
 
 ---
 

@@ -215,6 +215,45 @@ KNOWN_FUNCTIONS = {
     0x00A1FC: "race_state_read",          # Race state from $C8CA, 10 calls
     0x00AC3E: "effect_countdown",         # Effect timer at $C8AE, 11 calls
     0x00A8F8: "obj_state_return",         # Object state return, 5 calls
+
+    # Z80/FM bus control
+    0x030D1C: "z80_bus_request",          # Z80 bus request + wait, 13 calls
+    0x030CCC: "fm_write_conditional",     # Conditional FM register write, 13 calls
+
+    # Object system
+    0x007AB6: "obj_heading_update",       # Object heading/angle init, 10 calls
+    0x009E6E: "obj_proximity_check",      # Object proximity comparison, 10 calls
+    0x0021CA: "sfx_queue_process",        # Sound effect queue handler, 9 calls
+
+    # Additional high-call functions
+    0x003126: "vdp_reg_write",            # VDP register write, 9 calls
+    0x003160: "vdp_dma_setup",            # VDP DMA setup, 7 calls
+    0x002984: "palette_update",           # Palette color update, 7 calls
+    0x0086C8: "state_jump_indexed",       # Indexed state jump, 9 calls
+    0x009688: "timer_process",            # Game timer processing, 9 calls
+
+    # More frequently called
+    0x00ACD4: "ai_target_check",          # AI opponent targeting, 9 calls
+    0x009EC0: "state_jump_table",         # State dispatcher via $C8AC, 7 calls
+    0x00496E: "random_number_gen",        # PRNG using $EF00.W, 6 calls
+    0x003CC4: "player_table_load",        # Load player pointers, 6 calls
+    0x0058C8: "sprite_input_check",       # Sprite/input validation, 6 calls
+    0x005908: "sprite_update_check",      # Sprite update conditional, 6 calls
+    0x00593C: "sprite_state_process",     # Sprite state processing, 6 calls
+    0x00789C: "obj_frame_calc",           # Object frame calculation, 6 calls
+    0x0086FE: "state_dispatch_alt",       # Alternate state dispatch, 6 calls
+    0x00B77C: "sprite_buffer_alt",        # Alt sprite buffer, 6 calls
+    0x00A7A0: "ai_steering_calc",         # AI steering calculation, 6 calls
+    0x0145F0: "menu_state_check",         # Menu state check, 6 calls
+
+    # Final batch - remaining 5+ call functions
+    0x009040: "view_offset_calc",         # Camera/view offset calc, 7 calls
+    0x009064: "view_bounds_check",        # Camera bounds checking, 6 calls
+    0x0031A6: "display_mode_dispatch",    # Display mode dispatcher, 6 calls
+    0x007084: "obj_position_update",      # Update object positions, 5 calls
+    0x008032: "race_position_check",      # Race position delta check, 5 calls
+    0x00A144: "game_state_handler",       # Game state handler, 5 calls
+    0x011A98: "name_entry_check",         # Name entry state check, 5 calls
 }
 
 

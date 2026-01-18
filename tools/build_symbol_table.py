@@ -142,6 +142,12 @@ KNOWN_FUNCTIONS = {
     0x012062: "name_confirm",             # Name confirmation
     0x010838: "name_input_handler",       # Grid navigation input
 
+    # Race Start & Camera (from analysis/GAME_LOGIC_REMAINING_MODULES.md)
+    0x012200: "race_camera_module",       # Camera system entry
+    0x012260: "sh2_wait_ready",           # Wait for SH2 COMM ready
+    0x01231C: "camera_scroll_update",     # Update camera scroll position
+    0x012A40: "race_camera_dispatcher",   # Camera state machine
+
     # Game logic (frequent callers)
     0x009802: "game_update",
     0x00B684: "object_update",

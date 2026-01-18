@@ -384,6 +384,9 @@ func_011B08              EQU $011B08
 func_011B6A              EQU $011B6A
 func_011C7E              EQU $011C7E
 name_confirm             EQU $012062
+race_camera_module       EQU $012200
+sh2_wait_ready           EQU $012260
+camera_scroll_update     EQU $01231C
 func_01250C              EQU $01250C
 func_012534              EQU $012534
 func_01259C              EQU $01259C
@@ -392,6 +395,7 @@ func_0125EC              EQU $0125EC
 func_01260A              EQU $01260A
 func_012618              EQU $012618
 func_0126A6              EQU $0126A6
+race_camera_dispatcher   EQU $012A40
 func_012F0A              EQU $012F0A
 func_012FE4              EQU $012FE4
 func_0135C4              EQU $0135C4

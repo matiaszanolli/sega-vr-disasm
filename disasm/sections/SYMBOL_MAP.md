@@ -367,6 +367,9 @@
 | $011B6A | func_011B6A | 0 |
 | $011C7E | func_011C7E | 0 |
 | $012062 | name_confirm | 0 |
+| $012200 | race_camera_module | 0 |
+| $012260 | sh2_wait_ready | 0 |
+| $01231C | camera_scroll_update | 0 |
 | $01250C | func_01250C | 0 |
 | $012534 | func_012534 | 0 |
 | $01259C | func_01259C | 0 |
@@ -375,6 +378,7 @@
 | $01260A | func_01260A | 0 |
 | $012618 | func_012618 | 0 |
 | $0126A6 | func_0126A6 | 0 |
+| $012A40 | race_camera_dispatcher | 0 |
 | $012F0A | func_012F0A | 0 |
 | $012FE4 | func_012FE4 | 0 |
 | $0135C4 | func_0135C4 | 0 |

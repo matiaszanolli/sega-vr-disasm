@@ -3,15 +3,6 @@
 ; Generated from ROM bytes - guaranteed accurate
 ; ============================================================================
 
-
-; ----------------------------------------------------------------------------
-; Data Type: model_data
-; Description: 3D model vertex data
-; Statistics: 4096 words, 2909 unique values
-;             29 zeros, 1 $FFFF values
-; ----------------------------------------------------------------------------
-
-
         org     $0EA200
 
         dc.w    $E009        ; $0EA200

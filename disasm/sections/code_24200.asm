@@ -3,15 +3,6 @@
 ; Generated from ROM bytes - guaranteed accurate
 ; ============================================================================
 
-
-; ----------------------------------------------------------------------------
-; Data Type: ai_data
-; Description: AI behavior and waypoint data
-; Statistics: 4096 words, 2150 unique values
-;             66 zeros, 8 $FFFF values
-; ----------------------------------------------------------------------------
-
-
         org     $024200
 
         dc.w    $31DC        ; $024200

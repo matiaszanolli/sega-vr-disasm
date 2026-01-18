@@ -3,15 +3,6 @@
 ; Generated from ROM bytes - guaranteed accurate
 ; ============================================================================
 
-
-; ----------------------------------------------------------------------------
-; Data Type: sound_data
-; Description: Sound effect data
-; Statistics: 4096 words, 141 unique values
-;             2 zeros, 3840 $FFFF values
-; ----------------------------------------------------------------------------
-
-
         org     $02E200
 
         dc.w    $FFFF        ; $02E200

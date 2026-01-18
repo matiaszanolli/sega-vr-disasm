@@ -3,15 +3,6 @@
 ; Generated from ROM bytes - guaranteed accurate
 ; ============================================================================
 
-
-; ----------------------------------------------------------------------------
-; Data Type: sprite_graphics
-; Description: Sprite graphics data
-; Statistics: 4096 words, 1 unique values
-;             0 zeros, 4096 $FFFF values
-; ----------------------------------------------------------------------------
-
-
         org     $0BC200
 
         dc.w    $FFFF        ; $0BC200

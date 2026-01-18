@@ -180,6 +180,8 @@ h_int_handler:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_001:
+
+; === display_list_processor ===
 0222301C  0009     NOP                        ; Alignment/padding
 0222301E  0000     DW      $0000              ; Literal pool
 02223020  C000     DW      $C000              ; Part of address literal
@@ -230,6 +232,8 @@ handler_a:
 exit_loop:
 02223062  4F26     LDS.L   @R15+,PR           ; Pop return address
 02223064  000B     RTS                        ; Return
+
+; === render_init ===
 02223066  1EB9     MOV.L   R11,@($24,R14)     ; Store R11 back to context (delay slot)
 
 ; Analysis: This is a classic display list interpreter pattern used in
@@ -269,6 +273,8 @@ exit_loop:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_023:
+
+; === frustum_cull_dispatch ===
 02223500  0000     DW      $0000              ; Literal pool header
 02223502  0000     DW      $0000
 02223504  2000     DW      $2000
@@ -388,6 +394,8 @@ buf_ptr:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_016:
+
+; === coord_transform_util ===
 02223368  51E7     MOV.L   @($1C,R14),R1      ; Load field_0x1C into R1
 0222336A  52E8     MOV.L   @($20,R14),R2      ; Load field_0x20 into R2
 0222336C  4128     SHLL16  R1                 ; Shift R1 left 16 bits (upper word)
@@ -404,6 +412,8 @@ func_016:
 02223382  240B     OR      R0,R4              ; R4 = R4 | R0 (alt combination)
 02223384  1E3C     MOV.L   R3,@($30,R14)      ; Store to field_0x30
 02223386  000B     RTS                        ; Return
+
+; === coord_transform_single ===
 02223388  1E4D     MOV.L   R4,@($34,R14)      ; Store to field_0x34 (delay slot)
 
 ; Analysis: This function combines 16-bit coordinate pairs into 32-bit values.
@@ -453,6 +463,8 @@ func_016:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_065:
+
+; === unrolled_data_copy ===
 02223F2C  0009     NOP                        ; Entry point alignment
 02223F2E  4018     SHLL8   R0                 ; R0 = R0 << 8 (multiply by 256)
 02223F30  4001     SHLR    R0                 ; R0 = R0 >> 1 (divide by 2)
@@ -567,6 +579,8 @@ func_065:
 02223FC0  31DC     ADD     R13,R1
 
 02223FC2  000B     RTS                        ; Return
+
+; === block_copy_32 ===
 02223FC4  0009     NOP                        ; Delay slot
 
 ; Analysis: This is a masterpiece of loop unrolling optimization!
@@ -697,6 +711,8 @@ func_006:
 02223170  000A     STS     MACH,R0
 02223172  30CC     ADD     R12,R0             ; Add R12
 02223174  000B     RTS
+
+; === alt_transform_loop ===
 02223176  81A7     MOV.B   R0,@($7,R1)        ; Store byte to offset +7 (delay slot)
 
 ; Analysis: Classic 3D transformation using fixed-point MAC operations.
@@ -764,6 +780,8 @@ func_006:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_024:
+
+; === render_param_setup ===
 022235F4  0009     NOP                        ; Entry alignment
 022235F6  51E3     MOV.L   @($C,R14),R1      ; R1 = ctx->field_0C (attrib base)
 022235F8  52E4     MOV.L   @($10,R14),R2     ; R2 = ctx->field_10 (scale param)
@@ -802,6 +820,8 @@ func_024:
 0222362C  8902     BT      $02223634          ; If ready, branch to skip
 0222362E  5092     MOV.L   @($8,R9),R0       ; Read from frame buffer
 02223630  000B     RTS                        ; Return
+
+; === param_helper ===
 02223632  1903     MOV.L   R0,@($C,R9)       ; Store back (delay slot)
 
 ; Branch target if ready
@@ -812,6 +832,8 @@ func_024:
 0222363C  3428     SUB     R2,R4
 0222363E  604B     NEG     R4,R0
 02223640  000B     RTS                        ; Return
+
+; === coord_boundary_clamp ===
 02223642  8197     MOV.B   R0,@($7,R1)       ; Store to offset 7 (delay slot)
 
 ; Analysis: This function loads 6 parameter pairs (12 bytes) and writes
@@ -849,6 +871,8 @@ func_024:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_026:
+
+; === coord_boundary_clamp ===
 02223642  8197     MOV.B   R0,@($7,R1)       ; (from func_024 delay slot)
 02223644  D804     MOV.L   @(literal,PC),R8  ; R8 = 0xC0000740 (buffer ptr)
 02223646  8580     MOV.B   R0,@($0,R5)       ; Write status
@@ -883,12 +907,18 @@ func_026:
 02223674  3013     CMP/GE  R1,R0
 02223676  8901     BT      $0222367C
 02223678  000B     RTS
+
+; === conditional_value_assign ===
 0222367A  6103     MOV     R0,R1
 0222367C  3203     CMP/GE  R0,R2
 0222367E  8901     BT      $02223684
 02223680  000B     RTS
+
+; === register_copy ===
 02223682  6203     MOV     R0,R2
 02223684  000B     RTS
+
+; === region_code_generate ===
 02223686  0009     NOP
 
 ; Analysis: This function clamps coordinates using min/max bounds.
@@ -929,6 +959,8 @@ func_026:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_029:
+
+; === region_code_generate ===
 02223686  0009     NOP                        ; Entry alignment
 02223688  D805     MOV.L   @(literal,PC),R8  ; R8 = 0xC0000742 (buffer ptr)
 0222368A  8580     MOV.B   R0,@($0,R5)       ; Write status
@@ -968,13 +1000,19 @@ func_029:
 022236C4  8902     BT      $022236CC
 022236C6  EA0C     MOV     #$0C,R10           ; R10 = 0x0C (set quadrant 3)
 022236C8  000B     RTS
+
+; === conditional_param_assign ===
 022236CA  6103     MOV     R0,R1
 022236CC  3203     CMP/GE  R0,R2
 022236CE  8902     BT      $022236D6
 022236D0  EB0C     MOV     #$0C,R11           ; R11 = 0x0C (set quadrant 3)
 022236D2  000B     RTS
+
+; === register_copy_v2 ===
 022236D4  6203     MOV     R0,R2
 022236D6  000B     RTS
+
+; === scanline_fill_loop ===
 022236D8  0009     NOP
 
 ; Analysis: This function encodes quadrant information using two output
@@ -1012,6 +1050,8 @@ func_029:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_032:
+
+; === scanline_fill_loop ===
 022236D8  0009     NOP                        ; Entry alignment
 022236DA  D805     MOV.L   @(literal,PC),R8  ; R8 = 0xC0000740
 022236DC  60A3     MOV     R10,R0             ; R0 = current region code
@@ -1029,6 +1069,8 @@ func_032:
 
 022236F4  E0FF     MOV     #$FF,R0            ; Load end marker
 022236F6  000B     RTS                        ; Return
+
+; === polygon_scanline_gen ===
 022236F8  2902     MOV.L   R0,@R9             ; Write final pixel (delay slot)
 
 ; Analysis: This is a tight fill loop for scanline rendering.
@@ -1076,6 +1118,8 @@ func_032:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_033:
+
+; === polygon_scanline_gen ===
 022236F8  2902     MOV.L   R0,@R9             ; Store pixel data
 022236FA  D80B     MOV.L   @(literal,PC),R8  ; Load buffer base
 022236FC  60A3     MOV     R10,R0             ; R0 = region code 1
@@ -1132,6 +1176,8 @@ func_033:
 
 02223758  E0FF     MOV     #$FF,R0            ; Exit code
 0222375A  000B     RTS                        ; Return
+
+; === bresenham_rasterize ===
 0222375C  2902     MOV.L   R0,@R9             ; Store final (delay slot)
 
 ; Analysis: This function implements the scanline rendering algorithm.
@@ -1172,6 +1218,8 @@ func_033:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_034:
+
+; === bresenham_rasterize ===
 0222375C  2902     MOV.L   R0,@R9
 0222375E  641F     EXTS.W  R1,R4              ; R4 = sign_extend(R1[15:0])
 02223760  652F     EXTS.W  R2,R5              ; R5 = sign_extend(R2[15:0])
@@ -1218,6 +1266,8 @@ func_034:
 022237A2  374C     ADD     R4,R7              ; Accumulate
 022237A4  4728     SHLL16  R7                 ; Final scaling
 022237A6  000B     RTS
+
+; === render_param_fetch ===
 022237A8  237B     OR      R7,R3              ; Combine results (delay slot)
 
 022237AA  FF01     DW      $FF01              ; Data
@@ -1264,6 +1314,8 @@ func_034:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_036:
+
+; === conditional_block_proc ===
 022237D2  237B     OR      R7,R3              ; Initialize/combine register values (setup)
 022237D4  FF00     DW      $FF00              ; Data word (used by setup)
 022237D6  4F22     STS.L   PR,@-R15           ; [PROLOGUE] Save return address to stack
@@ -1340,6 +1392,8 @@ func_036:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_037:
+
+; === bounds_validate ===
 0222381C  2902     MOV.L   R0,@R9             ; Write R0 to frame buffer (R9)
 0222381E  51E7     MOV.L   @($1C,R14),R1     ; Load lower bound from context+0x1C → R1
 02223820  52E8     MOV.L   @($20,R14),R2     ; Load upper bound from context+0x20 → R2
@@ -1389,6 +1443,8 @@ func_037:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_038:
+
+; === zero_value_check ===
 02223834  8800     CMP/EQ  #$00,R0            ; T = (R0 == 0) comparison
 02223836  8B01     BF      $0222383C          ; If T=0 (R0 != 0), branch forward
 02223838  000B     RTS                        ; Return to caller (delay slot of BF)
@@ -1432,6 +1488,8 @@ func_038:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_078:
+
+; === polygon_dispatch_6way ===
 02224320  0009     NOP                        ; Alignment
 02224322  0000     DW      $0000              ; Literal pool header
 02224324  0603     STC     SR,R6              ; Save SR to R6 (status save)
@@ -1481,6 +1539,8 @@ func_078:
 02224364  000B     RTS                        ; Return to caller
 
 ; Literal pool (function pointers)
+
+; === polygon_dispatch_variant ===
 02224366  0009     NOP
 02224368  0600     DW      $0600              ; Handler 1
 0222436A  3348     SUB     R4,R3              ; (data or part of address)
@@ -1520,6 +1580,8 @@ func_078:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_079:
+
+; === polygon_dispatch_variant ===
 02224366  0009     NOP                        ; Alignment
 02224368  0600     DW      $0600              ; Data
 0222436A  3348     SUB     R4,R3              ; (part of literal pool)
@@ -1734,6 +1796,8 @@ func_079:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_000:
+
+; === data_init_stride_loop ===
 0222300A  300C     ADD     R0,R0                  ; Possible alignment padding or dummy op
 0222300C  DC04     MOV.L   @($02223020,PC),R12   ; Load dest base address from literal pool
 0222300E  E70C     MOV     #$0C,R7                ; R7 = 12 (loop counter)
@@ -1782,6 +1846,8 @@ func_000:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 ; func_003 disassembly (with alignment uncertainties noted):
+
+; === clear_render_state ===
 022230CC  0009     NOP                            ; Padding
 022230CE  37CC     ADD     R12,R7                 ; R7 += R12
 022230D0  AFFA     BRA     $022230C8              ; Unconditional branch (unusual)
@@ -1821,6 +1887,8 @@ func_000:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 ; func_004 disassembly (with alignment uncertainties noted):
+
+; === load_render_params ===
 022230DC  1743     MOV.L   R4,@($C,R7)           ; [R7+12] = R4
 022230DE  36CC     ADD     R12,R6                ; R6 += R12
 022230E0  37CC     ADD     R12,R7                ; R7 += R12
@@ -1865,6 +1933,8 @@ func_000:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_025:
+
+; === param_helper ===
 02223632  1903     MOV.L   R0,@($C,R9)           ; [R9+12] = R0 (store output)
 02223634  6085     MOV.W   @R8+,R0               ; R0 = *(int16_t*)R8; R8++ (load halfword)
 02223636  6485     MOV.W   @R8+,R4               ; R4 = *(int16_t*)R8; R8++ (load next halfword)
@@ -1908,10 +1978,14 @@ func_025:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_027:
+
+; === conditional_value_assign ===
 0222367A  6103     MOV     R0,R1                  ; R1 = R0
 0222367C  3203     CMP/GE  R0,R2                 ; T = (R0 >= R2) ? 1 : 0
 0222367E  8901     BT      $02223684             ; If T=1, skip next MOV
 02223680  000B     RTS                           ; Return
+
+; === register_copy ===
 02223682  6203     MOV     R0,R2                 ; R2 = R0 (only if R0 < R2)
 02223684  000B     RTS                           ; Return
 
@@ -1945,6 +2019,8 @@ func_027:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_028:
+
+; === register_copy ===
 02223682  6203     MOV     R0,R2                  ; R2 = R0
 02223684  000B     RTS                           ; Return
 
@@ -1981,11 +2057,15 @@ func_028:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_030:
+
+; === conditional_param_assign ===
 022236CA  6103     MOV     R0,R1                  ; R1 = R0
 022236CC  3203     CMP/GE  R0,R2                 ; T = (R0 >= R2) ? 1 : 0
 022236CE  8902     BT      $022236D6             ; If T=1, skip MOV
 022236D0  EB0C     MOV     #$0C,R11              ; R11 = 0x0C (only if R0 < R2)
 022236D2  000B     RTS                           ; Return
+
+; === register_copy_v2 ===
 022236D4  6203     MOV     R0,R2                 ; [Note: part of func_031]
 022236D6  000B     RTS                           ; Return (target of BT)
 
@@ -2017,6 +2097,8 @@ func_030:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_031:
+
+; === register_copy_v2 ===
 022236D4  6203     MOV     R0,R2                  ; R2 = R0
 022236D6  000B     RTS                           ; Return
 
@@ -2055,6 +2137,8 @@ func_031:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_049:
+
+; === utility_049 ===
 02223C42  0009     NOP                            ; Padding or alignment
 02223C44  C505     DW      $C505                  ; Data word (unclear purpose)
 02223C46  C802     DW      $C802                  ; Data word (unclear purpose)
@@ -2099,6 +2183,8 @@ func_049:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_052:
+
+; === utility_052 ===
 02223CA2  0009     NOP                            ; Padding
 02223CA4  6023     MOV     R2,R0                  ; R0 = R2
 02223CA6  C801     DW      $C801                  ; Data word (unclear)
@@ -2134,6 +2220,8 @@ func_052:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_053:
+
+; === byte_store_op ===
 02223CAE  2100     MOV.B   R0,@R1                ; *(int8_t*)R1 = low_byte(R0)
 02223CB0  000B     RTS                           ; Return
 
@@ -2208,6 +2296,8 @@ func_053:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_043:
+
+; === recursive_gbr_copy ===
 022239AA  1E69     MOV.L   R6,@($24,R14)   ; [RenderingContext+0x24] = R6 (write to context)
 022239AC  BFFF     BSR     $022239AE       ; RECURSIVE CALL ⚠️ unusual target
 022239AE  0009     NOP                     ; Delay slot NOP
@@ -2296,6 +2386,8 @@ func_043:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_020:
+
+; === recursive_tree_traverse ===
 02223468  0009     NOP                     ; Alignment padding
 0222346A  E100     MOV     #$00,R1         ; R1 = 0 (zero initialization)
 0222346C  2A12     MOV.L   R1,@R10         ; [R10] = R1 (store zero)
@@ -2513,6 +2605,8 @@ func_094:
 ; ⚠️ WARNING: DISASSEMBLY CONTAINS ANOMALIES
 ; The following is the raw disassembly, but control flow is unreliable.
 
+
+; === recursive_list_proc ===
 02224598  0009     NOP                     ; Padding
 0222459A  009F     MAC.L   @R9+,@R0+     ; ⚠️ Suspicious instruction (why MAC.L here?)
 0222459C-022245B0: [DATA/INSTRUCTION MIX - UNRELIABLE]
@@ -2624,6 +2718,8 @@ func_060:
 02223E12  B08C     BSR     $02223F2E      ; Call 6
 02223E16  7908     ADD     #$08,R9
 02223E18  B089     BSR     $02223F2E      ; Call 7
+
+; === polygon_type_select ===
 02223E1C  7908     ADD     #$08,R9
 02223E1E  B086     BSR     $02223F2E      ; Call 8
 02223E22  7908     ADD     #$08,R9
@@ -2753,6 +2849,8 @@ func_063:
 02223E94  9018     MOV.W   @($PC),R0       ; Load offset
 02223E96  390C     ADD     R0,R9           ; R9 += offset
 02223E98  DA0C     MOV.L   @($02223ECC,PC),R10  ; R10 = source table
+
+; === tri_render_gouraud ===
 02223EA0  EC00     MOV     #$00,R12        ; R12 = 0 (initialize flag)
 ; --- First conditional call ---
 02223EA2  84E9     MOV.B   R0,@($9,R4)    ; [R4+9] = low_byte(R0)
@@ -2844,6 +2942,8 @@ func_064:
 02223EFA  1120     MOV.L   R2,@($0,R1)
 02223EFC  6206     MOV.L   @R0+,R2
 02223EFE  1121     MOV.L   R2,@($4,R1)
+
+; === quad_render_flat ===
 02223F00  31DC     ADD     R13,R1
 ; --- Iteration 5 ---
 02223F02  6206     MOV.L   @R0+,R2
@@ -2933,6 +3033,8 @@ func_064:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_005:
+
+; === matrix_transform_loop ===
 022230E6  1743     MOV.L   R4,@($C,R7)    ; [R7+12] = R4 (store to context)
 022230E8  2FE6     MOV.L   R14,@-R15       ; Save R14 to stack
 022230EA  4F22     STS.L   PR,@-R15        ; Save return address
@@ -2958,6 +3060,8 @@ func_005:
 ; --- Cleanup ---
 02223110  4F26     LDS.L   @R15+,PR        ; Restore return address
 02223112  000B     RTS                     ; Return
+
+; === matrix_vector_multiply ===
 02223114  6EF6     MOV.L   @R15+,R14       ; Restore R14 (delay slot or fall-through)
 
 ;
@@ -3009,6 +3113,8 @@ func_007:
 ; --- Cleanup ---
 0222319E  4F26     LDS.L   @R15+,PR        ; Restore PR
 022231A0  000B     RTS                     ; Return
+
+; === transform_handler ===
 022231A2  6EF6     MOV.L   @R15+,R14       ; Restore R14
 
 
@@ -3114,6 +3220,8 @@ func_008:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_009:
+
+; === command_handler_09 ===
 022231E4  81A7     MOV.B   R0,@($7,R1)    ; [R1+7] = low_byte(R0)
 022231E6  85E1     MOV.B   R0,@($1,R5)    ; [R5+1] = low_byte(R0) (memory alias?)
 022231E8  81B1     MOV.B   R0,@($1,R1)    ; [R1+1] = low_byte(R0)
@@ -3158,6 +3266,8 @@ func_009:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_010:
+
+; === command_handler_10 ===
 02223202  81E3     MOV.B   R0,@($3,R1)    ; [R1+3] = low_byte(R0)
 02223204  85E1     MOV.B   R0,@($1,R5)    ; [R5+1] = low_byte(R0)
 02223206  81B1     MOV.B   R0,@($1,R1)    ; [R1+1] = low_byte(R0)
@@ -3206,6 +3316,8 @@ func_010:
 
 func_013:
 ; Data table embedded in function (7 words = 14 bytes)
+
+; === projection_calc ===
 022232C4  1EB9     MOV.L   R11,@($24,R14)  ; [R14+0x24] = R11 (save R11)
 022232C6  0000     DW      $0000            ; Data: 0x0000
 022232C8  C000     DW      $C000            ; Data: 0xC000
@@ -3250,6 +3362,8 @@ loop_vdp:
 02223302  8FF6     BF/S    $022232F2        ; if (T==0) goto loop_vdp (delay slot)
 02223304  7140     ADD     #$40,R1          ; [DS] R1 += 0x40 (next VDP register)
 02223306  000B     RTS                       ; Return
+
+; === depth_calc ===
 02223308  0009     NOP                       ; [DS] No operation
 
 
@@ -3274,6 +3388,8 @@ loop_vdp:
 
 func_014:
 ; Embedded data table (starts at previous function's end)
+
+; === depth_calc ===
 02223308  0009     NOP                       ; Alignment padding
 0222330A  0040     DW      $0040            ; Data
 0222330C  C000     DW      $C000            ; Data (RenderingContext base?)
@@ -3307,6 +3423,8 @@ loop_copy:
 0222333A  8FFB     BF/S    $02223334        ; if (T==0) goto loop_copy (delay slot)
 0222333C  7204     ADD     #$04,R2          ; [DS] R2 += 4 (advance destination)
 0222333E  000B     RTS                       ; Return
+
+; === screen_coord_convert ===
 02223340  0009     NOP                       ; [DS] No operation
 
 
@@ -3329,6 +3447,8 @@ loop_copy:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_015:
+
+; === screen_coord_convert ===
 02223340  0009     NOP                       ; Alignment padding
 02223342  0000     DW      $0000            ; Data alignment
 02223344  C000     DW      $C000            ; Data (used by func_014)
@@ -3381,6 +3501,8 @@ func_022:
 022234FA  51E9     MOV.L   @($24,R14),R1    ; R1 = [R14+0x24] (reload context value)
 022234FC  E006     MOV     #$06,R0          ; R0 = 0x06 (status value)
 022234FE  000B     RTS                       ; Return
+
+; === frustum_cull_dispatch ===
 02223500  811E     MOV.B   R0,@($E,R1)      ; [DS] [R1+0x0E] = 0x06 (write to VDP)
 
 
@@ -3416,6 +3538,8 @@ func_022:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_035:
+
+; === render_param_fetch ===
 022237A8  237B     OR      R7,R3            ; R3 |= R7 (combine values)
 022237AA  FF01     DW      $FF01            ; Data
 022237AC  0600     DW      $0600            ; Data
@@ -3437,6 +3561,8 @@ func_035:
 022237CC  374C     ADD     R4,R7            ; R7 += R4
 022237CE  4728     SHLL16  R7               ; R7 <<= 16 (shift to upper word)
 022237D0  000B     RTS                       ; Return
+
+; === conditional_block_proc ===
 022237D2  237B     OR      R7,R3            ; [DS] R3 |= R7 (pack coordinate)
 
 
@@ -3544,6 +3670,8 @@ handler_write_r1_to_r11:
 022238D2  7B04     ADD     #$04,R11         ; [DS] R11 += 4
 
 022238D4  000B     RTS                       ; Return (early exit point)
+
+; === block_fill_loop ===
 022238D6  0009     NOP                       ; [DS] No operation
 
 
@@ -3572,6 +3700,8 @@ handler_write_r1_to_r11:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_041:
+
+; === block_fill_loop ===
 022238D6  0009     NOP                       ; Function starts (but overlaps func_040)
 022238D8  2A22     MOV.L   R2,@R10          ; [R10] = R2 (write to buffer 1)
 022238DA  AFE9     BRA     $022238B0        ; goto func_040:main_loop
@@ -3671,6 +3801,8 @@ handler2_write_r1:
 02223958  7B04     ADD     #$04,R11         ; [DS] R11 += 4
 
 0222395A  000B     RTS                       ; Return (early exit)
+
+; === memory_copy_setup ===
 0222395C  0009     NOP                       ; [DS] No operation
 
 
@@ -3704,6 +3836,8 @@ handler2_write_r1:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_042:
+
+; === memory_copy_setup ===
 0222395C  0009     NOP                       ; Function start (overlaps func_041)
 0222395E  2A22     MOV.L   R2,@R10          ; [R10] = R2 (handler continuation)
 02223960  AFF1     BRA     $02223946        ; goto exit_dispatcher
@@ -3758,6 +3892,8 @@ final_exit:
 022239A4  7640     ADD     #$40,R6          ; R6 += 0x40
 022239A6  2609     AND     R0,R6            ; R6 &= R0 (mask address)
 022239A8  000B     RTS                       ; Return
+
+; === recursive_gbr_copy ===
 022239AA  1E69     MOV.L   R6,@($24,R14)    ; [DS] [R14+0x24] = R6 (save updated value)
 
 
@@ -3789,6 +3925,8 @@ final_exit:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_046:
+
+; === stream_decode_loop ===
 02223B3C  0009     NOP                       ; Alignment padding
 
 ; Main processing loop for R8 stream
@@ -3870,6 +4008,8 @@ skip_or_exit:
 02223BBC  350C     ADD     R0,R5            ; R5 += R0 (calculate frame buffer address)
 02223BBE  DE03     MOV.L   @($02223BCC,PC),R14  ; R14 = RenderingContext pointer
 02223BC0  000B     RTS                       ; Return
+
+; === command_process ===
 02223BC2  0009     NOP                       ; [DS] No operation
 
 
@@ -3900,6 +4040,8 @@ skip_or_exit:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_047:
+
+; === command_process ===
 02223BC2  0009     NOP                       ; Alignment padding
 02223BC4  FF00     DW      $FF00            ; Data constant (mask value)
 02223BC6  0000     DW      $0000            ; Data alignment
@@ -3930,6 +4072,8 @@ wait_vdp_ready:
 02223BE6  86FF     CMP/EQ  #$FF,R0             ; Is flag == 0xFF (ready)?
 02223BE8  8BFC     BF      $02223BE4           ; if (T==0) goto wait_vdp_ready (not ready)
 02223BEA  000B     RTS                         ; Return (when flag == 0xFF)
+
+; === param_extract ===
 02223BEC  0009     NOP                         ; [DS] Delay slot
 
 
@@ -3965,6 +4109,8 @@ wait_vdp_ready:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_048:
+
+; === param_extract ===
 02223BEC  0009     NOP                       ; Alignment padding
 02223BEE  0000     DW      $0000            ; Data alignment
 02223BF0  2402     MOV.L   R0,@R4           ; Data (frame buffer base from func_047)
@@ -4025,6 +4171,8 @@ calc_span:
 02223C3E  C104     DW      $C104            ; [DS] MOVA or data
 
 02223C40  000B     RTS                       ; Return (early exit)
+
+; === utility_049 ===
 02223C42  0009     NOP                       ; [DS] No operation
 
 02223C44  C505     DW      $C505            ; Exit point data
@@ -4059,6 +4207,8 @@ calc_span:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_050:
+
+; === data_fetch_loop ===
 02223C4C  2140     MOV.B   R4,@R1           ; [R1] = low_byte(R4) (single byte write)
 02223C4E  E202     MOV     #$02,R2          ; R2 = 2 (threshold for word writes)
 02223C50  3023     CMP/GE  R2,R0            ; T = (R0 >= 2)
@@ -4072,6 +4222,8 @@ word_fill_loop:
 02223C5A  8FFC     BF/S    $02223C56        ; if (T==0) goto word_fill_loop (delay slot)
 02223C5C  7102     ADD     #$02,R1          ; [DS] R1 += 2 (advance by word size)
 02223C5E  000B     RTS                       ; Return
+
+; === index_lookup ===
 02223C60  0009     NOP                       ; [DS] No operation
 
 
@@ -4105,6 +4257,8 @@ word_fill_loop:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_051:
+
+; === index_lookup ===
 02223C60  0009     NOP                       ; Alignment padding
 02223C62  0009     NOP                       ; Alignment padding
 
@@ -4151,6 +4305,8 @@ check_start:
 02223C9E  2144     MOV.B   R4,@-R1          ; [--R1] = low_byte(R4) (write odd start pixel)
 
 02223CA0  000B     RTS                       ; Return
+
+; === utility_052 ===
 02223CA2  0009     NOP                       ; [DS] No operation
 
 exit_equal:
@@ -4192,6 +4348,8 @@ exit_equal:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_054:
+
+; === word_store_op ===
 02223CB2  2140     MOV.B   R4,@R1           ; [R1] = low_byte(R4) (leftover from func_050?)
 02223CB4  4F22     STS.L   PR,@-R15         ; Push PR (save return address)
 
@@ -4219,6 +4377,8 @@ skip_iteration:
 
 02223CD6  4F26     LDS.L   @R15+,PR         ; Pop PR (restore return address)
 02223CD8  000B     RTS                       ; Return
+
+; === long_store_op ===
 02223CDA  0009     NOP                       ; [DS] No operation
 
 
@@ -4250,6 +4410,8 @@ skip_iteration:
 
 func_055:
 ; Embedded data table (14 words)
+
+; === long_store_op ===
 02223CDA  0009     NOP                       ; Alignment
 02223CDC  002C     DW      $002C            ; Data offset 0
 02223CDE  002C     DW      $002C            ; Data offset 1
@@ -4292,6 +4454,8 @@ inner_loop:
 02223D16  39DC     ADD     R13,R9           ; [DS] R9 += R13 (advance destination by stride)
 
 02223D18  000B     RTS                       ; Return
+
+; === ptr_advance ===
 02223D1A  0009     NOP                       ; [DS] No operation
 
 
@@ -4325,6 +4489,8 @@ inner_loop:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_056:
+
+; === ptr_advance ===
 02223D1A  0009     NOP                       ; Function start (overlaps func_055 data)
 02223D1C  0200     DW      $0200            ; Data constant (512)
 02223D1E  0000     DW      $0000            ; Data alignment
@@ -4348,6 +4514,8 @@ func_056:
 
 exit:
 02223D3A  000B     RTS                       ; Return
+
+; === size_calc ===
 02223D3C  0009     NOP                       ; [DS] No operation
 
 
@@ -4379,6 +4547,8 @@ exit:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_057:
+
+; === size_calc ===
 02223D3C  0009     NOP                       ; Alignment padding
 02223D3E  85E1     MOV.B   R0,@($1,R5)      ; R0 = [R5+1] (read VDP status)
 02223D40  9105     MOV.W   @(${target:08X},PC),R1  ; R1 = 0x0200 (threshold)
@@ -4395,6 +4565,8 @@ func_057:
 
 exit:
 02223D50  000B     RTS                       ; Return
+
+; === offset_calc ===
 02223D52  0009     NOP                       ; [DS] No operation
 
 
@@ -4427,6 +4599,8 @@ exit:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_058:
+
+; === offset_calc ===
 02223D52  0009     NOP                       ; Alignment padding
 02223D54  85E1     MOV.B   R0,@($1,R5)      ; R0 = [R5+1] (read VDP status)
 02223D56  9107     MOV.W   @(${target:08X},PC),R1  ; R1 = 0x0140 (threshold)
@@ -4482,6 +4656,8 @@ exit:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_066:
+
+; === block_copy_32 ===
 02223FC4  0009     NOP                       ; Alignment padding
 02223FC6  58E2     MOV.L   @($8,R14),R8     ; R8 = [R14+8] (source pointer)
 02223FC8  59E1     MOV.L   @($4,R14),R9     ; R9 = [R14+4] (destination base)
@@ -4521,6 +4697,8 @@ next_row:
 02223FEE  39DC     ADD     R13,R9           ; [DS] R9 += R13 (advance to next row)
 
 02223FF0  000B     RTS                       ; Return
+
+; === block_copy_48 ===
 02223FF2  0009     NOP                       ; [DS] No operation
 
 
@@ -4554,6 +4732,8 @@ next_row:
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_067:
+
+; === block_copy_48 ===
 02223FF2  0009     NOP                       ; Function start (overlaps func_066)
 
 ; Mode 1: Simple forward copy
@@ -4564,6 +4744,8 @@ mode1_entry:
 02223FFA  85E1     MOV.B   R0,@($1,R5)      ; R0 = [R5+1] (read VDP status)
 02223FFC  6703     MOV     R0,R7            ; R7 = R0 (outer loop count)
 02223FFE  AFE5     BRA     $02223FCC        ; goto func_066:outer_loop
+
+; === block_copy_64 ===
 02224000  6DDB     NEG     R13,R13          ; [DS] R13 = -R13 (NEGATE stride - reverse mode!)
 
 ; Mode 2: Forward copy with skip

@@ -52,6 +52,8 @@
 ; ═══════════════════════════════════════════════════════════════════════════
 
 func_047:
+
+; === command_process ===
 02223BC2  0009     NOP                       ; Alignment padding
 02223BC4  FF00     DW      $FF00            ; Data constant (mask value)
 02223BC6  0000     DW      $0000            ; Data alignment

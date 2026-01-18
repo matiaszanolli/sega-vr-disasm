@@ -5,6 +5,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223004  C000     DW      $C000
 02223006  0000     DW      $0000
 02223008  0600     DW      $0600
+
+; === data_init_stride_loop ===
 0222300A  300C     ADD     R0,R0
 0222300C  DC04     MOV.L   @($02223020,PC),R12
 0222300E  E70C     MOV     #$0C,R7
@@ -14,6 +16,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223016  8FFB     BF/S    $02223010
 02223018  7C04     ADD     #$04,R12
 0222301A  000B     RTS
+
+; === display_list_processor ===
 0222301C  0009     NOP
 0222301E  0000     DW      $0000
 02223020  C000     DW      $C000
@@ -51,6 +55,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223060  69D5     MOV.W   @R13+,R9
 02223062  4F26     LDS.L   @R15+,PR    ; Pop PR
 02223064  000B     RTS
+
+; === render_init ===
 02223066  1EB9     MOV.L   R11,@($24,R14)
 02223068  0024     DW      $0024
 0222306A  003C     DW      $003C
@@ -102,6 +108,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 022230C6  66D5     MOV.W   @R13+,R6
 022230C8  4F26     LDS.L   @R15+,PR    ; Pop PR
 022230CA  000B     RTS
+
+; === clear_render_state ===
 022230CC  0009     NOP
 022230CE  37CC     ADD     R12,R7
 022230D0  AFFA     BRA     $022230C8
@@ -110,11 +118,15 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 022230D6  37CC     ADD     R12,R7
 022230D8  5463     MOV.L   @($C,R6),R4
 022230DA  000B     RTS
+
+; === load_render_params ===
 022230DC  1743     MOV.L   R4,@($C,R7)
 022230DE  36CC     ADD     R12,R6
 022230E0  37CC     ADD     R12,R7
 022230E2  5463     MOV.L   @($C,R6),R4
 022230E4  000B     RTS
+
+; === matrix_transform_loop ===
 022230E6  1743     MOV.L   R4,@($C,R7)
 022230E8  2FE6     MOV.L   R14,@-R15
 022230EA  4F22     STS.L   PR,@-R15    ; Push PR
@@ -138,6 +150,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 0222310E  7A10     ADD     #$10,R10
 02223110  4F26     LDS.L   @R15+,PR    ; Pop PR
 02223112  000B     RTS
+
+; === matrix_vector_multiply ===
 02223114  6EF6     MOV.L   @R15+,R14
 02223116  FF00     DW      $FF00
 02223118  C000     DW      $C000
@@ -187,6 +201,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223170  000A     STS     MACH,R0
 02223172  30CC     ADD     R12,R0
 02223174  000B     RTS
+
+; === alt_transform_loop ===
 02223176  81A7     MOV.B   R0,@($7,R1)
 02223178  2FE6     MOV.L   R14,@-R15
 0222317A  4F22     STS.L   PR,@-R15    ; Push PR
@@ -209,6 +225,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 0222319C  7A10     ADD     #$10,R10
 0222319E  4F26     LDS.L   @R15+,PR    ; Pop PR
 022231A0  000B     RTS
+
+; === transform_handler ===
 022231A2  6EF6     MOV.L   @R15+,R14
 022231A4  C000     DW      $C000
 022231A6  0740     DW      $0740
@@ -242,6 +260,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 022231DE  000A     STS     MACH,R0
 022231E0  30CC     ADD     R12,R0
 022231E2  000B     RTS
+
+; === command_handler_09 ===
 022231E4  81A7     MOV.B   R0,@($7,R1)
 022231E6  85E1     MOV.B   R0,@($1,R5)
 022231E8  81B1     MOV.B   R0,@($1,R1)
@@ -257,6 +277,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 022231FC  85E3     MOV.B   R0,@($3,R5)
 022231FE  7001     ADD     #$01,R0
 02223200  000B     RTS
+
+; === command_handler_10 ===
 02223202  81E3     MOV.B   R0,@($3,R1)
 02223204  85E1     MOV.B   R0,@($1,R5)
 02223206  81B1     MOV.B   R0,@($1,R1)
@@ -270,6 +292,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223216  85E3     MOV.B   R0,@($3,R5)
 02223218  7001     ADD     #$01,R0
 0222321A  000B     RTS
+
+; === transform_wrapper ===
 0222321C  81E3     MOV.B   R0,@($3,R1)
 0222321E  0009     NOP
 02223220  4F22     STS.L   PR,@-R15    ; Push PR
@@ -308,6 +332,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223262  7E3C     ADD     #$3C,R14
 02223264  4F26     LDS.L   @R15+,PR    ; Pop PR
 02223266  000B     RTS
+
+; === transform_dispatch ===
 02223268  0009     NOP
 0222326A  0000     DW      $0000
 0222326C  C000     DW      $C000
@@ -354,6 +380,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 022232BE  0009     NOP
 022232C0  4F26     LDS.L   @R15+,PR    ; Pop PR
 022232C2  000B     RTS
+
+; === projection_calc ===
 022232C4  1EB9     MOV.L   R11,@($24,R14)
 022232C6  0000     DW      $0000
 022232C8  C000     DW      $C000
@@ -388,6 +416,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223302  8FF6     BF/S    $022232F2
 02223304  7140     ADD     #$40,R1
 02223306  000B     RTS
+
+; === depth_calc ===
 02223308  0009     NOP
 0222330A  0040     DW      $0040
 0222330C  C000     DW      $C000
@@ -416,6 +446,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 0222333A  8FFB     BF/S    $02223334
 0222333C  7204     ADD     #$04,R2
 0222333E  000B     RTS
+
+; === screen_coord_convert ===
 02223340  0009     NOP
 02223342  0000     DW      $0000
 02223344  C000     DW      $C000
@@ -436,6 +468,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223362  0000     DW      $0000
 02223364  0600     DW      $0600
 02223366  3368     SUB     R6,R3
+
+; === coord_transform_util ===
 02223368  51E7     MOV.L   @($1C,R14),R1
 0222336A  52E8     MOV.L   @($20,R14),R2
 0222336C  4128     SHLL16  R1
@@ -452,6 +486,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223382  240B     OR      R0,R4
 02223384  1E3C     MOV.L   R3,@($30,R14)
 02223386  000B     RTS
+
+; === coord_transform_single ===
 02223388  1E4D     MOV.L   R4,@($34,R14)
 0222338A  4F22     STS.L   PR,@-R15    ; Push PR
 0222338C  BFEC     BSR     $02223368
@@ -465,6 +501,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 0222339C  7BC0     ADD     #$C0,R11
 0222339E  4F26     LDS.L   @R15+,PR    ; Pop PR
 022233A0  000B     RTS
+
+; === coord_transform_pair ===
 022233A2  0009     NOP
 022233A4  E100     MOV     #$00,R1
 022233A6  2A12     MOV.L   R1,@R10
@@ -518,6 +556,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223406  7BC0     ADD     #$C0,R11
 02223408  4F26     LDS.L   @R15+,PR    ; Pop PR
 0222340A  000B     RTS
+
+; === coord_transform_triple ===
 0222340C  0009     NOP
 0222340E  0000     DW      $0000
 02223410  FF00     DW      $FF00
@@ -564,6 +604,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223462  7BC0     ADD     #$C0,R11
 02223464  4F26     LDS.L   @R15+,PR    ; Pop PR
 02223466  000B     RTS
+
+; === recursive_tree_traverse ===
 02223468  0009     NOP
 0222346A  E100     MOV     #$00,R1
 0222346C  2A12     MOV.L   R1,@R10
@@ -608,6 +650,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 022234BA  6BF6     MOV.L   @R15+,R11
 022234BC  4F26     LDS.L   @R15+,PR    ; Pop PR
 022234BE  000B     RTS
+
+; === transform_with_cull ===
 022234C0  0009     NOP
 022234C2  0000     DW      $0000
 022234C4  0601     DW      $0601
@@ -630,6 +674,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 022234E6  8BF2     BF      $022234CE
 022234E8  4F26     LDS.L   @R15+,PR    ; Pop PR
 022234EA  000B     RTS
+
+; === simple_transform ===
 022234EC  0009     NOP
 022234EE  D005     MOV.L   @($02223504,PC),R0
 022234F0  51E9     MOV.L   @($24,R14),R1
@@ -640,6 +686,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 022234FA  51E9     MOV.L   @($24,R14),R1
 022234FC  E006     MOV     #$06,R0
 022234FE  000B     RTS
+
+; === frustum_cull_dispatch ===
 02223500  811E     MOV.B   R0,@($E,R1)
 02223502  0000     DW      $0000
 02223504  2000     MOV.B   R0,@R0
@@ -762,6 +810,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 022235EE  07E0     DW      $07E0
 022235F0  4F26     LDS.L   @R15+,PR    ; Pop PR
 022235F2  000B     RTS
+
+; === render_param_setup ===
 022235F4  0009     NOP
 022235F6  51E3     MOV.L   @($C,R14),R1
 022235F8  52E4     MOV.L   @($10,R14),R2
@@ -793,6 +843,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 0222362C  8902     BT      $02223634
 0222362E  5092     MOV.L   @($8,R9),R0
 02223630  000B     RTS
+
+; === param_helper ===
 02223632  1903     MOV.L   R0,@($C,R9)
 02223634  6085     MOV.W   @R8+,R0
 02223636  6485     MOV.W   @R8+,R4
@@ -801,6 +853,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 0222363C  3428     SUB     R2,R4
 0222363E  604B     NEG     R4,R0
 02223640  000B     RTS
+
+; === coord_boundary_clamp ===
 02223642  8197     MOV.B   R0,@($7,R1)
 02223644  D804     MOV.L   @($02223658,PC),R8
 02223646  8580     MOV.B   R0,@($0,R5)
@@ -829,12 +883,18 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223674  3013     CMP/GE  R1,R0
 02223676  8901     BT      $0222367C
 02223678  000B     RTS
+
+; === conditional_value_assign ===
 0222367A  6103     MOV     R0,R1
 0222367C  3203     CMP/GE  R0,R2
 0222367E  8901     BT      $02223684
 02223680  000B     RTS
+
+; === register_copy ===
 02223682  6203     MOV     R0,R2
 02223684  000B     RTS
+
+; === region_code_generate ===
 02223686  0009     NOP
 02223688  D805     MOV.L   @($022236A0,PC),R8
 0222368A  8580     MOV.B   R0,@($0,R5)
@@ -869,13 +929,19 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 022236C4  8902     BT      $022236CC
 022236C6  EA0C     MOV     #$0C,R10
 022236C8  000B     RTS
+
+; === conditional_param_assign ===
 022236CA  6103     MOV     R0,R1
 022236CC  3203     CMP/GE  R0,R2
 022236CE  8902     BT      $022236D6
 022236D0  EB0C     MOV     #$0C,R11
 022236D2  000B     RTS
+
+; === register_copy_v2 ===
 022236D4  6203     MOV     R0,R2
 022236D6  000B     RTS
+
+; === scanline_fill_loop ===
 022236D8  0009     NOP
 022236DA  D805     MOV.L   @($022236F0,PC),R8
 022236DC  60A3     MOV     R10,R0
@@ -892,6 +958,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 022236F2  0740     DW      $0740
 022236F4  E0FF     MOV     #$FF,R0
 022236F6  000B     RTS
+
+; === polygon_scanline_gen ===
 022236F8  2902     MOV.L   R0,@R9
 022236FA  D80B     MOV.L   @($02223728,PC),R8
 022236FC  60A3     MOV     R10,R0
@@ -942,6 +1010,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223756  7904     ADD     #$04,R9
 02223758  E0FF     MOV     #$FF,R0
 0222375A  000B     RTS
+
+; === bresenham_rasterize ===
 0222375C  2902     MOV.L   R0,@R9
 0222375E  641F     EXTS.W  R1,R4
 02223760  652F     EXTS.W  R2,R5
@@ -980,6 +1050,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 022237A2  374C     ADD     R4,R7
 022237A4  4728     SHLL16  R7
 022237A6  000B     RTS
+
+; === render_param_fetch ===
 022237A8  237B     OR      R7,R3
 022237AA  FF01     DW      $FF01
 022237AC  0600     DW      $0600
@@ -1001,6 +1073,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 022237CC  374C     ADD     R4,R7
 022237CE  4728     SHLL16  R7
 022237D0  000B     RTS
+
+; === conditional_block_proc ===
 022237D2  237B     OR      R7,R3
 022237D4  FF00     DW      $FF00
 022237D6  4F22     STS.L   PR,@-R15    ; Push PR
@@ -1038,6 +1112,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223816  E0FF     MOV     #$FF,R0
 02223818  4F26     LDS.L   @R15+,PR    ; Pop PR
 0222381A  000B     RTS
+
+; === bounds_validate ===
 0222381C  2902     MOV.L   R0,@R9
 0222381E  51E7     MOV.L   @($1C,R14),R1
 02223820  52E8     MOV.L   @($20,R14),R2
@@ -1050,6 +1126,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 0222382E  CB02     DW      $CB02
 02223830  000B     RTS
 02223832  C806     DW      $C806
+
+; === zero_value_check ===
 02223834  8800     CMP/EQ  #$00,R0
 02223836  8B01     BF      $0222383C
 02223838  000B     RTS
@@ -1070,6 +1148,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223856  2932     MOV.L   R3,@R9
 02223858  4F26     LDS.L   @R15+,PR    ; Pop PR
 0222385A  000B     RTS
+
+; === memory_fill_init ===
 0222385C  7904     ADD     #$04,R9
 0222385E  D811     MOV.L   @($022238A4,PC),R8
 02223860  D911     MOV.L   @($022238A8,PC),R9
@@ -1131,6 +1211,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 022238D0  AFEE     BRA     $022238B0
 022238D2  7B04     ADD     #$04,R11
 022238D4  000B     RTS
+
+; === block_fill_loop ===
 022238D6  0009     NOP
 022238D8  2A22     MOV.L   R2,@R10
 022238DA  AFE9     BRA     $022238B0
@@ -1198,6 +1280,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223956  AFF6     BRA     $02223946
 02223958  7B04     ADD     #$04,R11
 0222395A  000B     RTS
+
+; === memory_copy_setup ===
 0222395C  0009     NOP
 0222395E  2A22     MOV.L   R2,@R10
 02223960  AFF1     BRA     $02223946
@@ -1237,6 +1321,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 022239A4  7640     ADD     #$40,R6
 022239A6  2609     AND     R0,R6
 022239A8  000B     RTS
+
+; === recursive_gbr_copy ===
 022239AA  1E69     MOV.L   R6,@($24,R14)
 022239AC  BFFF     BSR     $022239AE
 022239AE  0009     NOP
@@ -1253,6 +1339,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 022239C4  D002     MOV.L   @($022239D0,PC),R0
 022239C6  401E     DW      $401E
 022239C8  000B     RTS
+
+; === multi_level_dispatch ===
 022239CA  0009     NOP
 022239CC  C000     DW      $C000
 022239CE  0700     DW      $0700
@@ -1438,6 +1526,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223B36  0200     DW      $0200
 02223B38  4F26     LDS.L   @R15+,PR    ; Pop PR
 02223B3A  000B     RTS
+
+; === stream_decode_loop ===
 02223B3C  0009     NOP
 02223B3E  6185     MOV.W   @R8+,R1
 02223B40  6285     MOV.W   @R8+,R2
@@ -1505,6 +1595,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223BBC  350C     ADD     R0,R5
 02223BBE  DE03     MOV.L   @($02223BCC,PC),R14
 02223BC0  000B     RTS
+
+; === command_process ===
 02223BC2  0009     NOP
 02223BC4  FF00     DW      $FF00
 02223BC6  0000     DW      $0000
@@ -1526,6 +1618,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223BE6  C802     DW      $C802
 02223BE8  8BFC     BF      $02223BE4
 02223BEA  000B     RTS
+
+; === param_extract ===
 02223BEC  0009     NOP
 02223BEE  0000     DW      $0000
 02223BF0  2402     MOV.L   R0,@R4
@@ -1569,11 +1663,15 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223C3C  000B     RTS
 02223C3E  C104     DW      $C104
 02223C40  000B     RTS
+
+; === utility_049 ===
 02223C42  0009     NOP
 02223C44  C505     DW      $C505
 02223C46  C802     DW      $C802
 02223C48  8BFC     BF      $02223C44
 02223C4A  000B     RTS
+
+; === data_fetch_loop ===
 02223C4C  2140     MOV.B   R4,@R1
 02223C4E  E202     MOV     #$02,R2
 02223C50  3023     CMP/GE  R2,R0
@@ -1584,6 +1682,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223C5A  8FFC     BF/S    $02223C56
 02223C5C  7102     ADD     #$02,R1
 02223C5E  000B     RTS
+
+; === index_lookup ===
 02223C60  0009     NOP
 02223C62  0009     NOP
 02223C64  62C9     SWAP.W  R12,R2
@@ -1617,14 +1717,20 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223C9C  8900     BT      $02223CA0
 02223C9E  2144     MOV.B   R4,@-R1
 02223CA0  000B     RTS
+
+; === utility_052 ===
 02223CA2  0009     NOP
 02223CA4  6023     MOV     R2,R0
 02223CA6  C801     DW      $C801
 02223CA8  8B02     BF      $02223CB0
 02223CAA  6048     SWAP.B  R4,R0
 02223CAC  000B     RTS
+
+; === byte_store_op ===
 02223CAE  2100     MOV.B   R0,@R1
 02223CB0  000B     RTS
+
+; === word_store_op ===
 02223CB2  2140     MOV.B   R4,@R1
 02223CB4  4F22     STS.L   PR,@-R15    ; Push PR
 02223CB6  84E0     MOV.B   R0,@($0,R4)
@@ -1645,6 +1751,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223CD4  7E10     ADD     #$10,R14
 02223CD6  4F26     LDS.L   @R15+,PR    ; Pop PR
 02223CD8  000B     RTS
+
+; === long_store_op ===
 02223CDA  0009     NOP
 02223CDC  002C     DW      $002C
 02223CDE  002C     DW      $002C
@@ -1677,6 +1785,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223D14  8FF4     BF/S    $02223D00
 02223D16  39DC     ADD     R13,R9
 02223D18  000B     RTS
+
+; === ptr_advance ===
 02223D1A  0009     NOP
 02223D1C  0200     DW      $0200
 02223D1E  0000     DW      $0000
@@ -1694,6 +1804,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223D36  390C     ADD     R0,R9
 02223D38  0140     DW      $0140
 02223D3A  000B     RTS
+
+; === size_calc ===
 02223D3C  0009     NOP
 02223D3E  85E1     MOV.B   R0,@($1,R5)
 02223D40  9105     MOV.W   @(${target:08X},PC),R1
@@ -1705,6 +1817,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223D4C  390C     ADD     R0,R9
 02223D4E  0200     DW      $0200
 02223D50  000B     RTS
+
+; === offset_calc ===
 02223D52  0009     NOP
 02223D54  85E1     MOV.B   R0,@($1,R5)
 02223D56  9107     MOV.W   @(${target:08X},PC),R1
@@ -1762,6 +1876,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223DBE  84EF     MOV.B   R0,@($F,R4)
 02223DC0  4F26     LDS.L   @R15+,PR    ; Pop PR
 02223DC2  000B     RTS
+
+; === multi_block_copy_orch ===
 02223DC4  0009     NOP
 02223DC6  0000     DW      $0000
 02223DC8  0600     DW      $0600
@@ -1806,6 +1922,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223E16  7908     ADD     #$08,R9
 02223E18  B089     BSR     $02223F2E
 02223E1A  E00B     MOV     #$0B,R0
+
+; === polygon_type_select ===
 02223E1C  7908     ADD     #$08,R9
 02223E1E  B086     BSR     $02223F2E
 02223E20  84ED     MOV.B   R0,@($D,R4)
@@ -1817,6 +1935,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223E2C  84EF     MOV.B   R0,@($F,R4)
 02223E2E  4F26     LDS.L   @R15+,PR    ; Pop PR
 02223E30  000B     RTS
+
+; === dual_block_copy ===
 02223E32  0009     NOP
 02223E34  0400     DW      $0400
 02223E36  0000     DW      $0000
@@ -1838,7 +1958,11 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223E56  84EB     MOV.B   R0,@($B,R4)
 02223E58  4F26     LDS.L   @R15+,PR    ; Pop PR
 02223E5A  000B     RTS
+
+; === conditional_dual_copy ===
 02223E5C  0009     NOP
+
+; === tri_render_flat ===
 02223E5E  0000     DW      $0000
 02223E60  0600     DW      $0600
 02223E62  86D4     MOV.B   R0,@($4,R6)
@@ -1860,6 +1984,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223E82  84EB     MOV.B   R0,@($B,R4)
 02223E84  4F26     LDS.L   @R15+,PR    ; Pop PR
 02223E86  000B     RTS
+
+; === triple_block_copy ===
 02223E88  0009     NOP
 02223E8A  0400     DW      $0400
 02223E8C  0600     DW      $0600
@@ -1872,6 +1998,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223E9A  84E1     MOV.B   R0,@($1,R4)
 02223E9C  4008     SHLL2   R0
 02223E9E  0AAE     DW      $0AAE
+
+; === tri_render_gouraud ===
 02223EA0  EC00     MOV     #$00,R12
 02223EA2  84E9     MOV.B   R0,@($9,R4)
 02223EA4  8800     CMP/EQ  #$00,R0
@@ -1891,6 +2019,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223EC0  84EB     MOV.B   R0,@($B,R4)
 02223EC2  4F26     LDS.L   @R15+,PR    ; Pop PR
 02223EC4  000B     RTS
+
+; === inline_unrolled_copy ===
 02223EC6  0009     NOP
 02223EC8  0400     DW      $0400
 02223ECA  0000     DW      $0000
@@ -1920,6 +2050,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223EFA  1120     MOV.L   R2,@($0,R1)
 02223EFC  6206     MOV.L   @R0+,R2
 02223EFE  1121     MOV.L   R2,@($4,R1)
+
+; === quad_render_flat ===
 02223F00  31DC     ADD     R13,R1
 02223F02  6206     MOV.L   @R0+,R2
 02223F04  1120     MOV.L   R2,@($0,R1)
@@ -1942,6 +2074,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223F26  1121     MOV.L   R2,@($4,R1)
 02223F28  31DC     ADD     R13,R1
 02223F2A  000B     RTS
+
+; === unrolled_data_copy ===
 02223F2C  0009     NOP
 02223F2E  4018     SHLL8   R0
 02223F30  4001     SHLR    R0
@@ -2018,6 +2152,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223FBE  1121     MOV.L   R2,@($4,R1)
 02223FC0  31DC     ADD     R13,R1
 02223FC2  000B     RTS
+
+; === block_copy_32 ===
 02223FC4  0009     NOP
 02223FC6  58E2     MOV.L   @($8,R14),R8
 02223FC8  59E1     MOV.L   @($4,R14),R9
@@ -2041,6 +2177,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223FEC  8FEE     BF/S    $02223FCC
 02223FEE  39DC     ADD     R13,R9
 02223FF0  000B     RTS
+
+; === block_copy_48 ===
 02223FF2  0009     NOP
 02223FF4  58E2     MOV.L   @($8,R14),R8
 02223FF6  59E1     MOV.L   @($4,R14),R9
@@ -2048,6 +2186,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02223FFA  85E1     MOV.B   R0,@($1,R5)
 02223FFC  6703     MOV     R0,R7
 02223FFE  AFE5     BRA     $02223FCC
+
+; === block_copy_64 ===
 02224000  6DDB     NEG     R13,R13
 02224002  58E2     MOV.L   @($8,R14),R8
 02224004  59E1     MOV.L   @($4,R14),R9
@@ -2176,6 +2316,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 022240FA  000B     RTS
 022240FC  0009     NOP
 022240FE  0000     DW      $0000
+
+; === framebuffer_clear ===
 02224100  C000     DW      $C000
 02224102  0000     DW      $0000
 02224104  0600     DW      $0600
@@ -2216,6 +2358,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 0222414A  7468     ADD     #$68,R4
 0222414C  3136     CMP/HI  R3,R1
 0222414E  7468     ADD     #$68,R4
+
+; === framebuffer_flip ===
 02224150  3137     CMP/GT  R3,R1
 02224152  7468     ADD     #$68,R4
 02224154  3138     SUB     R3,R1
@@ -2256,6 +2400,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 0222419A  1700     MOV.L   R0,@($0,R7)
 0222419C  191A     MOV.L   R1,@($28,R9)
 0222419E  1B1C     MOV.L   R1,@($30,R11)
+
+; === palette_transfer ===
 022241A0  1D1E     MOV.L   R1,@($38,R13)
 022241A2  1F00     MOV.L   R0,@($0,R15)
 022241A4  4F22     STS.L   PR,@-R15    ; Push PR
@@ -2448,6 +2594,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 0222431A  8FFD     BF/S    $02224318
 0222431C  2106     MOV.L   R0,@-R1
 0222431E  000B     RTS
+
+; === polygon_dispatch_6way ===
 02224320  0009     NOP
 02224322  0000     DW      $0000
 02224324  0603     DW      $0603
@@ -2483,6 +2631,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02224360  0009     NOP
 02224362  4F26     LDS.L   @R15+,PR    ; Pop PR
 02224364  000B     RTS
+
+; === polygon_dispatch_variant ===
 02224366  0009     NOP
 02224368  0600     DW      $0600
 0222436A  3348     SUB     R4,R3
@@ -2764,6 +2914,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02224592  302C     ADD     R2,R0
 02224594  8111     MOV.B   R0,@($1,R1)
 02224596  000B     RTS
+
+; === recursive_list_proc ===
 02224598  0009     NOP
 0222459A  009F     MAC.L   @R9+,@R0+
 0222459C  0100     DW      $0100
@@ -2889,6 +3041,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 0222468C  8FFB     BF/S    $02224686
 0222468E  7202     ADD     #$02,R2
 02224690  000B     RTS
+
+; === sincos_lookup_table ===
 02224692  0009     NOP
 02224694  0600     DW      $0600
 02224696  46A8     DW      $46A8
@@ -3446,6 +3600,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02224AE6  0009     NOP
 02224AE8  4F26     LDS.L   @R15+,PR    ; Pop PR
 02224AEA  000B     RTS
+
+; === register_save_wrapper ===
 02224AEC  0009     NOP
 02224AEE  0000     DW      $0000
 02224AF0  2000     MOV.B   R0,@R0
@@ -3647,6 +3803,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02224C78  3130     CMP/EQ  R3,R1
 02224C7A  8B01     BF      $02224C80
 02224C7C  000B     RTS
+
+; === stream_state_machine ===
 02224C7E  0009     NOP
 02224C80  6813     MOV     R1,R8
 02224C82  6194     MOV.B   @R9+,R1
@@ -3723,6 +3881,8 @@ SH2 Disassembly from offset 0x023000 (4096 instructions)
 02224D10  0009     NOP
 02224D12  4F26     LDS.L   @R15+,PR    ; Pop PR
 02224D14  000B     RTS
+
+; === multipath_render_dispatch ===
 02224D16  0009     NOP
 02224D18  2000     MOV.B   R0,@R0
 02224D1A  4028     SHLL16  R0

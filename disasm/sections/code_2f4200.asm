@@ -3,15 +3,6 @@
 ; Generated from ROM bytes - guaranteed accurate
 ; ============================================================================
 
-
-; ----------------------------------------------------------------------------
-; Data Type: padding_or_unused
-; Description: Padding/unused space
-; Statistics: 4096 words, 229 unique values
-;             269 zeros, 715 $FFFF values
-; ----------------------------------------------------------------------------
-
-
         org     $2F4200
 
         dc.w    $DB71        ; $2F4200

@@ -46,43 +46,50 @@ picodrive build/vr_rebuild.32x  # Linux (recommended)
 
 ### Reference Material (`/docs`)
 
+**Hardware Manuals:**
 | Document | Contents |
 |----------|----------|
-| [development-guide.md](docs/development-guide.md) | **Start here** - CPU coordination, registers, pitfalls, code examples |
+| [development-guide.md](docs/development-guide.md) | **Start here** - CPU coordination, registers, pitfalls |
 | [32x-hardware-manual.md](docs/32x-hardware-manual.md) | Complete hardware reference, memory maps, VDP modes |
 | [32x-technical-info.md](docs/32x-technical-info.md) | 22 documented hardware bugs and workarounds |
-| [32x-technical-info-attachment1.md](docs/32x-technical-info-attachment1.md) | VRES/RV bit handling code examples |
-| [32x-sram-cartridge-manual.md](docs/32x-sram-cartridge-manual.md) | SRAM dev cartridge (837-11068) |
-| [32x-eprom-cartridge-manual.md](docs/32x-eprom-cartridge-manual.md) | EPROM dev cartridge (837-11070) |
 | [sound-driver-v3.md](docs/sound-driver-v3.md) | Sound Driver V3.00 system calls |
 
-### Active Implementation (`root level`)
-
+**Development Guides:**
 | Document | Contents |
 |----------|----------|
-| [OPTIMIZATION_PLAN.md](OPTIMIZATION_PLAN.md) | Strategic optimization roadmap with 4 tracks to reach 60 FPS |
-| [PHASE_2_FINDINGS.md](PHASE_2_FINDINGS.md) | Master-Slave sync protocol design and findings |
-| [PHASE_2_QUICK_START.md](PHASE_2_QUICK_START.md) | Quick reference for Phase 2 test ROM creation |
-| [PROFILING_QUICKSTART.md](PROFILING_QUICKSTART.md) | Setup guide for GDB-based profiling |
-| [ANNOTATION_FRAMEWORK.md](ANNOTATION_FRAMEWORK.md) | Framework for code annotation and documentation |
+| [SETUP.md](docs/SETUP.md) | Project setup from scratch |
+| [ANNOTATION_FRAMEWORK.md](docs/ANNOTATION_FRAMEWORK.md) | Code annotation framework |
+| [PROFILING_QUICKSTART.md](docs/PROFILING_QUICKSTART.md) | GDB-based profiling setup |
+| [DISASSEMBLY_ANNOTATION_GUIDE.md](docs/DISASSEMBLY_ANNOTATION_GUIDE.md) | Disassembly annotation guide |
 
 ### Technical Analysis (`/analysis`)
 
+**Key Architecture Documents:**
 | Document | Contents |
 |----------|----------|
-| [ARCHITECTURAL_BOTTLENECK_ANALYSIS.md](analysis/ARCHITECTURAL_BOTTLENECK_ANALYSIS.md) | **Key insight** - Blocking synchronization model causes ~20 FPS ceiling |
-| [68K_FUNCTION_REFERENCE.md](analysis/68K_FUNCTION_REFERENCE.md) | Comprehensive reference for 503+ named 68K functions |
-| [68K_SH2_CROSS_REFERENCE.md](analysis/68K_SH2_CROSS_REFERENCE.md) | Communication protocol between 68K and SH2 processors |
-| [DATA_STRUCTURES.md](analysis/DATA_STRUCTURES.md) | Memory maps, object tables, rendering context structures |
-| [STATE_MACHINES.md](analysis/STATE_MACHINES.md) | V-INT handler and game state machine documentation |
-| [SH2_3D_PIPELINE_ARCHITECTURE.md](analysis/SH2_3D_PIPELINE_ARCHITECTURE.md) | SH2 3D rendering engine architecture |
-| [BOTTLENECK_ANALYSIS.md](analysis/BOTTLENECK_ANALYSIS.md) | Performance bottleneck identification and ranking |
-| [68K_PRIORITY_8_PHASE6_PROFILING_REPORT.md](analysis/68K_PRIORITY_8_PHASE6_PROFILING_REPORT.md) | Complete Priority 8 analysis with profiling results |
-| [68K_PRIORITY_9_DEEP_DIVE_REPORT.md](analysis/PRIORITY_9_DEEP_DIVE_REPORT.md) | Priority 9 analysis and architectural insights |
+| [ARCHITECTURAL_BOTTLENECK_ANALYSIS.md](analysis/ARCHITECTURAL_BOTTLENECK_ANALYSIS.md) | **Root cause** - Blocking sync model causes ~20 FPS ceiling |
+| [68K_FUNCTION_REFERENCE.md](analysis/68K_FUNCTION_REFERENCE.md) | 503+ named 68K functions by category |
+| [68K_SH2_CROSS_REFERENCE.md](analysis/68K_SH2_CROSS_REFERENCE.md) | Communication protocol between processors |
+| [DATA_STRUCTURES.md](analysis/DATA_STRUCTURES.md) | Memory maps, object tables, structures |
+| [STATE_MACHINES.md](analysis/STATE_MACHINES.md) | V-INT handler and game state machines |
+| [SH2_3D_PIPELINE_ARCHITECTURE.md](analysis/SH2_3D_PIPELINE_ARCHITECTURE.md) | SH2 3D rendering engine |
 
-### Archived Session Logs (`_archive`)
+**Subdirectories:**
+- `analysis/68k-reverse-engineering/` - 68K code analysis
+- `analysis/sh2-analysis/` - SH2 code analysis
+- `analysis/debugger-design/` - Debugger research
+- `analysis/profiling/` - Profiling guides and results
+- `analysis/optimization/` - Optimization research
 
-Historical session summaries are archived in `_archive/` for git history preservation.
+### Strategic Planning (`root level`)
+
+| Document | Contents |
+|----------|----------|
+| [OPTIMIZATION_PLAN.md](OPTIMIZATION_PLAN.md) | Strategic roadmap to reach 60 FPS |
+
+### Archived (`_archive`)
+
+Historical session logs and phase reports preserved in `_archive/phase_logs/`.
 
 ## Quick Reference
 

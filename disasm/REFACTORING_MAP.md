@@ -2,9 +2,9 @@
 
 This document maps the current address-based section files to the new feature-based module structure in `modules/`.
 
-**Status:** Phase 3 COMPLETE - Module integration with partial sections
+**Status:** Phase 4 COMPLETE - Input/Controller System integrated
 **Build Method:** `make all` (sections-based) or `make modular` (modules/ + partial sections/)
-**Current State:** Hybrid build - 5 modules integrated, working ROM (64.6K byte diff from original)
+**Current State:** Hybrid build - 9 modules integrated, working ROM (9 integrated + partial sections)
 
 ---
 
@@ -18,10 +18,15 @@ This document maps the current address-based section files to the new feature-ba
 | modules/68k/memory/fill_copy_operations.asm | ✅ Integrated | Memory utils ($004836-$004996) from code_4200.asm |
 | modules/68k/display/vdp_operations.asm | ✅ Integrated | VDP ops ($0027F8-$002982) from code_2200.asm |
 | modules/68k/display/sync_functions.asm | ✅ Integrated | V-INT sync ($004998-$0049C6) from code_4200.asm |
-| sections/code_2200_partial.asm | ✅ Created | Original code_2200 with VDP ops removed, org $002984 |
-| sections/code_4200_partial.asm | ✅ Created | Original code_4200 with Memory+Display removed, org $0049C8 |
-| vrd_modular.asm | ✅ Building | Hybrid: 5 modules + partial sections, 3,145,728 bytes |
-| Build System | ✅ | Both `make all` and `make modular` work, 64.6K diff |
+| modules/68k/input/controller_read.asm | ✅ Integrated | Hardware polling ($0017EE-$002200) from code_200.asm |
+| modules/68k/input/input_processing.asm | ✅ Integrated | Input state processing ($002200-$0027F6) from code_2200.asm |
+| modules/68k/input/button_handling.asm | ✅ Integrated | Button management ($002984-$0041FC) from code_2200.asm |
+| modules/68k/input/state_machine.asm | ✅ Integrated | Input state machine ($0049C8-$006200) from code_4200.asm |
+| sections/code_200_partial.asm | ✅ Created | Original code_200 with controller_read removed, org $000200 |
+| sections/code_2200_partial.asm | ✅ Created | Original code_2200 with input+VDP ops removed |
+| sections/code_4200_partial.asm | ✅ Updated | Original code_4200 with all extractions removed |
+| vrd_modular.asm | ✅ Building | Hybrid: 9 modules + partial sections, 3,145,728 bytes |
+| Build System | ✅ | Both `make all` and `make modular` work, verified 3.0MB ROM |
 
 **Build Verification:**
 ```bash
@@ -77,17 +82,24 @@ Phase 3: Module Integration (✅ COMPLETED)
 ├── Verified build: 3,145,728 bytes, 64,596 byte diff (improved from 68,305)
 └── All modules building correctly with partial sections
 
-Phase 4: Continue Extraction (NEXT)
-├── 6. Input/Controller System
-├── 7. Sound System
-├── 8. Main Loop & State Machine
-├── 9. Graphics/Menus/UI
-├── 10. Name Entry System
-└── 11. Race Camera & Utilities
+Phase 4: Input/Controller System (✅ COMPLETED)
+├── ✅ 6. Input/Controller System → 4 modules extracted & integrated
+├──    - controller_read.asm ($0017EE-$002200)
+├──    - input_processing.asm ($002200-$0027F6)
+├──    - button_handling.asm ($002984-$0041FC)
+├──    - state_machine.asm ($0049C8-$006200)
+└── Resolved address overlaps with Phase 3 modules, created partial sections
 
-Phase 5: SH2 Code (After 68K complete)
-├── 12. SH2 3D Engine
-└── 13. SH2 Synchronization
+Phase 5: Sound & Main Loop (NEXT)
+├── 7. Sound System (code_8200.asm: $008200-$00A1FF)
+├── 8. Main Loop & State Machine (code_c200.asm: $00C200-$00E1FF)
+├── 9. Graphics/Menus/UI (code_e200.asm: $00E200-$0101FF)
+├── 10. Name Entry System (code_10200.asm: $010200-$0121FF)
+└── 11. Race Camera & Utilities (code_12200-16200.asm: $012200-$0181FF)
+
+Phase 6: SH2 Code (After 68K complete)
+├── 12. SH2 3D Engine (SH2 sections starting ~$023000+)
+└── 13. SH2 Synchronization (COMM protocol integration)
 ```
 
 ---
@@ -484,7 +496,8 @@ wc -l sections/code_4200.asm
 
 ---
 
-**Last Updated:** 2026-01-17 (Phase 2 extraction session)
-**Status:** Phase 2 Extraction Complete - 5 modules created (2 integrated, 3 extracted)
-**Working Build:** ✅ 3,145,728 bytes (make modular verified)
-**Next Phase:** Integration - Create partial section files and integrate extracted modules
+**Last Updated:** 2026-01-17 (Phase 4 completion session)
+**Status:** Phase 4 Complete - Input/Controller System fully integrated
+**Working Build:** ✅ 3,145,728 bytes (make modular verified with 9 modules)
+**Integrated Modules:** 9 (shared definitions, boot, memory, display ops, display sync, 4 input modules)
+**Next Phase:** Phase 5 - Extract Sound System and Main Loop modules

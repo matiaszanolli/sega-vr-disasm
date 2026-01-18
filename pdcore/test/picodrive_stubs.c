@@ -179,14 +179,19 @@ void p32x_sh2_write8(unsigned int address, unsigned char data, void *sh2)
 int sh2_execute_interpreter(void *sh2_ptr, int cycles)
 {
     SH2_stub *sh2 = (SH2_stub *)sh2_ptr;
+    int remaining = cycles;
 
-    /* Simulate executing cycles */
-    sh2->pc += 2;  /* Advance PC by one instruction */
+    /* Simulate executing instructions */
+    while (remaining > 0) {
+        /* Check for breakpoint BEFORE executing instruction (matches real PicoDrive) */
+        if (sh2->debug_check_breakpoint && sh2->debug_check_breakpoint(sh2)) {
+            return cycles - remaining;  /* Return cycles executed before halt */
+        }
 
-    /* Check for breakpoint */
-    if (sh2->debug_check_breakpoint && sh2->debug_check_breakpoint(sh2)) {
-        return cycles;  /* Halt requested */
+        /* Execute one instruction (2 bytes, ~1 cycle average) */
+        sh2->pc += 2;
+        remaining -= 1;
     }
 
-    return cycles;  /* Return cycles executed */
+    return cycles;  /* Return total cycles executed */
 }

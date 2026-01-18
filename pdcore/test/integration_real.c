@@ -138,6 +138,13 @@ void test_cpu_registers(void)
     pd_destroy(emu);
 }
 
+/* Simple breakpoint handler for testing */
+static pd_breakpoint_action_t test_bp_handler(pd_t *emu, pd_cpu_t cpu, uint32_t pc, void *user_data)
+{
+    (void)emu; (void)cpu; (void)pc; (void)user_data;
+    return PD_BP_HALT;
+}
+
 void test_breakpoints(void)
 {
     printf("\n=== Test: Breakpoints ===\n");
@@ -149,7 +156,7 @@ void test_breakpoints(void)
     }
 
     TEST("Add breakpoint at 0x06001000");
-    int ret = pd_bp_exec_add(emu, PD_CPU_MASTER, 0x06001000, NULL, NULL);
+    int ret = pd_bp_exec_add(emu, PD_CPU_MASTER, 0x06001000, test_bp_handler, NULL);
     if (ret >= 0) {
         PASS();
     } else {

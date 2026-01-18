@@ -264,6 +264,68 @@ KNOWN_FUNCTIONS = {
     0x007EA4: "player_target_verify",     # Player target comparison, 3 calls
     0x011942: "name_digit_render",        # Name entry digit render, 3 calls
     0x0118D4: "time_digit_render",        # Time display digit render, 3 calls
+
+    # Functions with 2 calls
+    0x000FEA: "z80_bus_vdp_init",         # Z80 bus request + VDP register init
+    0x0018D8: "io_port_init",             # I/O port initialization for controllers
+    0x0027DA: "sh2_framebuffer_prep",     # 32X adapter framebuffer prep
+    0x002CDC: "obj_transform_copy",       # Copy object position/scale to buffers
+    0x002DCA: "obj_texture_select",       # Select object texture from $C748/$C74C
+    0x002E34: "obj_texture_select_alt",   # Alternate texture select from $C75C/$C760
+    0x002EC6: "obj_visibility_check",     # Check/set object visibility flags
+    0x002F04: "obj_position_copy",        # Copy object position data to buffers
+    0x003010: "obj_render_flags_set",     # Set object render flags from $00C0(A0)
+    0x006C46: "sprite_table_init",        # Initialize sprite table from ROM
+    0x0084F4: "time_compare_indexed",     # Compare time against indexed table value
+    0x00850E: "time_overflow_check",      # Handle time display overflow (>60min)
+    0x00ACC0: "race_mode_flag_set",       # Set race mode flag at $FF6970
+    0x00C662: "scene_state_dispatch",     # Scene state jump table dispatcher
+    0x00CC06: "object_array_init",        # Initialize object array from ROM table
+    0x0302EE: "fm_sequence_process",      # FM sound sequence processor
+    0x030DF4: "z80_dac_write",            # Z80 bus request + DAC write
+
+    # Functions with 1 call
+    0x000C5A: "save_all_registers",       # Save D0-D7/A0-A6 to memory
+    0x000D68: "warm_boot_init",           # Warm boot/soft reset sequence
+    0x000DC4: "sound_update_check",       # Conditional FM/DMA sound update
+    0x0010C4: "vdp_copy_rows",            # Copy data rows to VDP
+    0x0010F4: "tile_decompress_init",     # Initialize tile decompression
+    0x0013B4: "bit_unpack_loop",          # Bit unpacking/RLE loop
+    0x00203A: "sh2_frame_sync",           # SH2 frame sync wrapper
+    0x0024AE: "tile_index_expand",        # Expand nibbles to tile indices
+    0x002C9A: "obj_render_check",         # Check if object should render
+    0x002E9E: "obj_palette_select",       # Select object palette ($C724/$C750)
+    0x002EB2: "obj_palette_select_alt",   # Alternate palette select ($C758/$C764)
+    0x0039EC: "collision_distance_calc",  # Calculate collision distances
+    0x006FFA: "ai_countdown_check",       # AI update countdown timer
+    0x007008: "steering_sign_calc",       # Calculate steering direction sign
+    0x007270: "screen_position_init",     # Initialize screen position buffer
+    0x0076A2: "track_segment_lookup",     # Look up track segment data
+    0x007700: "obj_movement_check",       # Validate object movement
+    0x007BAC: "obj_tile_init",            # Initialize object tile data
+    0x007EFC: "camera_angle_calc",        # Calculate camera angle offset
+    0x009458: "velocity_scale_calc",      # Scale velocity by table lookup
+    0x009B32: "speed_drag_calc",          # Calculate speed-based drag
+    0x00AED8: "position_nudge",           # Nudge position by direction bits
+    0x00B422: "time_buffer_setup",        # Set up time display buffer
+    0x00B43C: "word_to_bcd",              # Convert word to BCD digits
+    0x00BCDA: "viewport_params_init",     # Initialize viewport parameters
+    0x00BDD6: "opponent_car_init",        # Initialize opponent car objects
+    0x00C416: "display_mode_check",       # Check and update display mode
+    0x00C5AE: "race_finish_check",        # Check for race finish ($03E3)
+    0x00C9AE: "object_sprite_set",        # Set object sprite pointer
+    0x00CE22: "track_position_load",      # Load track position from ROM
+    0x011B08: "sh2_graphics_batch",       # Batch SH2 graphics transfers
+    0x01440E: "menu_state_dispatch",      # Menu state jump table dispatcher
+    0x014566: "start_button_check",       # Check start button press
+    0x01457C: "sram_data_process",        # Process SRAM/save data
+    0x03021A: "fm_envelope_update",       # FM envelope/decay processing
+    0x030242: "fm_note_timer",            # FM note timing handler
+    0x0309F2: "fm_channel_6_update",      # FM channel 6/DAC processing
+    0x030B1C: "fm_operator_init",         # Initialize FM operator registers
+    0x030B50: "fm_key_off_all",           # Turn off all FM keys
+    0x030BE0: "fm_channel_clear",         # Clear FM channel data
+    0x030F0E: "fm_instrument_select",     # Select FM instrument/patch
 }
 
 

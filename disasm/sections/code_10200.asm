@@ -8,7 +8,7 @@
         MOVEA.B (A0),A0                         ; $010200
         MOVE.W  #$00A8,D0                       ; $010202
         MOVE.W  #$0010,D1                       ; $010206
-        JSR     $00E35A(PC)                     ; $01020A
+        JSR     $00E35A(PC)                     ; $01020A [sh2_send_cmd]
         MOVEA.L #$06020000,A0                   ; $01020E
         MOVE.W  $A022.W,D0                      ; $010214
         LSL.W  #7,D0                            ; $010218
@@ -19,15 +19,15 @@
         MOVEA.L #$240310CC,A1                   ; $010224
         MOVE.W  #$0028,D0                       ; $01022A
         MOVE.W  #$0010,D1                       ; $01022E
-        JSR     $00E35A(PC)                     ; $010232
+        JSR     $00E35A(PC)                     ; $010232 [sh2_send_cmd]
         ADDQ.W  #4,$C87E.W                      ; $010236
         DC.W    $33FC,$0020,$00FF,$0008; $01023A MOVE.W  #$0020,$00FF0008
         RTS                                     ; $010242
         CLR.W  D0                               ; $010244
-        JSR     $00E52C(PC)                     ; $010246
+        JSR     $00E52C(PC)                     ; $010246 [dma_transfer]
         MOVEA.L $A018.W,A0                      ; $01024A
         BSR.W  loc_010796                       ; $01024E
-        JSR     $0088179E                       ; $010252
+        JSR     func_00179E                       ; $010252
         CMPI.W  #$0001,$A036.W                  ; $010258
         BEQ.W  loc_01033C                       ; $01025E
         MOVE.W  $C86C.W,D1                      ; $010262
@@ -88,7 +88,7 @@ loc_010334:
 loc_010338:
         BSR.W  loc_01084C                       ; $010338
 loc_01033C:
-        JSR     $0088FB36                       ; $01033C
+        JSR     func_00FB36                       ; $01033C
         BTST    #6,$C80E.W                      ; $010342
         BNE.S  loc_01034E                       ; $010348
         CLR.W  $A036.W                          ; $01034A
@@ -99,13 +99,13 @@ loc_010352:
         RTS                                     ; $01035A
         CLR.W  D0                               ; $01035C
         BSR.W  $00E52C                          ; $01035E
-        JSR     $00B684(PC)                     ; $010362
+        JSR     $00B684(PC)                     ; $010362 [object_update]
         BSR.W  loc_01071C                       ; $010366
         MOVEA.L #$0601C300,A0                   ; $01036A
         MOVEA.L #$2400E030,A1                   ; $010370
         MOVE.W  #$0080,D0                       ; $010376
         MOVE.W  #$0020,D1                       ; $01037A
-        JSR     $00E35A(PC)                     ; $01037E
+        JSR     $00E35A(PC)                     ; $01037E [sh2_send_cmd]
         LEA     $2402F0C0,A1                    ; $010382
         LEA     $FA48.W,A2                      ; $010388
         MOVEQ   #$00,D0                         ; $01038C
@@ -130,10 +130,10 @@ loc_010352:
         DC.W    $33FC,$0020,$00FF,$0008; $0103BA MOVE.W  #$0020,$00FF0008
         RTS                                     ; $0103C2
         CLR.W  D0                               ; $0103C4
-        JSR     $00E52C(PC)                     ; $0103C6
+        JSR     $00E52C(PC)                     ; $0103C6 [dma_transfer]
         MOVEA.L $A01C.W,A0                      ; $0103CA
         BSR.W  loc_010796                       ; $0103CE
-        JSR     $0088179E                       ; $0103D2
+        JSR     func_00179E                       ; $0103D2
         CMPI.W  #$0001,$A036.W                  ; $0103D8
         BEQ.W  loc_010482                       ; $0103DE
         MOVE.W  $C86C.W,D1                      ; $0103E2
@@ -179,7 +179,7 @@ loc_01044E:
 loc_01047E:
         BSR.W  loc_01084C                       ; $01047E
 loc_010482:
-        JSR     $0088FB36                       ; $010482
+        JSR     func_00FB36                       ; $010482
         BTST    #6,$C80E.W                      ; $010488
         BNE.S  loc_010494                       ; $01048E
         CLR.W  $A036.W                          ; $010490
@@ -189,13 +189,13 @@ loc_010498:
         DC.W    $33FC,$0018,$00FF,$0008; $010498 MOVE.W  #$0018,$00FF0008
         RTS                                     ; $0104A0
         CLR.W  D0                               ; $0104A2
-        JSR     $00E52C(PC)                     ; $0104A4
-        JSR     $00B6DA(PC)                     ; $0104A8
+        JSR     $00E52C(PC)                     ; $0104A4 [dma_transfer]
+        JSR     $00B6DA(PC)                     ; $0104A8 [sprite_update]
         MOVEA.L #$06014000,A0                   ; $0104AC
         MOVEA.L #$24014034,A1                   ; $0104B2
         MOVE.W  #$00D8,D0                       ; $0104B8
         MOVE.W  #$0050,D1                       ; $0104BC
-        JSR     $00E35A(PC)                     ; $0104C0
+        JSR     $00E35A(PC)                     ; $0104C0 [sh2_send_cmd]
         TST.W  $A02E.W                          ; $0104C4
         BPL.S  loc_010506                       ; $0104C8
         MOVE.B  #$0001,$A02C.W                  ; $0104CA
@@ -207,7 +207,7 @@ loc_010498:
         MOVE.B  #$0001,$C80A.W                  ; $0104E8
         BSET    #7,$C80E.W                      ; $0104EE
         MOVE.B  #$0001,$C802.W                  ; $0104F4
-        JSR     $0088205E                       ; $0104FA
+        JSR     func_00205E                       ; $0104FA
         MOVE.W  #$0BB8,$A030.W                  ; $010500
 loc_010506:
         MOVEA.L $A018.W,A0                      ; $010506
@@ -261,7 +261,7 @@ loc_010592:
 loc_0105BA:
         BRA.W  loc_0105D4                       ; $0105BA
 loc_0105BE:
-        JSR     $0088FB36                       ; $0105BE
+        JSR     func_00FB36                       ; $0105BE
         BTST    #7,$C80E.W                      ; $0105C4
         BNE.S  loc_0105D4                       ; $0105CA
         CLR.W  $A036.W                          ; $0105CC
@@ -315,7 +315,7 @@ loc_010656:
         ADDA.W  D1,A0                           ; $010664
         MOVE.W  #$000C,D0                       ; $010666
         MOVE.W  #$0010,D1                       ; $01066A
-        JSR     $00E35A(PC)                     ; $01066E
+        JSR     $00E35A(PC)                     ; $01066E [sh2_send_cmd]
         RTS                                     ; $010672
 loc_010674:
         CMPI.W  #$0020,D0                       ; $010674
@@ -371,34 +371,34 @@ loc_0106F0:
         ADDA.L  D0,A0                           ; $01070C
         MOVE.W  #$0018,D0                       ; $01070E
         MOVE.W  #$0028,D1                       ; $010712
-        JSR     $00E35A(PC)                     ; $010716
+        JSR     $00E35A(PC)                     ; $010716 [sh2_send_cmd]
         RTS                                     ; $01071A
 loc_01071C:
         MOVEA.L #$06014000,A0                   ; $01071C
         MOVEA.L #$24014034,A1                   ; $010722
         MOVE.W  #$00D8,D0                       ; $010728
         MOVE.W  #$0050,D1                       ; $01072C
-        JSR     $00E35A(PC)                     ; $010730
+        JSR     $00E35A(PC)                     ; $010730 [sh2_send_cmd]
         MOVEA.L #$06019700,A0                   ; $010734
         MOVEA.L #$240080A0,A1                   ; $01073A
         MOVE.W  #$0058,D0                       ; $010740
         MOVE.W  #$0010,D1                       ; $010744
-        JSR     $00E35A(PC)                     ; $010748
+        JSR     $00E35A(PC)                     ; $010748 [sh2_send_cmd]
         MOVEA.L #$06019C80,A0                   ; $01074C
         MOVEA.L #$2400A0A0,A1                   ; $010752
         MOVE.W  #$0058,D0                       ; $010758
         MOVE.W  #$0010,D1                       ; $01075C
-        JSR     $00E35A(PC)                     ; $010760
+        JSR     $00E35A(PC)                     ; $010760 [sh2_send_cmd]
         MOVEA.L #$06019000,A0                   ; $010764
         MOVEA.L #$24008060,A1                   ; $01076A
         MOVE.W  #$0038,D0                       ; $010770
         MOVE.W  #$0020,D1                       ; $010774
-        JSR     $00E35A(PC)                     ; $010778
+        JSR     $00E35A(PC)                     ; $010778 [sh2_send_cmd]
         MOVEA.L #$0601A200,A0                   ; $01077C
         MOVEA.L #$24004C60,A1                   ; $010782
         MOVE.W  #$0080,D0                       ; $010788
         MOVE.W  #$0010,D1                       ; $01078C
-        JSR     $00E35A(PC)                     ; $010790
+        JSR     $00E35A(PC)                     ; $010790 [sh2_send_cmd]
         RTS                                     ; $010794
 loc_010796:
         SUBQ.B  #1,$A02D.W                      ; $010796
@@ -562,9 +562,9 @@ loc_010960:
         MOVE.W  $C874.W,(A5)                    ; $0109C2
         DC.W    $33FC,$0083,$00A1,$5100; $0109C6 MOVE.W  #$0083,$00A15100
         DC.W    $0239,$00FC,$00A1,$5181; $0109CE ANDI.B  #$00FC,$00A15181
-        JSR     $008826C8                       ; $0109D6
+        JSR     func_0026C8                       ; $0109D6
         MOVE.L  #$000A0907,D0                   ; $0109DC
-        JSR     $008814BE                       ; $0109E2
+        JSR     func_0014BE                       ; $0109E2
         MOVE.B  #$0001,$C80D.W                  ; $0109E8
         MOVEQ   #$00,D0                         ; $0109EE
         LEA     $8480.W,A0                      ; $0109F0
@@ -585,14 +585,14 @@ loc_010A0A:
 loc_010A14:
         MOVE.L  D0,(A6)                         ; $010A14
         DBRA    D1,loc_010A14                   ; $010A16
-        JSR     $008849AA                       ; $010A1A
+        JSR     func_0049AA                       ; $010A1A
         CLR.W  $C880.W                          ; $010A20
         CLR.W  $C882.W                          ; $010A24
         CLR.W  $8000.W                          ; $010A28
         CLR.W  $8002.W                          ; $010A2C
         CLR.W  $A012.W                          ; $010A30
         CLR.B  $A018.W                          ; $010A34
-        JSR     $008849AA                       ; $010A38
+        JSR     func_0049AA                       ; $010A38
         DC.W    $21FC,$008B,$B4FC,$C96C; $010A3E MOVE.L  #$008BB4FC,$C96C.W
         MOVE.B  #$0001,$C809.W                  ; $010A46
         MOVE.B  #$0001,$C80A.W                  ; $010A4C
@@ -610,10 +610,10 @@ loc_010A6E:
         MOVE.W  #$0026,D3                       ; $010A80
         MOVE.W  #$001A,D4                       ; $010A84
         LEA     $00FF1000,A0                    ; $010A88
-        JSR     $00E22C(PC)                     ; $010A8E
+        JSR     $00E22C(PC)                     ; $010A8E [func_00E22C]
         LEA     $00FF1000,A0                    ; $010A92
-        JSR     $00E2F0(PC)                     ; $010A98
-        JSR     $00E1BC(PC)                     ; $010A9C
+        JSR     $00E2F0(PC)                     ; $010A98 [func_00E2F0]
+        JSR     $00E1BC(PC)                     ; $010A9C [func_00E1BC]
         DC.W    $08B9,$0007,$00A1,$5181; $010AA0 BCLR    #7,$00A15181
         LEA     $00FF6E00,A0                    ; $010AA8
         ADDA.L  #$00000160,A0                   ; $010AAE
@@ -638,25 +638,25 @@ loc_010AEA:
 loc_010AF6:
         LEA     $000EC980,A0                    ; $010AF6
         MOVEA.L #$06018000,A1                   ; $010AFC
-        JSR     $00E316(PC)                     ; $010B02
+        JSR     $00E316(PC)                     ; $010B02 [sh2_send_cmd_wait]
         LEA     $000ECC90,A0                    ; $010B06
         MOVEA.L #$06018500,A1                   ; $010B0C
-        JSR     $00E316(PC)                     ; $010B12
+        JSR     $00E316(PC)                     ; $010B12 [sh2_send_cmd_wait]
         LEA     $000ECE20,A0                    ; $010B16
         MOVEA.L #$06018C00,A1                   ; $010B1C
-        JSR     $00E316(PC)                     ; $010B22
+        JSR     $00E316(PC)                     ; $010B22 [sh2_send_cmd_wait]
         BTST    #4,$C80E.W                      ; $010B26
         BEQ.W  loc_010B40                       ; $010B2C
         LEA     $000ECAB0,A0                    ; $010B30
         MOVEA.L #$06018F80,A1                   ; $010B36
-        JSR     $00E316(PC)                     ; $010B3C
+        JSR     $00E316(PC)                     ; $010B3C [sh2_send_cmd_wait]
 loc_010B40:
         LEA     $000EBB40,A0                    ; $010B40
         MOVEA.L #$0601AD00,A1                   ; $010B46
-        JSR     $00E316(PC)                     ; $010B4C
+        JSR     $00E316(PC)                     ; $010B4C [sh2_send_cmd_wait]
         LEA     $000EB980,A0                    ; $010B50
         MOVEA.L #$0601DF00,A1                   ; $010B56
-        JSR     $00E316(PC)                     ; $010B5C
+        JSR     $00E316(PC)                     ; $010B5C [sh2_send_cmd_wait]
         MOVEQ   #$00,D0                         ; $010B60
         MOVE.B  $FEB1.W,D0                      ; $010B62
         BTST    #5,$C80E.W                      ; $010B66
@@ -672,7 +672,7 @@ loc_010B82:
         LEA     $0089103E,A0                    ; $010B86
         MOVEA.L $00(A0,D0.W),A0                 ; $010B8C
         MOVEA.L #$0601E8C0,A1                   ; $010B90
-        JSR     $00E316(PC)                     ; $010B96
+        JSR     $00E316(PC)                     ; $010B96 [sh2_send_cmd_wait]
         MOVEQ   #$00,D0                         ; $010B9A
         MOVE.B  $FEA5.W,D0                      ; $010B9C
         BTST    #5,$C80E.W                      ; $010BA0
@@ -688,10 +688,10 @@ loc_010BBC:
         LEA     $0089104A,A0                    ; $010BC0
         MOVEA.L $00(A0,D0.W),A0                 ; $010BC6
         MOVEA.L #$0601EE40,A1                   ; $010BCA
-        JSR     $00E316(PC)                     ; $010BD0
+        JSR     $00E316(PC)                     ; $010BD0 [sh2_send_cmd_wait]
         LEA     $000EDE10,A0                    ; $010BD4
         MOVEA.L #$06010000,A1                   ; $010BDA
-        JSR     $00E316(PC)                     ; $010BE0
+        JSR     $00E316(PC)                     ; $010BE0 [sh2_send_cmd_wait]
         MOVE.B  #$0000,$A019.W                  ; $010BE4
         MOVE.B  #$0000,$A01A.W                  ; $010BEA
         MOVE.B  #$0002,$A01C.W                  ; $010BF0
@@ -867,7 +867,7 @@ loc_010E14:
         MOVE.W  #$0010,D1                       ; $010E42
         MOVE.W  #$0008,D2                       ; $010E46
         MOVE.W  #$00D8,D3                       ; $010E4A
-        JSR     $0088E406                       ; $010E4E
+        JSR     func_00E406                       ; $010E4E
 loc_010E54:
         MOVEA.L #$06019D00,A0                   ; $010E54
         MOVEA.L #$06028088,A1                   ; $010E5A
@@ -927,7 +927,7 @@ loc_010EEA:
         MOVE.W  #$0010,D1                       ; $010F0C
         MOVE.W  #$0008,D2                       ; $010F10
         MOVE.W  #$0080,D3                       ; $010F14
-        JSR     $0088E406                       ; $010F18
+        JSR     func_00E406                       ; $010F18
 loc_010F1E:
         BSR.W  loc_011B6A                       ; $010F1E
         MOVEA.L #$2601AD00,A0                   ; $010F22
@@ -977,9 +977,9 @@ loc_010F8E:
         MOVE.W  #$0010,D1                       ; $010FB0
         MOVE.W  #$0008,D2                       ; $010FB4
         MOVE.W  #$0080,D3                       ; $010FB8
-        JSR     $0088E406                       ; $010FBC
+        JSR     func_00E406                       ; $010FBC
 loc_010FC2:
-        JSR     $0088204A                       ; $010FC2
+        JSR     func_00204A                       ; $010FC2
 loc_010FC8:
         MOVE.B  #$0001,$C821.W                  ; $010FC8
         DC.W    $0239,$00FC,$00A1,$5181; $010FCE ANDI.B  #$00FC,$00A15181
@@ -988,7 +988,7 @@ loc_010FC8:
         BSET    #6,$C875.W                      ; $010FE6
         MOVE.W  $C874.W,(A5)                    ; $010FEC
         DC.W    $33FC,$0018,$00FF,$0008; $010FF0 MOVE.W  #$0018,$00FF0008
-        JSR     $00884998                       ; $010FF8
+        JSR     func_004998                       ; $010FF8
         MOVE.W  #$0000,$C87E.W                  ; $010FFE
         DC.W    $23FC,$0089,$1166,$00FF,$0002; $011004 MOVE.L  #$00891166,$00FF0002
         BTST    #4,$C80E.W                      ; $01100E
@@ -1085,7 +1085,7 @@ loc_0110CA:
         DC.W    $0000,$2800         ; $011116 ORI.B  #$2800,D0
         DC.W    $0000,$5000         ; $01111A ORI.B  #$5000,D0
         DC.W    $0000,$7800         ; $01111E ORI.B  #$7800,D0
-        JSR     $00882080                       ; $011122
+        JSR     func_002080                       ; $011122
         MOVE.W  $C87E.W,D0                      ; $011128
         MOVEA.L $04(PC,D0.W),A1                 ; $01112C
         JMP     (A1)                            ; $011130
@@ -1102,7 +1102,7 @@ loc_0110CA:
         MOVE.B  (A2)+,D2                        ; $01115C
         ORI.L  #$146E0089,A1                    ; $01115E
         MOVEA.B -(A2),A4                        ; $011164
-        JSR     $00882080                       ; $011166
+        JSR     func_002080                       ; $011166
         MOVE.W  $C87E.W,D0                      ; $01116C
         MOVEA.L $04(PC,D0.W),A1                 ; $011170
         JMP     (A1)                            ; $011174
@@ -1112,7 +1112,7 @@ loc_0110CA:
         ORI.L  #$15A80089,A1                    ; $011186
         MOVE.B  -$77(A0,D0.W),D3                ; $01118C
         MOVE.B  A2,(A4)                         ; $011190
-        JSR     $00B684(PC)                     ; $011192
+        JSR     $00B684(PC)                     ; $011192 [object_update]
         BTST    #6,$C80E.W                      ; $011196
         BNE.S  loc_0111A2                       ; $01119C
         ADDQ.W  #4,$C87E.W                      ; $01119E
@@ -1126,12 +1126,12 @@ loc_0111A2:
         MOVEA.L #$0400D018,A1                   ; $0111BC
         MOVE.W  #$0078,D0                       ; $0111C2
         MOVE.W  #$0018,D1                       ; $0111C6
-        JSR     $00E35A(PC)                     ; $0111CA
+        JSR     $00E35A(PC)                     ; $0111CA [sh2_send_cmd]
         MOVEA.L #$06019AC0,A0                   ; $0111CE
         MOVEA.L #$0400D0A0,A1                   ; $0111D4
         MOVE.W  #$0078,D0                       ; $0111DA
         MOVE.W  #$0018,D1                       ; $0111DE
-        JSR     $00E35A(PC)                     ; $0111E2
+        JSR     $00E35A(PC)                     ; $0111E2 [sh2_send_cmd]
         LEA     $0403B048,A1                    ; $0111E6
         LEA     $A046.W,A2                      ; $0111EC
         JSR     loc_0118D4(PC)                  ; $0111F0
@@ -1142,29 +1142,29 @@ loc_0111A2:
         MOVEA.L #$0401B010,A1                   ; $011208
         MOVE.W  #$0038,D0                       ; $01120E
         MOVE.W  #$0010,D1                       ; $011212
-        JSR     $00E35A(PC)                     ; $011216
+        JSR     $00E35A(PC)                     ; $011216 [sh2_send_cmd]
         MOVEA.L #$06018C00,A0                   ; $01121A
         MOVEA.L #$0401B098,A1                   ; $011220
         MOVE.W  #$0038,D0                       ; $011226
         MOVE.W  #$0010,D1                       ; $01122A
-        JSR     $00E35A(PC)                     ; $01122E
+        JSR     $00E35A(PC)                     ; $01122E [sh2_send_cmd]
         ADDQ.W  #4,$C87E.W                      ; $011232
         DC.W    $33FC,$0018,$00FF,$0008; $011236 MOVE.W  #$0018,$00FF0008
         RTS                                     ; $01123E
         CLR.W  D0                               ; $011240
-        JSR     $00E52C(PC)                     ; $011242
-        JSR     $00B684(PC)                     ; $011246
-        JSR     $00B6DA(PC)                     ; $01124A
+        JSR     $00E52C(PC)                     ; $011242 [dma_transfer]
+        JSR     $00B684(PC)                     ; $011246 [object_update]
+        JSR     $00B6DA(PC)                     ; $01124A [sprite_update]
         MOVEA.L #$06018F80,A0                   ; $01124E
         MOVEA.L #$0400E038,A1                   ; $011254
         MOVE.W  #$00D8,D0                       ; $01125A
         MOVE.W  #$0010,D1                       ; $01125E
-        JSR     $00E35A(PC)                     ; $011262
+        JSR     $00E35A(PC)                     ; $011262 [sh2_send_cmd]
         MOVEA.L #$06028000,A0                   ; $011266
         MOVEA.L #$04010038,A1                   ; $01126C
         MOVE.W  #$00D8,D0                       ; $011272
         MOVE.W  #$0050,D1                       ; $011276
-        JSR     $00E35A(PC)                     ; $01127A
+        JSR     $00E35A(PC)                     ; $01127A [sh2_send_cmd]
         LEA     $0402C090,A1                    ; $01127E
         LEA     $A046.W,A2                      ; $011284
         JSR     loc_0118D4(PC)                  ; $011288
@@ -1172,30 +1172,30 @@ loc_0111A2:
         MOVEA.L #$0400C048,A1                   ; $011292
         MOVE.W  #$0038,D0                       ; $011298
         MOVE.W  #$0010,D1                       ; $01129C
-        JSR     $00E35A(PC)                     ; $0112A0
+        JSR     $00E35A(PC)                     ; $0112A0 [sh2_send_cmd]
         TST.W  $A042.W                          ; $0112A4
         BNE.W  loc_0112F4                       ; $0112A8
         MOVEA.L #$0601A200,A0                   ; $0112AC
         MOVEA.L #$0401B030,A1                   ; $0112B2
         MOVE.W  #$0080,D0                       ; $0112B8
         MOVE.W  #$0010,D1                       ; $0112BC
-        JSR     $00E35A(PC)                     ; $0112C0
+        JSR     $00E35A(PC)                     ; $0112C0 [sh2_send_cmd]
         MOVEA.L #$0601AA00,A0                   ; $0112C4
         MOVEA.L #$0401B0D0,A1                   ; $0112CA
         MOVE.W  #$0018,D0                       ; $0112D0
         MOVE.W  #$0010,D1                       ; $0112D4
-        JSR     $00E35A(PC)                     ; $0112D8
+        JSR     $00E35A(PC)                     ; $0112D8 [sh2_send_cmd]
         MOVEA.L #$0601AB80,A0                   ; $0112DC
         MOVEA.L #$0401B100,A1                   ; $0112E2
         MOVE.W  #$0018,D0                       ; $0112E8
         MOVE.W  #$0010,D1                       ; $0112EC
-        JSR     $00E35A(PC)                     ; $0112F0
+        JSR     $00E35A(PC)                     ; $0112F0 [sh2_send_cmd]
 loc_0112F4:
         CMPI.W  #$0001,$A05C.W                  ; $0112F4
         BEQ.W  loc_0113DC                       ; $0112FA
         CMPI.W  #$0002,$A05C.W                  ; $0112FE
         BEQ.W  loc_0113F2                       ; $011304
-        JSR     $0088179E                       ; $011308
+        JSR     func_00179E                       ; $011308
         MOVE.W  $C86C.W,D1                      ; $01130E
         MOVE.W  D1,D2                           ; $011312
         DC.W    $0202,$00E0         ; $011314 ANDI.B  #$00E0,D2
@@ -1205,7 +1205,7 @@ loc_0112F4:
         MOVE.B  #$0001,$C80A.W                  ; $011326
         BSET    #7,$C80E.W                      ; $01132C
         MOVE.B  #$0001,$C802.W                  ; $011332
-        JSR     $0088205E                       ; $011338
+        JSR     func_00205E                       ; $011338
         MOVE.W  #$0002,$A05C.W                  ; $01133E
         BRA.W  loc_01140C                       ; $011344
 loc_011348:
@@ -1224,7 +1224,7 @@ loc_01136E:
         MOVE.B  #$0001,$C80A.W                  ; $01137A
         BSET    #7,$C80E.W                      ; $011380
         MOVE.B  #$0001,$C802.W                  ; $011386
-        JSR     $0088205E                       ; $01138C
+        JSR     func_00205E                       ; $01138C
         MOVE.W  #$0002,$A05C.W                  ; $011392
         BRA.W  loc_01140C                       ; $011398
 loc_01139C:
@@ -1246,13 +1246,13 @@ loc_0113BE:
         MOVE.B  #$0001,$A019.W                  ; $0113D2
         BRA.W  loc_01140C                       ; $0113D8
 loc_0113DC:
-        JSR     $0088FB36                       ; $0113DC
+        JSR     func_00FB36                       ; $0113DC
         BTST    #6,$C80E.W                      ; $0113E2
         BNE.S  loc_01140C                       ; $0113E8
         CLR.W  $A05C.W                          ; $0113EA
         BRA.W  loc_01140C                       ; $0113EE
 loc_0113F2:
-        JSR     $0088FB36                       ; $0113F2
+        JSR     func_00FB36                       ; $0113F2
         BTST    #7,$C80E.W                      ; $0113F8
         BNE.S  loc_01140C                       ; $0113FE
         CLR.W  $A05C.W                          ; $011400
@@ -1264,7 +1264,7 @@ loc_011410:
         DC.W    $33FC,$0018,$00FF,$0008; $011410 MOVE.W  #$0018,$00FF0008
         RTS                                     ; $011418
         CLR.W  D0                               ; $01141A
-        JSR     $00E52C(PC)                     ; $01141C
+        JSR     $00E52C(PC)                     ; $01141C [dma_transfer]
 loc_011420:
         TST.B  $00A15120                        ; $011420
         BNE.S  loc_011420                       ; $011426
@@ -1281,21 +1281,21 @@ loc_011448:
         ADDQ.W  #4,$C87E.W                      ; $011468
         RTS                                     ; $01146C
         CLR.W  D0                               ; $01146E
-        JSR     $00E52C(PC)                     ; $011470
-        JSR     $00B684(PC)                     ; $011474
-        JSR     $00B6DA(PC)                     ; $011478
+        JSR     $00E52C(PC)                     ; $011470 [dma_transfer]
+        JSR     $00B684(PC)                     ; $011474 [object_update]
+        JSR     $00B6DA(PC)                     ; $011478 [sprite_update]
         MOVEA.L #$06018F80,A0                   ; $01147C
         MOVEA.L #$0400E038,A1                   ; $011482
         MOVE.W  #$00D8,D0                       ; $011488
         MOVE.W  #$0010,D1                       ; $01148C
-        JSR     $00E35A(PC)                     ; $011490
+        JSR     $00E35A(PC)                     ; $011490 [sh2_send_cmd]
         MOVEA.L #$26028000,A0                   ; $011494
         MOVE.L  $A022.W,D0                      ; $01149A
         ADDA.L  D0,A0                           ; $01149E
         MOVEA.L #$24010038,A1                   ; $0114A0
         MOVE.W  #$00D8,D0                       ; $0114A6
         MOVE.W  #$0050,D1                       ; $0114AA
-        JSR     $00E35A(PC)                     ; $0114AE
+        JSR     $00E35A(PC)                     ; $0114AE [sh2_send_cmd]
         TST.L  $A026.W                          ; $0114B2
         BEQ.W  loc_0114D4                       ; $0114B6
         MOVE.L  $A022.W,D0                      ; $0114BA
@@ -1310,7 +1310,7 @@ loc_0114D4:
         BEQ.W  loc_01156A                       ; $0114DA
         CMPI.W  #$0002,$A05C.W                  ; $0114DE
         BEQ.W  loc_011580                       ; $0114E4
-        JSR     $0088179E                       ; $0114E8
+        JSR     func_00179E                       ; $0114E8
         MOVE.W  $C86C.W,D1                      ; $0114EE
         MOVE.W  D1,D2                           ; $0114F2
         DC.W    $0202,$00F0         ; $0114F4 ANDI.B  #$00F0,D2
@@ -1321,7 +1321,7 @@ loc_0114D4:
         MOVE.B  #$0001,$C80A.W                  ; $01150C
         BSET    #7,$C80E.W                      ; $011512
         MOVE.B  #$0001,$C802.W                  ; $011518
-        JSR     $0088205E                       ; $01151E
+        JSR     func_00205E                       ; $01151E
         BRA.W  loc_01159E                       ; $011524
 loc_011528:
         LSR.W  #8,D1                            ; $011528
@@ -1341,13 +1341,13 @@ loc_01154A:
         DC.W    $21FC,$0000,$01B0,$A026; $01155C MOVE.L  #$000001B0,$A026.W
         MOVE.B  #$0007,$A02E.W                  ; $011564
 loc_01156A:
-        JSR     $0088FB36                       ; $01156A
+        JSR     func_00FB36                       ; $01156A
         BTST    #6,$C80E.W                      ; $011570
         BNE.S  loc_01159A                       ; $011576
         CLR.W  $A05C.W                          ; $011578
         BRA.W  loc_01159A                       ; $01157C
 loc_011580:
-        JSR     $0088FB36                       ; $011580
+        JSR     func_00FB36                       ; $011580
         BTST    #7,$C80E.W                      ; $011586
         BNE.S  loc_01159A                       ; $01158C
         CLR.W  $A05C.W                          ; $01158E
@@ -1359,7 +1359,7 @@ loc_01159E:
         DC.W    $33FC,$0018,$00FF,$0008; $01159E MOVE.W  #$0018,$00FF0008
         RTS                                     ; $0115A6
         CLR.W  D0                               ; $0115A8
-        JSR     $00E52C(PC)                     ; $0115AA
+        JSR     $00E52C(PC)                     ; $0115AA [dma_transfer]
 loc_0115AE:
         TST.B  $00A15120                        ; $0115AE
         BNE.S  loc_0115AE                       ; $0115B4
@@ -1378,7 +1378,7 @@ loc_0115D6:
         MOVEA.L #$24010018,A1                   ; $0115FA
         MOVE.W  #$0080,D0                       ; $011600
         MOVE.W  #$0050,D1                       ; $011604
-        JSR     $00E35A(PC)                     ; $011608
+        JSR     $00E35A(PC)                     ; $011608 [sh2_send_cmd]
         SUBQ.W  #1,$A052.W                      ; $01160C
         BCC.S  loc_01161E                       ; $011610
         MOVE.W  #$0010,$A052.W                  ; $011612
@@ -1389,16 +1389,16 @@ loc_01161E:
         ADDQ.W  #4,$C87E.W                      ; $01162A
         RTS                                     ; $01162E
         CLR.W  D0                               ; $011630
-        JSR     $00E52C(PC)                     ; $011632
-        JSR     $00B684(PC)                     ; $011636
-        JSR     $00B6DA(PC)                     ; $01163A
+        JSR     $00E52C(PC)                     ; $011632 [dma_transfer]
+        JSR     $00B684(PC)                     ; $011636 [object_update]
+        JSR     $00B6DA(PC)                     ; $01163A [sprite_update]
         MOVEA.L #$26032000,A0                   ; $01163E
         MOVE.L  $A032.W,D0                      ; $011644
         ADDA.L  D0,A0                           ; $011648
         MOVEA.L #$240100A0,A1                   ; $01164A
         MOVE.W  #$0080,D0                       ; $011650
         MOVE.W  #$0050,D1                       ; $011654
-        JSR     $00E35A(PC)                     ; $011658
+        JSR     $00E35A(PC)                     ; $011658 [sh2_send_cmd]
         TST.L  $A026.W                          ; $01165C
         BEQ.W  loc_01167E                       ; $011660
         MOVE.L  $A022.W,D0                      ; $011664
@@ -1413,7 +1413,7 @@ loc_01167E:
         BEQ.W  loc_0117B6                       ; $011684
         CMPI.W  #$0002,$A05C.W                  ; $011688
         BEQ.W  loc_0117CC                       ; $01168E
-        JSR     $0088179E                       ; $011692
+        JSR     func_00179E                       ; $011692
         MOVE.W  $C86C.W,D1                      ; $011698
         MOVE.W  D1,D2                           ; $01169C
         DC.W    $0202,$00F0         ; $01169E ANDI.B  #$00F0,D2
@@ -1424,7 +1424,7 @@ loc_01167E:
         MOVE.B  #$0001,$C80A.W                  ; $0116B6
         BSET    #7,$C80E.W                      ; $0116BC
         MOVE.B  #$0001,$C802.W                  ; $0116C2
-        JSR     $0088205E                       ; $0116C8
+        JSR     func_00205E                       ; $0116C8
         BRA.W  loc_0117E6                       ; $0116CE
 loc_0116D2:
         LSR.W  #8,D1                            ; $0116D2
@@ -1464,7 +1464,7 @@ loc_011736:
         MOVE.B  #$0001,$C80A.W                  ; $011754
         BSET    #7,$C80E.W                      ; $01175A
         MOVE.B  #$0001,$C802.W                  ; $011760
-        JSR     $0088205E                       ; $011766
+        JSR     func_00205E                       ; $011766
         BRA.W  loc_0117E6                       ; $01176C
 loc_011770:
         LSR.W  #8,D1                            ; $011770
@@ -1485,13 +1485,13 @@ loc_011792:
         MOVE.B  #$0003,$A03E.W                  ; $0117AC
         BRA.W  loc_0117E6                       ; $0117B2
 loc_0117B6:
-        JSR     $0088FB36                       ; $0117B6
+        JSR     func_00FB36                       ; $0117B6
         BTST    #6,$C80E.W                      ; $0117BC
         BNE.S  loc_0117E6                       ; $0117C2
         CLR.W  $A05C.W                          ; $0117C4
         BRA.W  loc_0117E6                       ; $0117C8
 loc_0117CC:
-        JSR     $0088FB36                       ; $0117CC
+        JSR     func_00FB36                       ; $0117CC
         BTST    #7,$C80E.W                      ; $0117D2
         BNE.S  loc_0117E6                       ; $0117D8
         CLR.W  $A05C.W                          ; $0117DA
@@ -1541,7 +1541,7 @@ loc_011894:
         CLR.L  (A0)+                            ; $011894
         DBRA    D0,loc_011894                   ; $011896
         MOVE.B  #$0001,$C821.W                  ; $01189A
-        JSR     $00B6DA(PC)                     ; $0118A0
+        JSR     $00B6DA(PC)                     ; $0118A0 [sprite_update]
         BTST    #7,$C80E.W                      ; $0118A4
         BNE.S  loc_0118D2                       ; $0118AA
 loc_0118AC:
@@ -1591,7 +1591,7 @@ loc_011924:
         ADDA.W  D1,A0                           ; $011932
         MOVE.W  #$000C,D0                       ; $011934
         MOVE.W  #$0010,D1                       ; $011938
-        JSR     $00E35A(PC)                     ; $01193C
+        JSR     $00E35A(PC)                     ; $01193C [sh2_send_cmd]
         RTS                                     ; $011940
 loc_011942:
         MOVEM.L -(A7),A3/A4                     ; $011942
@@ -1743,22 +1743,22 @@ loc_011B08:
         MOVEA.L #$04004C78,A1                   ; $011B0E
         MOVE.W  #$0050,D0                       ; $011B14
         MOVE.W  #$0010,D1                       ; $011B18
-        JSR     $00E35A(PC)                     ; $011B1C
+        JSR     $00E35A(PC)                     ; $011B1C [sh2_send_cmd]
         MOVEA.L #$0601E8C0,A0                   ; $011B20
         MOVEA.L #$04008090,A1                   ; $011B26
         MOVE.W  #$0058,D0                       ; $011B2C
         MOVE.W  #$0010,D1                       ; $011B30
-        JSR     $00E35A(PC)                     ; $011B34
+        JSR     $00E35A(PC)                     ; $011B34 [sh2_send_cmd]
         MOVEA.L #$0601EE40,A0                   ; $011B38
         MOVEA.L #$0400A090,A1                   ; $011B3E
         MOVE.W  #$0058,D0                       ; $011B44
         MOVE.W  #$0010,D1                       ; $011B48
-        JSR     $00E35A(PC)                     ; $011B4C
+        JSR     $00E35A(PC)                     ; $011B4C [sh2_send_cmd]
         MOVEA.L #$06018500,A0                   ; $011B50
         MOVEA.L #$04008048,A1                   ; $011B56
         MOVE.W  #$0038,D0                       ; $011B5C
         MOVE.W  #$0020,D1                       ; $011B60
-        JSR     $00E35A(PC)                     ; $011B64
+        JSR     $00E35A(PC)                     ; $011B64 [sh2_send_cmd]
         RTS                                     ; $011B68
 loc_011B6A:
         MOVE.L  $C260.W,D0                      ; $011B6A
@@ -1857,14 +1857,14 @@ loc_011C7E:
         MOVEA.L #$0400D018,A1                   ; $011C92
         MOVE.W  #$0078,D0                       ; $011C98
         MOVE.W  #$0018,D1                       ; $011C9C
-        JSR     $00E35A(PC)                     ; $011CA0
+        JSR     $00E35A(PC)                     ; $011CA0 [sh2_send_cmd]
         BRA.W  loc_011D08                       ; $011CA4
 loc_011CA8:
         MOVEA.L #$06010000,A0                   ; $011CA8
         MOVEA.L #$0400D018,A1                   ; $011CAE
         MOVE.W  #$0078,D0                       ; $011CB4
         MOVE.W  #$0018,D1                       ; $011CB8
-        JSR     $00E35A(PC)                     ; $011CBC
+        JSR     $00E35A(PC)                     ; $011CBC [sh2_send_cmd]
         BRA.W  loc_011D08                       ; $011CC0
 loc_011CC4:
         CMPI.W  #$0002,$A04E.W                  ; $011CC4
@@ -1875,14 +1875,14 @@ loc_011CC4:
         MOVEA.L #$0400D0A0,A1                   ; $011CDA
         MOVE.W  #$0078,D0                       ; $011CE0
         MOVE.W  #$0018,D1                       ; $011CE4
-        JSR     $00E35A(PC)                     ; $011CE8
+        JSR     $00E35A(PC)                     ; $011CE8 [sh2_send_cmd]
         BRA.W  loc_011D08                       ; $011CEC
 loc_011CF0:
         MOVEA.L #$06010000,A0                   ; $011CF0
         MOVEA.L #$0400D0A0,A1                   ; $011CF6
         MOVE.W  #$0078,D0                       ; $011CFC
         MOVE.W  #$0018,D1                       ; $011D00
-        JSR     $00E35A(PC)                     ; $011D04
+        JSR     $00E35A(PC)                     ; $011D04 [sh2_send_cmd]
 loc_011D08:
         RTS                                     ; $011D08
         DC.W    $33FC,$002C,$00FF,$0008; $011D0A MOVE.W  #$002C,$00FF0008
@@ -1891,9 +1891,9 @@ loc_011D08:
         MOVE.W  $C874.W,(A5)                    ; $011D1E
         DC.W    $33FC,$0083,$00A1,$5100; $011D22 MOVE.W  #$0083,$00A15100
         DC.W    $0239,$00FC,$00A1,$5181; $011D2A ANDI.B  #$00FC,$00A15181
-        JSR     $008826C8                       ; $011D32
+        JSR     func_0026C8                       ; $011D32
         MOVE.L  #$000A0907,D0                   ; $011D38
-        JSR     $008814BE                       ; $011D3E
+        JSR     func_0014BE                       ; $011D3E
         MOVE.B  #$0001,$C80D.W                  ; $011D44
         MOVEQ   #$00,D0                         ; $011D4A
         LEA     $8480.W,A0                      ; $011D4C
@@ -1911,14 +1911,14 @@ loc_011D60:
 loc_011D70:
         MOVE.L  D0,(A6)                         ; $011D70
         DBRA    D1,loc_011D70                   ; $011D72
-        JSR     $008849AA                       ; $011D76
+        JSR     func_0049AA                       ; $011D76
         CLR.W  $C880.W                          ; $011D7C
         CLR.W  $C882.W                          ; $011D80
         CLR.W  $8000.W                          ; $011D84
         CLR.W  $8002.W                          ; $011D88
         CLR.W  $A012.W                          ; $011D8C
         CLR.B  $A018.W                          ; $011D90
-        JSR     $008849AA                       ; $011D94
+        JSR     func_0049AA                       ; $011D94
         DC.W    $21FC,$008B,$B4FC,$C96C; $011D9A MOVE.L  #$008BB4FC,$C96C.W
         MOVE.B  #$0001,$C809.W                  ; $011DA2
         MOVE.B  #$0001,$C80A.W                  ; $011DA8
@@ -1936,10 +1936,10 @@ loc_011DCA:
         MOVE.W  #$0026,D3                       ; $011DDC
         MOVE.W  #$001A,D4                       ; $011DE0
         LEA     $00FF1000,A0                    ; $011DE4
-        JSR     $00E22C(PC)                     ; $011DEA
+        JSR     $00E22C(PC)                     ; $011DEA [func_00E22C]
         LEA     $00FF1000,A0                    ; $011DEE
-        JSR     $00E2F0(PC)                     ; $011DF4
-        JSR     $00E1BC(PC)                     ; $011DF8
+        JSR     $00E2F0(PC)                     ; $011DF4 [func_00E2F0]
+        JSR     $00E1BC(PC)                     ; $011DF8 [func_00E1BC]
         DC.W    $08B9,$0007,$00A1,$5181; $011DFC BCLR    #7,$00A15181
         LEA     $00FF6E00,A0                    ; $011E04
         ADDQ.L  #2,A0                           ; $011E0A
@@ -1961,25 +1961,25 @@ loc_011E38:
         DBRA    D0,loc_011E38                   ; $011E40
         LEA     $000EDF70,A0                    ; $011E44
         MOVEA.L #$06018000,A1                   ; $011E4A
-        JSR     $00E316(PC)                     ; $011E50
+        JSR     $00E316(PC)                     ; $011E50 [sh2_send_cmd_wait]
         LEA     $000EE770,A0                    ; $011E54
         MOVEA.L #$0601AD00,A1                   ; $011E5A
-        JSR     $00E316(PC)                     ; $011E60
+        JSR     $00E316(PC)                     ; $011E60 [sh2_send_cmd_wait]
         LEA     $000EBB40,A0                    ; $011E64
         MOVEA.L #$0601BE00,A1                   ; $011E6A
-        JSR     $00E316(PC)                     ; $011E70
+        JSR     $00E316(PC)                     ; $011E70 [sh2_send_cmd_wait]
         LEA     $000EB980,A0                    ; $011E74
         MOVEA.L #$0601F000,A1                   ; $011E7A
-        JSR     $00E316(PC)                     ; $011E80
+        JSR     $00E316(PC)                     ; $011E80 [sh2_send_cmd_wait]
         LEA     $000EC6F0,A0                    ; $011E84
         MOVEA.L #$0601F9C0,A1                   ; $011E8A
-        JSR     $00E316(PC)                     ; $011E90
+        JSR     $00E316(PC)                     ; $011E90 [sh2_send_cmd_wait]
         LEA     $000EC150,A0                    ; $011E94
         MOVEA.L #$060207C0,A1                   ; $011E9A
-        JSR     $00E316(PC)                     ; $011EA0
+        JSR     $00E316(PC)                     ; $011EA0 [sh2_send_cmd_wait]
         LEA     $000EEA40,A0                    ; $011EA4
         MOVEA.L #$06030000,A1                   ; $011EAA
-        JSR     $00E316(PC)                     ; $011EB0
+        JSR     $00E316(PC)                     ; $011EB0 [sh2_send_cmd_wait]
         MOVE.B  #$0000,$A019.W                  ; $011EB4
         MOVE.B  #$0000,$A01A.W                  ; $011EBA
         MOVE.B  #$0000,$A01B.W                  ; $011EC0
@@ -1988,7 +1988,7 @@ loc_011E38:
         CLR.W  $A02C.W                          ; $011ED0
         DC.W    $21FC,$0402,$A060,$A030; $011ED4 MOVE.L  #$0402A060,$A030.W
         DC.W    $21FC,$0402,$A020,$A034; $011EDC MOVE.L  #$0402A020,$A034.W
-        JSR     $0088204A                       ; $011EE4
+        JSR     func_00204A                       ; $011EE4
         MOVE.B  #$0001,$C821.W                  ; $011EEA
         DC.W    $0239,$00FC,$00A1,$5181; $011EF0 ANDI.B  #$00FC,$00A15181
         DC.W    $0039,$0001,$00A1,$5181; $011EF8 ORI.B  #$0001,$00A15181
@@ -1996,7 +1996,7 @@ loc_011E38:
         BSET    #6,$C875.W                      ; $011F08
         MOVE.W  $C874.W,(A5)                    ; $011F0E
         DC.W    $33FC,$0018,$00FF,$0008; $011F12 MOVE.W  #$0018,$00FF0008
-        JSR     $00884998                       ; $011F1A
+        JSR     func_004998                       ; $011F1A
         MOVE.W  #$0000,$C87E.W                  ; $011F20
         DC.W    $23FC,$0089,$2056,$00FF,$0002; $011F26 MOVE.L  #$00892056,$00FF0002
         MOVE.B  #$008F,$C8A5.W                  ; $011F30
@@ -2125,7 +2125,7 @@ loc_01203E:
         DC.W    $7FFF               ; $012052 MOVE.W  <EA:3F>,<EA:3F>
         DC.W    $7FFF               ; $012054 MOVE.W  <EA:3F>,<EA:3F>
 loc_012056:
-        JSR     $00882080                       ; $012056
+        JSR     func_002080                       ; $012056
         MOVE.W  $C87E.W,D0                      ; $01205C
         MOVEA.L $04(PC,D0.W),A1                 ; $012060
         JMP     (A1)                            ; $012064
@@ -2141,22 +2141,22 @@ loc_01207C:
 loc_012082:
         RTS                                     ; $012082
         CLR.W  D0                               ; $012084
-        JSR     $00E52C(PC)                     ; $012086
+        JSR     $00E52C(PC)                     ; $012086 [dma_transfer]
         MOVEA.L #$06018000,A0                   ; $01208A
         MOVEA.L #$04004C74,A1                   ; $012090
         MOVE.W  #$0058,D0                       ; $012096
         MOVE.W  #$0010,D1                       ; $01209A
-        JSR     $00E35A(PC)                     ; $01209E
+        JSR     $00E35A(PC)                     ; $01209E [sh2_send_cmd]
         MOVEA.L #$06018900,A0                   ; $0120A2
         MOVEA.L #$04019010,A1                   ; $0120A8
         MOVE.W  #$0120,D0                       ; $0120AE
         MOVE.W  #$0010,D1                       ; $0120B2
-        JSR     $00E35A(PC)                     ; $0120B6
+        JSR     $00E35A(PC)                     ; $0120B6 [sh2_send_cmd]
         MOVEA.L #$06019B00,A0                   ; $0120BA
         MOVEA.L #$0401C010,A1                   ; $0120C0
         MOVE.W  #$0120,D0                       ; $0120C6
         MOVE.W  #$0010,D1                       ; $0120CA
-        JSR     $00E35A(PC)                     ; $0120CE
+        JSR     $00E35A(PC)                     ; $0120CE [sh2_send_cmd]
         MOVEQ   #$00,D0                         ; $0120D2
         TST.B  $A01A.W                          ; $0120D4
         BNE.S  loc_0120E4                       ; $0120D8
@@ -2181,7 +2181,7 @@ loc_012108:
 loc_01210C:
         TST.B  $00A15120                        ; $01210C
         BNE.S  loc_01210C                       ; $012112
-        JSR     $00E3B4(PC)                     ; $012114
+        JSR     $00E3B4(PC)                     ; $012114 [func_00E3B4]
         MOVEQ   #$00,D0                         ; $012118
         TST.B  $A01A.W                          ; $01211A
         BEQ.S  loc_01212A                       ; $01211E
@@ -2203,7 +2203,7 @@ loc_012132:
 loc_01214C:
         TST.B  $00A15120                        ; $01214C
         BNE.S  loc_01214C                       ; $012152
-        JSR     $00E3B4(PC)                     ; $012154
+        JSR     $00E3B4(PC)                     ; $012154 [func_00E3B4]
 loc_012158:
         TST.B  $00A15120                        ; $012158
         BNE.S  loc_012158                       ; $01215E
@@ -2243,7 +2243,7 @@ loc_0121DC:
         MOVEA.L $A034.W,A1                      ; $0121DC
         MOVE.W  #$0028,D0                       ; $0121E0
         MOVE.W  #$0060,D1                       ; $0121E4
-        JSR     $00E35A(PC)                     ; $0121E8
+        JSR     $00E35A(PC)                     ; $0121E8 [sh2_send_cmd]
         ADDQ.W  #4,$C87E.W                      ; $0121EC
         DC.W    $33FC,$0020,$00FF,$0008; $0121F0 MOVE.W  #$0020,$00FF0008
         RTS                                     ; $0121F8

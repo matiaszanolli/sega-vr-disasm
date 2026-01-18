@@ -933,7 +933,7 @@ loc_008D38:
         MOVE.W  $C0BE.W,D1                      ; $008D66
         MOVE.W  $0030(A0),D2                    ; $008D6A
         MOVE.W  $0034(A0),D3                    ; $008D6E
-        JSR     $00A7A0(PC)                     ; $008D72
+        JSR     $00A7A0(PC)                     ; $008D72 [func_00A7A0]
         SUBI.W  #$4000,D0                       ; $008D76
         NEG.W  D0                               ; $008D7A
         MOVE.W  D0,$C0C2.W                      ; $008D7C
@@ -964,7 +964,7 @@ loc_008DA8:
         MOVE.W  $C0BE.W,D1                      ; $008DC4
         MOVE.W  $0030(A0),D2                    ; $008DC8
         MOVE.W  $0034(A0),D3                    ; $008DCC
-        JSR     $00A7A0(PC)                     ; $008DD0
+        JSR     $00A7A0(PC)                     ; $008DD0 [func_00A7A0]
         SUBI.W  #$4000,D0                       ; $008DD4
         NEG.W  D0                               ; $008DD8
         TST.W  $C102.W                          ; $008DDA
@@ -1060,7 +1060,7 @@ loc_008EAC:
         MOVE.W  $C0BE.W,D1                      ; $008EBA
         MOVE.W  $0030(A0),D2                    ; $008EBE
         MOVE.W  $0034(A0),D3                    ; $008EC2
-        JSR     $00A7A0(PC)                     ; $008EC6
+        JSR     $00A7A0(PC)                     ; $008EC6 [func_00A7A0]
         SUBI.W  #$4000,D0                       ; $008ECA
         NEG.W  D0                               ; $008ECE
         MOVE.W  D0,$C0C2.W                      ; $008ED0
@@ -1080,7 +1080,7 @@ loc_008EAC:
         MOVE.W  $C0BE.W,D1                      ; $008F00
         MOVE.W  $0030(A0),D2                    ; $008F04
         MOVE.W  $0034(A0),D3                    ; $008F08
-        JSR     $00A7A0(PC)                     ; $008F0C
+        JSR     $00A7A0(PC)                     ; $008F0C [func_00A7A0]
         SUBI.W  #$4000,D0                       ; $008F10
         NEG.W  D0                               ; $008F14
         MOVE.W  D0,D3                           ; $008F16

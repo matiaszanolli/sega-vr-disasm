@@ -387,3 +387,4 @@
         include "sections/code_2fa200.asm"
         include "sections/code_2fc200.asm"
         include "sections/code_2fe200.asm"
+        include "sections/expansion_300000.asm"

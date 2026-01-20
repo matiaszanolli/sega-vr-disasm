@@ -398,16 +398,16 @@
         dc.w    $E9E9        ; $00050C
         dc.w    $9FBF        ; $00050E
         dc.w    $DFFF        ; $000510
-; === SLAVE COMM2 INCREMENT TEST (replaces "MARS Init" ASCII text) ===
-        dc.w    $D104        ; $000512: MOV.L comm2_addr,R1
-        dc.w    $6112        ; $000514: MOV.W @R1,R1
-        dc.w    $7101        ; $000516: ADD #1,R1
-        dc.w    $D103        ; $000518: MOV.L comm2_addr,R0
-        dc.w    $2001        ; $00051A: MOV.W R1,@R0
-        dc.w    $AFFB        ; $00051C: BRA $000514
-        dc.w    $0009        ; $00051E: NOP
-        dc.w    $2000        ; $000520: .long 0x20004024 (high)
-        dc.w    $4024        ; $000522: .long 0x20004024 (low)
+; === Original copyright/security text (DO NOT MODIFY - game checks this!) ===
+        dc.w    $4D41        ; $000512 'MA'
+        dc.w    $5253        ; $000514 'RS'
+        dc.w    $2049        ; $000516 ' I'
+        dc.w    $6E69        ; $000518 'ni'
+        dc.w    $7469        ; $00051A 'ti'
+        dc.w    $616C        ; $00051C 'al'
+        dc.w    $2026        ; $00051E ' &'
+        dc.w    $2053        ; $000520 ' S'
+        dc.w    $6563        ; $000522 'ec'
         dc.w    $7572        ; $000524
         dc.w    $6974        ; $000526
         dc.w    $7920        ; $000528
@@ -2649,22 +2649,18 @@
         dc.w    $4E91        ; $0016A0
         dc.w    $52B8        ; $0016A2 - ADDQ.L #1,($C964) - frame counter++
         dc.w    $C964        ; $0016A4
-
-        ; === Call COMM monitor in expansion ROM (6 bytes) ===
-        dc.w    $4EB9        ; $0016A6 - JSR $300000
-        dc.w    $0030        ; $0016A8
-        dc.w    $0000        ; $0016AA
-        ; === End COMM monitor call ===
-
-        dc.w    $4CDF        ; $0016AC - MOVEM.L (SP)+,D0-D7/A0-A6
-        dc.w    $7FFF        ; $0016AE
-        dc.w    $46FC        ; $0016B0 - MOVE.W #$2300,SR
-        dc.w    $2300        ; $0016B2
-        dc.w    $4E73        ; $0016B4 - RTE
-        dc.w    $4E73        ; $0016B6 - RTE (duplicate entry point?)
-        dc.w    $0088        ; $0016B8
-        dc.w    $19FE        ; $0016BA
-        dc.w    $0088        ; $0016BC
+        dc.w    $4CDF        ; $0016A6 - MOVEM.L (SP)+,D0-D7/A0-A6 (CRITICAL!)
+        dc.w    $7FFF        ; $0016A8
+        dc.w    $46FC        ; $0016AA
+        dc.w    $2300        ; $0016AC
+        dc.w    $4E73        ; $0016AE
+        dc.w    $4E73        ; $0016B0
+        dc.w    $0088        ; $0016B2
+        dc.w    $19FE        ; $0016B4
+        dc.w    $0088        ; $0016B6
+        dc.w    $19FE        ; $0016B8
+        dc.w    $0088        ; $0016BA
+        dc.w    $19FE        ; $0016BC
         dc.w    $0001        ; $0016BE
         dc.w    $8200        ; $0016C0
         dc.w    $0088        ; $0016C2

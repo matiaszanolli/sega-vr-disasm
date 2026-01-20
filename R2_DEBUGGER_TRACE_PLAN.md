@@ -61,9 +61,9 @@ $02051C: 0009      NOP
 
 ### Emulator Setup
 
-**Recommended**: PicoDrive with GDB support or Blastem debugger
+**Tool**: PicoDrive with embedded debugger (custom build)
 
-**Alternative**: Use Gens KMod with memory watch
+**NOT**: Blastem, external GDB, or Gens KMod
 
 ### Breakpoint Plan
 
@@ -87,62 +87,58 @@ $02051C: 0009      NOP
 
 ---
 
-## GDB Command Script
+## PicoDrive Embedded Debugger Commands
 
-```gdb
-# Connect to PicoDrive/Blastem GDB server
-target remote localhost:1234
+**Note**: Syntax depends on your specific PicoDrive debugger implementation. Adapt as needed.
 
-# Set architecture
-set architecture sh
+### Typical Procedure:
 
-# Breakpoint 1: Slave entry
-break *0x06020650
-commands
-  silent
-  printf "SLAVE ENTRY - R2 = 0x%08X\n", $r2
-  continue
-end
+1. **Launch with debugger enabled**:
+   ```bash
+   picodrive --debug build/vr_rebuild.32x
+   ```
 
-# Breakpoint 2: Before JSR @R2
-break *0x06020688
-commands
-  silent
-  printf "BEFORE JSR @R2 - R2 = 0x%08X\n", $r2
-  # Disassemble what R2 points to
-  x/4i $r2
-  continue
-end
+2. **Set breakpoints** (in debugger console/UI):
+   ```
+   # Breakpoint 1: Slave entry
+   break sh2s 0x06020650
 
-# Breakpoint 3: VDP wait function
-break *0x0602050C
-commands
-  silent
-  printf "VDP WAIT CALLED from LR = 0x%08X\n", $pr
-  continue
-end
+   # Breakpoint 2: Before JSR @R2
+   break sh2s 0x06020688
 
-# Start execution
-continue
-```
+   # Breakpoint 3: VDP wait function
+   break sh2s 0x0602050C
+   ```
+
+3. **Examine registers when hitting breakpoint**:
+   ```
+   info registers        # Show all SH2 registers
+   print r2              # Show R2 specifically
+   x/4i r2               # Disassemble at R2 address
+   ```
+
+4. **Continue execution**:
+   ```
+   continue              # Resume until next breakpoint
+   ```
 
 ---
 
-## Memory Watch (Alternative if no GDB)
+## Memory Watch (If Breakpoints Not Available)
 
-### Gens KMod / PicoDrive Memory Watch:
+### PicoDrive Memory Watch Mode:
 
-**Watch these addresses**:
-1. **R2 register** (CPU registers window)
-   - Check value when Slave is running
+**Watch these values**:
+1. **R2 register** (SH2 Slave CPU registers)
+   - Monitor value during gameplay
    - Should be constant (function pointer)
 
-2. **ROM $02050C** (access count)
-   - Monitor how many times this address is executed
-   - If accessed frequently → R2 points here
+2. **ROM $02050C** (execution tracking)
+   - Count how many times this address executes
+   - High count → R2 likely points here
 
-3. **COMM registers** ($A15120-$A1512E from 68K)
-   - Watch for writes from Slave
+3. **COMM registers** ($A15120-$A1512E from 68K, $20004020-$2000402E from SH2)
+   - Monitor for Slave CPU writes
    - Verify communication pattern
 
 ---
@@ -166,36 +162,24 @@ continue
 
 ---
 
-## PicoDrive Specific Commands
+## Quick R2 Check (Minimal Steps)
+
+**If your PicoDrive debugger has simple command mode**:
 
 ```bash
-# Start PicoDrive with GDB server
-picodrive -gdb 1234 build/vr_rebuild.32x
+# Launch ROM with debugger
+picodrive --debug build/vr_rebuild.32x
 
-# In another terminal
-gdb -x r2_trace.gdb
+# In debugger console:
+break sh2s 0x06020688    # Break before JSR @R2
+run                      # Start game
+# When breakpoint hits:
+reg r2                   # Show R2 value
+disasm r2 4              # Show 4 instructions at R2 address
+continue                 # Resume
 ```
 
----
-
-## Blastem Debugger (Recommended)
-
-**Advantages**:
-- Native 32X support
-- Better SH2 debugging
-- Built-in register view
-
-**Commands**:
-```
-# Load ROM
-blastem build/vr_rebuild.32x
-
-# In debugger:
-b 0x06020688        # Break before JSR @R2
-r                   # Run
-info registers      # Show all registers including R2
-x/4i $r2            # Disassemble what R2 points to
-```
+**Expected R2 value**: 0x0602050C or 0x2002050C (VDP wait hypothesis)
 
 ---
 
@@ -234,6 +218,6 @@ Create file: `R2_DEBUGGER_RESULTS.md`
 ---
 
 **Status**: Ready for debugger verification
-**Recommended tool**: Blastem (best 32X support)
-**Alternative**: PicoDrive + GDB
+**Tool**: PicoDrive with embedded debugger (custom build)
 **Time estimate**: 30-60 minutes for full trace
+**Single critical value**: R2 register at address 0x06020688

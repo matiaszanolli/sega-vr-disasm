@@ -4006,7 +4006,7 @@
         dc.w    $0600        ; $02013C
         dc.w    $06AC        ; $02013E
         dc.w    $0600        ; $020140
-        dc.w    $0544        ; $020142
+        dc.w    $0544        ; $020142 - Slave entry restored to original
         dc.w    $0601        ; $020144
         dc.w    $0000        ; $020146
         dc.w    $0600        ; $020148

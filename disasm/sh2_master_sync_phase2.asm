@@ -1,9 +1,13 @@
-# SH2 Master Sync Integration - Phase 2
-# Virtua Racing Deluxe parallelization
-#
-# This module provides two functions to be injected into the Master rendering engine:
-# 1. init_slave_sync - Initialize sync buffer (called at func_001 entry)
-# 2. dispatch_slave_and_wait - Dispatch work to Slave (called at final_exit)
+/* ============================================================================
+ * SH2 Master Sync Integration - Phase 2
+ * Virtua Racing Deluxe parallelization
+ *
+ * This module provides two functions to be injected into the Master rendering engine:
+ * 1. init_slave_sync - Initialize sync buffer (called at func_001 entry)
+ * 2. dispatch_slave_and_wait - Dispatch work to Slave (called at final_exit)
+ * ============================================================================ */
+
+.section .text
 
 .set SYNC_BASE, 0x22000400
 .set MASTER_READY_OFFSET, 0x00
@@ -50,17 +54,17 @@ dispatch_slave_and_wait:
     mov.l   sync_base_addr, r14
     mov     #60, r2
 
-.wait_slave_ready:
+wait_slave_ready:
     mov.l   @(SLAVE_READY_OFFSET, r14), r0
     mov.l   ready_magic, r1
     cmp/eq  r1, r0
-    bt      .slave_is_ready
+    bt      slave_is_ready
     dt      r2
-    bf      .wait_slave_ready
-    bra     .skip_dispatch
+    bf      wait_slave_ready
+    bra     skip_dispatch
     nop
 
-.slave_is_ready:
+slave_is_ready:
     mov.l   poly_count, r0
     mov.l   r0, @(POLYGON_COUNT_OFFSET, r14)
 
@@ -78,16 +82,16 @@ dispatch_slave_and_wait:
 
     mov.l   timeout_long, r2
 
-.wait_slave_done:
+wait_slave_done:
     mov.l   @(SLAVE_DONE_OFFSET, r14), r0
     mov.l   done_magic, r1
     cmp/eq  r1, r0
-    bt      .both_done
+    bt      both_done
     dt      r2
-    bf      .wait_slave_done
+    bf      wait_slave_done
 
-.skip_dispatch:
-.both_done:
+skip_dispatch:
+both_done:
     lds.l   @r15+, pr
     rts
     nop

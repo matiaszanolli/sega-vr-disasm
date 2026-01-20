@@ -399,19 +399,20 @@ wrapper_addr:
         dc.w    $D105        ; $020508
         dc.w    $D706        ; $02050A
 ; === VDP Wait Function - MINIMAL TEST (infinite loop with COMM2 increment) ===
+; Entry point: $02050C (SH2: 0x0602050C) - exactly 9 words (18 bytes)
 vdp_wait_test:                   ; $02050C
-        dc.w    $D103        ; MOV.L comm2_test,R1 - load COMM2 address
-test_loop:
-        dc.w    $6112        ; MOV.W @R1,R1 - read COMM2
+        dc.w    $D102        ; MOV.L comm2_addr,R0 - load COMM2 address (disp=2 -> $020518)
+        dc.w    $E100        ; MOV #0,R1 - counter
+test_loop:                       ; $020510
         dc.w    $7101        ; ADD #1,R1 - increment
-        dc.w    $D102        ; MOV.L comm2_test,R0 - reload address
-        dc.w    $2001        ; MOV.W R1,@R0 - write back
-        dc.w    $AFFB        ; BRA test_loop - infinite loop
+        dc.w    $2012        ; MOV.W R1,@R0 - write
+        dc.w    $AFFC        ; BRA test_loop - back to $020510 (disp=-4)
         dc.w    $0009        ; NOP (delay slot)
-comm2_test:
-        dc.w    $2000        ; .long 0x20004024 (COMM2)
+comm2_addr:                      ; $020518 (4-byte aligned!)
+        dc.w    $2000        ; .long 0x20004024
         dc.w    $4024
-        dc.w    $0000        ; $02051E
+        dc.w    $0009        ; $02051C - padding NOP to maintain 18 bytes total
+        dc.w    $0000        ; $02051E - next section starts here
         dc.w    $0604        ; $020520
         dc.w    $0000        ; $020522
         dc.w    $0000        ; $020524

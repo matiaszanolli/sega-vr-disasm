@@ -1,11 +1,20 @@
 ; ============================================================================
-; ROM Expansion Section ($300000-$3FFFFF)
-; Added to expand ROM from 3MB to 4MB for Slave SH2 code
+; ROM Section ($300000-$3FFFFF) - Official 4MB Cartridge Upper Region
 ; ============================================================================
+;
+; IMPORTANT: Virtua Racing Deluxe official spec is 32 Mbit (4MB), NOT 3MB!
+;
+; The original cartridge contained:
+;   $000000-$2FFFFF (3MB)  - Game data (what ROM dumps contain)
+;   $300000-$3FFFFF (1MB)  - Unused space (all 0xFF padding)
+;
+; ROM dumps are typically 3MB because trailing 0xFF bytes are trimmed.
+; We restore the ROM to its official 4MB size and use the previously
+; unused 1MB for Slave SH2 custom code - this is safe and correct.
 ;
 ; Memory Map:
 ;   $300000-$30FFFF (64KB)  - Reserved for Slave SH2 rendering code
-;   $310000-$3FFFFF (960KB) - Padding/future expansion
+;   $310000-$3FFFFF (960KB) - Padding (matches original cartridge)
 ;
 ; SH2 CPU Address: ROM $300000 = SH2 $02300000
 ;

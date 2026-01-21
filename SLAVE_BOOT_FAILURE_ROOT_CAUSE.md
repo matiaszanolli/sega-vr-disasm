@@ -347,9 +347,76 @@ Before considering fix complete, verify:
 
 ---
 
-**Status**: Root cause identified ✅
-**PicoDrive Issue**: `sh2_reset()` uses wrong vectors
+**Status**: Root cause identified ✅ **BOTH ISSUES FIXED** ✅
+**PicoDrive Issue #1**: `sh2_reset()` uses wrong vectors → ✅ **FIXED** (2026-01-20)
+**PicoDrive Issue #2**: Memory mapping for 0x06xxxxxx → ✅ **FIXED** (2026-01-20)
 **ROM Status**: Correct (SH-2 code exists and is valid)
-**Fix Complexity**: Low (single function modification)
-**Next Action**: Fix `sh2_reset()` to read from 32X header
+**Slave Boot Status**: ✅ **WORKING** - Slave executes real SH-2 code
+
+---
+
+## Fix Implementation (2026-01-20)
+
+### Issue #1 Fix: Vector Initialization ✅
+
+**File**: `third_party/picodrive/cpu/sh2/sh2.c:44-75`
+**File**: `third_party/picodrive/pico/32x/32x.c:170-237`
+
+**Changes**:
+1. Modified `sh2_reset()` to detect 32X ROMs via "MARS" signature at 0x3C0
+2. Read PC/VBR from 32X header (0x3E0-0x3EF) for 32X ROMs
+3. Set SP to default SDRAM end (0x260FFFF0) - not in header
+4. Save header values BEFORE IDL in 32x.c initialization
+5. Set PC/SP/VBR AFTER IDL completes
+
+**Result**: PC/SP/VBR now initialize correctly:
+```
+[INIT] Master SH2: PC=0x06000280 SP=0x260FFFF0 VBR=0x06000000
+[INIT] Slave SH2: PC=0x06000288 SP=0x260FFFF0 VBR=0x06000140
+```
+
+### Issue #2 Fix: Memory Mapping ✅
+
+**File**: `third_party/picodrive/pico/32x/memory.c:2483-2493`
+
+**Problem**: Code was mapping 0x06/0x26 to SDRAM, overwriting ROM mapping
+
+**Root Cause**: VR uses non-standard memory map:
+- Standard 32X: SDRAM at 0x02, ROM at 0x04
+- VR: ROM at 0x02 (cached) + 0x06 (uncached), SDRAM at 0x22
+
+**Fix**: Changed SDRAM mapping from 0x06/0x26 to 0x22 only
+- 0x06 remains mapped to ROM (uncached window)
+- 0x22 maps to SDRAM (VR-correct layout)
+
+**Result**: Instruction fetch from 0x06xxxxxx now returns ROM data:
+```
+[READ32] addr=0x06000288 ... val=0xD1026012  ← ROM data!
+[SSH2 #1] PC=06000288 insn=D102              ← Valid MOV.L opcode!
+```
+
+### Verification ✅
+
+All 4 diagnostic checklist items passed:
+
+1. ✅ **PC/SP logged correctly**: Master PC=0x06000280, Slave PC=0x06000288
+2. ✅ **Fetching SH-2 opcodes**: D102, 6012, 402B (MOV.L, JMP) not 68K garbage
+3. ✅ **Slave executes 20+ instructions**: Enters work loop at 0x06000596
+4. ✅ **Memory reads return ROM data**: val=0xD1026012 from 0x06000288
+
+### Slave Execution Confirmed ✅
+
+Slave now executes expected code path:
+1. Entry at 0x06000288 → loads vector from VBR
+2. Jumps to initialization at 0x06000544
+3. Initializes registers and stack
+4. **Enters COMM polling loop at 0x06000596** ← EXPECTED BEHAVIOR!
+5. Delay loop at 0x0600060A when COMM==0
+6. Returns to polling
+
+This matches the "Slave idle loop" documented in static analysis!
+
+**Commit**: picodrive@d29625e "fix: Correct SH-2 memory mapping for VR"
+**Date**: 2026-01-20
+**Status**: ✅ Slave SH-2 boot fully working in PicoDrive
 

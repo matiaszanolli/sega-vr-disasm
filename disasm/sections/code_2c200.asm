@@ -3507,24 +3507,28 @@
         dc.w    $0000        ; $02DD56
         dc.w    $0000        ; $02DD58
         dc.w    $0000        ; $02DD5A
-        dc.w    $FFFF        ; $02DD5C
-        dc.w    $FFFF        ; $02DD5E
-        dc.w    $FFFF        ; $02DD60
-        dc.w    $FFFF        ; $02DD62
-        dc.w    $FFFF        ; $02DD64
-        dc.w    $FFFF        ; $02DD66
-        dc.w    $FFFF        ; $02DD68
-        dc.w    $FFFF        ; $02DD6A
-        dc.w    $FFFF        ; $02DD6C
-        dc.w    $FFFF        ; $02DD6E
-        dc.w    $FFFF        ; $02DD70
-        dc.w    $FFFF        ; $02DD72
-        dc.w    $FFFF        ; $02DD74
-        dc.w    $FFFF        ; $02DD76
-        dc.w    $FFFF        ; $02DD78
-        dc.w    $FFFF        ; $02DD7A
-        dc.w    $FFFF        ; $02DD7C
-        dc.w    $FFFF        ; $02DD7E
+; ============================================================================
+; test_ping_handler - SH-2 COMM2 work ping handler (Slot 254)
+; ============================================================================
+test_ping_handler:
+        dc.w    $D106        ; $02DD5C - mov.l @(24,PC),r1  [counter addr]
+        dc.w    $6012        ; $02DD5E - mov.l @r1,r0       [load]
+        dc.w    $7001        ; $02DD60 - add #1,r0          [increment]
+        dc.w    $2102        ; $02DD62 - mov.l r0,@r1       [store]
+        dc.w    $D105        ; $02DD64 - mov.l @(20,PC),r1  [last_val addr]
+        dc.w    $E0FE        ; $02DD66 - mov #-2,r0         [254]
+        dc.w    $2102        ; $02DD68 - mov.l r0,@r1       [store]
+        dc.w    $D104        ; $02DD6A - mov.l @(16,PC),r1  [COMM2 addr]
+        dc.w    $E000        ; $02DD6C - mov #0,r0          [zero]
+        dc.w    $2010        ; $02DD6E - mov.b r0,@r1       [clear COMM2]
+        dc.w    $000B        ; $02DD70 - rts
+        dc.w    $0009        ; $02DD72 - nop
+        dc.w    $2200        ; $02DD74 - .long $22000100 [counter]
+        dc.w    $0100        ; $02DD76
+        dc.w    $2200        ; $02DD78 - .long $22000104 [last_val]
+        dc.w    $0104        ; $02DD7A
+        dc.w    $2000        ; $02DD7C - .long $20004024 [COMM2]
+        dc.w    $4024        ; $02DD7E
         dc.w    $FFFF        ; $02DD80
         dc.w    $FFFF        ; $02DD82
         dc.w    $FFFF        ; $02DD84

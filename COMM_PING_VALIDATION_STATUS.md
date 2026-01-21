@@ -4,11 +4,12 @@
 
 ### Components Implemented
 
-1. **Slave SH2 Handler** ([disasm/sections/code_20200.asm:651-683](disasm/sections/code_20200.asm#L651-L683))
+1. **Slave SH2 Handler** ([disasm/sections/code_20200.asm:657-680](disasm/sections/code_20200.asm#L657-L680))
    - Location: ROM 0x020700, Entry Point PC 0x06000700
    - Function: Increments SDRAM counter at 0x22000100
-   - Side effects: Writes counter to COMM4 register (0x20004028)
+   - Stores last value at 0x22000104
    - Acknowledgement: Clears COMM2 to signal completion
+   - **Note**: COMM4 write removed after causing function corruption (see Issues section)
 
 2. **Jump Table Configuration** ([disasm/sections/code_20200.asm:409](disasm/sections/code_20200.asm#L409))
    - Slot 254 → Handler at 0x06000700
@@ -117,6 +118,23 @@ The issue is **emulator behavior**, not code correctness:
 - GDB with ptrace permissions
 - Core dump analysis after clean shutdown
 - Memory forensics tools
+
+## Issues Encountered and Resolved
+
+### COMM4 Addition Caused Function Corruption (Fixed)
+
+**Issue**: Attempted to add COMM4 register write for external observability. The addition grew the handler by 4 bytes, causing section overlap at 0x022200. When deleting trailing bytes to resolve the overlap, accidentally removed the start of the next function (`jsr @r1` pattern at 0x020728-0x02072E).
+
+**Symptoms**:
+- Infinite loop of `unhandled sysreg w8` messages
+- SH-2 PC stuck at 0x00000000
+- ROM completely non-functional
+
+**Root Cause**: Deleted critical code that was part of the subsequent function, not padding.
+
+**Resolution**: Reverted to working handler without COMM4 support (commit bc6ffc0). COMM4 write was optional for observability only, not required for core functionality.
+
+**Lesson**: When resolving section overlaps, verify that deleted bytes are truly padding, not code. Use disassembly tools to confirm before removal.
 
 ## Next Steps
 

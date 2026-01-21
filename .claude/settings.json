@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(timeout 3s:*)"
+      "Bash(timeout 3s:*)",
+      "Bash(timeout 10:*)"
     ]
   }
 }

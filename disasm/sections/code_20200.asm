@@ -648,24 +648,30 @@ vdp_wait_test:                   ; $02050C
         dc.w    $06D0        ; $0206FA
         dc.w    $0600        ; $0206FC
         dc.w    $04E8        ; $0206FE
-        dc.w    $0600        ; $020700
-        dc.w    $04E8        ; $020702
-        dc.w    $0600        ; $020704
-        dc.w    $06D0        ; $020706
-        dc.w    $0600        ; $020708
-        dc.w    $06D0        ; $02070A
-        dc.w    $0600        ; $02070C
-        dc.w    $06D0        ; $02070E
-        dc.w    $0600        ; $020710
-        dc.w    $06D0        ; $020712
-        dc.w    $0600        ; $020714
-        dc.w    $04A4        ; $020716
-        dc.w    $0600        ; $020718
-        dc.w    $04A4        ; $02071A
-        dc.w    $4F22        ; $02071C
-        dc.w    $2F06        ; $02071E
-        dc.w    $2F16        ; $020720
-        dc.w    $0002        ; $020722
+; ============================================================================
+; test_ping_handler - Minimal COMM2 work ping test handler (Slot 254)
+; ============================================================================
+; Called when Slave polls COMM2 and finds value 254
+; Increments counter in SDRAM and acknowledges by clearing COMM2
+; ============================================================================
+        dc.w    $D106        ; $020700 - mov.l @(24,PC),r1  [load counter addr]
+        dc.w    $6012        ; $020702 - mov.l @r1,r0       [load counter]
+        dc.w    $7001        ; $020704 - add #1,r0          [increment]
+        dc.w    $2102        ; $020706 - mov.l r0,@r1       [store counter]
+        dc.w    $D105        ; $020708 - mov.l @(20,PC),r1  [load last_val addr]
+        dc.w    $E0FE        ; $02070A - mov #-2,r0         [254 as signed]
+        dc.w    $2102        ; $02070C - mov.l r0,@r1       [store last_val]
+        dc.w    $D104        ; $02070E - mov.l @(16,PC),r1  [load COMM2 addr]
+        dc.w    $E000        ; $020710 - mov #0,r0          [zero]
+        dc.w    $2010        ; $020712 - mov.b r0,@r1       [clear COMM2]
+        dc.w    $000B        ; $020714 - rts                [return]
+        dc.w    $0009        ; $020716 - nop                [delay slot]
+        dc.w    $2200        ; $020718 - Counter addr: $22000100 (high)
+        dc.w    $0100        ; $02071A - Counter addr: $22000100 (low)
+        dc.w    $2200        ; $02071C - Last_val addr: $22000104 (high)
+        dc.w    $0104        ; $02071E - Last_val addr: $22000104 (low)
+        dc.w    $2000        ; $020720 - COMM2 addr: $20004024 (high)
+        dc.w    $4024        ; $020722 - COMM2 addr: $20004024 (low)
         dc.w    $4009        ; $020724
         dc.w    $C93C        ; $020726
         dc.w    $D104        ; $020728
@@ -1000,8 +1006,8 @@ vdp_wait_test:                   ; $02050C
         dc.w    $8FFB        ; $0209BA
         dc.w    $7204        ; $0209BC
         dc.w    $000B        ; $0209BE
-        dc.w    $0009        ; $0209C0
-        dc.w    $0000        ; $0209C2
+        dc.w    $0600        ; $0209C0 - Jump table slot 254 -> test_ping_handler
+        dc.w    $0700        ; $0209C2 - Points to ROM 0x020700 (PC 0x06000700)
         dc.w    $0600        ; $0209C4
         dc.w    $09CC        ; $0209C6
         dc.w    $0601        ; $0209C8

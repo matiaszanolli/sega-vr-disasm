@@ -118,13 +118,29 @@ The ROM offset 0x0-0xF is shared:
 - Genesis reads it as 68K reset vectors
 - 32X should ignore it and use the 32X header instead
 
-### PicoDrive's Mistake
+### PicoDrive's Mistake (Two-Fold Issue)
 
+**Issue #1: Wrong Vector Source**
 PicoDrive's `sh2_reset()`:
 - Treats the 32X ROM like a standalone SH-2 ROM
-- Reads reset vectors from offset 0
+- Reads reset vectors from offset 0 (Genesis/68K vectors)
 - Does not use the 32X-specific header at 0x3C0+
 - Does not implement proper 32X boot sequence
+
+**Issue #2: Memory Mapping (Suspected)**
+Even if PC is set correctly to `0x06000288`:
+- SH-2 memory mapper must resolve `0x0600xxxx` (uncached ROM window) → ROM buffer
+- Also must support `0x0200xxxx` (cached ROM window) as alias
+- If mapping is incomplete, instruction fetch fails → PC jumps to 0x00000000
+- This explains "boots to 0x06000288, executes one instruction, then crashes" pattern
+
+**Why Both Matter**:
+The observered behavior (Slave gets stuck after one instruction) suggests PicoDrive may have:
+1. A partial IDL (Initial Data Load) implementation that copies headers to SDRAM correctly
+2. But `sh2_reset()` bypasses this and reads wrong vectors
+3. AND/OR memory mapping doesn't properly route `0x06xxxxxx` addresses
+
+Evidence: SDRAM at 0x220003E4 contains correct header vectors, suggesting IDL copy worked, but Slave never successfully uses them.
 
 ### What Real 32X Hardware Does
 
@@ -156,8 +172,12 @@ We analyzed R2 = 0x220003E4 thinking:
 
 Reality:
 - R2 is garbage from mis-executing 68K code
-- 0x220003E4 happens to contain real vectors (coincidence)
-- Slave never reaches any real work loop
+- **0x220003E4 contains real vectors (correlated, not coincidental)**
+  - This suggests PicoDrive's IDL (Initial Data Load) mechanism DID work
+  - Header was correctly copied from ROM 0x3E0+ to SDRAM 0x220003E4
+  - But `sh2_reset()` bypassed this and set PC from wrong source
+  - So initialization half-worked, but boot sequence failed
+- Slave never reaches any real work loop due to wrong PC/SP initialization
 
 ### Why "Work Loop" Code Exists But Never Runs
 
@@ -201,18 +221,77 @@ Disassembled Slave PC sequence:
 
 ## The Correct Fix
 
-PicoDrive needs to:
+### Recommended Approach (Minimal + Correct)
 
-1. **Read SH-2 vectors from 32X header**, not ROM offset 0
-2. **Implement proper 32X boot sequence**:
-   - Detect 32X cartridge (check for "MARS" at 0x3C0)
-   - Read Master/Slave entry from 0x3E0-0x3EF
-   - Set SH-2 PC/SP to those values
-   - NOT use ROM offset 0's Genesis vectors
+**Don't modify `sh2_reset()` to read from different locations** - keep it generic for standalone SH-2 systems.
 
-3. **Alternative**: Emulate 32X boot ROM/BIOS behavior
-   - Some 32X systems may have used internal boot code
-   - This would set up SH-2s before jumping to cart
+Instead, implement proper 32X boot in the 32X initialization code:
+
+#### Step 1: Save 32X Header Vectors (Before IDL Copy)
+
+```c
+// In 32X init, before any IDL copy that might overwrite header:
+u32 master_pc = read32_be(Pico.rom + 0x3E0);  // Confirm endianness & offsets
+u32 master_sp = read32_be(Pico.rom + 0x3E4);
+u32 slave_pc  = read32_be(Pico.rom + 0x3E8);
+u32 slave_sp  = read32_be(Pico.rom + 0x3EC);
+u32 vbr       = 0;  // Or from header if specified
+```
+
+#### Step 2: Perform IDL Copy (If PicoDrive Uses This)
+
+Let existing IDL mechanism work, if present.
+
+#### Step 3: Initialize SH-2s with Saved Vectors
+
+Create a 32X-specific reset helper:
+
+```c
+static void sh2_reset_with_vectors(SH2 *sh2, u32 pc, u32 sp, u32 vbr) {
+    sh2->pc = pc;
+    sh2->r[15] = sp;
+    sh2->sr = I;
+    sh2->vbr = vbr;
+    sh2->pending_int_irq = 0;
+    // Reset other internal state as sh2_reset() would
+}
+```
+
+Then call after memory mapping is set up:
+
+```c
+sh2_reset_with_vectors(&Pico32x.sh2_master, master_pc, master_sp, vbr);
+sh2_reset_with_vectors(&Pico32x.sh2_slave,  slave_pc,  slave_sp,  vbr);
+```
+
+#### Step 4: Verify Memory Mapping
+
+**Critical**: Ensure SH-2 memory mapper resolves both:
+- `0x06000000-0x063FFFFF` (uncached ROM window) → ROM buffer
+- `0x02000000-0x023FFFFF` (cached ROM window) → ROM buffer
+
+If mapping is incomplete, even correct PC will fail on instruction fetch.
+
+### Diagnostic Checklist
+
+Before considering fix complete, verify:
+
+1. **After reset, log Master/Slave PC+SP**
+   - Confirm they match 32X header values (e.g., PC=0x06000288)
+
+2. **On first fetch at PC, verify fetching SH-2 opcodes**
+   - NOT 68K patterns like 0x4EF9, 0x0838
+   - Should see valid SH-2 instructions (MOV, ADD, etc.)
+
+3. **Single-step first 20 instructions**
+   - If PC becomes 0x00000000, log the cause:
+     - Exception vector fetch?
+     - Invalid opcode / address error?
+     - Unmapped memory read returning 0?
+
+4. **Dump resolved memory bytes at PC**
+   - Verify emulator's read path returns correct ROM data
+   - Not just that ROM file contains it, but that SH-2 fetch sees it
 
 ---
 
@@ -234,20 +313,26 @@ PicoDrive needs to:
 ### Next Steps
 
 **Option A: Fix PicoDrive (Recommended)**
-- Modify `sh2_reset()` to use 32X header vectors
-- Test if Slave boots properly
-- Verify Slave reaches ROM 0x020650 work loop
-- THEN test optimizations
+1. Create branch `picodrive-boot-fix`
+2. Implement 32X header vector reading (before IDL copy)
+3. Create `sh2_reset_with_vectors()` helper
+4. Initialize Master/Slave with saved vectors
+5. Verify memory mapping for `0x06xxxxxx` and `0x02xxxxxx`
+6. Run diagnostic checklist (4 verification steps above)
+7. Test Slave reaches ROM 0x020650 work loop
+8. THEN test parallelization optimizations
 
 **Option B: Test on Real Hardware**
-- Our ROM may work on real 32X
-- Static analysis suggests code is correct
+- Our ROM may work correctly on real 32X
+- Static analysis suggests SH-2 code is valid
 - PicoDrive bug doesn't affect hardware
+- Would confirm whether issue is emulator-specific
 
 **Option C: Test on Different Emulator**
 - Try Kega Fusion, Gens, or BlastEm
-- See if they boot Slave correctly
-- Compare Slave execution traces
+- Compare Slave boot behavior
+- May reveal if other emulators have same issue
+- BlastEm has good 32X accuracy reputation
 
 ---
 

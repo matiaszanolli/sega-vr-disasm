@@ -385,8 +385,13 @@ Before considering fix complete, verify:
 - Standard 32X: SDRAM at 0x02, ROM at 0x04
 - VR: ROM at 0x02 (cached) + 0x06 (uncached), SDRAM at 0x22
 
+**Critical Invariant Violated**:
+> **Invariant**: ROM windows (0x02 cached / 0x06 uncached) must never be overwritten by SDRAM window mapping.
+
+Virtua Racing Deluxe relies on the `0x06xxxxxx` uncached ROM window being mapped to cartridge ROM; mapping it to SDRAM causes opcode fetch to return zeros and triggers illegal opcode exceptions.
+
 **Fix**: Changed SDRAM mapping from 0x06/0x26 to 0x22 only
-- 0x06 remains mapped to ROM (uncached window)
+- 0x06 remains mapped to ROM (uncached window) - **INVARIANT RESTORED**
 - 0x22 maps to SDRAM (VR-correct layout)
 
 **Result**: Instruction fetch from 0x06xxxxxx now returns ROM data:

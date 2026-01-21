@@ -654,31 +654,30 @@ vdp_wait_test:                   ; $02050C
 ; Called when Slave polls COMM2 and finds value 254
 ; Increments counter in SDRAM and acknowledges by clearing COMM2
 ; ============================================================================
-        dc.w    $D107        ; $020700 - mov.l @(28,PC),r1  [load counter addr]
+        dc.w    $D106        ; $020700 - mov.l @(24,PC),r1  [load counter addr]
         dc.w    $6012        ; $020702 - mov.l @r1,r0       [load counter]
         dc.w    $7001        ; $020704 - add #1,r0          [increment]
         dc.w    $2102        ; $020706 - mov.l r0,@r1       [store counter]
-        ; Write counter (low 16) to COMM4 for external visibility
-        dc.w    $D206        ; $020708 - mov.l @(24,PC),r2  [load COMM4 addr]
-        dc.w    $2021        ; $02070A - mov.w r0,@r2       [write counter to COMM4]
-        dc.w    $D105        ; $02070C - mov.l @(20,PC),r1  [load last_val addr]
-        dc.w    $E0FE        ; $02070E - mov #-2,r0         [254 as signed byte]
-        dc.w    $2102        ; $020710 - mov.l r0,@r1       [store last_val]
-        dc.w    $D104        ; $020712 - mov.l @(16,PC),r1  [load COMM2 addr]
-        dc.w    $E000        ; $020714 - mov #0,r0          [zero]
-        dc.w    $2010        ; $020716 - mov.b r0,@r1       [clear COMM2]
-        dc.w    $000B        ; $020718 - rts                [return]
-        dc.w    $0009        ; $02071A - nop                [delay slot]
-        dc.w    $2200        ; $02071C - Counter addr: $22000100 (high)
-        dc.w    $0100        ; $02071E - Counter addr: $22000100 (low)
-        dc.w    $2200        ; $020720 - Last_val addr: $22000104 (high)
-        dc.w    $0104        ; $020722 - Last_val addr: $22000104 (low)
-        dc.w    $2000        ; $020724 - COMM2 addr: $20004024 (high)
-        dc.w    $4024        ; $020726 - COMM2 addr: $20004024 (low)
-        dc.w    $2000        ; $020728 - COMM4 addr: $20004028 (high)
-        dc.w    $4028        ; $02072A - COMM4 addr: $20004028 (low)
-        dc.w    $4009        ; $02072C
-        dc.w    $C93C        ; $02072E
+        dc.w    $D105        ; $020708 - mov.l @(20,PC),r1  [load last_val addr]
+        dc.w    $E0FE        ; $02070A - mov #-2,r0         [254 as signed]
+        dc.w    $2102        ; $02070C - mov.l r0,@r1       [store last_val]
+        dc.w    $D104        ; $02070E - mov.l @(16,PC),r1  [load COMM2 addr]
+        dc.w    $E000        ; $020710 - mov #0,r0          [zero]
+        dc.w    $2010        ; $020712 - mov.b r0,@r1       [clear COMM2]
+        dc.w    $000B        ; $020714 - rts                [return]
+        dc.w    $0009        ; $020716 - nop                [delay slot]
+        dc.w    $2200        ; $020718 - Counter addr: $22000100 (high)
+        dc.w    $0100        ; $02071A - Counter addr: $22000100 (low)
+        dc.w    $2200        ; $02071C - Last_val addr: $22000104 (high)
+        dc.w    $0104        ; $02071E - Last_val addr: $22000104 (low)
+        dc.w    $2000        ; $020720 - COMM2 addr: $20004024 (high)
+        dc.w    $4024        ; $020722 - COMM2 addr: $20004024 (low)
+        dc.w    $4009        ; $020724
+        dc.w    $C93C        ; $020726
+        dc.w    $D104        ; $020728
+        dc.w    $011E        ; $02072A
+        dc.w    $410B        ; $02072C
+        dc.w    $0009        ; $02072E
         dc.w    $61F6        ; $020730
         dc.w    $60F6        ; $020732
         dc.w    $4F26        ; $020734

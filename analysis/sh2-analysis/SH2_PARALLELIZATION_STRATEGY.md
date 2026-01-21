@@ -1,5 +1,29 @@
 # SH2 Parallelization - Refined Implementation Strategy
 
+## ⚠️ CRITICAL CAVEAT - PicoDrive Emulator Bug (2026-01-20)
+
+**This strategy document was created based on static analysis and assumes the Slave SH2 boots correctly.**
+
+**Debugger findings reveal this assumption is FALSE in PicoDrive**:
+- PicoDrive reads SH2 reset vectors from wrong location (ROM 0x0 instead of 32X header at 0x3C0+)
+- Slave PC gets set to 0x00880832 (68K code), not SH2 entry point
+- Slave never reaches SH2 code regions - stuck executing 68K garbage at ROM 0x060A
+- All Slave code at ROM 0x020650+ exists but is NEVER executed in PicoDrive
+
+**Status of this document**:
+- ✅ **Theoretically sound** - Strategy would work IF Slave booted correctly
+- ❌ **Not testable in PicoDrive** - Requires fixing `sh2_reset()` first
+- ❓ **Real hardware unknown** - May work on actual 32X hardware
+
+**Next steps**:
+1. Fix PicoDrive's `sh2_reset()` to read from 32X header (ROM 0x3E0+)
+2. Verify Slave boots and reaches ROM 0x020650
+3. THEN implement this strategy
+
+**See**: [SLAVE_BOOT_FAILURE_ROOT_CAUSE.md](../../SLAVE_BOOT_FAILURE_ROOT_CAUSE.md) for root cause analysis
+
+---
+
 ## Strategy Refinements Based on User Preferences
 
 This document consolidates the implementation plan with specific technical decisions made during planning review.

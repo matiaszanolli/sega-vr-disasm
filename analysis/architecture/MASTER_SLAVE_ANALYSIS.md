@@ -236,7 +236,67 @@ Slave  CPU: █                                             0.03%
 
 ---
 
+## ⚠️ DEBUGGER CONTRADICTION (2026-01-20)
+
+**The above analysis was based on static code inspection. Runtime debugger measurements reveal a critical discrepancy.**
+
+### What Debugger Actually Shows
+
+**Slave PC trace** (first 100 instructions in PicoDrive):
+```
+PC=0x00000204  (ROM 0x204 - 68K code region)
+PC=0x0000020A  (ROM 0x20A - 68K code region)
+PC=0x00000218  (ROM 0x218 - 68K code region)
+PC=0x0600058A  (ROM 0x58A - "ROM Version 1.0" text)
+PC=0x0600060A  (ROM 0x60A - 68K code/data)
+... loops forever at 0x0600060A-0x0600060E
+```
+
+**Critical findings**:
+1. Slave **NEVER reaches ROM 0x020650** (claimed entry point above)
+2. Slave **NEVER writes "OVRN" to COMM3** (never reaches that code)
+3. Slave **executes 68K instructions as SH2** (garbage execution)
+4. Code described above **exists but is dead code in PicoDrive**
+
+### Root Cause - PicoDrive Emulator Bug
+
+PicoDrive reads SH2 reset vectors from ROM offset 0 (Genesis/68K vectors) instead of 32X header at 0x3C0-0x3FF.
+
+**What happens**:
+- PicoDrive's `sh2_reset()` at line 29: `sh2->pc = p32x_sh2_read32(0, sh2);`
+- Reads from ROM 0x0 (68K stack pointer) = 0x01000000
+- Reads from ROM 0x4 (68K entry point) = 0x00880832
+- Sets Slave PC = 0x00880832 (invalid 68K address)
+- Slave executes 68K code as SH2 → garbage execution
+
+**Correct behavior** (32X hardware):
+- Should read from ROM 0x3E0-0x3EF (32X header)
+- Slave entry should be 0x06000288 or similar (SH2 ROM address)
+- Slave would then reach ROM 0x020650 code path
+
+### Implications
+
+- **All static analysis** of Slave idle loop was correct about the CODE
+- **None of that code executes** in PicoDrive due to boot failure
+- **Real 32X hardware** may work correctly (unknown, not tested)
+- **Cannot test optimizations** until PicoDrive boot sequence fixed
+
+### Status Markers
+
+| Analysis Section | Status |
+|------------------|--------|
+| Master CPU code analysis | ✅ Verified (Master does boot correctly) |
+| Slave idle loop code disassembly | 📋 Static analysis (code exists) |
+| Slave runtime behavior | ❌ Disproven (doesn't execute in PicoDrive) |
+| Optimization proposals below | ❓ Theoretical (untestable until boot fixed) |
+
+**See**: [SLAVE_BOOT_FAILURE_ROOT_CAUSE.md](../../SLAVE_BOOT_FAILURE_ROOT_CAUSE.md) for complete root cause analysis
+
+---
+
 ## 🎯 Optimization Opportunities
+
+**⚠️ Note**: The following optimizations assume Slave boots correctly. In PicoDrive, this requires fixing `sh2_reset()` first.
 
 ### Priority 1: Move Vertex Transformation to Slave ⭐⭐⭐
 

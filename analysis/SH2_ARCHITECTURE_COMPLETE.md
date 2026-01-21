@@ -95,10 +95,23 @@ The Sega 32X features two Hitachi SH2 processors running at 23 MHz, responsible 
 
 ### Slave SH2 Entry
 
+**⚠️ PicoDrive Emulator Boot Failure (2026-01-20)**
+
+The following describes the Slave SH2 code structure based on static analysis. However, debugger measurements reveal this code is **NEVER executed in PicoDrive**.
+
+**Why**: PicoDrive's `sh2_reset()` reads reset vectors from ROM 0x0 (68K vectors) instead of 32X header (ROM 0x3C0+), causing Slave to execute 68K garbage code at ROM 0x060A instead.
+
+**Status**:
+- ✅ Code exists and appears correct
+- ❌ Never executed in PicoDrive emulator
+- ❓ Unknown if real 32X hardware boots correctly
+
+**See**: [SLAVE_BOOT_FAILURE_ROOT_CAUSE.md](../SLAVE_BOOT_FAILURE_ROOT_CAUSE.md)
+
 | Purpose | Address | Notes |
 |---------|---------|-------|
-| Main Loop | $22000400 | SDRAM - waits for work |
-| Process Polygons | $22001000 | SDRAM - stub only |
+| Main Loop | $22000400 | SDRAM - waits for work (📋 static analysis) |
+| Process Polygons | $22001000 | SDRAM - stub only (📋 static analysis) |
 
 ---
 

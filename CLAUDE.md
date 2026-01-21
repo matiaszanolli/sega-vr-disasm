@@ -19,13 +19,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Build Commands
 
 ```bash
-make all          # Build the complete 3MB ROM
+make all          # Build the complete 4MB ROM (official cartridge size)
 make compare      # Compare with original (shows byte-for-byte match)
 make clean        # Remove build artifacts
 make tools        # Build vasm assembler from source
 make disasm       # Disassemble specific sections (68000 + SH2)
 make analyze      # Analyze ROM structure
 ```
+
+**Note:** VRD is officially 32 Mbit (4MB), not 3MB. See [ROM_SIZE_CLARIFICATION.md](docs/ROM_SIZE_CLARIFICATION.md) for details.
 
 ## Testing ROMs
 

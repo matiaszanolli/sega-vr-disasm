@@ -269,6 +269,43 @@ Detailed architecture documentation for critical game subsystems.
 - PicoDrive integration plan (5 hook points, 36 lines changes)
 - Implementation roadmap (8 phases, 15-20 hours)
 
+### ⚠️ Critical Discovery: Slave SH2 Boot Failure (2026-01-20)
+
+**Debugger measurements reveal the Slave SH2 never boots correctly in PicoDrive emulator.**
+
+**Issue**: PicoDrive reads SH2 reset vectors from ROM 0x0 (Genesis/68K vectors) instead of 32X header (ROM 0x3C0+)
+
+**Result**:
+- Slave PC set to 0x00880832 (68K code address)
+- Slave executes 68K garbage instead of SH2 rendering engine
+- Gets stuck at ROM 0x060A infinite loop
+- Never reaches ROM 0x020650+ (Slave work loop code)
+
+**Impact**: All Slave parallelization strategies are untestable until emulator fixed
+
+**Status**: Root cause identified in PicoDrive `sh2_reset()` function
+
+**Key Documents**:
+- [SLAVE_BOOT_FAILURE_ROOT_CAUSE.md](../SLAVE_BOOT_FAILURE_ROOT_CAUSE.md) - Complete root cause analysis
+- [R2_DEBUGGER_RESULTS.md](../R2_DEBUGGER_RESULTS.md) - Runtime debugger measurements
+- [ANALYSIS_REVISION_2026-01-20.md](../ANALYSIS_REVISION_2026-01-20.md) - Documentation impact assessment
+
+**Affected Analysis** (now marked with caveats):
+- [sh2-analysis/SH2_PARALLELIZATION_STRATEGY.md](sh2-analysis/SH2_PARALLELIZATION_STRATEGY.md) - Strategy sound but untestable
+- [architecture/MASTER_SLAVE_ANALYSIS.md](architecture/MASTER_SLAVE_ANALYSIS.md) - Static analysis contradicted by runtime
+- [SH2_ARCHITECTURE_COMPLETE.md](SH2_ARCHITECTURE_COMPLETE.md) - Slave sections theoretical only
+
+**Unaffected Analysis** (remains valid):
+- ✅ 68K reverse-engineering - No dependencies on Slave boot
+- ✅ Master SH2 rendering pipeline - Master boots correctly
+- ✅ VDP bottleneck analysis - Independent of Slave
+- ✅ Data structures and memory maps - Hardware-accurate
+
+**Next Steps**:
+1. Fix PicoDrive's reset vector reading (or test on real 32X hardware)
+2. Verify Slave boots to correct entry point
+3. Resume parallelization implementation
+
 ### 📋 Next Steps
 1. **Implement Phase 1** of pdcore (create headers and infrastructure)
 2. **Add PicoDrive hooks** (Phase 2, minimal modifications)
@@ -308,5 +345,5 @@ Detailed architecture documentation for critical game subsystems.
 
 ---
 
-**Last Updated:** 2026-01-10
-**Overall Status:** ✅ Research & Design Complete - Implementation Ready
+**Last Updated:** 2026-01-20 (Major revision: Slave boot failure discovered)
+**Overall Status:** ✅ Research Complete - Implementation Blocked (PicoDrive boot bug)

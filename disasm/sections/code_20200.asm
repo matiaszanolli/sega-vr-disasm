@@ -395,6 +395,9 @@
         dc.w    $4449        ; $020506
         dc.w    $D105        ; $020508
         dc.w    $D706        ; $02050A
+; === VDP Wait Function (ORIGINAL - DO NOT MODIFY) ===
+; This is called by Slave SH2 during rendering - critical for operation
+vdp_wait_test:                   ; $02050C
         dc.w    $E000        ; $02050C
         dc.w    $2106        ; $02050E
         dc.w    $2106        ; $020510
@@ -404,7 +407,7 @@
         dc.w    $8BF9        ; $020518
         dc.w    $000B        ; $02051A
         dc.w    $0009        ; $02051C
-        dc.w    $0000        ; $02051E
+        dc.w    $0000        ; $02051E - next section starts here
         dc.w    $0604        ; $020520
         dc.w    $0000        ; $020522
         dc.w    $0000        ; $020524

@@ -398,15 +398,16 @@
         dc.w    $E9E9        ; $00050C
         dc.w    $9FBF        ; $00050E
         dc.w    $DFFF        ; $000510
-        dc.w    $4D41        ; $000512
-        dc.w    $5253        ; $000514
-        dc.w    $2049        ; $000516
-        dc.w    $6E69        ; $000518
-        dc.w    $7469        ; $00051A
-        dc.w    $616C        ; $00051C
-        dc.w    $2026        ; $00051E
-        dc.w    $2053        ; $000520
-        dc.w    $6563        ; $000522
+; === Original copyright/security text (DO NOT MODIFY - game checks this!) ===
+        dc.w    $4D41        ; $000512 'MA'
+        dc.w    $5253        ; $000514 'RS'
+        dc.w    $2049        ; $000516 ' I'
+        dc.w    $6E69        ; $000518 'ni'
+        dc.w    $7469        ; $00051A 'ti'
+        dc.w    $616C        ; $00051C 'al'
+        dc.w    $2026        ; $00051E ' &'
+        dc.w    $2053        ; $000520 ' S'
+        dc.w    $6563        ; $000522 'ec'
         dc.w    $7572        ; $000524
         dc.w    $6974        ; $000526
         dc.w    $7920        ; $000528
@@ -2646,9 +2647,9 @@
         dc.w    $227B        ; $00169C
         dc.w    $0014        ; $00169E
         dc.w    $4E91        ; $0016A0
-        dc.w    $52B8        ; $0016A2
+        dc.w    $52B8        ; $0016A2 - ADDQ.L #1,($C964) - frame counter++
         dc.w    $C964        ; $0016A4
-        dc.w    $4CDF        ; $0016A6
+        dc.w    $4CDF        ; $0016A6 - MOVEM.L (SP)+,D0-D7/A0-A6 (CRITICAL!)
         dc.w    $7FFF        ; $0016A8
         dc.w    $46FC        ; $0016AA
         dc.w    $2300        ; $0016AC

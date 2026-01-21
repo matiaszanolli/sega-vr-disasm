@@ -213,9 +213,9 @@
         dc.w    $2020        ; $00019A
         dc.w    $2020        ; $00019C
         dc.w    $2020        ; $00019E
-        dc.w    $0000        ; $0001A0
+        dc.w    $0000        ; $0001A0 - ROM Start
         dc.w    $0000        ; $0001A2
-        dc.w    $002F        ; $0001A4
+        dc.w    $003F        ; $0001A4 - ROM End (4MB)
         dc.w    $FFFF        ; $0001A6
         dc.w    $00FF        ; $0001A8
         dc.w    $0000        ; $0001AA

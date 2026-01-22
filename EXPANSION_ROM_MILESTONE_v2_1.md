@@ -115,7 +115,7 @@ expansion_test:
         dc.w    $0009                   ; NOP (delay slot)
 
 ; Test function 2: Increment COMM6 register every frame (frame counter)
-; COMM6 is at $20004030 (SH2 address space)
+; COMM6 is at $2000402C (SH2 address space) per hardware manual
 expansion_frame_counter:
         dc.w    $D002                   ; MOV.L @(disp,PC),R0 (load COMM6 addr)
         dc.w    $6008                   ; MOV.L @R0,R1 (read current COMM6 value to R1)
@@ -124,7 +124,7 @@ expansion_frame_counter:
         dc.w    $000B                   ; RTS
         dc.w    $0009                   ; NOP (delay slot)
         dc.w    $0000                   ; alignment padding
-        dc.l    $20004030               ; COMM6 address literal (4 bytes)
+        dc.l    $2000402C               ; COMM6 address literal (4 bytes)
 ```
 
 **Location in ROM:**

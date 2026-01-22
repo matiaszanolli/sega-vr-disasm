@@ -118,7 +118,7 @@ expansion_test:
         org     $300000
 
 ; Write signature 0xABCD to COMM6, then return
-; COMM6 is at $20004030 (SH2 address for $A1512C)
+; COMM6 is at $2000402C (SH2 address for $A1512C) per hardware manual
 expansion_comm_test:
         dc.w    $E1AB               ; MOV #0xAB,R1 (load 0xAB into R1)
         dc.w    $D002               ; MOV.L @(disp,PC),R0 (load COMM6 addr)
@@ -126,7 +126,7 @@ expansion_comm_test:
         dc.w    $000B               ; RTS
         dc.w    $0009               ; NOP (delay slot)
         dc.w    $0000               ; alignment
-        dc.l    $20004030           ; COMM6 address literal
+        dc.l    $2000402C           ; COMM6 address literal
 
         ; Fill remaining space
         dcb.b   $100000-16,$FF
@@ -215,7 +215,7 @@ expansion_frame_counter:
         dc.w    $000B               ; RTS
         dc.w    $0009               ; NOP (delay slot)
         dc.w    $0000               ; alignment
-        dc.l    $20004030           ; COMM6 address
+        dc.l    $2000402C           ; COMM6 address (per hardware manual)
 ```
 
 **Test:** COMM6 value increases each frame

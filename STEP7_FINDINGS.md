@@ -94,7 +94,7 @@ dc.w $512C              ;   address = $00A1512C (low word)
 ### COMM6 Address Details
 - 68K address: $A1512C (COMM register 6)
 - In ROM file offset: $512C (after 68K offset added back)
-- SH2 address: $20004030
+- SH2 address: $2000402C (per hardware manual, note: $20004030 is PWM Control, not COMM6)
 
 ---
 

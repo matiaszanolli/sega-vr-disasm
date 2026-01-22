@@ -194,34 +194,26 @@
         dc.w    $4EF9        ; $000374
         dc.w    $0088        ; $000376
         dc.w    $0832        ; $000378
-; ============================================================================
-; vint_wrapper - V-INT wrapper that chains original handler + comm2_work_ping
-; ============================================================================
-vint_wrapper:
-        dc.w    $4EB9        ; $00037A - JSR ($88 19FE) [call original]
-        dc.w    $0088        ; $00037C
-        dc.w    $19FE        ; $00037E
-        dc.w    $4EB9        ; $000380 - JSR comm2_work_ping
-        dc.w    $0088        ; $000382
-        dc.w    $038A        ; $000384
-        dc.w    $4E75        ; $000386 - RTS
+        dc.w    $4E71        ; $00037A
+        dc.w    $4E71        ; $00037C
+        dc.w    $4E71        ; $00037E
+        dc.w    $4E71        ; $000380
+        dc.w    $4E71        ; $000382
+        dc.w    $4E71        ; $000384
+        dc.w    $4E71        ; $000386
         dc.w    $4E71        ; $000388
-; ============================================================================
-; comm2_work_ping - Triggers COMM2=254 every 8 frames
-; ============================================================================
-comm2_work_ping:
-        dc.w    $2039        ; $00038A - MOVE.L ($C964).W,D0 [frame counter]
-        dc.w    $0000        ; $00038C
-        dc.w    $C964        ; $00038E
-        dc.w    $0280        ; $000390 - ANDI.L #7,D0 [mod 8]
-        dc.w    $0000        ; $000392
-        dc.w    $0007        ; $000394
-        dc.w    $6608        ; $000396 - BNE.S +8 [skip if != 0]
-        dc.w    $33FC        ; $000398 - MOVE.W #254,($A15124) [COMM2=254]
-        dc.w    $00FE        ; $00039A
-        dc.w    $000A        ; $00039C
-        dc.w    $1524        ; $00039E
-        dc.w    $4E75        ; $0003A0 - RTS
+        dc.w    $4E71        ; $00038A
+        dc.w    $4E71        ; $00038C
+        dc.w    $4E71        ; $00038E
+        dc.w    $4E71        ; $000390
+        dc.w    $4E71        ; $000392
+        dc.w    $4E71        ; $000394
+        dc.w    $4E71        ; $000396
+        dc.w    $4E71        ; $000398
+        dc.w    $4E71        ; $00039A
+        dc.w    $4E71        ; $00039C
+        dc.w    $4E71        ; $00039E
+        dc.w    $4E71        ; $0003A0
         dc.w    $4E71        ; $0003A2
         dc.w    $4E71        ; $0003A4
         dc.w    $4E71        ; $0003A6
@@ -406,16 +398,16 @@ comm2_work_ping:
         dc.w    $E9E9        ; $00050C
         dc.w    $9FBF        ; $00050E
         dc.w    $DFFF        ; $000510
-; === SLAVE COMM2 INCREMENT TEST (replaces "MARS Init" ASCII text) ===
-        dc.w    $D104        ; $000512: MOV.L comm2_addr,R1
-        dc.w    $6112        ; $000514: MOV.W @R1,R1
-        dc.w    $7101        ; $000516: ADD #1,R1
-        dc.w    $D103        ; $000518: MOV.L comm2_addr,R0
-        dc.w    $2001        ; $00051A: MOV.W R1,@R0
-        dc.w    $AFFB        ; $00051C: BRA $000514
-        dc.w    $0009        ; $00051E: NOP
-        dc.w    $2000        ; $000520: .long 0x20004024 (high)
-        dc.w    $4024        ; $000522: .long 0x20004024 (low)
+; === Original copyright/security text (DO NOT MODIFY - game checks this!) ===
+        dc.w    $4D41        ; $000512 'MA'
+        dc.w    $5253        ; $000514 'RS'
+        dc.w    $2049        ; $000516 ' I'
+        dc.w    $6E69        ; $000518 'ni'
+        dc.w    $7469        ; $00051A 'ti'
+        dc.w    $616C        ; $00051C 'al'
+        dc.w    $2026        ; $00051E ' &'
+        dc.w    $2053        ; $000520 ' S'
+        dc.w    $6563        ; $000522 'ec'
         dc.w    $7572        ; $000524
         dc.w    $6974        ; $000526
         dc.w    $7920        ; $000528
@@ -2655,16 +2647,16 @@ comm2_work_ping:
         dc.w    $227B        ; $00169C
         dc.w    $0014        ; $00169E
         dc.w    $4E91        ; $0016A0
-        dc.w    $52B8        ; $0016A2
+        dc.w    $52B8        ; $0016A2 - ADDQ.L #1,($C964) - frame counter++
         dc.w    $C964        ; $0016A4
-        dc.w    $4CDF        ; $0016A6
+        dc.w    $4CDF        ; $0016A6 - MOVEM.L (SP)+,D0-D7/A0-A6 (CRITICAL!)
         dc.w    $7FFF        ; $0016A8
         dc.w    $46FC        ; $0016AA
         dc.w    $2300        ; $0016AC
         dc.w    $4E73        ; $0016AE
         dc.w    $4E73        ; $0016B0
-        dc.w    $0088        ; $0016B2 - Function pointer (changed to vint_wrapper)
-        dc.w    $037A        ; $0016B4 - Points to vint_wrapper at $88037A
+        dc.w    $0088        ; $0016B2
+        dc.w    $19FE        ; $0016B4
         dc.w    $0088        ; $0016B6
         dc.w    $19FE        ; $0016B8
         dc.w    $0088        ; $0016BA

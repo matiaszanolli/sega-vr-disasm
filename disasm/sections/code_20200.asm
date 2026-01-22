@@ -304,26 +304,23 @@
         dc.w    $D10A        ; $020450
         dc.w    $5018        ; $020452
         dc.w    $8800        ; $020454
-        dc.w    $0009        ; $020456 - NOP (was BF wait loop - bypassed)
+        dc.w    $8BFC        ; $020456
         dc.w    $E000        ; $020458
         dc.w    $1109        ; $02045A
         dc.w    $E020        ; $02045C
         dc.w    $400E        ; $02045E
-; === Redirect to Idle Wrapper in Expansion ROM ===
-redirect_to_wrapper:             ; $020460
-        dc.w    $D003        ; MOV.L wrapper_addr,R0
-        dc.w    $402B        ; JMP @R0 (jump to wrapper - never returns)
-        dc.w    $0009        ; NOP (delay slot)
-        dc.w    $0009        ; NOP (alignment)
-wrapper_addr:
-        dc.w    $0630        ; .long 0x06300038 (high word)
-        dc.w    $0038        ; .long 0x06300038 (low word)
-        dc.w    $0009        ; NOP (unused)
-        dc.w    $0009        ; NOP (unused)
-        dc.w    $0009        ; NOP (unused)
-        dc.w    $0009        ; NOP (unused)
-        dc.w    $0009        ; NOP (unused)
-        dc.w    $0009        ; NOP (unused)
+        dc.w    $D809        ; $020460
+        dc.w    $6080        ; $020462
+        dc.w    $8800        ; $020464
+        dc.w    $89FB        ; $020466
+        dc.w    $8481        ; $020468
+        dc.w    $4008        ; $02046A
+        dc.w    $D107        ; $02046C
+        dc.w    $001E        ; $02046E
+        dc.w    $400B        ; $020470
+        dc.w    $0009        ; $020472
+        dc.w    $AFF4        ; $020474
+        dc.w    $0009        ; $020476
         dc.w    $FFFF        ; $020478
         dc.w    $FE10        ; $02047A
         dc.w    $2000        ; $02047C
@@ -336,16 +333,16 @@ wrapper_addr:
         dc.w    $4020        ; $02048A
         dc.w    $0600        ; $02048C
         dc.w    $0780        ; $02048E
-        dc.w    $D003        ; $020490 - MOV.L @(3,PC),R0 ; R0 = 0x20004024
-        dc.w    $6101        ; $020492 - MOV.W @R0,R1     ; R1 = COMM2
-        dc.w    $7101        ; $020494 - ADD #1,R1        ; R1++
-        dc.w    $2011        ; $020496 - MOV.W R1,@R0     ; COMM2 = R1
-        dc.w    $000B        ; $020498 - RTS
-        dc.w    $0009        ; $02049A - NOP (delay slot)
-        dc.w    $0009        ; $02049C - NOP (padding)
-        dc.w    $0009        ; $02049E - NOP (padding)
-        dc.w    $2000        ; $0204A0 - .long 0x20004024 (high word)
-        dc.w    $4024        ; $0204A2 - .long 0x20004024 (low word)
+        dc.w    $4F22        ; $020490
+        dc.w    $D003        ; $020492
+        dc.w    $400B        ; $020494
+        dc.w    $0009        ; $020496
+        dc.w    $4F26        ; $020498
+        dc.w    $000B        ; $02049A
+        dc.w    $0009        ; $02049C
+        dc.w    $0000        ; $02049E
+        dc.w    $0600        ; $0204A0
+        dc.w    $43FC        ; $0204A2
         dc.w    $D108        ; $0204A4
         dc.w    $E000        ; $0204A6
         dc.w    $811A        ; $0204A8
@@ -398,15 +395,18 @@ wrapper_addr:
         dc.w    $4449        ; $020506
         dc.w    $D105        ; $020508
         dc.w    $D706        ; $02050A
-; === VDP Wait Function - MINIMAL TEST (infinite loop with COMM2 increment) ===
-; Entry point: $02050C (SH2: 0x0602050C) - exactly 9 words (18 bytes)
-;
-; SOURCE: disasm/sh2/slave_comm2_test.asm (proper SH2 assembly)
-; GENERATED: Auto-generated dc.w from assembly source
-; EDIT: Modify the .asm source, then run: tools/asm_to_dcw.sh
-;
+; === VDP Wait Function (ORIGINAL - DO NOT MODIFY) ===
+; This is called by Slave SH2 during rendering - critical for operation
 vdp_wait_test:                   ; $02050C
-        include "sh2/generated/slave_comm2_test.inc"
+        dc.w    $E000        ; $02050C
+        dc.w    $2106        ; $02050E
+        dc.w    $2106        ; $020510
+        dc.w    $2106        ; $020512
+        dc.w    $2106        ; $020514
+        dc.w    $4710        ; $020516
+        dc.w    $8BF9        ; $020518
+        dc.w    $000B        ; $02051A
+        dc.w    $0009        ; $02051C
         dc.w    $0000        ; $02051E - next section starts here
         dc.w    $0604        ; $020520
         dc.w    $0000        ; $020522
@@ -462,7 +462,7 @@ vdp_wait_test:                   ; $02050C
         dc.w    $D10A        ; $020586
         dc.w    $5019        ; $020588
         dc.w    $8800        ; $02058A
-        dc.w    $0009        ; $02058C - NOP (bypass wait loop)
+        dc.w    $8BFC        ; $02058C
         dc.w    $E020        ; $02058E
         dc.w    $400E        ; $020590
         dc.w    $D10C        ; $020592
@@ -524,12 +524,12 @@ vdp_wait_test:                   ; $02050C
         dc.w    $0608        ; $020602
         dc.w    $0600        ; $020604
         dc.w    $0608        ; $020606
-        dc.w    $D121        ; $020608 - MOV.L @(0x20690),R1 (COMM0 addr, disp=33)
-        dc.w    $E055        ; $02060A - MOV #$55,R0 (test value 0x55)
-        dc.w    $2101        ; $02060C - MOV.W R0,@R1 (write to COMM0)
-        dc.w    $AFC0        ; $02060E - BRA $020592 (back to command check)
-        dc.w    $0009        ; $020610 - NOP (delay slot)
-        dc.w    $0009        ; $020612 - NOP
+        dc.w    $E740        ; $020608
+        dc.w    $0009        ; $02060A
+        dc.w    $4710        ; $02060C
+        dc.w    $8BFC        ; $02060E
+        dc.w    $AFBF        ; $020610
+        dc.w    $0009        ; $020612
         dc.w    $DE07        ; $020614
         dc.w    $E000        ; $020616
         dc.w    $81EA        ; $020618
@@ -566,8 +566,8 @@ vdp_wait_test:                   ; $02050C
         dc.w    $50E0        ; $020656
         dc.w    $D113        ; $020658
         dc.w    $3010        ; $02065A
-        dc.w    $0009        ; $02065C - NOP (was BT, bypass WORK check)
-        dc.w    $0009        ; $02065E - NOP (was BRA loop, fall through to work)
+        dc.w    $8901        ; $02065C
+        dc.w    $AFFA        ; $02065E
         dc.w    $0009        ; $020660
         dc.w    $5AE5        ; $020662
         dc.w    $5BE6        ; $020664
@@ -588,14 +588,14 @@ vdp_wait_test:                   ; $02050C
         dc.w    $AFE5        ; $020682
         dc.w    $0009        ; $020684
         dc.w    $0009        ; $020686
-        dc.w    $D101        ; $020688 - MOV.L @(1,PC),R1 (load COMM0 addr from 0x20690, disp=1)
-        dc.w    $E055        ; $02068A - MOV #$55,R0 (test value 0x55)
-        dc.w    $2101        ; $02068C - MOV.W R0,@R1 (write to COMM0)
-        dc.w    $000B        ; $02068E - RTS (return after writing)
-        dc.w    $2000        ; $020690 - COMM0 address high word (SH2: 0x20004020)
-        dc.w    $4020        ; $020692 - COMM0 address low = 0x20004020
-        dc.w    $0009        ; $020694 - NOP (padding)
-        dc.w    $0009        ; $020696 - NOP
+        dc.w    $4F22        ; $020688
+        dc.w    $E800        ; $02068A
+        dc.w    $3AB7        ; $02068C
+        dc.w    $8903        ; $02068E
+        dc.w    $7A01        ; $020690
+        dc.w    $7801        ; $020692
+        dc.w    $AFFA        ; $020694
+        dc.w    $0009        ; $020696
         dc.w    $4F26        ; $020698
         dc.w    $000B        ; $02069A
         dc.w    $0009        ; $02069C
@@ -1000,8 +1000,8 @@ vdp_wait_test:                   ; $02050C
         dc.w    $8FFB        ; $0209BA
         dc.w    $7204        ; $0209BC
         dc.w    $000B        ; $0209BE
-        dc.w    $0200        ; $0209C0 - Jump table slot 254 -> test_ping_handler
-        dc.w    $DD5C        ; $0209C2 - Points to $02DD5C (SH-2 PC 0x0200DD5C)
+        dc.w    $0009        ; $0209C0
+        dc.w    $0000        ; $0209C2
         dc.w    $0600        ; $0209C4
         dc.w    $09CC        ; $0209C6
         dc.w    $0601        ; $0209C8

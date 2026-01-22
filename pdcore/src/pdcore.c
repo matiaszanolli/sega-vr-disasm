@@ -13,6 +13,22 @@
 #include <string.h>
 #include <stdio.h>
 
+/* External declarations for PicoDrive bridge functions
+ * These are implemented in third_party/picodrive/pico/pdcore_bridge.c
+ */
+extern void *picodrive_get_pico32x_state(void);
+extern void *picodrive_get_sh2_master(void);
+extern void *picodrive_get_sh2_slave(void);
+extern void *picodrive_get_pico_state(void);
+extern void *picodrive_get_sdram(void);
+extern void *picodrive_get_dram(void);
+extern unsigned int picodrive_get_sdram_size(void);
+extern unsigned int picodrive_get_dram_size(void);
+
+/* Forward declarations for pdcore accessor wrappers */
+void *pdcore_get_sdram(void);
+void *pdcore_get_dram(void);
+
 /* PicoDrive SH2 structure definition
  * Full structure from third_party/picodrive/cpu/sh2/sh2.h
  * This must match exactly for proper field access
@@ -110,6 +126,18 @@ typedef struct SH2_ {
 
 
 /* ============================================================================
+ * GLOBAL STATE
+ * ============================================================================
+ */
+
+/* Global emulator instance
+ * Used to map from SH2* back to pd_t in breakpoint/V-BLANK callbacks
+ * Shared with pdcore_exec.c
+ */
+pd_t *g_pdcore_emu = NULL;
+
+
+/* ============================================================================
  * LIFECYCLE - INITIALIZATION & CLEANUP
  * ============================================================================
  */
@@ -146,8 +174,12 @@ pd_t *pd_create(const pd_config_t *config)
     pdcore_bp_init((pdcore_breakpoint_array_t *)emu->bp_array_master);
     pdcore_bp_init((pdcore_breakpoint_array_t *)emu->bp_array_slave);
 
-    /* Get PicoDrive state (will be implemented in Phase 2) */
-    /* TODO: emu->genesis = pdcore_get_genesis_state(); */
+    /* Store SH2 references */
+    emu->master_sh2 = pdcore_get_sh2_master();
+    emu->slave_sh2 = pdcore_get_sh2_slave();
+
+    /* Set global for callbacks */
+    g_pdcore_emu = emu;
 
     return emu;
 }
@@ -158,6 +190,10 @@ pd_t *pd_create(const pd_config_t *config)
 void pd_destroy(pd_t *emu)
 {
     if (!emu) return;
+
+    if (emu == g_pdcore_emu) {
+        g_pdcore_emu = NULL;
+    }
 
     free(emu->bp_array_master);
     free(emu->bp_array_slave);
@@ -456,80 +492,81 @@ extern void p32x_sh2_write32(uint32_t a, uint32_t d, SH2 *sh2);
  */
 int pd_mem_read(pd_t *emu, pd_bus_t bus, uint32_t address, void *out_buf, size_t size)
 {
-    SH2 *sh2;
-    uint8_t *buf = (uint8_t *)out_buf;
-    size_t i;
+    void *src = NULL;
+    size_t available = 0;
+    size_t offset = 0;
 
     if (!emu || !out_buf) return PD_ERR_INVALID_PARAM;
     if (size == 0) return 0;
 
-    /* Get Master SH2 for memory access */
-    sh2 = pdcore_get_sh2_master();
-    if (!sh2) {
-        PDCORE_ERROR(emu, "SH2 not initialized");
-        return PD_ERR_UNSUPPORTED;
-    }
-
-    /* Adjust address for bus type (map to SH2 address space)
-     * Most buses are already in SH2 address space, but we validate ranges
-     */
     switch (bus) {
-        case PD_BUS_SH2_ROM:
-            /* ROM: 0x02000000 - 0x023FFFFF (already correct) */
-            if (address < 0x02000000 || address >= 0x02400000) {
-                PDCORE_ERROR(emu, "Address 0x%08x out of ROM range", address);
-                return PD_ERR_INVALID_PARAM;
-            }
-            break;
-
         case PD_BUS_SH2_SDRAM:
-            /* SDRAM cached: 0x06000000 - 0x0603FFFF (256KB) */
-            if (address < 0x06000000 || address >= 0x06040000) {
-                PDCORE_ERROR(emu, "Address 0x%08x out of SDRAM range", address);
-                return PD_ERR_INVALID_PARAM;
-            }
-            break;
-
         case PD_BUS_SH2_SDRAM_WT:
-            /* SDRAM write-through: 0x26000000 + */
-            if (address < 0x26000000 || address >= 0x26040000) {
-                PDCORE_ERROR(emu, "Address 0x%08x out of SDRAM WT range", address);
-                return PD_ERR_INVALID_PARAM;
+            src = pdcore_get_sdram();
+            if (!src) {
+                PDCORE_ERROR(emu, "SDRAM not available");
+                return PD_ERR_INVALID_ADDRESS;
+            }
+            /* SDRAM is at 0x06000000 in SH2 space, 256KB */
+            if (address >= 0x06000000 && address < 0x06040000) {
+                offset = address - 0x06000000;
+                available = 0x40000 - offset;  /* 256KB */
+            } else if (address >= 0x26000000 && address < 0x26040000) {
+                /* Cache-through mirror */
+                offset = address - 0x26000000;
+                available = 0x40000 - offset;
+            } else {
+                PDCORE_ERROR(emu, "Invalid SDRAM address: 0x%08x", address);
+                return PD_ERR_INVALID_ADDRESS;
             }
             break;
 
         case PD_BUS_SH2_FB:
-            /* Frame buffer: 0x04000000 - 0x0401FFFF (2x 64KB) */
-            if (address < 0x04000000 || address >= 0x04020000) {
-                PDCORE_ERROR(emu, "Address 0x%08x out of FB range", address);
-                return PD_ERR_INVALID_PARAM;
+            src = pdcore_get_dram();
+            if (!src) {
+                PDCORE_ERROR(emu, "Frame buffer not available");
+                return PD_ERR_INVALID_ADDRESS;
+            }
+            /* Frame buffers at 0x04000000 / 0x04020000, 128KB each */
+            if (address >= 0x04000000 && address < 0x04040000) {
+                offset = address - 0x04000000;
+                available = 0x40000 - offset;  /* 256KB total */
+            } else if (address >= 0x24000000 && address < 0x24040000) {
+                /* Cache-through mirror */
+                offset = address - 0x24000000;
+                available = 0x40000 - offset;
+            } else {
+                PDCORE_ERROR(emu, "Invalid FB address: 0x%08x", address);
+                return PD_ERR_INVALID_ADDRESS;
             }
             break;
+
+        case PD_BUS_SH2_ROM:
+            /* ROM access - read from loaded ROM data */
+            /* For now, not implemented - ROM is in separate buffer */
+            PDCORE_ERROR(emu, "ROM bus access not yet implemented");
+            return PD_ERR_UNSUPPORTED;
 
         case PD_BUS_SH2_SYS:
-            /* System registers: 0x20000000 + */
-            if (address < 0x20000000) {
-                PDCORE_ERROR(emu, "Address 0x%08x out of SYS range", address);
-                return PD_ERR_INVALID_PARAM;
-            }
-            break;
+            /* System registers - special handling needed */
+            PDCORE_ERROR(emu, "System register access not yet implemented");
+            return PD_ERR_UNSUPPORTED;
 
         case PD_BUS_68K:
-            /* 68K space - not directly accessible via SH2 handlers */
+            /* 68K address space - not needed for Phase 11 */
             PDCORE_ERROR(emu, "68K bus access not yet implemented");
             return PD_ERR_UNSUPPORTED;
 
         default:
-            PDCORE_ERROR(emu, "Unknown bus type %d", bus);
+            PDCORE_ERROR(emu, "Unknown bus type: %d", bus);
             return PD_ERR_INVALID_PARAM;
     }
 
-    /* Read byte-by-byte to handle unaligned access */
-    for (i = 0; i < size; i++) {
-        buf[i] = (uint8_t)p32x_sh2_read8(address + i, sh2);
-    }
+    /* Calculate how much to read */
+    size_t to_read = (size > available) ? available : size;
+    memcpy(out_buf, (uint8_t *)src + offset, to_read);
 
-    return 0;
+    return (int)to_read;
 }
 
 /**
@@ -537,73 +574,60 @@ int pd_mem_read(pd_t *emu, pd_bus_t bus, uint32_t address, void *out_buf, size_t
  */
 int pd_mem_write(pd_t *emu, pd_bus_t bus, uint32_t address, const void *data, size_t size)
 {
-    SH2 *sh2;
-    const uint8_t *buf = (const uint8_t *)data;
-    size_t i;
+    void *dst = NULL;
+    size_t available = 0;
+    size_t offset = 0;
 
     if (!emu || !data) return PD_ERR_INVALID_PARAM;
     if (size == 0) return 0;
 
-    /* Get Master SH2 for memory access */
-    sh2 = pdcore_get_sh2_master();
-    if (!sh2) {
-        PDCORE_ERROR(emu, "SH2 not initialized");
-        return PD_ERR_UNSUPPORTED;
-    }
-
-    /* Validate address ranges (same as read) */
     switch (bus) {
-        case PD_BUS_SH2_ROM:
-            if (address < 0x02000000 || address >= 0x02400000) {
-                PDCORE_ERROR(emu, "Address 0x%08x out of ROM range", address);
-                return PD_ERR_INVALID_PARAM;
-            }
-            /* Note: Writing to ROM probably won't work, but let PicoDrive handle it */
-            break;
-
         case PD_BUS_SH2_SDRAM:
-            if (address < 0x06000000 || address >= 0x06040000) {
-                PDCORE_ERROR(emu, "Address 0x%08x out of SDRAM range", address);
-                return PD_ERR_INVALID_PARAM;
-            }
-            break;
-
         case PD_BUS_SH2_SDRAM_WT:
-            if (address < 0x26000000 || address >= 0x26040000) {
-                PDCORE_ERROR(emu, "Address 0x%08x out of SDRAM WT range", address);
-                return PD_ERR_INVALID_PARAM;
+            dst = pdcore_get_sdram();
+            if (!dst) {
+                PDCORE_ERROR(emu, "SDRAM not available");
+                return PD_ERR_INVALID_ADDRESS;
+            }
+            if (address >= 0x06000000 && address < 0x06040000) {
+                offset = address - 0x06000000;
+                available = 0x40000 - offset;
+            } else if (address >= 0x26000000 && address < 0x26040000) {
+                offset = address - 0x26000000;
+                available = 0x40000 - offset;
+            } else {
+                PDCORE_ERROR(emu, "Invalid SDRAM address: 0x%08x", address);
+                return PD_ERR_INVALID_ADDRESS;
             }
             break;
 
         case PD_BUS_SH2_FB:
-            if (address < 0x04000000 || address >= 0x04020000) {
-                PDCORE_ERROR(emu, "Address 0x%08x out of FB range", address);
-                return PD_ERR_INVALID_PARAM;
+            dst = pdcore_get_dram();
+            if (!dst) {
+                PDCORE_ERROR(emu, "Frame buffer not available");
+                return PD_ERR_INVALID_ADDRESS;
+            }
+            if (address >= 0x04000000 && address < 0x04040000) {
+                offset = address - 0x04000000;
+                available = 0x40000 - offset;
+            } else if (address >= 0x24000000 && address < 0x24040000) {
+                offset = address - 0x24000000;
+                available = 0x40000 - offset;
+            } else {
+                PDCORE_ERROR(emu, "Invalid FB address: 0x%08x", address);
+                return PD_ERR_INVALID_ADDRESS;
             }
             break;
-
-        case PD_BUS_SH2_SYS:
-            if (address < 0x20000000) {
-                PDCORE_ERROR(emu, "Address 0x%08x out of SYS range", address);
-                return PD_ERR_INVALID_PARAM;
-            }
-            break;
-
-        case PD_BUS_68K:
-            PDCORE_ERROR(emu, "68K bus access not yet implemented");
-            return PD_ERR_UNSUPPORTED;
 
         default:
-            PDCORE_ERROR(emu, "Unknown bus type %d", bus);
-            return PD_ERR_INVALID_PARAM;
+            PDCORE_ERROR(emu, "Write to bus %d not supported", bus);
+            return PD_ERR_UNSUPPORTED;
     }
 
-    /* Write byte-by-byte to handle unaligned access */
-    for (i = 0; i < size; i++) {
-        p32x_sh2_write8(address + i, buf[i], sh2);
-    }
+    size_t to_write = (size > available) ? available : size;
+    memcpy((uint8_t *)dst + offset, data, to_write);
 
-    return 0;
+    return (int)to_write;
 }
 
 /**
@@ -699,12 +723,6 @@ void *pd_mem_snapshot(pd_t *emu, pd_bus_t bus, uint32_t address, size_t size)
  * BREAKPOINTS
  * ============================================================================
  */
-
-/* Global emulator instance
- * Used to map from SH2* back to pd_t in breakpoint/V-BLANK callbacks
- * Shared with pdcore_exec.c
- */
-pd_t *g_pdcore_emu = NULL;
 
 /**
  * Breakpoint dispatcher callback
@@ -970,4 +988,14 @@ SH2 *pdcore_get_sh2_master(void)
 SH2 *pdcore_get_sh2_slave(void)
 {
     return (SH2 *)picodrive_get_sh2_slave();
+}
+
+void *pdcore_get_sdram(void)
+{
+    return picodrive_get_sdram();
+}
+
+void *pdcore_get_dram(void)
+{
+    return picodrive_get_dram();
 }

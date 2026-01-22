@@ -144,10 +144,14 @@ $300000-$3FFFFF  1.0 MB    SH2 Expansion Space (NEW)
 
 | Emulator | 32X Support | Notes |
 |----------|-------------|-------|
-| **PicoDrive** | ✅ Yes | Primary emulator for this project |
+| **PicoDrive (system)** | ✅ Yes | Accurate 32X emulation, use for testing |
+| **PicoDrive (custom build)** | ✅ Yes | Only working 32X debugger available |
 | **BlastEm** | ❌ No | Genesis/Mega Drive only, NO 32X support |
 
-**Important:** BlastEm does NOT support 32X. Do not suggest using BlastEm for 32X ROM testing.
+**Important:**
+- BlastEm does NOT support 32X. Do not suggest using BlastEm for 32X ROM testing.
+- Default/system PicoDrive install provides accurate 32X emulation for testing ROMs
+- Custom PicoDrive build is the only working debugger for 32X debugging/profiling
 
 ## Additional Resources
 

@@ -69,10 +69,13 @@ Expansion ROM Frame Counter ($300018)
     └─ MOV.L R1, @R0         ; Write back to COMM4 (Slave→Master)
 ```
 
-**Protocol:**
-- COMM6 = Signal from Master (68K writes, Slave reads)
-- COMM4 = Counter from Slave (Slave writes, Master reads)
+**Protocol (Edge-Triggered, Hardware-Safe):**
+- **COMM6** = Signal from Master (68K writes 0x0012, Slave reads and **clears to 0x0000**)
+- **COMM4** = Counter from Slave (Slave increments, Master reads)
+- **SDRAM 0x22000100** = Canonical counter (SDRAM mirror for diagnostics)
+- ✅ Slave clears COMM6 after servicing (edge-triggered, not level-triggered)
 - ✅ No simultaneous writes to same register = no undefined behavior
+- ✅ Deterministic protocol (0000→0012 is the signal edge)
 ```
 
 ---
@@ -376,19 +379,24 @@ Per hardware manual Section 1.13 (Boot ROM):
 1. **Slave hook not yet implemented** - Slave still runs original code
    - **Workaround:** pdcore debugger will provide visibility
    - **Timeline:** Phase 11 after pdcore complete
+   - **Hook Pattern:** Self-contained, register-preserving, no waits/VDP access (see EXPANSION_ROM_PROTOCOL_ABI.md)
 
 2. **Frame counter waits for Slave call** - Code is ready but not invoked
    - **Workaround:** Direct test via custom Slave startup code
    - **Timeline:** Phase 11 integration
+   - **Expected behavior:** Counter increments monotonically (once per frame) after hook installed
 
 3. **COMM register contention avoided** - Two-register protocol prevents race conditions
    - **Hardware compliance:** ✅ Meets hardware manual specifications
+   - **Protocol:** ✅ Edge-triggered (Slave clears COMM6 after servicing)
    - **Robustness:** ✅ No undefined behavior from simultaneous writes
+   - **Diagnostic:** ✅ SDRAM 0x22000100 provides canonical counter visibility
 
 ---
 
 ## Documentation References
 
+- **Protocol ABI (LOCKED):** [EXPANSION_ROM_PROTOCOL_ABI.md](EXPANSION_ROM_PROTOCOL_ABI.md) — Master/Slave comm spec, ack semantics, diagnostic SDRAM layout
 - **Architecture:** [ROM_EXPANSION_4MB_IMPLEMENTATION.md](analysis/architecture/ROM_EXPANSION_4MB_IMPLEMENTATION.md)
 - **Testing Plan:** [NEXT_STEPS.md](NEXT_STEPS.md)
 - **Step 7 Analysis:** [STEP7_FINDINGS.md](STEP7_FINDINGS.md)

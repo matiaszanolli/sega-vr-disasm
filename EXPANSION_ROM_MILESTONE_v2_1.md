@@ -55,18 +55,24 @@ Frame Event
 Reserved NOP Space Hook ($00037A)
     ├─ Instruction: MOVE.W #$0012, $A1512C (COMM6)
     ├─ Executes: Every V-INT (~60Hz in PAL mode, ~50Hz in NTSC)
-    └─ Effect: Slave can detect signal
+    └─ Effect: Master writes signal to COMM6
     ↓
 Slave SH2 Polling Loop (0x06000596)
-    ├─ [HOOK LOCATION] Check COMM6 for 0x0012
+    ├─ [HOOK LOCATION] Check COMM6 for 0x0012 signal
     ├─ If detected: Call expansion_frame_counter
-    └─ Counter increments COMM6 register
+    └─ Slave executes counter increment
     ↓
 Expansion ROM Frame Counter ($300018)
-    ├─ MOV.L @(disp,PC), R0  ; Load COMM6 addr
-    ├─ MOV.L @R0, R1         ; Read current value
-    ├─ ADD #1, R1            ; Increment by 1
-    └─ MOV.L R1, @R0         ; Write back to COMM6
+    ├─ MOV.L @(disp,PC), R0  ; Load COMM4 addr (response)
+    ├─ MOV.L @R0, R1         ; Read current counter value
+    ├─ ADD #1, R1            ; Increment counter
+    └─ MOV.L R1, @R0         ; Write back to COMM4 (Slave→Master)
+```
+
+**Protocol:**
+- COMM6 = Signal from Master (68K writes, Slave reads)
+- COMM4 = Counter from Slave (Slave writes, Master reads)
+- ✅ No simultaneous writes to same register = no undefined behavior
 ```
 
 ---
@@ -114,17 +120,19 @@ expansion_test:
         dc.w    $000B                   ; RTS
         dc.w    $0009                   ; NOP (delay slot)
 
-; Test function 2: Increment COMM6 register every frame (frame counter)
-; COMM6 is at $2000402C (SH2 address space) per hardware manual
+; Test function 2: Increment COMM4 counter (Slave→Master response)
+; Uses two-register protocol to avoid race conditions:
+;   - COMM6 ($2000402C): Master→Slave signal (write by Master only)
+;   - COMM4 ($20004028): Slave→Master counter (write by Slave only)
 expansion_frame_counter:
-        dc.w    $D002                   ; MOV.L @(disp,PC),R0 (load COMM6 addr)
-        dc.w    $6008                   ; MOV.L @R0,R1 (read current COMM6 value to R1)
+        dc.w    $D002                   ; MOV.L @(disp,PC),R0 (load COMM4 addr)
+        dc.w    $6008                   ; MOV.L @R0,R1 (read current COMM4 value to R1)
         dc.w    $7101                   ; ADD #1,R1 (increment by 1)
-        dc.w    $2012                   ; MOV.L R1,@R0 (write R1 back to COMM6)
+        dc.w    $2012                   ; MOV.L R1,@R0 (write R1 back to COMM4)
         dc.w    $000B                   ; RTS
         dc.w    $0009                   ; NOP (delay slot)
         dc.w    $0000                   ; alignment padding
-        dc.l    $2000402C               ; COMM6 address literal (4 bytes)
+        dc.l    $20004028               ; COMM4 address literal (4 bytes)
 ```
 
 **Location in ROM:**
@@ -314,7 +322,21 @@ All instructions verified against Motorola 68K ISA.
 
 ---
 
-## Known Limitations
+## Hardware Compliance & Synchronization
+
+### Two-Register Protocol (Race Condition Prevention)
+
+Per hardware manual Section 3.2.2:
+> "when writing the same register from both at the same time, the value of that register becomes undefined"
+
+To avoid undefined behavior, we use **separate registers**:
+
+- **COMM6** ($2000402C): Master → Slave signal (Master writes, Slave reads)
+- **COMM4** ($20004028): Slave → Master counter (Slave writes, Master reads)
+
+This prevents simultaneous writes to the same register.
+
+### Known Limitations
 
 1. **Slave hook not yet implemented** - Slave still runs original code
    - **Workaround:** pdcore debugger will provide visibility
@@ -324,9 +346,9 @@ All instructions verified against Motorola 68K ISA.
    - **Workaround:** Direct test via custom Slave startup code
    - **Timeline:** Phase 11 integration
 
-3. **Single COMM6 path** - No priority/queue system yet
-   - **Acceptable for MVP** - Single command per frame sufficient
-   - **Future enhancement:** COMM register array for parallel work
+3. **COMM register contention avoided** - Two-register protocol prevents race conditions
+   - **Hardware compliance:** ✅ Meets hardware manual specifications
+   - **Robustness:** ✅ No undefined behavior from simultaneous writes
 
 ---
 

@@ -85,6 +85,9 @@ dump/
 # vasm build artifacts (tool itself is built from source)
 tools/vasm
 
+# Compiled analysis tools (built locally)
+tools/read_cycle_counts
+
 # OS-specific
 .directory
 desktop.ini

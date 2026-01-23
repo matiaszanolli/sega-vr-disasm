@@ -1972,35 +1972,11 @@
         dc.w    $0740        ; $0231A6
         dc.w    $C000        ; $0231A8
         dc.w    $0770        ; $0231AA
-        dc.w    $054F        ; $0231AC
-        dc.w    $054F        ; $0231AE
-        dc.w    $054F        ; $0231B0
-        dc.w    $75F4        ; $0231B2
-        dc.w    $6846        ; $0231B4
-        dc.w    $000A        ; $0231B6
-        dc.w    $011A        ; $0231B8
-        dc.w    $210D        ; $0231BA
-        dc.w    $318C        ; $0231BC
-        dc.w    $0028        ; $0231BE
-        dc.w    $054F        ; $0231C0
-        dc.w    $054F        ; $0231C2
-        dc.w    $054F        ; $0231C4
-        dc.w    $75F4        ; $0231C6
-        dc.w    $6846        ; $0231C8
-        dc.w    $74E0        ; $0231CA
-        dc.w    $000A        ; $0231CC
-        dc.w    $021A        ; $0231CE
-        dc.w    $220D        ; $0231D0
-        dc.w    $328C        ; $0231D2
-        dc.w    $313D        ; $0231D4
-        dc.w    $000A        ; $0231D6
-        dc.w    $309C        ; $0231D8
-        dc.w    $81A6        ; $0231DA
-        dc.w    $323D        ; $0231DC
-        dc.w    $000A        ; $0231DE
-        dc.w    $30CC        ; $0231E0
-        dc.w    $000B        ; $0231E2
-        dc.w    $81A7        ; $0231E4
+; ═══════════════════════════════════════════════════════════════════════════
+; func_008: Alt Matrix × Vector Multiplication (58 bytes, $0231AC-$0231E5)
+; Source: disasm/sh2/3d_engine/func_008_alt_matrix_multiply.asm
+; ═══════════════════════════════════════════════════════════════════════════
+        include "sh2/generated/func_008.inc"
         dc.w    $85E1        ; $0231E6
         dc.w    $81B1        ; $0231E8
         dc.w    $50C3        ; $0231EA

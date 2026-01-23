@@ -309,9 +309,11 @@ def create_master_comparison_handler(handler_addr: int) -> bytes:
     return bytes(code)
 
 
-def create_vblank_hook(vblank_addr: int, handler_addr: int) -> bytes:
+def create_vblank_hook(vblank_addr: int, handler_addr: int,
+                       original_vblank_continuation: int) -> bytes:
     """
-    Create VBlank hook that calls Master comparison handler.
+    Create VBlank hook that calls Master comparison handler,
+    then chains to original VBlank code.
 
     Triggered at VBlank boundary (once per frame).
     """
@@ -323,8 +325,10 @@ def create_vblank_hook(vblank_addr: int, handler_addr: int) -> bytes:
     code.extend([0x41, 0x0B])   # JSR @R1
     code.extend([0x00, 0x09])   # NOP (delay slot)
 
-    # RTS
-    code.extend([0x00, 0x0B])   # RTS
+    # Jump to original VBlank continuation (NOT RTS!)
+    original_jmp_mov = len(code)
+    code.extend([0xD1, 0x00])   # MOV.L @(disp,PC),R1 - original continuation addr
+    code.extend([0x41, 0x2B])   # JMP @R1
     code.extend([0x00, 0x09])   # NOP (delay slot)
 
     # Align to 4 bytes
@@ -338,6 +342,14 @@ def create_vblank_hook(vblank_addr: int, handler_addr: int) -> bytes:
     if disp > 255:
         raise ValueError(f"Literal pool too far: disp={disp}")
     code[handler_call_mov + 1] = disp
+
+    # Original VBlank continuation address
+    lit_pool_offset = len(code)
+    code.extend(struct.pack('>I', original_vblank_continuation))
+    disp = (lit_pool_offset - (original_jmp_mov + 4)) // 4
+    if disp > 255:
+        raise ValueError(f"Literal pool too far: disp={disp}")
+    code[original_jmp_mov + 1] = disp
 
     return bytes(code)
 
@@ -384,16 +396,30 @@ def inject_master_comparison(input_rom: Path, output_rom: Path):
 
     print(f"Handler injected at 0x{HANDLER_ADDR:08X} ({len(handler_code)} bytes)")
 
+    # === FIND ACTUAL VBLANK HANDLER ===
+    # The VBlank entry at 0x020243E0 is itself a redirect (from Phase 15)
+    # We need to follow it to find the ACTUAL handler
+    VBLANK_ENTRY = 0x020243E0
+
+    # Read the redirect at VBlank entry
+    offset = VBLANK_ENTRY - 0x02000000
+    redirect_bytes = rom_data[offset:offset+12]
+
+    # Extract the target address from the literal pool (last 4 bytes)
+    actual_vblank_handler = struct.unpack('>I', redirect_bytes[8:12])[0]
+
+    print(f"VBlank entry at 0x{VBLANK_ENTRY:08X} redirects to 0x{actual_vblank_handler:08X}")
+    print(f"  Redirect bytes: {redirect_bytes.hex()}")
+
     # === INJECT VBLANK HOOK ===
     VBLANK_ADDR = 0x02300200
-    vblank_code = create_vblank_hook(VBLANK_ADDR, HANDLER_ADDR)
+    vblank_code = create_vblank_hook(VBLANK_ADDR, HANDLER_ADDR, actual_vblank_handler)
     offset = VBLANK_ADDR - 0x02000000
     rom_data[offset:offset+len(vblank_code)] = vblank_code
 
     print(f"VBlank hook injected at 0x{VBLANK_ADDR:08X} ({len(vblank_code)} bytes)")
 
     # === REDIRECT VBLANK ENTRY ===
-    VBLANK_ENTRY = 0x020243E0
     offset = VBLANK_ENTRY - 0x02000000
 
     redirect = bytearray()

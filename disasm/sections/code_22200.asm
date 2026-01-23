@@ -1973,49 +1973,25 @@
         dc.w    $C000        ; $0231A8
         dc.w    $0770        ; $0231AA
 ; ═══════════════════════════════════════════════════════════════════════════
-; func_008: Alt Matrix × Vector Multiplication (58 bytes, $0231AC-$0231E5)
+; func_008: Alt Matrix × Vector Multiplication (56 bytes, $0231AC-$0231E3)
 ; Source: disasm/sh2/3d_engine/func_008_alt_matrix_multiply.asm
-; NOTE: Last word (0x81A7 at $0231E4) serves as delay slot AND func_009's first instruction
+; NOTE: Delay slot (0x81A7) provided by func_009's first instruction
 ; ═══════════════════════════════════════════════════════════════════════════
         include "sh2/generated/func_008.inc"
 ; ═══════════════════════════════════════════════════════════════════════════
 ; func_009: Display List Handler Type A (30 bytes, $0231E4-$023201)
-; Source: disasm/sh2/3d_engine/func_009_display_list_4elem.asm (VERIFIED)
-; NOT INTEGRATED: First instruction (0x81A7) shared with func_008 delay slot above
+; Source: disasm/sh2/3d_engine/func_009_display_list_4elem.asm
+; NOTE: First instruction (0x81A7) serves as func_008's delay slot
+; NOTE: RTS delay slot (0x81E3) provided by func_010's first instruction
 ; ═══════════════════════════════════════════════════════════════════════════
-        dc.w    $85E1        ; $0231E6 ; func_009 body continues (minus first instruction)
-        dc.w    $81B1        ; $0231E8
-        dc.w    $50C3        ; $0231EA
-        dc.w    $51C7        ; $0231EC
-        dc.w    $52CB        ; $0231EE
-        dc.w    $53CF        ; $0231F0
-        dc.w    $1B01        ; $0231F2
-        dc.w    $1B12        ; $0231F4
-        dc.w    $1B23        ; $0231F6
-        dc.w    $1B34        ; $0231F8
-        dc.w    $7B14        ; $0231FA
-        dc.w    $85E3        ; $0231FC
-        dc.w    $7001        ; $0231FE
-        dc.w    $000B        ; $023200 ; func_009 RTS - delay slot is func_010's first instruction
+        include "sh2/generated/func_009.inc"
 ; ═══════════════════════════════════════════════════════════════════════════
 ; func_010: Display List Handler Type B (26 bytes, $023202-$02321B)
-; Source: disasm/sh2/3d_engine/func_010_display_list_3elem.asm (VERIFIED)
-; NOT INTEGRATED: First instruction (0x81E3) shared with func_009 delay slot above
+; Source: disasm/sh2/3d_engine/func_010_display_list_3elem.asm
+; NOTE: First instruction (0x81E3) serves as func_009's delay slot
 ; ═══════════════════════════════════════════════════════════════════════════
-        dc.w    $81E3        ; $023202 ; func_010 start (also func_009 delay slot)
-        dc.w    $85E1        ; $023204
-        dc.w    $81B1        ; $023206
-        dc.w    $50C3        ; $023208
-        dc.w    $51C7        ; $02320A
-        dc.w    $52CB        ; $02320C
-        dc.w    $1B01        ; $02320E
-        dc.w    $1B12        ; $023210
-        dc.w    $1B23        ; $023212
-        dc.w    $7B10        ; $023214
-        dc.w    $85E3        ; $023216
-        dc.w    $7001        ; $023218
-        dc.w    $000B        ; $02321A ; func_010 RTS
-        dc.w    $81E3        ; $02321C ; func_010 delay slot (borrowed)
+        include "sh2/generated/func_010.inc"
+        dc.w    $81E3        ; $02321C ; func_010 delay slot (borrowed from next)
         dc.w    $0009        ; $02321E
         dc.w    $4F22        ; $023220
         dc.w    $85E7        ; $023222

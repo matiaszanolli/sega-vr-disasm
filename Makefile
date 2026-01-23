@@ -283,8 +283,8 @@ $(SH2_FUNC008_BIN): $(SH2_FUNC008_SRC) | dirs
 	@echo "==> Assembling SH2: func_008..."
 	$(SH2_AS) $(SH2_ASFLAGS) -o $(BUILD_DIR)/sh2/func_008.o $<
 	$(SH2_OBJCOPY) -O binary $(BUILD_DIR)/sh2/func_008.o $@
-	@# Trim to exact 58 bytes (remove assembler padding)
-	@truncate -s 58 $@
+	@# Trim to exact 56 bytes (exclude delay slot - shared with func_009)
+	@truncate -s 56 $@
 	@echo "    Output: $@ ($$(wc -c < $@) bytes)"
 
 $(SH2_FUNC008_INC): $(SH2_FUNC008_BIN)
@@ -401,7 +401,7 @@ sh2-verify: $(SH2_FUNC006_BIN) $(SH2_FUNC008_BIN) $(SH2_FUNC016_BIN) $(SH2_FUNC0
 		echo "✗ func_006: MISMATCH"; \
 		exit 1; \
 	fi
-	@dd if="$(ORIGINAL_ROM)" bs=1 skip=$$((0x231AC)) count=58 2>/dev/null > $(BUILD_DIR)/sh2/func_008_original.bin
+	@dd if="$(ORIGINAL_ROM)" bs=1 skip=$$((0x231AC)) count=56 2>/dev/null > $(BUILD_DIR)/sh2/func_008_original.bin
 	@if diff -q $(SH2_FUNC008_BIN) $(BUILD_DIR)/sh2/func_008_original.bin > /dev/null 2>&1; then \
 		echo "✓ func_008: PERFECT MATCH"; \
 	else \

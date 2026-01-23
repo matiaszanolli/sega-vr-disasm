@@ -1,11 +1,14 @@
 /*
  * func_008: Alternative Matrix × Vector Multiplication (MAC.L)
- * ROM File Offset: 0x231AC - 0x231E5 (58 bytes)
+ * ROM File Offset: 0x231AC - 0x231E3 (56 bytes, excludes delay slot)
  * SH2 Address: 0x022231AC
  *
  * Purpose: Transform 3D vector using matrix multiplication
  *          Similar to func_006 but with different output handling
  *          Called by func_007 (alternative transform loop)
+ *
+ * NOTE: Delay slot (0x81A7) is provided by func_009's first instruction.
+ *       This enables seamless include chaining in the ROM build.
  *
  * Input:
  *   R4 = Pointer to matrix
@@ -63,7 +66,7 @@ func_008:
     sts     mach,r0                 /* R0 = high 32 bits of result */
     add     r12,r0                  /* Add X offset from caller */
     rts
-    .word   0x81a7                  /* MOV.W R0,@(20,R7) (delay slot) */
+    /* Delay slot provided by func_009's first instruction (0x81A7) */
 
 /*
  * End of func_008

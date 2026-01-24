@@ -1,9 +1,11 @@
 # Optimization Attempt: Lessons Learned
 
 **Date**: January 6, 2026
+**Last Updated**: January 24, 2026
 **Attempted**: func_016 Inline Optimization
 **Result**: ❌ ROM Crash
 **Lesson**: Critical insights for future optimization attempts
+**Status**: Historical failure analysis (kept for reference; optimization plan updated post‑v2.3)
 
 ---
 
@@ -12,7 +14,7 @@
 ### The Crash
 
 **Test ROM**: `Virtua Racing - Test1.32x`
-**Status**: Does not boot
+**Status**: Does not boot (file not present in repo as of 2026-01-24)
 **Cause**: Code expansion overwrote critical loop control logic
 
 ### Root Cause Analysis
@@ -106,6 +108,7 @@ BF EC    BSR $02223368    ; Call func_016
 - Manual relocation is error-prone and not worth 5% gain
 
 **Action**: Focus on other optimizations with better ROI
+**Related**: See `analysis/optimization/FUNC_016_INLINING_INFEASIBILITY.md` for the updated, formal infeasibility analysis.
 
 ---
 
@@ -184,18 +187,18 @@ inline_code:
 ### Priority 2: Master/Slave Load Balancing ⭐⭐⭐
 
 **Why Better**:
-- **Potentially +20-40%** if Slave SH2 is underutilized
+- **Validated underutilization** (Slave ~0.03% busy) and **working sync protocol** (v2.3 COMM6/COMM4)
 - Doesn't require code relocation
 - Adds work to idle CPU rather than optimizing busy one
 
 **What to do**:
-1. Trace COMM register access patterns
-2. Identify Master vs Slave work distribution
-3. Move vertex transforms to Slave if it's idle
-4. Use SDRAM buffers for coordination
+1. Use cache-through staging (0x2200xxxx) for shared buffers
+2. Dispatch Slave work via COMM6, ack via COMM4
+3. Validate correctness with memory inspection
+4. Measure actual speedup before scaling
 
-**Risk**: Medium (need to understand synchronization)
-**Reward**: Very High (+20-40% if Slave is idle)
+**Risk**: Medium (cache coherency and SDRAM contention)
+**Reward**: Very High (theoretical +15–50%, see `analysis/architecture/MASTER_SLAVE_ANALYSIS.md`)
 **Complexity**: High (requires understanding both CPUs)
 
 ---
@@ -257,9 +260,9 @@ inline_code:
 
 ---
 
-## Revised Optimization Roadmap
+## Revised Optimization Roadmap (Historical, superseded by v2.3+)
 
-### Phase 1: Low-Hanging Fruit (This Week)
+### Phase 1: Low-Hanging Fruit (Week of 2026-01-06)
 
 1. **Profile func_065 parameters** ✅ Easy, high value
    - Determine if FIFO optimization applies
@@ -269,7 +272,7 @@ inline_code:
    - Trace COMM register usage
    - Potential: +20-40%
 
-### Phase 2: Safe Optimizations (Next Week)
+### Phase 2: Safe Optimizations (Week of 2026-01-13)
 
 3. **Remove indirect JSR calls** ✅ Easy, low risk
    - Profile callback targets
@@ -301,10 +304,10 @@ inline_code:
 - Identified better targets for optimization
 - Tools and analysis that remain valuable
 
-**What's next**:
-- Focus on **func_065 FIFO batching** (+10-15%)
-- Investigate **Master/Slave balance** (+20-40%)
-- Skip func_016 inline (not worth the complexity)
+**What's next (current as of v2.3+)**:
+- Master/Slave workload distribution (validated sync; see `analysis/architecture/MASTER_SLAVE_ANALYSIS.md`)
+- Targeted in-place optimizations that avoid code expansion
+- func_016 inlining remains infeasible without relocation work
 
 **Overall impact**: Still targeting **+20-30% gain** from safer optimizations
 
@@ -313,15 +316,14 @@ inline_code:
 ## Testing Notes
 
 **Current ROM Status**:
-- ❌ Test ROM (Virtua Racing - Test1.32x): Crashes - DO NOT USE
+- ❌ Test ROM (Virtua Racing - Test1.32x): Historical crash (file not in repo)
 - ✅ Original ROM: Works perfectly
-- ⏳ Future optimized ROM: TBD (will use func_065 + Master/Slave approach)
+- ⏳ Future optimized ROM: TBD (use in-place optimizations + Master/Slave approach)
 
-**Next steps**:
-1. Delete test ROM (it's broken)
-2. Focus on profiling func_065
-3. Document Master/Slave work distribution
-4. Create new optimization based on findings
+**Next steps (current)**:
+1. Use v2.3 sync protocol to offload safe work
+2. Validate correctness with memory inspection tooling
+3. Measure and document gains per change
 
 ---
 

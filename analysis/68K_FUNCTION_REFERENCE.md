@@ -1,6 +1,9 @@
 # 68K Function Reference
 
-This document provides a categorized reference for all named 68000 functions in Virtua Racing Deluxe.
+Categorized reference for all named 68000 functions in Virtua Racing Deluxe.
+
+**Note:** Function names are inferred from behavior analysis, not original debug symbols.
+**Scope:** Reference catalog only; protocol details are in `analysis/68K_SH2_COMMUNICATION.md` and `analysis/architecture/MASTER_SLAVE_ANALYSIS.md`.
 
 ---
 
@@ -62,6 +65,7 @@ The V-INT handler uses a state machine at `$FFC87A`:
 ## SH2 Communication ($00E1BC - $00E3FF)
 
 These functions manage the 68K-SH2 communication protocol via COMM registers at `$A15120-$A1512F`.
+See `analysis/68K_SH2_COMMUNICATION.md` for validated COMM usage and v2.3 protocol notes.
 
 | Address | Function | Description |
 |---------|----------|-------------|
@@ -410,12 +414,12 @@ Entry point uses jump table for 7 initialization states:
 
 ## Related Documentation
 
-- [STATE_MACHINES.md](STATE_MACHINES.md) - State machine details
-- [68K_SH2_CROSS_REFERENCE.md](68K_SH2_CROSS_REFERENCE.md) - Communication protocol
-- [DATA_STRUCTURES.md](DATA_STRUCTURES.md) - Memory structures
-- [VINT_HANDLER_ARCHITECTURE.md](VINT_HANDLER_ARCHITECTURE.md) - V-INT handler details
+- [STATE_MACHINES.md](architecture/STATE_MACHINES.md) - State machine details
+- [68K_SH2_COMMUNICATION.md](68K_SH2_COMMUNICATION.md) - Communication protocol (validated)
+- [DATA_STRUCTURES.md](architecture/DATA_STRUCTURES.md) - Memory structures
+- [VINT_HANDLER_ARCHITECTURE.md](architecture/VINT_HANDLER_ARCHITECTURE.md) - V-INT handler details
 
 ---
 
-*Generated: January 2026*
-*Status: Reference document - 503+ functions documented*
+**Document Status:** Reference catalog
+**Last Updated:** 2026-01-24

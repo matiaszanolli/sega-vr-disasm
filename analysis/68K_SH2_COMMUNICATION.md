@@ -1,158 +1,228 @@
-# 68K to SH2 Communication Architecture
+# 68K-SH2 Communication
 
-Analysis of how Virtua Racing Deluxe coordinates between the 68K main CPU and the dual SH2 processors.
+**Purpose:** Communication protocol and coordination between 68000 and dual SH2 processors
+**Status:** Reference document with mixed confidence levels
+**Related:** [MASTER_SLAVE_ANALYSIS.md](architecture/MASTER_SLAVE_ANALYSIS.md) for validated v2.3 sync protocol
 
-## Key Communication Registers
+---
 
-### 32X System Registers (68K Side: $A15100-$A1512F)
+## Architecture Overview
+
+```
+                    +----------------+
+                    |   Cartridge    |
+                    |    ROM (4MB)   |
+                    +-------+--------+
+                            |
+        +-------------------+-------------------+
+        |                   |                   |
++-------v-------+   +-------v-------+   +-------v-------+
+|    68000      |   | SH2 Master    |   | SH2 Slave     |
+|   (7.67MHz)   |   |   (23MHz)     |   |   (23MHz)     |
++-------+-------+   +-------+-------+   +-------+-------+
+        |                   |                   |
+        v                   v                   v
+    Genesis             32X SDRAM           32X SDRAM
+    Work RAM            (256KB)             (shared)
+     (64KB)                 |                   |
+        |                   +-----+-----+-------+
+        |                         |     |
+        +----------> COMM <-------+     |
+                   Registers            |
+                   ($A15120)            v
+                                   Frame Buffer
+                                    (256KB)
+```
+
+**Note:** ROM is 4MB (32 Mbit), not 3MB. 68K runs at 7.67 MHz (not 12.5 MHz—that's the base Genesis clock before divider).
+
+---
+
+## Communication Registers (✅ Confirmed per Hardware Manual)
+
+### COMM Port Mapping ($A15120-$A1512F from 68K side)
+
+| 68K Address | SH2 Address | Name | Width |
+|-------------|-------------|------|-------|
+| $A15120 | $20004020 | COMM0 | 16-bit (68K) / 32-bit (SH2) |
+| $A15122 | $20004020 | COMM0 (low) | 16-bit |
+| $A15124 | $20004024 | COMM1 | 16-bit / 32-bit |
+| $A15126 | $20004024 | COMM1 (low) | 16-bit |
+| $A15128 | $20004028 | COMM2 | 16-bit / 32-bit |
+| $A1512A | $20004028 | COMM2 (low) | 16-bit |
+| $A1512C | $2000402C | COMM3 | 16-bit / 32-bit |
+| $A1512E | $2000402C | COMM3 (low) | 16-bit |
+| $A15130 | $20004030 | COMM4 | 16-bit / 32-bit |
+| $A15132 | $20004030 | COMM4 (low) | 16-bit |
+| $A15134 | $20004034 | COMM5 | 16-bit / 32-bit |
+| $A15136 | $20004034 | COMM5 (low) | 16-bit |
+| $A15138 | $20004038 | COMM6 | 16-bit / 32-bit |
+| $A1513A | $20004038 | COMM6 (low) | 16-bit |
+| $A1513C | $2000403C | COMM7 | 16-bit / 32-bit |
+| $A1513E | $2000403C | COMM7 (low) | 16-bit |
+
+**Width note:** SH2 reads/writes longwords (32-bit) at even-numbered addresses above. 68K accesses as word pairs. Writing COMM0 from 68K affects only the upper 16 bits of SH2's longword view.
+
+### Adapter Control ($A15100-$A15106) (✅ Confirmed)
 
 | Address | Name | Purpose |
 |---------|------|---------|
-| $A15100 | Adapter Control | System control, ADEN bit, FM (VDP access) |
-| $A15102 | Interrupt Control | Master/Slave interrupt triggers |
-| $A15104 | Bank Set | ROM bank switching |
-| $A15106 | DREQ Control | DMA request control |
-| $A15120-$A1512F | COMM0-7 | 8 communication registers (16-bit each) |
+| $A15100 | ADAPTER_CTRL | 32X enable (ADEN), FM bit (VDP access) |
+| $A15102 | INT_CTRL | SH2 interrupt control |
+| $A15104 | BANK_SET | ROM banking for >4MB games |
+| $A15106 | DREQ_CTRL | DMA request control |
 
-### VDP Registers (68K Side: $A15180-$A151FF)
+See [DATA_STRUCTURES.md](architecture/DATA_STRUCTURES.md) for complete memory map.
 
-| Address | Name | Purpose |
-|---------|------|---------|
-| $A15180 | Bitmap Mode | Direct/Packed/RLE mode selection |
-| $A15182 | Screen Shift | Horizontal shift |
-| $A15184 | Auto-fill Length | Fill operation length |
-| $A15186 | Auto-fill Start | Fill start address |
-| $A15188 | Auto-fill Data | Fill color/data |
-| $A1518A | Frame Swap | Frame buffer swap control |
+---
 
-### Frame Buffer (68K Side: $840000-$85FFFF)
+## COMM Register Usage
 
-- Two 256KB frame buffers (double buffering)
-- Direct pixel access from 68K
-- Shared with SH2 (requires FM bit coordination)
+### Original Game (📋 Inferred from code patterns)
 
-## Files Containing Communication Code
+| Register | Observed Usage |
+|----------|----------------|
+| COMM0 | 68K→SH2 command (inferred: RENDER_FRAME) |
+| COMM1 | Display list address (inferred from 68K writes) |
+| COMM2 | Work status flags (inferred) |
+| COMM3 | Slave status ("OVRN" loop, ✅ confirmed in ROM at $20694) |
+| COMM4-7 | Unused by original game |
 
-### 1. Boot Sequence (`boot/init_sequence.asm`)
-```
-Location: $000200+
-Purpose: Initialize 32X adapter and SH2 processors
-Key Patterns:
-  - Write to $A15100 (adapter control)
-  - Poll $A15120 (COMM0) for handshake
-  - Initialize $A15180 (VDP mode)
-```
+### v2.3 Protocol Additions (✅ Validated)
 
-### 2. VDP Operations (`display/vdp_operations.asm`)
-```
-Purpose: Frame buffer and VDP control
-Key Operations:
-  - Frame swap via $A1518A
-  - Auto-fill via $A15184-$A15188
-  - Direct frame buffer writes at $840000
-```
+| Register | v2.3 Usage |
+|----------|------------|
+| COMM4 | Slave frame counter (incremented by handler) |
+| COMM6 | Master→Slave signal (0x0012 = work, 0x0000 = idle) |
 
-### 3. VINT Handler (`main-loop/vint_handler.asm`)
-```
-Purpose: Vertical interrupt coordination
-Key Role: Synchronize frame timing between 68K and SH2
-```
+See [MASTER_SLAVE_ANALYSIS.md](architecture/MASTER_SLAVE_ANALYSIS.md) for validated synchronization protocol details.
 
-### 4. Z80 Sound Commands (`sound/z80_commands.asm`)
-```
-Contains 32X register access for sound coordination
-Patterns: $A15100 status checks, COMM register polling
-```
+---
 
-## Communication Patterns Observed
+## 68K Functions That Communicate with SH2 (📋 Inferred)
 
-### Pattern 1: Register Polling Loop
-```asm
-; Wait for SH2 ready
-loop:
-    TST.B   $A15120.W    ; Check COMM0
-    BNE     loop         ; Loop until clear
-```
+### Command Submission
 
-### Pattern 2: COMM Register Handshake
-```asm
-; Send command to SH2
-    MOVE.W  #$1234,$A15120.W   ; Write to COMM0
+| Address | Name | Description |
+|---------|------|-------------|
+| $00E316 | `sh2_send_cmd_wait` | Wait for ready, send command |
+| $00E35A | `sh2_send_cmd` | Direct command send |
+| $00E342 | `sh2_wait_response` | Poll for SH2 response |
+| $00E3B4 | `sh2_cmd_27` | Graphics command $27 |
+| $00E22C | `sh2_graphics_cmd` | General graphics command |
+| $00E2F0 | `sh2_load_data` | Data load via SH2 |
+| $00E2E4 | `sh2_copy_routine` | SH2 memory copy |
+| $00E1BC | `sh2_palette_load` | Palette transfer |
+| $011B08 | `sh2_graphics_batch` | Batch graphics ops |
+| $012260 | `sh2_wait_ready` | COMM ready check |
 
-; Wait for acknowledgment
-wait:
-    CMP.W   #$ABCD,$A15122.W   ; Check COMM1
-    BNE     wait
-```
+### Synchronization
 
-### Pattern 3: Frame Buffer Access
-```asm
-; Set FM bit before VDP access
-    BCLR    #0,$A15100.W      ; Clear FM (give 68K access)
+| Address | Name | Description |
+|---------|------|-------------|
+| $00203A | `sh2_frame_sync` | Frame boundary sync |
+| $002890 | `sh2_comm_sync` | COMM register sync |
+| $0027DA | `sh2_framebuffer_prep` | Frame buffer setup |
+| $0028C2 | `VDPSyncSH2` | VDP/SH2 sync |
 
-; Direct frame buffer write
-    LEA     $840000,A0
-    MOVE.L  D0,(A0)+
+See [68K_FUNCTION_REFERENCE.md](68K_FUNCTION_REFERENCE.md) for complete function catalog.
 
-; Return access to SH2
-    BSET    #0,$A15100.W      ; Set FM
-```
+---
 
-## SH2 Code Loading
+## SH2 Functions (📋 Inferred from disassembly)
 
-The SH2 executable code is stored in ROM at $024200-$0261FF and copied to SH2 SDRAM at boot:
+### 3D Engine (Master SH2)
 
-```
-ROM offset $024200 → SH2 SDRAM $02024200
-ROM offset $026200 → SH2 SDRAM $02026200 (sine table)
-```
+| Address | Name | Description |
+|---------|------|-------------|
+| $0222301C | `display_list_processor` | Parse display list |
+| $02223066 | `render_init` | Initialize render |
+| $022230E6 | `matrix_transform_loop` | Transform batch |
+| $02224320 | `polygon_dispatch_6way` | Polygon render |
 
-The 68K treats this as data (DC.W statements) that gets DMA'd to SH2 memory.
+### Slave SH2 (Original Game)
 
-## Master-Slave Protocol
+| Address | Description |
+|---------|-------------|
+| $02220694 | Idle loop - writes "OVRN" to COMM3 repeatedly |
 
-Based on PHASE_2_FINDINGS.md, the SH2 synchronization uses:
+The Slave is **largely idle** during 3D rendering. See [MASTER_SLAVE_ANALYSIS.md](architecture/MASTER_SLAVE_ANALYSIS.md) for analysis.
 
-### Sync Buffer at $22000400 (SH2 SDRAM)
+---
 
-| Offset | Field | Magic Value |
-|--------|-------|-------------|
-| 0x00 | MASTER_READY | "WORK" ($574F524B) |
-| 0x04 | SLAVE_READY | "REDY" ($52454459) |
-| 0x08 | MASTER_DONE | - |
-| 0x0C | SLAVE_DONE | "DONE" ($444F4E45) |
-| 0x10-0x1C | Work parameters | Polygon range |
+## Timing Constraints (📋 Estimated)
 
-### Synchronization Flow
+### Frame Budget
+
+| CPU | Clock | Cycles/Frame (60 Hz) |
+|-----|-------|----------------------|
+| 68K | 7.67 MHz | ~128,000 |
+| SH2 | 23 MHz | ~383,000 |
+
+### V-INT Coordination
 
 ```
-1. Master sets MASTER_READY = "WORK"
-2. Master sets polygon range (POLYGON_START, POLYGON_END)
-3. Slave polls until MASTER_READY == "WORK"
-4. Slave processes assigned polygons
-5. Slave sets SLAVE_DONE = "DONE"
-6. Master polls until SLAVE_DONE == "DONE"
-7. Frame complete
+V-Blank Start
+    |
+    +-- 68K: vint_handler ($001684)
+    |       Reads $FFC87A for dispatch state
+    |       May update COMM registers
+    |
+    +-- SH2: Checks COMM during idle loop
+            Responds to commands
+            Updates COMM4/COMM6
+
+Active Display
+    |
+    +-- 68K: Game logic, input processing
+    |
+    +-- SH2: 3D rendering to back buffer
+
+V-Blank End
+    |
+    +-- Buffer flip (if frame complete)
 ```
 
-## Performance Implications
+See [VINT_HANDLER_ARCHITECTURE.md](architecture/VINT_HANDLER_ARCHITECTURE.md) for 68K V-INT details.
 
-### Bottlenecks Identified
+---
 
-1. **Polling Loops**: Both TST.B and CMP.W polling waste CPU cycles
-2. **FM Bit Coordination**: Frame buffer access requires FM bit management
-3. **COMM Register Contention**: Single COMM registers for all communication
-4. **Serial Handshaking**: Master waits for Slave, no parallel work
+## Data Flow (📋 Conceptual)
 
-### Optimization Opportunities
+### Display List Path
 
-1. **Reduce Polling**: Use interrupts instead of polling loops
-2. **Batch Operations**: Combine multiple COMM writes
-3. **Parallel Rendering**: Overlap Master/Slave work phases
-4. **DMA Usage**: Use DREQ for large data transfers
+```
+68K Work RAM              SH2 SDRAM              Frame Buffer
++------------+          +------------+          +------------+
+| Object     |  COMM    | Display    |  Render  | Pixel      |
+| Tables     | -------> | List       | -------> | Data       |
+| $FF9100+   |          | (parsed)   |          | $840000+   |
++------------+          +------------+          +------------+
+```
 
-## Related Files
+### Palette Path
 
-- [SH2_3D_PIPELINE_ARCHITECTURE.md](SH2_3D_PIPELINE_ARCHITECTURE.md) - SH2 rendering details
-- [PHASE_2_FINDINGS.md](../PHASE_2_FINDINGS.md) - Master-Slave sync protocol
-- [OPTIMIZATION_PLAN.md](../OPTIMIZATION_PLAN.md) - Performance improvement roadmap
+```
+68K                      32X VDP
++------------+  Write   +------------+
+| Palette    | -------> | CRAM       |
+| Buffer     |          | $A15200    |
++------------+          +------------+
+```
+
+---
+
+## Related Documentation
+
+- [MASTER_SLAVE_ANALYSIS.md](architecture/MASTER_SLAVE_ANALYSIS.md) - **v2.3 validated sync protocol**
+- [DATA_STRUCTURES.md](architecture/DATA_STRUCTURES.md) - Memory maps and data structures
+- [STATE_MACHINES.md](architecture/STATE_MACHINES.md) - Game state machines
+- [VINT_HANDLER_ARCHITECTURE.md](architecture/VINT_HANDLER_ARCHITECTURE.md) - V-INT handler details
+- [68K_FUNCTION_REFERENCE.md](68K_FUNCTION_REFERENCE.md) - Complete 68K function catalog
+- [SH2_SYMBOL_MAP.md](../disasm/SH2_SYMBOL_MAP.md) - SH2 function symbols
+
+---
+
+**Document Status:** Reference document
+**Confidence:** Mixed - see ✅/📋 markers per section
+**Last Updated:** 2026-01-24

@@ -47,7 +47,7 @@ dirs:
 
 # Build the ROM from original sections/
 # Depends on SH2 assembly to ensure generated includes exist
-$(OUTPUT_ROM): $(M68K_SRC) $(SH2_FUNC006_INC) $(SH2_FUNC008_INC) $(SH2_FUNC016_INC) $(SH2_FUNC065_INC) $(SH2_FUNC066_INC)
+$(OUTPUT_ROM): $(M68K_SRC) $(SH2_FUNC006_INC) $(SH2_FUNC008_INC) $(SH2_FUNC016_INC) $(SH2_FUNC065_INC) $(SH2_FUNC066_INC) $(SH2_FUNC021_OPT_INC)
 	@echo "==> Assembling 68000 code (from sections/)..."
 	$(ASM) $(ASMFLAGS) -o $@ $<
 	@echo "==> Build complete: $@"
@@ -254,10 +254,16 @@ SH2_FUNC066_SRC = $(SH2_3D_DIR)/func_066_rle_decoder.asm
 SH2_FUNC066_BIN = $(BUILD_DIR)/sh2/func_066.bin
 SH2_FUNC066_INC = $(SH2_GEN_DIR)/func_066.inc
 
+# Expansion ROM functions (for Slave offloading)
+SH2_EXP_DIR = $(SH2_SRC_DIR)/expansion
+SH2_FUNC021_OPT_SRC = $(SH2_EXP_DIR)/func_021_optimized.asm
+SH2_FUNC021_OPT_BIN = $(BUILD_DIR)/sh2/func_021_optimized.bin
+SH2_FUNC021_OPT_INC = $(SH2_GEN_DIR)/func_021_optimized.inc
+
 .PHONY: sh2-assembly sh2-verify
 
 # Build all SH2 assembly sources
-sh2-assembly: dirs $(SH2_FUNC006_INC) $(SH2_FUNC008_INC) $(SH2_FUNC016_INC) $(SH2_FUNC009_INC) $(SH2_FUNC010_INC) $(SH2_FUNC065_INC) $(SH2_FUNC066_INC)
+sh2-assembly: dirs $(SH2_FUNC006_INC) $(SH2_FUNC008_INC) $(SH2_FUNC016_INC) $(SH2_FUNC009_INC) $(SH2_FUNC010_INC) $(SH2_FUNC065_INC) $(SH2_FUNC066_INC) $(SH2_FUNC021_OPT_INC)
 
 # Build func_006 binary from source
 $(SH2_FUNC006_BIN): $(SH2_FUNC006_SRC) | dirs
@@ -386,6 +392,23 @@ $(SH2_FUNC066_INC): $(SH2_FUNC066_BIN)
 	@mkdir -p $(SH2_GEN_DIR)
 	@echo "==> Generating dc.w include: func_066.inc..."
 	@echo "; Auto-generated from $(SH2_FUNC066_SRC)" > $@
+	@echo "; DO NOT EDIT - regenerate with 'make sh2-assembly'" >> $@
+	@echo "" >> $@
+	@xxd -p $< | fold -w4 | awk '{print "        dc.w    $$" toupper($$1)}' >> $@
+	@echo "    Output: $@ ($$(wc -l < $@) lines)"
+
+# Build func_021_optimized binary from source (expansion ROM)
+$(SH2_FUNC021_OPT_BIN): $(SH2_FUNC021_OPT_SRC) | dirs
+	@mkdir -p $(BUILD_DIR)/sh2
+	@echo "==> Assembling SH2: func_021_optimized..."
+	$(SH2_AS) $(SH2_ASFLAGS) -o $(BUILD_DIR)/sh2/func_021_optimized.o $<
+	$(SH2_OBJCOPY) -O binary $(BUILD_DIR)/sh2/func_021_optimized.o $@
+	@echo "    Output: $@ ($$(wc -c < $@) bytes)"
+
+$(SH2_FUNC021_OPT_INC): $(SH2_FUNC021_OPT_BIN)
+	@mkdir -p $(SH2_GEN_DIR)
+	@echo "==> Generating dc.w include: func_021_optimized.inc..."
+	@echo "; Auto-generated from $(SH2_FUNC021_OPT_SRC)" > $@
 	@echo "; DO NOT EDIT - regenerate with 'make sh2-assembly'" >> $@
 	@echo "" >> $@
 	@xxd -p $< | fold -w4 | awk '{print "        dc.w    $$" toupper($$1)}' >> $@

@@ -1,90 +1,76 @@
-; Phase 11: Slave SH2 Hook Implementation
+; Phase 11: Slave SH2 Hook Implementation (v2 - Phase 16 support)
 ;
 ; This hook is injected into the Slave SH2 polling loop to intercept
-; the Master→Slave signaling protocol and call expansion_frame_counter
+; the Master→Slave signaling protocol and call expansion handler
 ;
 ; Expected injection point: Slave polling loop, typically at $06000596
 ;
-; Register preservation: ALL registers (R0-R15, flags) are preserved
-; This hook executes within the polling loop without side effects
+; Protocol:
+;   Master writes signal to COMM6 ($2000402C):
+;     0x0012 = Frame sync (handler increments COMM4)
+;     0x0016 = Vertex transform (Phase 16)
+;   Slave detects ANY non-zero COMM6 and calls handler
+;   Handler reads COMM6 to determine action, returns
+;   Hook clears COMM6 to 0x0000 (edge-triggered acknowledgment)
 ;
-; Protocol (per EXPANSION_ROM_PROTOCOL_ABI.md):
-;   Master (68K) writes 0x0012 to COMM6 ($2000402C) every V-INT
-;   Slave reads COMM6 and if == 0x0012:
-;     1. Calls expansion_frame_counter at $02300027
-;     2. Increments SDRAM diagnostic counter at $22000100
-;     3. Clears COMM6 to 0x0000 (edge-triggered acknowledgment - CRITICAL)
-;   Loop continues
+; v2 Changes:
+;   - Triggers on ANY non-zero COMM6 (not just 0x0012)
+;   - Handler responsible for dispatch based on COMM6 value
+;   - Handler entry at 0x02300028 (even-aligned)
 ;
 
-        org     $06000596       ; Slave polling loop injection point (expected)
+        org     $06000596       ; Slave polling loop injection point
 
 ; ============================================================================
-; SLAVE EXPANSION HOOK
+; SLAVE EXPANSION HOOK v2
 ; ============================================================================
-;
-; Compact, register-preserving hook that reads COMM6 signal and calls
-; expansion code if signaled. Hook size: ~24 bytes (12 instructions)
-;
-
 slave_expansion_hook:
-        ; R0, R1 are temporary registers (preserved in our usage)
-        ; We save them by using immediate loads and local operations only
+        ; Read COMM6 to check for any Master signal
+        mov.l   comm6_lit, R0   ; Load COMM6 address
+        mov.l   @R0, R1         ; Read COMM6 value into R1
 
-        ; Read COMM6 to check for Master signal (0x0012)
-        mov.l   #$2000402C, R0  ; Load COMM6 address (4 bytes)
-        mov.l   @R0, R1         ; Read COMM6 value into R1 (2 bytes)
-        mov     #$0012, R2      ; Load signal value into R2 (2 bytes)
-        cmp/eq  R2, R1          ; Compare: flags = (R1 == R2) (2 bytes)
-        bf      hook_exit       ; If not equal, skip to exit (2 bytes)
+        ; Check if COMM6 is zero (no signal)
+        tst     R1, R1          ; Set T if R1 == 0
+        bt      hook_exit       ; Branch if T=1 (COMM6 is zero, no signal)
 
-        ; Signal detected - call expansion_frame_counter
-        mov.l   #$02300027, R0  ; Load expansion_frame_counter address (4 bytes)
-        jsr     @R0             ; Call it (2 bytes)
-        nop                     ; Delay slot - required after JSR (2 bytes)
+        ; Non-zero signal detected - call handler
+        mov.l   handler_lit, R0 ; Load handler address
+        jsr     @R0             ; Call handler
+        nop                     ; Delay slot
 
-        ; Clear COMM6 to prevent re-triggering (CRITICAL - edge-triggered)
-        mov.l   #$2000402C, R0  ; Load COMM6 address (4 bytes)
-        mov     #$0000, R1      ; Load clear value (2 bytes)
-        mov.l   R1, @R0         ; Write 0x0000 to COMM6 (2 bytes)
+        ; Clear COMM6 to prevent re-triggering (edge-triggered)
+        mov.l   comm6_lit2, R0  ; Load COMM6 address
+        mov     #0, R1          ; R1 = 0
+        mov.l   R1, @R0         ; Clear COMM6
 
 hook_exit:
-        ; Resume polling loop
-        ; Hook consumed 24 bytes total (12 SH2 instructions)
-        ; All registers R0-R15 restored (we only used temporaries)
-        rts                     ; Return from hook (2 bytes)
-        nop                     ; Delay slot - required after RTS (2 bytes)
+        rts                     ; Return from hook
+        nop                     ; Delay slot
+
+; Literal pool (must be 4-byte aligned)
+        .align 4
+comm6_lit:
+        dc.l    $2000402C       ; COMM6 address
+handler_lit:
+        dc.l    $02300028       ; Handler address (even-aligned)
+comm6_lit2:
+        dc.l    $2000402C       ; COMM6 address (duplicate for second use)
 
 ; ============================================================================
-; HOOK BYTECODE REFERENCE (dc.w format for injection)
+; HOOK SIZE CALCULATION
 ; ============================================================================
+; Instructions:
+;   mov.l @(d,PC),R0   = 2 bytes each (x3 = 6 bytes)
+;   mov.l @R0,R1       = 2 bytes
+;   tst R1,R1          = 2 bytes
+;   bt                 = 2 bytes
+;   jsr @R0            = 2 bytes
+;   nop                = 2 bytes each (x2 = 4 bytes)
+;   mov #0,R1          = 2 bytes
+;   mov.l R1,@R0       = 2 bytes
+;   rts                = 2 bytes
+;   nop                = 2 bytes
+; Instructions: 28 bytes
+; Literals: 12 bytes (3 x 4-byte literals)
+; Total: 40 bytes (may have alignment padding)
 ;
-; The above hook translates to (in dc.w SH2 bytecode):
-;   D002 6004 3212 8810 8B06 4027 0009 D002
-;   0000 200B D002 0001 200C 000B 0009
-;
-; Legend:
-;   D002 = mov.l #imm, R0 (uses @(PC+4) addressing)
-;   6004 = mov.l @R0, R1
-;   3212 = mov #imm, R2
-;   8810 = cmp/eq R2, R1
-;   8B06 = bf (offset)
-;   4027 = jsr @R0 (actually 4N where N=0: 400N)
-;   0009 = nop
-;   000B = rts
-;
-; Note: Immediate addressing for 32-bit values requires PC-relative
-; mov.l @(disp,PC) which is implicit in vasm with #imm syntax
-;
-
-; ============================================================================
-; DIAGNOSTIC SDRAM COUNTER (NOT injected, but called by expansion_frame_counter)
-; ============================================================================
-;
-; Location: $22000100
-; This is the canonical ground truth for frame count
-; Should increment by 1 per V-INT when hook is working
-;
-
-        org     $22000100       ; Diagnostic counter location (in SDRAM)
-        dc.l    0               ; Frame counter (should increment 0→1→2→3...)

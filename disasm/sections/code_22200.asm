@@ -2321,13 +2321,13 @@
         dc.w    $0000        ; $0234C6
 ; func_021: TRAMPOLINE to expansion ROM (func_016 inlined there)
 ; Optimization: Eliminates BSR/RTS overhead for func_016 call
-; Target: $0230003C (4-byte aligned for MOV.L literal pool)
-        dc.w    $D001        ; $0234C8  MOV.L @(1,PC),R0  ; Load $0230003C
+; Target: $02300100 (4-byte aligned for MOV.L literal pool)
+        dc.w    $D001        ; $0234C8  MOV.L @(1,PC),R0  ; Load $02300100
         dc.w    $402B        ; $0234CA  JMP @R0           ; Jump to expansion ROM
         dc.w    $0009        ; $0234CC  NOP               ; Delay slot
         dc.w    $0009        ; $0234CE  NOP               ; Padding for literal alignment
-        dc.w    $0230        ; $0234D0  ; Literal: $0230003C (high word)
-        dc.w    $003C        ; $0234D2  ; Literal: $0230003C (low word)
+        dc.w    $0230        ; $0234D0  ; Literal: $02300100 (high word)
+        dc.w    $0100        ; $0234D2  ; Literal: $02300100 (low word)
 ; Fill remaining original func_021 space with NOPs
         dc.w    $0009        ; $0234D4  NOP
         dc.w    $0009        ; $0234D6  NOP

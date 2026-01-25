@@ -20,14 +20,39 @@ import struct
 import argparse
 from pathlib import Path
 
-# Phase 11 Slave Hook Bytecode (52 bytes)
+# Phase 11 Slave Hook Bytecode v6 (22 bytes) - MINIMAL TEST VERSION
+# Simple loop that just increments COMM4 continuously.
+# No JSR, no handler - just proves the hook executes.
+#
+# Layout at 0x596 (literal must be 4-byte aligned):
+#   0x596: mov.l @(12,PC),r0  ; Load COMM4 addr (d=3, EA=0x5A8)
+#   0x598: mov.w @r0,r1       ; Read COMM4
+#   0x59A: add #1,r1          ; Increment
+#   0x59C: mov.w r1,@r0       ; Write COMM4
+#   0x59E: bra loop_start     ; Loop forever (d=-6)
+#   0x5A0: nop                ; Delay slot
+#   0x5A2: nop                ; Padding
+#   0x5A4: nop                ; Padding
+#   0x5A6: nop                ; Padding for 4-byte alignment
+#   0x5A8: 0x20004028         ; COMM4 literal (4-byte aligned!)
+#
+# Displacement verification:
+#   mov.l at 0x596: EA = (0x598 & ~3) + 4 + 3*4 = 0x598 + 16 = 0x5A8 ✓
+#   bra at 0x59E: target = 0x59E + 4 + (-6)*2 = 0x5A2 - 12 = 0x596 ✓
+#
 SLAVE_HOOK_BYTECODE = bytes([
-    0xD0, 0x02, 0x00, 0x00, 0x20, 0x00, 0x40, 0x2C,  # mov.l #$2000402C, R0
-    0x60, 0x04, 0xE2, 0x12, 0x32, 0x10, 0x8F, 0x06,  # mov.l @R0,R1 / cmp / bf
-    0xD0, 0x02, 0x00, 0x00, 0x02, 0x30, 0x00, 0x27,  # mov.l #$02300027, R0
-    0x40, 0x00, 0x00, 0x09,                          # jsr @R0 / nop
-    0xD0, 0x02, 0x00, 0x00, 0x20, 0x00, 0x40, 0x2C,  # mov.l #$2000402C, R0
-    0xE2, 0x10, 0x21, 0x03, 0x00, 0x0B, 0x00, 0x09,  # mov #$0, R1 / mov.l R1,@R0 / rts
+    # loop_start (0x596):
+    0xD0, 0x03,                                      # mov.l @(12,PC),r0  ; Load COMM4 addr (d=3)
+    0x61, 0x01,                                      # mov.w @r0,r1       ; Read COMM4
+    0x71, 0x01,                                      # add #1,r1          ; Increment
+    0x20, 0x11,                                      # mov.w r1,@r0       ; Write COMM4
+    0xAF, 0xFA,                                      # bra loop_start     ; Loop forever (d=-6)
+    0x00, 0x09,                                      # nop                ; Delay slot
+    0x00, 0x09,                                      # Padding
+    0x00, 0x09,                                      # Padding
+    0x00, 0x09,                                      # Padding for 4-byte alignment
+    # Literal pool (4 bytes, 4-byte aligned at 0x5A8)
+    0x20, 0x00, 0x40, 0x28,                          # COMM4: 0x20004028
 ])
 
 # SH2 SDRAM address mapping to ROM file offset

@@ -124,13 +124,18 @@ void func_016(Context* r14) {
 
 **v4.0 Status**: ✅ **PARALLEL PROCESSING OPERATIONAL**
 
-The original func_021 has been replaced with a trampoline at $0234C8 that:
+The trampoline **overwrites the original func_021 entry point** at $0234C8, so all existing callers (via the command dispatch table) automatically hit the offload path with no call-site changes required.
+
+**Trampoline behavior:**
 1. Captures real parameters (R14, R7, R8, R5) to shared memory at 0x2203E000
 2. Signals Slave SH2 via COMM7 = 0x16
 3. Returns immediately (Master does no work)
 4. Slave SH2 executes `func_021_optimized` at $300100 with func_016 inlined
 
-**Parameter Block** (0x2203E000, cache-through SDRAM):
+**Parameter Block** (0x2203E000 = cache-through SDRAM, NOT 0x0203E000 cached):
+
+*Cache-through addressing (0x22XXXXXX) ensures both SH2 CPUs see coherent data without explicit cache flushes.*
+
 | Offset | Register | Purpose |
 |--------|----------|---------|
 | +0x00 | R14 | RenderingContext pointer |

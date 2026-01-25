@@ -1,10 +1,24 @@
 # Master SH2 Work Dispatch - Implementation Plan
 
-## Current Status
+## ✅ UPDATE: v4.0 COMPLETE (2026-01-25)
+
+**This document is now HISTORICAL.** Work dispatch has been fully implemented.
+
+**Current status (v4.0):**
+- ✅ **Master dispatch hook** at $300050 - routes commands, skips COMM7 for cmd 0x16
+- ✅ **func_021 trampoline** at $0234C8 - captures params, signals Slave via COMM7=0x16
+- ✅ **Slave work wrapper** at $300200 - polls COMM7, dispatches to handlers
+- ✅ **Parameter passing** via 0x2203E000 (cache-through SDRAM)
+
+**See:** [SLAVE_INJECTION_GUIDE.md](SLAVE_INJECTION_GUIDE.md) for current implementation.
+
+---
+
+## HISTORICAL: Original Status (2026-01-20)
 
 ✅ **Slave SH2**: Active and incrementing COMM2 continuously
-⏳ **Master SH2**: No work dispatch code yet
-❌ **Communication**: No handshake implemented
+~~⏳ **Master SH2**: No work dispatch code yet~~ → **COMPLETE (v4.0)**
+~~❌ **Communication**: No handshake implemented~~ → **COMPLETE (v4.0)**
 
 ## Priority Shift: Master First!
 

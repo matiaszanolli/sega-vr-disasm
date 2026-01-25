@@ -1,6 +1,26 @@
 # SH2 Parallelization - Refined Implementation Strategy
 
-## ⚠️ CRITICAL CAVEAT - PicoDrive Emulator Bug (2026-01-20)
+## ✅ UPDATE: v4.0 PARALLEL PROCESSING OPERATIONAL (2026-01-25)
+
+**This document is now HISTORICAL.** The parallelization strategy has been successfully implemented via a different approach than originally planned.
+
+**What happened:**
+- The PicoDrive Slave boot issue (documented below) was **bypassed** using the full assembly rebuild approach
+- Slave idle loop at $0203CC was redirected to expansion ROM via disassembly modification
+- **TRUE PARALLEL PROCESSING** is now operational with func_021 offloaded to Slave SH2
+
+**Current implementation (v4.0):**
+- func_021 trampoline at $0234C8 captures real parameters to 0x2203E000
+- Slave executes func_021_optimized at $300100 with func_016 inlined
+- Master returns immediately, freeing cycles for other work
+
+**See:** [SLAVE_INJECTION_GUIDE.md](SLAVE_INJECTION_GUIDE.md) for current implementation details.
+
+---
+
+## ⚠️ HISTORICAL: PicoDrive Emulator Bug (2026-01-20)
+
+*The caveat below is preserved for historical context. It was bypassed via the full assembly approach.*
 
 **This strategy document was created based on static analysis and assumes the Slave SH2 boots correctly.**
 
@@ -12,15 +32,10 @@
 
 **Status of this document**:
 - ✅ **Theoretically sound** - Strategy would work IF Slave booted correctly
-- ❌ **Not testable in PicoDrive** - Requires fixing `sh2_reset()` first
+- ~~❌ **Not testable in PicoDrive**~~ - **BYPASSED** via full assembly rebuild
 - ❓ **Real hardware unknown** - May work on actual 32X hardware
 
-**Next steps**:
-1. Fix PicoDrive's `sh2_reset()` to read from 32X header (ROM 0x3E0+)
-2. Verify Slave boots and reaches ROM 0x020650
-3. THEN implement this strategy
-
-**See**: [SLAVE_BOOT_FAILURE_ROOT_CAUSE.md](../../SLAVE_BOOT_FAILURE_ROOT_CAUSE.md) for root cause analysis
+**Resolution**: Full assembly approach (v3.0+) modifies the idle loop directly in disassembly, bypassing the boot vector issue entirely.
 
 ---
 

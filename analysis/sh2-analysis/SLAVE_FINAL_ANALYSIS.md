@@ -3,6 +3,27 @@
 Date: 2026-01-20
 Status: ✅ VERIFIED THROUGH USER QUESTIONS
 
+## ✅ UPDATE: v4.0 RESOLUTION (2026-01-25)
+
+**The questions raised in this document have been RESOLVED through implementation:**
+
+- The Slave idle loop at $0203CC was bypassed via full assembly rebuild
+- func_021 (vertex transform) has been offloaded to Slave SH2
+- **TRUE PARALLEL PROCESSING is now operational**
+
+**What we learned:**
+- Scenario B was essentially correct: Slave had work infrastructure but minimal actual work
+- The fix: Redirected idle loop to `slave_work_wrapper` at $300200
+- Result: Slave now executes `func_021_optimized` with real game parameters
+
+**See:** [SLAVE_INJECTION_GUIDE.md](SLAVE_INJECTION_GUIDE.md) for implementation details.
+
+---
+
+## HISTORICAL ANALYSIS (2026-01-20)
+
+*The analysis below is preserved for historical context. It correctly identified the opportunity, though the implementation approach differed from what was anticipated.*
+
 ---
 
 ## EXECUTIVE SUMMARY

@@ -1,5 +1,16 @@
 # SH2 Master and Slave Code Map
 
+## ✅ UPDATE: v4.0 PARALLEL PROCESSING (2026-01-25)
+
+This document is now partially historical. Key updates:
+- Slave idle loop at $0203CC redirected to `slave_work_wrapper` at $300200
+- func_021 trampoline at $0234C8 signals Slave via COMM7
+- **COMM4/5/7 now in active use** for Master→Slave communication
+
+**See:** [SLAVE_INJECTION_GUIDE.md](SLAVE_INJECTION_GUIDE.md) for current implementation.
+
+---
+
 ## Purpose
 Systematic documentation of Master and Slave SH2 code locations and functions.
 
@@ -84,47 +95,48 @@ $02051C: 0009          ; NOP (delay slot)
 
 ---
 
-## COMM Register Usage (Current State)
+## COMM Register Usage (v4.0 - UPDATED)
 
-From analysis/architecture/MASTER_SLAVE_ANALYSIS.md:
+| Register | Address (SH2) | Current Use | Status |
+|----------|---------------|-------------|--------|
+| COMM0 | $20004020 | 68K→SH2 command | Used by game |
+| COMM1 | $20004022 | Reserved/flags | Used by game |
+| COMM2 | $20004024 | Work status | Used by game |
+| COMM3 | $20004026 | "OVRN" marker | Used by game |
+| COMM4 | $20004028 | **Slave work counter** | ✅ Mod uses |
+| COMM5 | $2000402A | **Vertex transform counter** | ✅ Mod uses (+101/call) |
+| COMM6 | $2000402C | 68K→Master handshake | ⚠️ Used by game |
+| COMM7 | $2000402E | **Master→Slave signal** | ✅ Mod uses |
 
-| Register | Address (SH2) | Current Use | Notes |
-|----------|---------------|-------------|-------|
-| COMM0 | $20004020 | Status | |
-| COMM1 | $20004022 | Status | |
-| COMM2 | $20004024 | Unused? | Available for testing |
-| COMM3 | $2000402C | "OVRN" marker | Slave writes in idle loop |
-| COMM4 | $20004028 | Unused? | Available for testing |
-| COMM5 | $2000402A | Unused? | |
-| COMM6 | $2000402C | Unused? | Available for work signal |
-| COMM7 | $2000402E | Unused? | |
-
-**Note**: COMM register usage needs verification through full code disassembly.
-
----
-
-## Next Steps for Complete Understanding
-
-### Phase 1: Map Code Sections
-- [ ] Disassemble Master init ($020508-$02064F)
-- [ ] Disassemble Master main loop
-- [ ] Disassemble Slave work processing ($0206A0+)
-- [ ] Find extent of SH2 code (where does it end?)
-
-### Phase 2: Understand Coordination
-- [ ] Document all COMM register reads/writes
-- [ ] Trace Master-Slave handshake protocol
-- [ ] Identify work dispatch mechanism
-- [ ] Map frame synchronization points
-
-### Phase 3: Identify Safe Injection Points
-- [ ] Find Slave idle check location
-- [ ] Find Master frame start location
-- [ ] Identify unused code gaps for new functions
-- [ ] Verify expansion ROM is accessible from SH2
+**v4.0 Protocol:**
+- COMM7 = 0x16 signals Slave to execute vertex transform
+- COMM5 increments by 101 per successful transform
+- COMM4 increments for frame sync testing
 
 ---
 
-**Status**: Initial mapping complete
-**Confidence**: High for VDP wait, Low for other sections
-**Date**: 2026-01-20
+## Implementation Status (v4.0)
+
+### ✅ Phase 1: Map Code Sections - COMPLETE
+- [x] Disassemble Master init
+- [x] Disassemble Master main loop
+- [x] Disassemble Slave work processing
+- [x] Full ROM disassembly in `disasm/sections/`
+
+### ✅ Phase 2: Understand Coordination - COMPLETE
+- [x] Document all COMM register reads/writes
+- [x] Trace Master-Slave handshake protocol
+- [x] Identify work dispatch mechanism
+- [x] Map frame synchronization points
+
+### ✅ Phase 3: Injection Points - COMPLETE
+- [x] Slave idle loop at $0203CC → redirected to $300200
+- [x] func_021 at $0234C8 → replaced with trampoline
+- [x] 1MB expansion ROM at $300000-$3FFFFF for new code
+- [x] **Parallel processing operational!**
+
+---
+
+**Status**: v4.0 - Parallel processing operational
+**Date**: 2026-01-25
+**See**: [SLAVE_INJECTION_GUIDE.md](SLAVE_INJECTION_GUIDE.md)

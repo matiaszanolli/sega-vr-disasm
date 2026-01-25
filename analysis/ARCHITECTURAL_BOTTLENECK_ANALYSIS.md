@@ -176,11 +176,13 @@ With accurate frame-boundary detection, proper instrumentation, and architectura
 | $002890 | `sh2_comm_sync` | COMM register synchronization |
 | $0028C2 | `VDPSyncSH2` | VDP/SH2 sync coordination |
 
+*Note: This table documents the original 68K→SH2 protocol. v4.0 adds COMM7/COMM5 for Master→Slave offload signaling.*
+
 ## Potential Optimization Strategies
 
 1. **Command Queue Buffering**: Pre-build next frame's command list while current frame renders
 2. **Async Submission**: Remove blocking wait, poll completion in main loop
-3. **Slave SH2 Utilization**: Partition polygon workload between Master/Slave ✅ **In Progress**
+3. **Slave SH2 Utilization**: Partition polygon workload between Master/Slave ✅ **Operational** (vertex transform offload)
 4. **Speculative Execution**: Allow 68K game logic to proceed during render
 
 ---
@@ -207,4 +209,4 @@ Earlier bottleneck analysis with specific VDP wait loop addresses archived to:
 
 *Generated: January 2026*
 *Updated: January 25, 2026 (v4.0 parallel processing milestone)*
-*Status: Architectural analysis complete, Slave SH2 optimization in progress*
+*Status: Architectural analysis complete, Slave SH2 vertex transform offload operational*

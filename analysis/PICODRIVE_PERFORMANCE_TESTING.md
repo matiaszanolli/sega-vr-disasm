@@ -147,12 +147,38 @@ Automated testing captured only menu/attract mode behavior. Actual performance t
 
 ---
 
+## Critical Finding: Custom PicoDrive Issues
+
+### Problem
+
+The custom PicoDrive build (`third_party/picodrive/`) has memory mapping issues:
+
+- **v4.0 ROM**: Slave stuck at PC=0x06000596 (original idle loop)
+- **Expected**: Slave should be at PC=0x02300200 (expansion ROM slave_work_wrapper)
+- **Cause**: 4MB ROM / expansion area ($300000-$3FFFFF) not properly mapped
+
+**Evidence**:
+```
+SSH2<-COMM2 #820001] reg=0x0000 PC=06000596  ← Stuck in original loop
+```
+
+The Slave never reaches our modified code at $300200.
+
+### Solution
+
+Use **system PicoDrive** (`/usr/local/bin/picodrive`) for testing:
+- Both ROMs confirmed working perfectly
+- 3D attract mode displays correctly
+- Full gameplay operational
+
+**Trade-off**: System PicoDrive has no debug output, so COMM register monitoring unavailable.
+
 ## Next Steps
 
 1. **Manual Testing**: Load both ROMs in system PicoDrive and race
 2. **Visual Verification**: Confirm v4.0 ROM plays correctly
 3. **Performance Metrics**: Compare perceived FPS during heavy 3D scenes
-4. **COMM Monitoring**: If possible, capture COMM5 during actual gameplay
+4. **Custom PicoDrive**: Fix memory mapping for 4MB ROMs (future work)
 
 ---
 

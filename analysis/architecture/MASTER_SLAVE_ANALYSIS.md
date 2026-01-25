@@ -16,7 +16,7 @@
 | 2026-01-23 | v2.4 | Injection limits | Hook injection hit space/alignment constraints |
 | 2026-01-24 | v3.0 | Assembly approach | Switched to full assembly build with 4MB expansion |
 | 2026-01-24 | v3.1 | Command dispatch | Master→Slave signaling via COMM7, work dispatch |
-| 2026-01-25 | **v4.0** | **🎉 PARALLEL PROCESSING** | Real vertex transform offload operational! |
+| 2026-01-25 | **v4.0** | **📋 INFRASTRUCTURE READY** | Parallel processing infrastructure complete, baseline established |
 
 ---
 
@@ -25,23 +25,30 @@
 ### Original Finding (v1.0)
 The Slave SH2 CPU is largely IDLE during 3D rendering. The Master SH2 performs the vast majority of rendering work while the Slave sits in an infinite loop waiting for commands that rarely come.
 
-### Current Status (v4.0) 🎉
-**TRUE PARALLEL PROCESSING ACHIEVED!**
+### Current Status (v4.0-baseline) 📋
+**INFRASTRUCTURE COMPLETE, READY FOR ACTIVATION**
 
-The Slave SH2 now executes real vertex transforms in parallel with the Master:
+The infrastructure for parallel processing is ready but not yet connected:
 
 ```
+Designed flow (when activated):
 Game calls func_021 → Trampoline captures R14/R7/R8/R5 → COMM7=0x16
                     → Master returns immediately (no work done)
                     → Slave picks up work, executes func_021_optimized
-                    → Both CPUs running in parallel!
+                    → Both CPUs running in parallel! (15-20% expected speedup)
 ```
 
-**What's operational:**
-- Master dispatch hook at $300050 (skips COMM7 for cmd 0x16)
-- func_021 trampoline at $0234C8 (captures real params, signals Slave)
-- Slave work wrapper at $300200 (polls COMM7, dispatches commands)
-- slave_test_func at $300280 (reads params, calls func_021_optimized)
+**What's ready (not yet activated):**
+- ✅ func_021_optimized at $300100 (96 bytes, func_016 inlined)
+- ✅ slave_work_wrapper at $300200 (COMM7 polling loop)
+- ✅ Parameter block design at 0x2203E000 (cache-through SDRAM)
+- ⏳ **Not connected** - Requires trampoline at $0234C8 + Slave PC redirect to $02300200
+
+**Current reality:**
+- ROM is byte-for-byte identical to original
+- func_021 uses original implementation (no trampoline)
+- Slave SH2 remains in idle loop at $06000596
+- Tagged as `v4.0-baseline` for future activation experiments
 - func_021_optimized at $300100 (coordinate transform with func_016 inlined)
 - Parameter block at $2203E000 (R14, R7, R8, R5 - 16 bytes)
 

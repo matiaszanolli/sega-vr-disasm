@@ -16,7 +16,7 @@
 | 2026-01-23 | v2.4 | Injection limits | Hook injection hit space/alignment constraints |
 | 2026-01-24 | v3.0 | Assembly approach | Switched to full assembly build with 4MB expansion |
 | 2026-01-24 | v3.1 | Command dispatch | Master→Slave signaling via COMM7, work dispatch |
-| 2026-01-25 | **v4.0** | **📋 INFRASTRUCTURE READY** | Parallel processing infrastructure complete, baseline established |
+| 2026-01-25 | **v4.0** | **⚠️ INFRASTRUCTURE READY** | Parallel processing infrastructure complete, **activation deferred** |
 
 ---
 
@@ -25,40 +25,45 @@
 ### Original Finding (v1.0)
 The Slave SH2 CPU is largely IDLE during 3D rendering. The Master SH2 performs the vast majority of rendering work while the Slave sits in an infinite loop waiting for commands that rarely come.
 
-### Current Status (v4.0-baseline) 📋
-**INFRASTRUCTURE COMPLETE, READY FOR ACTIVATION**
+### Current Status (v4.0) ⚠️ EXPERIMENTAL
+**INFRASTRUCTURE COMPLETE, ACTIVATION DEFERRED DUE TO TIMING CONCERNS**
 
-The infrastructure for parallel processing is ready but not yet connected:
+The infrastructure for parallel processing is ready but **NOT YET ACTIVATED** in live gameplay:
 
 ```
 Designed flow (when activated):
 Game calls func_021 → Trampoline captures R14/R7/R8/R5 → COMM7=0x16
                     → Master returns immediately (no work done)
                     → Slave picks up work, executes func_021_optimized
-                    → Both CPUs running in parallel! (15-20% expected speedup)
+                    → Both CPUs running in parallel! (15-20% expected speedup - THEORETICAL/UNVALIDATED)
 ```
 
-**What's ready (not yet activated):**
+**⚠️ IMPORTANT - Parameter Meanings** (reconciled with SH2 documentation):
+- **R14**: Rendering context pointer (not vertex data pointer)
+- **R7**: Loop count (not transform matrix)
+- **R8**: Data pointer (not output buffer)
+- **R5**: Output pointer (not count/flags)
+
+**What's ready (infrastructure complete, activation pending):**
 - ✅ func_021_optimized at $300100 (96 bytes, func_016 inlined)
 - ✅ slave_work_wrapper at $300200 (COMM7 polling loop)
-- ✅ Parameter block design at 0x2203E000 (cache-through SDRAM)
-- ⏳ **Not connected** - Requires trampoline at $0234C8 + Slave PC redirect to $02300200
+- ✅ Parameter block design at 0x2203E000 (cache-through SDRAM, 16 bytes)
+- ✅ Shadow path validated (non-live testing)
+- ⏳ **Live activation deferred** - Timing concerns need validation
 
 **Current reality:**
-- ROM is byte-for-byte identical to original
-- func_021 uses original implementation (no trampoline)
-- Slave SH2 remains in idle loop at $06000596
-- Tagged as `v4.0-baseline` for future activation experiments
-- func_021_optimized at $300100 (coordinate transform with func_016 inlined)
-- Parameter block at $2203E000 (R14, R7, R8, R5 - 16 bytes)
+- Infrastructure is built and tested via shadow path
+- Live activation not yet enabled in gameplay
+- func_021_optimized ready at $300100 (coordinate transform with func_016 inlined)
+- Parameter block ready at $2203E000 (R14, R7, R8, R5 - 16 bytes)
 
-| Aspect | Before v4.0 | After v4.0 |
-|--------|-------------|------------|
+| Aspect | Before v4.0 | After v4.0 (when activated) |
+|--------|-------------|------------------------------|
 | Build approach | Full assembly (`make all`) | Full assembly (`make all`) |
 | Expansion space | 1MB active ($300000-$3FFFFF) | 1MB active ($300000-$3FFFFF) |
-| Vertex transforms | Master-only (blocking) | **Slave parallel execution** |
-| Parameter passing | N/A | Real R14/R7/R8/R5 captured |
-| CPU utilization | Master 100%, Slave ~0% | **Both CPUs working** |
+| Vertex transforms | Master-only (blocking) | **Slave parallel execution** [NOT YET ACTIVATED] |
+| Parameter passing | N/A | Real R14/R7/R8/R5 captured [INFRASTRUCTURE READY] |
+| CPU utilization | Master 100%, Slave ~0% | **Both CPUs working** [THEORETICAL] |
 
 ---
 
@@ -215,7 +220,7 @@ Slave  CPU: █                                             0.03%
 |--------------|--------|---------|
 | Basic sync protocol | ✅ Validated (v2.3) | None |
 | Command-driven dispatch | ✅ Complete (v3.1) | None |
-| Vertex transform offload | ✅ **OPERATIONAL (v4.0)** | None - using SDRAM parameter passing |
+| Vertex transform offload | ⚠️ **INFRASTRUCTURE READY (v4.0)** | Activation deferred due to timing concerns |
 | Parallel polygon processing | 📋 Theoretical | Needs work split implementation |
 | Lighting offload | 📋 Theoretical | Depends on polygon processing |
 
@@ -234,10 +239,11 @@ Slave  CPU: █                                             0.03%
 
 **Challenge**: The game uses 0xC0000XXX addresses which have cache coherency issues between CPUs. Cache-through staging (0x22000XXX) is required.
 
-**Expected Gain (Theoretical)**:
-- Master freed: 30,000 cycles (8%)
+**Expected Gain (THEORETICAL - UNVALIDATED)**:
+- Master freed: 30,000 cycles (8%) [ESTIMATED]
 - Assumes: no cache contention, balanced work split, minimal sync overhead
-- FPS improvement: ~8% (assumes 60 FPS baseline → 65 FPS)
+- FPS improvement: ~8% (assumes 60 FPS baseline → 65 FPS) [THEORETICAL]
+- **⚠️ NOT TESTED**: No performance testing conducted, activation pending
 
 ### Priority 2: Parallel Polygon Processing ⭐⭐
 
@@ -245,11 +251,11 @@ Slave  CPU: █                                             0.03%
 
 **Proposed**: Split polygon list between Master and Slave
 
-**Expected Gain (Theoretical)**: +8.6% (assumes perfect parallelization)
+**Expected Gain (THEORETICAL - UNVALIDATED)**: +8.6% (assumes perfect parallelization) [NOT TESTED]
 
 ### Priority 3: Offload Lighting Calculations ⭐
 
-**Expected Gain (Theoretical)**: +5-10%
+**Expected Gain (THEORETICAL - UNVALIDATED)**: +5-10% [NOT TESTED]
 
 ---
 
@@ -339,19 +345,22 @@ The transform code uses addresses like 0xC0000740, 0xC0000760. This is NOT a sta
 - ✅ Frame sync (0x0001): Slave increments COMM4
 - ✅ Vertex transform (0x0016): Slave increments COMM5
 
-### ✅ Phase v4.0: Real Vertex Transform Offload (COMPLETE) 🎉
-- ✅ func_021 trampoline at $0234C8 captures real R14/R7/R8/R5 parameters
+### ⚠️ Phase v4.0: Parallel Processing Infrastructure (COMPLETE - ACTIVATION PENDING)
+- ✅ func_021 trampoline design (captures R14/R7/R8/R5 parameters)
 - ✅ Parameter block at $2203E000 (SDRAM, shared between SH2s)
-- ✅ Master returns immediately after signaling (no work done)
-- ✅ Slave reads real parameters from shared memory
-- ✅ Slave calls func_021_optimized with actual game data
-- ✅ **TRUE PARALLEL PROCESSING ACHIEVED**
+- ✅ Master dispatch hook at $300050 (skips COMM7 cmd $16)
+- ✅ Slave work wrapper at $300200 (COMM7 polling)
+- ✅ func_021_optimized at $300100 (with func_016 inlined)
+- ✅ Shadow path validation (non-live testing)
+- ⏳ **LIVE ACTIVATION DEFERRED** - Timing concerns need validation
 
-### 📋 Next Phases
-1. **Performance Testing**: Measure actual FPS improvement
-2. **Synchronization**: Ensure Slave completes before next frame needs results
-3. **Load Balancing**: Split polygon workload between CPUs
-4. **Pipeline Optimization**: Pre-compute frame N+1 while displaying frame N
+### 📋 Next Phases (Before Activation)
+1. **Performance Testing**: Measure actual FPS improvement (currently unknown)
+2. **Timing Validation**: Ensure Slave completes before next frame needs results
+3. **Frame Synchronization**: Validate synchronization at frame boundaries
+4. **Live Activation**: Enable parallel processing in gameplay
+5. **Load Balancing**: Split polygon workload between CPUs (future)
+6. **Pipeline Optimization**: Pre-compute frame N+1 while displaying frame N (future)
 
 ---
 
@@ -366,14 +375,14 @@ The transform code uses addresses like 0xC0000740, 0xC0000760. This is NOT a sta
 3. **v2.3**: Bypassed blocker with hook injection
 4. **v3.0**: Full assembly build with 4MB ROM
 5. **v3.1**: Command-driven dispatch (COMM7 signaling)
-6. **v4.0**: **🎉 TRUE PARALLEL PROCESSING** - Real vertex transform offload
+6. **v4.0**: **⚠️ INFRASTRUCTURE COMPLETE** - Parallel processing ready, activation pending
 
 ### Why This Matters
 - First time Virtua Racing's CPU usage has been analyzed in 30+ years
-- **Slave SH2 now executing real vertex transforms in parallel**
-- Master returns immediately, freeing cycles for other work
-- Foundation proven for further parallel work distribution
+- **Infrastructure ready for parallel processing** (shadow path validated)
+- Foundation established for parallel work distribution (pending live activation)
 - Techniques applicable to other 32X games
+- **⚠️ NOTE**: Performance gains theoretical until live activation and testing
 
 ---
 
@@ -399,12 +408,12 @@ The transform code uses addresses like 0xC0000740, 0xC0000760. This is NOT a sta
 
 ---
 
-**Status**: 🎉 **PARALLEL PROCESSING OPERATIONAL (v4.0)**
-**Current**: Slave executes real vertex transforms with captured parameters
-**Next Phase**: Performance testing, synchronization verification, load balancing
-**Estimated gain**: +15-50% performance (ready for measurement)
-**Risk**: Low (architecture proven, SDRAM parameter passing works)
-**Reward**: HIGH - **first major optimization milestone achieved**
+**Status**: ⚠️ **INFRASTRUCTURE READY (v4.0) - ACTIVATION DEFERRED**
+**Current**: Shadow path validated, architecture complete, live activation pending
+**Next Phase**: Performance testing, timing validation, frame synchronization, live activation
+**Estimated gain**: +15-50% performance (THEORETICAL - UNVALIDATED)
+**Risk**: Moderate (timing concerns need validation before activation)
+**Reward**: HIGH - **first major optimization milestone when activated**
 
 ---
 
@@ -412,6 +421,6 @@ The transform code uses addresses like 0xC0000740, 0xC0000760. This is NOT a sta
 **v2.3 Bypass Achieved**: January 22, 2026
 **v3.0 Assembly Build**: January 24, 2026
 **v3.1 Command Dispatch**: January 24, 2026
-**v4.0 Parallel Processing**: January 25, 2026
-**Document Updated**: January 25, 2026
-**Validated**: Slave executes func_021_optimized with real game parameters
+**v4.0 Infrastructure**: January 25, 2026
+**Document Updated**: January 26, 2026
+**Status**: Infrastructure complete, activation deferred due to timing concerns

@@ -84,19 +84,22 @@ Master SH2
 **Target**: `master_dispatch_hook` at $300050 (expansion ROM)
 **Size**: 44 bytes
 
-**Purpose**: Intercept command dispatch loop and skip COMM7-based commands (they're non-blocking)
+**Purpose**: Intercept command dispatch to skip blocking wait for non-blocking commands
 
 **Pseudo-Code**:
 ```c
-void master_dispatch_hook() {
-    if (COMM7 == 0x16) {
-        // This is a parallel command, don't wait for it
-        return;  // Skip to next iteration
+void master_dispatch_hook(uint16_t cmd) {
+    if (cmd == 0x16) {
+        // This is a non-blocking parallel command
+        // Do NOT write to COMM7 or wait for Slave
+        return;  // Skip blocking dispatch logic
     }
     // For other commands, use original blocking behavior
-    original_dispatch_logic();
+    original_dispatch_logic(cmd);
 }
 ```
+
+**Note**: The hook checks the **command parameter** (from caller), not COMM7 register. For cmd $16, it skips the blocking COMM protocol entirely.
 
 ---
 

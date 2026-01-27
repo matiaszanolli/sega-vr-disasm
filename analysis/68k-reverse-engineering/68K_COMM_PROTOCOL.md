@@ -365,11 +365,11 @@ From 32X Hardware Manual:
 
 ---
 
-## Pattern 4: Parallel Processing Offload (v4.0) ⚠️ EXPERIMENTAL
+## Pattern 4: Parallel Processing Offload (v4.0) ⚠️ NOT YET ACTIVATED
 
-**⚠️ Status**: Infrastructure ready, activation deferred. Shadow path validated only.
+**🚨 CRITICAL STATUS**: Infrastructure ready, **NOT LIVE**. Shadow path validated only, live activation deferred pending timing validation.
 
-**Typical Usage**: Master SH2 offloads work to Slave SH2 without blocking
+**Typical Usage** (when activated): Master SH2 offloads work to Slave SH2 without blocking
 
 ```
 Master SH2 (func_021)              Slave SH2 (slave_work_wrapper)
@@ -389,8 +389,9 @@ Trampoline at $0234C8
   ↓                           │
 3. Return immediately (!)     │   Polling COMM7
   ↓                           │   Detects COMM7 = $16
-Both CPUs running parallel    │   ↓
-(IF ACTIVATED)                │   Read parameters from $2203E000
+⚠️ NOT YET LIVE ⚠️             │   ↓
+(both CPUs parallel           │   Read parameters from $2203E000
+ when activated)              │
                               │   ↓
                               │   Call func_021_optimized
                               │   (func_016 inlined)

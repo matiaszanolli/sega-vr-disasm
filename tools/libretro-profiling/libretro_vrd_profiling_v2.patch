@@ -1,0 +1,113 @@
+diff --git a/pico/32x/32x.c b/pico/32x/32x.c
+index 4dded95..2aa23bb 100644
+--- a/pico/32x/32x.c
++++ b/pico/32x/32x.c
+@@ -13,6 +13,10 @@
+ struct Pico32x Pico32x;
+ SH2 sh2s[2];
+ 
++/* VRD Profiling: per-frame work cycle counters */
++unsigned int vrd_msh2_work_cycles = 0;
++unsigned int vrd_ssh2_work_cycles = 0;
++
+ #define SH2_IDLE_STATES (SH2_STATE_CPOLL|SH2_STATE_VPOLL|SH2_STATE_RPOLL|SH2_STATE_SLEEP)
+ 
+ static int REGPARM(2) sh2_irq_cb(SH2 *sh2, int level)
+@@ -472,6 +476,10 @@ static void p32x_run_events(unsigned int until)
+       oldest, event_time_next);
+ }
+ 
++/* VRD Profiling: external counters declared in 32x.c */
++extern unsigned int vrd_msh2_work_cycles;
++extern unsigned int vrd_ssh2_work_cycles;
++
+ static void run_sh2(SH2 *sh2, unsigned int m68k_cycles)
+ {
+   unsigned int cycles, done;
+@@ -484,6 +492,12 @@ static void run_sh2(SH2 *sh2, unsigned int m68k_cycles)
+ 
+   done = sh2_execute(sh2, cycles);
+ 
++  /* VRD Profiling: track actual work cycles */
++  if (sh2->is_slave)
++    vrd_ssh2_work_cycles += done;
++  else
++    vrd_msh2_work_cycles += done;
++
+   sh2->m68krcycles_done += C_SH2_TO_M68K(sh2, done);
+   sh2->state &= ~SH2_STATE_RUN;
+   pevt_log_sh2_o(sh2, EVT_RUN_END);
+diff --git a/platform/libretro/libretro.c b/platform/libretro/libretro.c
+index 7612396..57ca556 100644
+--- a/platform/libretro/libretro.c
++++ b/platform/libretro/libretro.c
+@@ -94,6 +94,16 @@ static retro_input_state_t input_state_cb;
+ static retro_environment_t environ_cb;
+ static retro_audio_sample_batch_t audio_batch_cb;
+ 
++/* VRD Profiling instrumentation - for v4.0 parallel processing analysis */
++static FILE *vrd_profile_log = NULL;
++static int vrd_profile_enabled = 0;
++static int vrd_profile_frame = 0;
++static int vrd_profile_max_frames = 2400; /* 40 seconds @ 60fps (menus + racing) */
++
++/* VRD Profiling: actual work cycle counters from 32x.c */
++extern unsigned int vrd_msh2_work_cycles;
++extern unsigned int vrd_ssh2_work_cycles;
++
+ #define VOUT_MAX_WIDTH 320
+ #define VOUT_MAX_HEIGHT 240
+ 
+@@ -2441,8 +2451,52 @@ void retro_run(void)
+       update_audio_latency = false;
+    }
+ 
++   /* VRD Profiling: Initialize on first frame */
++   if (vrd_profile_frame == 0) {
++      const char *profile_path = getenv("VRD_PROFILE_LOG");
++      const char *max_frames_str = getenv("VRD_PROFILE_FRAMES");
++      if (max_frames_str) {
++         int custom_max = atoi(max_frames_str);
++         if (custom_max > 0) vrd_profile_max_frames = custom_max;
++      }
++      if (profile_path) {
++         vrd_profile_log = fopen(profile_path, "w");
++         if (vrd_profile_log) {
++            vrd_profile_enabled = 1;
++            fprintf(vrd_profile_log, "frame,msh2_cycles,ssh2_cycles,comm7_before,comm7_after,is_32x\n");
++            if (log_cb) log_cb(RETRO_LOG_INFO, "VRD Profiling enabled: %s (max %d frames)\n", profile_path, vrd_profile_max_frames);
++         }
++      }
++   }
++
++   /* VRD Profiling: Capture state before frame */
++   unsigned short vrd_comm7_before = 0;
++   int vrd_is_32x = (PicoIn.AHW & PAHW_32X) ? 1 : 0;
++   if (vrd_profile_enabled && vrd_profile_frame < vrd_profile_max_frames && vrd_is_32x) {
++      /* Reset work cycle counters before frame */
++      vrd_msh2_work_cycles = 0;
++      vrd_ssh2_work_cycles = 0;
++      vrd_comm7_before = Pico32x.regs[7];
++   }
++
+    PicoFrame();
+ 
++   /* VRD Profiling: Log frame data */
++   if (vrd_profile_enabled && vrd_profile_frame < vrd_profile_max_frames && vrd_is_32x) {
++      unsigned short vrd_comm7_after = Pico32x.regs[7];
++      /* Use actual work cycles from run_sh2() accumulation */
++      fprintf(vrd_profile_log, "%d,%u,%u,0x%04x,0x%04x,%d\n",
++              vrd_profile_frame, vrd_msh2_work_cycles, vrd_ssh2_work_cycles,
++              vrd_comm7_before, vrd_comm7_after, vrd_is_32x);
++
++      if (vrd_profile_frame == vrd_profile_max_frames - 1) {
++         fclose(vrd_profile_log);
++         vrd_profile_log = NULL;
++         if (log_cb) log_cb(RETRO_LOG_INFO, "VRD Profiling complete: %d frames\n", vrd_profile_max_frames);
++      }
++   }
++   vrd_profile_frame++;
++
+    /* Check whether frontend needs to be notified
+     * of timing/geometry changes */
+    if (libretro_update_av_info || libretro_update_geometry) {

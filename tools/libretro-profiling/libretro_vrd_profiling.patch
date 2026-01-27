@@ -1,0 +1,66 @@
+diff --git a/platform/libretro/libretro.c b/platform/libretro/libretro.c
+index 7612396..dcbddd8 100644
+--- a/platform/libretro/libretro.c
++++ b/platform/libretro/libretro.c
+@@ -94,6 +94,12 @@ static retro_input_state_t input_state_cb;
+ static retro_environment_t environ_cb;
+ static retro_audio_sample_batch_t audio_batch_cb;
+ 
++/* VRD Profiling instrumentation - for v4.0 parallel processing analysis */
++static FILE *vrd_profile_log = NULL;
++static int vrd_profile_enabled = 0;
++static int vrd_profile_frame = 0;
++static int vrd_profile_max_frames = 600; /* 10 seconds @ 60fps */
++
+ #define VOUT_MAX_WIDTH 320
+ #define VOUT_MAX_HEIGHT 240
+ 
+@@ -2441,8 +2447,48 @@ void retro_run(void)
+       update_audio_latency = false;
+    }
+ 
++   /* VRD Profiling: Initialize on first frame */
++   if (vrd_profile_frame == 0) {
++      const char *profile_path = getenv("VRD_PROFILE_LOG");
++      if (profile_path) {
++         vrd_profile_log = fopen(profile_path, "w");
++         if (vrd_profile_log) {
++            vrd_profile_enabled = 1;
++            fprintf(vrd_profile_log, "frame,msh2_cycles,ssh2_cycles,comm7_before,comm7_after,is_32x\n");
++            if (log_cb) log_cb(RETRO_LOG_INFO, "VRD Profiling enabled: %s\n", profile_path);
++         }
++      }
++   }
++
++   /* VRD Profiling: Capture state before frame */
++   unsigned int vrd_msh2_before = 0, vrd_ssh2_before = 0;
++   unsigned short vrd_comm7_before = 0;
++   int vrd_is_32x = (PicoIn.AHW & PAHW_32X) ? 1 : 0;
++   if (vrd_profile_enabled && vrd_profile_frame < vrd_profile_max_frames && vrd_is_32x) {
++      vrd_msh2_before = sh2s[0].m68krcycles_done;
++      vrd_ssh2_before = sh2s[1].m68krcycles_done;
++      vrd_comm7_before = Pico32x.regs[7];
++   }
++
+    PicoFrame();
+ 
++   /* VRD Profiling: Log frame data */
++   if (vrd_profile_enabled && vrd_profile_frame < vrd_profile_max_frames && vrd_is_32x) {
++      unsigned int vrd_msh2_delta = sh2s[0].m68krcycles_done - vrd_msh2_before;
++      unsigned int vrd_ssh2_delta = sh2s[1].m68krcycles_done - vrd_ssh2_before;
++      unsigned short vrd_comm7_after = Pico32x.regs[7];
++      fprintf(vrd_profile_log, "%d,%u,%u,0x%04x,0x%04x,%d\n",
++              vrd_profile_frame, vrd_msh2_delta, vrd_ssh2_delta,
++              vrd_comm7_before, vrd_comm7_after, vrd_is_32x);
++
++      if (vrd_profile_frame == vrd_profile_max_frames - 1) {
++         fclose(vrd_profile_log);
++         vrd_profile_log = NULL;
++         if (log_cb) log_cb(RETRO_LOG_INFO, "VRD Profiling complete: %d frames\n", vrd_profile_max_frames);
++      }
++   }
++   vrd_profile_frame++;
++
+    /* Check whether frontend needs to be notified
+     * of timing/geometry changes */
+    if (libretro_update_av_info || libretro_update_geometry) {

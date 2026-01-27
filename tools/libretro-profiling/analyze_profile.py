@@ -4,6 +4,7 @@ VRD v4.0 Profiling Data Analyzer
 Analyzes CSV output from libretro-picodrive profiling instrumentation
 
 Metrics captured:
+- m68k_cycles: Motorola 68000 cycles per frame
 - msh2_cycles: Master SH2 actual work cycles per frame
 - ssh2_cycles: Slave SH2 actual work cycles per frame
 - comm7: COMM register state (frame boundaries only)
@@ -16,6 +17,7 @@ from pathlib import Path
 
 def analyze_profile(csv_path: str):
     """Analyze profiling data from CSV file."""
+    m68k_cycles = []
     msh2_cycles = []
     ssh2_cycles = []
     comm7_changes = []
@@ -26,11 +28,13 @@ def analyze_profile(csv_path: str):
             if not row.get('frame'):
                 continue
             frame = int(row['frame'])
+            m68k = int(row.get('m68k_cycles', 0))  # Default to 0 for old CSV format
             msh2 = int(row['msh2_cycles'])
             ssh2 = int(row['ssh2_cycles'])
             comm7_before = int(row['comm7_before'], 16)
             comm7_after = int(row['comm7_after'], 16)
 
+            m68k_cycles.append((frame, m68k))
             msh2_cycles.append((frame, msh2))
             ssh2_cycles.append((frame, ssh2))
 
@@ -42,11 +46,19 @@ def analyze_profile(csv_path: str):
         return
 
     # Calculate statistics
+    m68k_values = [c for _, c in m68k_cycles]
     msh2_values = [c for _, c in msh2_cycles]
     ssh2_values = [c for _, c in ssh2_cycles]
 
     print(f"=== VRD v4.0 Profiling Analysis: {Path(csv_path).name} ===\n")
     print(f"Total frames: {len(msh2_cycles)}")
+
+    # 68K analysis
+    if m68k_values and max(m68k_values) > 0:
+        print(f"\n68000 Cycles:")
+        print(f"  Min: {min(m68k_values):,}")
+        print(f"  Max: {max(m68k_values):,}")
+        print(f"  Avg: {sum(m68k_values)/len(m68k_values):,.1f}")
 
     print(f"\nMaster SH2 Cycles:")
     print(f"  Min: {min(msh2_values):,}")
@@ -58,14 +70,20 @@ def analyze_profile(csv_path: str):
     print(f"  Max: {max(ssh2_values):,}")
     print(f"  Avg: {sum(ssh2_values)/len(ssh2_values):,.1f}")
 
-    # Cycle budget utilization (23 MHz @ 60fps)
-    cycles_per_frame = 23000000 // 60
+    # Cycle budget utilization (23 MHz @ 60fps for SH2, 7.67 MHz for 68K)
+    sh2_cycles_per_frame = 23000000 // 60  # SH2 @ 23 MHz
+    m68k_cycles_per_frame = 7670000 // 60  # 68K @ 7.67 MHz (Genesis clock / 7)
+    avg_m68k = sum(m68k_values) / len(m68k_values) if m68k_values else 0
     avg_msh2 = sum(msh2_values) / len(msh2_values)
     avg_ssh2 = sum(ssh2_values) / len(ssh2_values)
 
-    print(f"\nCycle Budget (23MHz @ 60fps = {cycles_per_frame:,}/frame):")
-    print(f"  Master Utilization: {100*avg_msh2/cycles_per_frame:.1f}%")
-    print(f"  Slave Utilization:  {100*avg_ssh2/cycles_per_frame:.1f}%")
+    print(f"\nCycle Budget:")
+    if avg_m68k > 0:
+        print(f"  68000:  {m68k_cycles_per_frame:,}/frame @ 7.67 MHz")
+        print(f"          Utilization: {100*avg_m68k/m68k_cycles_per_frame:.1f}%")
+    print(f"  SH2:    {sh2_cycles_per_frame:,}/frame @ 23 MHz")
+    print(f"          Master Utilization: {100*avg_msh2/sh2_cycles_per_frame:.1f}%")
+    print(f"          Slave Utilization:  {100*avg_ssh2/sh2_cycles_per_frame:.1f}%")
 
     # Balance analysis
     diffs = [abs(m - s) for (_, m), (_, s) in zip(msh2_cycles, ssh2_cycles)]
@@ -87,12 +105,43 @@ def analyze_profile(csv_path: str):
 
     # Work distribution analysis
     print("\n=== WORK DISTRIBUTION ===")
-    total_work = avg_msh2 + avg_ssh2
-    if total_work > 0:
-        print(f"Master share: {100*avg_msh2/total_work:.1f}%")
-        print(f"Slave share:  {100*avg_ssh2/total_work:.1f}%")
+    total_sh2_work = avg_msh2 + avg_ssh2
+    if total_sh2_work > 0:
+        print(f"SH2 Work Distribution:")
+        print(f"  Master share: {100*avg_msh2/total_sh2_work:.1f}%")
+        print(f"  Slave share:  {100*avg_ssh2/total_sh2_work:.1f}%")
         if avg_ssh2 > avg_msh2:
-            print(f"Slave is doing {100*(avg_ssh2-avg_msh2)/avg_msh2:+.1f}% more work than Master")
+            imbalance = 100*(avg_ssh2-avg_msh2)/avg_msh2
+            print(f"  Imbalance: Slave doing {imbalance:+.1f}% more work than Master")
+
+    # Total system work (68K + SH2s)
+    if avg_m68k > 0:
+        # Convert 68K cycles to SH2-equivalent cycles for comparison (23 MHz vs 7.67 MHz = 3x)
+        m68k_equiv_sh2 = avg_m68k * (23000000 / 7670000)
+        total_system_work = m68k_equiv_sh2 + avg_msh2 + avg_ssh2
+        print(f"\nTotal System Work (SH2-equivalent cycles):")
+        print(f"  68000:  {m68k_equiv_sh2:,.0f} cycles ({100*m68k_equiv_sh2/total_system_work:.1f}%)")
+        print(f"  Master: {avg_msh2:,.0f} cycles ({100*avg_msh2/total_system_work:.1f}%)")
+        print(f"  Slave:  {avg_ssh2:,.0f} cycles ({100*avg_ssh2/total_system_work:.1f}%)")
+        print(f"  Total:  {total_system_work:,.0f} cycles/frame")
+
+        # Frame time bottleneck analysis
+        print(f"\nBottleneck Analysis:")
+        max_m68k_time = avg_m68k / 7670000  # seconds
+        max_msh2_time = avg_msh2 / 23000000  # seconds
+        max_ssh2_time = avg_ssh2 / 23000000  # seconds
+        bottleneck_time = max(max_m68k_time, max_msh2_time, max_ssh2_time)
+        theoretical_fps = 1.0 / bottleneck_time if bottleneck_time > 0 else 0
+
+        if max_m68k_time >= max_msh2_time and max_m68k_time >= max_ssh2_time:
+            print(f"  Bottleneck: 68000 ({avg_m68k:,.0f} cycles @ 7.67 MHz = {max_m68k_time*1000:.2f} ms/frame)")
+        elif max_msh2_time >= max_ssh2_time:
+            print(f"  Bottleneck: Master SH2 ({avg_msh2:,.0f} cycles @ 23 MHz = {max_msh2_time*1000:.2f} ms/frame)")
+        else:
+            print(f"  Bottleneck: Slave SH2 ({avg_ssh2:,.0f} cycles @ 23 MHz = {max_ssh2_time*1000:.2f} ms/frame)")
+
+        print(f"  Theoretical max FPS: {theoretical_fps:.1f} (based on bottleneck CPU)")
+        print(f"  Note: Actual FPS may be lower due to blocking sync overhead")
 
     # Parallel processing detection
     print("\n=== PARALLEL PROCESSING VALIDATION ===")
@@ -122,8 +171,8 @@ def analyze_profile(csv_path: str):
 
     # Frame time estimation
     max_cycles = max(max(msh2_values), max(ssh2_values))
-    if max_cycles > cycles_per_frame:
-        print(f"\nPerformance Warning: Peak cycles ({max_cycles:,}) exceed 60fps budget!")
+    if max_cycles > sh2_cycles_per_frame:
+        print(f"\nPerformance Warning: Peak SH2 cycles ({max_cycles:,}) exceed 60fps budget!")
         estimated_fps = 23000000 / max_cycles
         print(f"  Estimated min FPS: {estimated_fps:.1f}")
 

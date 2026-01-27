@@ -164,7 +164,7 @@ The frame rate bottleneck is:
 
 ## Path Forward
 
-### Option 1: Profile the 68K (Recommended)
+### Option 1: Profile the 68K ✅ **COMPLETE**
 
 **Goal:** Measure 68K cycle usage to identify actual bottleneck
 
@@ -173,9 +173,11 @@ The frame rate bottleneck is:
 - Measure time spent in blocking wait functions
 - Identify 68K hotspots (command prep, game logic, physics)
 
-**Expected finding:**
-- 68K blocking waits consume significant frame time
-- 68K command preparation is the real bottleneck
+**Results:** [68K_BOTTLENECK_ANALYSIS.md](68K_BOTTLENECK_ANALYSIS.md)
+- **68K at 100.1% utilization** (127,987 cycles/frame @ 7.67 MHz)
+- 68K bottleneck confirmed at 16.69 ms/frame
+- Theoretical max FPS: 59.9 (limited by 68K)
+- Actual FPS: ~20-24 (68K + blocking sync overhead)
 
 ### Option 2: Measure Frame Sync Overhead
 

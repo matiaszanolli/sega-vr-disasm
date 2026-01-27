@@ -2,8 +2,8 @@
 
 **Achievement:** Identified and eliminated the primary bottleneck, achieving **66.6% Slave CPU reduction**
 
-**FPS Result:** ⚠️ **Unchanged** - Frame rate limited by architectural blocking handshake, not SH2 processing time
-**See:** [DELAY_ELIMINATION_FPS_ANALYSIS.md](DELAY_ELIMINATION_FPS_ANALYSIS.md) for detailed explanation
+**FPS Result:** ⚠️ **Unchanged** - Frame rate limited by 68K at 100% utilization, not SH2 processing time
+**Root Cause:** [68K_BOTTLENECK_ANALYSIS.md](68K_BOTTLENECK_ANALYSIS.md) - 68000 CPU bottleneck confirmed at 127,987 cycles/frame
 
 ---
 

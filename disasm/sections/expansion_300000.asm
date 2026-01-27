@@ -301,7 +301,87 @@ slave_test_func:
         dc.l    $2000402A       ; $3002A8: COMM5 address
 
 ; ============================================================================
+; ORIGINAL func_021 (RELOCATED FOR SHADOW PATH)
+; ============================================================================
+; Relocated from ROM $0234C8 to enable shadow path instrumentation.
+; Original 36 bytes preserved byte-for-byte for correct rendering.
+;
+; Shadow wrapper at $0234C8 calls this after instrumenting COMM6/COMM7.
+; Slave works in parallel using func_021_optimized while Master uses this.
+;
+; Address: 0x300300 (SH2: 0x02300300)
+; Size: 36 bytes
+;
+        dcb.b   ($300 - $2AC), $FF  ; Pad to 0x300300
+func_021_original_relocated:
+        dc.w    $4F22        ; $300300  STS.L PR,@-R15
+        dc.w    $BF4D        ; $300302  BSR (func_016)
+        dc.w    $0009        ; $300304  NOP
+        dc.w    $2F76        ; $300306  MOV.L R7,@-R15
+        dc.w    $2F86        ; $300308  MOV.L R8,@-R15
+        dc.w    $B01A        ; $30030A  BSR (nested func)
+        dc.w    $4F22        ; $30030C  STS.L PR,@-R15
+        dc.w    $68F6        ; $30030E  MOV.L @R15+,R8
+        dc.w    $67F6        ; $300310  MOV.L @R15+,R7
+        dc.w    $8581        ; $300312  MOV.B R0,@($1,R5)
+        dc.w    $C801        ; $300314  TST #1,R0
+        dc.w    $8F01        ; $300316  BF/S +1
+        dc.w    $7810        ; $300318  ADD #$10,R8
+        dc.w    $7804        ; $30031A  ADD #$04,R8
+        dc.w    $4710        ; $30031C  DT R7
+        dc.w    $8BF2        ; $30031E  BF -12
+        dc.w    $4F26        ; $300320  LDS.L @R15+,PR
+        dc.w    $000B        ; $300322  RTS
+        dc.w    $0009        ; $300324  NOP
+
+; ============================================================================
+; SHADOW PATH WRAPPER: 0x300400 (SH2: 0x02300400)
+; ============================================================================
+; Full instrumentation for shadow path (Option 3).
+; Called from func_021 jump at $0234C8.
+;
+; Increments COMM6 (Master call counter), signals Slave via COMM7,
+; then calls relocated original func_021. Master uses original results,
+; Slave works in parallel for timing measurement.
+;
+; Metrics:
+;   COMM6 = Master call counter (incremented here)
+;   COMM5 = Slave completion counter (incremented by Slave)
+;   Gap = COMM6 - COMM5 (critical timing metric)
+;
+        dcb.b   ($400 - $326), $FF  ; Pad to 0x300400
+shadow_path_wrapper:
+        ; Increment COMM6 (Master call counter)
+        dc.w    $D00A           ; $300400: MOV.L @(40,PC),R0 - COMM6 addr
+        dc.w    $6101           ; $300402: MOV.W @R0,R1 - read COMM6
+        dc.w    $7101           ; $300404: ADD #1,R1 - increment
+        dc.w    $2011           ; $300406: MOV.W R1,@R0 - write COMM6
+        ; Copy parameters to shared memory
+        dc.w    $D009           ; $300408: MOV.L @(36,PC),R0 - param block
+        dc.w    $20E2           ; $30040A: MOV.L R14,@R0 - save R14
+        dc.w    $1071           ; $30040C: MOV.L R7,@(4,R0) - save R7
+        dc.w    $1082           ; $30040E: MOV.L R8,@(8,R0) - save R8
+        dc.w    $1053           ; $300410: MOV.L R5,@(12,R0) - save R5
+        ; Signal Slave via COMM7
+        dc.w    $D008           ; $300412: MOV.L @(32,PC),R0 - COMM7 addr
+        dc.w    $E116           ; $300414: MOV #$16,R1 - signal value
+        dc.w    $2011           ; $300416: MOV.W R1,@R0 - COMM7 = 0x16
+        ; Call original func_021 (relocated)
+        dc.w    $D008           ; $300418: MOV.L @(32,PC),R0 - original func
+        dc.w    $400B           ; $30041A: JSR @R0 - call original
+        dc.w    $0009           ; $30041C: NOP (delay slot)
+        ; Return to caller
+        dc.w    $000B           ; $30041E: RTS
+        dc.w    $0009           ; $300420: NOP (delay slot)
+        dc.w    $0009           ; $300422: NOP (alignment)
+; Literal pool (4-byte aligned at $300424)
+        dc.l    $2000402C       ; $300424: COMM6 address
+        dc.l    $2203E000       ; $300428: param block (cache-through SDRAM)
+        dc.l    $2000402E       ; $30042C: COMM7 address
+        dc.l    $02300300       ; $300430: func_021_original_relocated
+
+; ============================================================================
 ; REMAINING EXPANSION ROM SPACE
 ; ============================================================================
-; Current position: 0x3002AC (slave_test_func ends at 0x280 + 44 bytes)
-        dcb.b   ($100000 - $2AC), $FF
+; Current position: 0x300434
+        dcb.b   ($100000 - $434), $FF

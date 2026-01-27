@@ -235,15 +235,13 @@
         dc.w    $524C        ; $0203C6
         dc.w    $0009        ; $0203C8
         dc.w    $0009        ; $0203CA
-; === SLAVE ACTIVATION: Jump to expansion ROM wrapper ===
-; Original: MOV.L/MOV.L/BRA loop writing to COMM3 forever
-; Modified: JMP to slave_work_wrapper at $02300200
-        dc.w    $D001        ; $0203CC - MOV.L @(4,PC),R0 - load wrapper addr
-        dc.w    $402B        ; $0203CE - JMP @R0
-        dc.w    $0009        ; $0203D0 - NOP (delay slot)
-        dc.w    $0009        ; $0203D2 - NOP (padding)
-        dc.w    $0230        ; $0203D4 - \ Expansion ROM address: $02300200
-        dc.w    $0200        ; $0203D6 - / (slave_work_wrapper)
+; Original Slave idle loop (RESTORED)
+        dc.w    $D101        ; $0203CC - MOV.L @(PC+offset),R1
+        dc.w    $2102        ; $0203CE - MOV.L R0,@R1
+        dc.w    $AFFE        ; $0203D0 - BRA $0203D0 (loop forever)
+        dc.w    $0009        ; $0203D2 - NOP
+        dc.w    $2000        ; $0203D4 - \ COMM3 address literal
+        dc.w    $402C        ; $0203D6 - / (0x2000402C)
         dc.w    $2F06        ; $0203D8
         dc.w    $2F16        ; $0203DA
         dc.w    $2F26        ; $0203DC
@@ -317,18 +315,14 @@
         dc.w    $8800        ; $020464
         dc.w    $89FB        ; $020466
         dc.w    $8481        ; $020468
-; === MASTER DISPATCH HOOK: Redirect to expansion ROM ===
-; Original: SHLL2, table lookup, JSR handler, BRA loop, NOP
-; Modified: Jump to master_dispatch_hook at $02300050
-; The hook writes COMM7=1 (signals Slave), then does original dispatch
-; NOTE: Literal must be 4-byte aligned! D101 loads from (PC & ~3) + 4 + 4 = 0x020474
-        dc.w    $0009        ; $02046A - NOP (code alignment)
-        dc.w    $D101        ; $02046C - MOV.L @(4,PC),R1 - loads from $020474
-        dc.w    $412B        ; $02046E - JMP @R1
-        dc.w    $0009        ; $020470 - NOP (delay slot)
-        dc.w    $0009        ; $020472 - NOP (padding for literal 4-byte alignment)
-        dc.w    $0230        ; $020474 - \ Expansion ROM address (4-byte aligned!)
-        dc.w    $0050        ; $020476 - / 0x02300050 (master_dispatch_hook)
+; Original dispatch code (RESTORED)
+        dc.w    $4008        ; $02046A - SHLL2 R0
+        dc.w    $D107        ; $02046C - MOV.L @(PC+offset),R1
+        dc.w    $001E        ; $02046E - MOV.L R1,@(R0,R1)
+        dc.w    $400B        ; $020470 - JSR @R0
+        dc.w    $0009        ; $020472 - NOP
+        dc.w    $AFF4        ; $020474 - BRA -12
+        dc.w    $0009        ; $020476 - NOP
         dc.w    $FFFF        ; $020478
         dc.w    $FE10        ; $02047A
         dc.w    $2000        ; $02047C

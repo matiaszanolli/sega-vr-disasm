@@ -194,10 +194,10 @@
         dc.w    $4EF9        ; $000374
         dc.w    $0088        ; $000376
         dc.w    $0832        ; $000378
-        dc.w    $303C        ; $00037A - MOVE.W #imm16, addr32
-        dc.w    $0012        ; $00037C - immediate = $0012
-        dc.w    $00A1        ; $00037E - address high = $00A1
-        dc.w    $512C        ; $000380 - address low = $512C (COMM6 at $A1512C)
+        dc.w    $4E71        ; $00037A - NOP (original)
+        dc.w    $4E71        ; $00037C - NOP
+        dc.w    $4E71        ; $00037E - NOP
+        dc.w    $4E71        ; $000380 - NOP
         dc.w    $4E71        ; $000382
         dc.w    $4E71        ; $000384
         dc.w    $4E71        ; $000386
@@ -247,8 +247,8 @@
         dc.w    $C000        ; $0003DE
         dc.w    $0600        ; $0003E0
         dc.w    $0280        ; $0003E2
-        dc.w    $0600        ; $0003E4
-        dc.w    $0288        ; $0003E6
+        dc.w    $0600        ; $0003E4  Slave PC high (SDRAM)
+        dc.w    $0288        ; $0003E6  Slave PC low = 0x06000288 (original SDRAM code)
         dc.w    $0600        ; $0003E8
         dc.w    $0000        ; $0003EA
         dc.w    $0600        ; $0003EC

@@ -2,6 +2,9 @@
 
 **Achievement:** Identified and eliminated the primary bottleneck, achieving **66.6% Slave CPU reduction**
 
+**FPS Result:** ⚠️ **Unchanged** - Frame rate limited by architectural blocking handshake, not SH2 processing time
+**See:** [DELAY_ELIMINATION_FPS_ANALYSIS.md](DELAY_ELIMINATION_FPS_ANALYSIS.md) for detailed explanation
+
 ---
 
 ## Visual Summary
@@ -243,17 +246,23 @@ picodrive roms/VRD_test_delay01.32x
 
 ## Conclusion
 
-**Status:** **BREAKTHROUGH ACHIEVED** ✓
+**Status:** **CPU OPTIMIZATION COMPLETE** ✓ | **FPS TARGET BLOCKED** ⚠️
 
 **Achievement:** Eliminated 66.5% bottleneck through delay loop removal
 
-**Confidence:** **VERY HIGH** - Profiling validates predictions, clean elimination
+**FPS Result:** Unchanged (~20-24 FPS) - Limited by architectural blocking handshake
 
-**Risk:** **LOW** - Software delay, no hardware dependencies, fallback available
+**Confidence:** **VERY HIGH** - Profiling validates predictions, optimization successful
 
-**Recommendation:** **PROCEED** to gameplay testing with high confidence
+**Root Cause:** Frame rate governed by 68K→SH2 blocking sync model, not SH2 processing time
 
-**Expected outcome:** Stable 60 FPS with significant CPU headroom for enhancements
+**Recommendation:**
+- **Immediate:** Document as expected behavior, freed Slave capacity available for enhancements
+- **Long-term:** Profile 68K blocking overhead, or restructure for async command submission
+
+**Actual outcome:** 74% Slave CPU headroom achieved, architectural FPS ceiling confirmed at ~20-24 FPS
+
+**See:** [DELAY_ELIMINATION_FPS_ANALYSIS.md](DELAY_ELIMINATION_FPS_ANALYSIS.md) for complete analysis
 
 ---
 
@@ -264,6 +273,7 @@ picodrive roms/VRD_test_delay01.32x
 - [DELAY_LOOP_ANALYSIS.md](DELAY_LOOP_ANALYSIS.md) - Loop identification
 - [DELAY_ELIMINATION_TEST_RESULTS.md](DELAY_ELIMINATION_TEST_RESULTS.md) - Test results
 - [PC_PROFILING_CORRECTED_RESULTS.md](PC_PROFILING_CORRECTED_RESULTS.md) - PC masking fix
+- [DELAY_ELIMINATION_FPS_ANALYSIS.md](DELAY_ELIMINATION_FPS_ANALYSIS.md) - **FPS analysis** (architectural limitation)
 
 **Tools:**
 - [patch_delay_loop.py](../../tools/patch_delay_loop.py) - ROM patcher

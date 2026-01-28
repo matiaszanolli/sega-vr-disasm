@@ -2649,7 +2649,7 @@
         dc.w    $4E91        ; $0016A0
         dc.w    $52B8        ; $0016A2 - ADDQ.L #1,($C964).W (frame counter++)
         dc.w    $C964        ; $0016A4
-        dc.w    $4EB9        ; $0016A6 - JSR sh2_wait_frame_complete (NEW!)
+        dc.w    $4EB9        ; $0016A6 - JSR sh2_wait_frame_complete (RE-ENABLED with init check)
         dc.w    $0000        ; $0016A8 - High word of $00EC76
         dc.w    $EC76        ; $0016AA - Low word of $00EC76
         dc.w    $4CDF        ; $0016AC - MOVEM.L (SP)+,D0-D7/A0-A6 (shifted +6)

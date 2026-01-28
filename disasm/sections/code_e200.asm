@@ -1229,32 +1229,34 @@ async_trampoline:                       ; $00EB76
 ; MODIFIES: None (preserves all registers)
 ; ============================================================================
 sh2_send_cmd_async:                     ; $00EB7C
-        tst.w   $00FFC8D0               ; PENDING_CMD_VALID - queue slot free?
+        tst.w   $00FFD000               ; PENDING_CMD_VALID - queue slot free?
         beq.s   .slot_free
 
         ; Queue full - fallback to blocking
-        addq.w  #1,$00FFC8E8            ; ASYNC_OVERFLOW_COUNT++
+        addq.w  #1,$00FFD018            ; ASYNC_OVERFLOW_COUNT++
         jmp     $00E316                 ; Original blocking function
 
 .slot_free:
-        ; Store command in queue
-        move.w  d0,$00FFC8D2            ; PENDING_CMD_TYPE
-        move.l  a0,$00FFC8D8            ; PENDING_CMD_PARAMS
-        move.l  a1,$00FFC8DC            ; PENDING_CMD_PARAMS+4
-        move.w  #1,$00FFC8D0            ; Mark valid
+        ; Store command in queue (but don't mark valid yet)
+        move.w  d0,$00FFD002            ; PENDING_CMD_TYPE
+        move.l  a0,$00FFD008            ; PENDING_CMD_PARAMS
+        move.l  a1,$00FFD00C            ; PENDING_CMD_PARAMS+4
 
         ; Check if SH2 ready
         tst.b   $00A15120               ; COMM0 == 0?
-        bne.s   .sh2_busy
+        bne.s   .sh2_busy               ; Busy - don't submit, just return
 
         ; SH2 ready - write COMM registers now
         adda.l  #$02000000,a0           ; Convert to SH2 address
         move.l  a0,$00A15128            ; COMM4
         move.w  #$0101,$00A1512C        ; COMM6 = trigger
 
+        ; Mark valid ONLY after successful submission
+        move.w  #1,$00FFD000            ; PENDING_CMD_VALID = 1
+
         ; Update counters
-        addq.w  #1,$00FFC8D4            ; PENDING_CMD_COUNT++
-        addq.l  #1,$00FFC8E4            ; TOTAL_CMDS_ASYNC++
+        addq.w  #1,$00FFD004            ; PENDING_CMD_COUNT++
+        addq.l  #1,$00FFD014            ; TOTAL_CMDS_ASYNC++
 
 .sh2_busy:
         rts
@@ -1347,7 +1349,7 @@ sh2_send_cmd_async:                     ; $00EB7C
 ; ============================================================================
 sh2_wait_frame_complete:                ; $00EC76
         ; Check if valid pending command (handles uninitialized memory)
-        cmpi.w  #1,$00FFC8D0            ; PENDING_CMD_VALID == 1?
+        cmpi.w  #1,$00FFD000            ; PENDING_CMD_VALID == 1?
         bne.s   .done                   ; No - either 0 or garbage, nothing to wait for
 
         ; Record start frame for cycle tracking
@@ -1369,19 +1371,19 @@ sh2_wait_frame_complete:                ; $00EC76
         lsl.l   #1,d0                   ; * 512 (approx)
 
         ; Update cumulative wait cycles
-        add.l   d0,$00FFC8EC            ; TOTAL_WAIT_CYCLES += d0
+        add.l   d0,$00FFD01C            ; TOTAL_WAIT_CYCLES += d0
 
         ; Update max if needed
-        move.l  $00FFC8F0,d1            ; MAX_WAIT_CYCLES
+        move.l  $00FFD020,d1            ; MAX_WAIT_CYCLES
         cmp.l   d1,d0                   ; Current > max?
         ble.s   .not_max
-        move.l  d0,$00FFC8F0            ; Update max
+        move.l  d0,$00FFD020            ; Update max
 
 .not_max:
 .no_cycles:
         ; Clear pending counters
-        clr.w   $00FFC8D4               ; PENDING_CMD_COUNT = 0
-        clr.w   $00FFC8D0               ; PENDING_CMD_VALID = 0
+        clr.w   $00FFD004               ; PENDING_CMD_COUNT = 0
+        clr.w   $00FFD000               ; PENDING_CMD_VALID = 0
 
 .done:
         rts
@@ -3770,7 +3772,7 @@ sh2_wait_frame_complete:                ; $00EC76
         dc.w    $0601        ; $00FF5A
         dc.w    $9C80        ; $00FF5C
         dc.w    $4EBA        ; $00FF5E
-        dc.w    $E3B6        ; $00FF60
+        dc.w    $EC16        ; $00FF60
         dc.w    $41F9        ; $00FF62
         dc.w    $000F        ; $00FF64
         dc.w    $4620        ; $00FF66

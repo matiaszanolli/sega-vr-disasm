@@ -1342,12 +1342,7 @@ sh2_send_cmd_async:                     ; $00EB7C
 ; MODIFIES: D0, D1, D7 (safe - restored by V-INT MOVEM.L after return)
 ; ============================================================================
 sh2_wait_frame_complete:                ; $00EC76
-        ; Simple one-time clear (Work RAM may not be zeroed at boot)
-        tst.w   $00FFD020               ; Check if already initialized
-        bne.s   .check_pending          ; Yes, skip
-        clr.w   $00FFD000               ; Clear PENDING_CMD_VALID
-        move.w  #$1,$00FFD020           ; Mark as initialized
-.check_pending:
+        ; Check if pending work (assumes queue cleared at boot via GDB)
         cmpi.w  #1,$00FFD000            ; PENDING_CMD_VALID == 1?
         bne.s   .done                   ; No, nothing to wait for
 

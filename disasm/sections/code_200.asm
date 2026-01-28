@@ -2632,31 +2632,28 @@
         dc.w    $0002        ; $00167E
         dc.w    $0027        ; $001680
         dc.w    $001B        ; $001682
-        dc.w    $4A78        ; $001684
-        dc.w    $C87A        ; $001686
-        dc.w    $6726        ; $001688
-        dc.w    $46FC        ; $00168A
-        dc.w    $2700        ; $00168C
-        dc.w    $48E7        ; $00168E
-        dc.w    $FFFE        ; $001690
-        dc.w    $3038        ; $001692
-        dc.w    $C87A        ; $001694
-        dc.w    $31FC        ; $001696
-        dc.w    $0000        ; $001698
-        dc.w    $C87A        ; $00169A
-        dc.w    $227B        ; $00169C
-        dc.w    $0014        ; $00169E
-        dc.w    $4E91        ; $0016A0
-        dc.w    $52B8        ; $0016A2 - ADDQ.L #1,($C964).W (frame counter++)
-        dc.w    $C964        ; $0016A4
-        dc.w    $4EB9        ; $0016A6 - JSR sh2_wait_frame_complete (RE-ENABLED with logic fix)
-        dc.w    $0000        ; $0016A8 - High word of $00EC76
-        dc.w    $EC76        ; $0016AA - Low word of $00EC76
-        dc.w    $4CDF        ; $0016AC - MOVEM.L (SP)+,D0-D7/A0-A6 (shifted +6)
-        dc.w    $7FFF        ; $0016AE
-        dc.w    $46FC        ; $0016AA
-        dc.w    $2300        ; $0016AC
-        dc.w    $4E73        ; $0016AE
+; ============================================================================
+; V-INT Handler ($001684) - Assembly mnemonics
+; Per VINT_HANDLER_ARCHITECTURE.md - 16-state dispatch system
+; Note: .w suffix forces absolute short addressing (4 bytes vs 6 for long)
+; ============================================================================
+vint_handler:                           ; $001684
+        tst.w   $FFFFC87A.w             ; Check pending V-INT state
+        beq.s   .no_work                ; If zero, nothing to do
+
+        move.w  #$2700,sr               ; Disable all interrupts
+        movem.l d0-d7/a0-a6,-(sp)       ; Save 14 registers
+        move.w  $FFFFC87A.w,d0          ; Load state index
+        clr.w   $FFFFC87A.w             ; Clear (acknowledge)
+        movea.l $14(pc),a1              ; Load jump table pointer
+        jsr     (a1)                    ; Dispatch to state handler
+        addq.l  #1,$FFFFC964.w          ; Increment frame counter (Work RAM)
+        jsr     sh2_wait_frame_complete ; ASYNC: Wait for pending SH2 commands
+        movem.l (sp)+,d0-d7/a0-a6       ; Restore 14 registers
+        move.w  #$2300,sr               ; Re-enable interrupts
+
+.no_work:
+        rte                             ; Return from exception
         dc.w    $4E73        ; $0016B0
         dc.w    $0088        ; $0016B2
         dc.w    $19FE        ; $0016B4

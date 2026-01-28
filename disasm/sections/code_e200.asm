@@ -3772,7 +3772,7 @@ sh2_wait_frame_complete:                ; $00EC76
         dc.w    $0601        ; $00FF5A
         dc.w    $9C80        ; $00FF5C
         dc.w    $4EBA        ; $00FF5E
-        dc.w    $EC16        ; $00FF60
+        dc.w    $E3B6        ; $00FF60 - RESTORED: Original blocking offset (was $EC16)
         dc.w    $41F9        ; $00FF62
         dc.w    $000F        ; $00FF64
         dc.w    $4620        ; $00FF66

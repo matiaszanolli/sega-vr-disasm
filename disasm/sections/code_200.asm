@@ -2644,17 +2644,19 @@ vint_handler:                           ; $001684
         move.w  #$2700,sr               ; Disable all interrupts
         movem.l d0-d7/a0-a6,-(sp)       ; Save 14 registers
         move.w  $FFFFC87A.w,d0          ; Load state index
-        clr.w   $FFFFC87A.w             ; Clear (acknowledge)
-        movea.l $14(pc),a1              ; Load jump table pointer
+        move.w  #0,$FFFFC87A.w          ; Clear - MUST be 6 bytes (not CLR.W=4 bytes)!
+        dc.w    $227B,$0014             ; MOVEA.L (PC,$14),A1 - vasm can't mnemonic this!
         jsr     (a1)                    ; Dispatch to state handler
         addq.l  #1,$FFFFC964.w          ; Increment frame counter (Work RAM)
-        jsr     sh2_wait_frame_complete ; ASYNC: Wait for pending SH2 commands
+        ; DIAGNOSTIC: Async JSR disabled to test mnemonic conversion
+        ; jsr     sh2_wait_frame_complete ; ASYNC: Wait for pending SH2 commands
         movem.l (sp)+,d0-d7/a0-a6       ; Restore 14 registers
         move.w  #$2300,sr               ; Re-enable interrupts
 
 .no_work:
         rte                             ; Return from exception
-        dc.w    $4E73        ; $0016B0
+        dc.w    $4E73        ; $0016B0 (padding/next handler?)
+vint_jump_table:                        ; $0016B2
         dc.w    $0088        ; $0016B2
         dc.w    $19FE        ; $0016B4
         dc.w    $0088        ; $0016B6

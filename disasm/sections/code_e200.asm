@@ -1342,7 +1342,11 @@ sh2_send_cmd_async:                     ; $00EB7C
 ; MODIFIES: D0, D1, D7 (safe - restored by V-INT MOVEM.L after return)
 ; ============================================================================
 sh2_wait_frame_complete:                ; $00EC76
-        ; No init needed - Work RAM cleared at boot (saves 26 bytes)
+        ; Simple one-time clear (Work RAM may not be zeroed at boot)
+        tst.w   $00FFD020               ; Check if already initialized
+        bne.s   .check_pending          ; Yes, skip
+        clr.w   $00FFD000               ; Clear PENDING_CMD_VALID
+        move.w  #$1,$00FFD020           ; Mark as initialized
 .check_pending:
         cmpi.w  #1,$00FFD000            ; PENDING_CMD_VALID == 1?
         bne.s   .done                   ; No, nothing to wait for
@@ -3757,7 +3761,7 @@ sh2_wait_frame_complete:                ; $00EC76
         dc.w    $0601        ; $00FF5A
         dc.w    $9C80        ; $00FF5C
         dc.w    $4EBA        ; $00FF5E
-        dc.w    $E3B6        ; $00FF60 - ASYNC: DISABLED FOR TESTING
+        dc.w    $EC16        ; $00FF60 - ASYNC: ENABLED with full COMM protocol!
         dc.w    $41F9        ; $00FF62
         dc.w    $000F        ; $00FF64
         dc.w    $4620        ; $00FF66

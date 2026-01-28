@@ -2649,8 +2649,11 @@
         dc.w    $4E91        ; $0016A0
         dc.w    $52B8        ; $0016A2 - ADDQ.L #1,($C964).W (frame counter++)
         dc.w    $C964        ; $0016A4
-        dc.w    $4CDF        ; $0016A6 - MOVEM.L (SP)+,D0-D7/A0-A6 (CRITICAL!)
-        dc.w    $7FFF        ; $0016A8
+        dc.w    $4EB9        ; $0016A6 - JSR sh2_wait_frame_complete (NEW!)
+        dc.w    $0000        ; $0016A8 - High word of $00EC76
+        dc.w    $EC76        ; $0016AA - Low word of $00EC76
+        dc.w    $4CDF        ; $0016AC - MOVEM.L (SP)+,D0-D7/A0-A6 (shifted +6)
+        dc.w    $7FFF        ; $0016AE
         dc.w    $46FC        ; $0016AA
         dc.w    $2300        ; $0016AC
         dc.w    $4E73        ; $0016AE
@@ -4098,7 +4101,4 @@
         dc.w    $C827        ; $0021F2
         dc.w    $11FC        ; $0021F4
         dc.w    $000F        ; $0021F6
-        dc.w    $C828        ; $0021F8
-        dc.w    $4A78        ; $0021FA
-        dc.w    $C8C8        ; $0021FC
-        dc.w    $6704        ; $0021FE
+        dc.w    $C828        ; $0021F8 (last word)

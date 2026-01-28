@@ -1216,53 +1216,54 @@
         dc.w    $98C1        ; $00EB70
         dc.w    $A103        ; $00EB72
         dc.w    $A945        ; $00EB74
-        dc.w    $4EF9        ; $00EB76 - POC trampoline: JMP (absolute long) to ORIGINAL function
-        dc.w    $0000        ; $00EB78 - High word of $00E316 (blocking function)
-        dc.w    $E316        ; $00EB7A - Low word of $00E316 (no-op for POC)
-        dc.w    $0000        ; $00EB7C
-        dc.w    $0000        ; $00EB7E
-        dc.w    $0000        ; $00EB80
-        dc.w    $0000        ; $00EB82
-        dc.w    $0000        ; $00EB84
-        dc.w    $0000        ; $00EB86
-        dc.w    $0000        ; $00EB88
-        dc.w    $0000        ; $00EB8A
+        dc.w    $4EF9        ; $00EB76 - Trampoline: JMP to sh2_send_cmd_async
+        dc.w    $0000        ; $00EB78 - High word of $00EB7C
+        dc.w    $EB7C        ; $00EB7A - Low word of $00EB7C
+; sh2_send_cmd_async - Non-blocking command submission (76 bytes)
+        dc.w    $4A79        ; $00EB7C - tst.w $00FFC8D0 (PENDING_CMD_VALID)
+        dc.w    $00FF        ; $00EB7E - High word
+        dc.w    $C8D0        ; $00EB80 - Low word
+        dc.w    $6708        ; $00EB82 - beq.s +8 → $00EB8C
+        dc.w    $5279        ; $00EB84 - addq.w #1,$00FFC8E8 (ASYNC_OVERFLOW_COUNT)
+        dc.w    $00FF        ; $00EB86 - High word
+        dc.w    $C8E8        ; $00EB88 - Low word
+        dc.w    $4EF9        ; $00EB8A - jmp $00E316 (fallback to blocking)
         dc.w    $0000        ; $00EB8C
-        dc.w    $0000        ; $00EB8E
-        dc.w    $0000        ; $00EB90
-        dc.w    $0000        ; $00EB92
-        dc.w    $0000        ; $00EB94
-        dc.w    $0000        ; $00EB96
-        dc.w    $0000        ; $00EB98
-        dc.w    $0000        ; $00EB9A
-        dc.w    $0000        ; $00EB9C
-        dc.w    $0000        ; $00EB9E
-        dc.w    $0000        ; $00EBA0
-        dc.w    $0000        ; $00EBA2
-        dc.w    $0000        ; $00EBA4
-        dc.w    $0000        ; $00EBA6
-        dc.w    $0000        ; $00EBA8
-        dc.w    $0000        ; $00EBAA
-        dc.w    $0000        ; $00EBAC
-        dc.w    $0000        ; $00EBAE
-        dc.w    $0000        ; $00EBB0
-        dc.w    $0000        ; $00EBB2
-        dc.w    $0000        ; $00EBB4
+        dc.w    $E316        ; $00EB8E
+        dc.w    $33C0        ; $00EB90 - move.w d0,$00FFC8D2 (PENDING_CMD_TYPE)
+        dc.w    $00FF        ; $00EB92 - High word
+        dc.w    $C8D2        ; $00EB94 - Low word
+        dc.w    $23C8        ; $00EB96 - move.l a0,$00FFC8D8 (PENDING_CMD_PARAMS)
+        dc.w    $00FF        ; $00EB98 - High word
+        dc.w    $C8D8        ; $00EB9A - Low word
+        dc.w    $23C9        ; $00EB9C - move.l a1,$00FFC8DC (PENDING_CMD_PARAMS+4)
+        dc.w    $00FF        ; $00EB9E - High word
+        dc.w    $C8DC        ; $00EBA0 - Low word
+        dc.w    $33FC        ; $00EBA2 - move.w #1,$00FFC8D0 (PENDING_CMD_VALID)
+        dc.w    $0001        ; $00EBA4 - Immediate value
+        dc.w    $00FF        ; $00EBA6 - High word
+        dc.w    $C8D0        ; $00EBA8 - Low word
+        dc.w    $4A39        ; $00EBAA - tst.b $A15120 (COMM0)
+        dc.w    $00A1        ; $00EBAC
+        dc.w    $5120        ; $00EBAE
+        dc.w    $6614        ; $00EBB0 - bne.s +20 → $00EBC6
+        dc.w    $D1FC        ; $00EBB2 - adda.l #$02000000,a0
+        dc.w    $0200        ; $00EBB4
         dc.w    $0000        ; $00EBB6
-        dc.w    $0000        ; $00EBB8
-        dc.w    $0000        ; $00EBBA
-        dc.w    $0000        ; $00EBBC
-        dc.w    $0000        ; $00EBBE
-        dc.w    $0000        ; $00EBC0
-        dc.w    $0000        ; $00EBC2
-        dc.w    $0000        ; $00EBC4
-        dc.w    $0000        ; $00EBC6
-        dc.w    $0000        ; $00EBC8
-        dc.w    $0000        ; $00EBCA
-        dc.w    $0000        ; $00EBCC
-        dc.w    $0000        ; $00EBCE
-        dc.w    $0000        ; $00EBD0
-        dc.w    $0000        ; $00EBD2
+        dc.w    $23C8        ; $00EBB8 - move.l a0,$A15128 (COMM4)
+        dc.w    $00A1        ; $00EBBA
+        dc.w    $5128        ; $00EBBC
+        dc.w    $33FC        ; $00EBBE - move.w #$0101,$A1512C (COMM6)
+        dc.w    $0101        ; $00EBC0
+        dc.w    $00A1        ; $00EBC2
+        dc.w    $512C        ; $00EBC4
+        dc.w    $5279        ; $00EBC6 - addq.w #1,$00FFC8D4 (PENDING_CMD_COUNT)
+        dc.w    $00FF        ; $00EBC8 - High word
+        dc.w    $C8D4        ; $00EBCA - Low word
+        dc.w    $52B9        ; $00EBCC - addq.l #1,$FFC8E4 (TOTAL_CMDS_ASYNC)
+        dc.w    $00FF        ; $00EBCE
+        dc.w    $C8E4        ; $00EBD0
+        dc.w    $4E75        ; $00EBD2 - rts
         dc.w    $0000        ; $00EBD4
         dc.w    $0000        ; $00EBD6
         dc.w    $0000        ; $00EBD8
@@ -1344,42 +1345,44 @@
         dc.w    $98C1        ; $00EC70
         dc.w    $A103        ; $00EC72
         dc.w    $A945        ; $00EC74
-        dc.w    $0000        ; $00EC76
-        dc.w    $0000        ; $00EC78
-        dc.w    $0000        ; $00EC7A
-        dc.w    $0000        ; $00EC7C
-        dc.w    $0000        ; $00EC7E
-        dc.w    $0000        ; $00EC80
-        dc.w    $0000        ; $00EC82
-        dc.w    $0000        ; $00EC84
-        dc.w    $0000        ; $00EC86
-        dc.w    $0000        ; $00EC88
-        dc.w    $0000        ; $00EC8A
-        dc.w    $0000        ; $00EC8C
-        dc.w    $0000        ; $00EC8E
-        dc.w    $0000        ; $00EC90
-        dc.w    $0000        ; $00EC92
-        dc.w    $0000        ; $00EC94
-        dc.w    $0000        ; $00EC96
-        dc.w    $0000        ; $00EC98
-        dc.w    $0000        ; $00EC9A
-        dc.w    $0000        ; $00EC9C
-        dc.w    $0000        ; $00EC9E
-        dc.w    $0000        ; $00ECA0
-        dc.w    $0000        ; $00ECA2
-        dc.w    $0000        ; $00ECA4
-        dc.w    $0000        ; $00ECA6
-        dc.w    $0000        ; $00ECA8
-        dc.w    $0000        ; $00ECAA
-        dc.w    $0000        ; $00ECAC
-        dc.w    $0000        ; $00ECAE
-        dc.w    $0000        ; $00ECB0
-        dc.w    $0000        ; $00ECB2
-        dc.w    $0000        ; $00ECB4
-        dc.w    $0000        ; $00ECB6
-        dc.w    $0000        ; $00ECB8
-        dc.w    $0000        ; $00ECBA
-        dc.w    $0000        ; $00ECBC
+; sh2_wait_frame_complete - Frame-end synchronization (70 bytes)
+        dc.w    $4A79        ; $00EC76 - tst.w $FFC8D4 (PENDING_CMD_COUNT)
+        dc.w    $00FF        ; $00EC78
+        dc.w    $C8D4        ; $00EC7A
+        dc.w    $6730        ; $00EC7C - beq.s +48 → $00ECAC (.done)
+        dc.w    $2E79        ; $00EC7E - move.l $FFC964,d7 (frame_counter)
+        dc.w    $00FF        ; $00EC80
+        dc.w    $C964        ; $00EC82
+        dc.w    $4A39        ; $00EC84 - tst.b $A1512C (COMM6)
+        dc.w    $00A1        ; $00EC86
+        dc.w    $512C        ; $00EC88
+        dc.w    $6704        ; $00EC8A - beq.s +4 → $00EC90 (.complete)
+        dc.w    $60F6        ; $00EC8C - bra.s -10 → $00EC84 (.wait_loop)
+        dc.w    $2039        ; $00EC8E - move.l $FFC964,d0
+        dc.w    $00FF        ; $00EC90
+        dc.w    $C964        ; $00EC92
+        dc.w    $9087        ; $00EC94 - sub.l d7,d0
+        dc.w    $670E        ; $00EC96 - beq.s +14 → $00ECA6 (.no_cycles)
+        dc.w    $E188        ; $00EC98 - lsl.l #8,d0
+        dc.w    $E388        ; $00EC9A - lsl.l #1,d0
+        dc.w    $D1B9        ; $00EC9C - add.l d0,$FFC8EC (TOTAL_WAIT_CYCLES)
+        dc.w    $00FF        ; $00EC9E
+        dc.w    $C8EC        ; $00ECA0
+        dc.w    $2239        ; $00ECA2 - move.l $FFC8F0,d1 (MAX_WAIT_CYCLES)
+        dc.w    $00FF        ; $00ECA4
+        dc.w    $C8F0        ; $00ECA6
+        dc.w    $B081        ; $00ECA8 - cmp.l d1,d0
+        dc.w    $6F06        ; $00ECAA - ble.s +6 → $00ECB2 (.not_max)
+        dc.w    $23C0        ; $00ECAC - move.l d0,$FFC8F0 (MAX_WAIT_CYCLES)
+        dc.w    $00FF        ; $00ECAE
+        dc.w    $C8F0        ; $00ECB0
+        dc.w    $4279        ; $00ECB2 - clr.w $FFC8D4 (PENDING_CMD_COUNT)
+        dc.w    $00FF        ; $00ECB4
+        dc.w    $C8D4        ; $00ECB6
+        dc.w    $4279        ; $00ECB8 - clr.w $FFC8D0 (PENDING_CMD_VALID)
+        dc.w    $00FF        ; $00ECBA
+        dc.w    $C8D0        ; $00ECBC
+        dc.w    $4E75        ; $00ECBE - rts
         dc.w    $0000        ; $00ECBE
         dc.w    $0000        ; $00ECC0
         dc.w    $0000        ; $00ECC2
@@ -4098,6 +4101,4 @@
         dc.w    $0412        ; $0101F4
         dc.w    $207C        ; $0101F6
         dc.w    $0601        ; $0101F8
-        dc.w    $B880        ; $0101FA
-        dc.w    $227C        ; $0101FC
-        dc.w    $2401        ; $0101FE
+        dc.w    $B880        ; $0101FA (last word)

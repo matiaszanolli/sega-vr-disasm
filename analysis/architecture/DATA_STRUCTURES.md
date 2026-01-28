@@ -110,8 +110,21 @@ See [STATE_MACHINES.md](STATE_MACHINES.md) for complete documentation.
 | $FFC89E | sh2_comm_sub | 0-N | Comm sub-state |
 | $FFC8A0 | race_state | 0-N | Race phase |
 | $FFC8AA | scene_state | 0-N | Scene transitions |
+| $FFC80E | **[UNDOCUMENTED]** | varies | **RAM status byte** (tested by $010B2C, $010BAE) |
 | $FFC8C8 | vint_state | 0-N | V-INT processing |
 | $FFC8CC | race_substate | 0-N | Race sub-phase |
+| **$FFC8D0** | **async_queue_start** | - | **Async command queue (Phase 1A)** ✅ |
+| $FFC8D0 | pending_cmd_valid | 0-1 | 1=command pending in queue |
+| $FFC8D2 | pending_cmd_type | 0-N | Command type ($27, etc.) |
+| $FFC8D4 | pending_cmd_count | 0-N | Commands awaiting frame sync |
+| $FFC8D6 | [reserved] | - | Alignment padding |
+| $FFC8D8 | pending_cmd_params | - | Parameter storage (3 longs) |
+| $FFC8E4 | total_cmds_async | 0-∞ | Total async commands issued (long) |
+| $FFC8E8 | async_overflow_count | 0-N | Queue full events (word) |
+| $FFC8EA | [reserved] | - | Alignment padding |
+| $FFC8EC | total_wait_cycles | 0-∞ | Cumulative wait cycles (long) |
+| $FFC8F0 | max_wait_cycles | 0-∞ | Peak wait cycles (long) |
+| **$FFC8F4** | **async_queue_end** | - | **(36 bytes allocated)** ✅ |
 | $FFC964 | frame_counter | 0-∞ | Frame count |
 | $FFC972 | anim_state | 0-N | Animation state |
 

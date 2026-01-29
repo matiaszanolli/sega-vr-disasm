@@ -2648,7 +2648,7 @@ vint_handler:                           ; $001684
         dc.w    $227B,$0014             ; MOVEA.L (PC,$14),A1 - vasm can't mnemonic this!
         jsr     (a1)                    ; Dispatch to state handler
         addq.l  #1,$FFFFC964.w          ; Increment frame counter (Work RAM)
-        jsr     sh2_wait_frame_complete ; ASYNC: V-INT sync enabled (call site still disabled)
+        ; ASYNC: Disabled entirely (no space for init code in 68K section)
         movem.l (sp)+,d0-d7/a0-a6       ; Restore 14 registers
         move.w  #$2300,sr               ; Re-enable interrupts
 

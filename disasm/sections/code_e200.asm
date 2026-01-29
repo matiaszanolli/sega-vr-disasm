@@ -1216,44 +1216,6 @@
         dc.w    $98C1        ; $00EB70
         dc.w    $A103        ; $00EB72
         dc.w    $A945        ; $00EB74
-; ============================================================================
-; Async trampoline - redirects patched call sites to async handler
-; ============================================================================
-async_trampoline:                       ; $00EB76
-        jmp     sh2_send_cmd_async
-
-; ============================================================================
-; sh2_send_cmd_async - Non-blocking command submission
-; INPUT: D0.W = Command type, A0.L = Param ptr, A1.L = Secondary param
-; OUTPUT: Returns immediately (or falls back to blocking if queue full)
-; MODIFIES: None (preserves all registers)
-; ============================================================================
-sh2_send_cmd_async:                     ; $00EB7C
-        tst.w   $00FFD000               ; PENDING_CMD_VALID - queue slot free?
-        beq.s   .slot_free
-
-        ; Queue full - fallback to blocking (counter removed to save space)
-        jmp     $00E316                 ; Original blocking function
-
-.slot_free:
-        ; Store command in queue AND mark valid (queued or immediate)
-        move.w  d0,$00FFD002            ; PENDING_CMD_TYPE
-        move.l  a0,$00FFD008            ; PENDING_CMD_PARAMS (A1 unused in async POC)
-        move.w  #1,$00FFD000            ; PENDING_CMD_VALID = 1 (CRITICAL!)
-
-        ; Check if SH2 ready - if so, submit now; if not, V-INT will dispatch later
-        tst.b   $00A15120               ; COMM0 == 0?
-        bne.s   .sh2_busy               ; Busy - queued for later dispatch
-
-        ; SH2 ready - write COMM registers now (FULL PROTOCOL)
-        adda.l  #$02000000,a0           ; Convert to SH2 address
-        move.l  a0,$00A15128            ; COMM4 = params
-        move.w  #$0101,$00A1512C        ; COMM6 = trigger
-        move.b  d0,$00A15121            ; COMM1 = command byte (CRITICAL!)
-        move.b  #$01,$00A15120          ; COMM0 = handshake signal (CRITICAL!)
-
-.sh2_busy:
-        rts
         dc.w    $0000        ; $00EBD4
         dc.w    $0000        ; $00EBD6
         dc.w    $0000        ; $00EBD8
@@ -1335,42 +1297,6 @@ sh2_send_cmd_async:                     ; $00EB7C
         dc.w    $98C1        ; $00EC70
         dc.w    $A103        ; $00EC72
         dc.w    $A945        ; $00EC74
-; ============================================================================
-; sh2_wait_frame_complete - Frame-end synchronization (V-INT context)
-; INPUT: None
-; OUTPUT: All pending commands completed
-; MODIFIES: D0, D1, D7 (safe - restored by V-INT MOVEM.L after return)
-; ============================================================================
-sh2_wait_frame_complete:                ; $00EC76
-        ; Check if pending work (assumes queue cleared at boot via GDB)
-        cmpi.w  #1,$00FFD000            ; PENDING_CMD_VALID == 1?
-        bne.s   .done                   ; No, nothing to wait for
-
-        ; CRITICAL: Dispatch queued command if SH2 is now ready
-        tst.b   $00A15120               ; COMM0 == 0? (SH2 ready)
-        bne.s   .already_dispatched     ; No, command already sent, just wait
-
-        ; SH2 ready - dispatch queued command now (FULL PROTOCOL)
-        movea.l $00FFD008,a0            ; Load queued params
-        adda.l  #$02000000,a0           ; Convert to SH2 address
-        move.l  a0,$00A15128            ; COMM4 = params
-        move.w  #$0101,$00A1512C        ; COMM6 = trigger
-        move.w  $00FFD002,d0            ; Load command type
-        move.b  d0,$00A15121            ; COMM1 = command byte (CRITICAL!)
-        move.b  #$01,$00A15120          ; COMM0 = handshake signal (CRITICAL!)
-
-.already_dispatched:
-.wait_loop:
-        tst.b   $00A1512C               ; COMM6 - SH2 busy?
-        beq.s   .complete               ; No, command complete
-        bra.s   .wait_loop              ; Yes, keep polling
-
-.complete:
-        ; Clear pending flag (profiling removed to save space)
-        clr.w   $00FFD000               ; PENDING_CMD_VALID = 0
-
-.done:
-        rts
         dc.w    $0000        ; $00ECBE
         dc.w    $0000        ; $00ECC0
         dc.w    $0000        ; $00ECC2
@@ -3756,7 +3682,7 @@ sh2_wait_frame_complete:                ; $00EC76
         dc.w    $0601        ; $00FF5A
         dc.w    $9C80        ; $00FF5C
         dc.w    $4EBA        ; $00FF5E
-        dc.w    $EC16        ; $00FF60 - ASYNC: ENABLED with full COMM protocol!
+        dc.w    $E3B6        ; $00FF60 - ASYNC: DISABLED (no space for init code)
         dc.w    $41F9        ; $00FF62
         dc.w    $000F        ; $00FF64
         dc.w    $4620        ; $00FF66

@@ -1229,17 +1229,10 @@ async_trampoline:                       ; $00EB76
 ; MODIFIES: None (preserves all registers)
 ; ============================================================================
 sh2_send_cmd_async:                     ; $00EB7C
-        tst.w   $00FFD000               ; PENDING_CMD_VALID - queue slot free?
-        beq.s   .slot_free
-
-        ; Queue full - fallback to blocking (counter removed to save space)
-        jmp     $00E316                 ; Original blocking function
-
-.slot_free:
-        ; Store command in queue AND mark valid (queued or immediate)
-        move.w  d0,$00FFD002            ; PENDING_CMD_TYPE
-        move.l  a0,$00FFD008            ; PENDING_CMD_PARAMS (A1 unused in async POC)
-        move.w  #1,$00FFD000            ; PENDING_CMD_VALID = 1 (CRITICAL!)
+        ; Store command in queue (no overflow check - last cmd wins, saves 14 bytes)
+        move.w  d0,$FFFFD002.w          ; PENDING_CMD_TYPE (abs.short: -2 bytes)
+        move.l  a0,$FFFFD008.w          ; PENDING_CMD_PARAMS (abs.short: -2 bytes)
+        move.w  #1,$FFFFD000.w          ; PENDING_CMD_VALID = 1 (abs.short: -2 bytes)
 
         ; Check if SH2 ready - if so, submit now; if not, V-INT will dispatch later
         tst.b   $00A15120               ; COMM0 == 0?
@@ -1342,20 +1335,24 @@ sh2_send_cmd_async:                     ; $00EB7C
 ; MODIFIES: D0, D1, D7 (safe - restored by V-INT MOVEM.L after return)
 ; ============================================================================
 sh2_wait_frame_complete:                ; $00EC76
-        ; Check if pending work (assumes queue cleared at boot via GDB)
-        cmpi.w  #1,$00FFD000            ; PENDING_CMD_VALID == 1?
-        bne.s   .done                   ; No, nothing to wait for
+        ; Ultra-compact init: clear garbage (≥2), handle 0/1 normally
+        move.w  $FFFFD000.w,d0          ; Load PENDING_CMD_VALID (abs.short: -2 bytes)
+        cmpi.w  #2,d0                   ; Garbage if >= 2
+        bcc.s   .clear_garbage          ; Clear and return
+        subq.w  #1,d0                   ; Test: 1→0 (pending), 0→-1 (none)
+        bmi.s   .done                   ; If was 0, nothing to do
+        ; If was 1, continue to dispatch
 
         ; CRITICAL: Dispatch queued command if SH2 is now ready
         tst.b   $00A15120               ; COMM0 == 0? (SH2 ready)
         bne.s   .already_dispatched     ; No, command already sent, just wait
 
         ; SH2 ready - dispatch queued command now (FULL PROTOCOL)
-        movea.l $00FFD008,a0            ; Load queued params
+        movea.l $FFFFD008.w,a0          ; Load queued params (abs.short: -2 bytes)
         adda.l  #$02000000,a0           ; Convert to SH2 address
         move.l  a0,$00A15128            ; COMM4 = params
         move.w  #$0101,$00A1512C        ; COMM6 = trigger
-        move.w  $00FFD002,d0            ; Load command type
+        move.w  $FFFFD002.w,d0          ; Load command type (abs.short: -2 bytes)
         move.b  d0,$00A15121            ; COMM1 = command byte (CRITICAL!)
         move.b  #$01,$00A15120          ; COMM0 = handshake signal (CRITICAL!)
 
@@ -1367,9 +1364,11 @@ sh2_wait_frame_complete:                ; $00EC76
 
 .complete:
         ; Clear pending flag (profiling removed to save space)
-        clr.w   $00FFD000               ; PENDING_CMD_VALID = 0
-
+        clr.w   $FFFFD000.w             ; PENDING_CMD_VALID = 0 (abs.short: -2 bytes)
 .done:
+        rts
+.clear_garbage:
+        clr.w   $FFFFD000.w             ; Clear garbage value (abs.short: -2 bytes)
         rts
         dc.w    $0000        ; $00ECBE
         dc.w    $0000        ; $00ECC0

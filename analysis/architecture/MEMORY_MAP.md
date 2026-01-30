@@ -1,7 +1,8 @@
 # Virtua Racing Deluxe - Complete Memory Map
 
-**Last Updated**: 2026-01-06
+**Last Updated**: 2026-01-29
 **Purpose**: Comprehensive documentation of all memory regions, registers, and address spaces
+**Status**: TRUE PARALLEL PROCESSING OPERATIONAL - Expansion ROM active
 
 ---
 
@@ -46,30 +47,52 @@ When the 32X adapter is enabled, some addresses are remapped:
 
 ## ROM Layout
 
-### Physical ROM Structure (3MB = 3,145,728 bytes)
+### Physical ROM Structure (4MB = 4,194,304 bytes)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│ ROM Organization (Offset → Execution Address)                   │
+│ ROM Organization (Offset → SH2 Execution Address)               │
 ├──────────┬─────────────┬──────────────────────────────────────────┤
-│ Offset   │ Exec Addr   │ Contents                                 │
+│ Offset   │ SH2 Addr    │ Contents                                 │
 ├──────────┼─────────────┼──────────────────────────────────────────┤
-│ $000000  │ $880000     │ Initial SP (4 bytes)                     │
-│ $000004  │ $880004     │ Initial PC (4 bytes)                     │
-│ $000008  │ $880008     │ 68K Exception Vectors (62 × 4 = 248)     │
-│ $000100  │ $880100     │ Sega Heade
-
-r (256 bytes)                  │
-│ $000200  │ $880200     │ 32X Jump Table (512 bytes)               │
-│ $0003C0  │ $8803C0     │ MARS Security String                     │
-│ $0003F0  │ $8803F0     │ 68K Init Code Start                      │
-│ $000800  │ $880800     │ 68K Main Program                         │
-│ ~$020000 │ ~$8A0000    │ Data Tables (graphics/sound?)            │
-│ ~$024000 │ ~$8A4000    │ Potential SH2 Code Section 1             │
-│ ~$2F0000 │ ~$B70000    │ Potential SH2 Code Section 2             │
-│ $2FFFFF  │ $A7FFFF     │ End of ROM (last byte)                   │
+│ $000000  │ $02000000   │ Initial SP (4 bytes)                     │
+│ $000004  │ $02000004   │ Initial PC (4 bytes)                     │
+│ $000008  │ $02000008   │ 68K Exception Vectors (62 × 4 = 248)     │
+│ $000100  │ $02000100   │ Sega Header (256 bytes)                  │
+│ $000200  │ $02000200   │ 32X Jump Table (512 bytes)               │
+│ $0003C0  │ $020003C0   │ MARS Security String                     │
+│ $0003F0  │ $020003F0   │ 68K Init Code Start                      │
+│ $000800  │ $02000800   │ 68K Main Program                         │
+│ $0234C8  │ $020234C8   │ func_021 trampoline (captures params)    │
+│ $02046A  │ $0202046A   │ Master dispatch (redirected to $300050)  │
+│ ~$024000 │ ~$02024000  │ SH2 Code Section 1                       │
+│ ~$2F0000 │ ~$022F0000  │ SH2 Code Section 2                       │
+│ $2FFFFF  │ $022FFFFF   │ End of Original ROM                      │
+├──────────┼─────────────┼──────────────────────────────────────────┤
+│ $300000  │ $02300000   │ **EXPANSION ROM START**                  │
+│ $300028  │ $02300028   │ handler_frame_sync (22B)                 │
+│ $300050  │ $02300050   │ master_dispatch_hook (44B)               │
+│ $300100  │ $02300100   │ func_021_optimized (96B)                 │
+│ $300200  │ $02300200   │ slave_work_wrapper (76B)                 │
+│ $300280  │ $02300280   │ slave_test_func (44B)                    │
+│ $3FFFFF  │ $023FFFFF   │ End of Expansion ROM (1MB)               │
 └──────────┴─────────────┴──────────────────────────────────────────┘
 ```
+
+### Expansion ROM Section ($300000-$3FFFFF)
+
+**CRITICAL**: This section is executed by **SH2 processors ONLY**.
+- Contains SH2 code in `dc.w` format (raw 16-bit opcodes)
+- Cannot contain 68K assembly mnemonics
+- Maps to SH2 address space $02300000-$023FFFFF
+
+| Address | Size | Function | Purpose |
+|---------|------|----------|---------|
+| $300028 | 22B | `handler_frame_sync` | Frame synchronization |
+| $300050 | 44B | `master_dispatch_hook` | Skips COMM7 write for cmd 0x16 |
+| $300100 | 96B | `func_021_optimized` | Vertex transform (func_016 inlined) |
+| $300200 | 76B | `slave_work_wrapper` | Command dispatch for Slave SH2 |
+| $300280 | 44B | `slave_test_func` | Reads params, calls func_021_optimized |
 
 ### ROM Header Detail ($000100-$0001FF)
 ```
@@ -182,6 +205,25 @@ Used for sound driver and Z80 program.
 - Shared between all three CPUs (68K, SH2 Master, SH2 Slave)
 - Used for synchronization, command passing, and data transfer
 
+#### Documented COMM Register Functions
+
+| Register | 68K Addr | SH2 Addr | Purpose |
+|----------|----------|----------|---------|
+| COMM0 | $A15120 | $20004020 | Command ID (68K→Master SH2) |
+| COMM1 | $A15122 | $20004022 | Parameter / Status |
+| COMM2 | $A15124 | $20004024 | Parameter / Status |
+| COMM3 | $A15126 | $20004026 | Parameter / Status |
+| COMM4 | $A15128 | $20004028 | Parameter / Status |
+| COMM5 | $A1512A | $2000402A | **Vertex transform counter** (+101 per call) |
+| COMM6 | $A1512C | $2000402C | Parameter / Status |
+| COMM7 | $A1512E | $2000402E | **Master→Slave signal** (0x16 = vertex work) |
+
+**Parallel Processing Protocol:**
+1. Master writes command to COMM7 (0x16 for vertex transform)
+2. Slave polls COMM7, picks up work when non-zero
+3. Slave increments COMM5 by 101 per vertex batch processed
+4. Parameters passed via shared memory at $2203E000
+
 ---
 
 ## VDP Register Map
@@ -207,20 +249,23 @@ Standard Sega Genesis VDP registers, plus 32X enhancements.
 │ $00000000    │ 4KB      │ SH2 Internal Cache/Work RAM           │
 │ $00001000    │ ~        │ (varies by SH2 model)                 │
 │              │          │                                       │
-│ $02000000    │ 256KB    │ Frame Buffer (uncached)               │
-│ $02020000    │ 256KB    │ Overwrite Image (uncached)            │
+│ $02000000    │ 3MB      │ Original ROM (uncached)               │
+│ $02300000    │ 1MB      │ **EXPANSION ROM** (uncached)          │
+│ $02300050    │ 44B      │   → master_dispatch_hook              │
+│ $02300100    │ 96B      │   → func_021_optimized                │
+│ $02300200    │ 76B      │   → slave_work_wrapper                │
+│ $023FFFFF    │          │ End of Expansion ROM                  │
 │              │          │                                       │
 │ $04000000    │ 256KB    │ Frame Buffer (cached)                 │
 │ $04020000    │ 256KB    │ Overwrite Image (cached)              │
 │              │          │                                       │
-│ $06000000    │ 4MB      │ ROM (cartridge, uncached)             │
-│ $06000000    │ 3MB      │ Virtua Racing ROM (actual)            │
-│ $0FFFFFFF    │          │ (end of ROM space)                    │
+│ $06000000    │ 4MB      │ ROM (cartridge, cache-through)        │
 │              │          │                                       │
-│ $20000000    │ 4MB      │ ROM (cartridge, cached)               │
-│ $20000000    │ 3MB      │ Virtua Racing ROM (actual)            │
+│ $20004000    │ ~        │ 32X System Registers                  │
+│ $20004020    │ 16B      │   → COMM0-COMM7 registers             │
 │              │          │                                       │
-│ $22000000    │ 256KB    │ SDRAM (2 Mbit, uncached)              │
+│ $22000000    │ 256KB    │ SDRAM (2 Mbit, cache-through)         │
+│ $2203E000    │ 16B      │   → **Parameter block** (R14,R7,R8,R5)|
 │ $2203FFFF    │          │ End of SDRAM                          │
 │              │          │                                       │
 │ $24000000    │ 128KB    │ Frame Buffer (direct access)          │
@@ -228,7 +273,7 @@ Standard Sega Genesis VDP registers, plus 32X enhancements.
 │              │          │                                       │
 │ $26000000    │ ~        │ 32X Registers (SH2 view)              │
 │              │          │                                       │
-│ $60000000    │ 256KB    │ SDRAM (cached, cache-through)         │
+│ $60000000    │ 256KB    │ SDRAM (cached)                        │
 └──────────────┴──────────┴─────────────────────────────────────────┘
 ```
 
@@ -243,7 +288,16 @@ Standard Sega Genesis VDP registers, plus 32X enhancements.
 - Used for polygon data structures
 - Used for SH2 stack
 
-**Status**: Detailed SDRAM layout requires runtime analysis
+#### Known SDRAM Locations
+
+| Address | Size | Purpose |
+|---------|------|---------|
+| $2203E000 | 4B | Parameter: R14 (base pointer) |
+| $2203E004 | 4B | Parameter: R7 |
+| $2203E008 | 4B | Parameter: R8 |
+| $2203E00C | 4B | Parameter: R5 |
+
+**Parameter Block**: Used by func_021 trampoline to pass vertex transform parameters from Master to Slave SH2.
 
 ---
 
@@ -272,32 +326,40 @@ Vector#  Address   Purpose                    Handler
 
 ---
 
-## Data Structure Locations (To Be Documented)
+## Data Structure Locations
 
 ### Known Flags and Variables
 - **$FFC87A**: V-INT execution flag (checked in V-INT handler)
 - **$A15128**: Written during init (unknown purpose)
+- **$2203E000**: Parameter block for vertex transform (R14, R7, R8, R5)
 
-### To Be Discovered
-- Game state structure
-- Player car data
-- Track data format
-- 3D transformation matrices
-- Polygon display lists
-- Texture data
-- Sound driver variables
+### SH2 Key Addresses (Discovered)
+
+| Address | Function | Description |
+|---------|----------|-------------|
+| $02046A | Master dispatch | Original command dispatch (now redirected) |
+| $0234C8 | func_021 trampoline | Captures params, signals Slave via COMM7 |
+| $02300050 | master_dispatch_hook | Expansion ROM: skips COMM7 for cmd 0x16 |
+| $02300100 | func_021_optimized | Expansion ROM: vertex transform |
+| $02300200 | slave_work_wrapper | Expansion ROM: Slave command dispatch |
 
 ---
+
+## Completed Milestones
+
+- ✅ Located SH2 Master entry point in ROM
+- ✅ Located SH2 Slave entry point in ROM
+- ✅ Mapped SDRAM parameter block at $2203E000
+- ✅ Documented COMM register protocol
+- ✅ Implemented expansion ROM (1MB at $300000)
+- ✅ TRUE PARALLEL PROCESSING operational
 
 ## Next Steps
 
-1. Locate SH2 Master entry point in ROM
-2. Locate SH2 Slave entry point in ROM
-3. Map SDRAM usage at runtime
-4. Document data structure formats
-5. Trace main game loop execution
-6. Map V-INT handler complete flow
+1. **Performance Testing** - Measure FPS improvement from parallel processing
+2. **Synchronization** - Ensure Slave completes before next frame
+3. **Load Balancing** - Split polygon workload between CPUs
 
 ---
 
-**Status**: Foundation complete, detailed mapping in progress
+**Status**: TRUE PARALLEL PROCESSING OPERATIONAL - Both SH2 CPUs executing in parallel

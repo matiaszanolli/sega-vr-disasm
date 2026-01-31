@@ -184,7 +184,7 @@ For each converted section:
 - ✅ Assembly toolchain working (sh-elf-as)
 - ✅ Byte-perfect output proven (slave_test_exact.asm)
 - ✅ Conversion workflow created
-- ✅ Build system integration (Makefile rules for 9 functions)
+- ✅ Build system integration (Makefile rules for 13 functions)
 - ⏳ Batch conversion tools (planned)
 
 ## Functions in Build System
@@ -193,11 +193,15 @@ The following functions are automatically built via `make sh2-assembly`:
 
 | Function | Source | Size | Notes |
 |----------|--------|------|-------|
+| func_000 | 3d_engine/ | 26B | Data copy to VDP (with linker script) |
 | func_006 | 3d_engine/ | 88B | Matrix multiply |
 | func_008 | 3d_engine/ | 56B | Alt matrix multiply |
 | func_009 | 3d_engine/ | 30B | Display list 4elem |
 | func_010 | 3d_engine/ | 26B | Display list 3elem |
 | func_016 | 3d_engine/ | 34B | Coord transform |
+| func_017 | 3d_engine/ | 26B | Quad helper (with linker script) |
+| func_022 | 3d_engine/ | 26B | Wait ready/HW sync (with linker script) |
+| func_032 | 3d_engine/ | 32B | Table lookup loop (with linker script) |
 | func_065 | 3d_engine/ | 152B | Unrolled data copy |
 | func_066 | 3d_engine/ | 48B | RLE decoder |
 | func_021_optimized | expansion/ | 96B | Slave vertex transform |

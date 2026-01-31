@@ -1,7 +1,7 @@
 /*
  * func_017: Quad Processing Helper
- * ROM File Offset: 0x2338A - 0x233A0 (22 bytes)
- * SH2 Address: 0x0222338A - 0x022233A0
+ * ROM File Offset: 0x2338A - 0x233A3 (26 bytes verified)
+ * SH2 Address: 0x0222338A
  *
  * Purpose: Small helper function for quad processing.
  *          Calls func_016 (coordinate packing) then loops over data,
@@ -9,7 +9,7 @@
  *
  * Type: Helper/Coordinator
  * Called By: func_018, func_019 (quad batch processors)
- * Calls: func_016 (via BSR)
+ * Calls: func_016 (via BSR at 0x23368)
  *
  * Input:
  *   R14 = RenderingContext pointer (for func_016)
@@ -19,50 +19,43 @@
  *
  * Stack Usage:
  *   Saves: PR (for BSR call)
+ *
+ * Note: BF at 0x23394 branches to 0x233A4 (func_018 entry) for early exit
+ *       when output byte is non-zero. This is unusual shared control flow.
  */
 
 .section .text
-.align 2
+.p2align 1    /* 2-byte alignment (2^1) for 0x2338A start */
 
 func_017:
     /* ─────────────────────────────────────────────────────────────────────
      * Call func_016 for coordinate packing
+     * BSR manually encoded: target=0x23368, PC+4=0x23390, disp=-20
      * ───────────────────────────────────────────────────────────────────── */
-    /* $02338A: 4F22 */ sts.l   pr,@-r15            /* Save return address */
-    /* $02338C: BFEC */ bsr     func_016            /* Call coord transform */
-    /* $02338E: 0009 */ nop                         /* Delay slot */
+    /* $02338A */ sts.l   pr,@-r15            /* Save return address */
+    .short  0xBFEC                            /* BSR func_016 (at 0x23368) */
+    /* $02338E */ nop                         /* Delay slot */
 
 .loop_start:
     /* ─────────────────────────────────────────────────────────────────────
      * Check and loop
+     * BF manually encoded: target=0x233A4 (func_018), PC+4=0x23398, disp=6
      * ───────────────────────────────────────────────────────────────────── */
-    /* $023390: 60A2 */ mov.b   @r10,r0             /* Load byte from output */
-    /* $023392: 8800 */ cmp/eq  #0,r0               /* Is it zero? */
-    /* $023394: 8B06 */ bf      .exit               /* Exit if not zero */
-    /* $023396: 7AFC */ add     #-4,r10             /* R10 -= 4 (move pointer) */
-    /* $023398: 4710 */ dt      r7                  /* Decrement R7, set T if zero */
-    /* $02339A: 8FF9 */ bf/s    .loop_start         /* Loop if R7 != 0 */
-    /* $02339C: 7BC0 */ add     #-64,r11            /* [delay] R11 -= 64 */
+    /* $023390 */ mov.l   @r10,r0             /* Load long from output ptr */
+    /* $023392 */ cmp/eq  #0,r0               /* Is it zero? */
+    .short  0x8B06                            /* BF +6 (to 0x233A4/func_018) */
+    /* $023396 */ add     #-4,r10             /* R10 -= 4 (move pointer) */
+    /* $023398 */ dt      r7                  /* Decrement R7, set T if zero */
+    /* $02339A */ bf/s    .loop_start         /* Loop if R7 != 0 */
+    /* $02339C */ add     #-64,r11            /* [delay] R11 -= 64 */
 
-.exit:
     /* ─────────────────────────────────────────────────────────────────────
-     * Return
+     * Normal return (loop exhausted)
      * ───────────────────────────────────────────────────────────────────── */
-    /* $02339E: 4F26 */ lds.l   @r15+,pr            /* Restore PR */
-    /* $0233A0: 000B */ rts
-    /* $0233A2: 0009 */ nop                         /* Delay slot - also start of func_018 */
+    /* $02339E */ lds.l   @r15+,pr            /* Restore PR */
+    /* $0233A0 */ rts
+    /* $0233A2 */ nop                         /* Delay slot */
 
 /* ============================================================================
- * ANALYSIS NOTES
- *
- * 1. Small wrapper function that:
- *    - Calls func_016 once for coordinate setup
- *    - Loops until output byte is non-zero or counter exhausted
- *    - Adjusts R10 and R11 pointers each iteration
- *
- * 2. Called multiple times per quad batch from func_018/019
- *
- * 3. The loop checks output byte at R10 - likely checking for
- *    visibility/culling flags set by func_016
- *
+ * End of func_017 (26 bytes)
  * ============================================================================ */

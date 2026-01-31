@@ -2153,19 +2153,9 @@
 ; func_016: Coordinate Transformation Utility (34 bytes, $023368-$02338A)
 ; HOTSPOT: Called 4× per polygon (67,200 cycles/frame)
         include "sh2/generated/func_016.inc"
-        dc.w    $4F22        ; $02338A
-        dc.w    $BFEC        ; $02338C
-        dc.w    $0009        ; $02338E
-        dc.w    $60A2        ; $023390
-        dc.w    $8800        ; $023392
-        dc.w    $8B06        ; $023394
-        dc.w    $7AFC        ; $023396
-        dc.w    $4710        ; $023398
-        dc.w    $8FF9        ; $02339A
-        dc.w    $7BC0        ; $02339C
-        dc.w    $4F26        ; $02339E
-        dc.w    $000B        ; $0233A0
-        dc.w    $0009        ; $0233A2
+; func_017: Quad Processing Helper (26 bytes, $02338A-$0233A3)
+; Calls func_016, loops until output byte non-zero
+        include "sh2/generated/func_017.inc"
         dc.w    $E100        ; $0233A4
         dc.w    $2A12        ; $0233A6
         dc.w    $7AFC        ; $0233A8
@@ -2334,19 +2324,12 @@
         dc.w    $4F26        ; $0234E8
         dc.w    $000B        ; $0234EA
         dc.w    $0009        ; $0234EC
-        dc.w    $D005        ; $0234EE
-        dc.w    $51E9        ; $0234F0
-        dc.w    $210B        ; $0234F2
-        dc.w    $851E        ; $0234F4
-        dc.w    $C808        ; $0234F6
-        dc.w    $89FC        ; $0234F8
-        dc.w    $51E9        ; $0234FA
-        dc.w    $E006        ; $0234FC
-        dc.w    $000B        ; $0234FE
-        dc.w    $811E        ; $023500
-        dc.w    $0000        ; $023502
-        dc.w    $2000        ; $023504
-        dc.w    $0000        ; $023506
+; ═══════════════════════════════════════════════════════════════════════════
+; func_022: Wait for Ready / Hardware Sync (26 bytes, $0234EE-$023507)
+; Source: disasm/sh2/3d_engine/func_022_wait_ready.asm
+; Purpose: Polls hardware status waiting for bit 3 to be set
+; ═══════════════════════════════════════════════════════════════════════════
+        include "sh2/generated/func_022.inc"
         dc.w    $4F22        ; $023508
         dc.w    $DE12        ; $02350A
         dc.w    $D912        ; $02350C
@@ -2580,22 +2563,9 @@
         dc.w    $6203        ; $0236D4
         dc.w    $000B        ; $0236D6
         dc.w    $0009        ; $0236D8
-        dc.w    $D805        ; $0236DA
-        dc.w    $60A3        ; $0236DC
-        dc.w    $018E        ; $0236DE
-        dc.w    $2912        ; $0236E0
-        dc.w    $30B0        ; $0236E2
-        dc.w    $8D06        ; $0236E4
-        dc.w    $7904        ; $0236E6
-        dc.w    $30CC        ; $0236E8
-        dc.w    $AFF8        ; $0236EA
-        dc.w    $C90C        ; $0236EC
-        dc.w    $0000        ; $0236EE
-        dc.w    $C000        ; $0236F0
-        dc.w    $0740        ; $0236F2
-        dc.w    $E0FF        ; $0236F4
-        dc.w    $000B        ; $0236F6
-        dc.w    $2902        ; $0236F8
+; func_032: Table Lookup / Indexed Load Loop (32 bytes, $0236DA-$0236F9)
+; Uses indexed addressing @(R0,R8) for table lookups
+        include "sh2/generated/func_032.inc"
         dc.w    $D80B        ; $0236FA
         dc.w    $60A3        ; $0236FC
         dc.w    $53E5        ; $0236FE

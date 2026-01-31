@@ -1,89 +1,62 @@
 /*
- * func_032: Scanline Setup / MAC.W Interpolation
- * ROM File Offset: 0x236DA - 0x236F6 (28 bytes)
- * SH2 Address: 0x022236DA - 0x022236F6
+ * func_032: Table Lookup / Indexed Load Loop
+ * ROM File Offset: 0x236DA - 0x236F9 (32 bytes verified)
+ * SH2 Address: 0x022236DA
  *
- * Purpose: Sets up scanline data for rasterization using the
- *          SH2's MAC.W (multiply-accumulate word) instruction
- *          for efficient interpolation calculations.
+ * Purpose: Performs indexed table lookups using R0 as index into
+ *          a base table at R8, storing results to output buffer R9.
  *
  * Type: Leaf function (no calls)
  * Called By: func_023 (frustum cull dispatcher)
  *
  * Input:
+ *   R8  = Base address (loaded from literal pool)
  *   R9  = Output buffer pointer
- *   R10 = Base value
- *   R11 = Comparison value
- *   R12 = Increment value
+ *   R10 = Starting index value
+ *   R11 = Ending index value
+ *   R12 = Index increment
  *
  * Processing:
- *   Uses MAC.W to compute interpolated values along scanlines.
- *   This is the hardware-accelerated inner loop of the rasterizer.
+ *   Uses indexed addressing @(R0,R8) to lookup table entries.
+ *   R0 cycles through indices from R10 to R11 by R12 steps.
  */
 
 .section .text
-.align 2
+.p2align 1    /* 2-byte alignment for 0x236DA start */
 
 func_032:
     /* ─────────────────────────────────────────────────────────────────────────
-     * Setup: Load interpolation table
+     * Setup: Load table base address
+     * MOV.L @(5,PC),R8 manually encoded: at 0x236DA, target = 0x236F0
      * ───────────────────────────────────────────────────────────────────────── */
-    /* $0236DA: D805 */ mov.l   .lit_interp_table,r8 /* R8 = interpolation table */
-    /* $0236DC: 60A3 */ mov     r10,r0              /* R0 = base value */
+    .short  0xD805                            /* MOV.L @(5*4,PC),R8 -> 0x236F0 */
+    /* $0236DC */ mov     r10,r0              /* R0 = starting index */
 
     /* ─────────────────────────────────────────────────────────────────────────
-     * Interpolation loop using MAC.W
+     * Main loop: Indexed table lookup
      * ───────────────────────────────────────────────────────────────────────── */
-.interp_loop:
-    /* $0236DE: 018E */ mac.w   @r8+,@r9+           /* MAC += *R8++ * *R9++ */
-    /* $0236E0: 2912 */ mov.l   r1,@r9              /* Store result */
-    /* $0236E2: 30B0 */ cmp/eq  r11,r0              /* Is R0 == R11? */
-    /* $0236E4: 8D06 */ bt/s    .exit               /* Exit if equal */
-    /* $0236E6: 7904 */ add     #4,r9               /* [delay] Advance output */
-    /* $0236E8: 30CC */ add     r12,r0              /* R0 += increment */
-    /* $0236EA: AFF8 */ bra     .interp_loop        /* Loop back */
-    /* $0236EC: C90C */ and     #12,r0              /* [delay] Mask to valid range */
+.loop:
+    /* $0236DE */ mov.l   @(r0,r8),r1         /* R1 = table[R0] via indexed addr */
+    /* $0236E0 */ mov.l   r1,@r9              /* Store to output buffer */
+    /* $0236E2 */ cmp/eq  r11,r0              /* R0 == end index? */
+    /* $0236E4 */ bt/s    .exit               /* Exit if done */
+    /* $0236E6 */ add     #4,r9               /* [delay] Advance output ptr */
+    /* $0236E8 */ add     r12,r0              /* R0 += increment */
+    /* $0236EA */ bra     .loop               /* Continue loop */
+    /* $0236EC */ and     #12,r0              /* [delay] Mask index (0,4,8,12) */
 
 /* ─────────────────────────────────────────────────────────────────────────────
- * Literal Pool
+ * Padding and Literal Pool (aligned to 4 bytes at 0x236F0)
  * ───────────────────────────────────────────────────────────────────────────── */
-.align 4
-.lit_interp_table:
-    /* $0236F0: */ .long   0x06000740          /* Interpolation coefficients */
+    .byte   0x00, 0x00                        /* Manual padding */
+.lit_table_base:
+    .byte   0xC0, 0x00, 0x07, 0x40            /* 0xC0000740 in big-endian */
 
 .exit:
-    /* $0236F4: E0FF */ mov     #-1,r0              /* R0 = 0xFFFFFFFF (done flag) */
-    /* $0236F6: 000B */ rts                         /* Return */
-    /* $0236F8: 2902 */ mov.l   r0,@r9              /* [delay] Store terminator */
+    /* $0236F4 */ mov     #-1,r0              /* R0 = 0xFFFFFFFF (terminator) */
+    /* $0236F6 */ rts                         /* Return */
+    /* $0236F8 */ mov.l   r0,@r9              /* [delay] Store terminator */
 
 /* ============================================================================
- * ANALYSIS NOTES
- *
- * 1. MAC.W Instruction:
- *    The MAC.W @R8+,@R9+ instruction performs:
- *    - Read word from R8 (auto-increment)
- *    - Read word from R9 (auto-increment)
- *    - Multiply them (16×16=32)
- *    - Add to MACL/MACH accumulator
- *    This is ideal for texture coordinate interpolation.
- *
- * 2. Loop Structure:
- *    - Start with base value in R0
- *    - MAC.W computes interpolated value
- *    - Add increment (R12) each iteration
- *    - Continue until R0 equals end value (R11)
- *
- * 3. Output Format:
- *    Results stored at R9 with 4-byte spacing.
- *    Likely scanline edge coordinates or texture U/V values.
- *
- * 4. Termination:
- *    Writes 0xFFFFFFFF as terminator to mark end of valid data.
- *    Rasterizer can detect this to know when to stop.
- *
- * 5. Performance:
- *    MAC.W is a single-cycle instruction on SH2.
- *    Combined with post-increment addressing, this is optimal
- *    for the tight inner loop of span generation.
- *
+ * End of func_032 (32 bytes)
  * ============================================================================ */

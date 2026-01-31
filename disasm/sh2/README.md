@@ -117,7 +117,7 @@ Replace dc.w section with assembly-generated include.
 - `phase11_hook_v2.asm` - Master→Slave dispatch hook
 
 ### Root
-- `batch_copy_handler.asm` - Batch memory copy handler (pending redesign)
+- `batch_copy_handler.asm` - Batch memory copy handler (cmd $26) ✅ **INTEGRATED**
 
 ### Legacy Test Files
 - `slave_test_loop.asm` - COMM2 increment test (with .align)
@@ -125,17 +125,23 @@ Replace dc.w section with assembly-generated include.
 
 ## Build System Integration
 
-The Makefile will eventually support:
+The Makefile now supports SH2 assembly:
 
-```makefile
-# Auto-build all SH2 assembly to dc.w includes
-sh2-assembly: $(SH2_ASM_FILES:.asm=.inc)
+```bash
+# Build all SH2 assembly to dc.w includes
+make sh2-assembly
 
-%.inc: %.asm
-	sh-elf-as --isa=sh2 -o $(@:.inc=.o) $<
-	sh-elf-objcopy -O binary $(@:.inc=.o) $(@:.inc=.bin)
-	od -An -tx2 -w2 $(@:.inc=.bin) | awk '{print "        dc.w    $$" toupper($$1)}' > $@
+# Build full ROM (automatically runs sh2-assembly first)
+make all
+
+# Verify SH2 assembly matches original ROM
+make sh2-verify
 ```
+
+Each function has explicit rules in the Makefile with size truncation for exact matches:
+- Assembly: `sh-elf-as --isa=sh2 -o func.o func.asm`
+- Binary: `sh-elf-objcopy -O binary func.o func.bin`
+- Include: `xxd -p func.bin | fold -w4 | awk '{print "dc.w $$" toupper($1)}'`
 
 ## Advantages of This Approach
 
@@ -178,12 +184,28 @@ For each converted section:
 - ✅ Assembly toolchain working (sh-elf-as)
 - ✅ Byte-perfect output proven (slave_test_exact.asm)
 - ✅ Conversion workflow created
-- ⏳ Build system integration (planned)
+- ✅ Build system integration (Makefile rules for 9 functions)
 - ⏳ Batch conversion tools (planned)
+
+## Functions in Build System
+
+The following functions are automatically built via `make sh2-assembly`:
+
+| Function | Source | Size | Notes |
+|----------|--------|------|-------|
+| func_006 | 3d_engine/ | 88B | Matrix multiply |
+| func_008 | 3d_engine/ | 56B | Alt matrix multiply |
+| func_009 | 3d_engine/ | 30B | Display list 4elem |
+| func_010 | 3d_engine/ | 26B | Display list 3elem |
+| func_016 | 3d_engine/ | 34B | Coord transform |
+| func_065 | 3d_engine/ | 152B | Unrolled data copy |
+| func_066 | 3d_engine/ | 48B | RLE decoder |
+| func_021_optimized | expansion/ | 96B | Slave vertex transform |
+| batch_copy_handler | root | 56B | Batch copy cmd $26 |
 
 ## Next Priorities
 
 1. Convert `code_20200.asm` section around $02050C (our active code)
-2. Create Makefile rules for automatic assembly→dc.w
+2. Activate batch_copy_handler in jump table (cmd $26)
 3. Document conversion best practices
 4. Convert sections incrementally as we touch them

@@ -1986,48 +1986,10 @@
         include "sh2/generated/func_010.inc"
         dc.w    $81E3        ; $02321C ; func_010 delay slot (borrowed from next)
         dc.w    $0009        ; $02321E
-        dc.w    $4F22        ; $023220
-        dc.w    $85E7        ; $023222
-        dc.w    $8800        ; $023224
-        dc.w    $8D1A        ; $023226
-        dc.w    $6403        ; $023228
-        dc.w    $85E1        ; $02322A
-        dc.w    $4018        ; $02322C
-        dc.w    $4008        ; $02322E
-        dc.w    $4008        ; $023230
-        dc.w    $6103        ; $023232
-        dc.w    $85E3        ; $023234
-        dc.w    $4018        ; $023236
-        dc.w    $4008        ; $023238
-        dc.w    $4008        ; $02323A
-        dc.w    $6303        ; $02323C
-        dc.w    $D50B        ; $02323E
-        dc.w    $E200        ; $023240
-        dc.w    $D00B        ; $023242
-        dc.w    $3108        ; $023244
-        dc.w    $330C        ; $023246
-        dc.w    $1510        ; $023248
-        dc.w    $1521        ; $02324A
-        dc.w    $1532        ; $02324C
-        dc.w    $6043        ; $02324E
-        dc.w    $2FE6        ; $023250
-        dc.w    $2F76        ; $023252
-        dc.w    $DE07        ; $023254
-        dc.w    $B00F        ; $023256
-        dc.w    $81E1        ; $023258
-        dc.w    $67F6        ; $02325A
-        dc.w    $6EF6        ; $02325C
-        dc.w    $4710        ; $02325E
-        dc.w    $8FDF        ; $023260
-        dc.w    $7E3C        ; $023262
-        dc.w    $4F26        ; $023264
-        dc.w    $000B        ; $023266
-        dc.w    $0009        ; $023268
-        dc.w    $0000        ; $02326A
-        dc.w    $C000        ; $02326C
-        dc.w    $0770        ; $02326E
-        dc.w    $0010        ; $023270
-        dc.w    $0000        ; $023272
+; func_011: Display List Processing Loop (84 bytes)
+; ROM offset: $023220-$023273
+        include "sh2/generated/func_011.inc"
+; func_012 literal pool entry (belongs to func_012)
         dc.w    $C000        ; $023274
         dc.w    $0700        ; $023276
         dc.w    $4F22        ; $023278

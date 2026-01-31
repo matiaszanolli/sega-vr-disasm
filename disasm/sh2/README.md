@@ -184,7 +184,7 @@ For each converted section:
 - ✅ Assembly toolchain working (sh-elf-as)
 - ✅ Byte-perfect output proven (slave_test_exact.asm)
 - ✅ Conversion workflow created
-- ✅ Build system integration (Makefile rules for 13 functions)
+- ✅ Build system integration (Makefile rules for 14 functions)
 - ⏳ Batch conversion tools (planned)
 
 ## Functions in Build System
@@ -198,6 +198,7 @@ The following functions are automatically built via `make sh2-assembly`:
 | func_008 | 3d_engine/ | 56B | Alt matrix multiply |
 | func_009 | 3d_engine/ | 30B | Display list 4elem |
 | func_010 | 3d_engine/ | 26B | Display list 3elem |
+| func_011 | 3d_engine/ | 84B | Display list loop (with linker script) |
 | func_016 | 3d_engine/ | 34B | Coord transform |
 | func_017 | 3d_engine/ | 26B | Quad helper (with linker script) |
 | func_022 | 3d_engine/ | 26B | Wait ready/HW sync (with linker script) |

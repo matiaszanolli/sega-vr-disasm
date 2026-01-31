@@ -44,10 +44,11 @@ picodrive build/vr_rebuild.32x
 ├── analysis/                      # Reverse engineering docs
 │   ├── ARCHITECTURAL_BOTTLENECK_ANALYSIS.md  # Key insight
 │   ├── 68K_FUNCTION_REFERENCE.md  # 503+ functions
-│   ├── 68K_SH2_CROSS_REFERENCE.md # Communication protocol
-│   ├── DATA_STRUCTURES.md         # Memory layouts
-│   ├── STATE_MACHINES.md          # V-INT & game states
-│   └── ...                        # 100+ analysis docs
+│   ├── 68K_SH2_COMMUNICATION.md   # Communication protocol
+│   ├── architecture/              # Memory maps, state machines
+│   ├── sh2-analysis/              # SH2 3D engine docs
+│   ├── optimization/              # Optimization research
+│   └── debugger-design/           # PicoDrive debugger
 │
 ├── docs/                          # Hardware manuals & guides
 │   ├── 32x-hardware-manual.md     # Complete HW reference
@@ -146,8 +147,8 @@ You must provide your own legal ROM dump:
 | **4MB Expansion** | [ROM_EXPANSION_4MB_IMPLEMENTATION.md](analysis/architecture/ROM_EXPANSION_4MB_IMPLEMENTATION.md) |
 | **68K Functions** | [68K_FUNCTION_REFERENCE.md](analysis/68K_FUNCTION_REFERENCE.md) (503+ functions) |
 | **SH2 Functions** | [SH2_SYMBOL_MAP.md](disasm/SH2_SYMBOL_MAP.md) (107 functions) |
-| **Communication** | [68K_SH2_CROSS_REFERENCE.md](analysis/68K_SH2_CROSS_REFERENCE.md) |
-| **Data Structures** | [DATA_STRUCTURES.md](analysis/DATA_STRUCTURES.md) |
+| **Communication** | [68K_SH2_COMMUNICATION.md](analysis/68K_SH2_COMMUNICATION.md) |
+| **Data Structures** | [DATA_STRUCTURES.md](analysis/architecture/DATA_STRUCTURES.md) |
 | **Hardware** | [32x-hardware-manual.md](docs/32x-hardware-manual.md) |
 | **Development** | [development-guide.md](docs/development-guide.md) |
 

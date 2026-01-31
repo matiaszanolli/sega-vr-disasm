@@ -2303,14 +2303,9 @@
         dc.w    $5092        ; $02362E
         dc.w    $000B        ; $023630
         dc.w    $1903        ; $023632
-        dc.w    $6085        ; $023634
-        dc.w    $6485        ; $023636
-        dc.w    $301C        ; $023638
-        dc.w    $8196        ; $02363A
-        dc.w    $3428        ; $02363C
-        dc.w    $604B        ; $02363E
-        dc.w    $000B        ; $023640
-        dc.w    $8197        ; $023642
+; func_025: Coordinate offset calculator (16 bytes: $023634-$023643)
+; Calculates coordinate offsets from input buffer
+        include "sh2/generated/func_025.inc"
 ; func_026, func_027, func_028 (68 bytes: $023644-$023687)
 ; Bounds comparison with shared exit paths
         include "sh2/generated/func_026.inc"

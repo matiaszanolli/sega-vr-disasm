@@ -2272,37 +2272,9 @@
         dc.w    $4F26        ; $0235F0
         dc.w    $000B        ; $0235F2
         dc.w    $0009        ; $0235F4
-        dc.w    $51E3        ; $0235F6
-        dc.w    $52E4        ; $0235F8
-        dc.w    $6085        ; $0235FA
-        dc.w    $81E0        ; $0235FC
-        dc.w    $6085        ; $0235FE
-        dc.w    $6485        ; $023600
-        dc.w    $301C        ; $023602
-        dc.w    $8190        ; $023604
-        dc.w    $3428        ; $023606
-        dc.w    $604B        ; $023608
-        dc.w    $8191        ; $02360A
-        dc.w    $6085        ; $02360C
-        dc.w    $6485        ; $02360E
-        dc.w    $301C        ; $023610
-        dc.w    $8192        ; $023612
-        dc.w    $3428        ; $023614
-        dc.w    $604B        ; $023616
-        dc.w    $8193        ; $023618
-        dc.w    $6085        ; $02361A
-        dc.w    $6485        ; $02361C
-        dc.w    $301C        ; $02361E
-        dc.w    $8194        ; $023620
-        dc.w    $3428        ; $023622
-        dc.w    $604B        ; $023624
-        dc.w    $8195        ; $023626
-        dc.w    $85E0        ; $023628
-        dc.w    $C801        ; $02362A
-        dc.w    $8902        ; $02362C
-        dc.w    $5092        ; $02362E
-        dc.w    $000B        ; $023630
-        dc.w    $1903        ; $023632
+; func_024: Screen Coordinate Calculator (62 bytes: $0235F6-$023633)
+; Calculates screen-space coordinates for quad vertices
+        include "sh2/generated/func_024.inc"
 ; func_025: Coordinate offset calculator (16 bytes: $023634-$023643)
 ; Calculates coordinate offsets from input buffer
         include "sh2/generated/func_025.inc"

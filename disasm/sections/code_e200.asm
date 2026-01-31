@@ -4019,4 +4019,6 @@
         dc.w    $0412        ; $0101F4
         dc.w    $207C        ; $0101F6
         dc.w    $0601        ; $0101F8
-        dc.w    $B880        ; $0101FA (last word)
+        dc.w    $B880        ; $0101FA
+        dc.w    $227C        ; $0101FC - MOVEA.L #$24011050,A1 (partial)
+        dc.w    $2401        ; $0101FE

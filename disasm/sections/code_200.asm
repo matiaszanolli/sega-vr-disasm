@@ -4099,4 +4099,7 @@ vint_jump_table:                        ; $0016B2
         dc.w    $C827        ; $0021F2
         dc.w    $11FC        ; $0021F4
         dc.w    $000F        ; $0021F6
-        dc.w    $C828        ; $0021F8 (last word)
+        dc.w    $C828        ; $0021F8
+        dc.w    $4A78        ; $0021FA - TST.W $C8C8
+        dc.w    $C8C8        ; $0021FC
+        dc.w    $6704        ; $0021FE - BEQ.S $002206

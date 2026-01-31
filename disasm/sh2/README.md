@@ -228,6 +228,7 @@ The following functions are automatically built via `make sh2-assembly`:
 | func_041 | 3d_engine/ | 98B | Main render coordinator (with linker script) |
 | func_042 | 3d_engine/ | 20B | VDP data copy helper (with linker script) |
 | func_043 | 3d_engine/ | 312B | Polygon batch processor (with linker script) |
+| func_044 | 3d_engine/ | 268B | Edge/scan processor (with linker script) |
 | func_065 | 3d_engine/ | 152B | Unrolled data copy |
 | func_066 | 3d_engine/ | 48B | RLE decoder |
 | func_021_optimized | expansion/ | 96B | Slave vertex transform |

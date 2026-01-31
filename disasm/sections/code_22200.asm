@@ -2315,55 +2315,11 @@
 ; func_032: Table Lookup / Indexed Load Loop (32 bytes, $0236DA-$0236F9)
 ; Uses indexed addressing @(R0,R8) for table lookups
         include "sh2/generated/func_032.inc"
-        dc.w    $D80B        ; $0236FA
-        dc.w    $60A3        ; $0236FC
-        dc.w    $53E5        ; $0236FE
-        dc.w    $018E        ; $023700
-        dc.w    $641F        ; $023702
-        dc.w    $3433        ; $023704
-        dc.w    $8911        ; $023706
-        dc.w    $6213        ; $023708
-        dc.w    $30CC        ; $02370A
-        dc.w    $C90C        ; $02370C
-        dc.w    $018E        ; $02370E
-        dc.w    $641F        ; $023710
-        dc.w    $3433        ; $023712
-        dc.w    $8BF8        ; $023714
-        dc.w    $4F22        ; $023716
-        dc.w    $B021        ; $023718
-        dc.w    $0009        ; $02371A
-        dc.w    $4F26        ; $02371C
-        dc.w    $2932        ; $02371E
-        dc.w    $7904        ; $023720
-        dc.w    $A008        ; $023722
-        dc.w    $53E6        ; $023724
-        dc.w    $0000        ; $023726
-        dc.w    $C000        ; $023728
-        dc.w    $0740        ; $02372A
-        dc.w    $2912        ; $02372C
-        dc.w    $7904        ; $02372E
-        dc.w    $53E6        ; $023730
-        dc.w    $30CC        ; $023732
-        dc.w    $C90C        ; $023734
-        dc.w    $6213        ; $023736
-        dc.w    $018E        ; $023738
-        dc.w    $641F        ; $02373A
-        dc.w    $3437        ; $02373C
-        dc.w    $8905        ; $02373E
-        dc.w    $2912        ; $023740
-        dc.w    $7904        ; $023742
-        dc.w    $30B0        ; $023744
-        dc.w    $8907        ; $023746
-        dc.w    $AFF4        ; $023748
-        dc.w    $30CC        ; $02374A
-        dc.w    $4F22        ; $02374C
-        dc.w    $B006        ; $02374E
-        dc.w    $0009        ; $023750
-        dc.w    $4F26        ; $023752
-        dc.w    $2932        ; $023754
-        dc.w    $7904        ; $023756
-        dc.w    $E0FF        ; $023758
-        dc.w    $000B        ; $02375A
+; func_033: Quad Rendering / Edge Walking (98 bytes: $0236FA-$02375B)
+; Edge walking algorithm for polygon rasterization, calls func_034
+        include "sh2/generated/func_033.inc"
+; func_034: Span Filler (starts at $02375C)
+; Note: First instruction ($2902) is shared as func_033's RTS delay slot
         dc.w    $2902        ; $02375C
         dc.w    $641F        ; $02375E
         dc.w    $652F        ; $023760

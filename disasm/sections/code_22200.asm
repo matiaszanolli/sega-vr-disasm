@@ -2011,23 +2011,13 @@
 ; func_040_cases: Jump Table Case Handlers (212 bytes: $0238D8-$0239AB)
 ; Case handlers for func_040's 12-entry jump table
         include "sh2/generated/func_040_cases.inc"
-; Data/constants continue at $0239AC
+; Padding/unused at $0239AC
         dc.w    $BFFF        ; $0239AC  ; Mask constant (0xBFFF)
-        dc.w    $0009        ; $0239AE
-        dc.w    $DE06        ; $0239B0
-        dc.w    $C708        ; $0239B2
-        dc.w    $E70E        ; $0239B4
-        dc.w    $6DE3        ; $0239B6
-        dc.w    $7D0C        ; $0239B8
-        dc.w    $6106        ; $0239BA
-        dc.w    $2D12        ; $0239BC
-        dc.w    $4710        ; $0239BE
-        dc.w    $8FFB        ; $0239C0
-        dc.w    $7D04        ; $0239C2
-        dc.w    $D002        ; $0239C4
-        dc.w    $401E        ; $0239C6
-        dc.w    $000B        ; $0239C8
-        dc.w    $0009        ; $0239CA
+        dc.w    $0009        ; $0239AE  ; NOP padding
+; func_040_utility: Data Copy and GBR Setup (28 bytes: $0239B0-$0239CB)
+; Small utility called by func_041 to copy data and set up GBR
+        include "sh2/generated/func_040_utility.inc"
+; Literal pool for func_040_utility (data: $0239CC-$0239EF)
         dc.w    $C000        ; $0239CC
         dc.w    $0700        ; $0239CE
         dc.w    $2000        ; $0239D0
@@ -2046,66 +2036,14 @@
         dc.w    $013F        ; $0239EA
         dc.w    $0601        ; $0239EC
         dc.w    $8000        ; $0239EE
-        dc.w    $4F22        ; $0239F0
-        dc.w    $D00E        ; $0239F2
-        dc.w    $400B        ; $0239F4
-        dc.w    $0009        ; $0239F6
-        dc.w    $B02B        ; $0239F8
-        dc.w    $0009        ; $0239FA
-        dc.w    $BFD8        ; $0239FC
-        dc.w    $0009        ; $0239FE
-        dc.w    $D00B        ; $023A00
-        dc.w    $51E9        ; $023A02
-        dc.w    $210B        ; $023A04
-        dc.w    $851E        ; $023A06
-        dc.w    $C804        ; $023A08
-        dc.w    $891D        ; $023A0A
-        dc.w    $C802        ; $023A0C
-        dc.w    $8B13        ; $023A0E
-        dc.w    $D008        ; $023A10
-        dc.w    $400B        ; $023A12
-        dc.w    $2FE6        ; $023A14
-        dc.w    $6EF6        ; $023A16
-        dc.w    $51E9        ; $023A18
-        dc.w    $E008        ; $023A1A
-        dc.w    $811E        ; $023A1C
-        dc.w    $9004        ; $023A1E
-        dc.w    $51E9        ; $023A20
-        dc.w    $7140        ; $023A22
-        dc.w    $2109        ; $023A24
-        dc.w    $AFEB        ; $023A26
-        dc.w    $1E19        ; $023A28
-        dc.w    $BFFF        ; $023A2A
-        dc.w    $0600        ; $023A2C
-        dc.w    $45CC        ; $023A2E
-        dc.w    $2000        ; $023A30
-        dc.w    $0000        ; $023A32
-        dc.w    $C000        ; $023A34
-        dc.w    $0000        ; $023A36
-        dc.w    $9003        ; $023A38
-        dc.w    $811E        ; $023A3A
-        dc.w    $D001        ; $023A3C
-        dc.w    $402B        ; $023A3E
-        dc.w    $4F26        ; $023A40
-        dc.w    $AB00        ; $023A42
-        dc.w    $0600        ; $023A44
-        dc.w    $442C        ; $023A46
-        dc.w    $E710        ; $023A48
-        dc.w    $4710        ; $023A4A
-        dc.w    $8BFD        ; $023A4C
-        dc.w    $AFDA        ; $023A4E
-        dc.w    $0009        ; $023A50
-        dc.w    $D105        ; $023A52
-        dc.w    $D005        ; $023A54
-        dc.w    $9706        ; $023A56
-        dc.w    $6206        ; $023A58
-        dc.w    $2122        ; $023A5A
-        dc.w    $4710        ; $023A5C
-        dc.w    $8FFB        ; $023A5E
-        dc.w    $7104        ; $023A60
-        dc.w    $000B        ; $023A62
-        dc.w    $0009        ; $023A64
-        dc.w    $0091        ; $023A66
+; func_041: Main Render Coordinator (98 bytes: $0239F0-$023A51)
+; Coordinates render pipeline: init, data copy, GBR setup, status checks
+        include "sh2/generated/func_041.inc"
+; func_042: VDP Data Copy Helper (20 bytes: $023A52-$023A65)
+; Small utility that copies data from source to destination
+        include "sh2/generated/func_042.inc"
+; Literal pool for func_042 (data: $023A66-$023A6F)
+        dc.w    $0091        ; $023A66  ; Loop count (145)
         dc.w    $C000        ; $023A68
         dc.w    $0000        ; $023A6A
         dc.w    $0600        ; $023A6C

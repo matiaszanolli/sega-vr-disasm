@@ -224,6 +224,9 @@ The following functions are automatically built via `make sh2-assembly`:
 | func_037_038_039 | 3d_engine/ | 64B | Visibility helper functions (with linker script) |
 | func_040 | 3d_engine/ | 122B | Display list buffer setup + jump table (with linker script) |
 | func_040_cases | 3d_engine/ | 212B | Jump table case handlers for func_040 (with linker script) |
+| func_040_utility | 3d_engine/ | 28B | Data copy + GBR setup utility (with linker script) |
+| func_041 | 3d_engine/ | 98B | Main render coordinator (with linker script) |
+| func_042 | 3d_engine/ | 20B | VDP data copy helper (with linker script) |
 | func_065 | 3d_engine/ | 152B | Unrolled data copy |
 | func_066 | 3d_engine/ | 48B | RLE decoder |
 | func_021_optimized | expansion/ | 96B | Slave vertex transform |

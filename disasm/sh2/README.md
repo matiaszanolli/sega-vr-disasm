@@ -235,6 +235,9 @@ The following functions are automatically built via `make sh2-assembly`:
 | func_048 | 3d_engine/ | 22B | Bounds check handler type 7 (with linker script) |
 | func_049 | 3d_engine/ | 26B | Bounds entry handler type 8 (with linker script) |
 | func_050 | 3d_engine/ | 88B | Multi-BSR processing handler (with linker script) |
+| func_051 | 3d_engine/ | 92B | Offset multi-BSR handler type 3 (with linker script) |
+| func_052 | 3d_engine/ | 22B | Small BSR handler types 4/5 (with linker script) |
+| func_053 | 3d_engine/ | 38B | Offset small BSR handler type 6 (with linker script) |
 | func_065 | 3d_engine/ | 152B | Unrolled data copy |
 | func_066 | 3d_engine/ | 48B | RLE decoder |
 | func_021_optimized | expansion/ | 96B | Slave vertex transform |

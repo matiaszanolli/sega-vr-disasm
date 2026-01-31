@@ -2087,52 +2087,10 @@
         dc.w    $7F4C        ; $023DD2
         dc.w    $0600        ; $023DD4
         dc.w    $8310        ; $023DD6
-        dc.w    $4F22        ; $023DD8
-        dc.w    $59E1        ; $023DDA
-        dc.w    $902A        ; $023DDC
-        dc.w    $390C        ; $023DDE
-        dc.w    $DA15        ; $023DE0
-        dc.w    $84E1        ; $023DE2
-        dc.w    $4008        ; $023DE4
-        dc.w    $0AAE        ; $023DE6
-        dc.w    $84E8        ; $023DE8
-        dc.w    $8800        ; $023DEA
-        dc.w    $8901        ; $023DEC
-        dc.w    $B09E        ; $023DEE
-        dc.w    $0009        ; $023DF0
-        dc.w    $7908        ; $023DF2
-        dc.w    $84E9        ; $023DF4
-        dc.w    $8800        ; $023DF6
-        dc.w    $8901        ; $023DF8
-        dc.w    $B098        ; $023DFA
-        dc.w    $0009        ; $023DFC
-        dc.w    $7908        ; $023DFE
-        dc.w    $B095        ; $023E00
-        dc.w    $84EA        ; $023E02
-        dc.w    $7908        ; $023E04
-        dc.w    $B092        ; $023E06
-        dc.w    $E00A        ; $023E08
-        dc.w    $7908        ; $023E0A
-        dc.w    $B08F        ; $023E0C
-        dc.w    $84EB        ; $023E0E
-        dc.w    $7908        ; $023E10
-        dc.w    $B08C        ; $023E12
-        dc.w    $84EC        ; $023E14
-        dc.w    $7908        ; $023E16
-        dc.w    $B089        ; $023E18
-        dc.w    $E00B        ; $023E1A
-        dc.w    $7908        ; $023E1C
-        dc.w    $B086        ; $023E1E
-        dc.w    $84ED        ; $023E20
-        dc.w    $7908        ; $023E22
-        dc.w    $B083        ; $023E24
-        dc.w    $84EE        ; $023E26
-        dc.w    $7908        ; $023E28
-        dc.w    $B080        ; $023E2A
-        dc.w    $84EF        ; $023E2C
-        dc.w    $4F26        ; $023E2E
-        dc.w    $000B        ; $023E30
-        dc.w    $0009        ; $023E32
+; func_051: Offset Multi-BSR Handler Type 3 (92 bytes: $023DD8-$023E33)
+; Adds offset to dest, 10 BSR calls to $023F2E
+        include "sh2/generated/func_051.inc"
+; Literal pool for func_051 (offset and addresses)
         dc.w    $0400        ; $023E34
         dc.w    $0000        ; $023E36
         dc.w    $0600        ; $023E38
@@ -2143,42 +2101,21 @@
         dc.w    $8E68        ; $023E42
         dc.w    $0600        ; $023E44
         dc.w    $95EC        ; $023E46
-        dc.w    $4F22        ; $023E48
-        dc.w    $59E1        ; $023E4A
-        dc.w    $DA04        ; $023E4C
-        dc.w    $B06E        ; $023E4E
-        dc.w    $84EA        ; $023E50
-        dc.w    $7908        ; $023E52
-        dc.w    $B06B        ; $023E54
-        dc.w    $84EB        ; $023E56
-        dc.w    $4F26        ; $023E58
-        dc.w    $000B        ; $023E5A
-        dc.w    $0009        ; $023E5C
+; func_052: Small BSR Handler Types 4/5 (22 bytes: $023E48-$023E5D)
+; 2 BSR calls to $023F2E
+        include "sh2/generated/func_052.inc"
+; Literal pool for func_052 (address)
         dc.w    $0000        ; $023E5E
         dc.w    $0600        ; $023E60
         dc.w    $86D4        ; $023E62
-        dc.w    $4F22        ; $023E64
-        dc.w    $59E1        ; $023E66
-        dc.w    $900F        ; $023E68
-        dc.w    $390C        ; $023E6A
-        dc.w    $DA07        ; $023E6C
-        dc.w    $84E1        ; $023E6E
-        dc.w    $4008        ; $023E70
-        dc.w    $0AAE        ; $023E72
-        dc.w    $84EA        ; $023E74
-        dc.w    $8800        ; $023E76
-        dc.w    $8901        ; $023E78
-        dc.w    $B058        ; $023E7A
-        dc.w    $0009        ; $023E7C
-        dc.w    $7908        ; $023E7E
-        dc.w    $B055        ; $023E80
-        dc.w    $84EB        ; $023E82
-        dc.w    $4F26        ; $023E84
-        dc.w    $000B        ; $023E86
-        dc.w    $0009        ; $023E88
+; func_053: Offset Small BSR Handler Type 6 (38 bytes: $023E64-$023E89)
+; Adds offset, conditional skip, 2 BSR calls
+        include "sh2/generated/func_053.inc"
+; Literal pool for func_053 (offset and address)
         dc.w    $0400        ; $023E8A
         dc.w    $0600        ; $023E8C
         dc.w    $3E3C        ; $023E8E
+; func_054+ continue at $023E90
         dc.w    $4F22        ; $023E90
         dc.w    $59E1        ; $023E92
         dc.w    $9018        ; $023E94

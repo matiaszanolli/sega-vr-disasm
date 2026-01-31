@@ -223,6 +223,7 @@ The following functions are automatically built via `make sh2-assembly`:
 | func_036 | 3d_engine/ | 72B | Render dispatch D / display list processor (with linker script) |
 | func_037_038_039 | 3d_engine/ | 64B | Visibility helper functions (with linker script) |
 | func_040 | 3d_engine/ | 122B | Display list buffer setup + jump table (with linker script) |
+| func_040_cases | 3d_engine/ | 212B | Jump table case handlers for func_040 (with linker script) |
 | func_065 | 3d_engine/ | 152B | Unrolled data copy |
 | func_066 | 3d_engine/ | 48B | RLE decoder |
 | func_021_optimized | expansion/ | 96B | Slave vertex transform |

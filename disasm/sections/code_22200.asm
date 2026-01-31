@@ -2008,114 +2008,11 @@
 ; func_040: Display List Buffer Setup (122 bytes: $02385E-$0238D7)
 ; Initializes VDP display list buffers, jump table dispatch
         include "sh2/generated/func_040.inc"
-; Next functions continue at $0238D8
-        dc.w    $2A22        ; $0238D8
-        dc.w    $AFE9        ; $0238DA
-        dc.w    $7A04        ; $0238DC
-        dc.w    $E0FF        ; $0238DE
-        dc.w    $6382        ; $0238E0
-        dc.w    $3300        ; $0238E2
-        dc.w    $8906        ; $0238E4
-        dc.w    $6492        ; $0238E6
-        dc.w    $3400        ; $0238E8
-        dc.w    $8907        ; $0238EA
-        dc.w    $633F        ; $0238EC
-        dc.w    $644F        ; $0238EE
-        dc.w    $3437        ; $0238F0
-        dc.w    $8903        ; $0238F2
-        dc.w    $6092        ; $0238F4
-        dc.w    $2A02        ; $0238F6
-        dc.w    $AFDA        ; $0238F8
-        dc.w    $7A04        ; $0238FA
-        dc.w    $6082        ; $0238FC
-        dc.w    $2B02        ; $0238FE
-        dc.w    $AFD6        ; $023900
-        dc.w    $7B04        ; $023902
-        dc.w    $2A22        ; $023904
-        dc.w    $7A04        ; $023906
-        dc.w    $2B12        ; $023908
-        dc.w    $AFD1        ; $02390A
-        dc.w    $7B04        ; $02390C
-        dc.w    $2A12        ; $02390E
-        dc.w    $AFCE        ; $023910
-        dc.w    $7A04        ; $023912
-        dc.w    $2A12        ; $023914
-        dc.w    $7A04        ; $023916
-        dc.w    $2B22        ; $023918
-        dc.w    $AFC9        ; $02391A
-        dc.w    $7B04        ; $02391C
-        dc.w    $85E3        ; $02391E
-        dc.w    $8800        ; $023920
-        dc.w    $8D10        ; $023922
-        dc.w    $6303        ; $023924
-        dc.w    $C702        ; $023926
-        dc.w    $51EC        ; $023928
-        dc.w    $003D        ; $02392A
-        dc.w    $0023        ; $02392C
-        dc.w    $52ED        ; $02392E
-        dc.w    $0016        ; $023930
-        dc.w    $001E        ; $023932
-        dc.w    $0024        ; $023934
-        dc.w    $002A        ; $023936
-        dc.w    $002E        ; $023938
-        dc.w    $0034        ; $02393A
-        dc.w    $0050        ; $02393C
-        dc.w    $002A        ; $02393E
-        dc.w    $005A        ; $023940
-        dc.w    $0060        ; $023942
-        dc.w    $0034        ; $023944
-        dc.w    $E0FF        ; $023946
-        dc.w    $2A02        ; $023948
-        dc.w    $A026        ; $02394A
-        dc.w    $2B02        ; $02394C
-        dc.w    $2B22        ; $02394E
-        dc.w    $AFF9        ; $023950
-        dc.w    $7B04        ; $023952
-        dc.w    $2B12        ; $023954
-        dc.w    $AFF6        ; $023956
-        dc.w    $7B04        ; $023958
-        dc.w    $000B        ; $02395A
-        dc.w    $0009        ; $02395C
-        dc.w    $2A22        ; $02395E
-        dc.w    $AFF1        ; $023960
-        dc.w    $7A04        ; $023962
-        dc.w    $7AFC        ; $023964
-        dc.w    $7BFC        ; $023966
-        dc.w    $63A6        ; $023968
-        dc.w    $64B6        ; $02396A
-        dc.w    $613F        ; $02396C
-        dc.w    $624F        ; $02396E
-        dc.w    $3217        ; $023970
-        dc.w    $8902        ; $023972
-        dc.w    $2B32        ; $023974
-        dc.w    $AFE6        ; $023976
-        dc.w    $7B04        ; $023978
-        dc.w    $2A42        ; $02397A
-        dc.w    $AFE3        ; $02397C
-        dc.w    $7A04        ; $02397E
-        dc.w    $2A22        ; $023980
-        dc.w    $7A04        ; $023982
-        dc.w    $2B12        ; $023984
-        dc.w    $AFDE        ; $023986
-        dc.w    $7B04        ; $023988
-        dc.w    $2A12        ; $02398A
-        dc.w    $AFDB        ; $02398C
-        dc.w    $7A04        ; $02398E
-        dc.w    $2A12        ; $023990
-        dc.w    $7A04        ; $023992
-        dc.w    $2B22        ; $023994
-        dc.w    $AFD6        ; $023996
-        dc.w    $7B04        ; $023998
-        dc.w    $85E0        ; $02399A
-        dc.w    $816F        ; $02399C
-        dc.w    $E004        ; $02399E
-        dc.w    $816E        ; $0239A0
-        dc.w    $9003        ; $0239A2
-        dc.w    $7640        ; $0239A4
-        dc.w    $2609        ; $0239A6
-        dc.w    $000B        ; $0239A8
-        dc.w    $1E69        ; $0239AA
-        dc.w    $BFFF        ; $0239AC
+; func_040_cases: Jump Table Case Handlers (212 bytes: $0238D8-$0239AB)
+; Case handlers for func_040's 12-entry jump table
+        include "sh2/generated/func_040_cases.inc"
+; Data/constants continue at $0239AC
+        dc.w    $BFFF        ; $0239AC  ; Mask constant (0xBFFF)
         dc.w    $0009        ; $0239AE
         dc.w    $DE06        ; $0239B0
         dc.w    $C708        ; $0239B2

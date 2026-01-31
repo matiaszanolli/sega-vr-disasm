@@ -1962,48 +1962,12 @@
 ; Both process quads via conditional BSR to func_020
         include "sh2/generated/func_019.inc"
 ; func_020: Vertex processor helper (starts at $0234A0)
-        dc.w    $2FB6        ; $0234A0
-        dc.w    $61B5        ; $0234A2
-        dc.w    $D807        ; $0234A4
-        dc.w    $611D        ; $0234A6
-        dc.w    $381C        ; $0234A8
-        dc.w    $2FB6        ; $0234AA
-        dc.w    $2F06        ; $0234AC
-        dc.w    $B02C        ; $0234AE
-        dc.w    $4F22        ; $0234B0
-        dc.w    $60F6        ; $0234B2
-        dc.w    $6BF6        ; $0234B4
-        dc.w    $4010        ; $0234B6
-        dc.w    $8BF3        ; $0234B8
-        dc.w    $6BF6        ; $0234BA
-        dc.w    $4F26        ; $0234BC
-        dc.w    $000B        ; $0234BE
-        dc.w    $0009        ; $0234C0
-        dc.w    $0000        ; $0234C2
-        dc.w    $0601        ; $0234C4
-        dc.w    $0000        ; $0234C6
-; func_021: Original implementation (RESTORED)
-; Shadow path relocation failed due to PC-relative BSR instructions.
-; BSR targets cannot be relocated without recalculating offsets.
-        dc.w    $4F22        ; $0234C8
-        dc.w    $BF4D        ; $0234CA
-        dc.w    $0009        ; $0234CC
-        dc.w    $2F76        ; $0234CE
-        dc.w    $2F86        ; $0234D0
-        dc.w    $B01A        ; $0234D2
-        dc.w    $4F22        ; $0234D4
-        dc.w    $68F6        ; $0234D6
-        dc.w    $67F6        ; $0234D8
-        dc.w    $8581        ; $0234DA
-        dc.w    $C801        ; $0234DC
-        dc.w    $8F01        ; $0234DE
-        dc.w    $7810        ; $0234E0
-        dc.w    $7804        ; $0234E2
-        dc.w    $4710        ; $0234E4
-        dc.w    $8BF2        ; $0234E6
-        dc.w    $4F26        ; $0234E8
-        dc.w    $000B        ; $0234EA
-        dc.w    $0009        ; $0234EC
+; Called by func_018/func_019 for vertex processing loop
+        include "sh2/generated/func_020.inc"
+; func_021: Original vertex transform implementation (starts at $0234C8)
+; Processes vertices in a loop, calling $023368 and $02350A
+; Note: Optimized version exists at expansion ROM ($300100)
+        include "sh2/generated/func_021_orig.inc"
 ; ═══════════════════════════════════════════════════════════════════════════
 ; func_022: Wait for Ready / Hardware Sync (26 bytes, $0234EE-$023507)
 ; Source: disasm/sh2/3d_engine/func_022_wait_ready.asm

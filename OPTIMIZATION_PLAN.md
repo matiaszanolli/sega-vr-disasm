@@ -35,7 +35,7 @@ After comprehensive codebase analysis, we've identified three high-impact optimi
 3. ⚠️ Timing validation required before live activation (frame sync concerns)
 
 **Next Steps:**
-→ See [ROADMAP_v4.1.md](ROADMAP_v4.1.md) for detailed activation plan
+→ See [ROADMAP_v4.1.md](analysis/optimization/ROADMAP_v4.1.md) for detailed activation plan
 
 **Impact on Track 2 (Slave CPU Activation):**
 - Infrastructure complete (Phases 1-3 of original plan done)

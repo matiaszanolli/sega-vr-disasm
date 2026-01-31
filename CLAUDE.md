@@ -159,10 +159,10 @@ picodrive build/vr_rebuild.32x  # Linux (recommended)
 | [ARCHITECTURAL_BOTTLENECK_ANALYSIS.md](analysis/ARCHITECTURAL_BOTTLENECK_ANALYSIS.md) | **Root cause** - Blocking sync model causes ~20 FPS ceiling |
 | [ROM_EXPANSION_4MB_IMPLEMENTATION.md](analysis/architecture/ROM_EXPANSION_4MB_IMPLEMENTATION.md) | **4MB expansion** - 1MB SH2 working space implementation |
 | [68K_FUNCTION_REFERENCE.md](analysis/68K_FUNCTION_REFERENCE.md) | 503+ named 68K functions by category |
-| [68K_SH2_CROSS_REFERENCE.md](analysis/68K_SH2_CROSS_REFERENCE.md) | Communication protocol between processors |
-| [DATA_STRUCTURES.md](analysis/DATA_STRUCTURES.md) | Memory maps, object tables, structures |
-| [STATE_MACHINES.md](analysis/STATE_MACHINES.md) | V-INT handler and game state machines |
-| [SH2_3D_PIPELINE_ARCHITECTURE.md](analysis/SH2_3D_PIPELINE_ARCHITECTURE.md) | SH2 3D rendering engine |
+| [68K_SH2_COMMUNICATION.md](analysis/68K_SH2_COMMUNICATION.md) | Communication protocol between processors |
+| [DATA_STRUCTURES.md](analysis/architecture/DATA_STRUCTURES.md) | Memory maps, object tables, structures |
+| [STATE_MACHINES.md](analysis/architecture/STATE_MACHINES.md) | V-INT handler and game state machines |
+| [SH2_3D_PIPELINE_ARCHITECTURE.md](analysis/sh2-analysis/SH2_3D_PIPELINE_ARCHITECTURE.md) | SH2 3D rendering engine |
 
 **Subdirectories:**
 - `analysis/68k-reverse-engineering/` - 68K code analysis

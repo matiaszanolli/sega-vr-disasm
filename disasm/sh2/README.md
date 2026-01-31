@@ -109,7 +109,8 @@ Replace dc.w section with assembly-generated include.
 - `func_037_038_039_helpers.asm` - Visibility test helpers
 - `func_040_059_display_engine.asm` - Display list processing (~20 funcs)
 - `func_060_063_raster_batch.asm` - Batch copy coordinators (call func_065)
-- *(40 total function files, ~70 functions translated)*
+- `func_067_plus_vdp_hw.asm` - VDP hardware init and RLE unpacker
+- *(41 total function files, ~100+ functions translated)*
 
 ### Expansion (`expansion/`)
 - `func_021_optimized.asm` - Optimized vertex transform for Slave

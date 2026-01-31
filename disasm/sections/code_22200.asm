@@ -2057,26 +2057,11 @@
 ; func_045: Dispatch Loop Processor (68 bytes: $023CB4-$023CF7)
 ; BSRF-based dispatch loop with jump table for entry type handling
         include "sh2/generated/func_045.inc"
-; func_046+ continue at $023CF8
-        dc.w    $58E2        ; $023CF8
-        dc.w    $59E1        ; $023CFA
-        dc.w    $6685        ; $023CFC
-        dc.w    $6785        ; $023CFE
-        dc.w    $6193        ; $023D00
-        dc.w    $6263        ; $023D02
-        dc.w    $6086        ; $023D04
-        dc.w    $1100        ; $023D06
-        dc.w    $6086        ; $023D08
-        dc.w    $1101        ; $023D0A
-        dc.w    $4210        ; $023D0C
-        dc.w    $8FF9        ; $023D0E
-        dc.w    $7108        ; $023D10
-        dc.w    $4710        ; $023D12
-        dc.w    $8FF4        ; $023D14
-        dc.w    $39DC        ; $023D16
-        dc.w    $000B        ; $023D18
-        dc.w    $0009        ; $023D1A
-        dc.w    $0200        ; $023D1C
+; func_046: Array Copy with Stride (36 bytes: $023CF8-$023D1B)
+; Nested loop copies longword pairs with stride advance
+        include "sh2/generated/func_046.inc"
+; Literal pool (shared by func_045): stride and table base
+        dc.w    $0200        ; $023D1C stride constant
         dc.w    $0000        ; $023D1E
         dc.w    $0600        ; $023D20
         dc.w    $3CDC        ; $023D22

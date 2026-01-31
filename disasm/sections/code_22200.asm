@@ -2005,68 +2005,10 @@
 ; func_037_038_039: Visibility Helper Functions (64 bytes: $02381E-$02385D)
 ; Helper subroutines for func_036 render dispatch
         include "sh2/generated/func_037_038_039.inc"
-; Next function at $02385E (display list handler)
-        dc.w    $D811        ; $02385E
-        dc.w    $D911        ; $023860
-        dc.w    $56E9        ; $023862
-        dc.w    $D111        ; $023864
-        dc.w    $216B        ; $023866
-        dc.w    $851E        ; $023868
-        dc.w    $C808        ; $02386A
-        dc.w    $89FC        ; $02386C
-        dc.w    $6A63        ; $02386E
-        dc.w    $6B63        ; $023870
-        dc.w    $7B20        ; $023872
-        dc.w    $85E2        ; $023874
-        dc.w    $8800        ; $023876
-        dc.w    $8D1A        ; $023878
-        dc.w    $6303        ; $02387A
-        dc.w    $C702        ; $02387C
-        dc.w    $51EA        ; $02387E
-        dc.w    $003D        ; $023880
-        dc.w    $0023        ; $023882
-        dc.w    $52EB        ; $023884
-        dc.w    $0009        ; $023886
-        dc.w    $002A        ; $023888
-        dc.w    $0042        ; $02388A
-        dc.w    $0048        ; $02388C
-        dc.w    $004E        ; $02388E
-        dc.w    $0052        ; $023890
-        dc.w    $0058        ; $023892
-        dc.w    $007E        ; $023894
-        dc.w    $004E        ; $023896
-        dc.w    $0088        ; $023898
-        dc.w    $008E        ; $02389A
-        dc.w    $0058        ; $02389C
-        dc.w    $A007        ; $02389E
-        dc.w    $0009        ; $0238A0
-        dc.w    $0000        ; $0238A2
-        dc.w    $C000        ; $0238A4
-        dc.w    $07C0        ; $0238A6
-        dc.w    $C000        ; $0238A8
-        dc.w    $07E0        ; $0238AA
-        dc.w    $2000        ; $0238AC
-        dc.w    $0000        ; $0238AE
-        dc.w    $6086        ; $0238B0
-        dc.w    $88FF        ; $0238B2
-        dc.w    $8902        ; $0238B4
-        dc.w    $2A02        ; $0238B6
-        dc.w    $AFFA        ; $0238B8
-        dc.w    $7A04        ; $0238BA
-        dc.w    $6096        ; $0238BC
-        dc.w    $88FF        ; $0238BE
-        dc.w    $892D        ; $0238C0
-        dc.w    $2B02        ; $0238C2
-        dc.w    $AFFA        ; $0238C4
-        dc.w    $7B04        ; $0238C6
-        dc.w    $2B22        ; $0238C8
-        dc.w    $AFF1        ; $0238CA
-        dc.w    $7B04        ; $0238CC
-        dc.w    $2B12        ; $0238CE
-        dc.w    $AFEE        ; $0238D0
-        dc.w    $7B04        ; $0238D2
-        dc.w    $000B        ; $0238D4
-        dc.w    $0009        ; $0238D6
+; func_040: Display List Buffer Setup (122 bytes: $02385E-$0238D7)
+; Initializes VDP display list buffers, jump table dispatch
+        include "sh2/generated/func_040.inc"
+; Next functions continue at $0238D8
         dc.w    $2A22        ; $0238D8
         dc.w    $AFE9        ; $0238DA
         dc.w    $7A04        ; $0238DC

@@ -199,6 +199,53 @@ sh2_send_cmd:
         rts                                     ; $00E3B2: $4E75             - Return
 
 ; ============================================================================
+; sh2_cmd_27 ($00E3B4) - Command $27 (Most frequent: 21 calls/frame)
+; Purpose: Sends command $27 with data pointer and 3 parameters
+; Called by: 3D rendering, polygon processing
+; Parameters:
+;   A0 = Data pointer (68K address, written directly)
+;   D0 = Parameter 1
+;   D1 = Parameter 2
+;   D2 = Parameter 3
+; Returns: Nothing
+;
+; BLOCKING: Contains TWO busy-wait loops
+; This is a HIGH-FREQUENCY BOTTLENECK FUNCTION (21 calls/frame)
+;
+; Protocol:
+;   Phase 1: Send A0 pointer, command $27, wait for ack
+;   Phase 2: Send D0/D1, wait for ack
+;   Phase 3: Send D2, return (no wait - SH2 processes async)
+; ============================================================================
+
+        org     $00E3B4
+
+sh2_cmd_27:
+; Phase 1: Send data pointer and command
+        move.l  a0,COMM4                        ; $00E3B4: $23C8 $00A1 $5128 - Write pointer
+        move.w  #HANDSHAKE_READY,COMM6          ; $00E3BA: $33FC $0101 $00A1 $512C - Signal ready
+        move.b  #CMD_27,COMM0_LO                ; $00E3C2: $13FC $0027 $00A1 $5121 - Command $27
+        move.b  #$01,COMM0_HI                   ; $00E3CA: $13FC $0001 $00A1 $5120 - Trigger
+; --- BLOCKING WAIT 1 ---
+.wait_phase1:
+        tst.b   COMM6                           ; $00E3D2: $4A39 $00A1 $512C - Check handshake
+        bne.s   .wait_phase1                    ; $00E3D8: $66F8             - Loop until clear
+
+; Phase 2: Send parameters D0 and D1
+        move.w  d0,COMM4                        ; $00E3DA: $33C0 $00A1 $5128 - Write D0
+        move.w  d1,COMM5                        ; $00E3E0: $33C1 $00A1 $512A - Write D1
+        move.w  #HANDSHAKE_READY,COMM6          ; $00E3E6: $33FC $0101 $00A1 $512C - Signal ready
+; --- BLOCKING WAIT 2 ---
+.wait_phase2:
+        tst.b   COMM6                           ; $00E3EE: $4A39 $00A1 $512C - Check handshake
+        bne.s   .wait_phase2                    ; $00E3F4: $66F8             - Loop until clear
+
+; Phase 3: Send parameter D2 (no wait - SH2 processes after return)
+        move.w  d2,COMM4                        ; $00E3F6: $33C2 $00A1 $5128 - Write D2
+        move.w  #HANDSHAKE_READY,COMM6          ; $00E3FC: $33FC $0101 $00A1 $512C - Signal ready
+        rts                                     ; $00E404: $4E75             - Return
+
+; ============================================================================
 ; SUMMARY OF BLOCKING BEHAVIOR
 ; ============================================================================
 ;
@@ -207,8 +254,9 @@ sh2_send_cmd:
 ; sh2_send_cmd_wait |     1      |     14       | ~1000 per call
 ; sh2_wait_response |     1      |     14+      | ~1000 per call
 ; sh2_send_cmd      |     3      |     10+      | ~3000 per call
+; sh2_cmd_27        |     2      |     21       | ~2000 per call
 ;
-; Total estimated blocked cycles per frame: 50,000+
+; Total estimated blocked cycles per frame: 90,000+
 ; At 7.67 MHz, this is ~6.5ms of pure waiting per frame
 ; Target frame time for 60 FPS: 16.67ms
 ; Blocking alone consumes ~40% of available frame time

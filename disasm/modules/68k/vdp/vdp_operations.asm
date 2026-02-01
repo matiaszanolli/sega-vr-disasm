@@ -49,7 +49,36 @@ FILL_LEN_FF     equ     $00FF       ; Standard fill length
 FILL_PATTERN    equ     $0101       ; Standard fill pattern
 FILL_INCREMENT  equ     $0100       ; Address increment per line
 
-        org     $0027F8
+; Framebuffer fill addresses
+FB_ADDR_2000    equ     $2000       ; First framebuffer fill address
+FB_ADDR_F000    equ     $F000       ; Second framebuffer fill address
+
+        org     $0027DA
+
+; ============================================================================
+; sh2_framebuffer_prep ($0027DA) - Full Framebuffer Preparation
+; Called by: Display initialization, mode switches
+; Parameters: None
+; Returns: Both 32X framebuffers cleared
+;
+; Performs complete framebuffer initialization:
+; 1. Call VDPPrep for single fill at $1F00
+; 2. Fill 16 blocks at $2000 (4KB)
+; 3. Fill 16 blocks at $F000 (4KB)
+;
+; Total: 8192 bytes + 256 bytes = 8448 bytes cleared
+; ============================================================================
+
+sh2_framebuffer_prep:
+        bsr.s   VDPPrep                         ; $0027DA: $6142       - Init + fill $1F00
+; Setup for dual framebuffer fill
+        lea     MARS_SYS_BASE,a4                ; $0027DC: $49F9 $00A1 $5100 - System base
+        lea     MARS_VDP_ADDR,a2                ; $0027E2: $45F9 $00A1 $5186 - Address reg
+        lea     MARS_VDP_DATA,a3                ; $0027E8: $47F9 $00A1 $5188 - Data reg
+        move.w  #FB_ADDR_2000,d1                ; $0027EE: $323C $2000 - First FB address
+        bsr.s   VDPFill                         ; $0027F2: $6104       - Fill 16 blocks
+        move.w  #FB_ADDR_F000,d1                ; $0027F4: $323C $F000 - Second FB address
+        ; Falls through to VDPFill
 
 ; ============================================================================
 ; VDPFill ($0027F8) - VDP Memory Fill with Loop
@@ -65,7 +94,7 @@ FILL_INCREMENT  equ     $0100       ; Address increment per line
 ; ============================================================================
 
 VDPFill:
-        moveq   #15,d7                          ; $0027F8: $7E0F       - 16 iterations (0-15)
+        move.w  #$000F,d7                       ; $0027F8: $3E3C $000F - 16 iterations (0-15)
         move.w  #FILL_PATTERN,d0                ; $0027FC: $303C $0101 - Fill pattern
         move.w  #FILL_INCREMENT,d2              ; $002800: $343C $0100 - Address increment
         move.w  #FILL_LEN_FF,$0084(a4)          ; $002804: $397C $00FF $0084 - Set length
@@ -242,6 +271,7 @@ sh2_comm_sync:
 ; -----------------+---------+------------------------------------------
 ; unpack_tiles_vdp | $00247C | Expand 2 packed bytes to 4 VDP tiles
 ; tile_index_expand| $0024AE | Alternate expansion entry
+; sh2_framebuffer_prep|$0027DA| Full framebuffer init (VDPPrep + 2x fill)
 ; VDPFill          | $0027F8 | Fill 16 VRAM blocks (256 bytes each)
 ; VDPPrep          | $00281E | Single VRAM fill at $1F00
 ; PaletteRAMCopy   | $00284C | Copy 512-byte palette to CRAM

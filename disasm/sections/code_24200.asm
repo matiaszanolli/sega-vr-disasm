@@ -129,69 +129,52 @@
 ; Literal pool for func_083 ($0243EC)
         dc.w    $2000        ; $0243EC: poll addr high ($20004100)
         dc.w    $4100        ; $0243EE: poll addr low
-        dc.w    $D106        ; $0243F0
-        dc.w    $8410        ; $0243F2
-        dc.w    $C880        ; $0243F4
-        dc.w    $8901        ; $0243F6
-        dc.w    $D105        ; $0243F8
-        dc.w    $8510        ; $0243FA
-        dc.w    $D105        ; $0243FC
-        dc.w    $E000        ; $0243FE
-        dc.w    $2100        ; $024400
-        dc.w    $D105        ; $024402
-        dc.w    $6010        ; $024404
-        dc.w    $CB01        ; $024406
-        dc.w    $000B        ; $024408
-        dc.w    $2100        ; $02440A
-        dc.w    $2000        ; $02440C
-        dc.w    $4000        ; $02440E
-        dc.w    $2000        ; $024410
-        dc.w    $4100        ; $024412
-        dc.w    $2000        ; $024414
-        dc.w    $4020        ; $024416
-        dc.w    $2000        ; $024418
-        dc.w    $4023        ; $02441A
-        dc.w    $D202        ; $02441C
-        dc.w    $6020        ; $02441E
-        dc.w    $8800        ; $024420
-        dc.w    $8BFC        ; $024422
-        dc.w    $000B        ; $024424
-        dc.w    $2210        ; $024426
-        dc.w    $2000        ; $024428
-        dc.w    $4024        ; $02442A
-        dc.w    $D101        ; $02442C
-        dc.w    $E000        ; $02442E
-        dc.w    $000B        ; $024430
-        dc.w    $2100        ; $024432
-        dc.w    $2000        ; $024434
-        dc.w    $4024        ; $024436
-        dc.w    $D102        ; $024438
-        dc.w    $6010        ; $02443A
-        dc.w    $8800        ; $02443C
-        dc.w    $8BFC        ; $02443E
-        dc.w    $000B        ; $024440
-        dc.w    $0009        ; $024442
-        dc.w    $2000        ; $024444
-        dc.w    $4024        ; $024446
-        dc.w    $980F        ; $024448
-        dc.w    $D908        ; $02444A
-        dc.w    $D008        ; $02444C
-        dc.w    $1800        ; $02444E
-        dc.w    $1811        ; $024450
-        dc.w    $8598        ; $024452
-        dc.w    $1802        ; $024454
-        dc.w    $D007        ; $024456
-        dc.w    $1803        ; $024458
-        dc.w    $D007        ; $02445A
-        dc.w    $180C        ; $02445C
-        dc.w    $D107        ; $02445E
-        dc.w    $6010        ; $024460
-        dc.w    $CB02        ; $024462
-        dc.w    $2100        ; $024464
-        dc.w    $000B        ; $024466
-        dc.w    $0009        ; $024468
-        dc.w    $FF80        ; $02446A
-        dc.w    $2000        ; $02446C
+; ============================================================================
+; func_084: Hardware Register Init (28 bytes: $0243F0-$02440B)
+; Initializes hardware registers based on condition
+; ============================================================================
+        include "sh2/generated/func_084.inc"
+; Literal pool for func_084 ($02440C-$02441A)
+        dc.w    $2000        ; $02440C: control reg high ($20004000)
+        dc.w    $4000        ; $02440E: control reg low
+        dc.w    $2000        ; $024410: status reg high ($20004100)
+        dc.w    $4100        ; $024412: status reg low
+        dc.w    $2000        ; $024414: output reg 1 high ($20004020)
+        dc.w    $4020        ; $024416: output reg 1 low
+        dc.w    $2000        ; $024418: output reg 2 high ($20004023)
+        dc.w    $4023        ; $02441A: output reg 2 low
+; ============================================================================
+; func_085: Poll Until Zero (12 bytes: $02441C-$024427)
+; Polling loop that waits until register reads 0, then stores R1
+; ============================================================================
+        include "sh2/generated/func_085.inc"
+; Literal pool for func_085 ($024428)
+        dc.w    $2000        ; $024428: register addr high ($20004024)
+        dc.w    $4024        ; $02442A: register addr low
+; ============================================================================
+; func_086: Clear Register (8 bytes: $02442C-$024433)
+; Simple function that writes 0 to a register
+; ============================================================================
+        include "sh2/generated/func_086.inc"
+; Literal pool for func_086 ($024434)
+        dc.w    $2000        ; $024434: register addr high ($20004024)
+        dc.w    $4024        ; $024436: register addr low
+; ============================================================================
+; func_087: Poll Until Zero Alternate (12 bytes: $024438-$024443)
+; Polling loop that waits until register reads 0
+; ============================================================================
+        include "sh2/generated/func_087.inc"
+; Literal pool for func_087 ($024444)
+        dc.w    $2000        ; $024444: register addr high ($20004024)
+        dc.w    $4024        ; $024446: register addr low
+; ============================================================================
+; func_088: Structure Initialization (34 bytes: $024448-$024469)
+; Initializes a structure with values from literal pool
+; ============================================================================
+        include "sh2/generated/func_088.inc"
+; Literal pool for func_088 ($02446A-$024480)
+        dc.w    $FF80        ; $02446A: word constant
+        dc.w    $2000        ; $02446C: base addr high ($20004000)
         dc.w    $4000        ; $02446E
         dc.w    $2000        ; $024470
         dc.w    $4012        ; $024472

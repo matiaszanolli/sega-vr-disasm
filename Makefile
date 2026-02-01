@@ -514,6 +514,31 @@ SH2_FUNC083_LDS = $(SH2_3D_DIR)/func_083.lds
 SH2_FUNC083_BIN = $(BUILD_DIR)/sh2/func_083.bin
 SH2_FUNC083_INC = $(SH2_GEN_DIR)/func_083.inc
 
+SH2_FUNC084_SRC = $(SH2_3D_DIR)/func_084_hw_init_short.asm
+SH2_FUNC084_LDS = $(SH2_3D_DIR)/func_084.lds
+SH2_FUNC084_BIN = $(BUILD_DIR)/sh2/func_084.bin
+SH2_FUNC084_INC = $(SH2_GEN_DIR)/func_084.inc
+
+SH2_FUNC085_SRC = $(SH2_3D_DIR)/func_085_poll_zero_short.asm
+SH2_FUNC085_LDS = $(SH2_3D_DIR)/func_085.lds
+SH2_FUNC085_BIN = $(BUILD_DIR)/sh2/func_085.bin
+SH2_FUNC085_INC = $(SH2_GEN_DIR)/func_085.inc
+
+SH2_FUNC086_SRC = $(SH2_3D_DIR)/func_086_clear_reg_short.asm
+SH2_FUNC086_LDS = $(SH2_3D_DIR)/func_086.lds
+SH2_FUNC086_BIN = $(BUILD_DIR)/sh2/func_086.bin
+SH2_FUNC086_INC = $(SH2_GEN_DIR)/func_086.inc
+
+SH2_FUNC087_SRC = $(SH2_3D_DIR)/func_087_poll_zero_alt_short.asm
+SH2_FUNC087_LDS = $(SH2_3D_DIR)/func_087.lds
+SH2_FUNC087_BIN = $(BUILD_DIR)/sh2/func_087.bin
+SH2_FUNC087_INC = $(SH2_GEN_DIR)/func_087.inc
+
+SH2_FUNC088_SRC = $(SH2_3D_DIR)/func_088_struct_init_short.asm
+SH2_FUNC088_LDS = $(SH2_3D_DIR)/func_088.lds
+SH2_FUNC088_BIN = $(BUILD_DIR)/sh2/func_088.bin
+SH2_FUNC088_INC = $(SH2_GEN_DIR)/func_088.inc
+
 SH2_FUNC005_SRC = $(SH2_3D_DIR)/func_005_transform_loop.asm
 SH2_FUNC005_LDS = $(SH2_3D_DIR)/func_005.lds
 SH2_FUNC005_BIN = $(BUILD_DIR)/sh2/func_005.bin
@@ -566,7 +591,7 @@ SH2_BATCH_COPY_INC = $(SH2_GEN_DIR)/batch_copy_handler.inc
 .PHONY: sh2-assembly sh2-verify
 
 # Build all SH2 assembly sources
-sh2-assembly: dirs $(SH2_FUNC000_INC) $(SH2_FUNC022_INC) $(SH2_FUNC017_INC) $(SH2_FUNC018_INC) $(SH2_FUNC019_INC) $(SH2_FUNC020_INC) $(SH2_FUNC021_ORIG_INC) $(SH2_FUNC023_INC) $(SH2_FUNC040_INC) $(SH2_FUNC040_CASES_INC) $(SH2_FUNC040_UTIL_INC) $(SH2_FUNC041_INC) $(SH2_FUNC042_INC) $(SH2_FUNC043_INC) $(SH2_FUNC044_INC) $(SH2_FUNC045_INC) $(SH2_FUNC046_INC) $(SH2_FUNC047_INC) $(SH2_FUNC048_INC) $(SH2_FUNC049_INC) $(SH2_FUNC050_INC) $(SH2_FUNC051_INC) $(SH2_FUNC052_INC) $(SH2_FUNC053_INC) $(SH2_FUNC054_INC) $(SH2_FUNC055_INC) $(SH2_FUNC067_INC) $(SH2_FUNC068_INC) $(SH2_FUNC069_INC) $(SH2_FUNC070_INC) $(SH2_FUNC071_INC) $(SH2_FUNC072_INC) $(SH2_FUNC073_INC) $(SH2_FUNC074_INC) $(SH2_FUNC075_INC) $(SH2_FUNC076_INC) $(SH2_FUNC077_INC) $(SH2_FUNC078_INC) $(SH2_FUNC079_INC) $(SH2_FUNC080_INC) $(SH2_FUNC081_INC) $(SH2_FUNC082_INC) $(SH2_FUNC083_INC) $(SH2_FUNC032_INC) $(SH2_FUNC011_INC) $(SH2_FUNC012_INC) $(SH2_FUNC013_INC) $(SH2_FUNC014_015_INC) $(SH2_FUNC024_INC) $(SH2_FUNC025_INC) $(SH2_FUNC026_INC) $(SH2_FUNC003_004_INC) $(SH2_FUNC029_030_031_INC) $(SH2_FUNC033_INC) $(SH2_FUNC034_INC) $(SH2_FUNC036_INC) $(SH2_FUNC037_038_039_INC) $(SH2_FUNC005_INC) $(SH2_FUNC007_INC) $(SH2_FUNC006_INC) $(SH2_FUNC008_INC) $(SH2_FUNC016_INC) $(SH2_FUNC009_INC) $(SH2_FUNC010_INC) $(SH2_FUNC065_INC) $(SH2_FUNC066_INC) $(SH2_FUNC021_OPT_INC) $(SH2_BATCH_COPY_INC)
+sh2-assembly: dirs $(SH2_FUNC000_INC) $(SH2_FUNC022_INC) $(SH2_FUNC017_INC) $(SH2_FUNC018_INC) $(SH2_FUNC019_INC) $(SH2_FUNC020_INC) $(SH2_FUNC021_ORIG_INC) $(SH2_FUNC023_INC) $(SH2_FUNC040_INC) $(SH2_FUNC040_CASES_INC) $(SH2_FUNC040_UTIL_INC) $(SH2_FUNC041_INC) $(SH2_FUNC042_INC) $(SH2_FUNC043_INC) $(SH2_FUNC044_INC) $(SH2_FUNC045_INC) $(SH2_FUNC046_INC) $(SH2_FUNC047_INC) $(SH2_FUNC048_INC) $(SH2_FUNC049_INC) $(SH2_FUNC050_INC) $(SH2_FUNC051_INC) $(SH2_FUNC052_INC) $(SH2_FUNC053_INC) $(SH2_FUNC054_INC) $(SH2_FUNC055_INC) $(SH2_FUNC067_INC) $(SH2_FUNC068_INC) $(SH2_FUNC069_INC) $(SH2_FUNC070_INC) $(SH2_FUNC071_INC) $(SH2_FUNC072_INC) $(SH2_FUNC073_INC) $(SH2_FUNC074_INC) $(SH2_FUNC075_INC) $(SH2_FUNC076_INC) $(SH2_FUNC077_INC) $(SH2_FUNC078_INC) $(SH2_FUNC079_INC) $(SH2_FUNC080_INC) $(SH2_FUNC081_INC) $(SH2_FUNC082_INC) $(SH2_FUNC083_INC) $(SH2_FUNC084_INC) $(SH2_FUNC085_INC) $(SH2_FUNC086_INC) $(SH2_FUNC087_INC) $(SH2_FUNC088_INC) $(SH2_FUNC032_INC) $(SH2_FUNC011_INC) $(SH2_FUNC012_INC) $(SH2_FUNC013_INC) $(SH2_FUNC014_015_INC) $(SH2_FUNC024_INC) $(SH2_FUNC025_INC) $(SH2_FUNC026_INC) $(SH2_FUNC003_004_INC) $(SH2_FUNC029_030_031_INC) $(SH2_FUNC033_INC) $(SH2_FUNC034_INC) $(SH2_FUNC036_INC) $(SH2_FUNC037_038_039_INC) $(SH2_FUNC005_INC) $(SH2_FUNC007_INC) $(SH2_FUNC006_INC) $(SH2_FUNC008_INC) $(SH2_FUNC016_INC) $(SH2_FUNC009_INC) $(SH2_FUNC010_INC) $(SH2_FUNC065_INC) $(SH2_FUNC066_INC) $(SH2_FUNC021_OPT_INC) $(SH2_BATCH_COPY_INC)
 
 # Build func_000 binary from source (requires linker script for PC-relative addressing)
 $(SH2_FUNC000_BIN): $(SH2_FUNC000_SRC) $(SH2_FUNC000_LDS) | dirs
@@ -1596,6 +1621,96 @@ $(SH2_FUNC083_INC): $(SH2_FUNC083_BIN)
 	@mkdir -p $(SH2_GEN_DIR)
 	@echo "==> Generating dc.w include: func_083.inc..."
 	@echo "; Auto-generated from $(SH2_FUNC083_SRC)" > $@
+	@echo "; DO NOT EDIT - regenerate with 'make sh2-assembly'" >> $@
+	@echo "" >> $@
+	@xxd -p $< | fold -w4 | awk '{print "        dc.w    $$" toupper($$1)}' >> $@
+	@echo "    Output: $@ ($$(wc -l < $@) lines)"
+
+# Build func_084 binary from source (requires linker script)
+$(SH2_FUNC084_BIN): $(SH2_FUNC084_SRC) $(SH2_FUNC084_LDS) | dirs
+	@mkdir -p $(BUILD_DIR)/sh2
+	@echo "==> Assembling SH2: func_084 (with linker script)..."
+	$(SH2_AS) $(SH2_ASFLAGS) -o $(BUILD_DIR)/sh2/func_084.o $<
+	$(SH2_LD) -T $(SH2_FUNC084_LDS) -o $(BUILD_DIR)/sh2/func_084.elf $(BUILD_DIR)/sh2/func_084.o
+	$(SH2_OBJCOPY) -O binary --only-section=.text $(BUILD_DIR)/sh2/func_084.elf $@
+	@echo "    Output: $@ ($$(wc -c < $@) bytes, expected 28)"
+
+$(SH2_FUNC084_INC): $(SH2_FUNC084_BIN)
+	@mkdir -p $(SH2_GEN_DIR)
+	@echo "==> Generating dc.w include: func_084.inc..."
+	@echo "; Auto-generated from $(SH2_FUNC084_SRC)" > $@
+	@echo "; DO NOT EDIT - regenerate with 'make sh2-assembly'" >> $@
+	@echo "" >> $@
+	@xxd -p $< | fold -w4 | awk '{print "        dc.w    $$" toupper($$1)}' >> $@
+	@echo "    Output: $@ ($$(wc -l < $@) lines)"
+
+# Build func_085 binary from source (requires linker script)
+$(SH2_FUNC085_BIN): $(SH2_FUNC085_SRC) $(SH2_FUNC085_LDS) | dirs
+	@mkdir -p $(BUILD_DIR)/sh2
+	@echo "==> Assembling SH2: func_085 (with linker script)..."
+	$(SH2_AS) $(SH2_ASFLAGS) -o $(BUILD_DIR)/sh2/func_085.o $<
+	$(SH2_LD) -T $(SH2_FUNC085_LDS) -o $(BUILD_DIR)/sh2/func_085.elf $(BUILD_DIR)/sh2/func_085.o
+	$(SH2_OBJCOPY) -O binary --only-section=.text $(BUILD_DIR)/sh2/func_085.elf $@
+	@echo "    Output: $@ ($$(wc -c < $@) bytes, expected 12)"
+
+$(SH2_FUNC085_INC): $(SH2_FUNC085_BIN)
+	@mkdir -p $(SH2_GEN_DIR)
+	@echo "==> Generating dc.w include: func_085.inc..."
+	@echo "; Auto-generated from $(SH2_FUNC085_SRC)" > $@
+	@echo "; DO NOT EDIT - regenerate with 'make sh2-assembly'" >> $@
+	@echo "" >> $@
+	@xxd -p $< | fold -w4 | awk '{print "        dc.w    $$" toupper($$1)}' >> $@
+	@echo "    Output: $@ ($$(wc -l < $@) lines)"
+
+# Build func_086 binary from source (requires linker script)
+$(SH2_FUNC086_BIN): $(SH2_FUNC086_SRC) $(SH2_FUNC086_LDS) | dirs
+	@mkdir -p $(BUILD_DIR)/sh2
+	@echo "==> Assembling SH2: func_086 (with linker script)..."
+	$(SH2_AS) $(SH2_ASFLAGS) -o $(BUILD_DIR)/sh2/func_086.o $<
+	$(SH2_LD) -T $(SH2_FUNC086_LDS) -o $(BUILD_DIR)/sh2/func_086.elf $(BUILD_DIR)/sh2/func_086.o
+	$(SH2_OBJCOPY) -O binary --only-section=.text $(BUILD_DIR)/sh2/func_086.elf $@
+	@echo "    Output: $@ ($$(wc -c < $@) bytes, expected 8)"
+
+$(SH2_FUNC086_INC): $(SH2_FUNC086_BIN)
+	@mkdir -p $(SH2_GEN_DIR)
+	@echo "==> Generating dc.w include: func_086.inc..."
+	@echo "; Auto-generated from $(SH2_FUNC086_SRC)" > $@
+	@echo "; DO NOT EDIT - regenerate with 'make sh2-assembly'" >> $@
+	@echo "" >> $@
+	@xxd -p $< | fold -w4 | awk '{print "        dc.w    $$" toupper($$1)}' >> $@
+	@echo "    Output: $@ ($$(wc -l < $@) lines)"
+
+# Build func_087 binary from source (requires linker script)
+$(SH2_FUNC087_BIN): $(SH2_FUNC087_SRC) $(SH2_FUNC087_LDS) | dirs
+	@mkdir -p $(BUILD_DIR)/sh2
+	@echo "==> Assembling SH2: func_087 (with linker script)..."
+	$(SH2_AS) $(SH2_ASFLAGS) -o $(BUILD_DIR)/sh2/func_087.o $<
+	$(SH2_LD) -T $(SH2_FUNC087_LDS) -o $(BUILD_DIR)/sh2/func_087.elf $(BUILD_DIR)/sh2/func_087.o
+	$(SH2_OBJCOPY) -O binary --only-section=.text $(BUILD_DIR)/sh2/func_087.elf $@
+	@echo "    Output: $@ ($$(wc -c < $@) bytes, expected 12)"
+
+$(SH2_FUNC087_INC): $(SH2_FUNC087_BIN)
+	@mkdir -p $(SH2_GEN_DIR)
+	@echo "==> Generating dc.w include: func_087.inc..."
+	@echo "; Auto-generated from $(SH2_FUNC087_SRC)" > $@
+	@echo "; DO NOT EDIT - regenerate with 'make sh2-assembly'" >> $@
+	@echo "" >> $@
+	@xxd -p $< | fold -w4 | awk '{print "        dc.w    $$" toupper($$1)}' >> $@
+	@echo "    Output: $@ ($$(wc -l < $@) lines)"
+
+# Build func_088 binary from source (requires linker script)
+$(SH2_FUNC088_BIN): $(SH2_FUNC088_SRC) $(SH2_FUNC088_LDS) | dirs
+	@mkdir -p $(BUILD_DIR)/sh2
+	@echo "==> Assembling SH2: func_088 (with linker script)..."
+	$(SH2_AS) $(SH2_ASFLAGS) -o $(BUILD_DIR)/sh2/func_088.o $<
+	$(SH2_LD) -T $(SH2_FUNC088_LDS) -o $(BUILD_DIR)/sh2/func_088.elf $(BUILD_DIR)/sh2/func_088.o
+	$(SH2_OBJCOPY) -O binary --only-section=.text $(BUILD_DIR)/sh2/func_088.elf $@
+	@echo "    Output: $@ ($$(wc -c < $@) bytes, expected 34)"
+
+$(SH2_FUNC088_INC): $(SH2_FUNC088_BIN)
+	@mkdir -p $(SH2_GEN_DIR)
+	@echo "==> Generating dc.w include: func_088.inc..."
+	@echo "; Auto-generated from $(SH2_FUNC088_SRC)" > $@
 	@echo "; DO NOT EDIT - regenerate with 'make sh2-assembly'" >> $@
 	@echo "" >> $@
 	@xxd -p $< | fold -w4 | awk '{print "        dc.w    $$" toupper($$1)}' >> $@

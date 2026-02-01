@@ -291,6 +291,76 @@ object_frame_timer:
         rts                                     ; $008180: $4E75
 
 ; ============================================================================
+; timer_countdown_all ($008548) - Decrement 8 Independent Game Timers
+; Called by: Game update loop (every object, every frame)
+; Parameters: A0 = object base
+; Returns: Nothing (timers decremented in place)
+;
+; Decrements 8 timer slots in the object structure. Each timer counts
+; down from its initial value to 0, then stays at 0.
+;
+; Timer slots:
+;   $0098 - Effect timer 1 (collision flash)
+;   $009A - Effect timer 2 (collision flash)
+;   $0086 - Animation timer
+;   $0080 - State timer 1
+;   $0082 - State timer 2
+;   $0084 - State timer 3
+;   $00E6 - Effect timer 3
+;   $00E8 - Effect timer 4
+;
+; Pattern: TST.W timer → BLE skip → SUBQ #1 → skip:
+; This handles negative values safely (BLE = signed less-or-equal)
+; ============================================================================
+
+; Timer offsets in object structure
+OBJ_TIMER1      equ     $0098       ; Effect timer 1
+OBJ_TIMER2      equ     $009A       ; Effect timer 2
+OBJ_ANIM_TMR    equ     $0086       ; Animation timer
+OBJ_STATE_TMR1  equ     $0080       ; State timer 1
+OBJ_STATE_TMR2  equ     $0082       ; State timer 2
+OBJ_STATE_TMR3  equ     $0084       ; State timer 3
+OBJ_TIMER3      equ     $00E6       ; Effect timer 3
+OBJ_TIMER4      equ     $00E8       ; Effect timer 4
+
+        org     $008548
+
+timer_countdown_all:
+        tst.w   OBJ_TIMER1(a0)                  ; $008548: $4A68 $0098 - Check timer 1
+        ble.s   .skip1                          ; $00854C: $6F04       - Skip if <= 0
+        subq.w  #1,OBJ_TIMER1(a0)               ; $00854E: $5368 $0098 - Decrement
+.skip1:
+        tst.w   OBJ_TIMER2(a0)                  ; $008552: $4A68 $009A - Check timer 2
+        ble.s   .skip2                          ; $008556: $6F04       - Skip if <= 0
+        subq.w  #1,OBJ_TIMER2(a0)               ; $008558: $5368 $009A - Decrement
+.skip2:
+        tst.w   OBJ_ANIM_TMR(a0)                ; $00855C: $4A68 $0086 - Check anim timer
+        ble.s   .skip3                          ; $008560: $6F04       - Skip if <= 0
+        subq.w  #1,OBJ_ANIM_TMR(a0)             ; $008562: $5368 $0086 - Decrement
+.skip3:
+        tst.w   OBJ_STATE_TMR1(a0)              ; $008566: $4A68 $0080 - Check state timer 1
+        ble.s   .skip4                          ; $00856A: $6F04       - Skip if <= 0
+        subq.w  #1,OBJ_STATE_TMR1(a0)           ; $00856C: $5368 $0080 - Decrement
+.skip4:
+        tst.w   OBJ_STATE_TMR2(a0)              ; $008570: $4A68 $0082 - Check state timer 2
+        ble.s   .skip5                          ; $008574: $6F04       - Skip if <= 0
+        subq.w  #1,OBJ_STATE_TMR2(a0)           ; $008576: $5368 $0082 - Decrement
+.skip5:
+        tst.w   OBJ_STATE_TMR3(a0)              ; $00857A: $4A68 $0084 - Check state timer 3
+        ble.s   .skip6                          ; $00857E: $6F04       - Skip if <= 0
+        subq.w  #1,OBJ_STATE_TMR3(a0)           ; $008580: $5368 $0084 - Decrement
+.skip6:
+        tst.w   OBJ_TIMER3(a0)                  ; $008584: $4A68 $00E6 - Check timer 3
+        ble.s   .skip7                          ; $008588: $6F04       - Skip if <= 0
+        subq.w  #1,OBJ_TIMER3(a0)               ; $00858A: $5368 $00E6 - Decrement
+.skip7:
+        tst.w   OBJ_TIMER4(a0)                  ; $00858E: $4A68 $00E8 - Check timer 4
+        ble.s   .done                           ; $008592: $6F04       - Skip if <= 0
+        subq.w  #1,OBJ_TIMER4(a0)               ; $008594: $5368 $00E8 - Decrement
+.done:
+        rts                                     ; $008598: $4E75
+
+; ============================================================================
 ; OPTIMIZATION NOTES
 ; ------------------
 ; These functions consume ~40% of 68K frame budget (127,987 cycles total).

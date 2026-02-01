@@ -2651,10 +2651,10 @@ vint_handler:                           ; $001684
         ; ASYNC: Disabled entirely (no space for init code in 68K section)
         movem.l (sp)+,d0-d7/a0-a6       ; Restore 14 registers
         move.w  #$2300,sr               ; Re-enable interrupts
+        rte                             ; $16AE - Normal exit (after full handler)
 
 .no_work:
-        rte                             ; Return from exception
-        dc.w    $4E73        ; $0016B0 (padding/next handler?)
+        rte                             ; $16B0 - Early exit (state was 0)
 vint_jump_table:                        ; $0016B2
         dc.w    $0088        ; $0016B2
         dc.w    $19FE        ; $0016B4

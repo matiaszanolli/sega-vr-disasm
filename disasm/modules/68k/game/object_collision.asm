@@ -66,6 +66,75 @@ COLL_PARAM4     equ     $C08A   ; Collision parameter 4 (word)
 COLL_PARAM5     equ     $C08C   ; Collision parameter 5 (word)
 COLL_PARAM6     equ     $C08E   ; Collision parameter 6 (word)
 
+; Angle calculation work RAM
+ANGLE_FLAG1     equ     $C0BA   ; Angle mode flag 1 (word)
+ANGLE_VAL1      equ     $C0B0   ; Angle value 1 (word)
+ANGLE_VAL2      equ     $C0C2   ; Angle value 2 (word)
+ANGLE_VAL3      equ     $C0CA   ; Angle value 3 (word)
+
+; Collision structure offsets (extends A2 pointer)
+COLL_FLAG       equ     $0019   ; Collision flag byte
+COLL_MULT1      equ     $0012   ; Multiplier 1 (word)
+COLL_MULT2      equ     $0014   ; Multiplier 2 (word)
+COLL_OFFSET     equ     $0016   ; Offset value (word)
+
+        org     $0075C8
+
+; ============================================================================
+; vector_dot_product ($0075C8) - Simple Vector Dot Product
+; Called by: 3 locations + vector_dot_conditional fallthrough
+; Parameters: A2 = collision data pointer, D1/D2 = input vectors
+; Returns: D1 = dot product result (affects condition codes)
+;
+; Computes weighted dot product: (D1*mult1 + D2*mult2 + offset) >> 6
+; ============================================================================
+
+vector_dot_product:
+        muls.w  COLL_MULT1(a2),d1               ; $0075C8: $C3EA $0012 - D1 *= mult1
+        muls.w  COLL_MULT2(a2),d2               ; $0075CC: $C5EA $0014 - D2 *= mult2
+        add.l   d2,d1                           ; $0075D0: $D282       - Sum products
+        move.w  COLL_OFFSET(a2),d2              ; $0075D2: $342A $0016 - Get offset
+        ext.l   d2                              ; $0075D6: $48C2       - Sign extend
+        lsl.l   #5,d1                           ; $0075D8: $EB82       - Shift for precision
+        add.l   d2,d1                           ; $0075DA: $D282       - Add offset
+        asr.l   #6,d1                           ; $0075DC: $EC81       - Normalize (div 64)
+        rts                                     ; $0075DE: $4E75
+
+; ============================================================================
+; vector_dot_conditional ($0075E0) - Conditional Vector Dot Product
+; Called by: 4 locations (via obj_collision_test)
+; Parameters: A2 = collision data pointer, D1/D2 = input vectors
+; Returns: D1 = dot product result (affects condition codes)
+;
+; If collision flag (A2+$19) is positive, branches to vector_dot_product.
+; Otherwise computes weighted dot product with shift normalization (div 32).
+; ============================================================================
+
+        org     $0075E0
+
+; ============================================================================
+; vector_dot_conditional ($0075E0) - Conditional Vector Dot Product
+; Called by: 4 locations (via obj_collision_test)
+; Parameters: A2 = collision data pointer, D1/D2 = input vectors
+; Returns: D1 = dot product result (affects condition codes)
+;
+; If collision flag (A2+$19) is positive, branches to vector_dot_product.
+; Otherwise computes weighted dot product with shift normalization.
+; ============================================================================
+
+vector_dot_conditional:
+        tst.b   COLL_FLAG(a2)                   ; $0075E0: $4A2A $0019 - Test collision flag
+        bpl.s   vector_dot_product              ; $0075E4: $6AE2       - If positive, use simpler calc
+        muls.w  COLL_MULT1(a2),d1               ; $0075E6: $C3EA $0012 - D1 *= mult1
+        muls.w  COLL_MULT2(a2),d2               ; $0075EA: $C5EA $0014 - D2 *= mult2
+        add.l   d2,d1                           ; $0075EE: $D282       - Sum products
+        move.w  COLL_OFFSET(a2),d2              ; $0075F0: $342A $0016 - Get offset
+        ext.l   d2                              ; $0075F4: $48C2       - Sign extend
+        lsl.l   #5,d1                           ; $0075F6: $EB82       - Shift for precision
+        add.l   d2,d1                           ; $0075F8: $D282       - Add offset
+        asr.l   #5,d1                           ; $0075FA: $EA81       - Normalize result
+        rts                                     ; $0075FC: $4E75
+
         org     $0075FE
 
 ; ============================================================================
@@ -92,6 +161,37 @@ obj_distance_calc:
         sub.w   OBJ_ALT_X(a0),d0                ; $00761A: $9068 $0046 - Subtract offset
         move.w  d0,OBJ_DIST_RESULT(a0)          ; $00761E: $3140 $00CC - Store result
         rts                                     ; $007622: $4E75
+
+; ============================================================================
+; obj_angle_calc ($007624) - Object Angle Calculation
+; Called by: 7 locations per frame
+; Parameters: A0 = object base
+; Returns: Calculated angle stored at object+$CC
+;
+; Two calculation paths based on ANGLE_FLAG1:
+;   Mode 0: Negate value from ANGLE_VAL2
+;   Mode 1: Combine ANGLE_VAL3 + ANGLE_VAL1, shift left 3, add Z + modifier
+; ============================================================================
+
+        org     $007624
+
+obj_angle_calc:
+        tst.w   ANGLE_FLAG1.w                   ; $007624: $4A78 $C0BA - Check angle mode
+        beq.s   .mode1                          ; $007628: $670C       - Use mode 1 if zero
+; Mode 0: Negate
+        move.w  ANGLE_VAL2.w,d0                 ; $00762A: $3038 $C0C2 - Get value
+        neg.w   d0                              ; $00762E: $4440       - Negate
+        move.w  d0,OBJ_DIST_RESULT(a0)          ; $007630: $3140 $00CC - Store result
+        rts                                     ; $007634: $4E75
+.mode1:
+; Mode 1: Combined calculation
+        move.w  ANGLE_VAL3.w,d0                 ; $007636: $3038 $C0CA - Get value 3
+        add.w   ANGLE_VAL1.w,d0                 ; $00763A: $D078 $C0B0 - Add value 1
+        asl.w   #3,d0                           ; $00763E: $E740       - Multiply by 8
+        add.w   OBJ_Z_POS(a0),d0                ; $007640: $D068 $003C - Add Z position
+        add.w   OBJ_DIST_MOD(a0),d0             ; $007644: $D068 $0096 - Add modifier
+        move.w  d0,OBJ_DIST_RESULT(a0)          ; $007648: $3140 $00CC - Store result
+        rts                                     ; $00764C: $4E75
 
 ; ============================================================================
 ; obj_collision_test ($007816) - Object Collision Detection
@@ -148,6 +248,72 @@ obj_collision_test:
 
 .done:
         rts                                     ; $00787A: $4E75
+
+; ============================================================================
+; obj_frame_calc ($00789C) - Object Frame/Tile Calculation
+; Called by: 6 locations per frame (from obj_collision_test, obj_heading_update)
+; Parameters: A0 = object base, A4 = output pointer
+; Returns: Updates collision chain pointers and work RAM
+;
+; Complex function that:
+; 1. Clears frame calc flag at $C31A
+; 2. Calculates tile position from object position + offset
+; 3. Calls tile_position_calc, angle_normalize, etc.
+; 4. Sets up collision chain pointers at A4 and object+$D2
+;
+; Dependencies: tile_position_calc ($0073E8), angle_normalize ($00748C)
+; ============================================================================
+
+FRAME_CALC_FLAG equ     $C31A   ; Frame calculation flag (byte)
+COLL_POS_D0     equ     $C0D0   ; Collision position D0 work RAM
+COLL_POS_D2     equ     $C0D2   ; Collision position D2 work RAM
+VIEW_OFFSET_Y   equ     $C02E   ; View Y offset (word)
+VIEW_OFFSET_X   equ     $C032   ; View X offset (word)
+VIEW_OFFSET_Y2  equ     $C034   ; Alternate Y offset (word)
+VIEW_OFFSET_X2  equ     $C038   ; Alternate X offset (word)
+OBJ_Y_POS2      equ     $0030   ; Object Y position (word at +$30)
+OBJ_X_POS2      equ     $0034   ; Object X position (word at +$34)
+OBJ_FLAG_56     equ     $0056   ; Object flag at +$56
+OBJ_FLAG_57     equ     $0057   ; Object flag at +$57
+OBJ_TILE_PTR    equ     $00CE   ; Tile lookup result (long)
+OBJ_COLL_D2     equ     $00D2   ; Collision pointer stored here
+
+        org     $00789C
+
+obj_frame_calc:
+        move.b  #$00,FRAME_CALC_FLAG.w          ; $00789C: $11FC $0000 $C31A - Clear flag
+        move.w  OBJ_ALT_Y(a0),d0                ; $0078A2: $3028 $0040 - Get alt Y
+        add.w   OBJ_ALT_X(a0),d0                ; $0078A6: $D068 $0046 - Add alt X
+        jsr     $0076A2(pc)                     ; $0078AA: $4EBA $FDF6 - (helper function)
+        move.w  OBJ_Y_POS2(a0),d1               ; $0078AE: $3228 $0030 - Get Y position
+        move.w  OBJ_X_POS2(a0),d2               ; $0078B2: $3428 $0034 - Get X position
+        jsr     $0073E8(pc)                     ; $0078B6: $4EBA $FB30 - tile_position_calc
+        move.l  a1,(a4)                         ; $0078BA: $2889       - Store result to output
+        jsr     $00748C(pc)                     ; $0078BC: $4EBA $FBCE - angle_normalize
+        bne.s   .has_tile                       ; $0078C0: $6610       - Branch if valid tile
+; No valid tile - clear pointers
+        move.l  #$00000000,(a4)                 ; $0078C2: $28BC $0000 $0000 - Clear output
+        move.l  #$00000000,$0004(a4)            ; $0078C8: $297C $0000 $0000 $0004 - Clear +4
+        bra.s   .continue                       ; $0078D0: $6018       - Continue
+.has_tile:
+        move.l  a2,$0004(a4)                    ; $0078D2: $294A $0004 - Store to output+4
+        move.l  a2,OBJ_TILE_PTR(a0)             ; $0078D6: $214A $00CE - Store to object
+        move.b  $0018(a2),d0                    ; $0078DA: $102A $0018 - Get tile flag
+        move.b  d0,$C319.w                      ; $0078DE: $11C0 $C319 - Store to work RAM
+        move.w  d1,COLL_POS_D0.w                ; $0078E2: $31C1 $C0D0 - Store position D1
+        move.w  d2,COLL_POS_D2.w                ; $0078E6: $31C2 $C0D2 - Store position D2
+.continue:
+        move.w  OBJ_Y_POS2(a0),d1               ; $0078EA: $3228 $0030 - Get Y
+        add.w   VIEW_OFFSET_Y.w,d1              ; $0078EE: $D278 $C02E - Add view offset Y
+        move.w  OBJ_X_POS2(a0),d2               ; $0078F2: $3428 $0034 - Get X
+        add.w   VIEW_OFFSET_X.w,d2              ; $0078F6: $D478 $C032 - Add view offset X
+        move.b  #$01,OBJ_FLAG_56(a0)            ; $0078FA: $117C $0001 $0056 - Set flag
+        jsr     $0073E8(pc)                     ; $007900: $4EBA $FAE6 - tile_position_calc
+        ; ... continues with more collision chain setup
+        rts                                     ; (placeholder - actual code continues)
+
+; Note: Full implementation continues to $007A40 with additional
+; collision chain processing and calls to velocity_apply, sprite_list_process
 
 ; ============================================================================
 ; obj_bounds_check ($007F04) - Object Boundary Violation Check

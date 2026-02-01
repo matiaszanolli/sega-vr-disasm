@@ -1,6 +1,7 @@
-; Generated assembly for $03A200-$03C200
-; Branch targets: 0
-; Labels: 0
+; ============================================================================
+; Code Section ($03A200-$03C1FF)
+; Regenerated with fixed disassembler - proper mnemonics
+; ============================================================================
 
         org     $03A200
 
@@ -19,7 +20,8 @@
         OR.B   (A7),D0                          ; $03A21A
         OR.B   A4,D0                            ; $03A21C
         OR.B   D4,D0                            ; $03A21E
-        ORI.L  #$A238008B,A3                    ; $03A220
+        DC.W    $008B                           ; $03A220
+        MOVE.L  $008B.W,D1                      ; $03A222
         MOVE.L  $008B.W,D2                      ; $03A226
         MOVE.L  $008B.W,D3                      ; $03A22A
         MOVE.L  $008B.W,D4                      ; $03A22E
@@ -46,8 +48,8 @@
         ROL.W  #5,D2                            ; $03A26E
         ROL.W  D7,D3                            ; $03A270
         MOVE.W  (A4)+,-$43(A1,A7.W)             ; $03A272
-        MOVE.W  (A6)+,<EA:3D>                   ; $03A276
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03A278
+        DC.W    $FBDE                           ; $03A276
+        DC.W    $FFFF                           ; $03A278
         OR.B   A2,D0                            ; $03A27A
         OR.B   A3,D0                            ; $03A27C
         OR.B   A4,D0                            ; $03A27E
@@ -108,7 +110,8 @@
         OR.B   A4,D0                            ; $03A316
         OR.B   A1,D0                            ; $03A318
         ORI.B  #$9950,D0                        ; $03A31A
-        MOVE.L  (A3),-$4DAA(PC)                 ; $03A31E
+        DC.W    $A5D3                           ; $03A31E
+        CMP.W  (A6),D1                          ; $03A320
         OR.B   D0,D0                            ; $03A322
         OR.W   D0,-(A0)                         ; $03A324
         OR.W   D6,D7                            ; $03A326
@@ -147,7 +150,8 @@
         OR.L   D0,-$7E67(PC)                    ; $03A372
         OR.W   D0,$BA53.W                       ; $03A376
         CMP.B  $11(A2,A3.W),D3                  ; $03A37A
-        MOVE.L  -$31(A0,A2.L),<EA:3E>           ; $03A37E
+        DC.W    $ADF0                           ; $03A37E
+        DC.W    $A9CF                           ; $03A380
         MOVE.L  -$7EA0(A6),$40(A2,A0.W)         ; $03A382
         OR.L   D0,-(A7)                         ; $03A388
         OR.L   D2,A0                            ; $03A38A
@@ -183,14 +187,14 @@
         SUB.B  D0,(A5)+                         ; $03A3E4
         OR.L   (A0),D4                          ; $03A3E6
         SUB.L  (A7),D0                          ; $03A3E8
-        MOVE.L  -(A0),<EA:3E>                   ; $03A3EA
+        DC.W    $ADE0                           ; $03A3EA
         MOVE.W  -(A0),(A6)                      ; $03A3EC
         MOVE.W  D0,D0                           ; $03A3EE
         MOVE.W  A2,-$0DF0(A4)                   ; $03A3F0
         MULS    -$00CA(A7),D6                   ; $03A3F4
         MOVE.L  (A0)+,-(A1)                     ; $03A3F8
         OR.B   D0,D0                            ; $03A3FA
-        MOVE.L  <EA:3F>,<EA:3D>                 ; $03A3FC
+        DC.W    $ABFF                           ; $03A3FC
         OR.B   A6,D0                            ; $03A3FE
         OR.B   (A3),D0                          ; $03A400
         OR.W   (A2)+,D4                         ; $03A402
@@ -238,8 +242,8 @@
         ROL.W  #5,D2                            ; $03A46E
         ROL.W  D7,D3                            ; $03A470
         MOVE.W  (A4)+,-$43(A1,A7.W)             ; $03A472
-        MOVE.W  (A6)+,<EA:3D>                   ; $03A476
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03A478
+        DC.W    $FBDE                           ; $03A476
+        DC.W    $FFFF                           ; $03A478
         OR.B   A2,D0                            ; $03A47A
         OR.B   A3,D0                            ; $03A47C
         OR.B   A4,D0                            ; $03A47E
@@ -300,7 +304,8 @@
         OR.B   A4,D0                            ; $03A516
         OR.B   A1,D0                            ; $03A518
         ORI.B  #$9950,D0                        ; $03A51A
-        MOVE.L  (A3),-$4DAA(PC)                 ; $03A51E
+        DC.W    $A5D3                           ; $03A51E
+        CMP.W  (A6),D1                          ; $03A520
         OR.B   D0,D0                            ; $03A522
         OR.W   D0,-(A0)                         ; $03A524
         OR.W   D6,D7                            ; $03A526
@@ -322,7 +327,9 @@
         CMPA.L  A6,A2                           ; $03A54A
         EOR.L  D0,-$5274(A5)                    ; $03A54C
         CMP.B  $12(A3,A2.L),D1                  ; $03A550
-        MOVE.L  -$30(A1,A2.W),#$D2F8CED7        ; $03A554
+        DC.W    $A9F1                           ; $03A554
+        DC.W    $A5D0                           ; $03A556
+        ADDA.W  $CED7.W,A1                      ; $03A558
         AND.L  -$6B(A6,A4.W),D5                 ; $03A55C
         AND.W  $53(A4,A3.L),D1                  ; $03A560
         CMP.B  (A0),D5                          ; $03A564
@@ -371,14 +378,14 @@
         SUB.B  D0,(A5)+                         ; $03A5E4
         OR.L   (A0),D4                          ; $03A5E6
         SUB.L  (A7),D0                          ; $03A5E8
-        MOVE.L  -(A0),<EA:3E>                   ; $03A5EA
+        DC.W    $ADE0                           ; $03A5EA
         MOVE.W  -(A0),(A6)                      ; $03A5EC
         MOVE.W  D0,D0                           ; $03A5EE
         MOVE.W  A2,-$0DF0(A4)                   ; $03A5F0
         MULS    -$00CA(A7),D6                   ; $03A5F4
         MOVE.L  (A0)+,-(A1)                     ; $03A5F8
         OR.B   D0,D0                            ; $03A5FA
-        MOVE.L  <EA:3F>,<EA:3D>                 ; $03A5FC
+        DC.W    $ABFF                           ; $03A5FC
         OR.B   A6,D0                            ; $03A5FE
         OR.B   (A3),D0                          ; $03A600
         OR.W   (A2)+,D4                         ; $03A602
@@ -426,8 +433,8 @@
         ROL.W  #5,D2                            ; $03A66E
         ROL.W  D7,D3                            ; $03A670
         MOVE.W  (A4)+,-$43(A1,A7.W)             ; $03A672
-        MOVE.W  (A6)+,<EA:3D>                   ; $03A676
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03A678
+        DC.W    $FBDE                           ; $03A676
+        DC.W    $FFFF                           ; $03A678
         OR.B   A2,D0                            ; $03A67A
         OR.B   A3,D0                            ; $03A67C
         OR.B   A4,D0                            ; $03A67E
@@ -488,7 +495,8 @@
         OR.B   A4,D0                            ; $03A716
         OR.B   A1,D0                            ; $03A718
         ORI.B  #$9950,D0                        ; $03A71A
-        MOVE.L  (A3),-$4DAA(PC)                 ; $03A71E
+        DC.W    $A5D3                           ; $03A71E
+        CMP.W  (A6),D1                          ; $03A720
         OR.B   D0,D0                            ; $03A722
         OR.W   D0,-(A0)                         ; $03A724
         OR.W   D6,D7                            ; $03A726
@@ -504,7 +512,7 @@
         DIVS    <EA:3F>,D1                      ; $03A73A
         OR.B   (A7)+,D0                         ; $03A73C
         DIVS    -(A0),D1                        ; $03A73E
-        MOVE.W  -(A0),<EA:3F>                   ; $03A740
+        DC.W    $FFE0                           ; $03A740
         OR.B   D1,<EA:3F>                       ; $03A742
         MOVE.W  D0,D6                           ; $03A744
         CMPA.L  A5,A2                           ; $03A746
@@ -532,13 +540,15 @@
         CMP.W  (A3)+,D1                         ; $03A778
         MOVE.L  (A3)+,D7                        ; $03A77A
         CMP.W  $3B(PC,A2.L),D1                  ; $03A77C
-        MOVE.L  $35(PC,A3.W),#$A9F4A5D3         ; $03A780
+        DC.W    $A9FB                           ; $03A780
+        CMP.B  -$0C(A5,A2.L),D1                 ; $03A782
+        DC.W    $A5D3                           ; $03A786
         MOVE.L  -$69(A1,A3.L),$56(A0,A3.W)      ; $03A788
         AND.L  $C6D9.W,D1                       ; $03A78E
         CMP.W  (A4),D5                          ; $03A792
         CMP.B  $12(A3,A3.W),D3                  ; $03A794
-        MOVE.L  $74(A1,A4.W),<EA:3E>            ; $03A798
-        CMP.W  (A3),D7                          ; $03A79C
+        DC.W    $ADF1                           ; $03A798
+        AND.W  $53(A4,A3.L),D1                  ; $03A79A
         CMP.B  $11(A2,A3.W),D5                  ; $03A79E
         OR.W   D6,$00(A4,D0.W)                  ; $03A7A2
         ORI.B  #$0000,D0                        ; $03A7A6
@@ -562,14 +572,14 @@
         SUB.B  D0,(A5)+                         ; $03A7E4
         OR.L   (A0),D4                          ; $03A7E6
         SUB.L  (A7),D0                          ; $03A7E8
-        MOVE.L  -(A0),<EA:3E>                   ; $03A7EA
+        DC.W    $ADE0                           ; $03A7EA
         MOVE.W  -(A0),(A6)                      ; $03A7EC
         MOVE.W  D0,D0                           ; $03A7EE
         MOVE.W  A2,-$0DF0(A4)                   ; $03A7F0
         MULS    -$00CA(A7),D6                   ; $03A7F4
         MOVE.L  (A0)+,-(A1)                     ; $03A7F8
         OR.B   D0,D0                            ; $03A7FA
-        MOVE.L  <EA:3F>,<EA:3D>                 ; $03A7FC
+        DC.W    $ABFF                           ; $03A7FC
         OR.B   A6,D0                            ; $03A7FE
         OR.B   (A3),D0                          ; $03A800
         OR.W   (A2)+,D4                         ; $03A802
@@ -617,8 +627,8 @@
         ROL.W  #5,D2                            ; $03A86E
         ROL.W  D7,D3                            ; $03A870
         MOVE.W  (A4)+,-$43(A1,A7.W)             ; $03A872
-        MOVE.W  (A6)+,<EA:3D>                   ; $03A876
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03A878
+        DC.W    $FBDE                           ; $03A876
+        DC.W    $FFFF                           ; $03A878
         OR.B   A2,D0                            ; $03A87A
         OR.B   A3,D0                            ; $03A87C
         OR.B   A4,D0                            ; $03A87E
@@ -679,7 +689,8 @@
         OR.B   A4,D0                            ; $03A916
         OR.B   A1,D0                            ; $03A918
         ORI.B  #$9950,D0                        ; $03A91A
-        MOVE.L  (A3),-$4DAA(PC)                 ; $03A91E
+        DC.W    $A5D3                           ; $03A91E
+        CMP.W  (A6),D1                          ; $03A920
         OR.B   D0,D0                            ; $03A922
         OR.W   D0,-(A0)                         ; $03A924
         OR.W   D6,D7                            ; $03A926
@@ -755,14 +766,14 @@
         SUB.B  D0,(A5)+                         ; $03A9E4
         OR.L   (A0),D4                          ; $03A9E6
         SUB.L  (A7),D0                          ; $03A9E8
-        MOVE.L  -(A0),<EA:3E>                   ; $03A9EA
+        DC.W    $ADE0                           ; $03A9EA
         MOVE.W  -(A0),(A6)                      ; $03A9EC
         MOVE.W  D0,D0                           ; $03A9EE
         MOVE.W  A2,-$0DF0(A4)                   ; $03A9F0
         MULS    -$00CA(A7),D6                   ; $03A9F4
         MOVE.L  (A0)+,-(A1)                     ; $03A9F8
         OR.B   D0,D0                            ; $03A9FA
-        MOVE.L  <EA:3F>,<EA:3D>                 ; $03A9FC
+        DC.W    $ABFF                           ; $03A9FC
         OR.B   A6,D0                            ; $03A9FE
         OR.B   (A3),D0                          ; $03AA00
         OR.W   (A2)+,D4                         ; $03AA02
@@ -810,8 +821,8 @@
         ROL.W  #5,D2                            ; $03AA6E
         ROL.W  D7,D3                            ; $03AA70
         MOVE.W  (A4)+,-$43(A1,A7.W)             ; $03AA72
-        MOVE.W  (A6)+,<EA:3D>                   ; $03AA76
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03AA78
+        DC.W    $FBDE                           ; $03AA76
+        DC.W    $FFFF                           ; $03AA78
         OR.B   A2,D0                            ; $03AA7A
         OR.B   A3,D0                            ; $03AA7C
         OR.B   A4,D0                            ; $03AA7E
@@ -872,7 +883,8 @@
         OR.B   A4,D0                            ; $03AB16
         OR.B   A1,D0                            ; $03AB18
         ORI.B  #$9950,D0                        ; $03AB1A
-        MOVE.L  (A3),-$4DAA(PC)                 ; $03AB1E
+        DC.W    $A5D3                           ; $03AB1E
+        CMP.W  (A6),D1                          ; $03AB20
         OR.B   D0,D0                            ; $03AB22
         OR.W   D0,-(A0)                         ; $03AB24
         OR.W   D6,D7                            ; $03AB26
@@ -921,7 +933,8 @@
         AND.W  -(A0),D6                         ; $03ABA4
         AND.B  -(A0),D2                         ; $03ABA6
         CMP.B  D0,D6                            ; $03ABA8
-        MOVE.L  -$30(A1,A2.W),-$6251(PC)        ; $03ABAA
+        DC.W    $A5F1                           ; $03ABAA
+        MOVE.L  (A0),$9DAF.W                    ; $03ABAC
         SUB.L  D4,A6                            ; $03ABB0
         SUB.W  D2,-$6EB4(A5)                    ; $03ABB2
         OR.B   D6,-$76F6(A3)                    ; $03ABB6
@@ -941,14 +954,14 @@
         SUB.B  D0,(A5)+                         ; $03ABE4
         OR.L   (A0),D4                          ; $03ABE6
         SUB.L  (A7),D0                          ; $03ABE8
-        MOVE.L  -(A0),<EA:3E>                   ; $03ABEA
+        DC.W    $ADE0                           ; $03ABEA
         MOVE.W  -(A0),(A6)                      ; $03ABEC
         MOVE.W  D0,D0                           ; $03ABEE
         MOVE.W  A2,-$0DF0(A4)                   ; $03ABF0
         MULS    -$00CA(A7),D6                   ; $03ABF4
         MOVE.L  (A0)+,-(A1)                     ; $03ABF8
         OR.B   D0,D0                            ; $03ABFA
-        MOVE.L  <EA:3F>,<EA:3D>                 ; $03ABFC
+        DC.W    $ABFF                           ; $03ABFC
         OR.B   A6,D0                            ; $03ABFE
         OR.B   (A3),D0                          ; $03AC00
         OR.W   (A2)+,D4                         ; $03AC02
@@ -996,8 +1009,8 @@
         ROL.W  #5,D2                            ; $03AC6E
         ROL.W  D7,D3                            ; $03AC70
         MOVE.W  (A4)+,-$43(A1,A7.W)             ; $03AC72
-        MOVE.W  (A6)+,<EA:3D>                   ; $03AC76
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03AC78
+        DC.W    $FBDE                           ; $03AC76
+        DC.W    $FFFF                           ; $03AC78
         OR.B   A2,D0                            ; $03AC7A
         OR.B   A3,D0                            ; $03AC7C
         OR.B   A4,D0                            ; $03AC7E
@@ -1058,7 +1071,8 @@
         OR.B   A4,D0                            ; $03AD16
         OR.B   A1,D0                            ; $03AD18
         ORI.B  #$9950,D0                        ; $03AD1A
-        MOVE.L  (A3),-$4DAA(PC)                 ; $03AD1E
+        DC.W    $A5D3                           ; $03AD1E
+        CMP.W  (A6),D1                          ; $03AD20
         OR.B   D0,D0                            ; $03AD22
         OR.W   D0,-(A0)                         ; $03AD24
         OR.W   D6,D7                            ; $03AD26
@@ -1079,8 +1093,11 @@
         CMPA.L  A6,A2                           ; $03AD4A
         EOR.L  D0,-$5274(A5)                    ; $03AD4C
         CMP.B  $12(A3,A2.L),D1                  ; $03AD50
-        MOVE.L  -$30(A1,A2.W),#$89CD8DEE        ; $03AD54
-        AND.L  -$6B(A6,A4.W),D5                 ; $03AD5C
+        DC.W    $A9F1                           ; $03AD54
+        DC.W    $A5D0                           ; $03AD56
+        DIVS    A5,D4                           ; $03AD58
+        DIVS    -$354A(A6),D6                   ; $03AD5A
+        AND.L  (A5),D3                          ; $03AD5E
         AND.W  $53(A4,A3.L),D1                  ; $03AD60
         CMP.B  (A0),D5                          ; $03AD64
         CMPA.L  -$4E32(A7),A2                   ; $03AD66
@@ -1129,14 +1146,14 @@
         SUB.B  D0,(A5)+                         ; $03ADE4
         OR.L   (A0),D4                          ; $03ADE6
         SUB.L  (A7),D0                          ; $03ADE8
-        MOVE.L  -(A0),<EA:3E>                   ; $03ADEA
+        DC.W    $ADE0                           ; $03ADEA
         MOVE.W  -(A0),(A6)                      ; $03ADEC
         MOVE.W  D0,D0                           ; $03ADEE
         MOVE.W  A2,-$0DF0(A4)                   ; $03ADF0
         MULS    -$00CA(A7),D6                   ; $03ADF4
         MOVE.L  (A0)+,-(A1)                     ; $03ADF8
         OR.B   D0,D0                            ; $03ADFA
-        MOVE.L  <EA:3F>,<EA:3D>                 ; $03ADFC
+        DC.W    $ABFF                           ; $03ADFC
         OR.B   A6,D0                            ; $03ADFE
         OR.B   (A3),D0                          ; $03AE00
         OR.W   (A2)+,D4                         ; $03AE02
@@ -1163,9 +1180,12 @@
         OR.B   (A7),D0                          ; $03AE32
         OR.B   A4,D0                            ; $03AE34
         OR.B   D4,D0                            ; $03AE36
-        ORI.L  #$AE44008B,A3                    ; $03AE38
+        DC.W    $008B                           ; $03AE38
+        MOVEA.L D4,A7                           ; $03AE3A
+        DC.W    $008B                           ; $03AE3C
         MOVE.L  D4,(A7)+                        ; $03AE3E
-        ORI.L  #$AF44FFFF,A3                    ; $03AE40
+        DC.W    $008B                           ; $03AE40
+        MOVE.L  D4,-$0001(A7)                   ; $03AE42
         OR.B   A2,D0                            ; $03AE46
         OR.B   A3,D0                            ; $03AE48
         OR.B   A4,D0                            ; $03AE4A
@@ -1217,7 +1237,7 @@
         ORI.B  #$0000,D0                        ; $03AEB8
         ORI.B  #$0000,D0                        ; $03AEBC
         ORI.B  #$0000,D0                        ; $03AEC0
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03AEC4
+        DC.W    $FFFF                           ; $03AEC4
         SUB.W  -(A0),D0                         ; $03AEC6
         SUB.L  D1,D2                            ; $03AEC8
         SUBA.W  D3,A6                           ; $03AECA
@@ -1245,7 +1265,7 @@
         ROL.B  D3,D1                            ; $03AEFE
         ROL.W  D7,D3                            ; $03AF00
         MOVE.W  (A4)+,-$43(A1,A7.W)             ; $03AF02
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03AF06
+        DC.W    $FFFF                           ; $03AF06
         MOVEA.L -(A0),A0                        ; $03AF08
         MOVE.L  D1,(A2)                         ; $03AF0A
         MOVE.L  -(A2),(A4)                      ; $03AF0C
@@ -1271,7 +1291,7 @@
         SUB.L  -$5B(A3,A7.W),D2                 ; $03AF38
         ORI.B  #$0000,D0                        ; $03AF3C
         ORI.B  #$0000,D0                        ; $03AF40
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03AF44
+        DC.W    $FFFF                           ; $03AF44
         SUB.W  -(A0),D0                         ; $03AF46
         SUB.L  D1,D2                            ; $03AF48
         SUBA.W  D3,A6                           ; $03AF4A
@@ -1335,7 +1355,7 @@
         ROL.B  D5,D0                            ; $03AFFA
         ROL.W  #7,D1                            ; $03AFFC
         MOVE.W  -$0865(PC),-$0444(A1)           ; $03AFFE
-        MOVE.W  (A5)+,<EA:3F>                   ; $03B004
+        DC.W    $FFDD                           ; $03B004
         OR.B   -(A1),D4                         ; $03B006
         OR.W   D2,D6                            ; $03B008
         SUB.W  -(A3),D0                         ; $03B00A
@@ -1430,13 +1450,14 @@
         MULS    -$4233(A6),D0                   ; $03B11E
         EOR.L  D4,-$4A75(A4)                    ; $03B122
         EOR.L  D6,-$4A95(A5)                    ; $03B126
-        MOVE.W  (A5)+,<EA:3F>                   ; $03B12A
+        DC.W    $FFDD                           ; $03B12A
         ROL.W  #7,D2                            ; $03B12C
         ROL.W  #7,D2                            ; $03B12E
         ROL.W  #7,D2                            ; $03B130
         ROL.W  #7,D2                            ; $03B132
-        MOVE.W  <EA:3D>,-$64(A7,A7.L)           ; $03B134
-        MOVE.W  $5A(PC,A7.W),-$10C7(A3)         ; $03B138
+        DC.W    $FFBD                           ; $03B134
+        MOVE.W  (A4)+,$7B(A5,A7.W)              ; $03B136
+        MOVE.W  (A2)+,-$10C7(A1)                ; $03B13A
         ROL.B  #5,D0                            ; $03B13E
         ORI.B  #$0000,D0                        ; $03B140
         ORI.B  #$0000,D0                        ; $03B144
@@ -1456,14 +1477,14 @@
         SUB.B  D0,(A5)+                         ; $03B170
         OR.L   (A0),D4                          ; $03B172
         SUB.L  (A7),D0                          ; $03B174
-        MOVE.L  -(A0),<EA:3E>                   ; $03B176
+        DC.W    $ADE0                           ; $03B176
         MOVE.W  -(A0),(A6)                      ; $03B178
         MOVE.W  D0,D0                           ; $03B17A
         MOVE.W  A2,-$0DF0(A4)                   ; $03B17C
         MULS    -$00CA(A7),D6                   ; $03B180
         MOVE.L  (A0)+,-(A1)                     ; $03B184
         OR.B   D0,D0                            ; $03B186
-        MOVE.L  <EA:3F>,<EA:3D>                 ; $03B188
+        DC.W    $ABFF                           ; $03B188
         OR.B   A6,D0                            ; $03B18A
         OR.B   (A3),D0                          ; $03B18C
         OR.W   (A2)+,D4                         ; $03B18E
@@ -1490,11 +1511,17 @@
         OR.B   (A7),D0                          ; $03B1BE
         OR.B   A4,D0                            ; $03B1C0
         OR.B   D4,D0                            ; $03B1C2
-        ORI.L  #$B1DC008B,A3                    ; $03B1C4
+        DC.W    $008B                           ; $03B1C4
+        CMPA.L  (A4)+,A0                        ; $03B1C6
+        DC.W    $008B                           ; $03B1C8
         CMP.W  (A4)+,D1                         ; $03B1CA
-        ORI.L  #$B2DC008B,A3                    ; $03B1CC
+        DC.W    $008B                           ; $03B1CC
+        CMPA.W  (A4)+,A1                        ; $03B1CE
+        DC.W    $008B                           ; $03B1D0
         EOR.W  D1,(A4)+                         ; $03B1D2
-        ORI.L  #$B3DC008B,A3                    ; $03B1D4
+        DC.W    $008B                           ; $03B1D4
+        CMPA.L  (A4)+,A1                        ; $03B1D6
+        DC.W    $008B                           ; $03B1D8
         CMPA.L  (A4)+,A1                        ; $03B1DA
         ORI.B  #$0EC8,D0                        ; $03B1DC
         DC.W    $0EA6                           ; $03B1E0
@@ -1552,10 +1579,11 @@
         DC.W    $0ECA                           ; $03B286
         ORI.B  #$06A2,D0                        ; $03B288
         ORI.B  #$06A2,D0                        ; $03B28C
-        SUBI.L  #$06800000,A0                   ; $03B290
-        SUBI.L  #$04600460,$0000(A2)            ; $03B296
-        CMPI.B  #$0800,D0                       ; $03B29E
-        DC.W    $0E20                           ; $03B2A2
+        DC.W    $0488                           ; $03B290
+        ADDI.L  #$000004AA,D0                   ; $03B292
+        SUBI.W  #$0460,-(A0)                    ; $03B298
+        ORI.B  #$0C00,D0                        ; $03B29C
+        BTST    #0,D0                           ; $03B2A0
         DC.W    $0E40                           ; $03B2A4
         CMPI.W  #$0E60,D0                       ; $03B2A6
         DC.W    $0E60                           ; $03B2AA
@@ -1647,8 +1675,9 @@
         ANDI.W  #$068C,D6                       ; $03B3EC
         DC.W    $0ACE                           ; $03B3F0
         BCLR    #12,$046A(A6)                   ; $03B3F2
-        ANDI.W  #$0024,A0                       ; $03B3F8
-        ORI.B  #$0E40,D0                        ; $03B3FC
+        DC.W    $0248                           ; $03B3F8
+        ORI.B  #$0000,-(A4)                     ; $03B3FA
+        DC.W    $0E40                           ; $03B3FE
         DC.W    $0E20                           ; $03B400
         DC.W    $0E00                           ; $03B402
         DC.W    $0E60                           ; $03B404
@@ -1657,10 +1686,12 @@
         DC.W    $0EC6                           ; $03B40A
         DC.W    $0EEA                           ; $03B40C
         DC.W    $0EEE                           ; $03B40E
-        SUBI.L  #$00260246,A4                   ; $03B410
+        DC.W    $048C                           ; $03B410
+        ORI.B  #$0246,-(A6)                     ; $03B412
         BSET    #14,A6                          ; $03B416
         BCLR    #0,$008A(A6)                    ; $03B41A
-        ORI.L  #$004200AC,A2                    ; $03B420
+        DC.W    $008A                           ; $03B420
+        ORI.W  #$00AC,D2                        ; $03B422
         BCLR    #6,$048C(A6)                    ; $03B426
         ORI.B  #$0000,D0                        ; $03B42C
         ORI.B  #$0000,D0                        ; $03B430
@@ -1678,27 +1709,28 @@
         CMPI.L  #$0A880644,$0866(A2)            ; $03B460
         BCHG    #4,-(A6)                        ; $03B468
         BCHG    #8,-(A6)                        ; $03B46C
-        EORI.L  #$0CAA0CAA,A0                   ; $03B470
-        DC.W    $0ECC                           ; $03B476
-        DC.W    $0ECC                           ; $03B478
+        DC.W    $0A88                           ; $03B470
+        CMPI.L  #$0CAA0ECC,$0ECC(A2)            ; $03B472
         BCHG    #0,-(A6)                        ; $03B47A
         BCHG    #4,-(A6)                        ; $03B47E
         CMPI.L  #$06440866,$0CAA(A2)            ; $03B482
         DC.W    $0ECC                           ; $03B48A
         DC.W    $0ECC                           ; $03B48C
         CMPI.L  #$0CAA0A88,$0A88(A2)            ; $03B48E
-        EORI.L  #$0A880866,A0                   ; $03B496
-        ORI.B  #$0000,D0                        ; $03B49C
-        ORI.B  #$0000,D0                        ; $03B4A0
-        ORI.B  #$0000,D0                        ; $03B4A4
-        ORI.B  #$0000,D0                        ; $03B4A8
-        ORI.B  #$0000,D0                        ; $03B4AC
-        ORI.B  #$0000,D0                        ; $03B4B0
-        ORI.B  #$0000,D0                        ; $03B4B4
-        ORI.B  #$0000,D0                        ; $03B4B8
-        ORI.B  #$0000,D0                        ; $03B4BC
-        ORI.B  #$0000,D0                        ; $03B4C0
-        ORI.B  #$00EE,D0                        ; $03B4C4
+        DC.W    $0A88                           ; $03B496
+        DC.W    $0A88                           ; $03B498
+        BCHG    #0,-(A6)                        ; $03B49A
+        ORI.B  #$0000,D0                        ; $03B49E
+        ORI.B  #$0000,D0                        ; $03B4A2
+        ORI.B  #$0000,D0                        ; $03B4A6
+        ORI.B  #$0000,D0                        ; $03B4AA
+        ORI.B  #$0000,D0                        ; $03B4AE
+        ORI.B  #$0000,D0                        ; $03B4B2
+        ORI.B  #$0000,D0                        ; $03B4B6
+        ORI.B  #$0000,D0                        ; $03B4BA
+        ORI.B  #$0000,D0                        ; $03B4BE
+        ORI.B  #$0000,D0                        ; $03B4C2
+        DC.W    $00EE                           ; $03B4C6
         ORI.B  #$0000,D0                        ; $03B4C8
         ORI.B  #$0000,D0                        ; $03B4CC
         ORI.B  #$0000,D0                        ; $03B4D0
@@ -1726,9 +1758,11 @@
         DC.W    $0EEE                           ; $03B52C
         ORI.W  #$0080,-(A0)                     ; $03B52E
         ORI.L  #$00C00246,-(A0)                 ; $03B532
-        SUBI.L  #$0AEE0000,A2                   ; $03B538
-        ORI.B  #$0000,D0                        ; $03B53E
-        BCLR    #14,A0                          ; $03B542
+        DC.W    $048A                           ; $03B538
+        DC.W    $0AEE                           ; $03B53A
+        ORI.B  #$0000,D0                        ; $03B53C
+        ORI.B  #$0888,D0                        ; $03B540
+        DC.W    $0EEE                           ; $03B544
         ORI.B  #$0246,$048A(A4)                 ; $03B546
         ADDI.L  #$0AEE0242,$0282(A4)            ; $03B54C
         SUBI.L  #$0A200C40,-(A4)                ; $03B554
@@ -1740,11 +1774,12 @@
         EORI.L  #$0EEE0262,$0282(A2)            ; $03B568
         DC.W    $02C2                           ; $03B570
         ANDI.W  #$0468,D6                       ; $03B572
-        ADDI.L  #$08AC0ACE,A2                   ; $03B576
-        ORI.B  #$0888,D0                        ; $03B57C
-        EORI.L  #$0CCC0CCA,$0AAC(A2)            ; $03B580
-        DC.W    $0EEE                           ; $03B588
-        ORI.B  #$0000,D0                        ; $03B58A
+        DC.W    $068A                           ; $03B576
+        BCLR    #14,$0000(A4)                   ; $03B578
+        BCLR    #10,A0                          ; $03B57E
+        DC.W    $0CCC                           ; $03B582
+        DC.W    $0CCA                           ; $03B584
+        EORI.L  #$0EEE0000,$0000(A4)            ; $03B586
         ORI.B  #$0000,D0                        ; $03B58E
         ORI.B  #$0000,D0                        ; $03B592
         ORI.B  #$0000,D0                        ; $03B596
@@ -1757,9 +1792,11 @@
         DC.W    $0EEE                           ; $03B5AC
         ORI.W  #$0080,-(A0)                     ; $03B5AE
         ORI.L  #$00C00246,-(A0)                 ; $03B5B2
-        SUBI.L  #$0AEE0000,A2                   ; $03B5B8
-        ORI.B  #$0000,D0                        ; $03B5BE
-        BCLR    #14,A0                          ; $03B5C2
+        DC.W    $048A                           ; $03B5B8
+        DC.W    $0AEE                           ; $03B5BA
+        ORI.B  #$0000,D0                        ; $03B5BC
+        ORI.B  #$0888,D0                        ; $03B5C0
+        DC.W    $0EEE                           ; $03B5C4
         ORI.B  #$0246,$048A(A4)                 ; $03B5C6
         ADDI.L  #$0AEE0242,$0282(A4)            ; $03B5CC
         SUBI.L  #$0A200C40,-(A4)                ; $03B5D4
@@ -1771,11 +1808,10 @@
         EORI.L  #$0EEE0262,$0282(A2)            ; $03B5E8
         DC.W    $02C2                           ; $03B5F0
         ANDI.W  #$0468,D6                       ; $03B5F2
-        ADDI.L  #$08AC0ACE,A2                   ; $03B5F6
-        ORI.B  #$0000,D0                        ; $03B5FC
-        ADDI.W  #$0AAA,-(A6)                    ; $03B600
-        DC.W    $0CCC                           ; $03B604
-        ADDI.W  #$0222,-(A6)                    ; $03B606
+        DC.W    $068A                           ; $03B5F6
+        BCLR    #14,$0000(A4)                   ; $03B5F8
+        ORI.B  #$0666,D0                        ; $03B5FE
+        EORI.L  #$0CCC0666,$0222(A2)            ; $03B602
         SUBI.W  #$0888,D4                       ; $03B60A
         ADDI.W  #$0AAA,-(A6)                    ; $03B60E
         DC.W    $0CCC                           ; $03B612
@@ -1816,8 +1852,8 @@
         ROL.W  #5,D2                            ; $03B692
         ROL.W  D7,D3                            ; $03B694
         MOVE.W  (A4)+,-$43(A1,A7.W)             ; $03B696
-        MOVE.W  (A6)+,<EA:3D>                   ; $03B69A
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03B69C
+        DC.W    $FBDE                           ; $03B69A
+        DC.W    $FFFF                           ; $03B69C
         OR.L   -(A0),D0                         ; $03B69E
         DIVU    -(A0),D0                        ; $03B6A0
         OR.B   D0,D0                            ; $03B6A2
@@ -1829,7 +1865,7 @@
         SUBA.W  -$6AF6(A1),A0                   ; $03B6AE
         SUB.B  D4,-$62B4(A3)                    ; $03B6B2
         MOVE.L  -$5A72(A5),-$5651(A0)           ; $03B6B6
-        MOVE.L  (A0),<EA:3E>                    ; $03B6BC
+        DC.W    $ADD0                           ; $03B6BC
         SUB.B  D0,D1                            ; $03B6BE
         SUB.B  -(A0),D3                         ; $03B6C0
         SUB.W  D0,D5                            ; $03B6C2
@@ -1893,9 +1929,10 @@
         ROL.W  #5,D2                            ; $03B792
         ROL.W  D7,D3                            ; $03B794
         MOVE.W  (A4)+,-$43(A1,A7.W)             ; $03B796
-        MOVE.W  (A6)+,<EA:3D>                   ; $03B79A
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03B79C
-        MOVE.L  (A0),-$560F(PC)                 ; $03B79E
+        DC.W    $FBDE                           ; $03B79A
+        DC.W    $FFFF                           ; $03B79C
+        DC.W    $A5D0                           ; $03B79E
+        DC.W    $A9F1                           ; $03B7A0
         MOVE.L  (A2),D7                         ; $03B7A2
         CMP.B  $54(A3,A3.W),D1                  ; $03B7A4
         CMP.W  -$6A(A5,A3.L),D5                 ; $03B7A8
@@ -1969,8 +2006,8 @@
         ROL.W  #5,D2                            ; $03B892
         ROL.W  D7,D3                            ; $03B894
         MOVE.W  (A4)+,-$43(A1,A7.W)             ; $03B896
-        MOVE.W  (A6)+,<EA:3D>                   ; $03B89A
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03B89C
+        DC.W    $FBDE                           ; $03B89A
+        DC.W    $FFFF                           ; $03B89C
         SUB.W  D4,-$6271(A5)                    ; $03B89E
         MOVE.L  -$2D(A1,A2.W),-$0C(A0,A2.L)     ; $03B8A2
         CMP.B  $56(A5,A3.W),D1                  ; $03B8A8
@@ -2043,8 +2080,8 @@
         ROL.W  #5,D2                            ; $03B992
         ROL.W  D7,D3                            ; $03B994
         MOVE.W  (A4)+,-$43(A1,A7.W)             ; $03B996
-        MOVE.W  (A6)+,<EA:3D>                   ; $03B99A
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03B99C
+        DC.W    $FBDE                           ; $03B99A
+        DC.W    $FFFF                           ; $03B99C
         DIVU    D0,D0                           ; $03B99E
         DIVU    -(A0),D0                        ; $03B9A0
         OR.B   D0,D0                            ; $03B9A2
@@ -2058,7 +2095,9 @@
         EOR.L  D2,-$4211(A5)                    ; $03B9B4
         AND.B  $73(A1,A4.L),D3                  ; $03B9B8
         ADD.L  -$50(A5,A2.W),D3                 ; $03B9BC
-        MOVE.L  (A1),#$ADF2B213                 ; $03B9C0
+        DC.W    $A9D1                           ; $03B9C0
+        DC.W    $ADF2                           ; $03B9C2
+        CMP.B  (A3),D1                          ; $03B9C4
         CMP.B  $55(A4,A3.L),D3                  ; $03B9C6
         CMP.W  -$69(A6,A4.W),D7                 ; $03B9CA
         OR.B   (A0),D0                          ; $03B9CE
@@ -2121,8 +2160,8 @@
         ROL.W  #5,D2                            ; $03BA92
         ROL.W  D7,D3                            ; $03BA94
         MOVE.W  (A4)+,-$43(A1,A7.W)             ; $03BA96
-        MOVE.W  (A6)+,<EA:3D>                   ; $03BA9A
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03BA9C
+        DC.W    $FBDE                           ; $03BA9A
+        DC.W    $FFFF                           ; $03BA9C
         CMPA.L  A5,A2                           ; $03BA9E
         CMPA.L  -$41F1(A6),A4                   ; $03BAA0
         AND.B  $51(A0,A4.W),D1                  ; $03BAA4
@@ -2231,8 +2270,8 @@
         ROL.W  #5,D2                            ; $03BC12
         ROL.W  D7,D3                            ; $03BC14
         MOVE.W  (A4)+,-$43(A1,A7.W)             ; $03BC16
-        MOVE.W  (A6)+,<EA:3D>                   ; $03BC1A
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03BC1C
+        DC.W    $FBDE                           ; $03BC1A
+        DC.W    $FFFF                           ; $03BC1C
         OR.B   A2,D0                            ; $03BC1E
         OR.B   A3,D0                            ; $03BC20
         OR.B   A4,D0                            ; $03BC22
@@ -2256,8 +2295,9 @@
         LSL.B  D4,D1                            ; $03BC4A
         MOVE.W  $18(A5,A7.W),(A1)               ; $03BC4C
         MOVE.W  (A7),-$48(A1,A7.W)              ; $03BC50
-        MOVE.W  (A1)+,<EA:3D>                   ; $03BC54
-        MOVE.W  -$8000(PC),<EA:3F>              ; $03BC56
+        DC.W    $FBD9                           ; $03BC54
+        DC.W    $FFFA                           ; $03BC56
+        OR.B   D0,D0                            ; $03BC58
         ROXL.W  D7,D6                           ; $03BC5A
         ORI.B  #$0000,D0                        ; $03BC5C
         ORI.B  #$0000,D0                        ; $03BC60
@@ -2312,8 +2352,8 @@
         ROL.W  #5,D2                            ; $03BD12
         ROL.W  D7,D3                            ; $03BD14
         MOVE.W  (A4)+,-$43(A1,A7.W)             ; $03BD16
-        MOVE.W  (A6)+,<EA:3D>                   ; $03BD1A
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03BD1C
+        DC.W    $FBDE                           ; $03BD1A
+        DC.W    $FFFF                           ; $03BD1C
         OR.B   A2,D0                            ; $03BD1E
         OR.B   A3,D0                            ; $03BD20
         OR.B   A4,D0                            ; $03BD22
@@ -2338,43 +2378,44 @@
         MOVE.W  $18(A5,A7.W),(A1)               ; $03BD4C
         ROXL.W  D7,D6                           ; $03BD50
         MOVE.W  (A7),-$48(A1,A7.W)              ; $03BD52
-        MOVE.W  (A1)+,<EA:3D>                   ; $03BD56
-        MOVE.W  -$210E(PC),<EA:3F>              ; $03BD58
-        ROXL.B  #1,D3                           ; $03BD5C
+        DC.W    $FBD9                           ; $03BD56
+        DC.W    $FFFA                           ; $03BD58
+        ADDA.W  $13(A2,A6.W),A7                 ; $03BD5A
         ROXL.B  D3,D4                           ; $03BD5E
         ROXL.W  #5,D5                           ; $03BD60
         ROXL.W  D7,D6                           ; $03BD62
-        MOVE.W  #$0000,<EA:3F>                  ; $03BD64
-        ORI.B  #$0000,D0                        ; $03BD68
-        ORI.B  #$0000,D0                        ; $03BD6C
-        ORI.B  #$0000,D0                        ; $03BD70
-        ORI.B  #$0000,D0                        ; $03BD74
-        ORI.B  #$0000,D0                        ; $03BD78
-        ORI.B  #$0000,D0                        ; $03BD7C
-        ORI.B  #$0000,D0                        ; $03BD80
-        ORI.B  #$0000,D0                        ; $03BD84
-        ORI.B  #$0000,D0                        ; $03BD88
-        ORI.B  #$0000,D0                        ; $03BD8C
-        ORI.B  #$0000,D0                        ; $03BD90
-        ORI.B  #$0000,D0                        ; $03BD94
-        ORI.B  #$0000,D0                        ; $03BD98
-        ORI.B  #$0000,D0                        ; $03BD9C
-        ORI.B  #$0000,D0                        ; $03BDA0
-        ORI.B  #$0000,D0                        ; $03BDA4
-        ORI.B  #$0000,D0                        ; $03BDA8
-        ORI.B  #$0000,D0                        ; $03BDAC
-        ORI.B  #$0000,D0                        ; $03BDB0
-        ORI.B  #$0000,D0                        ; $03BDB4
-        ORI.B  #$0000,D0                        ; $03BDB8
-        ORI.B  #$0000,D0                        ; $03BDBC
-        ORI.B  #$0000,D0                        ; $03BDC0
-        ORI.B  #$0000,D0                        ; $03BDC4
-        ORI.B  #$0000,D0                        ; $03BDC8
-        ORI.B  #$0000,D0                        ; $03BDCC
-        ORI.B  #$0000,D0                        ; $03BDD0
-        ORI.B  #$0000,D0                        ; $03BDD4
-        ORI.B  #$0000,D0                        ; $03BDD8
-        ORI.B  #$8000,D0                        ; $03BDDC
+        DC.W    $FFFC                           ; $03BD64
+        ORI.B  #$0000,D0                        ; $03BD66
+        ORI.B  #$0000,D0                        ; $03BD6A
+        ORI.B  #$0000,D0                        ; $03BD6E
+        ORI.B  #$0000,D0                        ; $03BD72
+        ORI.B  #$0000,D0                        ; $03BD76
+        ORI.B  #$0000,D0                        ; $03BD7A
+        ORI.B  #$0000,D0                        ; $03BD7E
+        ORI.B  #$0000,D0                        ; $03BD82
+        ORI.B  #$0000,D0                        ; $03BD86
+        ORI.B  #$0000,D0                        ; $03BD8A
+        ORI.B  #$0000,D0                        ; $03BD8E
+        ORI.B  #$0000,D0                        ; $03BD92
+        ORI.B  #$0000,D0                        ; $03BD96
+        ORI.B  #$0000,D0                        ; $03BD9A
+        ORI.B  #$0000,D0                        ; $03BD9E
+        ORI.B  #$0000,D0                        ; $03BDA2
+        ORI.B  #$0000,D0                        ; $03BDA6
+        ORI.B  #$0000,D0                        ; $03BDAA
+        ORI.B  #$0000,D0                        ; $03BDAE
+        ORI.B  #$0000,D0                        ; $03BDB2
+        ORI.B  #$0000,D0                        ; $03BDB6
+        ORI.B  #$0000,D0                        ; $03BDBA
+        ORI.B  #$0000,D0                        ; $03BDBE
+        ORI.B  #$0000,D0                        ; $03BDC2
+        ORI.B  #$0000,D0                        ; $03BDC6
+        ORI.B  #$0000,D0                        ; $03BDCA
+        ORI.B  #$0000,D0                        ; $03BDCE
+        ORI.B  #$0000,D0                        ; $03BDD2
+        ORI.B  #$0000,D0                        ; $03BDD6
+        ORI.B  #$0000,D0                        ; $03BDDA
+        OR.B   D0,D0                            ; $03BDDE
         OR.B   -(A1),D2                         ; $03BDE0
         OR.W   D2,D4                            ; $03BDE2
         OR.W   -(A3),D6                         ; $03BDE4
@@ -2395,20 +2436,21 @@
         ROL.W  #5,D2                            ; $03BE12
         ROL.W  D7,D3                            ; $03BE14
         MOVE.W  (A4)+,-$43(A1,A7.W)             ; $03BE16
-        MOVE.W  (A6)+,<EA:3D>                   ; $03BE1A
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03BE1C
+        DC.W    $FBDE                           ; $03BE1A
+        DC.W    $FFFF                           ; $03BE1C
         OR.W   -(A3),D0                         ; $03BE1E
         OR.B   D0,D0                            ; $03BE20
         OR.L   D4,D0                            ; $03BE22
         OR.W   D0,-$7D09(A3)                    ; $03BE24
         DIVS    <EA:3F>,D1                      ; $03BE28
         CMPA.L  <EA:3F>,A7                      ; $03BE2A
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03BE2C
+        DC.W    $FFFF                           ; $03BE2C
         DIVU    A2,D4                           ; $03BE2E
         OR.L   A1,D2                            ; $03BE30
         SUBA.W  -$6291(A4),A0                   ; $03BE32
-        MOVE.L  (A2),#$B655CAB8                 ; $03BE36
-        ROL.B  D1,D3                            ; $03BE3C
+        DC.W    $A9D2                           ; $03BE36
+        CMP.W  (A5),D3                          ; $03BE38
+        AND.L  $E33B.W,D5                       ; $03BE3A
         OR.B   D0,D0                            ; $03BE3E
         OR.B   D0,D0                            ; $03BE40
         OR.B   D0,D0                            ; $03BE42
@@ -2424,39 +2466,40 @@
         OR.B   D0,D0                            ; $03BE56
         ROXL.W  D7,D6                           ; $03BE58
         MOVE.W  (A7),-$48(A1,A7.W)              ; $03BE5A
-        MOVE.W  (A1)+,<EA:3D>                   ; $03BE5E
-        MOVE.W  $0000(PC),<EA:3F>               ; $03BE60
-        ORI.B  #$0000,D0                        ; $03BE64
-        ORI.B  #$0000,D0                        ; $03BE68
-        ORI.B  #$0000,D0                        ; $03BE6C
-        ORI.B  #$0000,D0                        ; $03BE70
-        ORI.B  #$0000,D0                        ; $03BE74
-        ORI.B  #$0000,D0                        ; $03BE78
-        ORI.B  #$0000,D0                        ; $03BE7C
-        ORI.B  #$0000,D0                        ; $03BE80
-        ORI.B  #$0000,D0                        ; $03BE84
-        ORI.B  #$0000,D0                        ; $03BE88
-        ORI.B  #$0000,D0                        ; $03BE8C
-        ORI.B  #$0000,D0                        ; $03BE90
-        ORI.B  #$0000,D0                        ; $03BE94
-        ORI.B  #$0000,D0                        ; $03BE98
-        ORI.B  #$0000,D0                        ; $03BE9C
-        ORI.B  #$0000,D0                        ; $03BEA0
-        ORI.B  #$0000,D0                        ; $03BEA4
-        ORI.B  #$0000,D0                        ; $03BEA8
-        ORI.B  #$0000,D0                        ; $03BEAC
-        ORI.B  #$0000,D0                        ; $03BEB0
-        ORI.B  #$0000,D0                        ; $03BEB4
-        ORI.B  #$0000,D0                        ; $03BEB8
-        ORI.B  #$0000,D0                        ; $03BEBC
-        ORI.B  #$0000,D0                        ; $03BEC0
-        ORI.B  #$0000,D0                        ; $03BEC4
-        ORI.B  #$0000,D0                        ; $03BEC8
-        ORI.B  #$0000,D0                        ; $03BECC
-        ORI.B  #$0000,D0                        ; $03BED0
-        ORI.B  #$0000,D0                        ; $03BED4
-        ORI.B  #$0000,D0                        ; $03BED8
-        ORI.B  #$8000,D0                        ; $03BEDC
+        DC.W    $FBD9                           ; $03BE5E
+        DC.W    $FFFA                           ; $03BE60
+        ORI.B  #$0000,D0                        ; $03BE62
+        ORI.B  #$0000,D0                        ; $03BE66
+        ORI.B  #$0000,D0                        ; $03BE6A
+        ORI.B  #$0000,D0                        ; $03BE6E
+        ORI.B  #$0000,D0                        ; $03BE72
+        ORI.B  #$0000,D0                        ; $03BE76
+        ORI.B  #$0000,D0                        ; $03BE7A
+        ORI.B  #$0000,D0                        ; $03BE7E
+        ORI.B  #$0000,D0                        ; $03BE82
+        ORI.B  #$0000,D0                        ; $03BE86
+        ORI.B  #$0000,D0                        ; $03BE8A
+        ORI.B  #$0000,D0                        ; $03BE8E
+        ORI.B  #$0000,D0                        ; $03BE92
+        ORI.B  #$0000,D0                        ; $03BE96
+        ORI.B  #$0000,D0                        ; $03BE9A
+        ORI.B  #$0000,D0                        ; $03BE9E
+        ORI.B  #$0000,D0                        ; $03BEA2
+        ORI.B  #$0000,D0                        ; $03BEA6
+        ORI.B  #$0000,D0                        ; $03BEAA
+        ORI.B  #$0000,D0                        ; $03BEAE
+        ORI.B  #$0000,D0                        ; $03BEB2
+        ORI.B  #$0000,D0                        ; $03BEB6
+        ORI.B  #$0000,D0                        ; $03BEBA
+        ORI.B  #$0000,D0                        ; $03BEBE
+        ORI.B  #$0000,D0                        ; $03BEC2
+        ORI.B  #$0000,D0                        ; $03BEC6
+        ORI.B  #$0000,D0                        ; $03BECA
+        ORI.B  #$0000,D0                        ; $03BECE
+        ORI.B  #$0000,D0                        ; $03BED2
+        ORI.B  #$0000,D0                        ; $03BED6
+        ORI.B  #$0000,D0                        ; $03BEDA
+        OR.B   D0,D0                            ; $03BEDE
         OR.B   -(A1),D2                         ; $03BEE0
         OR.W   D2,D4                            ; $03BEE2
         OR.W   -(A3),D6                         ; $03BEE4
@@ -2477,8 +2520,8 @@
         ROL.W  #5,D2                            ; $03BF12
         ROL.W  D7,D3                            ; $03BF14
         MOVE.W  (A4)+,-$43(A1,A7.W)             ; $03BF16
-        MOVE.W  (A6)+,<EA:3D>                   ; $03BF1A
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03BF1C
+        DC.W    $FBDE                           ; $03BF1A
+        DC.W    $FFFF                           ; $03BF1C
         OR.W   D2,D4                            ; $03BF1E
         OR.W   D2,D4                            ; $03BF20
         OR.W   -(A3),D6                         ; $03BF22
@@ -2504,309 +2547,309 @@
         ADD.B  D2,D6                            ; $03BF56
         ROXL.W  D7,D6                           ; $03BF58
         MOVE.W  (A7),-$48(A1,A7.W)              ; $03BF5A
-        MOVE.W  (A1)+,<EA:3D>                   ; $03BF5E
-        MOVE.W  $0000(PC),<EA:3F>               ; $03BF60
-        ORI.B  #$0000,D0                        ; $03BF64
-        ORI.B  #$0000,D0                        ; $03BF68
-        ORI.B  #$0000,D0                        ; $03BF6C
-        ORI.B  #$0000,D0                        ; $03BF70
-        ORI.B  #$0000,D0                        ; $03BF74
-        ORI.B  #$0000,D0                        ; $03BF78
-        ORI.B  #$0000,D0                        ; $03BF7C
-        ORI.B  #$0000,D0                        ; $03BF80
-        ORI.B  #$0000,D0                        ; $03BF84
-        ORI.B  #$0000,D0                        ; $03BF88
-        ORI.B  #$0000,D0                        ; $03BF8C
-        ORI.B  #$0000,D0                        ; $03BF90
-        ORI.B  #$0000,D0                        ; $03BF94
-        ORI.B  #$0000,D0                        ; $03BF98
-        ORI.B  #$0000,D0                        ; $03BF9C
-        ORI.B  #$0000,D0                        ; $03BFA0
-        ORI.B  #$0000,D0                        ; $03BFA4
-        ORI.B  #$0000,D0                        ; $03BFA8
-        ORI.B  #$0000,D0                        ; $03BFAC
-        ORI.B  #$0000,D0                        ; $03BFB0
-        ORI.B  #$0000,D0                        ; $03BFB4
-        ORI.B  #$0000,D0                        ; $03BFB8
-        ORI.B  #$0000,D0                        ; $03BFBC
-        ORI.B  #$0000,D0                        ; $03BFC0
-        ORI.B  #$0000,D0                        ; $03BFC4
-        ORI.B  #$0000,D0                        ; $03BFC8
-        ORI.B  #$0000,D0                        ; $03BFCC
-        ORI.B  #$0000,D0                        ; $03BFD0
-        ORI.B  #$0000,D0                        ; $03BFD4
-        ORI.B  #$0000,D0                        ; $03BFD8
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03BFDC
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03BFDE
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03BFE0
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03BFE2
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03BFE4
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03BFE6
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03BFE8
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03BFEA
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03BFEC
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03BFEE
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03BFF0
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03BFF2
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03BFF4
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03BFF6
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03BFF8
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03BFFA
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03BFFC
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03BFFE
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C000
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C002
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C004
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C006
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C008
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C00A
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C00C
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C00E
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C010
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C012
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C014
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C016
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C018
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C01A
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C01C
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C01E
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C020
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C022
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C024
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C026
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C028
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C02A
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C02C
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C02E
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C030
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C032
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C034
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C036
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C038
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C03A
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C03C
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C03E
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C040
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C042
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C044
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C046
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C048
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C04A
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C04C
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C04E
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C050
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C052
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C054
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C056
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C058
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C05A
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C05C
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C05E
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C060
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C062
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C064
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C066
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C068
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C06A
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C06C
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C06E
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C070
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C072
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C074
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C076
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C078
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C07A
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C07C
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C07E
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C080
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C082
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C084
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C086
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C088
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C08A
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C08C
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C08E
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C090
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C092
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C094
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C096
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C098
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C09A
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C09C
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C09E
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0A0
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0A2
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0A4
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0A6
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0A8
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0AA
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0AC
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0AE
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0B0
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0B2
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0B4
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0B6
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0B8
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0BA
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0BC
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0BE
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0C0
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0C2
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0C4
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0C6
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0C8
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0CA
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0CC
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0CE
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0D0
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0D2
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0D4
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0D6
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0D8
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0DA
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0DC
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0DE
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0E0
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0E2
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0E4
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0E6
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0E8
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0EA
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0EC
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0EE
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0F0
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0F2
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0F4
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0F6
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0F8
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0FA
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0FC
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C0FE
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C100
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C102
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C104
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C106
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C108
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C10A
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C10C
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C10E
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C110
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C112
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C114
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C116
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C118
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C11A
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C11C
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C11E
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C120
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C122
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C124
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C126
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C128
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C12A
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C12C
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C12E
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C130
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C132
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C134
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C136
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C138
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C13A
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C13C
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C13E
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C140
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C142
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C144
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C146
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C148
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C14A
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C14C
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C14E
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C150
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C152
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C154
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C156
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C158
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C15A
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C15C
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C15E
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C160
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C162
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C164
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C166
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C168
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C16A
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C16C
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C16E
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C170
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C172
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C174
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C176
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C178
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C17A
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C17C
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C17E
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C180
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C182
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C184
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C186
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C188
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C18A
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C18C
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C18E
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C190
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C192
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C194
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C196
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C198
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C19A
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C19C
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C19E
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1A0
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1A2
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1A4
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1A6
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1A8
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1AA
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1AC
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1AE
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1B0
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1B2
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1B4
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1B6
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1B8
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1BA
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1BC
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1BE
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1C0
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1C2
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1C4
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1C6
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1C8
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1CA
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1CC
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1CE
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1D0
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1D2
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1D4
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1D6
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1D8
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1DA
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1DC
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1DE
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1E0
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1E2
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1E4
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1E6
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1E8
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1EA
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1EC
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1EE
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1F0
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1F2
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1F4
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1F6
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1F8
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1FA
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1FC
-        MOVE.W  <EA:3F>,<EA:3F>                 ; $03C1FE
+        DC.W    $FBD9                           ; $03BF5E
+        DC.W    $FFFA                           ; $03BF60
+        ORI.B  #$0000,D0                        ; $03BF62
+        ORI.B  #$0000,D0                        ; $03BF66
+        ORI.B  #$0000,D0                        ; $03BF6A
+        ORI.B  #$0000,D0                        ; $03BF6E
+        ORI.B  #$0000,D0                        ; $03BF72
+        ORI.B  #$0000,D0                        ; $03BF76
+        ORI.B  #$0000,D0                        ; $03BF7A
+        ORI.B  #$0000,D0                        ; $03BF7E
+        ORI.B  #$0000,D0                        ; $03BF82
+        ORI.B  #$0000,D0                        ; $03BF86
+        ORI.B  #$0000,D0                        ; $03BF8A
+        ORI.B  #$0000,D0                        ; $03BF8E
+        ORI.B  #$0000,D0                        ; $03BF92
+        ORI.B  #$0000,D0                        ; $03BF96
+        ORI.B  #$0000,D0                        ; $03BF9A
+        ORI.B  #$0000,D0                        ; $03BF9E
+        ORI.B  #$0000,D0                        ; $03BFA2
+        ORI.B  #$0000,D0                        ; $03BFA6
+        ORI.B  #$0000,D0                        ; $03BFAA
+        ORI.B  #$0000,D0                        ; $03BFAE
+        ORI.B  #$0000,D0                        ; $03BFB2
+        ORI.B  #$0000,D0                        ; $03BFB6
+        ORI.B  #$0000,D0                        ; $03BFBA
+        ORI.B  #$0000,D0                        ; $03BFBE
+        ORI.B  #$0000,D0                        ; $03BFC2
+        ORI.B  #$0000,D0                        ; $03BFC6
+        ORI.B  #$0000,D0                        ; $03BFCA
+        ORI.B  #$0000,D0                        ; $03BFCE
+        ORI.B  #$0000,D0                        ; $03BFD2
+        ORI.B  #$0000,D0                        ; $03BFD6
+        ORI.B  #$FFFF,D0                        ; $03BFDA
+        DC.W    $FFFF                           ; $03BFDE
+        DC.W    $FFFF                           ; $03BFE0
+        DC.W    $FFFF                           ; $03BFE2
+        DC.W    $FFFF                           ; $03BFE4
+        DC.W    $FFFF                           ; $03BFE6
+        DC.W    $FFFF                           ; $03BFE8
+        DC.W    $FFFF                           ; $03BFEA
+        DC.W    $FFFF                           ; $03BFEC
+        DC.W    $FFFF                           ; $03BFEE
+        DC.W    $FFFF                           ; $03BFF0
+        DC.W    $FFFF                           ; $03BFF2
+        DC.W    $FFFF                           ; $03BFF4
+        DC.W    $FFFF                           ; $03BFF6
+        DC.W    $FFFF                           ; $03BFF8
+        DC.W    $FFFF                           ; $03BFFA
+        DC.W    $FFFF                           ; $03BFFC
+        DC.W    $FFFF                           ; $03BFFE
+        DC.W    $FFFF                           ; $03C000
+        DC.W    $FFFF                           ; $03C002
+        DC.W    $FFFF                           ; $03C004
+        DC.W    $FFFF                           ; $03C006
+        DC.W    $FFFF                           ; $03C008
+        DC.W    $FFFF                           ; $03C00A
+        DC.W    $FFFF                           ; $03C00C
+        DC.W    $FFFF                           ; $03C00E
+        DC.W    $FFFF                           ; $03C010
+        DC.W    $FFFF                           ; $03C012
+        DC.W    $FFFF                           ; $03C014
+        DC.W    $FFFF                           ; $03C016
+        DC.W    $FFFF                           ; $03C018
+        DC.W    $FFFF                           ; $03C01A
+        DC.W    $FFFF                           ; $03C01C
+        DC.W    $FFFF                           ; $03C01E
+        DC.W    $FFFF                           ; $03C020
+        DC.W    $FFFF                           ; $03C022
+        DC.W    $FFFF                           ; $03C024
+        DC.W    $FFFF                           ; $03C026
+        DC.W    $FFFF                           ; $03C028
+        DC.W    $FFFF                           ; $03C02A
+        DC.W    $FFFF                           ; $03C02C
+        DC.W    $FFFF                           ; $03C02E
+        DC.W    $FFFF                           ; $03C030
+        DC.W    $FFFF                           ; $03C032
+        DC.W    $FFFF                           ; $03C034
+        DC.W    $FFFF                           ; $03C036
+        DC.W    $FFFF                           ; $03C038
+        DC.W    $FFFF                           ; $03C03A
+        DC.W    $FFFF                           ; $03C03C
+        DC.W    $FFFF                           ; $03C03E
+        DC.W    $FFFF                           ; $03C040
+        DC.W    $FFFF                           ; $03C042
+        DC.W    $FFFF                           ; $03C044
+        DC.W    $FFFF                           ; $03C046
+        DC.W    $FFFF                           ; $03C048
+        DC.W    $FFFF                           ; $03C04A
+        DC.W    $FFFF                           ; $03C04C
+        DC.W    $FFFF                           ; $03C04E
+        DC.W    $FFFF                           ; $03C050
+        DC.W    $FFFF                           ; $03C052
+        DC.W    $FFFF                           ; $03C054
+        DC.W    $FFFF                           ; $03C056
+        DC.W    $FFFF                           ; $03C058
+        DC.W    $FFFF                           ; $03C05A
+        DC.W    $FFFF                           ; $03C05C
+        DC.W    $FFFF                           ; $03C05E
+        DC.W    $FFFF                           ; $03C060
+        DC.W    $FFFF                           ; $03C062
+        DC.W    $FFFF                           ; $03C064
+        DC.W    $FFFF                           ; $03C066
+        DC.W    $FFFF                           ; $03C068
+        DC.W    $FFFF                           ; $03C06A
+        DC.W    $FFFF                           ; $03C06C
+        DC.W    $FFFF                           ; $03C06E
+        DC.W    $FFFF                           ; $03C070
+        DC.W    $FFFF                           ; $03C072
+        DC.W    $FFFF                           ; $03C074
+        DC.W    $FFFF                           ; $03C076
+        DC.W    $FFFF                           ; $03C078
+        DC.W    $FFFF                           ; $03C07A
+        DC.W    $FFFF                           ; $03C07C
+        DC.W    $FFFF                           ; $03C07E
+        DC.W    $FFFF                           ; $03C080
+        DC.W    $FFFF                           ; $03C082
+        DC.W    $FFFF                           ; $03C084
+        DC.W    $FFFF                           ; $03C086
+        DC.W    $FFFF                           ; $03C088
+        DC.W    $FFFF                           ; $03C08A
+        DC.W    $FFFF                           ; $03C08C
+        DC.W    $FFFF                           ; $03C08E
+        DC.W    $FFFF                           ; $03C090
+        DC.W    $FFFF                           ; $03C092
+        DC.W    $FFFF                           ; $03C094
+        DC.W    $FFFF                           ; $03C096
+        DC.W    $FFFF                           ; $03C098
+        DC.W    $FFFF                           ; $03C09A
+        DC.W    $FFFF                           ; $03C09C
+        DC.W    $FFFF                           ; $03C09E
+        DC.W    $FFFF                           ; $03C0A0
+        DC.W    $FFFF                           ; $03C0A2
+        DC.W    $FFFF                           ; $03C0A4
+        DC.W    $FFFF                           ; $03C0A6
+        DC.W    $FFFF                           ; $03C0A8
+        DC.W    $FFFF                           ; $03C0AA
+        DC.W    $FFFF                           ; $03C0AC
+        DC.W    $FFFF                           ; $03C0AE
+        DC.W    $FFFF                           ; $03C0B0
+        DC.W    $FFFF                           ; $03C0B2
+        DC.W    $FFFF                           ; $03C0B4
+        DC.W    $FFFF                           ; $03C0B6
+        DC.W    $FFFF                           ; $03C0B8
+        DC.W    $FFFF                           ; $03C0BA
+        DC.W    $FFFF                           ; $03C0BC
+        DC.W    $FFFF                           ; $03C0BE
+        DC.W    $FFFF                           ; $03C0C0
+        DC.W    $FFFF                           ; $03C0C2
+        DC.W    $FFFF                           ; $03C0C4
+        DC.W    $FFFF                           ; $03C0C6
+        DC.W    $FFFF                           ; $03C0C8
+        DC.W    $FFFF                           ; $03C0CA
+        DC.W    $FFFF                           ; $03C0CC
+        DC.W    $FFFF                           ; $03C0CE
+        DC.W    $FFFF                           ; $03C0D0
+        DC.W    $FFFF                           ; $03C0D2
+        DC.W    $FFFF                           ; $03C0D4
+        DC.W    $FFFF                           ; $03C0D6
+        DC.W    $FFFF                           ; $03C0D8
+        DC.W    $FFFF                           ; $03C0DA
+        DC.W    $FFFF                           ; $03C0DC
+        DC.W    $FFFF                           ; $03C0DE
+        DC.W    $FFFF                           ; $03C0E0
+        DC.W    $FFFF                           ; $03C0E2
+        DC.W    $FFFF                           ; $03C0E4
+        DC.W    $FFFF                           ; $03C0E6
+        DC.W    $FFFF                           ; $03C0E8
+        DC.W    $FFFF                           ; $03C0EA
+        DC.W    $FFFF                           ; $03C0EC
+        DC.W    $FFFF                           ; $03C0EE
+        DC.W    $FFFF                           ; $03C0F0
+        DC.W    $FFFF                           ; $03C0F2
+        DC.W    $FFFF                           ; $03C0F4
+        DC.W    $FFFF                           ; $03C0F6
+        DC.W    $FFFF                           ; $03C0F8
+        DC.W    $FFFF                           ; $03C0FA
+        DC.W    $FFFF                           ; $03C0FC
+        DC.W    $FFFF                           ; $03C0FE
+        DC.W    $FFFF                           ; $03C100
+        DC.W    $FFFF                           ; $03C102
+        DC.W    $FFFF                           ; $03C104
+        DC.W    $FFFF                           ; $03C106
+        DC.W    $FFFF                           ; $03C108
+        DC.W    $FFFF                           ; $03C10A
+        DC.W    $FFFF                           ; $03C10C
+        DC.W    $FFFF                           ; $03C10E
+        DC.W    $FFFF                           ; $03C110
+        DC.W    $FFFF                           ; $03C112
+        DC.W    $FFFF                           ; $03C114
+        DC.W    $FFFF                           ; $03C116
+        DC.W    $FFFF                           ; $03C118
+        DC.W    $FFFF                           ; $03C11A
+        DC.W    $FFFF                           ; $03C11C
+        DC.W    $FFFF                           ; $03C11E
+        DC.W    $FFFF                           ; $03C120
+        DC.W    $FFFF                           ; $03C122
+        DC.W    $FFFF                           ; $03C124
+        DC.W    $FFFF                           ; $03C126
+        DC.W    $FFFF                           ; $03C128
+        DC.W    $FFFF                           ; $03C12A
+        DC.W    $FFFF                           ; $03C12C
+        DC.W    $FFFF                           ; $03C12E
+        DC.W    $FFFF                           ; $03C130
+        DC.W    $FFFF                           ; $03C132
+        DC.W    $FFFF                           ; $03C134
+        DC.W    $FFFF                           ; $03C136
+        DC.W    $FFFF                           ; $03C138
+        DC.W    $FFFF                           ; $03C13A
+        DC.W    $FFFF                           ; $03C13C
+        DC.W    $FFFF                           ; $03C13E
+        DC.W    $FFFF                           ; $03C140
+        DC.W    $FFFF                           ; $03C142
+        DC.W    $FFFF                           ; $03C144
+        DC.W    $FFFF                           ; $03C146
+        DC.W    $FFFF                           ; $03C148
+        DC.W    $FFFF                           ; $03C14A
+        DC.W    $FFFF                           ; $03C14C
+        DC.W    $FFFF                           ; $03C14E
+        DC.W    $FFFF                           ; $03C150
+        DC.W    $FFFF                           ; $03C152
+        DC.W    $FFFF                           ; $03C154
+        DC.W    $FFFF                           ; $03C156
+        DC.W    $FFFF                           ; $03C158
+        DC.W    $FFFF                           ; $03C15A
+        DC.W    $FFFF                           ; $03C15C
+        DC.W    $FFFF                           ; $03C15E
+        DC.W    $FFFF                           ; $03C160
+        DC.W    $FFFF                           ; $03C162
+        DC.W    $FFFF                           ; $03C164
+        DC.W    $FFFF                           ; $03C166
+        DC.W    $FFFF                           ; $03C168
+        DC.W    $FFFF                           ; $03C16A
+        DC.W    $FFFF                           ; $03C16C
+        DC.W    $FFFF                           ; $03C16E
+        DC.W    $FFFF                           ; $03C170
+        DC.W    $FFFF                           ; $03C172
+        DC.W    $FFFF                           ; $03C174
+        DC.W    $FFFF                           ; $03C176
+        DC.W    $FFFF                           ; $03C178
+        DC.W    $FFFF                           ; $03C17A
+        DC.W    $FFFF                           ; $03C17C
+        DC.W    $FFFF                           ; $03C17E
+        DC.W    $FFFF                           ; $03C180
+        DC.W    $FFFF                           ; $03C182
+        DC.W    $FFFF                           ; $03C184
+        DC.W    $FFFF                           ; $03C186
+        DC.W    $FFFF                           ; $03C188
+        DC.W    $FFFF                           ; $03C18A
+        DC.W    $FFFF                           ; $03C18C
+        DC.W    $FFFF                           ; $03C18E
+        DC.W    $FFFF                           ; $03C190
+        DC.W    $FFFF                           ; $03C192
+        DC.W    $FFFF                           ; $03C194
+        DC.W    $FFFF                           ; $03C196
+        DC.W    $FFFF                           ; $03C198
+        DC.W    $FFFF                           ; $03C19A
+        DC.W    $FFFF                           ; $03C19C
+        DC.W    $FFFF                           ; $03C19E
+        DC.W    $FFFF                           ; $03C1A0
+        DC.W    $FFFF                           ; $03C1A2
+        DC.W    $FFFF                           ; $03C1A4
+        DC.W    $FFFF                           ; $03C1A6
+        DC.W    $FFFF                           ; $03C1A8
+        DC.W    $FFFF                           ; $03C1AA
+        DC.W    $FFFF                           ; $03C1AC
+        DC.W    $FFFF                           ; $03C1AE
+        DC.W    $FFFF                           ; $03C1B0
+        DC.W    $FFFF                           ; $03C1B2
+        DC.W    $FFFF                           ; $03C1B4
+        DC.W    $FFFF                           ; $03C1B6
+        DC.W    $FFFF                           ; $03C1B8
+        DC.W    $FFFF                           ; $03C1BA
+        DC.W    $FFFF                           ; $03C1BC
+        DC.W    $FFFF                           ; $03C1BE
+        DC.W    $FFFF                           ; $03C1C0
+        DC.W    $FFFF                           ; $03C1C2
+        DC.W    $FFFF                           ; $03C1C4
+        DC.W    $FFFF                           ; $03C1C6
+        DC.W    $FFFF                           ; $03C1C8
+        DC.W    $FFFF                           ; $03C1CA
+        DC.W    $FFFF                           ; $03C1CC
+        DC.W    $FFFF                           ; $03C1CE
+        DC.W    $FFFF                           ; $03C1D0
+        DC.W    $FFFF                           ; $03C1D2
+        DC.W    $FFFF                           ; $03C1D4
+        DC.W    $FFFF                           ; $03C1D6
+        DC.W    $FFFF                           ; $03C1D8
+        DC.W    $FFFF                           ; $03C1DA
+        DC.W    $FFFF                           ; $03C1DC
+        DC.W    $FFFF                           ; $03C1DE
+        DC.W    $FFFF                           ; $03C1E0
+        DC.W    $FFFF                           ; $03C1E2
+        DC.W    $FFFF                           ; $03C1E4
+        DC.W    $FFFF                           ; $03C1E6
+        DC.W    $FFFF                           ; $03C1E8
+        DC.W    $FFFF                           ; $03C1EA
+        DC.W    $FFFF                           ; $03C1EC
+        DC.W    $FFFF                           ; $03C1EE
+        DC.W    $FFFF                           ; $03C1F0
+        DC.W    $FFFF                           ; $03C1F2
+        DC.W    $FFFF                           ; $03C1F4
+        DC.W    $FFFF                           ; $03C1F6
+        DC.W    $FFFF                           ; $03C1F8
+        DC.W    $FFFF                           ; $03C1FA
+        DC.W    $FFFF                           ; $03C1FC
+        DC.W    $FFFF                           ; $03C1FE

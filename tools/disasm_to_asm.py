@@ -18,6 +18,8 @@ Usage:
 import struct
 import sys
 import argparse
+import subprocess
+import tempfile
 from pathlib import Path
 from collections import defaultdict
 
@@ -119,6 +121,8 @@ class AssemblyGenerator:
 
     def second_pass(self):
         """Second pass: re-disassemble with labels known."""
+        # Clear fallbacks from first pass - second pass is authoritative
+        self.disasm.fallbacks.clear()
         new_instructions = []
         for addr, size, mnemonic, is_data in self.instructions:
             result = self.disasm.disassemble_instruction(addr, self.labels)
@@ -189,6 +193,7 @@ class ProperDisassembler:
 
     def __init__(self, rom_data):
         self.rom = rom_data
+        self.fallbacks = []  # Track DC.W fallbacks: (offset, opcode, reason)
 
     def read_word(self, offset):
         if offset + 2 > len(self.rom):
@@ -564,15 +569,16 @@ class ProperDisassembler:
                 return {'asm': f'EXG     D{rx},A{ry}', 'size': 2}
 
         # MOVEM (48xx/4Cxx)
+        # Bit 10 (0x0400): 0 = Register to Memory (48xx), 1 = Memory to Register (4Cxx)
         if (opcode & 0xFB80) == 0x4880:
-            direction = 'M' if opcode & 0x0400 else 'R'  # to Memory or Register
+            mem_to_reg = bool(opcode & 0x0400)  # True = Memory to Register (4Cxx)
             size = '.L' if opcode & 0x0040 else '.W'
             mask = self.read_word(offset + 2)
             ea, ea_size = self._decode_ea(opcode & 0x3F, offset + 4, size)
 
             # Build register list from mask
             regs = []
-            if direction == 'M' and (opcode & 0x38) == 0x20:  # predecrement
+            if not mem_to_reg and (opcode & 0x38) == 0x20:  # Register to Memory with predecrement
                 # Reversed mask for predecrement
                 for i in range(8):
                     if mask & (1 << (15 - i)):
@@ -589,10 +595,12 @@ class ProperDisassembler:
                         regs.append(f'A{i}')
 
             reglist = '/'.join(regs) if regs else '#$0000'
-            if direction == 'M':
-                return {'asm': f'MOVEM{size:3s}{reglist},{ea}', 'size': 4 + ea_size}
-            else:
+            if mem_to_reg:
+                # Memory to Register: MOVEM <ea>,<reglist>
                 return {'asm': f'MOVEM{size:3s}{ea},{reglist}', 'size': 4 + ea_size}
+            else:
+                # Register to Memory: MOVEM <reglist>,<ea>
+                return {'asm': f'MOVEM{size:3s}{reglist},{ea}', 'size': 4 + ea_size}
 
         # Shift/Rotate instructions (Exxx)
         if (opcode & 0xF000) == 0xE000:
@@ -642,6 +650,13 @@ class ProperDisassembler:
             size_code = (opcode >> 6) & 3
             sizes = ['.B', '.W', '.L', '']
 
+            # Check for valid EA mode - immediate ops cannot target An (mode 1)
+            ea_mode = (opcode >> 3) & 7
+            if ea_mode == 1:
+                # Address register direct - invalid for ORI/ANDI/etc
+                self.fallbacks.append((offset, opcode, f'{imm_ops[imm_op]} to An invalid'))
+                return {'asm': f'DC.W    ${opcode:04X}', 'size': 2}
+
             if imm_ops[imm_op] and size_code < 3:
                 op_name = imm_ops[imm_op]
                 size_str = sizes[size_code]
@@ -687,21 +702,49 @@ class ProperDisassembler:
 
             # Source EA: bits 5-3 = mode, bits 2-0 = reg
             src_mode = opcode & 0x3F
+            src_mode_bits = (opcode >> 3) & 7
 
             # Destination EA: bits 11-9 = reg, bits 8-6 = mode (reversed from source!)
             dst_reg = (opcode >> 9) & 7
             dst_mode_bits = (opcode >> 6) & 7
             dst_mode = dst_reg | (dst_mode_bits << 3)
 
+            # Check for MOVE.B An,<ea> - address registers don't support byte operations
+            if src_mode_bits == 1 and size_str == '.B':
+                self.fallbacks.append((offset, opcode, 'MOVE.B An,<ea> invalid'))
+                return {'asm': f'DC.W    ${opcode:04X}', 'size': 2}
+
+            # Check for invalid destination modes before decoding
+            # PC-relative (mode 7, reg 2 or 3) cannot be a destination
+            if dst_mode_bits == 7 and (dst_reg == 2 or dst_reg == 3):
+                self.fallbacks.append((offset, opcode, 'PC-relative cannot be destination'))
+                return {'asm': f'DC.W    ${opcode:04X}', 'size': 2}
+
+            # Immediate mode (mode 7, reg 4) cannot be a destination
+            if dst_mode_bits == 7 and dst_reg == 4:
+                self.fallbacks.append((offset, opcode, 'immediate cannot be destination'))
+                return {'asm': f'DC.W    ${opcode:04X}', 'size': 2}
+
             src, src_size = self._decode_ea(src_mode, offset + 2, size_str)
             dst, dst_size = self._decode_ea(dst_mode, offset + 2 + src_size, size_str)
 
+            # Check for invalid EA (unrecognized mode)
+            if '<EA:' in src or '<EA:' in dst:
+                self.fallbacks.append((offset, opcode, 'invalid EA mode'))
+                return {'asm': f'DC.W    ${opcode:04X}', 'size': 2}
+
             # Check if it's MOVEA (destination is An = mode 1)
             if dst_mode_bits == 1:
+                # MOVEA only supports .W and .L - .B is INVALID
+                if size_str == '.B':
+                    # Fall through to DC.W - this is not a valid 68K instruction
+                    self.fallbacks.append((offset, opcode, 'MOVEA.B invalid'))
+                    return {'asm': f'DC.W    ${opcode:04X}', 'size': 2}
                 return {'asm': f'MOVEA{size_str:3s}{src},A{dst_reg}', 'size': 2 + src_size + dst_size}
             return {'asm': f'MOVE{size_str:4s}{src},{dst}', 'size': 2 + src_size + dst_size}
 
-        # Default: DC.W
+        # Default: DC.W (unrecognized opcode)
+        self.fallbacks.append((offset, opcode, 'unrecognized opcode'))
         return {'asm': f'DC.W    ${opcode:04X}', 'size': 2}
 
     def _decode_ea(self, mode, ext_offset, size_suffix, pc_addr=None):
@@ -833,6 +876,32 @@ class ModuleConverter:
         return True
 
 
+def validate_with_vasm(asm_content, vasm_path='vasm'):
+    """Validate assembly syntax with vasm (syntax check only, no binary output)."""
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.asm', delete=False) as f:
+        f.write(asm_content)
+        temp_path = f.name
+
+    try:
+        # Run vasm in syntax-check mode (-c flag not available, so just check stderr)
+        result = subprocess.run(
+            [vasm_path, '-m68000', '-Fbin', '-quiet', '-o', '/dev/null', temp_path],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        if result.returncode != 0:
+            return False, result.stderr
+        return True, None
+    except FileNotFoundError:
+        return None, "vasm not found in PATH"
+    except subprocess.TimeoutExpired:
+        return None, "vasm timed out"
+    finally:
+        import os
+        os.unlink(temp_path)
+
+
 def main():
     parser = argparse.ArgumentParser(description='Disassemble ROM to proper assembly')
     parser.add_argument('rom_file', type=Path, help='ROM file')
@@ -842,6 +911,11 @@ def main():
     parser.add_argument('--module', '-m', type=Path, help='Convert a module file')
     parser.add_argument('--dcw', action='store_true',
                        help='Output DC.W format with mnemonic comments (byte-exact)')
+    parser.add_argument('--validate', action='store_true',
+                       help='Validate output with vasm syntax check')
+    parser.add_argument('--log-fallback', type=Path,
+                       help='Log DC.W fallback cases to file')
+    parser.add_argument('--vasm', default='vasm', help='Path to vasm binary')
     args = parser.parse_args()
 
     with open(args.rom_file, 'rb') as f:
@@ -864,6 +938,27 @@ def main():
 
     gen = AssemblyGenerator(rom_data, start, end)
     output = gen.generate(use_dcw=args.dcw)
+
+    # Log DC.W fallbacks if requested
+    if args.log_fallback and gen.disasm.fallbacks:
+        with open(args.log_fallback, 'w') as f:
+            f.write(f"# DC.W Fallback Log for ${start:06X}-${end:06X}\n")
+            f.write(f"# Total fallbacks: {len(gen.disasm.fallbacks)}\n\n")
+            for offset, opcode, reason in gen.disasm.fallbacks:
+                f.write(f"${offset:06X}: ${opcode:04X} - {reason}\n")
+        print(f"Logged {len(gen.disasm.fallbacks)} fallbacks to {args.log_fallback}")
+
+    # Validate with vasm if requested
+    if args.validate:
+        valid, errors = validate_with_vasm(output, args.vasm)
+        if valid is None:
+            print(f"Warning: Could not validate - {errors}")
+        elif valid:
+            print("Validation passed: vasm syntax OK")
+        else:
+            print(f"Validation FAILED:\n{errors}")
+            if not args.output:
+                return  # Don't output invalid assembly to stdout
 
     if args.output:
         with open(args.output, 'w') as f:

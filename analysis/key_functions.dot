@@ -125,7 +125,7 @@ digraph KeyFunctions {
   master_sequencer -> sh2_graphics_cmd;
 
   sh2_graphics_cmd -> sh2_send_cmd_wait;
-  sh2_cmd_27 -> sh2_send_cmd_wait;
+  // Note: sh2_cmd_27 has inline blocking loops, does NOT call sh2_send_cmd_wait
   sh2_send_cmd_wait -> sh2_wait_response;
 
   game_update -> sh2_frame_sync;

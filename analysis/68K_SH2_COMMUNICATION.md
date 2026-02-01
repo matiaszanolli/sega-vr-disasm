@@ -125,7 +125,8 @@ See [MASTER_SLAVE_ANALYSIS.md](architecture/MASTER_SLAVE_ANALYSIS.md) for valida
 | $00E316 | `sh2_send_cmd_wait` | Wait for ready, send command (1 blocking loop) |
 | $00E35A | `sh2_send_cmd` | Direct command send (3 blocking loops) |
 | $00E342 | `sh2_wait_response` | Poll COMM6 for SH2 response |
-| $00E3B4 | `sh2_cmd_27` | Graphics command $27 |
+| $00E3B4 | `sh2_cmd_27` | Graphics command $27 (2 inline blocking loops, 21 calls/frame) |
+| $00E406 | `sh2_cmd_2F` | Extended command $2F (3 inline blocking loops, 4 params) |
 | $00E22C | `sh2_graphics_cmd` | General graphics command |
 | $00E2F0 | `sh2_load_data` | Data load via SH2 |
 | $00E2E4 | `sh2_copy_routine` | SH2 memory copy |
@@ -251,4 +252,4 @@ See [VINT_HANDLER_ARCHITECTURE.md](architecture/VINT_HANDLER_ARCHITECTURE.md) fo
 
 **Document Status:** Reference document
 **Confidence:** High - COMM register mapping confirmed, command functions disassembled
-**Last Updated:** 2026-02-01 (COMM register table corrected per hardware manual)
+**Last Updated:** 2026-02-01 (Added sh2_cmd_2F, updated sh2_cmd_27 to note inline loops)

@@ -76,7 +76,8 @@ See `analysis/68K_SH2_COMMUNICATION.md` for validated COMM usage and v2.3 protoc
 | $00E316 | `sh2_send_cmd_wait` | Wait for ready, send command |
 | $00E342 | `sh2_wait_response` | Wait for SH2 response |
 | $00E35A | `sh2_send_cmd` | Direct command send |
-| $00E3B4 | `sh2_cmd_27` | SH2 command $27 submit (21 calls) |
+| $00E3B4 | `sh2_cmd_27` | SH2 command $27 submit (21 calls, 2 inline loops) |
+| $00E406 | `sh2_cmd_2F` | SH2 extended command $2F (3 inline loops, 4 params) |
 | $00203A | `sh2_frame_sync` | SH2 frame sync wrapper |
 | $0027DA | `sh2_framebuffer_prep` | 32X adapter framebuffer prep |
 | $002890 | `sh2_comm_sync` | SH2 COMM register sync (3 calls) |

@@ -198,7 +198,7 @@ With accurate frame-boundary detection, proper instrumentation, and architectura
 | Address | Function | Role |
 |---------|----------|------|
 | $00E316 | `sh2_send_cmd_wait` | **Primary blocking point** - waits for SH2 ready |
-| $00E342 | `sh2_wait_response` | Polls COMM4 for SH2 completion |
+| $00E342 | `sh2_wait_response` | Polls COMM6 for SH2 completion |
 | $00E22C | `sh2_graphics_cmd` | Graphics command submission (14 calls) |
 | $00E3B4 | `sh2_cmd_27` | Most frequent graphics command (21 calls) |
 | $002890 | `sh2_comm_sync` | COMM register synchronization |

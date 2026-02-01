@@ -42,26 +42,24 @@
 
 ### COMM Port Mapping ($A15120-$A1512F from 68K side)
 
-| 68K Address | SH2 Address | Name | Width |
-|-------------|-------------|------|-------|
-| $A15120 | $20004020 | COMM0 | 16-bit (68K) / 32-bit (SH2) |
-| $A15122 | $20004020 | COMM0 (low) | 16-bit |
-| $A15124 | $20004024 | COMM1 | 16-bit / 32-bit |
-| $A15126 | $20004024 | COMM1 (low) | 16-bit |
-| $A15128 | $20004028 | COMM2 | 16-bit / 32-bit |
-| $A1512A | $20004028 | COMM2 (low) | 16-bit |
-| $A1512C | $2000402C | COMM3 | 16-bit / 32-bit |
-| $A1512E | $2000402C | COMM3 (low) | 16-bit |
-| $A15130 | $20004030 | COMM4 | 16-bit / 32-bit |
-| $A15132 | $20004030 | COMM4 (low) | 16-bit |
-| $A15134 | $20004034 | COMM5 | 16-bit / 32-bit |
-| $A15136 | $20004034 | COMM5 (low) | 16-bit |
-| $A15138 | $20004038 | COMM6 | 16-bit / 32-bit |
-| $A1513A | $20004038 | COMM6 (low) | 16-bit |
-| $A1513C | $2000403C | COMM7 | 16-bit / 32-bit |
-| $A1513E | $2000403C | COMM7 (low) | 16-bit |
+The 32X has **8 COMM registers** (COMM0-COMM7) at **2-byte (word) intervals**:
 
-**Width note:** SH2 reads/writes longwords (32-bit) at even-numbered addresses above. 68K accesses as word pairs. Writing COMM0 from 68K affects only the upper 16 bits of SH2's longword view.
+| 68K Address | SH2 Address | Name  | VRD Game Usage |
+|-------------|-------------|-------|----------------|
+| $A15120 | $20004020 | COMM0 | Command flag (hi byte) + code (lo byte) |
+| $A15122 | $20004022 | COMM1 | Status/reserved |
+| $A15124 | $20004024 | COMM2 | Parameter word |
+| $A15126 | $20004026 | COMM3 | Parameter word |
+| $A15128 | $20004028 | COMM4 | Data pointer (hi word) |
+| $A1512A | $2000402A | COMM5 | Data pointer (lo word) |
+| $A1512C | $2000402C | COMM6 | Handshake flag |
+| $A1512E | $2000402E | COMM7 | Master→Slave signal (expansion ROM) |
+
+**Access patterns:**
+- **68K word access**: Each register is a 16-bit word (e.g., `MOVE.W d0,$A15120`)
+- **68K byte access**: Game uses byte access within words (e.g., `TST.B $A15120` tests COMM0 hi byte)
+- **68K longword access**: `MOVE.L a0,$A15128` writes to COMM4+COMM5 as a 32-bit pointer
+- **SH2 longword access**: SH2 can read paired registers as 32-bit (e.g., $20004020 reads COMM0+COMM1)
 
 ### Adapter Control ($A15100-$A15106) (✅ Confirmed)
 
@@ -78,22 +76,26 @@ See [DATA_STRUCTURES.md](architecture/DATA_STRUCTURES.md) for complete memory ma
 
 ## COMM Register Usage
 
-### Original Game (✅ Confirmed January 2026)
+### Original Game Protocol (✅ Confirmed January 2026)
 
-| Register | SH2 Address | Usage | Confidence |
-|----------|-------------|-------|------------|
-| COMM0 | $20004020 | 68K→Master SH2 command | 📋 Inferred |
-| COMM1 | $20004024 | **Slave command byte** - Slave polls this for work | ✅ Confirmed |
-| COMM2 | $20004028 | Work status flags | 📋 Inferred |
-| COMM3 | $2000402C | Slave status ("OVRN" marker) | ✅ Confirmed |
-| COMM4-7 | $20004030-3C | Unused by original game | ✅ Confirmed |
+Based on disassembly of [sh2_communication.asm](../disasm/modules/68k/sh2/sh2_communication.asm):
+
+| Register | 68K Addr | SH2 Addr | Usage | Confidence |
+|----------|----------|----------|-------|------------|
+| COMM0 hi | $A15120 | $20004020 | Command flag (68K→SH2) | ✅ Confirmed |
+| COMM0 lo | $A15121 | $20004021 | Command code ($22, $25, $27, etc.) | ✅ Confirmed |
+| COMM1 | $A15122 | $20004022 | **Slave command byte** - Slave polls this | ✅ Confirmed |
+| COMM3 | $A15126 | $20004026 | Slave status ("OVRN" marker) | ✅ Confirmed |
+| COMM4+5 | $A15128 | $20004028 | 32-bit data pointer (68K→SH2) | ✅ Confirmed |
+| COMM6 | $A1512C | $2000402C | Handshake flag ($0101 = ready) | ✅ Confirmed |
+| COMM7 | $A1512E | $2000402E | Master→Slave signal (expansion ROM) | ✅ Mod uses |
 
 **Slave COMM1 Protocol (✅ Disassembled):**
 
 The Slave SH2 runs a command dispatcher loop at SDRAM `$06000592`:
 
 ```
-1. Read COMM1 byte
+1. Read COMM1 byte ($20004022)
 2. If COMM1 == 0: No work → enter delay loop ($06000608)
 3. If COMM1 != 0: Dispatch to handler via jump table ($060005C8)
 4. Loop back to step 1
@@ -103,26 +105,26 @@ The delay loop burns 64 cycles before rechecking COMM1. Profiling shows **66.5% 
 
 See: [slave_command_dispatcher.asm](../disasm/sh2/3d_engine/slave_command_dispatcher.asm)
 
-### v2.3 Protocol Additions (✅ Validated)
+### v2.3+ Protocol Additions (Expansion ROM)
 
-| Register | v2.3 Usage |
-|----------|------------|
-| COMM4 | Slave frame counter (incremented by handler) |
-| COMM6 | Master→Slave signal (0x0012 = work, 0x0000 = idle) |
+| Register | 68K Addr | Expansion ROM Usage |
+|----------|----------|---------------------|
+| COMM5 | $A1512A | Vertex transform counter (+101 per call) |
+| COMM7 | $A1512E | Master→Slave signal (0x16 = work, 0x00 = idle) |
 
 See [MASTER_SLAVE_ANALYSIS.md](architecture/MASTER_SLAVE_ANALYSIS.md) for validated synchronization protocol details.
 
 ---
 
-## 68K Functions That Communicate with SH2 (📋 Inferred)
+## 68K Functions That Communicate with SH2 (✅ Confirmed)
 
-### Command Submission
+### Command Submission (✅ Disassembled - see [sh2_communication.asm](../disasm/modules/68k/sh2/sh2_communication.asm))
 
 | Address | Name | Description |
 |---------|------|-------------|
-| $00E316 | `sh2_send_cmd_wait` | Wait for ready, send command |
-| $00E35A | `sh2_send_cmd` | Direct command send |
-| $00E342 | `sh2_wait_response` | Poll for SH2 response |
+| $00E316 | `sh2_send_cmd_wait` | Wait for ready, send command (1 blocking loop) |
+| $00E35A | `sh2_send_cmd` | Direct command send (3 blocking loops) |
+| $00E342 | `sh2_wait_response` | Poll COMM6 for SH2 response |
 | $00E3B4 | `sh2_cmd_27` | Graphics command $27 |
 | $00E22C | `sh2_graphics_cmd` | General graphics command |
 | $00E2F0 | `sh2_load_data` | Data load via SH2 |
@@ -237,7 +239,8 @@ See [VINT_HANDLER_ARCHITECTURE.md](architecture/VINT_HANDLER_ARCHITECTURE.md) fo
 
 ## Related Documentation
 
-- [MASTER_SLAVE_ANALYSIS.md](architecture/MASTER_SLAVE_ANALYSIS.md) - **v2.3 validated sync protocol**
+- [sh2_communication.asm](../disasm/modules/68k/sh2/sh2_communication.asm) - **Annotated disassembly of blocking comm functions**
+- [MASTER_SLAVE_ANALYSIS.md](architecture/MASTER_SLAVE_ANALYSIS.md) - Parallel processing infrastructure
 - [DATA_STRUCTURES.md](architecture/DATA_STRUCTURES.md) - Memory maps and data structures
 - [STATE_MACHINES.md](architecture/STATE_MACHINES.md) - Game state machines
 - [VINT_HANDLER_ARCHITECTURE.md](architecture/VINT_HANDLER_ARCHITECTURE.md) - V-INT handler details
@@ -247,5 +250,5 @@ See [VINT_HANDLER_ARCHITECTURE.md](architecture/VINT_HANDLER_ARCHITECTURE.md) fo
 ---
 
 **Document Status:** Reference document
-**Confidence:** Mixed - see ✅/📋 markers per section
-**Last Updated:** 2026-01-30 (Slave command dispatcher confirmed via profiling)
+**Confidence:** High - COMM register mapping confirmed, command functions disassembled
+**Last Updated:** 2026-02-01 (COMM register table corrected per hardware manual)

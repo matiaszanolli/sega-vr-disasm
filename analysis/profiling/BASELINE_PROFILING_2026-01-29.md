@@ -21,6 +21,19 @@ The Master SH2 averaging only 60 cycles/frame (vs 306,989 for Slave) confirms:
 - Master SH2 has **full capacity available** for parallel work
 - Current ROM runs unmodified VRD behavior
 
+### Reconciling with Architectural Analysis
+
+**Q: If Slave is at 80.1% utilization, why does ARCHITECTURAL_BOTTLENECK_ANALYSIS say it's underutilized?**
+
+**A:** Both are true. PC-level profiling shows **66.5% of Slave cycles** are spent at `$0600060A` - a NOP inside an idle delay loop. The Slave is *running* (high cycle count) but *wasting* those cycles waiting for work that rarely comes.
+
+| Metric | Value | Meaning |
+|--------|-------|---------|
+| Slave cycles/frame | 306,989 | Raw cycle count (high) |
+| Slave "utilization" | 80.1% | % of 383K cycle budget used |
+| Slave idle fraction | 66.5% | % of cycles in delay loop |
+| **Slave useful work** | **~33.5%** | **Actual rendering cycles** |
+
 ---
 
 ## Expansion ROM Status
@@ -54,7 +67,7 @@ From [68K_BOTTLENECK_ANALYSIS.md](68K_BOTTLENECK_ANALYSIS.md):
 | Address | Function | Role |
 |---------|----------|------|
 | `$00E316` | `sh2_send_cmd_wait` | Primary blocking point - polls COMM until SH2 ready |
-| `$00E342` | `sh2_wait_response` | Polls COMM4 for SH2 completion signal |
+| `$00E342` | `sh2_wait_response` | Polls COMM6 for SH2 completion signal |
 | `$00E22C` | `sh2_graphics_cmd` | Graphics command submission (14 calls/frame) |
 | `$00E3B4` | `sh2_cmd_27` | Most frequent command (21 calls/frame) |
 

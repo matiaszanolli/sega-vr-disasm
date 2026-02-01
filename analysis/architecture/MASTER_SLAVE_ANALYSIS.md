@@ -25,7 +25,7 @@
 ### Original Finding (v1.0)
 The Slave SH2 CPU is largely IDLE during 3D rendering. The Master SH2 performs the vast majority of rendering work while the Slave sits in an infinite loop waiting for commands that rarely come.
 
-### Current Status (v4.0) ⚠️ EXPERIMENTAL
+### Current Status (Project v4.3.0, Infrastructure v4.0) ⚠️ EXPERIMENTAL
 **INFRASTRUCTURE COMPLETE, ACTIVATION DEFERRED DUE TO TIMING CONCERNS**
 
 The infrastructure for parallel processing is ready but **NOT YET ACTIVATED** in live gameplay:

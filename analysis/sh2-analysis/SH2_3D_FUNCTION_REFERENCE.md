@@ -2,7 +2,7 @@
 
 **Virtua Racing Deluxe - Complete Function Catalog**
 **Analysis Date**: January 6, 2026
-**Updated**: January 31, 2026 (75 functions translated - v4.2.0 milestone)
+**Updated**: February 1, 2026 (v4.3.0 - 75 functions translated across 36 assembly files)
 
 ---
 
@@ -786,7 +786,7 @@ func_XXX:
 
 ### Translated Assembly Sources
 
-All 53 fully annotated translations are in `disasm/sh2/3d_engine/`:
+All 75 translated functions are spread across 36 assembly files in `disasm/sh2/3d_engine/` (some files cover multiple related functions):
 
 **Key Translation Files by Pipeline Stage:**
 

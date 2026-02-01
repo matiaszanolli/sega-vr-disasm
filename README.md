@@ -7,12 +7,12 @@ A complete, buildable disassembly of Virtua Racing Deluxe for the Sega 32X, with
 ## Key Features
 
 - **Byte-perfect rebuild** - All translated functions verified identical to original ROM
-- **75 SH2 functions translated** - Proper `.short` opcode assembly with full annotations
-- **68K translation in progress** - Core modules converted from dc.w to proper assembly
+- **75 SH2 functions translated** - Proper `.short` opcode assembly across 36 files
+- **5 68K modules translated** - Boot, game logic, physics, adapter init, SH2 communication
 - **4MB expansion ROM** - 1MB SH2 working space with parallel processing infrastructure (not yet activated)
 - **503+ named 68K functions** - Categorized by subsystem with 200+ auto-injected labels
 - **107 named SH2 functions** - 3D engine fully mapped
-- **Build system integrated** - Makefile rules for all translated functions
+- **Cross-validated documentation** - All analysis docs verified against disassembly
 
 ## Quick Start
 

@@ -4,13 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current Development Status
 
-**Phase:** v4.2.0 - SH2 Translation Milestone Complete
+**Phase:** v4.3.0 - 68K Translation In Progress
 **Approach:** Full ROM rebuild from disassembly (NOT code injection)
 **Build:** `make all` produces complete 4MB ROM (byte-identical to original in translated regions)
 
 ### What's Working
 - 4MB ROM builds successfully with 1MB expansion space ($300000-$3FFFFF)
 - **75 SH2 functions translated** to proper `.short` opcode assembly
+- **5 68K modules translated** to proper assembly with annotations
 - **All translations verified** byte-identical to original ROM
 - **Build system integrated** with Makefile rules for all functions
 - **Expansion code ready** at $300000+ (parallel processing infrastructure)

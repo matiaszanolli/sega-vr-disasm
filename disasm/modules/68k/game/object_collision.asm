@@ -42,6 +42,7 @@
 ; ============================================================================
 
 ; Additional object structure offsets (extends object_system.asm)
+OBJ_ACTIVE      equ     $0004   ; Object active flag (word)
 OBJ_Z_POS       equ     $003C   ; Z position (word)
 OBJ_ALT_Y       equ     $0040   ; Alternative Y position (word)
 OBJ_ALT_X       equ     $0046   ; Alternative X position (word)
@@ -410,16 +411,101 @@ obj_heading_update:
         rts                                     ; placeholder
 
 ; ============================================================================
+; collision_effect_handler ($007C4E) - Collision Effect/Sound Trigger
+; Called by: 18 locations per frame (per object collision)
+; Parameters: A0 = object base
+; Returns: Nothing (side effects: timers and sound triggers)
+;
+; Handles visual/audio feedback for 4 collision damage slots:
+;   Slot 1: Timer $0098, Flag bit 3 at $0058
+;   Slot 2: Timer $009A, Flag bit 3 at $0059
+;   Slot 3: Timer $00E6, Flag bit 4 at $0058
+;   Slot 4: Timer $00E8, Flag bit 4 at $0059
+;
+; For each slot: if timer=0 AND flag bit set:
+;   1. Set effect timer to 15 frames
+;   2. Trigger sound $D2 (collision SFX) if sound slot free
+; ============================================================================
+
+; Collision effect work RAM (use sign-extended address for .w addressing)
+SOUND_SLOT      equ     $FFFFC8A4   ; Sound slot for collision effects ($C8A4.w)
+EFFECT_SOUND    equ     $D2         ; Collision sound effect ID
+EFFECT_TIMER    equ     $0F         ; 15 frame effect duration
+
+; Object collision effect offsets
+OBJ_EFFECT1_TMR equ     $0098       ; Effect 1 timer
+OBJ_EFFECT2_TMR equ     $009A       ; Effect 2 timer
+OBJ_EFFECT3_TMR equ     $00E6       ; Effect 3 timer
+OBJ_EFFECT4_TMR equ     $00E8       ; Effect 4 timer
+OBJ_COLL_FLAG1  equ     $0058       ; Collision flags byte 1
+OBJ_COLL_FLAG2  equ     $0059       ; Collision flags byte 2
+
+        org     $007C4E
+
+collision_effect_handler:
+        tst.w   OBJ_ACTIVE(a0)                  ; $007C4E: $4A68 $0004 - Check object active
+        bne.s   .check_slot1                    ; $007C52: $6602       - Continue if active
+        rts                                     ; $007C54: $4E75       - Return if inactive
+
+; Slot 1: Timer $0098, Flag bit 3 at $0058
+.check_slot1:
+        tst.w   OBJ_EFFECT1_TMR(a0)             ; $007C56: $4A68 $0098 - Check timer 1
+        bne.s   .check_slot2                    ; $007C5A: $661A       - Skip if active
+        btst    #3,OBJ_COLL_FLAG1(a0)           ; $007C5C: $0828 $0003 $0058 - Check flag
+        beq.s   .check_slot2                    ; $007C62: $6712       - Skip if not set
+        move.w  #EFFECT_TIMER,OBJ_EFFECT1_TMR(a0) ; $007C64: $317C $000F $0098 - Set timer
+        tst.b   SOUND_SLOT.w                    ; $007C6A: $4A38 $C8A4 - Check sound slot
+        bne.s   .check_slot2                    ; $007C6E: $6606       - Skip if busy
+        move.b  #EFFECT_SOUND,SOUND_SLOT.w      ; $007C70: $11FC $00D2 $C8A4 - Trigger sound
+
+; Slot 2: Timer $009A, Flag bit 3 at $0059
+.check_slot2:
+        tst.w   OBJ_EFFECT2_TMR(a0)             ; $007C76: $4A68 $009A - Check timer 2
+        bne.s   .check_slot3                    ; $007C7A: $661A       - Skip if active
+        btst    #3,OBJ_COLL_FLAG2(a0)           ; $007C7C: $0828 $0003 $0059 - Check flag
+        beq.s   .check_slot3                    ; $007C82: $6712       - Skip if not set
+        move.w  #EFFECT_TIMER,OBJ_EFFECT2_TMR(a0) ; $007C84: $317C $000F $009A - Set timer
+        tst.b   SOUND_SLOT.w                    ; $007C8A: $4A38 $C8A4 - Check sound slot
+        bne.s   .check_slot3                    ; $007C8E: $6606       - Skip if busy
+        move.b  #EFFECT_SOUND,SOUND_SLOT.w      ; $007C90: $11FC $00D2 $C8A4 - Trigger sound
+
+; Slot 3: Timer $00E6, Flag bit 4 at $0058
+.check_slot3:
+        tst.w   OBJ_EFFECT3_TMR(a0)             ; $007C96: $4A68 $00E6 - Check timer 3
+        bne.s   .check_slot4                    ; $007C9A: $661A       - Skip if active
+        btst    #4,OBJ_COLL_FLAG1(a0)           ; $007C9C: $0828 $0004 $0058 - Check flag
+        beq.s   .check_slot4                    ; $007CA2: $6712       - Skip if not set
+        move.w  #EFFECT_TIMER,OBJ_EFFECT3_TMR(a0) ; $007CA4: $317C $000F $00E6 - Set timer
+        tst.b   SOUND_SLOT.w                    ; $007CAA: $4A38 $C8A4 - Check sound slot
+        bne.s   .check_slot4                    ; $007CAE: $6606       - Skip if busy
+        move.b  #EFFECT_SOUND,SOUND_SLOT.w      ; $007CB0: $11FC $00D2 $C8A4 - Trigger sound
+
+; Slot 4: Timer $00E8, Flag bit 4 at $0059
+.check_slot4:
+        tst.w   OBJ_EFFECT4_TMR(a0)             ; $007CB6: $4A68 $00E8 - Check timer 4
+        bne.s   .done                           ; $007CBA: $661A       - Skip if active
+        btst    #4,OBJ_COLL_FLAG2(a0)           ; $007CBC: $0828 $0004 $0059 - Check flag
+        beq.s   .done                           ; $007CC2: $6712       - Skip if not set
+        move.w  #EFFECT_TIMER,OBJ_EFFECT4_TMR(a0) ; $007CC4: $317C $000F $00E8 - Set timer
+        tst.b   SOUND_SLOT.w                    ; $007CCA: $4A38 $C8A4 - Check sound slot
+        bne.s   .done                           ; $007CCE: $6606       - Skip if busy
+        move.b  #EFFECT_SOUND,SOUND_SLOT.w      ; $007CD0: $11FC $00D2 $C8A4 - Trigger sound
+
+.done:
+        rts                                     ; $007CD6: $4E75
+
+; ============================================================================
 ; SUMMARY
 ; ============================================================================
 ;
-; Total calls per frame: 43 (11 + 11 + 11 + 10)
-; Estimated cycles: ~2000 per frame for all 4 functions
+; Total calls per frame: 61 (11 + 11 + 11 + 10 + 18)
+; Estimated cycles: ~2500 per frame for all 5 functions
 ;
 ; These collision functions are called after position updates to:
 ; 1. Calculate distances for sorting/culling
 ; 2. Test collisions against other objects
 ; 3. Enforce play area boundaries
 ; 4. Update headings for smooth rotation
+; 5. Trigger collision effects (sounds, visual feedback)
 ;
 ; ============================================================================

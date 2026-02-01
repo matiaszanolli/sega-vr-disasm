@@ -2256,49 +2256,25 @@
         dc.w    $1B1C        ; $02419E
         dc.w    $1D1E        ; $0241A0
         dc.w    $1F00        ; $0241A2
-        dc.w    $4F22        ; $0241A4
-        dc.w    $DC0B        ; $0241A6
-        dc.w    $9D11        ; $0241A8
-        dc.w    $59E1        ; $0241AA
-        dc.w    $9010        ; $0241AC
-        dc.w    $390C        ; $0241AE
-        dc.w    $85E0        ; $0241B0
-        dc.w    $4011        ; $0241B2
-        dc.w    $8B10        ; $0241B4
-        dc.w    $6B03        ; $0241B6
-        dc.w    $60C4        ; $0241B8
-        dc.w    $8800        ; $0241BA
-        dc.w    $8901        ; $0241BC
-        dc.w    $B013        ; $0241BE
-        dc.w    $0009        ; $0241C0
-        dc.w    $4B10        ; $0241C2
-        dc.w    $8FF8        ; $0241C4
-        dc.w    $7908        ; $0241C6
-        dc.w    $4F26        ; $0241C8
-        dc.w    $000B        ; $0241CA
-        dc.w    $0009        ; $0241CC
+; ============================================================================
+; func_072: Element Processor with BSR Loop (42 bytes: $0241A4-$0241CD)
+; Processes display elements, calls BSR based on element value comparison
+; ============================================================================
+        include "sh2/generated/func_072.inc"
+; Literal pool for func_072 (data: $0241CE-$0241D7)
         dc.w    $0200        ; $0241CE
         dc.w    $0400        ; $0241D0
         dc.w    $0000        ; $0241D2
         dc.w    $C000        ; $0241D4
         dc.w    $0000        ; $0241D6
-        dc.w    $600B        ; $0241D8
-        dc.w    $EB1C        ; $0241DA
-        dc.w    $3B08        ; $0241DC
-        dc.w    $3C0C        ; $0241DE
-        dc.w    $4008        ; $0241E0
-        dc.w    $4000        ; $0241E2
-        dc.w    $AFE8        ; $0241E4
-        dc.w    $390C        ; $0241E6
-        dc.w    $DA07        ; $0241E8
-        dc.w    $4018        ; $0241EA
-        dc.w    $4001        ; $0241EC
-        dc.w    $3A0C        ; $0241EE
-        dc.w    $6193        ; $0241F0
-        dc.w    $E70E        ; $0241F2
-        dc.w    $62A6        ; $0241F4
-        dc.w    $1120        ; $0241F6
-        dc.w    $62A6        ; $0241F8
-        dc.w    $1121        ; $0241FA
-        dc.w    $4710        ; $0241FC
-        dc.w    $8FF9        ; $0241FE
+; ============================================================================
+; func_073: Negative Element Handler (16 bytes: $0241D8-$0241E7)
+; Called when element value is negative; sets up registers and jumps to loop
+; ============================================================================
+        include "sh2/generated/func_073.inc"
+; ============================================================================
+; func_074: Block Copy 14 (30 bytes: $0241E8-$024205)
+; Copies 14 blocks of 8 bytes using table base lookup
+; Note: Crosses section boundary at $024200 into code_24200
+; ============================================================================
+        include "sh2/generated/func_074.inc"

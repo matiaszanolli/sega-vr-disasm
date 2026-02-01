@@ -1,14 +1,13 @@
 ; ============================================================================
-; Code Section ($024200-$0261FF)
+; Code Section ($024206-$0261FF)
 ; Generated from ROM bytes - guaranteed accurate
+; Note: $024200-$024205 is part of func_074 (included in code_22200.asm)
 ; ============================================================================
 
-        org     $024200
+        org     $024206
 
-        dc.w    $31DC        ; $024200
-        dc.w    $000B        ; $024202
-        dc.w    $0009        ; $024204
-        dc.w    $0000        ; $024206
+; Literal pool for func_074 (padding and table base address)
+        dc.w    $0000        ; $024206: padding
         dc.w    $2202        ; $024208
         dc.w    $9D6C        ; $02420A
         dc.w    $4F22        ; $02420C

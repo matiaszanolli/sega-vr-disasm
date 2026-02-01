@@ -223,7 +223,32 @@ FastCopyA6_64:
         move.l  (a1)+,(a6)                      ; $004948: $2C99 - Copy 15
         move.l  (a1)+,(a6)                      ; $00494A: $2C99 - Copy 16
         rts                                     ; $00494C: $4E75
-        ; (May continue with more entries)
+
+; ============================================================================
+; FastCopyA6_60 ($00494E) - Copy 60 Bytes to Fixed Address
+; Parameters: A1 = source, A6 = destination (fixed)
+; Returns: A1 advanced by 60 bytes, A6 unchanged
+;
+; Alternative entry for 60-byte VDP copies (15 longwords)
+; ============================================================================
+
+FastCopyA6_60:
+        move.l  (a1)+,(a6)                      ; $00494E: $2C99 - Copy 1
+        move.l  (a1)+,(a6)                      ; $004950: $2C99 - Copy 2
+        move.l  (a1)+,(a6)                      ; $004952: $2C99 - Copy 3
+        move.l  (a1)+,(a6)                      ; $004954: $2C99 - Copy 4
+        move.l  (a1)+,(a6)                      ; $004956: $2C99 - Copy 5
+        move.l  (a1)+,(a6)                      ; $004958: $2C99 - Copy 6
+        move.l  (a1)+,(a6)                      ; $00495A: $2C99 - Copy 7
+        move.l  (a1)+,(a6)                      ; $00495C: $2C99 - Copy 8
+        move.l  (a1)+,(a6)                      ; $00495E: $2C99 - Copy 9
+        move.l  (a1)+,(a6)                      ; $004960: $2C99 - Copy 10
+        move.l  (a1)+,(a6)                      ; $004962: $2C99 - Copy 11
+        move.l  (a1)+,(a6)                      ; $004964: $2C99 - Copy 12
+        move.l  (a1)+,(a6)                      ; $004966: $2C99 - Copy 13
+        move.l  (a1)+,(a6)                      ; $004968: $2C99 - Copy 14
+        move.l  (a1)+,(a6)                      ; $00496A: $2C99 - Copy 15
+        rts                                     ; $00496C: $4E75
 
 ; ============================================================================
 ; SUMMARY
@@ -235,7 +260,8 @@ FastCopyA6_64:
 ; MemoryFillA6       | $004888 | 32-128       | VDP fill
 ; TripleMemoryFill   | $0048CA | Variable     | Triple cascade
 ; FastCopy20         | $004920 | 20/16/12/8/4 | Most common
-; FastCopyA6         | $00492C | 64           | VDP copy
+; FastCopyA6_64      | $00492C | 64           | VDP copy (16 longs)
+; FastCopyA6_60      | $00494E | 60           | VDP copy (15 longs)
 ;
 ; These unrolled loops are critical for performance:
 ; - move.l takes 20 cycles (word moves take 12 each = 24 for same data)

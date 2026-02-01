@@ -1,6 +1,6 @@
 # Virtua Racing Deluxe (32X) - Complete Disassembly & Analysis
 
-**Status: ✅ v4.3.1 - 68K Translation In Progress**
+**Status: ✅ v4.4.0 - Disassembler Phase 1 Complete**
 
 A complete, buildable disassembly of Virtua Racing Deluxe for the Sega 32X, with comprehensive reverse engineering documentation. The ROM rebuilds to a **byte-identical** binary in all translated regions, with **4MB expansion ROM** containing SH2 parallel processing infrastructure.
 
@@ -60,6 +60,8 @@ picodrive build/vr_rebuild.32x
 │   └── ...
 │
 ├── tools/                         # Python analysis tools
+│   ├── disasm_to_asm.py           # 68K ROM→ASM converter (byte-identical)
+│   ├── vrd_memory_map.json        # Code/data boundary map (56 entry points)
 │   ├── build_symbol_table.py      # 68K symbol generator
 │   ├── build_sh2_symbol_table.py  # SH2 symbol generator
 │   ├── inject_function_labels.py  # Auto-inject labels from reference
@@ -300,6 +302,24 @@ python3 analyze_pc_profile.py profile.csv
 - **Slave SH2**: 299,958 cycles/frame @ 23 MHz (78% utilization)
 
 **Note:** This profiler deserves its own dedicated repository - it's useful for any 32X development project.
+
+## Recent Milestones
+
+### v4.4.0 - Disassembler Phase 1 Complete (2026-02-01)
+- **Memory map system** - JSON-based code/data boundary configuration
+- **Branch reachability** - 56 entry points → 3,729 addresses traced
+- **Byte-identical output** - Pure code sections verified to match original ROM
+- **Resolution strategy** - data_regions → code_regions → branch_reachable → dc.w
+
+Usage:
+```bash
+python3 tools/disasm_to_asm.py build/vr_rebuild.32x 1000 5000 --map tools/vrd_memory_map.json
+```
+
+### v4.3.1 - 68K Translation Progress
+- **13 68K modules** translated with full annotations
+- **75 SH2 functions** converted to proper assembly
+- **Cross-validated documentation** - All analysis docs verified
 
 ## Credits
 

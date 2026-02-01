@@ -193,6 +193,48 @@ tile_index_expand:
         ; (continues with same pattern...)
 
 ; ============================================================================
+; sh2_comm_sync ($002890) - SH2 Communication Sync
+; Called by: 3 locations per frame
+; Parameters: None (uses work RAM at $C8A8/$C8A9)
+; Returns: Nothing
+;
+; Synchronizes communication with SH2 via MARS COMM registers.
+; Waits for SH2 ready bit, then sends data from work RAM.
+;
+; Protocol:
+;   1. Wait for bit 0 at $A15123 to be set (SH2 ready)
+;   2. Clear bit 0 (acknowledge)
+;   3. Clear local data buffer
+;   4. Send data bytes to COMM0/COMM1
+;   5. Clear control register
+; ============================================================================
+
+; Additional MARS registers for comm sync
+MARS_COMM0      equ     $A15120     ; COMM register 0
+MARS_COMM1      equ     $A15121     ; COMM register 1
+MARS_COMM_CTRL  equ     $A15123     ; COMM control/status
+
+; Work RAM for COMM data (sign-extended for .w addressing)
+COMM_DATA_LO    equ     $FFFFC8A8   ; COMM data low byte
+COMM_DATA_HI    equ     $FFFFC8A9   ; COMM data high byte
+
+        org     $002890
+
+sh2_comm_sync:
+; Wait for SH2 ready (bit 0 set)
+.wait_ready:
+        btst    #0,MARS_COMM_CTRL               ; $002890: $0839 $0000 $00A1 $5123
+        beq.s   .wait_ready                     ; $002898: $67F6
+; Clear handshake bit
+        bclr    #0,MARS_COMM_CTRL               ; $00289A: $08B9 $0000 $00A1 $5123
+; Clear local data and send to SH2
+        move.w  #$0000,COMM_DATA_LO.w           ; $0028A2: $31FC $0000 $C8A8
+        move.b  COMM_DATA_HI.w,MARS_COMM1       ; $0028A8: $13F8 $C8A9 $00A1 $5121
+        move.b  COMM_DATA_LO.w,MARS_COMM0       ; $0028B0: $13F8 $C8A8 $00A1 $5120
+        move.b  #$00,MARS_COMM_CTRL             ; $0028B8: $13FC $0000 $00A1 $5123
+        rts                                     ; $0028C0: $4E75
+
+; ============================================================================
 ; SUMMARY
 ; ============================================================================
 ;
@@ -203,6 +245,7 @@ tile_index_expand:
 ; VDPFill          | $0027F8 | Fill 16 VRAM blocks (256 bytes each)
 ; VDPPrep          | $00281E | Single VRAM fill at $1F00
 ; PaletteRAMCopy   | $00284C | Copy 512-byte palette to CRAM
+; sh2_comm_sync    | $002890 | SH2 communication handshake
 ;
 ; Total VRAM filled by VDPFill: 4096 bytes (16 × 256)
 ; Palette size: 512 bytes (256 colors × 16-bit RGB)

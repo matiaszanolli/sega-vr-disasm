@@ -101,3 +101,4 @@ tools/libretro-profiling/*.csv
 tools/libretro-profiling/profiling_frontend
 tools/libretro-profiling/build_log.txt
 *.lds
+disasm/sections-mnemonic-backup-*/

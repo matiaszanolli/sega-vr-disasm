@@ -74,100 +74,61 @@
         dc.w    $EE00        ; $02432E: region2 end low
         dc.w    $0000        ; $024330: region2 count high (0x000004C0)
         dc.w    $04C0        ; $024332: region2 count low
-        dc.w    $4F22        ; $024334
-        dc.w    $D00C        ; $024336
-        dc.w    $400B        ; $024338
-        dc.w    $0009        ; $02433A
-        dc.w    $D00B        ; $02433C
-        dc.w    $400B        ; $02433E
-        dc.w    $E101        ; $024340
-        dc.w    $E610        ; $024342
-        dc.w    $D70A        ; $024344
-        dc.w    $DA0B        ; $024346
-        dc.w    $DB0B        ; $024348
-        dc.w    $D00C        ; $02434A
-        dc.w    $400B        ; $02434C
-        dc.w    $0009        ; $02434E
-        dc.w    $D00B        ; $024350
-        dc.w    $400B        ; $024352
-        dc.w    $0009        ; $024354
-        dc.w    $D00B        ; $024356
-        dc.w    $400B        ; $024358
-        dc.w    $0009        ; $02435A
-        dc.w    $D00A        ; $02435C
-        dc.w    $400B        ; $02435E
-        dc.w    $0009        ; $024360
-        dc.w    $4F26        ; $024362
-        dc.w    $000B        ; $024364
-        dc.w    $0009        ; $024366
-        dc.w    $0600        ; $024368
-        dc.w    $3348        ; $02436A
-        dc.w    $0600        ; $02436C
-        dc.w    $441C        ; $02436E
-        dc.w    $0000        ; $024370
-        dc.w    $04C0        ; $024372
-        dc.w    $0600        ; $024374
-        dc.w    $EDFC        ; $024376
-        dc.w    $0603        ; $024378
-        dc.w    $2FF0        ; $02437A
-        dc.w    $C000        ; $02437C
-        dc.w    $0022        ; $02437E
-        dc.w    $0600        ; $024380
-        dc.w    $34EE        ; $024382
-        dc.w    $0600        ; $024384
-        dc.w    $4438        ; $024386
-        dc.w    $0600        ; $024388
-        dc.w    $43E0        ; $02438A
-        dc.w    $4F22        ; $02438C
-        dc.w    $D00C        ; $02438E
-        dc.w    $400B        ; $024390
-        dc.w    $0009        ; $024392
-        dc.w    $D00B        ; $024394
-        dc.w    $400B        ; $024396
-        dc.w    $E101        ; $024398
-        dc.w    $D10B        ; $02439A
-        dc.w    $6711        ; $02439C
-        dc.w    $D80B        ; $02439E
-        dc.w    $D00B        ; $0243A0
-        dc.w    $400B        ; $0243A2
-        dc.w    $0009        ; $0243A4
-        dc.w    $D00B        ; $0243A6
-        dc.w    $400B        ; $0243A8
-        dc.w    $0009        ; $0243AA
-        dc.w    $D00A        ; $0243AC
-        dc.w    $400B        ; $0243AE
-        dc.w    $0009        ; $0243B0
-        dc.w    $D00A        ; $0243B2
-        dc.w    $400B        ; $0243B4
-        dc.w    $0009        ; $0243B6
-        dc.w    $4F26        ; $0243B8
-        dc.w    $000B        ; $0243BA
-        dc.w    $0009        ; $0243BC
-        dc.w    $0000        ; $0243BE
-        dc.w    $0600        ; $0243C0
-        dc.w    $3348        ; $0243C2
-        dc.w    $0600        ; $0243C4
-        dc.w    $441C        ; $0243C6
-        dc.w    $0600        ; $0243C8
-        dc.w    $F200        ; $0243CA
-        dc.w    $0601        ; $0243CC
-        dc.w    $6000        ; $0243CE
-        dc.w    $C000        ; $0243D0
-        dc.w    $0160        ; $0243D2
-        dc.w    $0600        ; $0243D4
-        dc.w    $34EE        ; $0243D6
-        dc.w    $0600        ; $0243D8
-        dc.w    $4438        ; $0243DA
-        dc.w    $0600        ; $0243DC
-        dc.w    $43E0        ; $0243DE
-        dc.w    $D102        ; $0243E0
-        dc.w    $8515        ; $0243E2
-        dc.w    $C802        ; $0243E4
-        dc.w    $8BFC        ; $0243E6
-        dc.w    $000B        ; $0243E8
-        dc.w    $0009        ; $0243EA
-        dc.w    $2000        ; $0243EC
-        dc.w    $4100        ; $0243EE
+; ============================================================================
+; func_081: Multi-JSR Coordinator (52 bytes: $024334-$024367)
+; Calls 6 subroutines in sequence via JSR
+; ============================================================================
+        include "sh2/generated/func_081.inc"
+; Literal pool for func_081 ($024368-$02438A)
+        dc.w    $0600        ; $024368: target 1 high ($06003348)
+        dc.w    $3348        ; $02436A: target 1 low
+        dc.w    $0600        ; $02436C: target 2 high ($0600441C)
+        dc.w    $441C        ; $02436E: target 2 low
+        dc.w    $0000        ; $024370: param high ($000004C0)
+        dc.w    $04C0        ; $024372: param low
+        dc.w    $0600        ; $024374: param high ($0600EDFC)
+        dc.w    $EDFC        ; $024376: param low
+        dc.w    $0603        ; $024378: param high ($06032FF0)
+        dc.w    $2FF0        ; $02437A: param low
+        dc.w    $C000        ; $02437C: target 3 high ($C0000022)
+        dc.w    $0022        ; $02437E: target 3 low
+        dc.w    $0600        ; $024380: target 4 high ($060034EE)
+        dc.w    $34EE        ; $024382: target 4 low
+        dc.w    $0600        ; $024384: target 5 high ($06004438)
+        dc.w    $4438        ; $024386: target 5 low
+        dc.w    $0600        ; $024388: target 6 high ($060043E0)
+        dc.w    $43E0        ; $02438A: target 6 low
+; ============================================================================
+; func_082: Multi-JSR Coordinator Alt (50 bytes: $02438C-$0243BD)
+; Similar to func_081 with different parameter setup
+; ============================================================================
+        include "sh2/generated/func_082.inc"
+; Literal pool for func_082 ($0243BE-$0243DE)
+        dc.w    $0000        ; $0243BE: padding
+        dc.w    $0600        ; $0243C0: target 1 high ($06003348)
+        dc.w    $3348        ; $0243C2: target 1 low
+        dc.w    $0600        ; $0243C4: target 2 high ($0600441C)
+        dc.w    $441C        ; $0243C6: target 2 low
+        dc.w    $0600        ; $0243C8: param addr high ($0600F200)
+        dc.w    $F200        ; $0243CA: param addr low
+        dc.w    $0601        ; $0243CC: param high ($06016000)
+        dc.w    $6000        ; $0243CE: param low
+        dc.w    $C000        ; $0243D0: target 3 high ($C0000160)
+        dc.w    $0160        ; $0243D2: target 3 low
+        dc.w    $0600        ; $0243D4: target 4 high ($060034EE)
+        dc.w    $34EE        ; $0243D6: target 4 low
+        dc.w    $0600        ; $0243D8: target 5 high ($06004438)
+        dc.w    $4438        ; $0243DA: target 5 low
+        dc.w    $0600        ; $0243DC: target 6 high ($060043E0)
+        dc.w    $43E0        ; $0243DE: target 6 low
+; ============================================================================
+; func_083: Poll Wait Loop (12 bytes: $0243E0-$0243EB)
+; Small polling loop waiting for condition
+; ============================================================================
+        include "sh2/generated/func_083.inc"
+; Literal pool for func_083 ($0243EC)
+        dc.w    $2000        ; $0243EC: poll addr high ($20004100)
+        dc.w    $4100        ; $0243EE: poll addr low
         dc.w    $D106        ; $0243F0
         dc.w    $8410        ; $0243F2
         dc.w    $C880        ; $0243F4

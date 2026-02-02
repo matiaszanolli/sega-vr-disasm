@@ -467,13 +467,16 @@ vdp_wait_test:                   ; $02050C
         dc.w    $8BFC        ; $02058C
         dc.w    $E020        ; $02058E
         dc.w    $400E        ; $020590
-        dc.w    $D10C        ; $020592
-        dc.w    $6010        ; $020594
-        dc.w    $8800        ; $020596
-        dc.w    $8936        ; $020598
-        dc.w    $6203        ; $02059A
-        dc.w    $C70A        ; $02059C
-        dc.w    $4208        ; $02059E
+; Original Slave COMM1 polling loop (RESTORED)
+; NOTE: Redirect to slave_work_wrapper broke attract mode because Slave
+; processes commands via COMM1, not COMM7. Need hybrid approach.
+        dc.w    $D10C        ; $020592: MOV.L @(48,PC),R1 - load COMM1 addr
+        dc.w    $6010        ; $020594: MOV.B @R1,R0 - read COMM1
+        dc.w    $8800        ; $020596: CMP/EQ #0,R0 - test if zero
+        dc.w    $8936        ; $020598: BT +54 - branch to delay if zero
+        dc.w    $6203        ; $02059A: MOV R0,R3 - save command
+        dc.w    $C70A        ; $02059C: MOVA @(40,PC),R0
+        dc.w    $4208        ; $02059E: SHLL R2
         dc.w    $002E        ; $0205A0
         dc.w    $400B        ; $0205A2
         dc.w    $0009        ; $0205A4

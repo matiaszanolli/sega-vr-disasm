@@ -401,64 +401,24 @@ shadow_path_wrapper:
         dcb.b   ($440 - $434), $FF  ; Pad to 0x300440
 
 ; ============================================================================
-; func_021_conditional: Phase 1 - Safe Timing Measurement (48 bytes)
+; func_021_conditional: Phase 1 - Safe Timing Measurement
 ; Address: 0x300440 (SH2: 0x02300440)
+; Source: disasm/sh2/expansion/func_021_conditional.asm
 ; ============================================================================
-; Master ALWAYS calls original func_021 (guarantees correctness).
-; When Slave is idle, ALSO signals new work (parallel execution).
+; Master ALWAYS calls func_021_optimized (guarantees correctness).
+; When Slave is idle, ALSO signals new work via COMM7 (parallel execution).
 ; COMM6 tracks Master calls for gap analysis.
 ;
-; Use this to measure: can Slave keep up with Master?
-;
 func_021_conditional:
-        ; Save return address (we'll call original func_021)
-        dc.w    $4F22           ; $300440: STS.L PR,@-R15
+        include "sh2/generated/func_021_conditional.inc"
 
-        ; Check if Slave is busy
-        dc.w    $D00B           ; $300442: MOV.L @(44,PC),R0 - COMM7 addr from $300470
-        dc.w    $6101           ; $300444: MOV.W @R0,R1 - read COMM7
-        dc.w    $2118           ; $300446: TST R1,R1 - test if zero
-        dc.w    $8B07           ; $300448: BF .call_original (+7) - skip signal if busy
-
-        ; Slave idle - capture params and signal (parallel work)
-        dc.w    $D209           ; $30044A: MOV.L @(36,PC),R2 - param block from $300474
-        dc.w    $22E2           ; $30044C: MOV.L R14,@R2 - save context
-        dc.w    $1271           ; $30044E: MOV.L R7,@(4,R2) - save loop counter
-        dc.w    $1282           ; $300450: MOV.L R8,@(8,R2) - save data ptr
-        dc.w    $1253           ; $300452: MOV.L R5,@(12,R2) - save output ptr
-        dc.w    $E116           ; $300454: MOV #$16,R1 - work signal
-        dc.w    $2011           ; $300456: MOV.W R1,@R0 - COMM7 = 0x16
-
-.cond1_call_original:
-        ; Increment COMM6 (Master call counter) for timing analysis
-        dc.w    $D007           ; $300458: MOV.L @(28,PC),R0 - COMM6 addr from $300478
-        dc.w    $6101           ; $30045A: MOV.W @R0,R1 - read COMM6
-        dc.w    $7101           ; $30045C: ADD #1,R1 - increment
-        dc.w    $2011           ; $30045E: MOV.W R1,@R0 - write COMM6
-
-        ; Call original func_021 (Master ALWAYS produces result)
-        dc.w    $D006           ; $300460: MOV.L @(24,PC),R0 - orig func from $30047C
-        dc.w    $400B           ; $300462: JSR @R0
-        dc.w    $0009           ; $300464: NOP (delay slot)
-
-        ; Restore return address and return
-        dc.w    $4F26           ; $300466: LDS.L @R15+,PR
-        dc.w    $000B           ; $300468: RTS
-        dc.w    $0009           ; $30046A: NOP (delay slot)
-
-        ; Padding for 4-byte alignment
-        dc.w    $0009           ; $30046C: NOP
-        dc.w    $0009           ; $30046E: NOP
-
-; Literal pool for func_021_conditional (4-byte aligned at $300470)
-        dc.l    $2000402E       ; $300470: COMM7 address
-        dc.l    $2203E000       ; $300474: param block address
-        dc.l    $2000402C       ; $300478: COMM6 address
-        dc.l    $02300100       ; $30047C: func_021_optimized (func_016 inlined)
+; Pad to 0x300480 for func_021_conditional_v2
+        dcb.b   ($480 - ($440 + 64)), $FF  ; Assumes ~64 bytes for Phase 1
 
 ; ============================================================================
-; func_021_conditional_v2: Phase 2 - Full Skip When Safe (80 bytes)
+; func_021_conditional_v2: Phase 2 - Full Skip When Safe
 ; Address: 0x300480 (SH2: 0x02300480)
+; Source: disasm/sh2/expansion/func_021_conditional_v2.asm
 ; ============================================================================
 ; If COMM5 >= COMM6 → Slave ahead → skip Master work, use Slave result
 ; Else → Slave behind → Master does work, signal Slave if idle
@@ -466,62 +426,13 @@ func_021_conditional:
 ; CRITICAL: Only use after Phase 1 confirms Slave can keep up!
 ;
 func_021_conditional_v2:
-        ; Save return address
-        dc.w    $4F22           ; $300480: STS.L PR,@-R15
+        include "sh2/generated/func_021_conditional_v2.inc"
 
-        ; Read COMM6 (Master call count) and COMM5 (Slave completions)
-        dc.w    $D00F           ; $300482: MOV.L @(60,PC),R0 - COMM6 addr from $3004C0
-        dc.w    $6101           ; $300484: MOV.W @R0,R1 - R1 = COMM6
-        dc.w    $D00F           ; $300486: MOV.L @(60,PC),R0 - COMM5 addr from $3004C4
-        dc.w    $6002           ; $300488: MOV.W @R0,R0 - R0 = COMM5
-
-        ; Is Slave caught up? (COMM5 >= COMM6)
-        dc.w    $3012           ; $30048A: CMP/HS R1,R0 - unsigned compare
-        dc.w    $8B0E           ; $30048C: BF .master_path (+14) - Slave behind
-
-.slave_ahead:
-        ; Slave ahead - signal next work, skip Master computation
-        dc.w    $D20C           ; $30048E: MOV.L @(48,PC),R2 - param block from $3004C8
-        dc.w    $22E2           ; $300490: MOV.L R14,@R2
-        dc.w    $1271           ; $300492: MOV.L R7,@(4,R2)
-        dc.w    $1282           ; $300494: MOV.L R8,@(8,R2)
-        dc.w    $1253           ; $300496: MOV.L R5,@(12,R2)
-        dc.w    $D20B           ; $300498: MOV.L @(44,PC),R2 - COMM7 addr from $3004CC
-        dc.w    $E016           ; $30049A: MOV #$16,R0
-        dc.w    $2021           ; $30049C: MOV.W R0,@R2 - COMM7 = 0x16
-        dc.w    $D006           ; $30049E: MOV.L @(24,PC),R0 - COMM6 addr
-        dc.w    $7101           ; $3004A0: ADD #1,R1
-        dc.w    $2011           ; $3004A2: MOV.W R1,@R0 - COMM6++
-        dc.w    $4F26           ; $3004A4: LDS.L @R15+,PR
-        dc.w    $000B           ; $3004A6: RTS - return (Slave result in buffer)
-        dc.w    $0009           ; $3004A8: NOP
-
-.master_path:
-        ; Slave behind - Master does work
-        dc.w    $D005           ; $3004AA: MOV.L @(20,PC),R0 - COMM6 addr
-        dc.w    $7101           ; $3004AC: ADD #1,R1
-        dc.w    $2011           ; $3004AE: MOV.W R1,@R0 - COMM6++
-        dc.w    $D007           ; $3004B0: MOV.L @(28,PC),R0 - orig func from $3004D0
-        dc.w    $400B           ; $3004B2: JSR @R0
-        dc.w    $0009           ; $3004B4: NOP
-        dc.w    $4F26           ; $3004B6: LDS.L @R15+,PR
-        dc.w    $000B           ; $3004B8: RTS
-        dc.w    $0009           ; $3004BA: NOP
-        dc.w    $0009           ; $3004BC: NOP (alignment)
-        dc.w    $0009           ; $3004BE: NOP
-
-; Literal pool for func_021_conditional_v2 (4-byte aligned at $3004C0)
-        dc.l    $2000402C       ; $3004C0: COMM6 address
-        dc.l    $2000402A       ; $3004C4: COMM5 address
-        dc.l    $2203E000       ; $3004C8: param block address
-        dc.l    $2000402E       ; $3004CC: COMM7 address
-        dc.l    $02300100       ; $3004D0: func_021_optimized (func_016 inlined)
-
-; Pad to batch_copy_handler
-        dcb.b   ($500 - $4D4), $FF
+; NOTE: Phase 2 handler is ~96 bytes, ends around $3004E0
+; batch_copy_handler follows immediately (no fixed address requirement)
 
 ; ============================================================================
-; BATCH COPY HANDLER: 0x300500 (SH2 address: 0x02300500)
+; BATCH COPY HANDLER (follows func_021_conditional_v2)
 ; ============================================================================
 ; Batch copy optimization for reducing 68K blocking waits.
 ; Replaces 8 separate sh2_send_cmd_wait calls with a single batch command.
@@ -535,25 +446,24 @@ func_021_conditional_v2:
 ;
 ; See: analysis/optimization/BATCH_COPY_COMMAND_DESIGN.md
 ;
-        dcb.b   ($500 - $434), $FF  ; Pad to 0x300500
 batch_copy_handler:
         include "sh2/generated/batch_copy_handler.inc"
 
 ; ============================================================================
 ; REMAINING EXPANSION ROM SPACE
 ; ============================================================================
-; Layout summary:
+; Layout summary (handlers compiled from proper SH2 assembly):
 ;   $300000-$300027  Padding (40 bytes)
 ;   $300028-$30003D  handler_frame_sync (22 bytes)
 ;   $300050-$30007B  master_dispatch_hook (44 bytes)
-;   $300100-$30015F  func_021_optimized (96 bytes)
+;   $300100-$30015F  func_021_optimized (96 bytes) - Source: expansion/func_021_optimized.asm
 ;   $300200-$30024B  slave_work_wrapper (76 bytes)
 ;   $300280-$3002AB  slave_test_func (44 bytes)
-;   $300300-$300325  func_021_original_relocated (36 bytes)
+;   $300300-$300325  func_021_original_relocated (36 bytes) - BROKEN: has PC-relative BSRs
 ;   $300400-$300433  shadow_path_wrapper (52 bytes)
-;   $300440-$30047F  func_021_conditional (64 bytes) - Phase 1
-;   $300480-$3004D3  func_021_conditional_v2 (84 bytes) - Phase 2
-;   $300500-$300537  batch_copy_handler (56 bytes)
-;   $300538-$3FFFFF  Free space (~1MB - 1.3KB = ~1MB)
+;   $300440-$30047F  func_021_conditional (64 bytes) - Source: expansion/func_021_conditional.asm
+;   $300480-$3004DF  func_021_conditional_v2 (96 bytes) - Source: expansion/func_021_conditional_v2.asm
+;   $3004E0-$300517  batch_copy_handler (56 bytes)
+;   $300518-$3FFFFF  Free space (~1MB)
 ;
         dcb.b   ($100000 - $538), $FF

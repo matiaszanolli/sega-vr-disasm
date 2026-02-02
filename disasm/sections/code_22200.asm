@@ -1964,10 +1964,11 @@
 ; func_020: Vertex processor helper (starts at $0234A0)
 ; Called by func_018/func_019 for vertex processing loop
         include "sh2/generated/func_020.inc"
-; func_021: Original vertex transform implementation (starts at $0234C8)
-; Processes vertices in a loop, calling $023368 and $02350A
-; Note: Optimized version exists at expansion ROM ($300100)
-        include "sh2/generated/func_021_orig.inc"
+; func_021: TRAMPOLINE TO CONDITIONAL HANDLER (Phase 1 activation)
+; Redirects to func_021_conditional @ $300440 → func_021_optimized @ $300100
+; func_021_optimized has func_016 INLINED (no PC-relative BSRs)
+; To revert: change back to "sh2/generated/func_021_orig.inc"
+        include "sh2/trampolines/func_021_trampoline.inc"
 ; ═══════════════════════════════════════════════════════════════════════════
 ; func_022: Wait for Ready / Hardware Sync (26 bytes, $0234EE-$023507)
 ; Source: disasm/sh2/3d_engine/func_022_wait_ready.asm

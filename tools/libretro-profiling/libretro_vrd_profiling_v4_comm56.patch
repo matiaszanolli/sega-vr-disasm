@@ -128,7 +128,7 @@ index a1b2c4d..e8f9a17 100644
 +  }
  }
 diff --git a/platform/libretro/libretro.c b/platform/libretro/libretro.c
-index 7612396..a47b8d9 100644
+index 7612396..9d1b3ed 100644
 --- a/platform/libretro/libretro.c
 +++ b/platform/libretro/libretro.c
 @@ -94,6 +94,30 @@ static retro_input_state_t input_state_cb;
@@ -183,7 +183,7 @@ index 7612396..a47b8d9 100644
 +         vrd_profile_log = fopen(profile_path, "w");
 +         if (vrd_profile_log) {
 +            vrd_profile_enabled = 1;
-+            fprintf(vrd_profile_log, "frame,m68k_cycles,msh2_cycles,ssh2_cycles,comm7_before,comm7_after,is_32x\n");
++            fprintf(vrd_profile_log, "frame,m68k_cycles,msh2_cycles,ssh2_cycles,comm5_before,comm5_after,comm6_before,comm6_after,comm7_before,comm7_after,is_32x\n");
 +            if (log_cb) log_cb(RETRO_LOG_INFO, "VRD Frame Profiling enabled: %s (max %d frames)\n", profile_path, vrd_profile_max_frames);
 +         }
 +      }
@@ -205,6 +205,8 @@ index 7612396..a47b8d9 100644
 +   }
 +
 +   /* VRD Profiling: Capture state before frame */
++   unsigned short vrd_comm5_before = 0;
++   unsigned short vrd_comm6_before = 0;
 +   unsigned short vrd_comm7_before = 0;
 +   int vrd_is_32x = (PicoIn.AHW & PAHW_32X) ? 1 : 0;
 +   unsigned int vrd_m68k_cycles_before = 0;
@@ -214,7 +216,9 @@ index 7612396..a47b8d9 100644
 +      vrd_msh2_work_cycles = 0;
 +      vrd_ssh2_work_cycles = 0;
 +      vrd_m68k_cycles_last = 0;
-+      vrd_comm7_before = Pico32x.regs[7];
++      vrd_comm5_before = Pico32x.regs[5];  /* COMM5 ($2000402A) */
++      vrd_comm6_before = Pico32x.regs[6];  /* COMM6 ($2000402C) */
++      vrd_comm7_before = Pico32x.regs[7];  /* COMM7 ($2000402E) */
 +      /* Get 68K cycle count before frame (approximate via SH2_M68K ratio) */
 +      vrd_m68k_cycles_before = SekCyclesDoneT();
 +   }
@@ -230,16 +234,19 @@ index 7612396..a47b8d9 100644
     /* Check whether frontend needs to be notified
      * of timing/geometry changes */
     if (libretro_update_av_info || libretro_update_geometry) {
-@@ -2471,6 +2554,62 @@ void retro_run(void)
+@@ -2471,6 +2554,65 @@ void retro_run(void)
        libretro_msg_interface_version = 0;
     }
 
 +   /* VRD Frame Profiling: Log frame data */
 +   if (vrd_profile_enabled && vrd_profile_frame < vrd_profile_max_frames && vrd_is_32x) {
++      unsigned short vrd_comm5_after = Pico32x.regs[5];
++      unsigned short vrd_comm6_after = Pico32x.regs[6];
 +      unsigned short vrd_comm7_after = Pico32x.regs[7];
 +      /* Use actual work cycles from run_sh2() accumulation */
-+      fprintf(vrd_profile_log, "%d,%u,%u,%u,0x%04x,0x%04x,%d\n",
++      fprintf(vrd_profile_log, "%d,%u,%u,%u,0x%04x,0x%04x,0x%04x,0x%04x,0x%04x,0x%04x,%d\n",
 +              vrd_profile_frame, vrd_m68k_cycles_last, vrd_msh2_work_cycles, vrd_ssh2_work_cycles,
++              vrd_comm5_before, vrd_comm5_after, vrd_comm6_before, vrd_comm6_after,
 +              vrd_comm7_before, vrd_comm7_after, vrd_is_32x);
 +
 +      if (vrd_profile_frame == vrd_profile_max_frames - 1) {
@@ -292,36 +299,35 @@ index 7612396..a47b8d9 100644
     vrd_profile_frame++;
  }
 
-@@ -2494,3 +2633,31 @@ size_t retro_get_memory_size(unsigned id)
+@@ -2494,3 +2636,31 @@ size_t retro_get_memory_size(unsigned id)
     }
     return 0;
  }
 +
-+/* VRD PC-level profiling: sample PC histogram */
-+void vrd_profile_pc_sample(int cpu_id, unsigned int pc, int cycles)
-+{
-+   if (!vrd_profile_pc_enabled || cpu_id < 0 || cpu_id > 2)
-+      return;
++/* VRD PC-level profiling: sample collection */
++void vrd_profile_pc_sample(int cpu_id, unsigned int pc, int cycles) {
++    if (!vrd_profile_pc_enabled || vrd_profile_pc_sample_count >= vrd_profile_pc_max_samples) return;
++    if (cpu_id < 0 || cpu_id > 2) return;  /* 0=68K, 1=Master, 2=Slave */
 +
-+   if (vrd_profile_pc_sample_count >= vrd_profile_pc_max_samples)
-+      return;  /* Stop sampling to avoid performance impact */
++    /* Find existing sample for this PC */
++    for (int i = 0; i < vrd_pc_sample_idx[cpu_id]; i++) {
++        if (vrd_pc_samples[cpu_id][i].pc == pc) {
++            vrd_pc_samples[cpu_id][i].total_cycles += cycles;
++            vrd_pc_samples[cpu_id][i].count++;
++            vrd_profile_pc_sample_count++;
++            return;
++        }
++    }
 +
-+   /* Find existing entry for this PC */
-+   for (int i = 0; i < vrd_pc_sample_idx[cpu_id]; i++) {
-+      if (vrd_pc_samples[cpu_id][i].pc == pc) {
-+         vrd_pc_samples[cpu_id][i].total_cycles += cycles;
-+         vrd_pc_samples[cpu_id][i].count++;
-+         vrd_profile_pc_sample_count++;
-+         return;
-+      }
-+   }
-+
-+   /* Add new entry if space available */
-+   if (vrd_pc_sample_idx[cpu_id] < MAX_PC_SAMPLES) {
-+      int idx = vrd_pc_sample_idx[cpu_id]++;
-+      vrd_pc_samples[cpu_id][idx].pc = pc;
-+      vrd_pc_samples[cpu_id][idx].total_cycles = cycles;
-+      vrd_pc_samples[cpu_id][idx].count = 1;
-+      vrd_profile_pc_sample_count++;
-+   }
++    /* No existing sample - add new entry */
++    if (vrd_pc_sample_idx[cpu_id] < MAX_PC_SAMPLES) {
++        int idx = vrd_pc_sample_idx[cpu_id]++;
++        vrd_pc_samples[cpu_id][idx].pc = pc;
++        vrd_pc_samples[cpu_id][idx].total_cycles = cycles;
++        vrd_pc_samples[cpu_id][idx].count = 1;
++        vrd_profile_pc_sample_count++;
++    } else {
++        /* Sample buffer full for this CPU */
++        if (log_cb) log_cb(RETRO_LOG_WARN, "VRD PC sample buffer full for CPU %d\n", cpu_id);
++    }
 +}

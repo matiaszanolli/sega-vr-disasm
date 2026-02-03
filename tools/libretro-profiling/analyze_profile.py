@@ -7,6 +7,8 @@ Metrics captured:
 - m68k_cycles: Motorola 68000 cycles per frame
 - msh2_cycles: Master SH2 actual work cycles per frame
 - ssh2_cycles: Slave SH2 actual work cycles per frame
+- comm5: Slave acknowledgement counter ($2000402A)
+- comm6: Master signal counter ($2000402C)
 - comm7: COMM register state (frame boundaries only)
 """
 
@@ -21,6 +23,9 @@ def analyze_profile(csv_path: str):
     msh2_cycles = []
     ssh2_cycles = []
     comm7_changes = []
+    comm5_values = []  # Slave acknowledgements
+    comm6_values = []  # Master signals
+    has_comm56 = False  # Track if CSV has COMM5/COMM6 columns
 
     with open(csv_path, 'r') as f:
         reader = csv.DictReader(f)
@@ -33,6 +38,14 @@ def analyze_profile(csv_path: str):
             ssh2 = int(row['ssh2_cycles'])
             comm7_before = int(row['comm7_before'], 16)
             comm7_after = int(row['comm7_after'], 16)
+
+            # COMM5/COMM6 support (v4 profiler)
+            if 'comm5_after' in row and 'comm6_after' in row:
+                has_comm56 = True
+                comm5_after = int(row['comm5_after'], 16)
+                comm6_after = int(row['comm6_after'], 16)
+                comm5_values.append((frame, comm5_after))
+                comm6_values.append((frame, comm6_after))
 
             m68k_cycles.append((frame, m68k))
             msh2_cycles.append((frame, msh2))
@@ -102,6 +115,43 @@ def analyze_profile(csv_path: str):
             print(f"    0x{cmd:04X}: {count} occurrences")
     else:
         print("  No COMM7 changes detected (title screen / no gameplay)")
+
+    # COMM5/COMM6 parallel processing analysis
+    if has_comm56 and comm5_values and comm6_values:
+        print(f"\n=== PHASE 1 PARALLEL PROCESSING ANALYSIS ===")
+        print(f"COMM6 = Master signals sent | COMM5 = Slave acknowledgements")
+
+        # Get final values (counters are cumulative)
+        final_comm5 = comm5_values[-1][1] if comm5_values else 0
+        final_comm6 = comm6_values[-1][1] if comm6_values else 0
+        gap = final_comm6 - final_comm5
+
+        print(f"\nCumulative Counters (after {len(comm5_values)} frames):")
+        print(f"  COMM6 (Master signals):  {final_comm6:,}")
+        print(f"  COMM5 (Slave ACKs):      {final_comm5:,}")
+        print(f"  Gap (pending work):      {gap:,}")
+
+        if gap == 0:
+            print(f"  Status: PERFECT SYNC - Slave keeping up with all Master signals")
+        elif gap > 0 and gap <= 10:
+            print(f"  Status: EXCELLENT - Slave nearly keeping up (gap < 10)")
+        elif gap > 10 and gap <= 100:
+            print(f"  Status: GOOD - Minor lag, Slave slightly behind")
+        elif gap > 100:
+            rate = 100.0 * final_comm5 / final_comm6 if final_comm6 > 0 else 0
+            print(f"  Status: FALLING BEHIND - Slave processing {rate:.1f}% of Master signals")
+
+        # Calculate signals per frame
+        if len(comm5_values) > 1:
+            frames = len(comm5_values)
+            signals_per_frame = final_comm6 / frames
+            acks_per_frame = final_comm5 / frames
+            print(f"\nThroughput:")
+            print(f"  Master signals/frame: {signals_per_frame:.2f}")
+            print(f"  Slave ACKs/frame:     {acks_per_frame:.2f}")
+    elif has_comm56:
+        print(f"\n=== PHASE 1 PARALLEL PROCESSING ANALYSIS ===")
+        print(f"No COMM5/COMM6 activity detected (title screen / no work dispatched)")
 
     # Work distribution analysis
     print("\n=== WORK DISTRIBUTION ===")

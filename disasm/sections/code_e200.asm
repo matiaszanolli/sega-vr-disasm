@@ -7,25 +7,36 @@
 COMM0_HI        equ     $A15120     ; COMM0 high byte - Command flag (68K→SH2)
 COMM0_LO        equ     $A15121     ; COMM0 low byte - Command code
 COMM4           equ     $A15128     ; COMM4 word - Data pointer (hi), also longword base
+COMM5           equ     $A1512A     ; COMM5 word - Data pointer (lo)
 COMM6           equ     $A1512C     ; COMM6 word - Handshake flag
 
 ; SH2 Address Space Offset
 SH2_ADDR_OFFSET equ     $02000000
 
 ; Command codes
+CMD_DIRECT      equ     $22         ; Direct command send
 CMD_WAIT_SEND   equ     $25         ; Wait and send command
+CMD_27          equ     $27         ; Command $27 (21 calls/frame)
+CMD_EXTENDED    equ     $2F         ; Extended command
 
 ; Handshake values
 HANDSHAKE_READY equ     $0101       ; Ready for next phase
 
         org     $00E200
 
-        dc.w    $5240        ; $00E200
-        dc.w    $0240        ; $00E202
+; ============================================================================
+; Unknown function ($00E200-$00E20A)
+; ============================================================================
+        dc.w    $5240        ; $00E200 - ADDQ.W #1,D0
+        dc.w    $0240        ; $00E202 - ANDI.W #$0003,D0
         dc.w    $0003        ; $00E204
-        dc.w    $51CB        ; $00E206
+        dc.w    $51CB        ; $00E206 - DBRA D3,loop
         dc.w    $FFC2        ; $00E208
-        dc.w    $4E75        ; $00E20A
+        dc.w    $4E75        ; $00E20A - RTS
+
+; ============================================================================
+; Data tables ($00E20C-$00E22A)
+; ============================================================================
         dc.w    $0807        ; $00E20C
         dc.w    $0605        ; $00E20E
         dc.w    $0403        ; $00E210
@@ -42,98 +53,125 @@ HANDSHAKE_READY equ     $0101       ; Ready for next phase
         dc.w    $0B0A        ; $00E226
         dc.w    $1110        ; $00E228
         dc.w    $0F0E        ; $00E22A
-        dc.w    $2248        ; $00E22C
-        dc.w    $E349        ; $00E22E
-        dc.w    $EF4A        ; $00E230
-        dc.w    $D242        ; $00E232
-        dc.w    $41F0        ; $00E234
-        dc.w    $1000        ; $00E236
-        dc.w    $0240        ; $00E238
-        dc.w    $0003        ; $00E23A
-        dc.w    $E148        ; $00E23C
-        dc.w    $EB48        ; $00E23E
-        dc.w    $0640        ; $00E240
-        dc.w    $0100        ; $00E242
-        dc.w    $0880        ; $00E244
-        dc.w    $000B        ; $00E246
-        dc.w    $0880        ; $00E248
-        dc.w    $000C        ; $00E24A
-        dc.w    $7200        ; $00E24C
-        dc.w    $343C        ; $00E24E
-        dc.w    $0006        ; $00E250
-        dc.w    $D440        ; $00E252
-        dc.w    $3082        ; $00E254
-        dc.w    $D1FC        ; $00E256
-        dc.w    $0000        ; $00E258
-        dc.w    $0080        ; $00E25A
-        dc.w    $343C        ; $00E25C
-        dc.w    $0001        ; $00E25E
-        dc.w    $3A04        ; $00E260
-        dc.w    $5745        ; $00E262
-        dc.w    $4EBA        ; $00E264
-        dc.w    $007E        ; $00E266
-        dc.w    $3086        ; $00E268
-        dc.w    $D1FC        ; $00E26A
-        dc.w    $0000        ; $00E26C
-        dc.w    $0080        ; $00E26E
-        dc.w    $51CD        ; $00E270
-        dc.w    $FFF2        ; $00E272
-        dc.w    $343C        ; $00E274
-        dc.w    $0007        ; $00E276
-        dc.w    $4EBA        ; $00E278
-        dc.w    $006A        ; $00E27A
-        dc.w    $30C6        ; $00E27C
-        dc.w    $343C        ; $00E27E
-        dc.w    $0003        ; $00E280
-        dc.w    $3A03        ; $00E282
-        dc.w    $5745        ; $00E284
-        dc.w    $4EBA        ; $00E286
-        dc.w    $005C        ; $00E288
-        dc.w    $30C6        ; $00E28A
-        dc.w    $51CD        ; $00E28C
-        dc.w    $FFF8        ; $00E28E
-        dc.w    $08C0        ; $00E290
-        dc.w    $000B        ; $00E292
-        dc.w    $08C0        ; $00E294
-        dc.w    $000C        ; $00E296
-        dc.w    $343C        ; $00E298
-        dc.w    $0005        ; $00E29A
-        dc.w    $4EBA        ; $00E29C
-        dc.w    $0046        ; $00E29E
-        dc.w    $3086        ; $00E2A0
-        dc.w    $91FC        ; $00E2A2
-        dc.w    $0000        ; $00E2A4
-        dc.w    $0080        ; $00E2A6
-        dc.w    $343C        ; $00E2A8
-        dc.w    $0001        ; $00E2AA
-        dc.w    $3A04        ; $00E2AC
-        dc.w    $5745        ; $00E2AE
-        dc.w    $4EBA        ; $00E2B0
-        dc.w    $0032        ; $00E2B2
-        dc.w    $3086        ; $00E2B4
-        dc.w    $91FC        ; $00E2B6
-        dc.w    $0000        ; $00E2B8
-        dc.w    $0080        ; $00E2BA
-        dc.w    $51CD        ; $00E2BC
-        dc.w    $FFF2        ; $00E2BE
-        dc.w    $343C        ; $00E2C0
-        dc.w    $0007        ; $00E2C2
-        dc.w    $4EBA        ; $00E2C4
-        dc.w    $001E        ; $00E2C6
-        dc.w    $3086        ; $00E2C8
-        dc.w    $5588        ; $00E2CA
-        dc.w    $343C        ; $00E2CC
-        dc.w    $0003        ; $00E2CE
-        dc.w    $3A03        ; $00E2D0
-        dc.w    $5745        ; $00E2D2
-        dc.w    $4EBA        ; $00E2D4
-        dc.w    $000E        ; $00E2D6
-        dc.w    $3086        ; $00E2D8
-        dc.w    $5588        ; $00E2DA
-        dc.w    $51CD        ; $00E2DC
-        dc.w    $FFF6        ; $00E2DE
-        dc.w    $2049        ; $00E2E0
-        dc.w    $4E75        ; $00E2E2
+
+; ============================================================================
+; sh2_graphics_cmd ($00E22C) - Build Graphics Command Data
+; ============================================================================
+; Called by: 14 locations per frame (sprite/graphics setup)
+; Parameters:
+;   A0 = Source data pointer
+;   D0 = Flags/mode value
+;   D1 = Initial offset
+;   D2 = Row count parameter
+;   D3 = Column count parameter
+;   D4 = Vertical loop count
+; Returns:
+;   A0 = Restored to original value (via A1)
+;   D6 = Last computed sprite index
+;
+; This function builds sprite command data for the SH2 to process.
+; It calculates sprite indices based on input parameters and writes
+; them to a buffer with $80-byte row stride.
+;
+; Algorithm:
+;   1. Calculate base sprite index from D0/D1/D2
+;   2. Build upper section (loop D4-3 times)
+;   3. Build center row
+;   4. Build lower section with mirrored indices
+;   5. Restore A0 and return
+; ============================================================================
+sh2_graphics_cmd:
+; Save original pointer
+        movea.l a0,a1                           ; $00E22C: $2248       - Save A0 in A1
+
+; Calculate table offset: D1 = D1*2 + D2*128 + base
+        asl.w   #1,d1                           ; $00E22E: $E349       - D1 *= 2
+        asl.w   #7,d2                           ; $00E230: $EF4A       - D2 *= 128
+        add.w   d2,d1                           ; $00E232: $D242       - D1 += D2
+        lea     (a0,d1.w),a0                    ; $00E234: $41F0 $1000 - A0 += D1 (indexed)
+
+; Build sprite base index from D0
+        andi.w  #$0003,d0                       ; $00E238: $0240 $0003 - Keep low 2 bits
+        asl.w   #8,d0                           ; $00E23C: $E148       - D0 *= 256
+        asl.w   #5,d0                           ; $00E23E: $EB48       - D0 *= 32 (total *8192)
+        addi.w  #$0100,d0                       ; $00E240: $0640 $0100 - Add base offset
+        bclr    #11,d0                          ; $00E244: $0880 $000B - Clear bit 11
+        bclr    #12,d0                          ; $00E248: $0880 $000C - Clear bit 12
+
+; Initialize counters
+        moveq   #0,d1                           ; $00E24C: $7200       - D1 = 0
+        move.w  #$0006,d2                       ; $00E24E: $343C $0006 - D2 = 6
+        add.w   d0,d2                           ; $00E252: $D440       - D2 += base index
+        move.w  d2,(a0)                         ; $00E254: $3082       - Store first index
+        adda.l  #$00000080,a0                   ; $00E256: $D1FC $0000 $0080 - Next row (+128)
+
+; Build upper section rows
+        move.w  #$0001,d2                       ; $00E25C: $343C $0001 - D2 = 1 (index offset)
+        move.w  d4,d5                           ; $00E260: $3A04       - D5 = row count
+        subq.w  #3,d5                           ; $00E262: $5745       - D5 -= 3 (loop count)
+
+.upper_loop:
+        bsr.s   sh2_sprite_calc                 ; $00E264: $4EBA $007E - Calculate sprite index
+        move.w  d6,(a0)                         ; $00E268: $3086       - Store index
+        adda.l  #$00000080,a0                   ; $00E26A: $D1FC $0000 $0080 - Next row
+        dbra    d5,.upper_loop                  ; $00E270: $51CD $FFF2 - Loop
+
+; Center row - special index
+        move.w  #$0007,d2                       ; $00E274: $343C $0007 - D2 = 7
+        bsr.s   sh2_sprite_calc                 ; $00E278: $4EBA $006A - Calculate
+        move.w  d6,(a0)+                        ; $00E27C: $30C6       - Store and advance
+
+; Build horizontal strip
+        move.w  #$0003,d2                       ; $00E27E: $343C $0003 - D2 = 3
+        move.w  d3,d5                           ; $00E282: $3A03       - D5 = column count
+        subq.w  #3,d5                           ; $00E284: $5745       - D5 -= 3
+
+.horiz_loop:
+        bsr.s   sh2_sprite_calc                 ; $00E286: $4EBA $005C - Calculate
+        move.w  d6,(a0)+                        ; $00E28A: $30C6       - Store and advance
+        dbra    d5,.horiz_loop                  ; $00E28C: $51CD $FFF8 - Loop
+
+; Set mirror bits for lower section
+        bset    #11,d0                          ; $00E290: $08C0 $000B - Set bit 11
+        bset    #12,d0                          ; $00E294: $08C0 $000C - Set bit 12
+
+; End of center row
+        move.w  #$0005,d2                       ; $00E298: $343C $0005 - D2 = 5
+        bsr.s   sh2_sprite_calc                 ; $00E29C: $4EBA $0046 - Calculate
+        move.w  d6,(a0)                         ; $00E2A0: $3086       - Store index
+        suba.l  #$00000080,a0                   ; $00E2A2: $91FC $0000 $0080 - Previous row
+
+; Build lower section rows (going backwards)
+        move.w  #$0001,d2                       ; $00E2A8: $343C $0001 - D2 = 1
+        move.w  d4,d5                           ; $00E2AC: $3A04       - D5 = row count
+        subq.w  #3,d5                           ; $00E2AE: $5745       - D5 -= 3
+
+.lower_loop:
+        bsr.s   sh2_sprite_calc                 ; $00E2B0: $4EBA $0032 - Calculate
+        move.w  d6,(a0)                         ; $00E2B4: $3086       - Store
+        suba.l  #$00000080,a0                   ; $00E2B6: $91FC $0000 $0080 - Previous row
+        dbra    d5,.lower_loop                  ; $00E2BC: $51CD $FFF2 - Loop
+
+; Final corner index
+        move.w  #$0007,d2                       ; $00E2C0: $343C $0007 - D2 = 7
+        bsr.s   sh2_sprite_calc                 ; $00E2C4: $4EBA $001E - Calculate
+        move.w  d6,(a0)                         ; $00E2C8: $3086       - Store
+        subq.l  #2,a0                           ; $00E2CA: $5588       - Back 2 bytes
+
+; Build final horizontal strip (backwards)
+        move.w  #$0003,d2                       ; $00E2CC: $343C $0003 - D2 = 3
+        move.w  d3,d5                           ; $00E2D0: $3A03       - D5 = column count
+        subq.w  #3,d5                           ; $00E2D2: $5745       - D5 -= 3
+
+.final_loop:
+        bsr.s   sh2_sprite_calc                 ; $00E2D4: $4EBA $000E - Calculate
+        move.w  d6,(a0)                         ; $00E2D8: $3086       - Store
+        subq.l  #2,a0                           ; $00E2DA: $5588       - Back 2 bytes
+        dbra    d5,.final_loop                  ; $00E2DC: $51CD $FFF6 - Loop
+
+; Restore original pointer and return
+        movea.l a1,a0                           ; $00E2E0: $2049       - Restore A0
+        rts                                     ; $00E2E2: $4E75
 ; ============================================================================
 ; sh2_sprite_calc ($00E2E4) - Calculate Sprite Index
 ; ============================================================================
@@ -235,140 +273,146 @@ sh2_wait_response:
         move.l  a1,COMM4                        ; $00E34A: $23C9 $00A1 $5128 - Write secondary ptr (COMM4+COMM5)
         move.w  #HANDSHAKE_READY,COMM6          ; $00E350: $33FC $0101 $00A1 $512C - Signal ready
         rts                                     ; $00E358: $4E75             - Return
-        dc.w    $4A39        ; $00E35A
-        dc.w    $00A1        ; $00E35C
-        dc.w    $5120        ; $00E35E
-        dc.w    $66F8        ; $00E360
-        dc.w    $23C9        ; $00E362
-        dc.w    $00A1        ; $00E364
-        dc.w    $5128        ; $00E366
-        dc.w    $33FC        ; $00E368
-        dc.w    $0101        ; $00E36A
-        dc.w    $00A1        ; $00E36C
-        dc.w    $512C        ; $00E36E
-        dc.w    $13FC        ; $00E370
-        dc.w    $0022        ; $00E372
-        dc.w    $00A1        ; $00E374
-        dc.w    $5121        ; $00E376
-        dc.w    $13FC        ; $00E378
-        dc.w    $0001        ; $00E37A
-        dc.w    $00A1        ; $00E37C
-        dc.w    $5120        ; $00E37E
-        dc.w    $4A39        ; $00E380
-        dc.w    $00A1        ; $00E382
-        dc.w    $512C        ; $00E384
-        dc.w    $66F8        ; $00E386
-        dc.w    $33C0        ; $00E388
-        dc.w    $00A1        ; $00E38A
-        dc.w    $5128        ; $00E38C
-        dc.w    $33C1        ; $00E38E
-        dc.w    $00A1        ; $00E390
-        dc.w    $512A        ; $00E392
-        dc.w    $33FC        ; $00E394
-        dc.w    $0101        ; $00E396
-        dc.w    $00A1        ; $00E398
-        dc.w    $512C        ; $00E39A
-        dc.w    $4A39        ; $00E39C
-        dc.w    $00A1        ; $00E39E
-        dc.w    $512C        ; $00E3A0
-        dc.w    $66F8        ; $00E3A2
-        dc.w    $23C8        ; $00E3A4
-        dc.w    $00A1        ; $00E3A6
-        dc.w    $5128        ; $00E3A8
-        dc.w    $33FC        ; $00E3AA
-        dc.w    $0101        ; $00E3AC
-        dc.w    $00A1        ; $00E3AE
-        dc.w    $512C        ; $00E3B0
-        dc.w    $4E75        ; $00E3B2
-        dc.w    $23C8        ; $00E3B4
-        dc.w    $00A1        ; $00E3B6
-        dc.w    $5128        ; $00E3B8
-        dc.w    $33FC        ; $00E3BA
-        dc.w    $0101        ; $00E3BC
-        dc.w    $00A1        ; $00E3BE
-        dc.w    $512C        ; $00E3C0
-        dc.w    $13FC        ; $00E3C2
-        dc.w    $0027        ; $00E3C4
-        dc.w    $00A1        ; $00E3C6
-        dc.w    $5121        ; $00E3C8
-        dc.w    $13FC        ; $00E3CA
-        dc.w    $0001        ; $00E3CC
-        dc.w    $00A1        ; $00E3CE
-        dc.w    $5120        ; $00E3D0
-        dc.w    $4A39        ; $00E3D2
-        dc.w    $00A1        ; $00E3D4
-        dc.w    $512C        ; $00E3D6
-        dc.w    $66F8        ; $00E3D8
-        dc.w    $33C0        ; $00E3DA
-        dc.w    $00A1        ; $00E3DC
-        dc.w    $5128        ; $00E3DE
-        dc.w    $33C1        ; $00E3E0
-        dc.w    $00A1        ; $00E3E2
-        dc.w    $512A        ; $00E3E4
-        dc.w    $33FC        ; $00E3E6
-        dc.w    $0101        ; $00E3E8
-        dc.w    $00A1        ; $00E3EA
-        dc.w    $512C        ; $00E3EC
-        dc.w    $4A39        ; $00E3EE
-        dc.w    $00A1        ; $00E3F0
-        dc.w    $512C        ; $00E3F2
-        dc.w    $66F8        ; $00E3F4
-        dc.w    $33C2        ; $00E3F6
-        dc.w    $00A1        ; $00E3F8
-        dc.w    $5128        ; $00E3FA
-        dc.w    $33FC        ; $00E3FC
-        dc.w    $0101        ; $00E3FE
-        dc.w    $00A1        ; $00E400
-        dc.w    $512C        ; $00E402
-        dc.w    $4E75        ; $00E404
-        dc.w    $4A39        ; $00E406
-        dc.w    $00A1        ; $00E408
-        dc.w    $5120        ; $00E40A
-        dc.w    $66F8        ; $00E40C
-        dc.w    $23C8        ; $00E40E
-        dc.w    $00A1        ; $00E410
-        dc.w    $5128        ; $00E412
-        dc.w    $33FC        ; $00E414
-        dc.w    $0101        ; $00E416
-        dc.w    $00A1        ; $00E418
-        dc.w    $512C        ; $00E41A
-        dc.w    $13FC        ; $00E41C
-        dc.w    $002F        ; $00E41E
-        dc.w    $00A1        ; $00E420
-        dc.w    $5121        ; $00E422
-        dc.w    $13FC        ; $00E424
-        dc.w    $0001        ; $00E426
-        dc.w    $00A1        ; $00E428
-        dc.w    $5120        ; $00E42A
-        dc.w    $4A39        ; $00E42C
-        dc.w    $00A1        ; $00E42E
-        dc.w    $512C        ; $00E430
-        dc.w    $66F8        ; $00E432
-        dc.w    $33C0        ; $00E434
-        dc.w    $00A1        ; $00E436
-        dc.w    $5128        ; $00E438
-        dc.w    $33C1        ; $00E43A
-        dc.w    $00A1        ; $00E43C
-        dc.w    $512A        ; $00E43E
-        dc.w    $33FC        ; $00E440
-        dc.w    $0101        ; $00E442
-        dc.w    $00A1        ; $00E444
-        dc.w    $512C        ; $00E446
-        dc.w    $4A39        ; $00E448
-        dc.w    $00A1        ; $00E44A
-        dc.w    $512C        ; $00E44C
-        dc.w    $66F8        ; $00E44E
-        dc.w    $33C2        ; $00E450
-        dc.w    $00A1        ; $00E452
-        dc.w    $5128        ; $00E454
-        dc.w    $33C3        ; $00E456
-        dc.w    $00A1        ; $00E458
-        dc.w    $512A        ; $00E45A
-        dc.w    $33FC        ; $00E45C
-        dc.w    $0101        ; $00E45E
-        dc.w    $00A1        ; $00E460
-        dc.w    $512C        ; $00E462
-        dc.w    $4E75        ; $00E464
+
+; ============================================================================
+; sh2_send_cmd ($00E35A) - Direct Command Send
+; ============================================================================
+; Purpose: Sends a command directly with multiple parameters
+; Called by: text_render, various graphics functions
+; Parameters:
+;   A0 = Data pointer
+;   A1 = Secondary pointer
+;   D0 = Parameter 1 (width/count)
+;   D1 = Parameter 2 (height/type)
+; Returns: Nothing
+;
+; BLOCKING: Contains THREE busy-wait loops
+; This function has the MOST BLOCKING WAITS of all comm functions
+; ============================================================================
+sh2_send_cmd:
+; --- BLOCKING WAIT 1 ---
+.wait_ready:
+        tst.b   COMM0_HI                        ; $00E35A: $4A39 $00A1 $5120 - Test command flag
+        bne.s   .wait_ready                     ; $00E360: $66F8             - Loop until ready
+
+; Send secondary pointer
+        move.l  a1,COMM4                        ; $00E362: $23C9 $00A1 $5128 - Write A1 (COMM4+COMM5)
+        move.w  #HANDSHAKE_READY,COMM6          ; $00E368: $33FC $0101 $00A1 $512C - Signal ready
+        move.b  #CMD_DIRECT,COMM0_LO            ; $00E370: $13FC $0022 $00A1 $5121 - Command $22
+        move.b  #$01,COMM0_HI                   ; $00E378: $13FC $0001 $00A1 $5120 - Trigger command
+
+; --- BLOCKING WAIT 2 ---
+.wait_phase1:
+        tst.b   COMM6                           ; $00E380: $4A39 $00A1 $512C - Test handshake
+        bne.s   .wait_phase1                    ; $00E386: $66F8             - Loop until cleared
+
+; Send parameters D0/D1
+        move.w  d0,COMM4                        ; $00E388: $33C0 $00A1 $5128 - Write D0
+        move.w  d1,COMM5                        ; $00E38E: $33C1 $00A1 $512A - Write D1
+        move.w  #HANDSHAKE_READY,COMM6          ; $00E394: $33FC $0101 $00A1 $512C - Signal ready
+
+; --- BLOCKING WAIT 3 ---
+.wait_phase2:
+        tst.b   COMM6                           ; $00E39C: $4A39 $00A1 $512C - Test handshake
+        bne.s   .wait_phase2                    ; $00E3A2: $66F8             - Loop until cleared
+
+; Send data pointer
+        move.l  a0,COMM4                        ; $00E3A4: $23C8 $00A1 $5128 - Write A0 (COMM4+COMM5)
+        move.w  #HANDSHAKE_READY,COMM6          ; $00E3AA: $33FC $0101 $00A1 $512C - Signal ready
+        rts                                     ; $00E3B2: $4E75             - Return
+
+; ============================================================================
+; sh2_cmd_27 ($00E3B4) - Command $27 (Most frequent: 21 calls/frame)
+; ============================================================================
+; Purpose: Sends command $27 with data pointer and 3 parameters
+; Called by: 3D rendering, polygon processing
+; Parameters:
+;   A0 = Data pointer (68K address, written directly)
+;   D0 = Parameter 1
+;   D1 = Parameter 2
+;   D2 = Parameter 3
+; Returns: Nothing
+;
+; BLOCKING: Contains TWO busy-wait loops
+; This is a HIGH-FREQUENCY BOTTLENECK FUNCTION (21 calls/frame)
+;
+; Protocol:
+;   Phase 1: Send A0 pointer, command $27, wait for ack
+;   Phase 2: Send D0/D1, wait for ack
+;   Phase 3: Send D2, return (no wait - SH2 processes async)
+; ============================================================================
+sh2_cmd_27:
+; Phase 1: Send data pointer and command
+        move.l  a0,COMM4                        ; $00E3B4: $23C8 $00A1 $5128 - Write pointer
+        move.w  #HANDSHAKE_READY,COMM6          ; $00E3BA: $33FC $0101 $00A1 $512C - Signal ready
+        move.b  #CMD_27,COMM0_LO                ; $00E3C2: $13FC $0027 $00A1 $5121 - Command $27
+        move.b  #$01,COMM0_HI                   ; $00E3CA: $13FC $0001 $00A1 $5120 - Trigger
+; --- BLOCKING WAIT 1 ---
+.wait_phase1:
+        tst.b   COMM6                           ; $00E3D2: $4A39 $00A1 $512C - Check handshake
+        bne.s   .wait_phase1                    ; $00E3D8: $66F8             - Loop until clear
+
+; Phase 2: Send parameters D0 and D1
+        move.w  d0,COMM4                        ; $00E3DA: $33C0 $00A1 $5128 - Write D0
+        move.w  d1,COMM5                        ; $00E3E0: $33C1 $00A1 $512A - Write D1
+        move.w  #HANDSHAKE_READY,COMM6          ; $00E3E6: $33FC $0101 $00A1 $512C - Signal ready
+; --- BLOCKING WAIT 2 ---
+.wait_phase2:
+        tst.b   COMM6                           ; $00E3EE: $4A39 $00A1 $512C - Check handshake
+        bne.s   .wait_phase2                    ; $00E3F4: $66F8             - Loop until clear
+
+; Phase 3: Send parameter D2 (no wait - SH2 processes after return)
+        move.w  d2,COMM4                        ; $00E3F6: $33C2 $00A1 $5128 - Write D2
+        move.w  #HANDSHAKE_READY,COMM6          ; $00E3FC: $33FC $0101 $00A1 $512C - Signal ready
+        rts                                     ; $00E404: $4E75             - Return
+
+; ============================================================================
+; sh2_cmd_2F ($00E406) - Extended Command with 4 Parameters
+; ============================================================================
+; Purpose: Sends command $2F with data pointer and 4 parameters (D0-D3)
+; Called by: Complex graphics operations
+; Parameters:
+;   A0 = Data pointer (68K address, written directly)
+;   D0 = Parameter 1
+;   D1 = Parameter 2
+;   D2 = Parameter 3
+;   D3 = Parameter 4
+; Returns: Nothing
+;
+; BLOCKING: Contains THREE busy-wait loops
+; Similar to sh2_cmd_27 but with an additional parameter phase
+;
+; Protocol:
+;   Phase 1: Wait for ready, send A0 pointer, command $2F, wait for ack
+;   Phase 2: Send D0/D1, wait for ack
+;   Phase 3: Send D2/D3, return (SH2 processes async)
+; ============================================================================
+sh2_cmd_2F:
+; Phase 1: Wait for SH2 ready, then send pointer and command
+.wait_ready:
+        tst.b   COMM0_HI                        ; $00E406: $4A39 $00A1 $5120 - Test command flag
+        bne.s   .wait_ready                     ; $00E40C: $66F8             - Loop until ready
+        move.l  a0,COMM4                        ; $00E40E: $23C8 $00A1 $5128 - Write pointer
+        move.w  #HANDSHAKE_READY,COMM6          ; $00E414: $33FC $0101 $00A1 $512C - Signal ready
+        move.b  #CMD_EXTENDED,COMM0_LO          ; $00E41C: $13FC $002F $00A1 $5121 - Command $2F
+        move.b  #$01,COMM0_HI                   ; $00E424: $13FC $0001 $00A1 $5120 - Trigger
+
+; Phase 2: Wait for ack, send D0/D1
+.wait_phase1:
+        tst.b   COMM6                           ; $00E42C: $4A39 $00A1 $512C - Check handshake
+        bne.s   .wait_phase1                    ; $00E432: $66F8             - Loop until clear
+        move.w  d0,COMM4                        ; $00E434: $33C0 $00A1 $5128 - Write D0
+        move.w  d1,COMM5                        ; $00E43A: $33C1 $00A1 $512A - Write D1
+        move.w  #HANDSHAKE_READY,COMM6          ; $00E440: $33FC $0101 $00A1 $512C - Signal ready
+
+; Phase 3: Wait for ack, send D2/D3 (no final wait - SH2 processes async)
+.wait_phase2:
+        tst.b   COMM6                           ; $00E448: $4A39 $00A1 $512C - Check handshake
+        bne.s   .wait_phase2                    ; $00E44E: $66F8             - Loop until clear
+        move.w  d2,COMM4                        ; $00E450: $33C2 $00A1 $5128 - Write D2
+        move.w  d3,COMM5                        ; $00E456: $33C3 $00A1 $512A - Write D3
+        move.w  #HANDSHAKE_READY,COMM6          ; $00E45C: $33FC $0101 $00A1 $512C - Signal ready
+        rts                                     ; $00E464: $4E75             - Return
         dc.w    $121A        ; $00E466
         dc.w    $0241        ; $00E468
         dc.w    $000F        ; $00E46A

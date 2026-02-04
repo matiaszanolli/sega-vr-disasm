@@ -442,35 +442,42 @@ sh2_cmd_2F:
         dc.w    $6100        ; $00E49A
         dc.w    $0004        ; $00E49C
         dc.w    $4E75        ; $00E49E
-        dc.w    $1202        ; $00E4A0
-        dc.w    $E809        ; $00E4A2
-        dc.w    $0241        ; $00E4A4
-        dc.w    $000F        ; $00E4A6
-        dc.w    $6100        ; $00E4A8
-        dc.w    $0012        ; $00E4AA
-        dc.w    $5089        ; $00E4AC
-        dc.w    $3202        ; $00E4AE
-        dc.w    $0241        ; $00E4B0
-        dc.w    $000F        ; $00E4B2
-        dc.w    $6100        ; $00E4B4
-        dc.w    $0006        ; $00E4B6
-        dc.w    $5089        ; $00E4B8
-        dc.w    $4E75        ; $00E4BA
-        dc.w    $ED49        ; $00E4BC
-        dc.w    $3001        ; $00E4BE
-        dc.w    $E349        ; $00E4C0
-        dc.w    $D240        ; $00E4C2
-        dc.w    $207C        ; $00E4C4
-        dc.w    $0603        ; $00E4C6
-        dc.w    $DA00        ; $00E4C8
-        dc.w    $D0C1        ; $00E4CA
-        dc.w    $303C        ; $00E4CC
-        dc.w    $000C        ; $00E4CE
-        dc.w    $323C        ; $00E4D0
-        dc.w    $0010        ; $00E4D2
-        dc.w    $4EBA        ; $00E4D4
-        dc.w    $FE84        ; $00E4D6
-        dc.w    $4E75        ; $00E4D8
+
+; ============================================================================
+; Helper function ($00E4A0-$00E4BA)
+; ============================================================================
+; Bit manipulation and conditional branching helper
+; Parameters: D2 = input value, A1 = pointer
+; ============================================================================
+        move.b  d2,d1                           ; $00E4A0: $1202       - D1 = D2 (byte)
+        lsr.b   #4,d1                           ; $00E4A2: $E809       - D1 >>= 4 (high nibble)
+        andi.w  #$000F,d1                       ; $00E4A4: $0241 $000F - Mask to 4 bits
+        bsr.w   $00E4BE                         ; $00E4A8: $6100 $0012 - Call helper (+18)
+        addq.l  #1,a1                           ; $00E4AC: $5089       - A1++
+        move.w  d2,d1                           ; $00E4AE: $3202       - D1 = D2 (word)
+        andi.w  #$000F,d1                       ; $00E4B0: $0241 $000F - Mask to 4 bits (low nibble)
+        bsr.w   $00E4BE                         ; $00E4B4: $6100 $0006 - Call helper (+6)
+        addq.l  #1,a1                           ; $00E4B8: $5089       - A1++
+        rts                                     ; $00E4BA: $4E75
+
+; ============================================================================
+; Digit conversion helper ($00E4BC-$00E4D8)
+; ============================================================================
+; Converts digit to ASCII and stores it
+; Parameters: D1 = digit value (0-15), A1 = destination pointer
+; Uses: D0, A0
+; ============================================================================
+        lsl.w   #6,d1                           ; $00E4BC: $ED49       - D1 <<= 6 (multiply by 64)
+        move.w  d1,d0                           ; $00E4BE: $3001       - D0 = D1
+        lsl.w   #1,d1                           ; $00E4C0: $E349       - D1 <<= 1 (D1 *= 128)
+        add.w   d0,d1                           ; $00E4C2: $D240       - D1 += D0 (D1 *= 192)
+        movea.l #$00060300,a0                   ; $00E4C4: $207C $0603 $DA00 - Load table base
+        add.w   d1,a0                           ; $00E4C8: $DA00       - A0 += D1 (offset)
+        adda.w  a1,a0                           ; $00E4CA: $D0C1       - A0 += A1
+        move.w  #$000C,d0                       ; $00E4CC: $303C $000C - D0 = 12 (width)
+        move.w  #$0010,d1                       ; $00E4D0: $323C $0010 - D1 = 16 (height)
+        bsr.w   sh2_send_cmd_wait               ; $00E4D4: $4EBA $FE84 - Call at $E35A (-380)
+        rts                                     ; $00E4D8: $4E75
         dc.w    $23C9        ; $00E4DA
         dc.w    $00A1        ; $00E4DC
         dc.w    $5128        ; $00E4DE
@@ -565,17 +572,21 @@ sh2_cmd_2F:
         dc.w    $5442        ; $00E590
         dc.w    $51C9        ; $00E592
         dc.w    $FFF8        ; $00E594
-        dc.w    $3238        ; $00E596
-        dc.w    $A012        ; $00E598
-        dc.w    $5241        ; $00E59A
-        dc.w    $0C41        ; $00E59C
-        dc.w    $0007        ; $00E59E
-        dc.w    $6F00        ; $00E5A0
-        dc.w    $0004        ; $00E5A2
-        dc.w    $4241        ; $00E5A4
-        dc.w    $31C1        ; $00E5A6
-        dc.w    $A012        ; $00E5A8
-        dc.w    $4E75        ; $00E5AA
+; ============================================================================
+; VDP register manipulation ($00E596-$00E5AA)
+; ============================================================================
+; Reads VDP control register, shifts and validates value, then writes back
+; Parameters: None
+; Uses: D1, VDP control port ($A012)
+; ============================================================================
+        move.w  ($A012).w,d1                    ; $00E596: $3238 $A012 - Read VDP control
+        roxr.w  #1,d1                           ; $00E59A: $5241       - Rotate right through X
+        cmpi.w  #$0007,d1                       ; $00E59C: $0C41 $0007 - Compare with 7
+        ble.s   .store_value                    ; $00E5A0: $6F00 $0004 - Branch if <= (+4)
+        clr.w   d1                              ; $00E5A4: $4241       - Clear D1
+.store_value:
+        move.w  d1,($A012).w                    ; $00E5A6: $31C1 $A012 - Write to VDP control
+        rts                                     ; $00E5AA: $4E75
         dc.w    $0EEE        ; $00E5AC
         dc.w    $0EEE        ; $00E5AE
         dc.w    $0EEE        ; $00E5B0

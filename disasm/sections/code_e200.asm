@@ -1670,7 +1670,7 @@
         dc.w    $5120        ; $00EF9A
         dc.w    $66F8        ; $00EF9C
         dc.w    $4EBA        ; $00EF9E JSR sh2_cmd_27_enqueue_flush(PC) [PATCHED]
-        dc.w    $7330        ; $00EFA0 displacement to $0162D0 (was $F414→$E3B4)
+        dc.w    $F414        ; $00EFA0 displacement to $00E3B4 (original sh2_cmd_27)
         dc.w    $4E75        ; $00EFA2
         dc.w    $0401        ; $00EFA4
         dc.w    $2010        ; $00EFA6

@@ -14,6 +14,7 @@ COMM6           equ     $A1512C     ; COMM6 word - Handshake flag
 SH2_ADDR_OFFSET equ     $02000000
 
 ; Command codes
+CMD_21          equ     $21         ; Command $21
 CMD_DIRECT      equ     $22         ; Direct command send
 CMD_WAIT_SEND   equ     $25         ; Wait and send command
 CMD_27          equ     $27         ; Command $27 (21 calls/frame)
@@ -478,100 +479,100 @@ sh2_cmd_2F:
         move.w  #$0010,d1                       ; $00E4D0: $323C $0010 - D1 = 16 (height)
         bsr.w   sh2_send_cmd_wait               ; $00E4D4: $4EBA $FE84 - Call at $E35A (-380)
         rts                                     ; $00E4D8: $4E75
-        dc.w    $23C9        ; $00E4DA
-        dc.w    $00A1        ; $00E4DC
-        dc.w    $5128        ; $00E4DE
-        dc.w    $33FC        ; $00E4E0
-        dc.w    $0101        ; $00E4E2
-        dc.w    $00A1        ; $00E4E4
-        dc.w    $512C        ; $00E4E6
-        dc.w    $13FC        ; $00E4E8
-        dc.w    $0021        ; $00E4EA
-        dc.w    $00A1        ; $00E4EC
-        dc.w    $5121        ; $00E4EE
-        dc.w    $13FC        ; $00E4F0
-        dc.w    $0001        ; $00E4F2
-        dc.w    $00A1        ; $00E4F4
-        dc.w    $5120        ; $00E4F6
-        dc.w    $4A39        ; $00E4F8
-        dc.w    $00A1        ; $00E4FA
-        dc.w    $512C        ; $00E4FC
-        dc.w    $66F8        ; $00E4FE
-        dc.w    $33C0        ; $00E500
-        dc.w    $00A1        ; $00E502
-        dc.w    $5128        ; $00E504
-        dc.w    $33C1        ; $00E506
-        dc.w    $00A1        ; $00E508
-        dc.w    $512A        ; $00E50A
-        dc.w    $33FC        ; $00E50C
-        dc.w    $0101        ; $00E50E
-        dc.w    $00A1        ; $00E510
-        dc.w    $512C        ; $00E512
-        dc.w    $4A39        ; $00E514
-        dc.w    $00A1        ; $00E516
-        dc.w    $512C        ; $00E518
-        dc.w    $66F8        ; $00E51A
-        dc.w    $23C8        ; $00E51C
-        dc.w    $00A1        ; $00E51E
-        dc.w    $5128        ; $00E520
-        dc.w    $33FC        ; $00E522
-        dc.w    $0101        ; $00E524
-        dc.w    $00A1        ; $00E526
-        dc.w    $512C        ; $00E528
-        dc.w    $4E75        ; $00E52A
-        dc.w    $41F8        ; $00E52C
-        dc.w    $84A2        ; $00E52E
-        dc.w    $43F8        ; $00E530
-        dc.w    $84C2        ; $00E532
-        dc.w    $45F8        ; $00E534
-        dc.w    $84E2        ; $00E536
-        dc.w    $4242        ; $00E538
-        dc.w    $323C        ; $00E53A
-        dc.w    $0007        ; $00E53C
-        dc.w    $31BC        ; $00E53E
-        dc.w    $0000        ; $00E540
-        dc.w    $2000        ; $00E542
-        dc.w    $33BC        ; $00E544
-        dc.w    $0000        ; $00E546
-        dc.w    $2000        ; $00E548
-        dc.w    $35BC        ; $00E54A
-        dc.w    $0000        ; $00E54C
-        dc.w    $2000        ; $00E54E
-        dc.w    $5442        ; $00E550
-        dc.w    $51C9        ; $00E552
-        dc.w    $FFEA        ; $00E554
-        dc.w    $4A40        ; $00E556
-        dc.w    $6608        ; $00E558
-        dc.w    $41F8        ; $00E55A
-        dc.w    $84A2        ; $00E55C
-        dc.w    $6000        ; $00E55E
-        dc.w    $0016        ; $00E560
-        dc.w    $0C40        ; $00E562
-        dc.w    $0001        ; $00E564
-        dc.w    $6600        ; $00E566
-        dc.w    $000A        ; $00E568
-        dc.w    $41F8        ; $00E56A
-        dc.w    $84C2        ; $00E56C
-        dc.w    $6000        ; $00E56E
-        dc.w    $0006        ; $00E570
-        dc.w    $41F8        ; $00E572
-        dc.w    $84E2        ; $00E574
-        dc.w    $47F9        ; $00E576
-        dc.w    $0088        ; $00E578
-        dc.w    $E5AC        ; $00E57A
-        dc.w    $7200        ; $00E57C
-        dc.w    $3238        ; $00E57E
-        dc.w    $A012        ; $00E580
-        dc.w    $D241        ; $00E582
-        dc.w    $D7C1        ; $00E584
-        dc.w    $4242        ; $00E586
-        dc.w    $323C        ; $00E588
-        dc.w    $0007        ; $00E58A
-        dc.w    $319B        ; $00E58C
-        dc.w    $2000        ; $00E58E
-        dc.w    $5442        ; $00E590
-        dc.w    $51C9        ; $00E592
-        dc.w    $FFF8        ; $00E594
+
+; ============================================================================
+; sh2_cmd_21 ($00E4DA-$00E52A) - Command $21
+; ============================================================================
+; Purpose: Sends command $21 with secondary pointer and 2 parameters
+; Called by: Graphics/rendering functions
+; Parameters:
+;   A0 = Data pointer
+;   A1 = Secondary pointer
+;   D0 = Parameter 1
+;   D1 = Parameter 2
+; Returns: Nothing
+;
+; BLOCKING: Contains TWO busy-wait loops
+; Similar protocol to sh2_cmd_27
+; ============================================================================
+sh2_cmd_21:
+; Phase 1: Send secondary pointer and command
+        move.l  a1,COMM4                        ; $00E4DA: $23C9 $00A1 $5128 - Write A1
+        move.w  #HANDSHAKE_READY,COMM6          ; $00E4E0: $33FC $0101 $00A1 $512C - Signal ready
+        move.b  #CMD_21,COMM0_LO                ; $00E4E8: $13FC $0021 $00A1 $5121 - Command $21
+        move.b  #$01,COMM0_HI                   ; $00E4F0: $13FC $0001 $00A1 $5120 - Trigger
+
+; --- BLOCKING WAIT 1 ---
+.wait_phase1:
+        tst.b   COMM6                           ; $00E4F8: $4A39 $00A1 $512C - Check handshake
+        bne.s   .wait_phase1                    ; $00E4FE: $66F8             - Loop until clear
+
+; Phase 2: Send parameters D0 and D1
+        move.w  d0,COMM4                        ; $00E500: $33C0 $00A1 $5128 - Write D0
+        move.w  d1,COMM5                        ; $00E506: $33C1 $00A1 $512A - Write D1
+        move.w  #HANDSHAKE_READY,COMM6          ; $00E50C: $33FC $0101 $00A1 $512C - Signal ready
+
+; --- BLOCKING WAIT 2 ---
+.wait_phase2:
+        tst.b   COMM6                           ; $00E514: $4A39 $00A1 $512C - Check handshake
+        bne.s   .wait_phase2                    ; $00E51A: $66F8             - Loop until clear
+
+; Phase 3: Send data pointer (no wait - SH2 processes async)
+        move.l  a0,COMM4                        ; $00E51C: $23C8 $00A1 $5128 - Write A0
+        move.w  #HANDSHAKE_READY,COMM6          ; $00E522: $33FC $0101 $00A1 $512C - Signal ready
+        rts                                     ; $00E52A: $4E75             - Return
+
+; ============================================================================
+; Memory initialization ($00E52C-$00E5AA)
+; ============================================================================
+; Initializes three memory regions based on D0 parameter
+; Parameters: D0 = selector (0, 1, or other)
+; Uses: A0, A1, A2, A3, D1, D2
+; ============================================================================
+        lea     ($84A2).w,a0                    ; $00E52C: $41F8 $84A2 - Load address 1
+        lea     ($84C2).w,a1                    ; $00E530: $43F8 $84C2 - Load address 2
+        lea     ($84E2).w,a2                    ; $00E534: $45F8 $84E2 - Load address 3
+
+        clr.w   d2                              ; $00E538: $4242       - D2 = 0
+        move.w  #$0007,d1                       ; $00E53A: $323C $0007 - D1 = 7 (loop counter)
+
+.clear_loop:
+        move.w  #$0000,$2000(a0)                ; $00E53E: $31BC $0000 $2000 - Clear (A0+$2000)
+        move.w  #$0000,$2000(a1)                ; $00E544: $33BC $0000 $2000 - Clear (A1+$2000)
+        move.w  #$0000,$2000(a2)                ; $00E54A: $35BC $0000 $2000 - Clear (A2+$2000)
+        addq.w  #2,d2                           ; $00E550: $5442       - D2 += 2
+        dbra    d1,.clear_loop                  ; $00E552: $51C9 $FFEA - Loop 8 times
+
+; Select address based on D0
+        tst.w   d0                              ; $00E556: $4A40       - Test D0
+        bne.s   .check_one                      ; $00E558: $6608       - Branch if != 0 (+8)
+        lea     ($84A2).w,a0                    ; $00E55A: $41F8 $84A2 - Use address 1
+        bra.s   .setup_table                    ; $00E55E: $6000 $0016 - Skip to setup (+22)
+
+.check_one:
+        cmpi.w  #$0001,d0                       ; $00E562: $0C40 $0001 - Compare D0 with 1
+        bne.s   .use_addr3                      ; $00E566: $6600 $000A - Branch if != 1 (+10)
+        lea     ($84C2).w,a0                    ; $00E56A: $41F8 $84C2 - Use address 2
+        bra.s   .setup_table                    ; $00E56E: $6000 $0006 - Skip to setup (+6)
+
+.use_addr3:
+        lea     ($84E2).w,a0                    ; $00E572: $41F8 $84E2 - Use address 3
+
+.setup_table:
+        lea     ($0088E5AC).l,a3                ; $00E576: $47F9 $0088 $E5AC - Load table address
+        moveq   #0,d1                           ; $00E57C: $7200       - D1 = 0
+
+.copy_loop:
+        move.w  ($A012).w,d1                    ; $00E57E: $3238 $A012 - Read VDP status
+        add.w   d1,d0                           ; $00E582: $D241       - D0 += D1
+        add.w   a3,d1                           ; $00E584: $D7C1       - D1 += A3
+        clr.w   d2                              ; $00E586: $4242       - D2 = 0
+        move.w  #$0007,d1                       ; $00E588: $323C $0007 - D1 = 7 (loop counter)
+
+.inner_loop:
+        move.w  (a3)+,$2000(a0)                 ; $00E58C: $319B $2000 - Copy from table
+        addq.w  #2,d2                           ; $00E590: $5442       - D2 += 2
+        dbra    d1,.inner_loop                  ; $00E592: $51C9 $FFF8 - Loop 8 times
 ; ============================================================================
 ; VDP register manipulation ($00E596-$00E5AA)
 ; ============================================================================

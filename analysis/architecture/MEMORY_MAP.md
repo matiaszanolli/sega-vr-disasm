@@ -282,6 +282,27 @@ Standard Sega Genesis VDP registers, plus 32X enhancements.
 - **Uncached access**: Slower, direct memory access (good for DMA targets)
 - **Cache-through**: Writes update both cache and memory
 
+### SH2 Access Timing (Official - Hardware Manual §4.1)
+
+| Memory Region | Read | Write | Notes |
+|--------------|------|-------|-------|
+| **SDRAM** ($02000000) | 12 clocks | 2 clocks | Burst mode: 12 + 2×(n-1) for n words |
+| **Frame Buffer** ($04000000) | 6 clocks | 3-5 clocks | 3 if FIFO not full, 5 if full |
+| **VDP Registers** ($04004100) | 5 clocks | 5 clocks | |
+| **System Registers** ($20004000) | 1 clock | 1 clock | COMM registers, interrupt control |
+| **Color Palette** ($04004200) | 5 clocks | 5 clocks | |
+
+**SDRAM Burst Mode Optimization**:
+- Initial access: 12 clocks (expensive)
+- Subsequent words in burst: 2 clocks each
+- 8-word burst: 12 + 14 = 26 clocks (vs. 96 for 8 individual reads)
+- **Align data structures for sequential access to exploit burst mode**
+
+**Frame Buffer FIFO**:
+- 4-word write FIFO for frame buffer access
+- Batch writes in groups of 4: 3+3+3+5 = 14 clocks for 4 words
+- Average: 3.5 clocks/word when batching
+
 ### SH2 SDRAM Usage ($22000000, 256KB)
 - Primary working memory for SH2 programs
 - Used for 3D transformation matrices

@@ -141,7 +141,9 @@ picodrive build/vr_rebuild.32x  # Linux (recommended)
 |----------|----------|
 | [development-guide.md](docs/development-guide.md) | **Start here** - CPU coordination, registers, pitfalls |
 | [32x-hardware-manual.md](docs/32x-hardware-manual.md) | Complete hardware reference, memory maps, VDP modes |
+| [32x-hardware-manual-supplement-2.md](docs/32x-hardware-manual-supplement-2.md) | **SH2 interrupt bug errata** and FRT TOCR corrective action |
 | [32x-technical-info.md](docs/32x-technical-info.md) | 22 documented hardware bugs and workarounds |
+| [32x-technical-info-attachment-1.md](docs/32x-technical-info-attachment-1.md) | VRES/RV bit corrective program samples (68K + SH2) |
 | [sound-driver-v3.md](docs/sound-driver-v3.md) | Sound Driver V3.00 system calls |
 
 **Development Guides:**

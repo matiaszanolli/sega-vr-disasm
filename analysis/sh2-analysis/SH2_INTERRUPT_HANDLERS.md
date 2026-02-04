@@ -241,8 +241,56 @@ Virtua Racing uses **polling loops** instead of interrupts. This is common in ea
 
 1. **Simpler programming model** - No need to manage interrupt priority, reentrancy
 2. **Deterministic timing** - Polling gives precise control over when operations happen
-3. **Avoid hardware bugs** - Early 32X hardware had interrupt-related bugs
+3. **Avoid hardware bugs** - Early 32X hardware had interrupt-related bugs (see below)
 4. **Cross-platform code** - Easier to port from arcade version that used polling
+
+### SH2 Interrupt Hardware Bug (Official Documentation)
+
+The **32X Hardware Manual Supplement 2** (Doc. MAR-32-R4-SP2-072694) documents a critical silicon bug:
+
+> **Limitations Concerning the SH2 Interrupt:**
+>
+> 1. If an external interrupt (VRES, V, H, CMD, PWM) input is in the acknowledge period for interrupt inputs, or external interrupt of lower levels, SH2 will not recognize the external interrupt.
+>
+> 2. When multiple interrupt inputs are entered, there may be branching to the interrupt process routine of a vector number that differs from the interrupt vector originally received.
+
+**The Official Corrective Action** requires:
+- **FRT TOCR toggling** - XOR bit 1 of the Timer Output Compare Control Register in every external interrupt handler
+- **Synchronization read-back** - Read from interrupt clear register before RTE to ensure write completion
+- **SR mask level 1 minimum** - Level 0 causes issues
+- **Shared odd/even vectors** - Same handler for adjacent interrupt levels (e.g., levels 14 and 15 both jump to `vresint`)
+
+**Example from official documentation:**
+```asm
+vint:
+    stc.l   gbr, @-r15
+
+    mov.l   #_sysreg, r0
+    ldc     r0, gbr
+
+    mov.l   #h'f0, r0               ; Interrupt Mask
+    ldc     r0, sr
+
+    ; External Interrupt Corrective Action (CRITICAL)
+    mov.l   #_FRT, r1
+    mov.b   @ (_TOCR, r1), r0       ; Read TOCR
+    xor     #h'02, r0               ; Toggle bit 1
+    mov.b   r0, @ (_TOCR, r1)       ; Write back
+
+    mov.w   r0, @ (vintclr, gbr)    ; V Interrupt clear
+
+    ; ... (5+ clocks of other processing required) ...
+
+    ldc.l   @r15+, gbr
+    rts
+    nop
+```
+
+**VRD's Choice:** Rather than implement this complex workaround, VRD simply avoids using SH2 external interrupts entirely. This sidesteps the bug but wastes significant CPU time in polling loops.
+
+**Note:** The bug was fixed in EVA chip cut 2.5, but retail 32X units used earlier silicon revisions requiring the corrective action. VRD was likely developed on EVA units and deployed to production without rewriting for interrupt-driven operation.
+
+**Full documentation:** See [32x-hardware-manual-supplement-2.md](/mnt/data/src/32x-playground/docs/32x-hardware-manual-supplement-2.md)
 
 ### Performance Impact
 
@@ -486,6 +534,7 @@ FrameReady:
 ## References
 
 - [32x-hardware-manual.md](/mnt/data/src/32x-playground/docs/32x-hardware-manual.md) - Interrupt controller documentation
+- [32x-hardware-manual-supplement-2.md](/mnt/data/src/32x-playground/docs/32x-hardware-manual-supplement-2.md) - **SH2 interrupt bug and corrective action**
 - [SH2_CODE_LOCATION_CONFIRMED.md](/mnt/data/src/32x-playground/analysis/SH2_CODE_LOCATION_CONFIRMED.md) - SH2 code location
 - [BOTTLENECK_ANALYSIS.md](/mnt/data/src/32x-playground/analysis/BOTTLENECK_ANALYSIS.md) - CPU profiling data
 - [MASTER_SLAVE_ANALYSIS.md](/mnt/data/src/32x-playground/analysis/MASTER_SLAVE_ANALYSIS.md) - SH2 coordination

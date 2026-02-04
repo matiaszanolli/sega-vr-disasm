@@ -55,6 +55,67 @@ This document consolidates all known data structures used by the 68K and SH2 CPU
 
 **⚠️ Address Discrepancy:** The project's MEMORY_MAP.md and Phase 11 code use $06000000 for SDRAM (observed: Slave hook injected at 0x06000596 in PicoDrive). The hardware manual shows $06000000 as undefined. This may be an emulator-specific alias or undocumented hardware behavior. Use $02000000/$22000000 for portable code.
 
+---
+
+## SH2 Access Timing (✅ Confirmed - Hardware Manual §4.1)
+
+Official wait states for SH2 memory access. Critical for performance optimization.
+
+### Frame Buffer (CS2: $04000000 / $24000000)
+
+| Operation | Wait Clocks | Condition |
+|-----------|-------------|-----------|
+| Write | 3 | FIFO not full (FULL=0) |
+| Write | 5 | FIFO full (FULL=1) |
+| Read | 6 | Always |
+
+**FIFO Note**: The SH2 has a 4-word write FIFO for frame buffer. Batch writes in groups of 4 for optimal throughput (14 clocks for 4 words = 3.5 clocks/word average).
+
+### SDRAM (CS3: $02000000 / $22000000)
+
+| Operation | Wait Clocks | Notes |
+|-----------|-------------|-------|
+| Longword Write | 2 | Single word |
+| Longword Read | 12 | Initial access |
+| Burst Read | 12 + 2×(n-1) | First word + subsequent |
+
+**Burst Mode**: After initial 12-clock penalty, sequential reads cost only 2 clocks each. Align data for sequential access:
+- 8-word burst: 12 + 14 = 26 clocks (vs. 96 clocks for 8 individual reads)
+
+### VDP Registers ($04004100)
+
+| Operation | Wait Clocks |
+|-----------|-------------|
+| Read | 5 |
+| Write | 5 |
+
+### System Registers ($20004000)
+
+| Operation | Wait Clocks |
+|-----------|-------------|
+| Read | 1 |
+| Write | 1 |
+
+### Color Palette ($04004200)
+
+| Operation | Wait Clocks |
+|-----------|-------------|
+| Read | 5 |
+| Write | 5 |
+
+### 68K Access Timing Summary
+
+| Resource | Timing |
+|----------|--------|
+| ROM via Cartridge Connector | Directly connected (no 32X overhead) |
+| 32X Frame Buffer ($840000) | Through RV signal handshake |
+| 32X Registers ($A15100) | Wait states as per §3.2 |
+| Z80 RAM ($A00000) | Standard Genesis timing |
+
+**Cross-Reference**: See [OPTIMIZATION_OPPORTUNITIES.md](../optimization/OPTIMIZATION_OPPORTUNITIES.md) for how to exploit these timings.
+
+---
+
 ### Unknown: 0xC0000XXX Addresses (❓ Hypothetical)
 
 The 3D transform code uses addresses like `0xC0000740`, `0xC0000760`. These are **not standard 32X mappings**.

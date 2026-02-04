@@ -15,20 +15,27 @@
 ;
 ; COMM Register Addresses (SH2 perspective):
 ;   COMM4 = 0x20004028 (Slave work counter)
-;   COMM7 = 0x2000402E (Frame sync signal - UNUSED by game)
+;   COMM5 = 0x2000402A (Vertex transform counter)
+;   COMM7 = 0x2000402E (Slave work signal)
 ;
-; Signal Values (future use):
+; Signal Values (COMM7):
 ;   0x0000 = Idle
 ;   0x0001 = Frame sync (increment COMM4)
 ;   0x0016 = Vertex transform (Phase 16)
+;   0x0027 = Queue drain (cmd $27 async processing)
 ;
 ; MEMORY LAYOUT:
 ;   0x300000-0x300027  Padding (40 bytes)
-;   0x300028-0x30003F  Handler entry (even-aligned)
-;   0x300040-0x30004F  Reserved
-;   0x300050-0x3000FF  Reserved
+;   0x300028-0x30003F  handler_frame_sync (22 bytes)
+;   0x300050-0x30007B  master_dispatch_hook (44 bytes)
 ;   0x300100-0x30015F  func_021_optimized (96 bytes)
-;   0x300160-0x3FFFFF  Padding
+;   0x300200-0x30026F  slave_work_wrapper_v2 (112 bytes)
+;   0x300280-0x3002AB  slave_test_func (44 bytes)
+;   0x300300-0x300325  func_021_original_relocated (36 bytes)
+;   0x300400-0x300433  shadow_path_wrapper (52 bytes)
+;   0x300500-0x300537  batch_copy_handler (~56 bytes)
+;   0x300600-0x30067F  cmd27_queue_drain (128 bytes)
+;   0x300700-0x3FFFFF  Padding (remaining)
 ;
 ; ============================================================================
 
@@ -145,105 +152,31 @@ func_021_optimized:
         dcb.b   ($200 - $160), $FF
 
 ; ============================================================================
-; SLAVE WORK WRAPPER: 0x300200 (SH2 address: 0x02300200)
+; SLAVE WORK WRAPPER V2: 0x300200 (SH2 address: 0x02300200)
 ; ============================================================================
-; Slave SH2 main loop - polls COMM7 for work signals from Master.
+; Slave SH2 main loop - polls COMM7 for work signals from Master/68K.
 ; Dispatches based on COMM7 value:
-;   0x0001 = Frame sync (increment COMM4)
-;   0x0016 = Vertex transform (calls slave_test_func, then increments COMM5)
+;   0x01 = Frame sync (increment COMM4)
+;   0x16 = Vertex transform (calls slave_test_func, increments COMM5)
+;   0x27 = Queue drain (calls cmd27_queue_drain) ← NEW in v2
 ;
 ; Protocol:
-;   1. Master writes COMM7 = work_type when dispatching a command
+;   1. Master/68K writes COMM7 = work_type
 ;   2. Slave detects COMM7 != 0, dispatches to appropriate handler
-;   3. Slave clears COMM7, returns to polling
+;   3. Handler executes (queue drain clears COMM7 itself)
+;   4. Slave clears COMM7, returns to polling
 ;
-; Bytecode layout:
-;   0x300200: MOV.L @(56,PC),R1  (D10E) - load COMM7 addr from $30023C
-;   0x300202: MOV.W @R1,R0       (6101) - read COMM7  [.poll_loop]
-;   0x300204: TST R0,R0          (2008) - test if zero
-;   0x300206: BT .poll_loop      (89FC) - loop if zero (-4)
-;   0x300208: MOV #1,R2          (E201) - frame sync code
-;   0x30020A: CMP/EQ R2,R0       (3020) - compare
-;   0x30020C: BT .frame_sync     (8906) - branch if match (+6 → $30021C)
-;   0x30020E: MOV #$16,R2        (E216) - vertex transform code
-;   0x300210: CMP/EQ R2,R0       (3020) - compare
-;   0x300212: BT .vertex_xform   (8909) - branch if match (+9 → $300228)
-;   0x300214: MOV #0,R0          (E000) - [.clear_loop] unknown type
-;   0x300216: MOV.W R0,@R1       (2011) - clear COMM7
-;   0x300218: BRA .poll_loop     (AFF3) - continue polling (-13)
-;   0x30021A: NOP                (0009) - delay slot
-;   0x30021C: MOV.L @(32,PC),R2  (D208) - [.frame_sync] COMM4 addr from $300240
-;   0x30021E: MOV.W @R2,R0       (6020) - read COMM4
-;   0x300220: ADD #1,R0          (7001) - increment
-;   0x300222: MOV.W R0,@R2       (2021) - write COMM4
-;   0x300224: BRA .clear_loop    (AFF6) - go clear signal (-10)
-;   0x300226: NOP                (0009) - delay slot
-;   0x300228: MOV.L @(28,PC),R3  (D307) - [.vertex_xform] func addr from $300248
-;   0x30022A: JSR @R3            (430B) - call slave_test_func
-;   0x30022C: NOP                (0009) - delay slot
-;   0x30022E: MOV.L @(20,PC),R2  (D205) - COMM5 addr from $300244
-;   0x300230: MOV.W @R2,R0       (6020) - read COMM5
-;   0x300232: ADD #1,R0          (7001) - increment
-;   0x300234: MOV.W R0,@R2       (2021) - write COMM5
-;   0x300236: BRA .clear_loop    (AFED) - go clear signal (-19)
-;   0x300238: NOP                (0009) - delay slot
-;   0x30023A: NOP                (0009) - padding
-;   0x30023C: COMM7 address      (2000402E)
-;   0x300240: COMM4 address      (20004028)
-;   0x300244: COMM5 address      (2000402A)
-;   0x300248: func address       (02300280) - slave_test_func
+; See: disasm/sh2/expansion/slave_work_wrapper_v2.asm for full source
 ;
 slave_work_wrapper:
-        dc.w    $D10E           ; $300200: MOV.L @(56,PC),R1 - load COMM7 addr
-.poll_loop:
-        dc.w    $6101           ; $300202: MOV.W @R1,R0 - read COMM7
-        dc.w    $2008           ; $300204: TST R0,R0 - test if zero
-        dc.w    $89FC           ; $300206: BT .poll_loop - loop if zero
-        ; Work signal received - dispatch based on value
-        dc.w    $E201           ; $300208: MOV #1,R2 - frame sync code
-        dc.w    $3020           ; $30020A: CMP/EQ R2,R0
-        dc.w    $8906           ; $30020C: BT .frame_sync (+6)
-        dc.w    $E216           ; $30020E: MOV #$16,R2 - vertex transform code
-        dc.w    $3020           ; $300210: CMP/EQ R2,R0
-        dc.w    $8909           ; $300212: BT .vertex_transform (+9)
-.clear_loop:
-        ; Unknown work type or done - clear signal
-        dc.w    $E000           ; $300214: MOV #0,R0
-        dc.w    $2011           ; $300216: MOV.W R0,@R1 - clear COMM7
-        dc.w    $AFF3           ; $300218: BRA .poll_loop (-13)
-        dc.w    $0009           ; $30021A: NOP (delay slot)
-.frame_sync:
-        ; Increment COMM4 (frame counter)
-        dc.w    $D208           ; $30021C: MOV.L @(32,PC),R2 - load COMM4 addr
-        dc.w    $6020           ; $30021E: MOV.W @R2,R0 - read COMM4
-        dc.w    $7001           ; $300220: ADD #1,R0
-        dc.w    $2021           ; $300222: MOV.W R0,@R2 - write COMM4
-        dc.w    $AFF6           ; $300224: BRA .clear_loop (-10)
-        dc.w    $0009           ; $300226: NOP (delay slot)
-.vertex_transform:
-        ; Call slave_test_func, then increment COMM5
-        dc.w    $D307           ; $300228: MOV.L @(28,PC),R3 - load func addr from $300248
-        dc.w    $430B           ; $30022A: JSR @R3 - call slave_test_func
-        dc.w    $0009           ; $30022C: NOP (delay slot)
-        dc.w    $D205           ; $30022E: MOV.L @(20,PC),R2 - load COMM5 addr from $300244
-        dc.w    $6020           ; $300230: MOV.W @R2,R0 - read COMM5
-        dc.w    $7001           ; $300232: ADD #1,R0
-        dc.w    $2021           ; $300234: MOV.W R0,@R2 - write COMM5
-        dc.w    $AFED           ; $300236: BRA .clear_loop (-19)
-        dc.w    $0009           ; $300238: NOP (delay slot)
-        dc.w    $0009           ; $30023A: NOP (padding for alignment)
-; Literal pool (4-byte aligned at 0x30023C)
-        dc.l    $2000402E       ; $30023C: COMM7 address
-        dc.l    $20004028       ; $300240: COMM4 address
-        dc.l    $2000402A       ; $300244: COMM5 address
-        dc.l    $02300280       ; $300248: slave_test_func address
+        include "sh2/generated/slave_work_wrapper_v2.inc"
 
 ; ============================================================================
 ; PADDING TO slave_test_func
 ; ============================================================================
-; Current position: 0x30024C (literal pool ends)
+; Current position: 0x300270 (slave_work_wrapper_v2 is 112 bytes)
 ; Pad to 0x300280 for nice alignment
-        dcb.b   ($280 - $24C), $FF
+        dcb.b   ($280 - $270), $FF
 
 ; ============================================================================
 ; SLAVE TEST FUNCTION: 0x300280 (SH2 address: 0x02300280)
@@ -400,7 +333,37 @@ batch_copy_handler:
         include "sh2/generated/batch_copy_handler.inc"
 
 ; ============================================================================
+; PADDING TO cmd27_queue_drain
+; ============================================================================
+; Current position: 0x300538 (after batch_copy_handler)
+; Pad to 0x300600 for nice alignment
+        dcb.b   ($600 - $538), $FF
+
+; ============================================================================
+; CMD27 QUEUE DRAIN: 0x300600 (SH2 address: 0x02300600)
+; ============================================================================
+; Async queue processor for cmd $27. Called by slave_work_wrapper when
+; COMM7 = $27 (doorbell signal from 68K).
+;
+; Drains all queued cmd $27 entries from 68K Work RAM at $FFFB00.
+; Each entry: data_ptr(4) + width(2) + height(2) + add_value(2) = 10 bytes
+;
+; Protocol:
+;   1. 68K enqueues entries, rings doorbell (COMM7 = $27)
+;   2. Slave detects COMM7 == $27 via slave_work_wrapper
+;   3. Slave calls cmd27_queue_drain
+;   4. Drain loops until read_idx == write_idx
+;   5. Returns (slave_work_wrapper clears COMM7)
+;
+; See: disasm/sh2/expansion/cmd27_queue_drain.asm for full source
+; See: disasm/modules/68k/sh2/sh2_cmd_27_async.asm for 68K side
+;
+cmd27_queue_drain:
+        include "sh2/generated/cmd27_queue_drain.inc"
+
+; ============================================================================
 ; REMAINING EXPANSION ROM SPACE
 ; ============================================================================
-; Current position: 0x300538 (handler is 56 bytes)
-        dcb.b   ($100000 - $538), $FF
+; cmd27_queue_drain is ~130 bytes, ending around 0x300682
+; Pad to end of 1MB expansion space
+        dcb.b   ($100000 - $700), $FF

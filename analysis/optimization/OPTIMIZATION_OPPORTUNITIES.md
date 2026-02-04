@@ -17,6 +17,7 @@ Analysis of the 3D engine reveals **8 major optimization opportunities** that co
 
 | ID | Opportunity | Impact | Effort | Priority |
 |----|-------------|--------|--------|----------|
+| **0** | **Replace polling with interrupt-driven** | **Very High** | **High** | **⭐⭐⭐⭐ HIGHEST** |
 | 1  | Inline hotspot func_016 | High | Low | ⭐⭐⭐ Critical |
 | 2  | Optimize func_065 pixel loop | High | Medium | ⭐⭐⭐ Critical |
 | 3  | Remove indirect JSR @R14 calls | Medium | Medium | ⭐⭐ High |
@@ -25,6 +26,102 @@ Analysis of the 3D engine reveals **8 major optimization opportunities** that co
 | 6  | Frame buffer FIFO utilization | Medium | Medium | ⭐ Medium |
 | 7  | Cache-aware data layout | Low | Medium | ⭐ Medium |
 | 8  | Reduce register spilling | Low | Low | ⭐ Low |
+
+---
+
+## HIGHEST #0: Replace Polling with Interrupt-Driven Architecture
+
+### Current Situation
+
+**VRD uses polling loops instead of interrupts**, wasting ~63.5% of SH2 CPU time.
+
+**Location**: Multiple polling loops throughout SH2 code
+**Impact**: ~450,000 cycles/frame wasted in busy-wait
+**Root Cause**: SH2 interrupt hardware bug in early silicon (documented in [32x-hardware-manual-supplement-2.md](/mnt/data/src/32x-playground/docs/32x-hardware-manual-supplement-2.md))
+
+### The SH2 Interrupt Bug
+
+The original SH2 silicon has two critical interrupt bugs:
+
+1. **Missed interrupts**: If an external interrupt (VRES, V, H, CMD, PWM) arrives during the acknowledge period of another interrupt, it will be lost
+2. **Wrong vector**: When multiple interrupts arrive simultaneously, the wrong interrupt handler may be invoked
+
+### Official Corrective Action
+
+Sega documented a workaround in the 32X Hardware Manual Supplement 2 (July 1994):
+
+```asm
+; Required in EVERY external interrupt handler (V, H, CMD, PWM)
+vint:
+    stc.l   gbr, @-r15
+    mov.l   #_sysreg, r0
+    ldc     r0, gbr
+    mov.l   #h'f0, r0               ; Interrupt mask (CRITICAL: level ≥ 1)
+    ldc     r0, sr
+
+    ; === FRT TOCR TOGGLE (fixes the hardware bug) ===
+    mov.l   #h'fffffe10, r1         ; _FRT base address
+    mov.b   @(h'07, r1), r0         ; Read TOCR (Timer Output Compare Control)
+    xor     #h'02, r0               ; Toggle bit 1
+    mov.b   r0, @(h'07, r1)         ; Write back
+    ; ===============================================
+
+    mov.w   r0, @(vintclr, gbr)     ; Clear interrupt flag
+
+    ; Synchronization read-back (ensures write completed)
+    mov.w   @(vintclr, gbr), r0     ; Read from same address
+
+    ; ... (5+ cycles of actual work) ...
+
+    ldc.l   @r15+, gbr
+    rte                             ; At least 1 cycle after sync read
+    nop
+```
+
+### Additional Requirements
+
+| Requirement | Details |
+|-------------|---------|
+| **SR mask ≥ 1** | Level 0 causes issues; always use level 1+ |
+| **Shared odd/even vectors** | Levels 14+15 → same vresint handler, 12+13 → same vint handler |
+| **Sync read before RTE** | Read from interrupt clear register to ensure write completion |
+| **Pipeline timing** | External: 4 cycles between sync read and LDC SR; Internal: 2 cycles |
+
+### Why VRD Didn't Use Interrupts
+
+VRD was likely developed on EVA (development) units with fixed silicon (cut 2.5+). Rather than implement the workaround for production units with buggy silicon, they chose polling.
+
+### Optimization Strategy
+
+**Phase 1: Implement compliant V-INT handler**
+- Write handler with FRT TOCR toggle
+- Use shared odd/even vectors
+- Include synchronization read-back
+
+**Phase 2: Replace primary polling loop**
+- Identify main frame-wait polling loop
+- Replace with `SLEEP` instruction + V-INT wake
+
+**Phase 3: Convert remaining loops**
+- H-INT for raster effects
+- CMD-INT for 68K→SH2 communication
+- VDP FIFO ready signaling
+
+### Expected Gain
+
+| Metric | Current | With Interrupts |
+|--------|---------|-----------------|
+| Polling CPU usage | 63.5% | ~0% |
+| Rendering CPU available | 26.5% | 90%+ |
+| Theoretical max FPS | 24 | 81 |
+| Realistic target | 24 | **60** |
+
+**Estimated Gain**: +50-100% FPS (24 → 36-48 FPS minimum)
+
+### References
+
+- [32x-hardware-manual-supplement-2.md](/mnt/data/src/32x-playground/docs/32x-hardware-manual-supplement-2.md) - Official errata and workaround
+- [SH2_INTERRUPT_HANDLERS.md](/mnt/data/src/32x-playground/analysis/sh2-analysis/SH2_INTERRUPT_HANDLERS.md) - VRD interrupt analysis
 
 ---
 
@@ -409,9 +506,18 @@ struct SharedWork {
 
 **Frame Buffer Writes**: Scattered throughout code.
 
-**FIFO Behavior**:
-- Writes 1-3: 3 cycles each = 9 cycles total
-- Write 4: 5 cycles (triggers flush)
+**FIFO Behavior (Official - 32X Hardware Manual §4.1):**
+
+The SH2 has a 4-word FIFO for frame buffer writes:
+
+| FIFO State | Wait Clocks | Condition |
+|------------|-------------|-----------|
+| Not full (FULL=0) | 3 clocks | FIFO can accept more writes |
+| Full (FULL=1) | 5 clocks | Must wait for FIFO to drain |
+
+**Optimal Pattern**: Batch writes in groups of 4 to maximize FIFO utilization:
+- First 3 writes: 3 clocks each = 9 clocks
+- 4th write: 5 clocks (FIFO flush)
 - **Burst of 4 writes: 14 cycles = 3.5 cycles/write average**
 
 **But Only If 4 Writes Happen Consecutively!**
@@ -460,6 +566,38 @@ struct SharedWork {
 ```
 
 **Estimated Gain**: +5-10% in rasterization (2-4% overall)
+
+### Official Access Timing Reference (32X Hardware Manual §4.1)
+
+For optimization planning, here are the official wait states:
+
+**Frame Buffer (CS2: $04000000 / $24000000)**
+| Operation | Wait Clocks | Notes |
+|-----------|-------------|-------|
+| Write (FULL=0) | 3 | FIFO not full |
+| Write (FULL=1) | 5 | FIFO full, stalls |
+| Read | 6 | Always |
+
+**SDRAM (CS3: $02000000 / $22000000)**
+| Operation | Wait Clocks | Notes |
+|-----------|-------------|-------|
+| Longword Write | 2 | Single word |
+| Longword Read | 12 | Initial access |
+| Burst Read (8 words) | 12 + 2×7 = 26 | First + subsequent |
+
+**VDP Registers ($04004100)**
+| Operation | Wait Clocks |
+|-----------|-------------|
+| Read | 5 |
+| Write | 5 |
+
+**System Registers ($20004000)**
+| Operation | Wait Clocks |
+|-----------|-------------|
+| Read | 1 |
+| Write | 1 |
+
+**SDRAM Burst Mode Optimization**: Sequential reads benefit massively from burst mode. After the initial 12-clock penalty, each subsequent word in the same burst costs only 2 clocks. Align data structures to exploit this.
 
 ---
 
@@ -559,22 +697,41 @@ func:
 
 | Optimization | Estimated Gain | Cumulative |
 |--------------|----------------|------------|
-| Baseline     | 0%             | 60.0 FPS   |
-| #1: Inline func_016 | +5% | 63.0 FPS |
-| #2: Optimize func_065 | +10% | 69.3 FPS |
-| #3: Remove indirect calls | +2% | 70.7 FPS |
-| #4: Unroll MAC loops | +2% | 72.1 FPS |
-| #5: Master/Slave balance | +10% | 79.3 FPS |
-| #6: FIFO utilization | +3% | 81.7 FPS |
-| #7: Cache-aware layout | +1% | 82.5 FPS |
-| #8: Reduce register spills | +0.5% | 82.9 FPS |
-| **TOTAL** | **~38%** | **~83 FPS** |
+| Baseline (polling)    | 0%             | 24.0 FPS   |
+| **#0: Interrupt-driven** | **+100%** | **48.0 FPS** |
+| #1: Inline func_016 | +5% | 50.4 FPS |
+| #2: Optimize func_065 | +10% | 55.4 FPS |
+| #3: Remove indirect calls | +2% | 56.5 FPS |
+| #4: Unroll MAC loops | +2% | 57.7 FPS |
+| #5: Master/Slave balance | +10% | 63.4 FPS |
+| #6: FIFO utilization | +3% | 65.3 FPS |
+| #7: Cache-aware layout | +1% | 66.0 FPS |
+| #8: Reduce register spills | +0.5% | 66.3 FPS |
+| **TOTAL** | **~175%** | **~66 FPS** |
 
-**Note**: Gains are not fully additive due to Amdahl's Law. Realistic combined gain: **25-35%**.
+**Note**: Gains are not fully additive due to Amdahl's Law. The interrupt-driven optimization (#0) is foundational - it unlocks the CPU headroom that makes other optimizations meaningful. Without it, the 63.5% wasted polling time caps practical gains.
+
+**Realistic combined gain with interrupt-driven + key optimizations: 60+ FPS target achievable.**
 
 ---
 
 ## Implementation Roadmap
+
+### Phase 0: Foundation - Interrupt-Driven Architecture (1-2 weeks)
+**This must come first - it unlocks the CPU headroom for all other optimizations.**
+
+- Implement compliant V-INT handler with FRT TOCR toggle
+- Set up shared odd/even interrupt vectors
+- Replace primary frame-wait polling with `SLEEP` + interrupt wake
+- Convert remaining polling loops (H-INT, CMD-INT, FIFO)
+
+**Expected**: +50-100% gain (24 → 36-48 FPS)
+
+**Requirements from 32X Hardware Manual Supplement 2:**
+- FRT TOCR toggle (XOR bit 1) in every external interrupt handler
+- SR mask level ≥ 1 (never 0)
+- Synchronization read-back before RTE
+- 4-cycle gap between sync read and LDC SR (external interrupts)
 
 ### Phase 1: Quick Wins (1-2 days)
 - ✅ Inline func_016 at 4 call sites
@@ -621,4 +778,6 @@ Before implementing optimizations, profile on actual hardware to validate assump
 - [SH2_3D_CALL_GRAPH.md](SH2_3D_CALL_GRAPH.md) - Function call relationships and hotspots
 - [SH2_3D_ENGINE_DATA_STRUCTURES.md](SH2_3D_ENGINE_DATA_STRUCTURES.md) - Memory layouts and access patterns
 - [docs/32x-hardware-manual.md](/docs/32x-hardware-manual.md) - Hardware specs for optimization
+- [docs/32x-hardware-manual-supplement-2.md](/docs/32x-hardware-manual-supplement-2.md) - **SH2 interrupt bug and FRT TOCR workaround**
 - [docs/32x-technical-info.md](/docs/32x-technical-info.md) - Hardware bugs and limitations
+- [SH2_INTERRUPT_HANDLERS.md](../sh2-analysis/SH2_INTERRUPT_HANDLERS.md) - VRD interrupt analysis and why polling is used

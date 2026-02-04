@@ -137,7 +137,46 @@ After comprehensive codebase analysis, we've identified three high-impact optimi
 
 **Expected gain:** +30-40% FPS (24 → 31-34 FPS)
 
-**Risk:** Medium (hardware timing changes)
+**Risk:** Medium (hardware timing changes, **requires SH2 interrupt bug workaround**)
+
+#### SH2 Interrupt Hardware Bug (CRITICAL)
+
+**Why VRD uses polling:** The original SH2 silicon has a documented interrupt bug. See [32x-hardware-manual-supplement-2.md](docs/32x-hardware-manual-supplement-2.md).
+
+**Bug symptoms:**
+1. External interrupts (V, H, CMD, PWM) can be missed during acknowledge period
+2. Wrong interrupt vector may be taken when multiple interrupts arrive simultaneously
+
+**Required corrective action** (if we implement interrupt-driven rendering):
+```asm
+vint:
+    stc.l   gbr, @-r15
+    mov.l   #_sysreg, r0
+    ldc     r0, gbr
+    mov.l   #h'f0, r0           ; Set interrupt mask
+    ldc     r0, sr
+
+    ; FRT TOCR toggle (CRITICAL - fixes hardware bug)
+    mov.l   #_FRT, r1           ; h'fffffe10
+    mov.b   @ (_TOCR, r1), r0   ; Read TOCR (offset h'07)
+    xor     #h'02, r0           ; Toggle bit 1
+    mov.b   r0, @ (_TOCR, r1)   ; Write back
+
+    mov.w   r0, @ (vintclr, gbr); Clear interrupt
+
+    ; ... (5+ cycles of processing required before RTE) ...
+
+    ldc.l   @r15+, gbr
+    rts
+    nop
+```
+
+**Additional requirements:**
+- SR mask level ≥ 1 (never 0)
+- Shared odd/even interrupt vectors (levels 14+15 → same handler)
+- Synchronization read-back before RTE to ensure write completion
+
+**Note:** Bug was fixed in EVA chip cut 2.5, but retail 32X units have earlier silicon.
 
 **Phases:**
 

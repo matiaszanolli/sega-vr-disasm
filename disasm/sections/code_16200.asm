@@ -109,38 +109,48 @@
         dc.w    $222A        ; $0162CA
         dc.w    $F66C        ; $0162CC
         dc.w    $FFFF        ; $0162CE
-        dc.w    $FFFF        ; $0162D0
-        dc.w    $FFFF        ; $0162D2
-        dc.w    $FFFF        ; $0162D4
-        dc.w    $FFFF        ; $0162D6
-        dc.w    $FFFF        ; $0162D8
-        dc.w    $FFFF        ; $0162DA
-        dc.w    $FFFF        ; $0162DC
-        dc.w    $FFFF        ; $0162DE
-        dc.w    $FFFF        ; $0162E0
-        dc.w    $FFFF        ; $0162E2
-        dc.w    $FFFF        ; $0162E4
-        dc.w    $FFFF        ; $0162E6
-        dc.w    $FFFF        ; $0162E8
-        dc.w    $FFFF        ; $0162EA
-        dc.w    $FFFF        ; $0162EC
-        dc.w    $FFFF        ; $0162EE
-        dc.w    $FFFF        ; $0162F0
-        dc.w    $FFFF        ; $0162F2
-        dc.w    $FFFF        ; $0162F4
-        dc.w    $FFFF        ; $0162F6
-        dc.w    $FFFF        ; $0162F8
-        dc.w    $FFFF        ; $0162FA
-        dc.w    $FFFF        ; $0162FC
-        dc.w    $FFFF        ; $0162FE
-        dc.w    $FFFF        ; $016300
-        dc.w    $FFFF        ; $016302
-        dc.w    $FFFF        ; $016304
-        dc.w    $FFFF        ; $016306
-        dc.w    $FFFF        ; $016308
-        dc.w    $FFFF        ; $01630A
-        dc.w    $FFFF        ; $01630C
-        dc.w    $FFFF        ; $01630E
+; ============================================================================
+; sh2_cmd_27_enqueue_flush ($0162D0) - Async cmd $27 with immediate flush
+; ============================================================================
+; Parameters: A0=data_ptr, D0.W=width, D1.W=height, D2.W=add_value
+; Clobbers: D3, D4, D5, A1, A2
+; Queue: $FFFB00 (write_idx:2, read_idx:2, entries[32]*10)
+; Protocol: enqueue → doorbell (COMM7=$27) → wait for COMM7=0
+; ============================================================================
+sh2_cmd_27_enqueue_flush:
+        dc.w    $43F9        ; $0162D0 LEA $00FFFB00,A1
+        dc.w    $00FF        ; $0162D2   (queue base high)
+        dc.w    $FB00        ; $0162D4   (queue base low)
+        dc.w    $3611        ; $0162D6 MOVE.W (A1),D3 - load write_idx
+        dc.w    $3829        ; $0162D8 MOVE.W 2(A1),D4 - load read_idx (unused but matches API)
+        dc.w    $0002        ; $0162DA   (displacement)
+        dc.w    $3A03        ; $0162DC MOVE.W D3,D5
+        dc.w    $E74D        ; $0162DE LSL.W #3,D5 - write_idx * 8
+        dc.w    $3443        ; $0162E0 MOVEA.W D3,A2
+        dc.w    $D4CA        ; $0162E2 ADDA.W A2,A2 - write_idx * 2
+        dc.w    $DA4A        ; $0162E4 ADD.W A2,D5 - write_idx * 10
+        dc.w    $45F9        ; $0162E6 LEA $00FFFB04,A2
+        dc.w    $00FF        ; $0162E8   (entries base high)
+        dc.w    $FB04        ; $0162EA   (entries base low)
+        dc.w    $D4C5        ; $0162EC ADDA.W D5,A2 - &entries[write_idx]
+        dc.w    $24C8        ; $0162EE MOVE.L A0,(A2)+ - store data_ptr
+        dc.w    $34C0        ; $0162F0 MOVE.W D0,(A2)+ - store width
+        dc.w    $34C1        ; $0162F2 MOVE.W D1,(A2)+ - store height
+        dc.w    $3482        ; $0162F4 MOVE.W D2,(A2) - store add_value
+        dc.w    $5243        ; $0162F6 ADDQ.W #1,D3 - write_idx++
+        dc.w    $0243        ; $0162F8 ANDI.W #$001F,D3 - mod 32
+        dc.w    $001F        ; $0162FA   (mask)
+        dc.w    $3283        ; $0162FC MOVE.W D3,(A1) - store write_idx
+        dc.w    $33FC        ; $0162FE MOVE.W #$0027,$00A1512E - ring doorbell
+        dc.w    $0027        ; $016300   (COMM7 = $27)
+        dc.w    $00A1        ; $016302   (COMM7 addr high)
+        dc.w    $512E        ; $016304   (COMM7 addr low)
+.wait:
+        dc.w    $4A79        ; $016306 TST.W $00A1512E - check COMM7
+        dc.w    $00A1        ; $016308   (COMM7 addr high)
+        dc.w    $512E        ; $01630A   (COMM7 addr low)
+        dc.w    $66F8        ; $01630C BNE.S .wait (-8)
+        dc.w    $4E75        ; $01630E RTS
         dc.w    $FFFF        ; $016310
         dc.w    $FFFF        ; $016312
         dc.w    $FFFF        ; $016314

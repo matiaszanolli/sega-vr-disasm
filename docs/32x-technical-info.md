@@ -64,7 +64,17 @@ The 32X target does not operate unless:
 
 **CRITICAL:** If doing VRES with the RV bit equal to 1, it will not restart if the power is turned off.
 
-See Technical Information No. 1 for more information.
+When using the 32X with RV=1, the normal operation of the Mega Drive can be affected after reset is applied. The corrective measure involves:
+- Checking RV bit in VRES interrupt handler
+- If RV=1, Master SH2 triggers watchdog reset via FRT TOCR bit 0
+- Slave SH2 waits in loop for Master's watchdog reset
+- 68K side must detect if adapter usage procedure was already performed
+
+**Full sample code:** See [32x-technical-info-attachment-1.md](32x-technical-info-attachment-1.md) for complete 68K, Master SH2, and Slave SH2 corrective programs including:
+- Complete vector tables for both SH2 CPUs
+- Interrupt dispatch mechanism (m_int/s_int)
+- FRT initialization for interrupt correction
+- Boot synchronization sequence (68K ↔ Master ↔ Slave)
 
 ### 7. RV Bit and FRAM Access
 
@@ -106,6 +116,12 @@ move.w  #$2700, sr
 jsr     BankSet
 move.w  #$2000, sr
 ```
+
+**Cross-Reference:** See [32x-hardware-manual-supplement-2.md](32x-hardware-manual-supplement-2.md) for the full SH2 interrupt bug documentation and corrective action code, including:
+- FRT TOCR toggle (XOR bit 1) required in all external interrupt handlers
+- Synchronization read-back before RTE
+- Pipeline timing requirements (1-4 cycles depending on interrupt source)
+- Complete sample interrupt handler code
 
 ### 11. MD I/F Chip Versions
 
@@ -259,9 +275,11 @@ With MegaDrive, there would be no problems. However, 32X compared to 68000 has a
 
 1. **Use 120 nsec or faster EPROMs** (Item 18)
 2. **Initialize bank IC via software** (Item 8)
-3. **Initialize SH2 free run timer** (Item 10)
+3. **Initialize SH2 free run timer with interrupt workaround** (Item 10, Supplement 2)
 4. **Use 5818A chips for final testing** (Item 11)
 5. **Graphics final check on ver 3.0 or production hardware** (Item 21)
+
+**Note:** The SH2 interrupt limitations documented in Hardware Manual Supplement 2 (MAR-32-R4-SP2-072694) require special corrective action in all external interrupt handlers. This bug was fixed in EVA chip cut 2.5 but production units used earlier silicon.
 
 ---
 

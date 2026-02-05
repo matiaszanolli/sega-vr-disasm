@@ -417,37 +417,35 @@ sh2_cmd_2F:
         bne.s   .wait_phase2                    ; $00E44E: $66F8             - Loop until clear
         move.w  d2,COMM4                        ; $00E450: $33C2 $00A1 $5128 - Write D2
         move.w  d3,COMM5                        ; $00E456: $33C3 $00A1 $512A - Write D3
-        move.w  #HANDSHAKE_READY,COMM6          ; $00E45C: $33FC $0101 $00A1 $512C - Signal ready
-        rts                                     ; $00E464: $4E75             - Return
-        dc.w    $121A        ; $00E466
-        dc.w    $0241        ; $00E468
-        dc.w    $000F        ; $00E46A
-        dc.w    $6100        ; $00E46C
-        dc.w    $004E        ; $00E46E
-        dc.w    $5089        ; $00E470
-        dc.w    $323C        ; $00E472
-        dc.w    $000A        ; $00E474
-        dc.w    $6100        ; $00E476
-        dc.w    $0044        ; $00E478
-        dc.w    $5089        ; $00E47A
-        dc.w    $141A        ; $00E47C
-        dc.w    $6100        ; $00E47E
-        dc.w    $0020        ; $00E480
-        dc.w    $323C        ; $00E482
-        dc.w    $000B        ; $00E484
-        dc.w    $6100        ; $00E486
-        dc.w    $0034        ; $00E488
-        dc.w    $5089        ; $00E48A
-        dc.w    $121A        ; $00E48C
-        dc.w    $0241        ; $00E48E
-        dc.w    $000F        ; $00E490
-        dc.w    $6100        ; $00E492
-        dc.w    $0028        ; $00E494
-        dc.w    $5089        ; $00E496
-        dc.w    $141A        ; $00E498
-        dc.w    $6100        ; $00E49A
-        dc.w    $0004        ; $00E49C
-        dc.w    $4E75        ; $00E49E
+        move.w  #HANDSHAKE_READY,COMM6          ; $00E45C: Signal ready
+        rts                                     ; $00E464: Return
+
+; ============================================================================
+; Byte processing loop ($00E466-$00E49E)
+; ============================================================================
+; Reads bytes from (A2), extracts nibbles, calls helper for each
+; Parameters: A1 = destination pointer, A2 = source data
+; ============================================================================
+ByteProcessLoop:
+        MOVE.B  (A2)+,D1                        ; $00E466: Read byte
+        ANDI.W  #$000F,D1                       ; $00E468: Mask low nibble
+        BSR.W   DigitToASCII                    ; $00E46C: Process (+$4E)
+        ADDQ.L  #8,A1                           ; $00E470: Advance pointer
+        MOVE.W  #$000A,D1                       ; $00E472: D1 = 10
+        BSR.W   DigitToASCII                    ; $00E476: Process (+$44)
+        ADDQ.L  #8,A1                           ; $00E47A: Advance pointer
+        MOVE.B  (A2)+,D2                        ; $00E47C: Read next byte
+        BSR.W   $00E4A0                         ; $00E47E: Bit manip helper (+$20)
+        MOVE.W  #$000B,D1                       ; $00E482: D1 = 11
+        BSR.W   DigitToASCII                    ; $00E486: Process (+$34)
+        ADDQ.L  #8,A1                           ; $00E48A: Advance pointer
+        MOVE.B  (A2)+,D1                        ; $00E48C: Read byte
+        ANDI.W  #$000F,D1                       ; $00E48E: Mask low nibble
+        BSR.W   DigitToASCII                    ; $00E492: Process (+$28)
+        ADDQ.L  #8,A1                           ; $00E496: Advance pointer
+        MOVE.B  (A2)+,D2                        ; $00E498: Read next byte
+        BSR.W   $00E4A0                         ; $00E49A: Bit manip helper (+$4)
+        RTS                                     ; $00E49E
 
 ; ============================================================================
 ; Helper function ($00E4A0-$00E4BA)

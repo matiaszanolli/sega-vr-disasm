@@ -34,10 +34,11 @@ VDPFill:
         MOVE.W #$00FF,$0084(A4)        ; $002804
         MOVE.W D1,(A2)        ; $00280A
         MOVE.W D0,(A3)        ; $00280C
-        BTST #1,$008B(A4)        ; $00280E
-        DC.W $66F8               ; $002814
+.wait_fifo:
+        BTST #1,$008B(A4)        ; $00280E: Test FIFO full bit
+        BNE.S .wait_fifo        ; $002814: Loop if full
         ADD.W D2,D1        ; $002816
-        DC.W $51CF               ; $002818
+        DBRA D7,.wait_fifo        ; $002818: Repeat 16 times
         RTS        ; $00281C
 
 ; --- VDP preparation ---
@@ -50,76 +51,68 @@ VDPPrep:
         MOVE.W #$00FF,$0084(A4)        ; $002838
         MOVE.W D1,(A2)        ; $00283E
         MOVE.W D0,(A3)        ; $002840
-        BTST #1,$008B(A4)        ; $002842
-        DC.W $66F8               ; $002848
+.wait_fifo:
+        BTST #1,$008B(A4)        ; $002842: Test FIFO full bit
+        BNE.S .wait_fifo        ; $002848: Loop if full
         RTS        ; $00284A
 
 ; --- VDP operation 4 ---
 VDPOp4:
-        LEA $00A15200,A3        ; $00284C
-        MOVEQ #$1F,D7        ; $002852
+        LEA $00A15200,A3        ; $00284C: Palette RAM
+        MOVEQ #$1F,D7           ; $002852: 32 iterations
+.loop:
         MOVE.L (A2)+,(A3)+        ; $002854
         MOVE.L (A2)+,(A3)+        ; $002856
         MOVE.L (A2)+,(A3)+        ; $002858
         MOVE.L (A2)+,(A3)+        ; $00285A
-        DC.W $51CF               ; $00285C
+        DBRA D7,.loop           ; $00285C: Loop 32 times
         RTS        ; $002860
 
 ; --- Memory operation 3 ---
 MemoryOp3:
-        LEA $00A15240,A3        ; $002862
-        MOVEQ #$07,D7        ; $002868
+        LEA $00A15240,A3        ; $002862: COMM port area
+        MOVEQ #$07,D7           ; $002868: 8 iterations
+.loop:
         MOVE.L (A2)+,(A3)+        ; $00286A
         MOVE.L (A2)+,(A3)+        ; $00286C
         MOVE.L (A2)+,(A3)+        ; $00286E
         MOVE.L (A2)+,(A3)+        ; $002870
-        DC.W $51CF               ; $002872
+        DBRA D7,.loop           ; $002872: Loop 8 times
         RTS        ; $002876
 
 ; --- Palette RAM copy (V-INT state 6) ---
 PaletteRAMCopy:
-        DC.W $4A38               ; $002878
-        DC.W $6710               ; $00287C
-        LEA $00FF6E00,A1        ; $00287E
-        LEA $00A15200,A2        ; $002884
-        DC.W $4EFA ; Unknown        ; $00288A
-        MOVEA.L D6,A0        ; $00288C
+        TST.B   ($C821).W           ; $002878: Check V-INT state flag
+        BEQ.S   .skip_copy          ; $00287C: Skip if zero
+        LEA $00FF6E00,A1        ; $00287E: Source buffer
+        LEA $00A15200,A2        ; $002884: Palette RAM
+        BSR.W   VDPOp4              ; $00288A: Copy palette (jumps forward)
+.skip_copy:
         RTS        ; $00288E
-        dc.w    $0839        ; $002890
-        dc.w    $0000        ; $002892
-        dc.w    $00A1        ; $002894
-        dc.w    $5123        ; $002896
-        dc.w    $67F6        ; $002898
-        dc.w    $08B9        ; $00289A
-        dc.w    $0000        ; $00289C
-        dc.w    $00A1        ; $00289E
-        dc.w    $5123        ; $0028A0
-        dc.w    $31FC        ; $0028A2
-        dc.w    $0000        ; $0028A4
-        dc.w    $C8A8        ; $0028A6
-        dc.w    $13F8        ; $0028A8
-        dc.w    $C8A9        ; $0028AA
-        dc.w    $00A1        ; $0028AC
-        dc.w    $5121        ; $0028AE
-        dc.w    $13F8        ; $0028B0
-        dc.w    $C8A8        ; $0028B2
-        dc.w    $00A1        ; $0028B4
-        dc.w    $5120        ; $0028B6
-        dc.w    $13FC        ; $0028B8
-        dc.w    $0000        ; $0028BA
-        dc.w    $00A1        ; $0028BC
-        dc.w    $5123        ; $0028BE
-        dc.w    $4E75        ; $0028C0
+
+; --- SH2 communication sync ---
+sh2_comm_sync:
+.wait_ready:
+        BTST    #0,($A15123).L      ; $002890: Test COMM ready bit
+        BEQ.S   .wait_ready         ; $002898: Loop until ready
+        BCLR    #0,($A15123).L      ; $00289A: Clear ready bit
+        MOVE.W  #0,($C8A8).W        ; $0028A2: Clear counter
+        MOVE.B  ($C810).W,($A15123).L ; $0028A8: Write command byte 1
+        MOVE.B  ($C8A9).W,($A15121).L ; $0028AA: Write command byte 2
+        MOVE.B  ($C8A8).W,($A15120).L ; $0028B0: Write counter
+        MOVE.B  #0,($A15123).L      ; $0028B8: Clear COMM
+        RTS                         ; $0028C0
 
 ; --- VDP/SH2 COMM synchronization ---
 VDPSyncSH2:
-        MOVE.W #$0500,MARS_DREQ_LEN        ; $0028C2
-        DC.W $13FC               ; $0028CA
-        DC.W $13F8               ; $0028D2
-        DC.W $13F8               ; $0028DA
-        BTST #1,$00A15123        ; $0028E2
-        DC.W $67F6               ; $0028EA
-        BCLR #1,$00A15123        ; $0028EC
+        MOVE.W  #$0500,MARS_DREQ_LEN    ; $0028C2: Set DMA length
+        MOVE.B  #4,($A15107).L          ; $0028CA: Write to COMM control
+        MOVE.B  ($C8A9).W,($A15121).L   ; $0028D2: Write COMM1
+        MOVE.B  ($C8A8).W,($A15120).L   ; $0028DA: Write COMM0
+.wait_ack:
+        BTST    #1,$00A15123            ; $0028E2: Test ack bit
+        BEQ.S   .wait_ack               ; $0028EA: Loop until set
+        BCLR    #1,$00A15123            ; $0028EC: Clear ack bit
         LEA $00FF6000,A1        ; $0028F4
         LEA MARS_FIFO,A2        ; $0028FA
         JSR $008988EC        ; $002900
@@ -132,22 +125,27 @@ VDPSyncSH2:
         JSR $008988EC        ; $00292A
         JSR $008988EC        ; $002930
         JMP $008988EC        ; $002936
+
+; --- Clear frame buffer function ---
+ClearFrameBuffer:
         LEA MARS_SYS_BASE,A4        ; $00293C
-        DC.W $18BC               ; $002942
-        LEA MARS_VDP_FILLADR,A2        ; $002946
-        LEA MARS_VDP_FILLDATA,A3        ; $00294C
-        MOVE.W #$00BF,D7        ; $002952
-        MOVEQ #$00,D0        ; $002956
-        MOVE.W #$3000,D1        ; $002958
-        MOVE.W #$0100,D2        ; $00295C
-        MOVE.W #$009F,$0084(A4)        ; $002960
-        MOVE.W D1,(A2)        ; $002966
-        MOVE.W D0,(A3)        ; $002968
-        MOVEQ #$6F,D0        ; $00296A
-        DC.W $81FC               ; $00296C
-        BTST #1,$008B(A4)        ; $002970
-        DC.W $66F8               ; $002976
-        ADD.W D2,D1        ; $002978
-        DC.W $51CF               ; $00297A
-        DC.W $18BC               ; $00297E
-        RTS        ; $002982
+        MOVE.B  $0000(A4,D0.W),D4   ; $002942: Read palette index
+        LEA MARS_VDP_FILLADR,A2     ; $002946
+        LEA MARS_VDP_FILLDATA,A3    ; $00294C
+        MOVE.W #$00BF,D7            ; $002952: 192 iterations
+        MOVEQ #$00,D0               ; $002956
+        MOVE.W #$3000,D1            ; $002958: Start address
+        MOVE.W #$0100,D2            ; $00295C: Increment
+        MOVE.W #$009F,$0084(A4)     ; $002960: Set fill length
+        MOVE.W D1,(A2)              ; $002966: Write address
+        MOVE.W D0,(A3)              ; $002968: Write fill value
+        MOVEQ #$6F,D0               ; $00296A: Divisor
+.fill_loop:
+        DIVS    #$81FC,D0           ; $00296C: Calculate offset
+.wait_fill:
+        BTST #1,$008B(A4)           ; $002970: Test FIFO full
+        BNE.S .wait_fill            ; $002976: Loop if full
+        ADD.W D2,D1                 ; $002978: Next address
+        DBRA D7,.fill_loop          ; $00297A: Loop 192 times
+        MOVE.B  $0000(A4,D0.W),D4   ; $00297E: Read palette again
+        RTS                         ; $002982

@@ -3,6 +3,8 @@
 ; Translated assembly with byte-accurate dc.w verification
 ; ============================================================================
 
+        include "disasm/modules/shared/vasm_macros.asm"
+
 ; 32X Communication Registers (per Hardware Manual - 2-byte spacing)
 COMM0           equ     $A15120     ; COMM0 byte - Master SH2 ready flag
 COMM0_HI        equ     $A15120     ; COMM0 high byte - Command flag (68K→SH2)
@@ -533,9 +535,10 @@ sh2_cmd_21:
 ; Parameters: D0 = selector (0, 1, or other)
 ; Uses: A0, A1, A2, A3, D1, D2
 ; ============================================================================
-        dc.w    $41F8,$84A2                     ; $00E52C: LEA ($84A2).W,A0 - Load address 1
-        dc.w    $43F8,$84C2                     ; $00E530: LEA ($84C2).W,A1 - Load address 2
-        dc.w    $45F8,$84E2                     ; $00E534: LEA ($84E2).W,A2 - Load address 3
+MemoryInit:
+        LEA_ABS_W $84A2,A0                      ; $00E52C: Load work RAM address 1
+        LEA_ABS_W $84C2,A1                      ; $00E530: Load work RAM address 2
+        LEA_ABS_W $84E2,A2                      ; $00E534: Load work RAM address 3
 
         clr.w   d2                              ; $00E538: $4242       - D2 = 0
         move.w  #$0007,d1                       ; $00E53A: $323C $0007 - D1 = 7 (loop counter)
@@ -548,27 +551,27 @@ sh2_cmd_21:
         dbra    d1,.clear_loop                  ; $00E552: $51C9 $FFEA - Loop 8 times
 
 ; Select address based on D0
-        tst.w   d0                              ; $00E556: $4A40       - Test D0
-        bne.s   .check_one                      ; $00E558: $6608       - Branch if != 0 (+8)
-        dc.w    $41F8,$84A2                     ; $00E55A: LEA ($84A2).W,A0 - Use address 1
-        bra.s   .setup_table                    ; $00E55E: $6000 $0016 - Skip to setup (+22)
+        tst.w   d0                              ; $00E556: Test D0
+        bne.s   .check_one                      ; $00E558: Branch if != 0
+        LEA_ABS_W $84A2,A0                      ; $00E55A: Use address 1
+        bra.s   .setup_table                    ; $00E55E: Skip to setup
 
 .check_one:
-        cmpi.w  #$0001,d0                       ; $00E562: $0C40 $0001 - Compare D0 with 1
-        bne.s   .use_addr3                      ; $00E566: $6600 $000A - Branch if != 1 (+10)
-        dc.w    $41F8,$84C2                     ; $00E56A: LEA ($84C2).W,A0 - Use address 2
-        bra.s   .setup_table                    ; $00E56E: $6000 $0006 - Skip to setup (+6)
+        cmpi.w  #$0001,d0                       ; $00E562: Compare D0 with 1
+        bne.s   .use_addr3                      ; $00E566: Branch if != 1
+        LEA_ABS_W $84C2,A0                      ; $00E56A: Use address 2
+        bra.s   .setup_table                    ; $00E56E: Skip to setup
 
 .use_addr3:
-        dc.w    $41F8,$84E2                     ; $00E572: LEA ($84E2).W,A0 - Use address 3
+        LEA_ABS_W $84E2,A0                      ; $00E572: Use address 3
 
 .setup_table:
         lea     ($0088E5AC).l,a3                ; $00E576: $47F9 $0088 $E5AC - Load table address
         moveq   #0,d1                           ; $00E57C: $7200       - D1 = 0
 
 .copy_loop:
-        dc.w    $3238,$A012                     ; $00E57E: MOVE.W ($A012).W,D1 - Read VDP status
-        add.w   d1,d0                           ; $00E582: $D241       - D0 += D1
+        MOVEW_ABS_TO_D $A012,D1                 ; $00E57E: Read VDP status
+        add.w   d1,d0                           ; $00E582: D0 += D1
         add.w   a3,d1                           ; $00E584: $D7C1       - D1 += A3
         clr.w   d2                              ; $00E586: $4242       - D2 = 0
         move.w  #$0007,d1                       ; $00E588: $323C $0007 - D1 = 7 (loop counter)
@@ -584,14 +587,15 @@ sh2_cmd_21:
 ; Parameters: None
 ; Uses: D1, VDP control port ($A012)
 ; ============================================================================
-        dc.w    $3238,$A012                     ; $00E596: MOVE.W ($A012).W,D1 - Read VDP control
-        roxr.w  #1,d1                           ; $00E59A: $5241       - Rotate right through X
-        cmpi.w  #$0007,d1                       ; $00E59C: $0C41 $0007 - Compare with 7
-        ble.s   .store_value                    ; $00E5A0: $6F00 $0004 - Branch if <= (+4)
-        clr.w   d1                              ; $00E5A4: $4241       - Clear D1
+VDPRegManipulate:
+        MOVEW_ABS_TO_D $A012,D1                 ; $00E596: Read VDP control
+        roxr.w  #1,d1                           ; $00E59A: Rotate right through X
+        cmpi.w  #$0007,d1                       ; $00E59C: Compare with 7
+        ble.s   .store_value                    ; $00E5A0: Branch if <=
+        clr.w   d1                              ; $00E5A4: Clear D1
 .store_value:
-        dc.w    $31C1,$A012                     ; $00E5A6: MOVE.W D1,($A012).W - Write to VDP control
-        rts                                     ; $00E5AA: $4E75
+        MOVEW_D_TO_ABS D1,$A012                 ; $00E5A6: Write to VDP control
+        rts                                     ; $00E5AA
         dc.w    $0EEE        ; $00E5AC
         dc.w    $0EEE        ; $00E5AE
         dc.w    $0EEE        ; $00E5B0

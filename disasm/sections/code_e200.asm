@@ -28,14 +28,15 @@ HANDSHAKE_READY equ     $0101       ; Ready for next phase
         org     $00E200
 
 ; ============================================================================
-; Unknown function ($00E200-$00E20A)
+; Counter increment with modulo ($00E200-$00E20A)
+; Increments D0, wraps at 4, loops D3 times
 ; ============================================================================
-        dc.w    $5240        ; $00E200 - ADDQ.W #1,D0
-        dc.w    $0240        ; $00E202 - ANDI.W #$0003,D0
-        dc.w    $0003        ; $00E204
-        dc.w    $51CB        ; $00E206 - DBRA D3,loop
-        dc.w    $FFC2        ; $00E208
-        dc.w    $4E75        ; $00E20A - RTS
+CounterIncrementMod4:
+        ADDQ.W  #1,D0           ; $00E200: Increment counter
+        ANDI.W  #$0003,D0       ; $00E202: Modulo 4 (wrap 0-3)
+.loop:
+        DBRA    D3,.loop        ; $00E206: Loop D3 times
+        RTS                     ; $00E20A
 
 ; ============================================================================
 ; Data tables ($00E20C-$00E22A)
@@ -88,15 +89,15 @@ sh2_graphics_cmd:
         movea.l a0,a1                           ; $00E22C: $2248       - Save A0 in A1
 
 ; Calculate table offset: D1 = D1*2 + D2*128 + base
-        dc.w    $E349                           ; $00E22E: ASL.W #1,D1 - D1 *= 2
-        dc.w    $EF4A                           ; $00E230: ASL.W #7,D2 - D2 *= 128
-        add.w   d2,d1                           ; $00E232: $D242       - D1 += D2
-        lea     (a0,d1.w),a0                    ; $00E234: $41F0 $1000 - A0 += D1 (indexed)
+        ASL.W   #1,D1                           ; $00E22E: D1 *= 2
+        ASL.W   #7,D2                           ; $00E230: D2 *= 128
+        add.w   d2,d1                           ; $00E232: D1 += D2
+        lea     (a0,d1.w),a0                    ; $00E234: A0 += D1 (indexed)
 
 ; Build sprite base index from D0
-        andi.w  #$0003,d0                       ; $00E238: $0240 $0003 - Keep low 2 bits
-        dc.w    $E148                           ; $00E23C: ASL.W #8,D0 - D0 *= 256
-        asl.w   #5,d0                           ; $00E23E: $EB48       - D0 *= 32 (total *8192)
+        andi.w  #$0003,d0                       ; $00E238: Keep low 2 bits
+        ASL.W   #8,D0                           ; $00E23C: D0 *= 256
+        asl.w   #5,d0                           ; $00E23E: D0 *= 32 (total *8192)
         addi.w  #$0100,d0                       ; $00E240: $0640 $0100 - Add base offset
         bclr    #11,d0                          ; $00E244: $0880 $000B - Clear bit 11
         bclr    #12,d0                          ; $00E248: $0880 $000C - Clear bit 12
@@ -470,17 +471,18 @@ sh2_cmd_2F:
 ; Parameters: D1 = digit value (0-15), A1 = destination pointer
 ; Uses: D0, A0
 ; ============================================================================
-        dc.w    $ED49                           ; $00E4BC: LSL.W #6,D1 - D1 <<= 6 (multiply by 64)
-        move.w  d1,d0                           ; $00E4BE: $3001       - D0 = D1
-        dc.w    $E349                           ; $00E4C0: LSL.W #1,D1 - D1 <<= 1 (D1 *= 128)
-        add.w   d0,d1                           ; $00E4C2: $D240       - D1 += D0 (D1 *= 192)
-        movea.l #$00060300,a0                   ; $00E4C4: $207C $0603 $DA00 - Load table base
-        add.w   d1,a0                           ; $00E4C8: $DA00       - A0 += D1 (offset)
-        adda.w  a1,a0                           ; $00E4CA: $D0C1       - A0 += A1
-        move.w  #$000C,d0                       ; $00E4CC: $303C $000C - D0 = 12 (width)
-        move.w  #$0010,d1                       ; $00E4D0: $323C $0010 - D1 = 16 (height)
-        bsr.w   sh2_send_cmd_wait               ; $00E4D4: $4EBA $FE84 - Call at $E35A (-380)
-        rts                                     ; $00E4D8: $4E75
+DigitToASCII:
+        LSL.W   #6,D1                           ; $00E4BC: D1 <<= 6 (multiply by 64)
+        move.w  d1,d0                           ; $00E4BE: D0 = D1
+        LSL.W   #1,D1                           ; $00E4C0: D1 <<= 1 (D1 *= 128)
+        add.w   d0,d1                           ; $00E4C2: D1 += D0 (D1 *= 192)
+        movea.l #$00060300,a0                   ; $00E4C4: Load table base
+        add.w   d1,a0                           ; $00E4C8: A0 += D1 (offset)
+        adda.w  a1,a0                           ; $00E4CA: A0 += A1
+        move.w  #$000C,d0                       ; $00E4CC: D0 = 12 (width)
+        move.w  #$0010,d1                       ; $00E4D0: D1 = 16 (height)
+        bsr.w   sh2_send_cmd_wait               ; $00E4D4: Call at $E35A (-380)
+        rts                                     ; $00E4D8
 
 ; ============================================================================
 ; sh2_cmd_21 ($00E4DA-$00E52A) - Command $21

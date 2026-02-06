@@ -117,14 +117,14 @@ sh2_graphics_cmd:
         subq.w  #3,d5                           ; $00E262: $5745       - D5 -= 3 (loop count)
 
 .upper_loop:
-        bsr.s   sh2_sprite_calc                 ; $00E264: $4EBA $007E - Calculate sprite index
+        dc.w    $4EBA,$007E                     ; $00E264: BSR.W sh2_sprite_calc
         move.w  d6,(a0)                         ; $00E268: $3086       - Store index
         adda.l  #$00000080,a0                   ; $00E26A: $D1FC $0000 $0080 - Next row
         dbra    d5,.upper_loop                  ; $00E270: $51CD $FFF2 - Loop
 
 ; Center row - special index
         move.w  #$0007,d2                       ; $00E274: $343C $0007 - D2 = 7
-        bsr.s   sh2_sprite_calc                 ; $00E278: $4EBA $006A - Calculate
+        dc.w    $4EBA,$006A                     ; $00E278: BSR.W sh2_sprite_calc
         move.w  d6,(a0)+                        ; $00E27C: $30C6       - Store and advance
 
 ; Build horizontal strip
@@ -133,7 +133,7 @@ sh2_graphics_cmd:
         subq.w  #3,d5                           ; $00E284: $5745       - D5 -= 3
 
 .horiz_loop:
-        bsr.s   sh2_sprite_calc                 ; $00E286: $4EBA $005C - Calculate
+        dc.w    $4EBA,$005C                     ; $00E286: BSR.W sh2_sprite_calc
         move.w  d6,(a0)+                        ; $00E28A: $30C6       - Store and advance
         dbra    d5,.horiz_loop                  ; $00E28C: $51CD $FFF8 - Loop
 
@@ -143,7 +143,7 @@ sh2_graphics_cmd:
 
 ; End of center row
         move.w  #$0005,d2                       ; $00E298: $343C $0005 - D2 = 5
-        bsr.s   sh2_sprite_calc                 ; $00E29C: $4EBA $0046 - Calculate
+        dc.w    $4EBA,$0046                     ; $00E29C: BSR.W sh2_sprite_calc
         move.w  d6,(a0)                         ; $00E2A0: $3086       - Store index
         suba.l  #$00000080,a0                   ; $00E2A2: $91FC $0000 $0080 - Previous row
 
@@ -153,14 +153,14 @@ sh2_graphics_cmd:
         subq.w  #3,d5                           ; $00E2AE: $5745       - D5 -= 3
 
 .lower_loop:
-        bsr.s   sh2_sprite_calc                 ; $00E2B0: $4EBA $0032 - Calculate
+        dc.w    $4EBA,$0032                     ; $00E2B0: BSR.W sh2_sprite_calc
         move.w  d6,(a0)                         ; $00E2B4: $3086       - Store
         suba.l  #$00000080,a0                   ; $00E2B6: $91FC $0000 $0080 - Previous row
         dbra    d5,.lower_loop                  ; $00E2BC: $51CD $FFF2 - Loop
 
 ; Final corner index
         move.w  #$0007,d2                       ; $00E2C0: $343C $0007 - D2 = 7
-        bsr.s   sh2_sprite_calc                 ; $00E2C4: $4EBA $001E - Calculate
+        dc.w    $4EBA,$001E                     ; $00E2C4: BSR.W sh2_sprite_calc
         move.w  d6,(a0)                         ; $00E2C8: $3086       - Store
         subq.l  #2,a0                           ; $00E2CA: $5588       - Back 2 bytes
 
@@ -170,7 +170,7 @@ sh2_graphics_cmd:
         subq.w  #3,d5                           ; $00E2D2: $5745       - D5 -= 3
 
 .final_loop:
-        bsr.s   sh2_sprite_calc                 ; $00E2D4: $4EBA $000E - Calculate
+        dc.w    $4EBA,$000E                     ; $00E2D4: BSR.W sh2_sprite_calc
         move.w  d6,(a0)                         ; $00E2D8: $3086       - Store
         subq.l  #2,a0                           ; $00E2DA: $5588       - Back 2 bytes
         dbra    d5,.final_loop                  ; $00E2DC: $51CD $FFF6 - Loop
@@ -354,18 +354,18 @@ sh2_cmd_27:
         move.b  #CMD_27,COMM0_LO                ; $00E3C2: $13FC $0027 $00A1 $5121 - Command $27
         move.b  #$01,COMM0_HI                   ; $00E3CA: $13FC $0001 $00A1 $5120 - Trigger
 ; --- BLOCKING WAIT 1 ---
-.wait_phase1:
+.cmd27_wait_phase1:
         tst.b   COMM6                           ; $00E3D2: $4A39 $00A1 $512C - Check handshake
-        bne.s   .wait_phase1                    ; $00E3D8: $66F8             - Loop until clear
+        bne.s   .cmd27_wait_phase1              ; $00E3D8: $66F8             - Loop until clear
 
 ; Phase 2: Send parameters D0 and D1
         move.w  d0,COMM4                        ; $00E3DA: $33C0 $00A1 $5128 - Write D0
         move.w  d1,COMM5                        ; $00E3E0: $33C1 $00A1 $512A - Write D1
         move.w  #HANDSHAKE_READY,COMM6          ; $00E3E6: $33FC $0101 $00A1 $512C - Signal ready
 ; --- BLOCKING WAIT 2 ---
-.wait_phase2:
+.cmd27_wait_phase2:
         tst.b   COMM6                           ; $00E3EE: $4A39 $00A1 $512C - Check handshake
-        bne.s   .wait_phase2                    ; $00E3F4: $66F8             - Loop until clear
+        bne.s   .cmd27_wait_phase2              ; $00E3F4: $66F8             - Loop until clear
 
 ; Phase 3: Send parameter D2 (no wait - SH2 processes after return)
         move.w  d2,COMM4                        ; $00E3F6: $33C2 $00A1 $5128 - Write D2
@@ -395,26 +395,26 @@ sh2_cmd_27:
 ; ============================================================================
 sh2_cmd_2F:
 ; Phase 1: Wait for SH2 ready, then send pointer and command
-.wait_ready:
+.cmd2F_wait_ready:
         tst.b   COMM0_HI                        ; $00E406: $4A39 $00A1 $5120 - Test command flag
-        bne.s   .wait_ready                     ; $00E40C: $66F8             - Loop until ready
+        bne.s   .cmd2F_wait_ready               ; $00E40C: $66F8             - Loop until ready
         move.l  a0,COMM4                        ; $00E40E: $23C8 $00A1 $5128 - Write pointer
         move.w  #HANDSHAKE_READY,COMM6          ; $00E414: $33FC $0101 $00A1 $512C - Signal ready
         move.b  #CMD_EXTENDED,COMM0_LO          ; $00E41C: $13FC $002F $00A1 $5121 - Command $2F
         move.b  #$01,COMM0_HI                   ; $00E424: $13FC $0001 $00A1 $5120 - Trigger
 
 ; Phase 2: Wait for ack, send D0/D1
-.wait_phase1:
+.cmd2F_wait_phase1:
         tst.b   COMM6                           ; $00E42C: $4A39 $00A1 $512C - Check handshake
-        bne.s   .wait_phase1                    ; $00E432: $66F8             - Loop until clear
+        bne.s   .cmd2F_wait_phase1              ; $00E432: $66F8             - Loop until clear
         move.w  d0,COMM4                        ; $00E434: $33C0 $00A1 $5128 - Write D0
         move.w  d1,COMM5                        ; $00E43A: $33C1 $00A1 $512A - Write D1
         move.w  #HANDSHAKE_READY,COMM6          ; $00E440: $33FC $0101 $00A1 $512C - Signal ready
 
 ; Phase 3: Wait for ack, send D2/D3 (no final wait - SH2 processes async)
-.wait_phase2:
+.cmd2F_wait_phase2:
         tst.b   COMM6                           ; $00E448: $4A39 $00A1 $512C - Check handshake
-        bne.s   .wait_phase2                    ; $00E44E: $66F8             - Loop until clear
+        bne.s   .cmd2F_wait_phase2              ; $00E44E: $66F8             - Loop until clear
         move.w  d2,COMM4                        ; $00E450: $33C2 $00A1 $5128 - Write D2
         move.w  d3,COMM5                        ; $00E456: $33C3 $00A1 $512A - Write D3
         move.w  #HANDSHAKE_READY,COMM6          ; $00E45C: Signal ready
@@ -472,13 +472,12 @@ ByteProcessLoop:
 ; Uses: D0, A0
 ; ============================================================================
 DigitToASCII:
-        LSL.W   #6,D1                           ; $00E4BC: D1 <<= 6 (multiply by 64)
+        lsl.w   #6,d1                           ; $00E4BC: D1 <<= 6 (multiply by 64)
         move.w  d1,d0                           ; $00E4BE: D0 = D1
-        LSL.W   #1,D1                           ; $00E4C0: D1 <<= 1 (D1 *= 128)
+        lsl.w   #1,d1                           ; $00E4C0: D1 <<= 1 (D1 *= 128)
         add.w   d0,d1                           ; $00E4C2: D1 += D0 (D1 *= 192)
-        movea.l #$00060300,a0                   ; $00E4C4: Load table base
-        add.w   d1,a0                           ; $00E4C8: A0 += D1 (offset)
-        adda.w  a1,a0                           ; $00E4CA: A0 += A1
+        movea.l #$0603DA00,a0                   ; $00E4C4: Load table base
+        add.w   d1,a0                           ; $00E4CA: A0 += D1 (offset)
         move.w  #$000C,d0                       ; $00E4CC: D0 = 12 (width)
         move.w  #$0010,d1                       ; $00E4D0: D1 = 16 (height)
         bsr.w   sh2_send_cmd_wait               ; $00E4D4: Call at $E35A (-380)
@@ -507,9 +506,9 @@ sh2_cmd_21:
         move.b  #$01,COMM0_HI                   ; $00E4F0: $13FC $0001 $00A1 $5120 - Trigger
 
 ; --- BLOCKING WAIT 1 ---
-.wait_phase1:
+.cmd21_wait_phase1:
         tst.b   COMM6                           ; $00E4F8: $4A39 $00A1 $512C - Check handshake
-        bne.s   .wait_phase1                    ; $00E4FE: $66F8             - Loop until clear
+        bne.s   .cmd21_wait_phase1              ; $00E4FE: $66F8             - Loop until clear
 
 ; Phase 2: Send parameters D0 and D1
         move.w  d0,COMM4                        ; $00E500: $33C0 $00A1 $5128 - Write D0
@@ -517,9 +516,9 @@ sh2_cmd_21:
         move.w  #HANDSHAKE_READY,COMM6          ; $00E50C: $33FC $0101 $00A1 $512C - Signal ready
 
 ; --- BLOCKING WAIT 2 ---
-.wait_phase2:
+.cmd21_wait_phase2:
         tst.b   COMM6                           ; $00E514: $4A39 $00A1 $512C - Check handshake
-        bne.s   .wait_phase2                    ; $00E51A: $66F8             - Loop until clear
+        bne.s   .cmd21_wait_phase2              ; $00E51A: $66F8             - Loop until clear
 
 ; Phase 3: Send data pointer (no wait - SH2 processes async)
         move.l  a0,COMM4                        ; $00E51C: $23C8 $00A1 $5128 - Write A0
@@ -534,41 +533,41 @@ sh2_cmd_21:
 ; Uses: A0, A1, A2, A3, D1, D2
 ; ============================================================================
 MemoryInit:
-        LEA_ABS_W $84A2,A0                      ; $00E52C: Load work RAM address 1
-        LEA_ABS_W $84C2,A1                      ; $00E530: Load work RAM address 2
-        LEA_ABS_W $84E2,A2                      ; $00E534: Load work RAM address 3
+        dc.w    $41F8,$84A2                     ; $00E52C: LEA $84A2.W,A0
+        dc.w    $43F8,$84C2                     ; $00E530: LEA $84C2.W,A1
+        dc.w    $45F8,$84E2                     ; $00E534: LEA $84E2.W,A2
 
         clr.w   d2                              ; $00E538: $4242       - D2 = 0
         move.w  #$0007,d1                       ; $00E53A: $323C $0007 - D1 = 7 (loop counter)
 
 .clear_loop:
-        move.w  #$0000,$2000(a0)                ; $00E53E: $31BC $0000 $2000 - Clear (A0+$2000)
-        move.w  #$0000,$2000(a1)                ; $00E544: $33BC $0000 $2000 - Clear (A1+$2000)
-        move.w  #$0000,$2000(a2)                ; $00E54A: $35BC $0000 $2000 - Clear (A2+$2000)
+        dc.w    $31BC,$0000,$2000               ; $00E53E: MOVE.W #$0000,$2000(A0)
+        dc.w    $33BC,$0000,$2000               ; $00E544: MOVE.W #$0000,$2000(A1)
+        dc.w    $35BC,$0000,$2000               ; $00E54A: MOVE.W #$0000,$2000(A2)
         addq.w  #2,d2                           ; $00E550: $5442       - D2 += 2
         dbra    d1,.clear_loop                  ; $00E552: $51C9 $FFEA - Loop 8 times
 
 ; Select address based on D0
         tst.w   d0                              ; $00E556: Test D0
         bne.s   .check_one                      ; $00E558: Branch if != 0
-        LEA_ABS_W $84A2,A0                      ; $00E55A: Use address 1
-        bra.s   .setup_table                    ; $00E55E: Skip to setup
+        dc.w    $41F8,$84A2                     ; $00E55A: LEA $84A2.W,A0
+        dc.w    $6000,$0016                     ; $00E55E: BRA.W .setup_table
 
 .check_one:
         cmpi.w  #$0001,d0                       ; $00E562: Compare D0 with 1
-        bne.s   .use_addr3                      ; $00E566: Branch if != 1
-        LEA_ABS_W $84C2,A0                      ; $00E56A: Use address 2
-        bra.s   .setup_table                    ; $00E56E: Skip to setup
+        dc.w    $6600,$000A                     ; $00E566: BNE.W .use_addr3
+        dc.w    $41F8,$84C2                     ; $00E56A: LEA $84C2.W,A0
+        dc.w    $6000,$0006                     ; $00E56E: BRA.W .setup_table
 
 .use_addr3:
-        LEA_ABS_W $84E2,A0                      ; $00E572: Use address 3
+        dc.w    $41F8,$84E2                     ; $00E572: LEA $84E2.W,A0
 
 .setup_table:
         lea     ($0088E5AC).l,a3                ; $00E576: $47F9 $0088 $E5AC - Load table address
         moveq   #0,d1                           ; $00E57C: $7200       - D1 = 0
 
 .copy_loop:
-        MOVEW_ABS_TO_D $A012,D1                 ; $00E57E: Read VDP status
+        dc.w    $3238,$A012                     ; $00E57E: MOVE.W ($A012).W,D1
         add.w   d1,d0                           ; $00E582: D0 += D1
         add.w   a3,d1                           ; $00E584: $D7C1       - D1 += A3
         clr.w   d2                              ; $00E586: $4242       - D2 = 0
@@ -586,13 +585,13 @@ MemoryInit:
 ; Uses: D1, VDP control port ($A012)
 ; ============================================================================
 VDPRegManipulate:
-        MOVEW_ABS_TO_D $A012,D1                 ; $00E596: Read VDP control
+        dc.w    $3238,$A012                     ; $00E596: MOVE.W ($A012).W,D1
         roxr.w  #1,d1                           ; $00E59A: Rotate right through X
         cmpi.w  #$0007,d1                       ; $00E59C: Compare with 7
         ble.s   .store_value                    ; $00E5A0: Branch if <=
         clr.w   d1                              ; $00E5A4: Clear D1
 .store_value:
-        MOVEW_D_TO_ABS D1,$A012                 ; $00E5A6: Write to VDP control
+        dc.w    $31C1,$A012                     ; $00E5A6: MOVE.W D1,($A012).W
         rts                                     ; $00E5AA
         dc.w    $0EEE        ; $00E5AC
         dc.w    $0EEE        ; $00E5AE

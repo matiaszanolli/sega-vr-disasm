@@ -12,85 +12,16 @@
         include "modules/68k/game/physics_lookup_tables.asm"
 
 ; ============================================================================
-; effect_timer_mgmt function starts here ($00A350)
+; Effect Timer Management ($00A350-$00A3B8)
+; Translated from dc.w format - see disasm/modules/68k/game/effect_timer_mgmt.asm
 ; ============================================================================
-        dc.w    $4A68        ; $00A350
-        dc.w    $006A        ; $00A352
-        dc.w    $6F1A        ; $00A354
-        dc.w    $3028        ; $00A356
-        dc.w    $006C        ; $00A358
-        dc.w    $D040        ; $00A35A
-        dc.w    $43FA        ; $00A35C
-        dc.w    $FF7A        ; $00A35E
-        dc.w    $3171        ; $00A360
-        dc.w    $0000        ; $00A362
-        dc.w    $006E        ; $00A364
-        dc.w    $5368        ; $00A366
-        dc.w    $006A        ; $00A368
-        dc.w    $5268        ; $00A36A
-        dc.w    $006C        ; $00A36C
-        dc.w    $6048        ; $00A36E
-        dc.w    $3028        ; $00A370
-        dc.w    $0002        ; $00A372
-        dc.w    $0240        ; $00A374
-        dc.w    $2000        ; $00A376
-        dc.w    $671A        ; $00A378
-        dc.w    $0268        ; $00A37A
-        dc.w    $DFFF        ; $00A37C
-        dc.w    $0002        ; $00A37E
-        dc.w    $701E        ; $00A380
-        dc.w    $3140        ; $00A382
-        dc.w    $006C        ; $00A384
-        dc.w    $3140        ; $00A386
-        dc.w    $006A        ; $00A388
-        dc.w    $3140        ; $00A38A
-        dc.w    $0014        ; $00A38C
-        dc.w    $4268        ; $00A38E
-        dc.w    $000E        ; $00A390
-        dc.w    $6024        ; $00A392
-        dc.w    $3028        ; $00A394
-        dc.w    $0002        ; $00A396
-        dc.w    $0240        ; $00A398
-        dc.w    $1000        ; $00A39A
-        dc.w    $671A        ; $00A39C
-        dc.w    $0268        ; $00A39E
-        dc.w    $EFFF        ; $00A3A0
-        dc.w    $0002        ; $00A3A2
-        dc.w    $7000        ; $00A3A4
-        dc.w    $3140        ; $00A3A6
-        dc.w    $000E        ; $00A3A8
-        dc.w    $3140        ; $00A3AA
-        dc.w    $006C        ; $00A3AC
-        dc.w    $701E        ; $00A3AE
-        dc.w    $3140        ; $00A3B0
-        dc.w    $006A        ; $00A3B2
-        dc.w    $3140        ; $00A3B4
-        dc.w    $0014        ; $00A3B6
-        dc.w    $4E75        ; $00A3B8
-        dc.w    $43F9        ; $00A3BA
-        dc.w    $0093        ; $00A3BC
-        dc.w    $925E        ; $00A3BE
-        dc.w    $3028        ; $00A3C0
-        dc.w    $0004        ; $00A3C2
-        dc.w    $D040        ; $00A3C4
-        dc.w    $3031        ; $00A3C6
-        dc.w    $0000        ; $00A3C8
-        dc.w    $0C78        ; $00A3CA
-        dc.w    $0002        ; $00A3CC
-        dc.w    $C8C8        ; $00A3CE
-        dc.w    $6602        ; $00A3D0
-        dc.w    $E440        ; $00A3D2
-        dc.w    $3140        ; $00A3D4
-        dc.w    $0016        ; $00A3D6
-        dc.w    $4A68        ; $00A3D8
-        dc.w    $0014        ; $00A3DA
-        dc.w    $6F0A        ; $00A3DC
-        dc.w    $5368        ; $00A3DE
-        dc.w    $0014        ; $00A3E0
-        dc.w    $0668        ; $00A3E2
-        dc.w    $0738        ; $00A3E4
-        dc.w    $0016        ; $00A3E6
-        dc.w    $4E75        ; $00A3E8
+        include "modules/68k/game/effect_timer_mgmt.asm"
+
+; ============================================================================
+; Speed Calculation ($00A3BA-$00A3E8)
+; Translated from dc.w format - see disasm/modules/68k/game/speed_calculation.asm
+; ============================================================================
+        include "modules/68k/game/speed_calculation.asm"
         dc.w    $43F9        ; $00A3EA
         dc.w    $0089        ; $00A3EC
         dc.w    $9DA4        ; $00A3EE

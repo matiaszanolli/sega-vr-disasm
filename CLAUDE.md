@@ -145,7 +145,9 @@ picodrive build/vr_rebuild.32x  # Linux (recommended)
 
 ### Reference Material (`/docs`)
 
-**Hardware Manuals:**
+**INDEX:** See [DOCUMENTATION_INDEX.md](docs/DOCUMENTATION_INDEX.md) for complete documentation catalog.
+
+**Hardware Manuals (Markdown):**
 | Document | Contents |
 |----------|----------|
 | [development-guide.md](docs/development-guide.md) | **Start here** - CPU coordination, registers, pitfalls |
@@ -154,6 +156,16 @@ picodrive build/vr_rebuild.32x  # Linux (recommended)
 | [32x-technical-info.md](docs/32x-technical-info.md) | 22 documented hardware bugs and workarounds |
 | [32x-technical-info-attachment-1.md](docs/32x-technical-info-attachment-1.md) | VRES/RV bit corrective program samples (68K + SH2) |
 | [sound-driver-v3.md](docs/sound-driver-v3.md) | Sound Driver V3.00 system calls |
+
+**Official SEGA PDFs (NEW):**
+| Document | Contents |
+|----------|----------|
+| [32XUSHardwareManual.pdf](docs/32XUSHardwareManual.pdf) | 32X hardware manual (90 pages) |
+| [GenesisTechnicalOverview.pdf](docs/GenesisTechnicalOverview.pdf) | **Genesis hardware specs** (120 pages) - VDP, memory, DMA |
+| [Genesis_Software_Development_Manual_Version_2.0_1991-07-09.pdf](docs/Genesis_Software_Development_Manual_Version_2.0_1991-07-09.pdf) | **Software dev guide** (26 pages) - ROM headers, I/O, best practices |
+| [SegaGenesisSoftwareManual_1990-02-06.pdf](docs/SegaGenesisSoftwareManual_1990-02-06.pdf) | Comprehensive software manual (159 pages) |
+| [GenesisTechnicalBulletins.pdf](docs/GenesisTechnicalBulletins.pdf) | Official errata and tips (83 pages) |
+| [SNASM68K_Console_and_Z80_Notes.pdf](docs/SNASM68K_Console_and_Z80_Notes.pdf) | **SEGA's official assembler** syntax (4 pages) |
 
 **Development Guides:**
 | Document | Contents |

@@ -36,8 +36,7 @@ HANDSHAKE_READY equ     $0101       ; Ready for next phase
 CounterIncrementMod4:
         ADDQ.W  #1,D0           ; $00E200: Increment counter
         ANDI.W  #$0003,D0       ; $00E202: Modulo 4 (wrap 0-3)
-.loop:
-        DBRA    D3,.loop        ; $00E206: Loop D3 times
+        dc.w    $51CB,$FFC2     ; $00E206: DBRA D3,$E1CA (loop in code_c200)
         RTS                     ; $00E20A
 
 ; ============================================================================
@@ -91,15 +90,15 @@ sh2_graphics_cmd:
         movea.l a0,a1                           ; $00E22C: $2248       - Save A0 in A1
 
 ; Calculate table offset: D1 = D1*2 + D2*128 + base
-        ASL.W   #1,D1                           ; $00E22E: D1 *= 2
-        ASL.W   #7,D2                           ; $00E230: D2 *= 128
+        LSL.W   #1,D1                           ; $00E22E: D1 *= 2
+        LSL.W   #7,D2                           ; $00E230: D2 *= 128
         add.w   d2,d1                           ; $00E232: D1 += D2
         lea     (a0,d1.w),a0                    ; $00E234: A0 += D1 (indexed)
 
 ; Build sprite base index from D0
         andi.w  #$0003,d0                       ; $00E238: Keep low 2 bits
-        ASL.W   #8,D0                           ; $00E23C: D0 *= 256
-        asl.w   #5,d0                           ; $00E23E: D0 *= 32 (total *8192)
+        LSL.W   #8,D0                           ; $00E23C: D0 *= 256
+        lsl.w   #5,d0                           ; $00E23E: D0 *= 32 (total *8192)
         addi.w  #$0100,d0                       ; $00E240: $0640 $0100 - Add base offset
         bclr    #11,d0                          ; $00E244: $0880 $000B - Clear bit 11
         bclr    #12,d0                          ; $00E248: $0880 $000C - Clear bit 12
@@ -212,18 +211,18 @@ sh2_sprite_calc:
 ; Total: 28 rows × 64 longs = 1792 longs = 7168 bytes
 ; ============================================================================
 sh2_load_data:
-        move.l  #$60000002,(a5)+                ; $00E2F0: $2ABC $6000 $0002 - VDP write command
+        dc.w    $2ABC,$6000,$0002               ; $00E2F0: MOVE.L #$60000002,(A5)+
         moveq   #$1B,d0                         ; $00E2F6: $701B               - D0 = 27 (28 rows)
 
 .row_loop:
         move.w  #$001F,d1                       ; $00E2F8: $323C $001F         - D1 = 31 (32 longs)
 .copy_loop:
-        move.l  (a0)+,(a6)+                     ; $00E2FC: $2C98               - Copy long to VDP
+        dc.w    $2C98                           ; $00E2FC: MOVE.L (A0)+,(A6)+
         dbra    d1,.copy_loop                   ; $00E2FE: $51C9 $FFFC         - Loop 32 times
 
         move.w  #$001F,d1                       ; $00E302: $323C $001F         - D1 = 31
 .zero_loop:
-        move.l  #$00000000,(a6)+                ; $00E306: $2CBC $0000 $0000   - Write zeros
+        dc.w    $2CBC,$0000,$0000               ; $00E306: MOVE.L #$00000000,(A6)+
         dbra    d1,.zero_loop                   ; $00E30C: $51C9 $FFF8         - Loop 32 times
 
         dbra    d0,.row_loop                    ; $00E310: $51C8 $FFE6         - Loop 28 rows
@@ -456,12 +455,12 @@ ByteProcessLoop:
         move.b  d2,d1                           ; $00E4A0: $1202       - D1 = D2 (byte)
         lsr.b   #4,d1                           ; $00E4A2: $E809       - D1 >>= 4 (high nibble)
         andi.w  #$000F,d1                       ; $00E4A4: $0241 $000F - Mask to 4 bits
-        bsr.w   $00E4BE                         ; $00E4A8: $6100 $0012 - Call helper (+18)
-        addq.l  #1,a1                           ; $00E4AC: $5089       - A1++
+        dc.w    $6100,$0012                     ; $00E4A8: BSR.W DigitToASCII (+18)
+        addq.l  #8,a1                           ; $00E4AC: $5089       - A1 += 8
         move.w  d2,d1                           ; $00E4AE: $3202       - D1 = D2 (word)
         andi.w  #$000F,d1                       ; $00E4B0: $0241 $000F - Mask to 4 bits (low nibble)
-        bsr.w   $00E4BE                         ; $00E4B4: $6100 $0006 - Call helper (+6)
-        addq.l  #1,a1                           ; $00E4B8: $5089       - A1++
+        dc.w    $6100,$0006                     ; $00E4B4: BSR.W DigitToASCII (+6)
+        addq.l  #8,a1                           ; $00E4B8: $5089       - A1 += 8
         rts                                     ; $00E4BA: $4E75
 
 ; ============================================================================
@@ -480,7 +479,7 @@ DigitToASCII:
         add.w   d1,a0                           ; $00E4CA: A0 += D1 (offset)
         move.w  #$000C,d0                       ; $00E4CC: D0 = 12 (width)
         move.w  #$0010,d1                       ; $00E4D0: D1 = 16 (height)
-        bsr.w   sh2_send_cmd_wait               ; $00E4D4: Call at $E35A (-380)
+        dc.w    $4EBA,$FE84                     ; $00E4D4: BSR.W sh2_send_cmd_wait
         rts                                     ; $00E4D8
 
 ; ============================================================================
@@ -568,13 +567,13 @@ MemoryInit:
 
 .copy_loop:
         dc.w    $3238,$A012                     ; $00E57E: MOVE.W ($A012).W,D1
-        add.w   d1,d0                           ; $00E582: D0 += D1
-        add.w   a3,d1                           ; $00E584: $D7C1       - D1 += A3
+        dc.w    $D241                           ; $00E582: ADD.W D1,D1
+        dc.w    $D7C1                           ; $00E584: ADDA.W D1,A3
         clr.w   d2                              ; $00E586: $4242       - D2 = 0
         move.w  #$0007,d1                       ; $00E588: $323C $0007 - D1 = 7 (loop counter)
 
 .inner_loop:
-        move.w  (a3)+,$2000(a0)                 ; $00E58C: $319B $2000 - Copy from table
+        dc.w    $319B,$2000                     ; $00E58C: MOVE.W (A3)+,$2000(A0)
         addq.w  #2,d2                           ; $00E590: $5442       - D2 += 2
         dbra    d1,.inner_loop                  ; $00E592: $51C9 $FFF8 - Loop 8 times
 ; ============================================================================
@@ -586,9 +585,9 @@ MemoryInit:
 ; ============================================================================
 VDPRegManipulate:
         dc.w    $3238,$A012                     ; $00E596: MOVE.W ($A012).W,D1
-        roxr.w  #1,d1                           ; $00E59A: Rotate right through X
+        dc.w    $5241                           ; $00E59A: ADDQ.W #1,D1
         cmpi.w  #$0007,d1                       ; $00E59C: Compare with 7
-        ble.s   .store_value                    ; $00E5A0: Branch if <=
+        dc.w    $6F00,$0004                     ; $00E5A0: BLE.W .store_value
         clr.w   d1                              ; $00E5A4: Clear D1
 .store_value:
         dc.w    $31C1,$A012                     ; $00E5A6: MOVE.W D1,($A012).W
@@ -1063,7 +1062,7 @@ VDPRegManipulate:
 ; Uses: None (bit test and conditional increment only)
 ; ============================================================================
 post_dispatch_callback:
-        jsr     (pc,$CD5A)                      ; $00E928 - JSR to $00B686
+        dc.w    $4EBA,$CD5A                     ; $00E928: JSR (PC),$CD5A -> $00B684
         dc.w    $0838,$0006,$C80E               ; $00E92C: BTST #$06,($C80E).W - Test bit 6
         bne.s   .skip_advance                   ; $00E932 - Skip if set
         dc.w    $5878,$C87E                     ; $00E934: ADDQ.W #4,($C87E).W - Advance index
@@ -1750,13 +1749,13 @@ sh2_status_check_and_vector_setup:
 
         ; Check VINT enable flags and conditionally write alternate vectors
         dc.w    $4A38,$A018                     ; $00EF10: TST.B ($A018).W - Test VINT enable 1
-        bne.s   .check_second_flag              ; $00EF14 - Skip if enabled
+        dc.w    $661A                           ; $00EF14: BNE.S .done (+$1A)
 
         dc.w    $23FC,$0088,$D4A4,$00FF,$0002   ; $00EF16: MOVE.L #$0088D4A4,($FF0002).W - Alternate vector 1
 
 .check_second_flag:
         dc.w    $4A38,$A01F                     ; $00EF20: TST.B ($A01F).W - Test VINT enable 2
-        bne.s   .done                           ; $00EF24 - Skip if enabled
+        dc.w    $660A                           ; $00EF24: BNE.S .done (+$0A)
 
         dc.w    $23FC,$0088,$D48A,$00FF,$0002   ; $00EF26: MOVE.L #$0088D48A,($FF0002).W - Alternate vector 2
 
@@ -1803,7 +1802,7 @@ table_dual_dispatch:
         move.w  ($04,a1,d0.w),d0                ; $00EF56 - Load word param
         move.w  #$0030,d1                       ; $00EF5A - Width = $30
         move.w  #$0010,d2                       ; $00EF5E - Height = $10
-        jsr     (pc,$F450)                      ; $00EF62 - Call $00E9B4
+        dc.w    $4EBA,$F450                     ; $00EF62: JSR (PC),$F450 -> $00E3B4
 
         ; ---- Second table dispatch ----
         moveq   #$00,d0                         ; $00EF66 - Clear D0
@@ -1829,7 +1828,7 @@ table_dual_dispatch:
         tst.b   COMM0                           ; $00EF96 - Check COMM0 clear
         bne.s   .wait_comm_ready                ; $00EF9C - Wait until clear
 
-        jsr     (pc,$F414)                      ; $00EF9E - Call sh2_cmd_27 ($00E3B4)
+        dc.w    $4EBA,$F414                     ; $00EF9E: JSR (PC),$F414 -> sh2_cmd_27
         rts                                     ; $00EFA2
         dc.w    $0401        ; $00EFA4
         dc.w    $2010        ; $00EFA6

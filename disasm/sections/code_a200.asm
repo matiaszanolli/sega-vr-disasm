@@ -22,73 +22,19 @@
 ; Translated from dc.w format - see disasm/modules/68k/game/speed_calculation.asm
 ; ============================================================================
         include "modules/68k/game/speed_calculation.asm"
-        dc.w    $43F9        ; $00A3EA
-        dc.w    $0089        ; $00A3EC
-        dc.w    $9DA4        ; $00A3EE
-        dc.w    $3028        ; $00A3F0
-        dc.w    $0004        ; $00A3F2
-        dc.w    $D040        ; $00A3F4
-        dc.w    $3231        ; $00A3F6
-        dc.w    $0000        ; $00A3F8
-        dc.w    $9268        ; $00A3FA
-        dc.w    $0016        ; $00A3FC
-        dc.w    $48C1        ; $00A3FE
-        dc.w    $83FC        ; $00A400
-        dc.w    $0067        ; $00A402
-        dc.w    $3028        ; $00A404
-        dc.w    $0008        ; $00A406
-        dc.w    $9068        ; $00A408
-        dc.w    $0006        ; $00A40A
-        dc.w    $B278        ; $00A40C
-        dc.w    $C0F8        ; $00A40E
-        dc.w    $6F04        ; $00A410
-        dc.w    $3238        ; $00A412
-        dc.w    $C0F8        ; $00A414
-        dc.w    $B041        ; $00A416
-        dc.w    $6C0C        ; $00A418
-        dc.w    $B078        ; $00A41A
-        dc.w    $C0FA        ; $00A41C
-        dc.w    $6C08        ; $00A41E
-        dc.w    $3038        ; $00A420
-        dc.w    $C0FA        ; $00A422
-        dc.w    $6002        ; $00A424
-        dc.w    $3001        ; $00A426
-        dc.w    $D168        ; $00A428
-        dc.w    $0006        ; $00A42A
-        dc.w    $6C04        ; $00A42C
-        dc.w    $4268        ; $00A42E
-        dc.w    $0006        ; $00A430
-        dc.w    $4E75        ; $00A432
-        dc.w    $0C78        ; $00A434
-        dc.w    $0001        ; $00A436
-        dc.w    $C8C8        ; $00A438
-        dc.w    $6732        ; $00A43A
-        dc.w    $0C68        ; $00A43C
-        dc.w    $0059        ; $00A43E
-        dc.w    $0004        ; $00A440
-        dc.w    $6D2A        ; $00A442
-        dc.w    $0C38        ; $00A444
-        dc.w    $0004        ; $00A446
-        dc.w    $C319        ; $00A448
-        dc.w    $6622        ; $00A44A
-        dc.w    $4A68        ; $00A44C
-        dc.w    $0086        ; $00A44E
-        dc.w    $661C        ; $00A450
-        dc.w    $317C        ; $00A452
-        dc.w    $000F        ; $00A454
-        dc.w    $0086        ; $00A456
-        dc.w    $11FC        ; $00A458
-        dc.w    $00B7        ; $00A45A
-        dc.w    $C8A4        ; $00A45C
-        dc.w    $7000        ; $00A45E
-        dc.w    $0C68        ; $00A460
-        dc.w    $00C8        ; $00A462
-        dc.w    $0004        ; $00A464
-        dc.w    $6D02        ; $00A466
-        dc.w    $7001        ; $00A468
-        dc.w    $3140        ; $00A46A
-        dc.w    $00BE        ; $00A46C
-        dc.w    $4E75        ; $00A46E
+
+; ============================================================================
+; Speed Interpolation ($00A3EA-$00A432)
+; Translated from dc.w format - see disasm/modules/68k/game/speed_interpolation.asm
+; ============================================================================
+        include "modules/68k/game/speed_interpolation.asm"
+
+; ============================================================================
+; AI Opponent Select ($00A434-$00A46E)
+; Translated from dc.w format - see disasm/modules/68k/game/ai_opponent_select.asm
+; ============================================================================
+        include "modules/68k/game/ai_opponent_select.asm"
+
         dc.w    $2668        ; $00A470
         dc.w    $0018        ; $00A472
         dc.w    $3028        ; $00A474
@@ -340,79 +286,12 @@
         dc.w    $E240        ; $00A660
         dc.w    $D168        ; $00A662
         dc.w    $0040        ; $00A664
-        dc.w    $3038        ; $00A666
-        dc.w    $A000        ; $00A668
-        dc.w    $9068        ; $00A66A
-        dc.w    $0030        ; $00A66C
-        dc.w    $6A02        ; $00A66E
-        dc.w    $4440        ; $00A670
-        dc.w    $3238        ; $00A672
-        dc.w    $A002        ; $00A674
-        dc.w    $9268        ; $00A676
-        dc.w    $0034        ; $00A678
-        dc.w    $6A02        ; $00A67A
-        dc.w    $4441        ; $00A67C
-        dc.w    $D041        ; $00A67E
-        dc.w    $48C0        ; $00A680
-        dc.w    $E988        ; $00A682
-        dc.w    $3228        ; $00A684
-        dc.w    $0006        ; $00A686
-        dc.w    $5241        ; $00A688
-        dc.w    $81C1        ; $00A68A
-        dc.w    $3C00        ; $00A68C
-        dc.w    $E246        ; $00A68E
-        dc.w    $6E04        ; $00A690
-        dc.w    $7C01        ; $00A692
-        dc.w    $600C        ; $00A694
-        dc.w    $3228        ; $00A696
-        dc.w    $0054        ; $00A698
-        dc.w    $0241        ; $00A69A
-        dc.w    $0001        ; $00A69C
-        dc.w    $6702        ; $00A69E
-        dc.w    $7C02        ; $00A6A0
-        dc.w    $3028        ; $00A6A2
-        dc.w    $0034        ; $00A6A4
-        dc.w    $3228        ; $00A6A6
-        dc.w    $0030        ; $00A6A8
-        dc.w    $4441        ; $00A6AA
-        dc.w    $3438        ; $00A6AC
-        dc.w    $A002        ; $00A6AE
-        dc.w    $3638        ; $00A6B0
-        dc.w    $A000        ; $00A6B2
-        dc.w    $4443        ; $00A6B4
-        dc.w    $4EBA        ; $00A6B6
-        dc.w    $00E8        ; $00A6B8
-        dc.w    $9068        ; $00A6BA
-        dc.w    $0040        ; $00A6BC
-        dc.w    $48C0        ; $00A6BE
-        dc.w    $81C6        ; $00A6C0
-        dc.w    $D168        ; $00A6C2
-        dc.w    $0040        ; $00A6C4
-        dc.w    $3028        ; $00A6C6
-        dc.w    $0040        ; $00A6C8
-        dc.w    $3140        ; $00A6CA
-        dc.w    $003C        ; $00A6CC
-        dc.w    $4440        ; $00A6CE
-        dc.w    $4EBA        ; $00A6D0
-        dc.w    $E880        ; $00A6D2
-        dc.w    $C1E8        ; $00A6D4
-        dc.w    $0006        ; $00A6D6
-        dc.w    $E080        ; $00A6D8
-        dc.w    $E840        ; $00A6DA
-        dc.w    $D168        ; $00A6DC
-        dc.w    $0030        ; $00A6DE
-        dc.w    $3028        ; $00A6E0
-        dc.w    $0040        ; $00A6E2
-        dc.w    $4440        ; $00A6E4
-        dc.w    $4EBA        ; $00A6E6
-        dc.w    $E866        ; $00A6E8
-        dc.w    $C1E8        ; $00A6EA
-        dc.w    $0006        ; $00A6EC
-        dc.w    $E080        ; $00A6EE
-        dc.w    $E840        ; $00A6F0
-        dc.w    $D168        ; $00A6F2
-        dc.w    $0034        ; $00A6F4
-        dc.w    $4E75        ; $00A6F6
+; ============================================================================
+; Physics Integration ($00A666-$00A6F6)
+; Translated from dc.w format - see disasm/modules/68k/game/physics_integration.asm
+; ============================================================================
+        include "modules/68k/game/physics_integration.asm"
+
         dc.w    $43F8        ; $00A6F8
         dc.w    $9000        ; $00A6FA
         dc.w    $3029        ; $00A6FC
@@ -497,106 +376,30 @@
         dc.w    $0040        ; $00A79A
         dc.w    $6000        ; $00A79C
         dc.w    $FEC8        ; $00A79E
-        dc.w    $9641        ; $00A7A0
-        dc.w    $9440        ; $00A7A2
-        dc.w    $660A        ; $00A7A4
-        dc.w    $4A43        ; $00A7A6
-        dc.w    $6E14        ; $00A7A8
-        dc.w    $6D18        ; $00A7AA
-        dc.w    $7000        ; $00A7AC
-        dc.w    $4E75        ; $00A7AE
-        dc.w    $3003        ; $00A7B0
-        dc.w    $48C0        ; $00A7B2
-        dc.w    $E180        ; $00A7B4
-        dc.w    $81C2        ; $00A7B6
-        dc.w    $6810        ; $00A7B8
-        dc.w    $4A43        ; $00A7BA
-        dc.w    $6B06        ; $00A7BC
-        dc.w    $303C        ; $00A7BE
-        dc.w    $4000        ; $00A7C0
-        dc.w    $4E75        ; $00A7C2
-        dc.w    $303C        ; $00A7C4
-        dc.w    $C000        ; $00A7C6
-        dc.w    $4E75        ; $00A7C8
-        dc.w    $48C0        ; $00A7CA
-        dc.w    $48E7        ; $00A7CC
-        dc.w    $2040        ; $00A7CE
-        dc.w    $4EBA        ; $00A7D0
-        dc.w    $E7F6        ; $00A7D2
-        dc.w    $4CDF        ; $00A7D4
-        dc.w    $0204        ; $00A7D6
-        dc.w    $4A42        ; $00A7D8
-        dc.w    $6C04        ; $00A7DA
-        dc.w    $0640        ; $00A7DC
-        dc.w    $8000        ; $00A7DE
-        dc.w    $4E75        ; $00A7E0
-        dc.w    $43F9        ; $00A7E2
-        dc.w    $0093        ; $00A7E4
-        dc.w    $8F2E        ; $00A7E6
-        dc.w    $3038        ; $00A7E8
-        dc.w    $C89C        ; $00A7EA
-        dc.w    $EB40        ; $00A7EC
-        dc.w    $43F1        ; $00A7EE
-        dc.w    $0000        ; $00A7F0
-        dc.w    $45F8        ; $00A7F2
-        dc.w    $9100        ; $00A7F4
-        dc.w    $700E        ; $00A7F6
-        dc.w    $3551        ; $00A7F8
-        dc.w    $00B6        ; $00A7FA
-        dc.w    $3559        ; $00A7FC
-        dc.w    $000A        ; $00A7FE
-        dc.w    $45EA        ; $00A800
-        dc.w    $0100        ; $00A802
-        dc.w    $51C8        ; $00A804
-        dc.w    $FFF2        ; $00A806
-        dc.w    $4E75        ; $00A808
-        dc.w    $7200        ; $00A80A
-        dc.w    $1238        ; $00A80C
-        dc.w    $FDA9        ; $00A80E
-        dc.w    $43F8        ; $00A810
-        dc.w    $FAD8        ; $00A812
-        dc.w    $3038        ; $00A814
-        dc.w    $C8C8        ; $00A816
-        dc.w    $C1FC        ; $00A818
-        dc.w    $0060        ; $00A81A
-        dc.w    $C3FC        ; $00A81C
-        dc.w    $0020        ; $00A81E
-        dc.w    $D041        ; $00A820
-        dc.w    $43F1        ; $00A822
-        dc.w    $0000        ; $00A824
-        dc.w    $45F8        ; $00A826
-        dc.w    $9100        ; $00A828
-        dc.w    $700E        ; $00A82A
-        dc.w    $3551        ; $00A82C
-        dc.w    $00B6        ; $00A82E
-        dc.w    $3559        ; $00A830
-        dc.w    $000A        ; $00A832
-        dc.w    $45EA        ; $00A834
-        dc.w    $0100        ; $00A836
-        dc.w    $51C8        ; $00A838
-        dc.w    $FFF2        ; $00A83A
-        dc.w    $4E75        ; $00A83C
-        dc.w    $43F9        ; $00A83E
-        dc.w    $0093        ; $00A840
-        dc.w    $7E7E        ; $00A842
-        dc.w    $45F8        ; $00A844
-        dc.w    $FAD8        ; $00A846
-        dc.w    $303C        ; $00A848
-        dc.w    $0047        ; $00A84A
-        dc.w    $24D9        ; $00A84C
-        dc.w    $51C8        ; $00A84E
-        dc.w    $FFFC        ; $00A850
-        dc.w    $43F9        ; $00A852
-        dc.w    $0093        ; $00A854
-        dc.w    $7F9E        ; $00A856
-        dc.w    $45F8        ; $00A858
-        dc.w    $FBF8        ; $00A85A
-        dc.w    $303C        ; $00A85C
-        dc.w    $006B        ; $00A85E
-        dc.w    $24D9        ; $00A860
-        dc.w    $51C8        ; $00A862
-        dc.w    $FFFC        ; $00A864
-        dc.w    $4E75        ; $00A866
+; ============================================================================
+; AI Steering Calculation ($00A7A0-$00A7E0)
+; Translated from dc.w format - see disasm/modules/68k/game/ai_steering_calc.asm
+; ============================================================================
+        include "modules/68k/game/ai_steering_calc.asm"
+
+; ============================================================================
+; Entity Table Load ($00A7E2-$00A808)
+; Translated from dc.w format - see disasm/modules/68k/game/entity_table_load.asm
+; ============================================================================
+        include "modules/68k/game/entity_table_load.asm"
+
+; ============================================================================
+; Entity Table Load Mode ($00A80A-$00A83C)
+; Translated from dc.w format - see disasm/modules/68k/game/entity_table_load_mode.asm
+; ============================================================================
+        include "modules/68k/game/entity_table_load_mode.asm"
+
+; ============================================================================
+; Bulk Table Copy ($00A83E-$00A866)
+; Translated from dc.w format - see disasm/modules/68k/game/bulk_table_copy.asm
+; ============================================================================
+        include "modules/68k/game/bulk_table_copy.asm"
+
         dc.w    $F190        ; $00A868
         dc.w    $F1F0        ; $00A86A
         dc.w    $F128        ; $00A86C
@@ -669,67 +472,12 @@
         dc.w    $227B        ; $00A8F2
         dc.w    $00DC        ; $00A8F4
         dc.w    $4ED1        ; $00A8F6
-        dc.w    $4A68        ; $00A8F8
-        dc.w    $0004        ; $00A8FA
-        dc.w    $6734        ; $00A8FC
-        dc.w    $3028        ; $00A8FE
-        dc.w    $0006        ; $00A900
-        dc.w    $2278        ; $00A902
-        dc.w    $C278        ; $00A904
-        dc.w    $3228        ; $00A906
-        dc.w    $007A        ; $00A908
-        dc.w    $D241        ; $00A90A
-        dc.w    $C1F1        ; $00A90C
-        dc.w    $1000        ; $00A90E
-        dc.w    $C1FC        ; $00A910
-        dc.w    $0254        ; $00A912
-        dc.w    $E048        ; $00A914
-        dc.w    $E848        ; $00A916
-        dc.w    $0C40        ; $00A918
-        dc.w    $4268        ; $00A91A
-        dc.w    $6F04        ; $00A91C
-        dc.w    $303C        ; $00A91E
-        dc.w    $4268        ; $00A920
-        dc.w    $0C40        ; $00A922
-        dc.w    $0000        ; $00A924
-        dc.w    $6C04        ; $00A926
-        dc.w    $303C        ; $00A928
-        dc.w    $0000        ; $00A92A
-        dc.w    $3140        ; $00A92C
-        dc.w    $0074        ; $00A92E
-        dc.w    $603E        ; $00A930
-        dc.w    $3028        ; $00A932
-        dc.w    $000E        ; $00A934
-        dc.w    $ED48        ; $00A936
-        dc.w    $9068        ; $00A938
-        dc.w    $0074        ; $00A93A
-        dc.w    $0C40        ; $00A93C
-        dc.w    $0400        ; $00A93E
-        dc.w    $6F04        ; $00A940
-        dc.w    $303C        ; $00A942
-        dc.w    $0400        ; $00A944
-        dc.w    $0C40        ; $00A946
-        dc.w    $FD00        ; $00A948
-        dc.w    $6C04        ; $00A94A
-        dc.w    $303C        ; $00A94C
-        dc.w    $FD00        ; $00A94E
-        dc.w    $D068        ; $00A950
-        dc.w    $0074        ; $00A952
-        dc.w    $0C40        ; $00A954
-        dc.w    $3E80        ; $00A956
-        dc.w    $6F04        ; $00A958
-        dc.w    $303C        ; $00A95A
-        dc.w    $3E80        ; $00A95C
-        dc.w    $0C40        ; $00A95E
-        dc.w    $0000        ; $00A960
-        dc.w    $6C04        ; $00A962
-        dc.w    $303C        ; $00A964
-        dc.w    $0000        ; $00A966
-        dc.w    $3140        ; $00A968
-        dc.w    $007E        ; $00A96A
-        dc.w    $3140        ; $00A96C
-        dc.w    $0074        ; $00A96E
-        dc.w    $4E75        ; $00A970
+; ============================================================================
+; Object State Return ($00A8F8-$00A970)
+; Translated from dc.w format - see disasm/modules/68k/game/obj_state_return.asm
+; ============================================================================
+        include "modules/68k/game/obj_state_return.asm"
+
         dc.w    $4EBA        ; $00A972
         dc.w    $034C        ; $00A974
         dc.w    $4A78        ; $00A976
@@ -1088,113 +836,23 @@
         dc.w    $0091        ; $00AC38
         dc.w    $C8A5        ; $00AC3A
         dc.w    $4E75        ; $00AC3C
-        dc.w    $4A78        ; $00AC3E
-        dc.w    $C8AE        ; $00AC40
-        dc.w    $6720        ; $00AC42
-        dc.w    $5378        ; $00AC44
-        dc.w    $C8AE        ; $00AC46
-        dc.w    $661A        ; $00AC48
-        dc.w    $43F9        ; $00AC4A
-        dc.w    $00FF        ; $00AC4C
-        dc.w    $66DC        ; $00AC4E
-        dc.w    $4251        ; $00AC50
-        dc.w    $4269        ; $00AC52
-        dc.w    $0014        ; $00AC54
-        dc.w    $4269        ; $00AC56
-        dc.w    $0028        ; $00AC58
-        dc.w    $4269        ; $00AC5A
-        dc.w    $003C        ; $00AC5C
-        dc.w    $31FC        ; $00AC5E
-        dc.w    $FFFF        ; $00AC60
-        dc.w    $C026        ; $00AC62
-        dc.w    $1038        ; $00AC64
-        dc.w    $C319        ; $00AC66
-        dc.w    $0200        ; $00AC68
-        dc.w    $003F        ; $00AC6A
-        dc.w    $0C00        ; $00AC6C
-        dc.w    $000D        ; $00AC6E
-        dc.w    $664C        ; $00AC70
-        dc.w    $1038        ; $00AC72
-        dc.w    $C30E        ; $00AC74
-        dc.w    $0200        ; $00AC76
-        dc.w    $0021        ; $00AC78
-        dc.w    $6642        ; $00AC7A
-        dc.w    $43F8        ; $00AC7C
-        dc.w    $C05C        ; $00AC7E
-        dc.w    $3028        ; $00AC80
-        dc.w    $00AE        ; $00AC82
-        dc.w    $D040        ; $00AC84
-        dc.w    $4A71        ; $00AC86
-        dc.w    $0000        ; $00AC88
-        dc.w    $6632        ; $00AC8A
-        dc.w    $4A68        ; $00AC8C
-        dc.w    $00AC        ; $00AC8E
-        dc.w    $6F2C        ; $00AC90
-        dc.w    $4A38        ; $00AC92
-        dc.w    $C312        ; $00AC94
-        dc.w    $6626        ; $00AC96
-        dc.w    $4278        ; $00AC98
-        dc.w    $C8AA        ; $00AC9A
-        dc.w    $5368        ; $00AC9C
-        dc.w    $00AC        ; $00AC9E
-        dc.w    $33BC        ; $00ACA0
-        dc.w    $0001        ; $00ACA2
-        dc.w    $0000        ; $00ACA4
-        dc.w    $0068        ; $00ACA6
-        dc.w    $0200        ; $00ACA8
-        dc.w    $0002        ; $00ACAA
-        dc.w    $31F8        ; $00ACAC
-        dc.w    $C08E        ; $00ACAE
-        dc.w    $C07A        ; $00ACB0
-        dc.w    $11FC        ; $00ACB2
-        dc.w    $0090        ; $00ACB4
-        dc.w    $C8A5        ; $00ACB6
-        dc.w    $08F8        ; $00ACB8
-        dc.w    $0001        ; $00ACBA
-        dc.w    $C30E        ; $00ACBC
-        dc.w    $4E75        ; $00ACBE
-        dc.w    $7000        ; $00ACC0
-        dc.w    $0838        ; $00ACC2
-        dc.w    $0002        ; $00ACC4
-        dc.w    $C8AB        ; $00ACC6
-        dc.w    $6602        ; $00ACC8
-        dc.w    $7001        ; $00ACCA
-        dc.w    $13C0        ; $00ACCC
-        dc.w    $00FF        ; $00ACCE
-        dc.w    $6970        ; $00ACD0
-        dc.w    $4E75        ; $00ACD2
-        dc.w    $4A68        ; $00ACD4
-        dc.w    $006A        ; $00ACD6
-        dc.w    $6638        ; $00ACD8
-        dc.w    $4A78        ; $00ACDA
-        dc.w    $C02C        ; $00ACDC
-        dc.w    $6E32        ; $00ACDE
-        dc.w    $4A68        ; $00ACE0
-        dc.w    $008C        ; $00ACE2
-        dc.w    $662C        ; $00ACE4
-        dc.w    $4268        ; $00ACE6
-        dc.w    $0088        ; $00ACE8
-        dc.w    $43F8        ; $00ACEA
-        dc.w    $9000        ; $00ACEC
-        dc.w    $3028        ; $00ACEE
-        dc.w    $00A4        ; $00ACF0
-        dc.w    $E148        ; $00ACF2
-        dc.w    $43F1        ; $00ACF4
-        dc.w    $0000        ; $00ACF6
-        dc.w    $4EBA        ; $00ACF8
-        dc.w    $00CA        ; $00ACFA
-        dc.w    $6616        ; $00ACFC
-        dc.w    $43F8        ; $00ACFE
-        dc.w    $9000        ; $00AD00
-        dc.w    $3028        ; $00AD02
-        dc.w    $00A6        ; $00AD04
-        dc.w    $E148        ; $00AD06
-        dc.w    $43F1        ; $00AD08
-        dc.w    $0000        ; $00AD0A
-        dc.w    $4EBA        ; $00AD0C
-        dc.w    $00B6        ; $00AD0E
-        dc.w    $6602        ; $00AD10
-        dc.w    $4E75        ; $00AD12
+; ============================================================================
+; Effect Countdown ($00AC3E-$00ACBE)
+; Translated from dc.w format - see disasm/modules/68k/game/effect_countdown.asm
+; ============================================================================
+        include "modules/68k/game/effect_countdown.asm"
+; ============================================================================
+; Race Mode Flag Set ($00ACC0-$00ACD2)
+; Translated from dc.w format - see disasm/modules/68k/game/race_mode_flag_set.asm
+; ============================================================================
+        include "modules/68k/game/race_mode_flag_set.asm"
+
+; ============================================================================
+; AI Target Check ($00ACD4-$00AD12)
+; Translated from dc.w format - see disasm/modules/68k/game/ai_target_check.asm
+; ============================================================================
+        include "modules/68k/game/ai_target_check.asm"
+
         dc.w    $11FC        ; $00AD14
         dc.w    $00B8        ; $00AD16
         dc.w    $C8A4        ; $00AD18

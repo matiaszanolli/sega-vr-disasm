@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Last Updated**: February 6, 2026
+**Last Updated**: February 7, 2026
 
 ## Current Development Status
 
@@ -13,7 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### What's Working
 - 4MB ROM builds successfully with 1MB expansion space ($300000-$3FFFFF)
 - **75 SH2 functions integrated** into build system (78 total .inc files including 3 expansion ROM helpers)
-- **258 68K functions translated** across 12 sections (12,574 bytes total: code_a200 + code_6200 + code_30200 + code_200 + code_2200 + code_4200 + code_8200 + code_e200 + code_c200 + code_10200 + code_12200 + code_14200)
+- **693 68K functions modularized** across 12 sections (79,940 bytes, all 12 code sections fully extracted)
 - **17 68K module categories** - boot, data, display, frame, game, graphics, hardware-regs, input, main-loop, math, memory, object, sh2, sound, util, vdp, vint
 - **All translations verified** byte-identical to original ROM
 - **Build system integrated** with Makefile rules for all functions
@@ -45,8 +45,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Next Steps
 1. ~~SH2 function translation (major pass)~~ ✅ Done (75 functions)
 2. ~~Parallel processing infrastructure~~ ✅ Done (expansion code ready)
-3. ~~68K translation pass~~ ✅ Done (138 functions, 6,278 bytes across 6 sections)
-4. **Continue 68K translation**: Remaining sections (code_e200, code_8200, code_4200, others)
+3. ~~68K modularization pass~~ ✅ Done (693 functions, 79,940 bytes across all 12 sections)
 5. **Activate hooks**: Patch dispatch at $02046A and trampoline at $0234C8
 6. **Performance Testing**: Measure FPS improvement
 7. **Synchronization**: Ensure Slave completes before next frame

@@ -1,0 +1,87 @@
+; ============================================================================
+; Fn 30200 030
+; ROM Range: $030D4E-$030DEE (160 bytes)
+; Source: code_30200
+; ============================================================================
+
+fn_30200_030:
+        dc.w    $4A2E                    ; $030D4E
+        dc.w    $0038                    ; $030D50
+        dc.w    $6700                    ; $030D52
+        dc.w    $009E                    ; $030D54
+        dc.w    $0C2E                    ; $030D56
+        dc.w    $0002                    ; $030D58
+        dc.w    $0038                    ; $030D5A
+        dc.w    $6700                    ; $030D5C
+        dc.w    $0094                    ; $030D5E
+        dc.w    $1C2E                    ; $030D60
+        dc.w    $0039                    ; $030D62
+        dc.w    $4BEE                    ; $030D64
+        dc.w    $0040                    ; $030D66
+        dc.w    $4A15                    ; $030D68
+        dc.w    $6A16                    ; $030D6A
+        dc.w    $4A2E                    ; $030D6C
+        dc.w    $0038                    ; $030D6E
+        dc.w    $6A06                    ; $030D70
+        dc.w    $9D2D                    ; $030D72
+        dc.w    $0009                    ; $030D74
+        dc.w    $6006                    ; $030D76
+        dc.w    $DD2D                    ; $030D78
+        dc.w    $0009                    ; $030D7A
+        dc.w    $6B04                    ; $030D7C
+        dc.w    $4EBA                    ; $030D7E
+        dc.w    $0074                    ; $030D80
+        dc.w    $1C2E                    ; $030D82
+        dc.w    $003A                    ; $030D84
+        dc.w    $4BEE                    ; $030D86
+        dc.w    $0070                    ; $030D88
+        dc.w    $7E05                    ; $030D8A
+        dc.w    $4A15                    ; $030D8C
+        dc.w    $6A16                    ; $030D8E
+        dc.w    $4A2E                    ; $030D90
+        dc.w    $0038                    ; $030D92
+        dc.w    $6A06                    ; $030D94
+        dc.w    $9D2D                    ; $030D96
+        dc.w    $0009                    ; $030D98
+        dc.w    $6006                    ; $030D9A
+        dc.w    $DD2D                    ; $030D9C
+        dc.w    $0009                    ; $030D9E
+        dc.w    $6B04                    ; $030DA0
+        dc.w    $4EBA                    ; $030DA2
+        dc.w    $05B6                    ; $030DA4
+        dc.w    $DAFC                    ; $030DA6
+        dc.w    $0030                    ; $030DA8
+        dc.w    $51CF                    ; $030DAA
+        dc.w    $FFE0                    ; $030DAC
+        dc.w    $1A2E                    ; $030DAE
+        dc.w    $003B                    ; $030DB0
+        dc.w    $7E02                    ; $030DB2
+        dc.w    $4A15                    ; $030DB4
+        dc.w    $6A20                    ; $030DB6
+        dc.w    $4A2E                    ; $030DB8
+        dc.w    $0038                    ; $030DBA
+        dc.w    $6A06                    ; $030DBC
+        dc.w    $9B2D                    ; $030DBE
+        dc.w    $0009                    ; $030DC0
+        dc.w    $600C                    ; $030DC2
+        dc.w    $DB2D                    ; $030DC4
+        dc.w    $0009                    ; $030DC6
+        dc.w    $0C2D                    ; $030DC8
+        dc.w    $0010                    ; $030DCA
+        dc.w    $0009                    ; $030DCC
+        dc.w    $6408                    ; $030DCE
+        dc.w    $1C2D                    ; $030DD0
+        dc.w    $0009                    ; $030DD2
+        dc.w    $4EBA                    ; $030DD4
+        dc.w    $018A                    ; $030DD6
+        dc.w    $DAFC                    ; $030DD8
+        dc.w    $0030                    ; $030DDA
+        dc.w    $51CF                    ; $030DDC
+        dc.w    $FFD6                    ; $030DDE
+        dc.w    $4A2E                    ; $030DE0
+        dc.w    $0038                    ; $030DE2
+        dc.w    $6B08                    ; $030DE4
+        dc.w    $1D7C                    ; $030DE6
+        dc.w    $0002                    ; $030DE8
+        dc.w    $0038                    ; $030DEA
+        dc.w    $4E75                    ; $030DEC

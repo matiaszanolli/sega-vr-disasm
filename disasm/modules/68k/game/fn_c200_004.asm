@@ -1,0 +1,74 @@
+; ============================================================================
+; Fn C200 004
+; ROM Range: $00C390-$00C416 (134 bytes)
+; Source: code_c200
+; ============================================================================
+
+fn_c200_004:
+        dc.w    $4EB9                    ; $00C390
+        dc.w    $0088                    ; $00C392
+        dc.w    $21CA                    ; $00C394
+        dc.w    $4EB9                    ; $00C396
+        dc.w    $0088                    ; $00C398
+        dc.w    $179E                    ; $00C39A
+        dc.w    $5278                    ; $00C39C
+        dc.w    $C080                    ; $00C39E
+        dc.w    $5278                    ; $00C3A0
+        dc.w    $C8AA                    ; $00C3A2
+        dc.w    $21FC                    ; $00C3A4
+        dc.w    $FFFF                    ; $00C3A6
+        dc.w    $0000                    ; $00C3A8
+        dc.w    $C970                    ; $00C3AA
+        dc.w    $3078                    ; $00C3AC
+        dc.w    $C8C0                    ; $00C3AE
+        dc.w    $1018                    ; $00C3B0
+        dc.w    $1200                    ; $00C3B2
+        dc.w    $0200                    ; $00C3B4
+        dc.w    $005C                    ; $00C3B6
+        dc.w    $11C0                    ; $00C3B8
+        dc.w    $C971                    ; $00C3BA
+        dc.w    $0201                    ; $00C3BC
+        dc.w    $0003                    ; $00C3BE
+        dc.w    $11C1                    ; $00C3C0
+        dc.w    $C973                    ; $00C3C2
+        dc.w    $31C8                    ; $00C3C4
+        dc.w    $C8C0                    ; $00C3C6
+        dc.w    $4EB9                    ; $00C3C8
+        dc.w    $0088                    ; $00C3CA
+        dc.w    $593C                    ; $00C3CC
+        dc.w    $4EB9                    ; $00C3CE
+        dc.w    $0088                    ; $00C3D0
+        dc.w    $24CA                    ; $00C3D2
+        dc.w    $4EBA                    ; $00C3D4
+        dc.w    $F304                    ; $00C3D6
+        dc.w    $4EBA                    ; $00C3D8
+        dc.w    $F2AA                    ; $00C3DA
+        dc.w    $5238                    ; $00C3DC
+        dc.w    $C886                    ; $00C3DE
+        dc.w    $5878                    ; $00C3E0
+        dc.w    $C87E                    ; $00C3E2
+        dc.w    $33FC                    ; $00C3E4
+        dc.w    $0038                    ; $00C3E6
+        dc.w    $00FF                    ; $00C3E8
+        dc.w    $0008                    ; $00C3EA
+        dc.w    $4EBA                    ; $00C3EC
+        dc.w    $0028                    ; $00C3EE
+        dc.w    $4EBA                    ; $00C3F0
+        dc.w    $01BC                    ; $00C3F2
+        dc.w    $4EBA                    ; $00C3F4
+        dc.w    $FC7A                    ; $00C3F6
+        dc.w    $4EFA                    ; $00C3F8
+        dc.w    $0268                    ; $00C3FA
+        dc.w    $4EB9                    ; $00C3FC
+        dc.w    $0088                    ; $00C3FE
+        dc.w    $21CA                    ; $00C400
+        dc.w    $4EB9                    ; $00C402
+        dc.w    $0088                    ; $00C404
+        dc.w    $179E                    ; $00C406
+        dc.w    $5238                    ; $00C408
+        dc.w    $C886                    ; $00C40A
+        dc.w    $33FC                    ; $00C40C
+        dc.w    $0038                    ; $00C40E
+        dc.w    $00FF                    ; $00C410
+        dc.w    $0008                    ; $00C412
+        dc.w    $4E75                    ; $00C414

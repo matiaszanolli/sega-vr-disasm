@@ -1,0 +1,81 @@
+; ============================================================================
+; Fn A200 048
+; ROM Range: $00C05C-$00C0F0 (148 bytes)
+; Source: code_a200
+; ============================================================================
+
+fn_a200_048:
+        dc.w    $0402                    ; $00C05C
+        dc.w    $C030                    ; $00C05E
+        dc.w    $0402                    ; $00C060
+        dc.w    $E030                    ; $00C062
+        dc.w    $0403                    ; $00C064
+        dc.w    $0030                    ; $00C066
+        dc.w    $0403                    ; $00C068
+        dc.w    $2030                    ; $00C06A
+        dc.w    $0403                    ; $00C06C
+        dc.w    $4030                    ; $00C06E
+        dc.w    $43F9                    ; $00C070
+        dc.w    $00FF                    ; $00C072
+        dc.w    $6800                    ; $00C074
+        dc.w    $7210                    ; $00C076
+        dc.w    $700F                    ; $00C078
+        dc.w    $4251                    ; $00C07A
+        dc.w    $D2C1                    ; $00C07C
+        dc.w    $51C8                    ; $00C07E
+        dc.w    $FFFA                    ; $00C080
+        dc.w    $3438                    ; $00C082
+        dc.w    $C0FC                    ; $00C084
+        dc.w    $6700                    ; $00C086
+        dc.w    $0054                    ; $00C088
+        dc.w    $6B0A                    ; $00C08A
+        dc.w    $4278                    ; $00C08C
+        dc.w    $C0FE                    ; $00C08E
+        dc.w    $08F8                    ; $00C090
+        dc.w    $0007                    ; $00C092
+        dc.w    $C0FC                    ; $00C094
+        dc.w    $5342                    ; $00C096
+        dc.w    $0242                    ; $00C098
+        dc.w    $0007                    ; $00C09A
+        dc.w    $D442                    ; $00C09C
+        dc.w    $D442                    ; $00C09E
+        dc.w    $45F9                    ; $00C0A0
+        dc.w    $0089                    ; $00C0A2
+        dc.w    $ACF0                    ; $00C0A4
+        dc.w    $2472                    ; $00C0A6
+        dc.w    $2000                    ; $00C0A8
+        dc.w    $43F9                    ; $00C0AA
+        dc.w    $00FF                    ; $00C0AC
+        dc.w    $6800                    ; $00C0AE
+        dc.w    $321A                    ; $00C0B0
+        dc.w    $32DA                    ; $00C0B2
+        dc.w    $361A                    ; $00C0B4
+        dc.w    $4259                    ; $00C0B6
+        dc.w    $22DA                    ; $00C0B8
+        dc.w    $22DA                    ; $00C0BA
+        dc.w    $4299                    ; $00C0BC
+        dc.w    $9678                    ; $00C0BE
+        dc.w    $C0FE                    ; $00C0C0
+        dc.w    $6B14                    ; $00C0C2
+        dc.w    $0C43                    ; $00C0C4
+        dc.w    $0050                    ; $00C0C6
+        dc.w    $6F04                    ; $00C0C8
+        dc.w    $363C                    ; $00C0CA
+        dc.w    $0050                    ; $00C0CC
+        dc.w    $D643                    ; $00C0CE
+        dc.w    $D643                    ; $00C0D0
+        dc.w    $48C3                    ; $00C0D2
+        dc.w    $D7A9                    ; $00C0D4
+        dc.w    $FFF4                    ; $00C0D6
+        dc.w    $51C9                    ; $00C0D8
+        dc.w    $FFD8                    ; $00C0DA
+        dc.w    $5078                    ; $00C0DC
+        dc.w    $C0FE                    ; $00C0DE
+        dc.w    $0C78                    ; $00C0E0
+        dc.w    $7FFF                    ; $00C0E2
+        dc.w    $C0FE                    ; $00C0E4
+        dc.w    $6F06                    ; $00C0E6
+        dc.w    $31FC                    ; $00C0E8
+        dc.w    $7FFF                    ; $00C0EA
+        dc.w    $C0FE                    ; $00C0EC
+        dc.w    $4E75                    ; $00C0EE

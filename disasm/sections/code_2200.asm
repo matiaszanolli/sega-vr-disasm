@@ -5,12 +5,7 @@
 
         org     $002200
 
-        dc.w    $5238        ; $002200
-        dc.w    $C828        ; $002202
-        dc.w    $08F8        ; $002204
-        dc.w    $0001        ; $002206
-        dc.w    $C80B        ; $002208
-        dc.w    $4E75        ; $00220A
+        include "modules/68k/util/counter_decrement_flag_set.asm"
         dc.w    $3038        ; $00220C
         dc.w    $9F74        ; $00220E
         dc.w    $1238        ; $002210
@@ -315,53 +310,10 @@
         dc.w    $31D1        ; $002466
         dc.w    $8760        ; $002468
         dc.w    $4E75        ; $00246A
-        dc.w    $11FC        ; $00246C
-        dc.w    $0001        ; $00246E
-        dc.w    $8507        ; $002470
-        dc.w    $4E75        ; $002472
-        dc.w    $11FC        ; $002474
-        dc.w    $0080        ; $002476
-        dc.w    $8507        ; $002478
-        dc.w    $4E75        ; $00247A
-        dc.w    $3C3C        ; $00247C
-        dc.w    $E001        ; $00247E
-        dc.w    $7000        ; $002480
-        dc.w    $7200        ; $002482
-        dc.w    $1018        ; $002484
-        dc.w    $1200        ; $002486
-        dc.w    $E808        ; $002488
-        dc.w    $0201        ; $00248A
-        dc.w    $000F        ; $00248C
-        dc.w    $D046        ; $00248E
-        dc.w    $D246        ; $002490
-        dc.w    $3C80        ; $002492
-        dc.w    $3C81        ; $002494
-        dc.w    $7000        ; $002496
-        dc.w    $7200        ; $002498
-        dc.w    $1018        ; $00249A
-        dc.w    $1200        ; $00249C
-        dc.w    $E808        ; $00249E
-        dc.w    $0201        ; $0024A0
-        dc.w    $000F        ; $0024A2
-        dc.w    $D046        ; $0024A4
-        dc.w    $D246        ; $0024A6
-        dc.w    $3C80        ; $0024A8
-        dc.w    $3C81        ; $0024AA
-        dc.w    $4E75        ; $0024AC
-        dc.w    $3C3C        ; $0024AE
-        dc.w    $E001        ; $0024B0
-        dc.w    $7000        ; $0024B2
-        dc.w    $7200        ; $0024B4
-        dc.w    $1018        ; $0024B6
-        dc.w    $1200        ; $0024B8
-        dc.w    $E808        ; $0024BA
-        dc.w    $0201        ; $0024BC
-        dc.w    $000F        ; $0024BE
-        dc.w    $D046        ; $0024C0
-        dc.w    $D246        ; $0024C2
-        dc.w    $3C80        ; $0024C4
-        dc.w    $3C81        ; $0024C6
-        dc.w    $4E75        ; $0024C8
+        include "modules/68k/display/set_flag_8507_01.asm"
+        include "modules/68k/display/set_flag_8507_80.asm"
+        include "modules/68k/graphics/pixel_unpack_2pairs.asm"
+        include "modules/68k/graphics/pixel_unpack_1pair.asm"
         dc.w    $4A38        ; $0024CA
         dc.w    $C80D        ; $0024CC
         dc.w    $6600        ; $0024CE
@@ -548,16 +500,7 @@
         dc.w    $51B8        ; $002638
         dc.w    $C888        ; $00263A
         dc.w    $4E75        ; $00263C
-        dc.w    $43FA        ; $00263E
-        dc.w    $0012        ; $002640
-        dc.w    $45F9        ; $002642
-        dc.w    $00A1        ; $002644
-        dc.w    $5100        ; $002646
-        dc.w    $7E0C        ; $002648
-        dc.w    $34D9        ; $00264A
-        dc.w    $51CF        ; $00264C
-        dc.w    $FFFC        ; $00264E
-        dc.w    $4E75        ; $002650
+        include "modules/68k/hardware-regs/mars_regs_init_13.asm"
         dc.w    $0083        ; $002652
         dc.w    $0000        ; $002654
         dc.w    $0001        ; $002656
@@ -675,85 +618,10 @@
         dc.w    $1942        ; $002736
         dc.w    $008B        ; $002738
         dc.w    $4E75        ; $00273A
-        dc.w    $49F9        ; $00273C
-        dc.w    $00A1        ; $00273E
-        dc.w    $5100        ; $002740
-        dc.w    $45F9        ; $002742
-        dc.w    $00A1        ; $002744
-        dc.w    $5186        ; $002746
-        dc.w    $47F9        ; $002748
-        dc.w    $00A1        ; $00274A
-        dc.w    $5188        ; $00274C
-        dc.w    $022C        ; $00274E
-        dc.w    $0040        ; $002750
-        dc.w    $0081        ; $002752
-        dc.w    $3E3C        ; $002754
-        dc.w    $00FF        ; $002756
-        dc.w    $7000        ; $002758
-        dc.w    $7200        ; $00275A
-        dc.w    $343C        ; $00275C
-        dc.w    $0100        ; $00275E
-        dc.w    $397C        ; $002760
-        dc.w    $00FF        ; $002762
-        dc.w    $0084        ; $002764
-        dc.w    $3481        ; $002766
-        dc.w    $3680        ; $002768
-        dc.w    $082C        ; $00276A
-        dc.w    $0001        ; $00276C
-        dc.w    $008B        ; $00276E
-        dc.w    $66F8        ; $002770
-        dc.w    $D242        ; $002772
-        dc.w    $51CF        ; $002774
-        dc.w    $FFF0        ; $002776
-        dc.w    $4E75        ; $002778
-        dc.w    $0239        ; $00277A
-        dc.w    $0040        ; $00277C
-        dc.w    $00A1        ; $00277E
-        dc.w    $5181        ; $002780
-        dc.w    $45F9        ; $002782
-        dc.w    $00A1        ; $002784
-        dc.w    $5200        ; $002786
-        dc.w    $7E1F        ; $002788
-        dc.w    $24C0        ; $00278A
-        dc.w    $24C0        ; $00278C
-        dc.w    $24C0        ; $00278E
-        dc.w    $24C0        ; $002790
-        dc.w    $51CF        ; $002792
-        dc.w    $FFF6        ; $002794
-        dc.w    $4E75        ; $002796
-        dc.w    $0239        ; $002798
-        dc.w    $0040        ; $00279A
-        dc.w    $00A1        ; $00279C
-        dc.w    $5181        ; $00279E
-        dc.w    $43F9        ; $0027A0
-        dc.w    $0084        ; $0027A2
-        dc.w    $0000        ; $0027A4
-        dc.w    $343C        ; $0027A6
-        dc.w    $1F00        ; $0027A8
-        dc.w    $3E3C        ; $0027AA
-        dc.w    $00DF        ; $0027AC
-        dc.w    $32C2        ; $0027AE
-        dc.w    $51CF        ; $0027B0
-        dc.w    $FFFC        ; $0027B2
-        dc.w    $4E75        ; $0027B4
-        dc.w    $0239        ; $0027B6
-        dc.w    $0040        ; $0027B8
-        dc.w    $00A1        ; $0027BA
-        dc.w    $5181        ; $0027BC
-        dc.w    $43F9        ; $0027BE
-        dc.w    $0084        ; $0027C0
-        dc.w    $0000        ; $0027C2
-        dc.w    $303C        ; $0027C4
-        dc.w    $0100        ; $0027C6
-        dc.w    $323C        ; $0027C8
-        dc.w    $2000        ; $0027CA
-        dc.w    $3E3C        ; $0027CC
-        dc.w    $00DF        ; $0027CE
-        dc.w    $32C1        ; $0027D0
-        dc.w    $D240        ; $0027D2
-        dc.w    $51CF        ; $0027D4
-        dc.w    $FFFA        ; $0027D6
-        dc.w    $4E75        ; $0027D8
+        include "modules/68k/vdp/vdp_fill_framebuffer.asm"
+        include "modules/68k/vdp/vdp_clear_palette.asm"
+        include "modules/68k/vdp/vdp_fill_line_table_flat.asm"
+        include "modules/68k/vdp/vdp_fill_line_table_ramp.asm"
         dc.w    $6142        ; $0027DA
         dc.w    $49F9        ; $0027DC
         dc.w    $00A1        ; $0027DE
@@ -788,51 +656,9 @@
         dc.w    $51CF        ; $002818
         dc.w    $FFF0        ; $00281A
         dc.w    $4E75        ; $00281C
-        dc.w    $49F9        ; $00281E
-        dc.w    $00A1        ; $002820
-        dc.w    $5100        ; $002822
-        dc.w    $45F9        ; $002824
-        dc.w    $00A1        ; $002826
-        dc.w    $5186        ; $002828
-        dc.w    $47F9        ; $00282A
-        dc.w    $00A1        ; $00282C
-        dc.w    $5188        ; $00282E
-        dc.w    $323C        ; $002830
-        dc.w    $1F00        ; $002832
-        dc.w    $303C        ; $002834
-        dc.w    $0101        ; $002836
-        dc.w    $397C        ; $002838
-        dc.w    $00FF        ; $00283A
-        dc.w    $0084        ; $00283C
-        dc.w    $3481        ; $00283E
-        dc.w    $3680        ; $002840
-        dc.w    $082C        ; $002842
-        dc.w    $0001        ; $002844
-        dc.w    $008B        ; $002846
-        dc.w    $66F8        ; $002848
-        dc.w    $4E75        ; $00284A
-        dc.w    $47F9        ; $00284C
-        dc.w    $00A1        ; $00284E
-        dc.w    $5200        ; $002850
-        dc.w    $7E1F        ; $002852
-        dc.w    $26DA        ; $002854
-        dc.w    $26DA        ; $002856
-        dc.w    $26DA        ; $002858
-        dc.w    $26DA        ; $00285A
-        dc.w    $51CF        ; $00285C
-        dc.w    $FFF6        ; $00285E
-        dc.w    $4E75        ; $002860
-        dc.w    $47F9        ; $002862
-        dc.w    $00A1        ; $002864
-        dc.w    $5240        ; $002866
-        dc.w    $7E07        ; $002868
-        dc.w    $26DA        ; $00286A
-        dc.w    $26DA        ; $00286C
-        dc.w    $26DA        ; $00286E
-        dc.w    $26DA        ; $002870
-        dc.w    $51CF        ; $002872
-        dc.w    $FFF6        ; $002874
-        dc.w    $4E75        ; $002876
+        include "modules/68k/vdp/vdp_fill_pattern.asm"
+        include "modules/68k/vdp/palette_copy_full.asm"
+        include "modules/68k/vdp/palette_copy_partial.asm"
         dc.w    $4A38        ; $002878
         dc.w    $C821        ; $00287A
         dc.w    $6710        ; $00287C
@@ -845,31 +671,7 @@
         dc.w    $4EFA        ; $00288A
         dc.w    $2046        ; $00288C
         dc.w    $4E75        ; $00288E
-        dc.w    $0839        ; $002890
-        dc.w    $0000        ; $002892
-        dc.w    $00A1        ; $002894
-        dc.w    $5123        ; $002896
-        dc.w    $67F6        ; $002898
-        dc.w    $08B9        ; $00289A
-        dc.w    $0000        ; $00289C
-        dc.w    $00A1        ; $00289E
-        dc.w    $5123        ; $0028A0
-        dc.w    $31FC        ; $0028A2
-        dc.w    $0000        ; $0028A4
-        dc.w    $C8A8        ; $0028A6
-        dc.w    $13F8        ; $0028A8
-        dc.w    $C8A9        ; $0028AA
-        dc.w    $00A1        ; $0028AC
-        dc.w    $5121        ; $0028AE
-        dc.w    $13F8        ; $0028B0
-        dc.w    $C8A8        ; $0028B2
-        dc.w    $00A1        ; $0028B4
-        dc.w    $5120        ; $0028B6
-        dc.w    $13FC        ; $0028B8
-        dc.w    $0000        ; $0028BA
-        dc.w    $00A1        ; $0028BC
-        dc.w    $5123        ; $0028BE
-        dc.w    $4E75        ; $0028C0
+        include "modules/68k/sh2/mars_comm_write.asm"
         dc.w    $33FC        ; $0028C2
         dc.w    $0500        ; $0028C4
         dc.w    $00A1        ; $0028C6
@@ -1127,19 +929,7 @@
         dc.w    $0000        ; $002ABE
         dc.w    $0064        ; $002AC0
         dc.w    $4E75        ; $002AC2
-        dc.w    $2378        ; $002AC4
-        dc.w    $C710        ; $002AC6
-        dc.w    $0024        ; $002AC8
-        dc.w    $337C        ; $002ACA
-        dc.w    $0001        ; $002ACC
-        dc.w    $0064        ; $002ACE
-        dc.w    $4A68        ; $002AD0
-        dc.w    $008C        ; $002AD2
-        dc.w    $6706        ; $002AD4
-        dc.w    $337C        ; $002AD6
-        dc.w    $0000        ; $002AD8
-        dc.w    $0064        ; $002ADA
-        dc.w    $4E75        ; $002ADC
+        include "modules/68k/object/entity_set_model_type0.asm"
         dc.w    $2378        ; $002ADE
         dc.w    $C724        ; $002AE0
         dc.w    $0024        ; $002AE2
@@ -1362,39 +1152,7 @@
         dc.w    $3540        ; $002C94
         dc.w    $0154        ; $002C96
         dc.w    $4E75        ; $002C98
-        dc.w    $7000        ; $002C9A
-        dc.w    $4A68        ; $002C9C
-        dc.w    $00C0        ; $002C9E
-        dc.w    $6728        ; $002CA0
-        dc.w    $7001        ; $002CA2
-        dc.w    $4A38        ; $002CA4
-        dc.w    $90E4        ; $002CA6
-        dc.w    $6606        ; $002CA8
-        dc.w    $4A38        ; $002CAA
-        dc.w    $B0FC        ; $002CAC
-        dc.w    $670C        ; $002CAE
-        dc.w    $0828        ; $002CB0
-        dc.w    $0003        ; $002CB2
-        dc.w    $00E5        ; $002CB4
-        dc.w    $6712        ; $002CB6
-        dc.w    $7000        ; $002CB8
-        dc.w    $600E        ; $002CBA
-        dc.w    $0838        ; $002CBC
-        dc.w    $0003        ; $002CBE
-        dc.w    $90E5        ; $002CC0
-        dc.w    $6706        ; $002CC2
-        dc.w    $4A28        ; $002CC4
-        dc.w    $00E4        ; $002CC6
-        dc.w    $66EE        ; $002CC8
-        dc.w    $3540        ; $002CCA
-        dc.w    $0118        ; $002CCC
-        dc.w    $3540        ; $002CCE
-        dc.w    $012C        ; $002CD0
-        dc.w    $3540        ; $002CD2
-        dc.w    $0140        ; $002CD4
-        dc.w    $3540        ; $002CD6
-        dc.w    $0154        ; $002CD8
-        dc.w    $4E75        ; $002CDA
+        include "modules/68k/game/entity_visibility_check.asm"
         dc.w    $3028        ; $002CDC
         dc.w    $0030        ; $002CDE
         dc.w    $3340        ; $002CE0
@@ -1936,14 +1694,7 @@
         dc.w    $31C1        ; $003110
         dc.w    $C056        ; $003112
         dc.w    $4E75        ; $003114
-        dc.w    $0838        ; $003116
-        dc.w    $0005        ; $003118
-        dc.w    $C30E        ; $00311A
-        dc.w    $6706        ; $00311C
-        dc.w    $0678        ; $00311E
-        dc.w    $0040        ; $003120
-        dc.w    $C0B0        ; $003122
-        dc.w    $4E75        ; $003124
+        include "modules/68k/display/camera_offset_check.asm"
         dc.w    $41F8        ; $003126
         dc.w    $9000        ; $003128
         dc.w    $43F9        ; $00312A
@@ -2295,22 +2046,8 @@
         dc.w    $0030        ; $0033DE
         dc.w    $C305        ; $0033E0
         dc.w    $4E75        ; $0033E2
-        dc.w    $11FC        ; $0033E4
-        dc.w    $0034        ; $0033E6
-        dc.w    $C305        ; $0033E8
-        dc.w    $4E75        ; $0033EA
-        dc.w    $3028        ; $0033EC
-        dc.w    $002C        ; $0033EE
-        dc.w    $43F9        ; $0033F0
-        dc.w    $0089        ; $0033F2
-        dc.w    $89EE        ; $0033F4
-        dc.w    $11F1        ; $0033F6
-        dc.w    $0000        ; $0033F8
-        dc.w    $C8A5        ; $0033FA
-        dc.w    $11FC        ; $0033FC
-        dc.w    $0000        ; $0033FE
-        dc.w    $C305        ; $003400
-        dc.w    $4E75        ; $003402
+        include "modules/68k/game/set_state_0x34.asm"
+        include "modules/68k/sound/sound_lookup_play.asm"
         dc.w    $43F8        ; $003404
         dc.w    $C806        ; $003406
         dc.w    $B0FC        ; $003408
@@ -2414,17 +2151,7 @@
         dc.w    $0038        ; $0034CC
         dc.w    $C305        ; $0034CE
         dc.w    $4E75        ; $0034D0
-        dc.w    $1038        ; $0034D2
-        dc.w    $C8AB        ; $0034D4
-        dc.w    $0200        ; $0034D6
-        dc.w    $0003        ; $0034D8
-        dc.w    $D000        ; $0034DA
-        dc.w    $D000        ; $0034DC
-        dc.w    $0600        ; $0034DE
-        dc.w    $000C        ; $0034E0
-        dc.w    $11C0        ; $0034E2
-        dc.w    $C305        ; $0034E4
-        dc.w    $4E75        ; $0034E6
+        include "modules/68k/game/calc_state_from_flags.asm"
         dc.w    $7000        ; $0034E8
         dc.w    $1038        ; $0034EA
         dc.w    $C305        ; $0034EC
@@ -2665,17 +2392,7 @@
         dc.w    $002C        ; $0036C2
         dc.w    $C305        ; $0036C4
         dc.w    $4E75        ; $0036C6
-        dc.w    $1038        ; $0036C8
-        dc.w    $C8AB        ; $0036CA
-        dc.w    $0200        ; $0036CC
-        dc.w    $0003        ; $0036CE
-        dc.w    $D000        ; $0036D0
-        dc.w    $D000        ; $0036D2
-        dc.w    $0600        ; $0036D4
-        dc.w    $000C        ; $0036D6
-        dc.w    $11C0        ; $0036D8
-        dc.w    $C305        ; $0036DA
-        dc.w    $4E75        ; $0036DC
+        include "modules/68k/game/calc_state_from_flags_2.asm"
         dc.w    $41F8        ; $0036DE
         dc.w    $9100        ; $0036E0
         dc.w    $43F9        ; $0036E2
@@ -3538,12 +3255,7 @@
         dc.w    $22A2        ; $003D94
         dc.w    $0008        ; $003D96
         dc.w    $4E75        ; $003D98
-        dc.w    $31FC        ; $003D9A
-        dc.w    $0000        ; $003D9C
-        dc.w    $C8AA        ; $003D9E
-        dc.w    $5878        ; $003DA0
-        dc.w    $C8AC        ; $003DA2
-        dc.w    $4E75        ; $003DA4
+        include "modules/68k/game/reset_timer_advance_state.asm"
         dc.w    $0C78        ; $003DA6
         dc.w    $0014        ; $003DA8
         dc.w    $C8AA        ; $003DAA
@@ -4025,16 +3737,7 @@
         dc.w    $0000        ; $004162
         dc.w    $C8AA        ; $004164
         dc.w    $4E75        ; $004166
-        dc.w    $0C78        ; $004168
-        dc.w    $003C        ; $00416A
-        dc.w    $C8AA        ; $00416C
-        dc.w    $660A        ; $00416E
-        dc.w    $5878        ; $004170
-        dc.w    $C07C        ; $004172
-        dc.w    $31FC        ; $004174
-        dc.w    $0000        ; $004176
-        dc.w    $C8AA        ; $004178
-        dc.w    $4E75        ; $00417A
+        include "modules/68k/game/check_timeout_60.asm"
         dc.w    $0C78        ; $00417C
         dc.w    $0015        ; $00417E
         dc.w    $C8AA        ; $004180

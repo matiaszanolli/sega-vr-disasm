@@ -13,7 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### What's Working
 - 4MB ROM builds successfully with 1MB expansion space ($300000-$3FFFFF)
 - **75 SH2 functions integrated** into build system (78 total .inc files including 3 expansion ROM helpers)
-- **174 68K functions translated** across 8 sections (8,528 bytes total: code_a200 + code_6200 + code_30200 + code_200 + code_2200 + code_4200 + code_8200 + code_e200)
+- **258 68K functions translated** across 12 sections (12,574 bytes total: code_a200 + code_6200 + code_30200 + code_200 + code_2200 + code_4200 + code_8200 + code_e200 + code_c200 + code_10200 + code_12200 + code_14200)
 - **17 68K module categories** - boot, data, display, frame, game, graphics, hardware-regs, input, main-loop, math, memory, object, sh2, sound, util, vdp, vint
 - **All translations verified** byte-identical to original ROM
 - **Build system integrated** with Makefile rules for all functions

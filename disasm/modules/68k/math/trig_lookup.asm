@@ -77,8 +77,6 @@ OBJ_POS_OFFSET  equ     $009E       ; Position offset
 OBJ_MODE_FLAG   equ     $00A0       ; Mode flag
 OBJ_ACCEL       equ     $00A2       ; Acceleration
 
-        org     $0070AA
-
 ; ============================================================================
 ; angle_to_sine ($0070AA) - Trig Lookup and Velocity Calculation
 ; Called by: 29 locations per frame (highest frequency function)
@@ -153,14 +151,15 @@ angle_to_sine:
         move.w  OBJ_MODE_FLAG(a0),d0            ; $00711E: $3028 $00A0 - Check mode
         bne.s   .alt_velocity                   ; $007122: $660A       - Alternative if non-zero
 
-; Standard velocity calculation
+; Standard velocity calculation (mode = 0)
         move.w  OBJ_VEL_MOD(a0),d0              ; $007124: $3028 $0094 - D0 = velocity mod
-        asr.w   #8,d0                           ; $007128: $E740       - D0 >>= 8 (note: ASR.W #8 is $E040)
+        asl.w   #3,d0                           ; $007128: $E740       - D0 <<= 3
         add.w   OBJ_SPEED_BASE(a0),d0           ; $00712A: $D068 $006E - D0 += speed base
+.alt_velocity:
+; Common tail (mode != 0 enters here with D0 = mode flag value)
         add.w   OBJ_VEL_COMP2(a0),d0            ; $00712E: $D068 $004C - D0 += vel comp
         move.w  d0,OBJ_VEL_COMP1(a0)            ; $007132: $3140 $0046 - Store
 
-.alt_velocity:
 ; Final velocity component calculation
         move.w  OBJ_ROT_SPEED(a0),d0            ; $007136: $3028 $008E - D0 = rotation speed
         asr.w   #8,d0                           ; $00713A: $E040       - D0 >>= 8

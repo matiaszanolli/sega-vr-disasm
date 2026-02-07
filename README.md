@@ -1,19 +1,38 @@
-# Virtua Racing Deluxe (32X) - Complete Disassembly & Analysis
+# Virtua Racing Deluxe (32X) - Performance Optimization Project
 
-**Status: ✅ v5.0.0 - Full 68K Modularization & Translation**
+**Status: v6.0 - Active Optimization**
 
-A complete, buildable disassembly of Virtua Racing Deluxe for the Sega 32X, with comprehensive reverse engineering documentation. The ROM rebuilds to a **byte-identical** binary, with **693 68K functions modularized** (79,940 bytes), **571 auto-translated** to proper assembly mnemonics, and **4MB expansion ROM** containing SH2 parallel processing infrastructure.
+A complete, buildable disassembly of Virtua Racing Deluxe for the Sega 32X, now actively optimized to make full use of the 32X hardware. The original game runs at ~20 FPS due to a conservative blocking synchronization model that leaves significant hardware capacity untapped. This project aims to unlock that potential.
 
-## Key Features
+> **Looking for the unmodified disassembly?** The byte-identical original code is preserved in the [`v5.0-freeze`](../../tree/v5.0-freeze) branch — 693 68K functions modularized, 571 auto-translated, 75 SH2 functions translated, all verified byte-perfect against the original ROM.
 
-- **Byte-perfect rebuild** - All translated functions verified identical to original ROM
-- **693 68K functions modularized** - 79,940 bytes across all 12 code sections
-- **571 modules auto-translated** - dc.w to proper assembly mnemonics (80% translation rate, 16,022 instructions)
-- **75 SH2 functions translated** - Proper `.short` opcode assembly across 36 files
-- **17 68K module categories** - boot, data, display, frame, game, graphics, hardware-regs, input, main-loop, math, memory, object, sh2, sound, util, vdp, vint
-- **4MB expansion ROM** - 1MB SH2 working space with parallel processing infrastructure (not yet activated)
-- **503+ named 68K functions** - Categorized by subsystem with 200+ auto-injected labels
-- **107 named SH2 functions** - 3D engine fully mapped
+## The Problem
+
+The original game leaves most of its hardware idle:
+
+```
+CPU Utilization (profiled):
+  68000:       ████████████████████ 100%   ← Saturated (bottleneck)
+  Master SH2:  ░░░░░░░░░░░░░░░░░░░░   0%   ← Completely idle
+  Slave SH2:   ██████░░░░░░░░░░░░░░  33%   ← 67% wasted in idle loop
+```
+
+The 68K spends **~60% of its cycles blocked**, polling COMM registers while waiting for SH2 acknowledgment — 35 times per frame. Meanwhile, the Master SH2 does nothing and the Slave SH2 wastes two-thirds of its time in a delay loop.
+
+## The Goal
+
+Restructure the command pipeline to eliminate blocking waits, batch commands, and distribute work across all three CPUs:
+
+| Track | Strategy | Expected Gain |
+|-------|----------|---------------|
+| 68K Blocking Relief | Async commands via SH2 interrupt queue | +46-67% FPS |
+| Command Batching | Reduce 35 submissions/frame to ~3 | +10-20% FPS |
+| Pipeline Overlap | Build frame N+1 while SH2 renders frame N | +15-30% FPS |
+| 68K Work Offload | Move physics/trig to idle Master SH2 | +5-15% FPS |
+
+**Target: 60 FPS** (from ~20-24 FPS baseline)
+
+See [OPTIMIZATION_PLAN.md](OPTIMIZATION_PLAN.md) for the full strategy.
 
 ## Quick Start
 
@@ -21,9 +40,8 @@ A complete, buildable disassembly of Virtua Racing Deluxe for the Sega 32X, with
 # Build the ROM
 make all
 
-# Verify SH2 functions match original
-make sh2-verify
-# Output: ✓✓✓ All SH2 functions verified! ✓✓✓
+# Verify build
+make compare
 
 # Test in emulator
 picodrive build/vr_rebuild.32x
@@ -35,101 +53,103 @@ picodrive build/vr_rebuild.32x
 32x-playground/
 ├── disasm/
 │   ├── vrd.asm                    # Main build file
-│   ├── sections/                  # Pure DC.W (buildable)
-│   ├── sections-mnemonic/         # Readable mnemonics (reference)
-│   ├── modules/68k/               # Translated 68K assembly (16 categories)
-│   │   ├── boot/                  # Hardware initialization
-│   │   ├── main-loop/             # V-INT and state machines
-│   │   ├── game/                  # Game logic, physics, AI, collision
-│   │   ├── math/                  # Trig lookups, angle calculations
-│   │   └── sh2/                   # SH2 communication protocol
-│   ├── sh2/3d_engine/             # Translated SH2 functions
-│   ├── sh2_symbols.inc            # 107 SH2 function symbols
-│   └── SH2_SYMBOL_MAP.md          # SH2 symbol reference
+│   ├── sections/                  # Buildable section sources
+│   ├── modules/68k/               # 693 modularized 68K functions (17 categories)
+│   ├── sh2/3d_engine/             # 75 translated SH2 functions
+│   └── sh2_symbols.inc            # 107 SH2 function symbols
 │
-├── analysis/                      # Reverse engineering docs
-│   ├── ARCHITECTURAL_BOTTLENECK_ANALYSIS.md  # Key insight
-│   ├── 68K_FUNCTION_REFERENCE.md  # 503+ functions
-│   ├── 68K_SH2_COMMUNICATION.md   # Communication protocol
-│   ├── architecture/              # Memory maps, state machines
-│   ├── sh2-analysis/              # SH2 3D engine docs
-│   ├── optimization/              # Optimization research
-│   └── debugger-design/           # PicoDrive debugger
+├── analysis/                      # Reverse engineering & optimization research
+│   ├── ARCHITECTURAL_BOTTLENECK_ANALYSIS.md
+│   ├── 68K_FUNCTION_REFERENCE.md  # 503+ named functions
+│   ├── profiling/                 # CPU profiling results
+│   ├── optimization/              # Optimization designs & research
+│   └── architecture/              # Memory maps, state machines, registers
 │
-├── docs/                          # Hardware manuals & guides
-│   ├── 32x-hardware-manual.md     # Complete HW reference
-│   ├── development-guide.md       # CPU coordination guide
-│   └── ...
+├── docs/                          # Official SEGA hardware manuals & guides
 │
-├── tools/                         # Python analysis tools
-│   ├── translate_modules.py       # Batch dc.w→mnemonic translator (571 modules)
-│   ├── disasm_to_asm.py           # 68K ROM→ASM converter (byte-identical)
-│   ├── batch_convert_68k.py       # Batch module converter
-│   ├── vrd_memory_map.json        # Code/data boundary map (56 entry points)
+├── tools/
+│   ├── libretro-profiling/        # Custom PicoDrive profiler (cycle-accurate)
+│   ├── translate_modules.py       # Batch dc.w→mnemonic translator
 │   ├── m68k_disasm.py             # 68K disassembler
-│   ├── sh2_disasm.py              # SH2 disassembler
-│   └── generate_call_graph.py     # Call graph generator
+│   └── sh2_disasm.py              # SH2 disassembler
 │
 └── build/
-    └── vr_rebuild.32x             # Output ROM (4.0 MB with expansion)
+    └── vr_rebuild.32x             # Output ROM (4MB)
 ```
 
-## Key Architectural Insight
-
-The original game runs at ~20 FPS due to a **blocking synchronization model**, not hardware limitations:
+## ROM Layout
 
 ```
-ORIGINAL (Current):
-68K: sh2_graphics_cmd → sh2_send_cmd_wait (BLOCKS) → sh2_wait_response
-                                ↑
-                        Global serialization barrier
-
-PLANNED OPTIMIZATION (Infrastructure Ready):
-Game calls func_021 → Trampoline captures params → COMM7=0x16
-                    → Master returns immediately
-                    → Slave picks up work, executes func_021_optimized
-                    → Both CPUs running in parallel
+Address Range    Size      Contents
+──────────────────────────────────────────
+$000000-$2FFFFF  3.0 MB    Game Code (68K + SH2)
+$300000-$3FFFFF  1.0 MB    SH2 Expansion Space (~99% free)
+──────────────────────────────────────────
+Total            4.0 MB    Full Cartridge
 ```
 
-- Frame production is serialized through blocking waits (current behavior)
-- **Optimization infrastructure prepared** in expansion ROM at $300000+
-- Parallel processing hooks ready but **not yet activated** in main ROM
+The expansion space at $300000+ is executed by SH2 processors only and already contains parallel processing infrastructure (dispatch hooks, optimized vertex transforms, work wrappers) — ready for activation.
 
-See [ARCHITECTURAL_BOTTLENECK_ANALYSIS.md](analysis/ARCHITECTURAL_BOTTLENECK_ANALYSIS.md) for full details.
+## Codebase Status
 
-## Disassembly Formats
+### Disassembly (complete — frozen in `v5.0-freeze`)
+- **693 68K functions** modularized across 12 code sections (79,940 bytes)
+- **571 modules** auto-translated to proper assembly mnemonics (82.5% rate)
+- **75 SH2 functions** translated to annotated assembly
+- **107 SH2 functions** mapped and symbolized
+- **503+ 68K functions** named and categorized
+- All translations verified **byte-identical** to original ROM
 
-Two complementary formats for different use cases:
+### Profiling (operational)
+- Custom PicoDrive libretro core with cycle-accurate instrumentation
+- Frame-level and PC-level hotspot analysis
+- Automated headless profiling frontend
 
-### 1. Buildable Modules (modules/68k/)
-```asm
-fn_a200_001:
-        MOVEQ   #$00,D0                         ; $00A972
-        MOVE.B  $000D(A5),D0                    ; $00A974
-        LEA     (-24450).W,A1                   ; $00A978
-        BNE.S  .loc_0010                        ; $00A97E
-.loc_0010:
-        RTS                                     ; $00A980
-```
-Proper assembly mnemonics - builds to byte-identical ROM. 693 modules across 12 sections.
+### Optimization (active development)
+- 68K bottleneck identified and quantified (100.1% utilization)
+- SH2 interrupt queue designed (Path B — uses idle Master SH2)
+- Batch command protocol designed
+- v4.0 parallel processing infrastructure built (not yet activated)
 
-### 2. Reference (sections-mnemonic/)
-```asm
-JSR     $00E35A(PC)                     ; $01020A
-MOVEA.L #$06020000,A0                   ; $01020E
-loc_010220:
-LEA     $00(A0,D0.W),A0                 ; $010220
-```
-Full decoded mnemonics with labels - for code analysis.
+## Key Architectural Findings
 
-## Build Commands
+| Finding | Evidence |
+|---------|----------|
+| 68K is the sole bottleneck | 100.1% utilization, 127,987 cycles/frame |
+| SH2 optimization alone yields 0% FPS gain | 66.6% Slave reduction → unchanged FPS |
+| ~60% of 68K time is wasted polling | 35 blocking handshakes per frame |
+| Master SH2 is completely idle | 60 cycles/frame (0.0% utilization) |
+| Slave wastes 66.5% of cycles | Idle delay loop at $0600060A |
+
+## Custom Profiler
+
+A cycle-accurate profiling system built on PicoDrive's libretro core — the **only working 32X profiler** with per-CPU cycle counting and PC-level hotspot analysis.
 
 ```bash
-make all          # Build 4MB ROM from source (with 1MB SH2 expansion)
-make compare      # Verify byte-perfect match (original 3MB section)
-make clean        # Remove build artifacts
-make tools        # Build vasm assembler
+cd tools/libretro-profiling
+
+# Frame-level profiling (1800 frames)
+./profiling_frontend ../../build/vr_rebuild.32x 1800 --autoplay
+
+# PC-level hotspot profiling
+VRD_PROFILE_PC=1 VRD_PROFILE_PC_LOG=profile.csv \
+./profiling_frontend ../../build/vr_rebuild.32x 2400 --autoplay
+python3 analyze_pc_profile.py profile.csv
 ```
+
+## Documentation
+
+| Category | Key Documents |
+|----------|---------------|
+| **Optimization Plan** | [OPTIMIZATION_PLAN.md](OPTIMIZATION_PLAN.md) |
+| **Bottleneck Analysis** | [ARCHITECTURAL_BOTTLENECK_ANALYSIS.md](analysis/ARCHITECTURAL_BOTTLENECK_ANALYSIS.md) |
+| **68K Profiling** | [68K_BOTTLENECK_ANALYSIS.md](analysis/profiling/68K_BOTTLENECK_ANALYSIS.md) |
+| **Async Design** | [ASYNC_COMMAND_IMPLEMENTATION_PLAN.md](analysis/optimization/ASYNC_COMMAND_IMPLEMENTATION_PLAN.md) |
+| **68K Functions** | [68K_FUNCTION_REFERENCE.md](analysis/68K_FUNCTION_REFERENCE.md) (503+ functions) |
+| **SH2 3D Pipeline** | [SH2_3D_PIPELINE_ARCHITECTURE.md](analysis/sh2-analysis/SH2_3D_PIPELINE_ARCHITECTURE.md) |
+| **Communication** | [68K_SH2_COMMUNICATION.md](analysis/68K_SH2_COMMUNICATION.md) |
+| **Hardware Manual** | [32x-hardware-manual.md](docs/32x-hardware-manual.md) |
+| **Register Hazards** | [32X_REGISTERS.md](analysis/architecture/32X_REGISTERS.md) |
 
 ## Requirements
 
@@ -140,232 +160,28 @@ make tools        # Build vasm assembler
 ### ROM (NOT INCLUDED)
 You must provide your own legal ROM dump:
 - File: `Virtua Racing Deluxe (USA).32x` (in `roms/` directory)
-- Size: 3,145,728 bytes (original) → 4,194,304 bytes (with expansion)
-- MD5: `72b1ad0f949f68da7d0a6339ecd51a3f` (original 3MB)
-
-## Next Steps
-
-1. ~~SH2 function translation (major pass)~~ ✅ Done (75 functions)
-2. ~~Parallel processing infrastructure~~ ✅ Done (expansion ROM ready)
-3. ~~68K modularization & translation~~ ✅ Done (693 modules, 571 translated, 79,940 bytes)
-4. **Activate parallel hooks** - Wire up dispatch redirect and func_021 trampoline
-5. **Performance Testing** - Measure FPS improvement from parallel processing
-6. **Synchronization** - Ensure Slave completes before next frame
-
-## Documentation
-
-| Category | Key Documents |
-|----------|---------------|
-| **Architecture** | [ARCHITECTURAL_BOTTLENECK_ANALYSIS.md](analysis/ARCHITECTURAL_BOTTLENECK_ANALYSIS.md) |
-| **4MB Expansion** | [ROM_EXPANSION_4MB_IMPLEMENTATION.md](analysis/architecture/ROM_EXPANSION_4MB_IMPLEMENTATION.md) |
-| **68K Functions** | [68K_FUNCTION_REFERENCE.md](analysis/68K_FUNCTION_REFERENCE.md) (503+ functions) |
-| **68K Modules** | [disasm/modules/68k/](disasm/modules/68k/) (translated assembly) |
-| **SH2 Functions** | [SH2_SYMBOL_MAP.md](disasm/SH2_SYMBOL_MAP.md) (107 functions) |
-| **SH2 3D Pipeline** | [SH2_3D_PIPELINE_ARCHITECTURE.md](analysis/sh2-analysis/SH2_3D_PIPELINE_ARCHITECTURE.md) |
-| **SH2 Function Ref** | [SH2_3D_FUNCTION_REFERENCE.md](analysis/sh2-analysis/SH2_3D_FUNCTION_REFERENCE.md) (75 translated) |
-| **Communication** | [68K_SH2_COMMUNICATION.md](analysis/68K_SH2_COMMUNICATION.md) |
-| **Data Structures** | [DATA_STRUCTURES.md](analysis/architecture/DATA_STRUCTURES.md) |
-| **Hardware** | [32x-hardware-manual.md](docs/32x-hardware-manual.md) |
-| **Development** | [development-guide.md](docs/development-guide.md) |
-
-### SH2 3D Engine Translations
-
-Complete annotated translations of 75 SH2 functions are in `disasm/sh2/3d_engine/`. All produce byte-identical output to the original ROM. Key findings:
-
-| Function | Size | Purpose |
-|----------|------|---------|
-| func_023 | **238 B** | Largest - Frustum culling hub, dispatches to all render paths |
-| func_006 | 88 B | Core MAC.L matrix × vector transform (~45 cycles/vertex) |
-| func_034 | 122 B | Span filler with reciprocal table at 0x060048D0 |
-| func_040 | 122 B | Display list with 12-entry jump table |
-| func_016 | 34 B | Coord packing - HOTSPOT: 17% frame budget when called 4×/polygon |
-
-**Verified VDP Addresses**: 0xC00007C0 (buffer A), 0xC00007E0 (buffer B), 0xC0000740 (edge buffer)
-
-### 68K Assembly Translations
-
-Converting raw `dc.w` opcodes to readable, maintainable 68000 assembly. Translations use EQU constants and preserve original bytes in comments for verification.
-
-**Translated Modules** (in `disasm/modules/68k/`):
-
-| Module | Address Range | Purpose |
-|--------|---------------|---------|
-| [adapter_init.asm](disasm/modules/68k/boot/adapter_init.asm) | $000838-$0009BA | 32X hardware init, VDP setup, main loop entry |
-| [controller.asm](disasm/modules/68k/input/controller.asm) | $00170C-$0017EE | Controller port init, polling, button remap |
-| [vint_handler.asm](disasm/modules/68k/main-loop/vint_handler.asm) | $001684-$0017EE | V-INT state machine (16 states) |
-| [vdp_operations.asm](disasm/modules/68k/vdp/vdp_operations.asm) | $0027F8-$002860 | VDP fill, palette copy, MARS register access |
-| [utilities.asm](disasm/modules/68k/util/utilities.asm) | $00496E-$004A06 | PRNG, WaitForVBlank, scroll vars, display params |
-| [game_logic_core.asm](disasm/modules/68k/game/game_logic_core.asm) | $006200-$006312 | Game state dispatcher (7 states) |
-| [sprite_system.asm](disasm/modules/68k/graphics/sprite_system.asm) | $006C46-$006D40 | Sprite table init from ROM templates |
-| [object_system.asm](disasm/modules/68k/game/object_system.asm) | $006F98-$008180 | High-frequency physics (150+ calls/frame) |
-| [object_collision.asm](disasm/modules/68k/game/object_collision.asm) | $0075C8-$007F50 | Collision, distance, dot products (50+ calls/frame) |
-| [camera.asm](disasm/modules/68k/game/camera.asm) | $009040-$0091xx | View offset calc, bounds checking |
-| [position_trig.asm](disasm/modules/68k/game/position_trig.asm) | $007084-$0074AC | Trig lookup (29 calls/frame), position update, angle normalize |
-| [fast_copy.asm](disasm/modules/68k/memory/fast_copy.asm) | $004836-$00494C | Unrolled memory copy/fill (16-112 bytes) |
-| [sh2_communication.asm](disasm/modules/68k/sh2/sh2_communication.asm) | $00E316-$00E3B2 | **Blocking sync** - root cause of ~20 FPS limit |
-| [physics_lookup_tables.asm](disasm/modules/68k/game/physics_lookup_tables.asm) | $00A200-$00A2F8 | Speed/drag curve lookup tables (248B) |
-| [effect_timer_mgmt.asm](disasm/modules/68k/game/effect_timer_mgmt.asm) | $00A2F8-$00A3A0 | Effect timers, countdown, RAM clear (168B) |
-| [speed_calculation.asm](disasm/modules/68k/game/speed_calculation.asm) | $00A3A2-$00A3E8 | Speed computation from lookup table (70B) |
-| [speed_interpolation.asm](disasm/modules/68k/game/speed_interpolation.asm) | $00A3EA-$00A432 | Speed adjustment toward target, clamped (74B) |
-| [ai_opponent_select.asm](disasm/modules/68k/game/ai_opponent_select.asm) | $00A434-$00A46E | AI targeting activation by game mode (60B) |
-| [physics_integration.asm](disasm/modules/68k/game/physics_integration.asm) | $00A666-$00A6F6 | Heading/velocity via sin/cos integration (144B) |
-| [ai_steering_calc.asm](disasm/modules/68k/game/ai_steering_calc.asm) | $00A7A0-$00A7E0 | Arctangent steering approximation (66B) |
-| [entity_table_load.asm](disasm/modules/68k/game/entity_table_load.asm) | $00A7E2-$00A808 | ROM-to-RAM entity data loading (38B) |
-| [entity_table_load_mode.asm](disasm/modules/68k/game/entity_table_load_mode.asm) | $00A80A-$00A83C | Mode-indexed table loading (50B) |
-| [bulk_table_copy.asm](disasm/modules/68k/game/bulk_table_copy.asm) | $00A83E-$00A866 | Two-block ROM-to-RAM copy (40B) |
-| [obj_state_return.asm](disasm/modules/68k/game/obj_state_return.asm) | $00A8F8-$00A970 | Dual-path position computation (120B) |
-| [effect_countdown.asm](disasm/modules/68k/game/effect_countdown.asm) | $00AC3E-$00ACBE | Timer management + effect trigger (128B) |
-| [race_mode_flag_set.asm](disasm/modules/68k/game/race_mode_flag_set.asm) | $00ACC0-$00ACD2 | Mode bit to flag conversion (20B) |
-| [ai_target_check.asm](disasm/modules/68k/game/ai_target_check.asm) | $00ACD4-$00AD12 | Entity slot validation with chaining (64B) |
-
-**Translation Format:**
-```asm
-; Constants at top with EQU
-VINT_STATE      equ     $C87A   ; V-INT state flag (word)
-ADAPTER_BASE    equ     $A15100 ; 32X adapter control
-
-; Code preserves original bytes for verification
-vint_handler:
-        tst.w   VINT_STATE.w                    ; $001684: $4A78 $C87A - Test state
-        beq.s   vint_early_exit                 ; $001688: $6726       - Exit if 0
-```
-
-**Key Discoveries:**
-- Object structure has 150+ byte offsets (position at $30/$34, velocity at $44/$46, angles at $5A-$5E)
-- Trig tables at $0093A02C (sine) and $0093A42C (cosine) with 1024 entries each
-- V-INT state machine uses jump table with 16 handler functions
+- Size: 3,145,728 bytes (original)
+- MD5: `72b1ad0f949f68da7d0a6339ecd51a3f`
 
 ## Technical Details
 
 | Component | Details |
 |-----------|---------|
 | Platform | Sega 32X (Mega Drive add-on) |
-| 68000 CPU | 12.5 MHz, game logic & coordination |
-| SH2 CPUs | 2x 23 MHz, 3D rendering |
+| 68000 CPU | 7.67 MHz, game logic & coordination |
+| SH2 CPUs | 2x 23.01 MHz, 3D rendering |
 | Z80 CPU | Sound processing |
-| ROM Size | 4 MB (4,194,304 bytes) with 1MB SH2 expansion |
-| Original Size | 3 MB (3,145,728 bytes) |
-| Original Frame Rate | ~20 FPS (architectural limit due to blocking sync) |
-| Current Status | 75 SH2 + 693 68K modules (571 translated to assembly) + 17 module categories, parallel hooks prepared |
-
-## 4MB Expansion ROM
-
-The project builds the full **4MB official cartridge size** with a dedicated 1MB expansion section containing SH2 parallel processing infrastructure:
-
-```
-Address Range    Size      Contents
-──────────────────────────────────────────
-$000000-$2FFFFF  3.0 MB    Original Game Code
-$300000-$3FFFFF  1.0 MB    SH2 Expansion Space
-──────────────────────────────────────────
-Total            4.0 MB    Full Cartridge
-```
-
-### Expansion ROM Layout
-
-| Address | Size | Function |
-|---------|------|----------|
-| $300028 | 22B | `handler_frame_sync` |
-| $300050 | 44B | `master_dispatch_hook` (skips COMM7 for cmd 0x16) |
-| $300100 | 96B | `func_021_optimized` (func_016 inlined) |
-| $300200 | 76B | `slave_work_wrapper` (command dispatch) |
-| $300280 | 44B | `slave_test_func` (reads params, calls func_021_optimized) |
-
-### Key Memory Locations
-
-| Address | Purpose |
-|---------|---------|
-| $0234C8 | func_021 trampoline (captures params, signals Slave) |
-| $2203E000 | Parameter block (R14, R7, R8, R5 - 16 bytes) |
-| $2000402E | COMM7 (Master→Slave signal) |
-| $2000402A | COMM5 (vertex transform counter, +101 per call) |
-
-**Infrastructure Status:**
-- ✅ **Expansion code ready** - Parallel processing handlers implemented at $300000+
-- ✅ **func_021_optimized** - Vertex transform with func_016 inlined at $300100
-- ⏳ **Hooks not activated** - Dispatch redirect and trampoline not yet patched
-- ✅ **Backward compatible** - Original 3MB code section unchanged, plays identically
-
-**Critical Constraint:** The expansion section ($300000-$3FFFFF) is executed by SH2 processors only. It cannot contain 68K assembly mnemonics. Use raw SH2 opcodes in `dc.w` format or padding.
-
-See [ROM_EXPANSION_4MB_IMPLEMENTATION.md](analysis/architecture/ROM_EXPANSION_4MB_IMPLEMENTATION.md) for complete details.
-
-## Custom PicoDrive Profiler
-
-A cycle-accurate profiling system built from scratch on top of PicoDrive's libretro core. This is the **only working 32X profiler** that provides per-CPU cycle counting and PC-level hotspot analysis.
-
-**Location:** [tools/libretro-profiling/](tools/libretro-profiling/)
-
-### Features
-- **Frame-level profiling** - Cycles per frame for all 3 CPUs (68K, Master SH2, Slave SH2)
-- **PC-level hotspot analysis** - Identifies which addresses consume the most cycles
-- **Headless frontend** - Automated profiling without GUI
-- **Autoplay support** - Navigates menus automatically for consistent profiling
-
-### Quick Start
-```bash
-cd tools/libretro-profiling
-./build_with_68k_profiling.sh
-
-# Profile 2400 frames
-VRD_PROFILE_PC=1 VRD_PROFILE_PC_LOG=profile.csv \
-./profiling_frontend ../../build/vr_rebuild.32x 2400 --autoplay
-
-# Analyze results
-python3 analyze_pc_profile.py profile.csv
-```
-
-### Key Findings
-- **68K**: 127,987 cycles/frame @ 7.67 MHz (100% utilization - bottleneck)
-- **Master SH2**: 139,568 cycles/frame @ 23 MHz (36% utilization)
-- **Slave SH2**: 299,958 cycles/frame @ 23 MHz (78% utilization)
-
-**Note:** This profiler deserves its own dedicated repository - it's useful for any 32X development project.
-
-## Recent Milestones
-
-### v5.0.0 - Full 68K Modularization & Translation (2026-02-07)
-- **693 68K functions modularized** across all 12 code sections (79,940 bytes)
-- **571 modules auto-translated** from dc.w to proper assembly mnemonics
-- **16,022 instructions** converted to readable mnemonics (80% rate)
-- **1,615 local labels** generated for internal branch targets
-- New `translate_modules.py` tool with two-pass disassembly and data-module detection
-- **All verified byte-identical** to original ROM
-
-### v4.5.0 - 68K Translation Pass (2026-02-06)
-- **14 68K game functions hand-translated** in code_a200 section (1,306 bytes)
-- AI logic (opponent select, steering calc, target check)
-- Physics (integration, lookup tables, speed calc/interpolation)
-- Entity management (table load, bulk copy, state return, effect countdown)
-- **Key discoveries**: ASL vs LSL opcode differences, BSR.W vs JSR (d16,PC) encoding
-
-### v4.4.0 - Disassembler Phase 1 Complete (2026-02-01)
-- **Memory map system** - JSON-based code/data boundary configuration
-- **Branch reachability** - 56 entry points → 3,729 addresses traced
-- **Byte-identical output** - Pure code sections verified to match original ROM
-- **Resolution strategy** - data_regions → code_regions → branch_reachable → dc.w
-
-Usage:
-```bash
-python3 tools/disasm_to_asm.py build/vr_rebuild.32x 1000 5000 --map tools/vrd_memory_map.json
-```
-
-### v4.3.1 - 68K Translation Progress
-- **17 68K module categories** translated with full annotations
-- **75 SH2 functions** converted to proper assembly
-- **Cross-validated documentation** - All analysis docs verified
+| ROM Size | 4 MB (4,194,304 bytes) with 1MB expansion |
+| Original Frame Rate | ~20 FPS (blocking sync bottleneck) |
+| Target Frame Rate | 60 FPS |
 
 ## Credits
 
 - **Original Game**: SEGA (1994)
 - **Disassembly & Analysis**: Claude Code with human guidance
 - **Tools**: vasm by Volker Barthelmann & Frank Wille
-- **Profiler**: Custom PicoDrive libretro patches (built from scratch)
+- **Profiler**: Custom PicoDrive libretro patches
 
 ## License
 
-Reverse engineering project for educational and preservation purposes. Original game © SEGA 1994. No copyrighted content included - you must provide your own legal ROM.
-
----
-
-**Verification**: `MD5: 72b1ad0f949f68da7d0a6339ecd51a3f`
+Reverse engineering project for educational and preservation purposes. Original game © SEGA 1994. No copyrighted content included — you must provide your own legal ROM.

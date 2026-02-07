@@ -1,7 +1,16 @@
 ; ============================================================================
-; Fn 2200 068
+; Vint 068 (auto-analyzed)
 ; ROM Range: $003D5A-$003D9A (64 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: vint
+; Purpose: Object (A1): +$04 (speed_index/velocity), +$08
+;
+; Entry: A1 = object/entity pointer
+; Uses: A1
+; Object fields:
+;   +$04: speed_index/velocity
+;   +$08: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_2200_068:

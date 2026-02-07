@@ -1,7 +1,21 @@
 ; ============================================================================
-; Fn C200 011
+; Scene Fastcopy16 011 (auto-analyzed)
 ; ROM Range: $00C7C2-$00C8E6 (292 bytes)
-; Source: code_c200
+; ============================================================================
+; Category: game
+; Purpose: RAM: $C8CC (race_substate)
+;   Calls: FastCopy16
+;   Object (A1): +$00
+;
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, D3, D4, D7, A0, A1, A2
+; RAM:
+;   $C8CC: race_substate
+; Calls:
+;   $004922: FastCopy16
+; Object fields:
+;   +$00: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_c200_011:

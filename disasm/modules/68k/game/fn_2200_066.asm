@@ -1,7 +1,21 @@
 ; ============================================================================
-; Fn 2200 066
+; Vint 066 (auto-analyzed)
 ; ROM Range: $003CCE-$003D22 (84 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: vint
+; Purpose: RAM: $C8C8 (vint_state)
+;   Object (A1): +$00, +$14 (effect_duration), +$28, +$3C (heading_mirror)
+;
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, A1, A2, A3
+; RAM:
+;   $C8C8: vint_state
+; Object fields:
+;   +$00: [unknown]
+;   +$14: effect_duration
+;   +$28: [unknown]
+;   +$3C: heading_mirror
+; Confidence: medium
 ; ============================================================================
 
 fn_2200_066:

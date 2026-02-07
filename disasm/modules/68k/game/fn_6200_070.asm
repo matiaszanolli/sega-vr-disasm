@@ -1,7 +1,24 @@
 ; ============================================================================
-; Fn 6200 070
+; Sh2 Comm 070 (auto-analyzed)
 ; ROM Range: $008170-$0081C0 (80 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: sh2
+; Purpose: RAM: $C89C (sh2_comm_state), $C8C8 (vint_state)
+;   Object (A0): +$24, +$3C (heading_mirror), +$40 (heading_angle), +$62, +$92 (param_92), +$E5
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, A0
+; RAM:
+;   $C89C: sh2_comm_state
+;   $C8C8: vint_state
+; Object fields:
+;   +$24: [unknown]
+;   +$3C: heading_mirror
+;   +$40: heading_angle
+;   +$62: [unknown]
+;   +$92: param_92
+;   +$E5: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_6200_070:

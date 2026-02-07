@@ -1,7 +1,25 @@
 ; ============================================================================
-; Fn 6200 057
+; Sh2 Comm 057 (auto-analyzed)
 ; ROM Range: $007E0C-$007E74 (104 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: sh2
+; Purpose: RAM: $C89C (sh2_comm_state)
+;   Object (A0): +$14 (effect_duration), +$1C, +$1D, +$40 (heading_angle), +$56, +$57
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D1, A0
+; RAM:
+;   $C89C: sh2_comm_state
+; Object fields:
+;   +$14: effect_duration
+;   +$1C: [unknown]
+;   +$1D: [unknown]
+;   +$40: heading_angle
+;   +$56: [unknown]
+;   +$57: [unknown]
+;   +$62: [unknown]
+;   +$64: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_6200_057:

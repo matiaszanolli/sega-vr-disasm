@@ -1,7 +1,22 @@
 ; ============================================================================
-; Fn A200 016
+; Ai 016 (auto-analyzed)
 ; ROM Range: $00B43C-$00B478 (60 bytes)
-; Source: code_a200
+; ============================================================================
+; Category: game
+; Purpose: Object (A1, A3): +$01, +$02 (flags/type), +$03, +$04 (speed_index/velocity), +$05, +$06 (speed)
+;
+; Entry: A1 = object/entity pointer
+; Entry: A3 = object/entity pointer
+; Uses: D0, A1, A3
+; Object fields:
+;   +$01: [unknown]
+;   +$02: flags/type
+;   +$03: [unknown]
+;   +$04: speed_index/velocity
+;   +$05: [unknown]
+;   +$06: speed
+;   +$07: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_a200_016:

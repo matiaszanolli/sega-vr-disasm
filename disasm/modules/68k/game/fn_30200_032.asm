@@ -1,7 +1,21 @@
 ; ============================================================================
-; Fn 30200 032
+; Fm 032 (auto-analyzed)
 ; ROM Range: $030E20-$030ECE (174 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: sound
+; Purpose: Orchestrator calling 9 subroutines
+;   Object (A0, A5): +$00, +$04 (speed_index/velocity), +$08, +$0E (param_e), +$10
+;
+; Entry: A0 = object/entity pointer
+; Entry: A5 = object/entity pointer
+; Uses: D1, D5, D6, A0, A3, A4, A5, A6
+; Object fields:
+;   +$00: [unknown]
+;   +$04: speed_index/velocity
+;   +$08: [unknown]
+;   +$0E: param_e
+;   +$10: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_30200_032:

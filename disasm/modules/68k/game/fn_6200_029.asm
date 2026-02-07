@@ -1,7 +1,22 @@
 ; ============================================================================
-; Fn 6200 029
+; Obj Race 029 (auto-analyzed)
 ; ROM Range: $0073E8-$00742C (68 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: game
+; Purpose: RAM: $C8A0 (race_state)
+;   Object (A0, A1, A2): +$00, +$04 (speed_index/velocity), +$E4
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Entry: A2 = object/entity pointer
+; Uses: D0, D1, D2, D3, D4, D5, A0, A1
+; RAM:
+;   $C8A0: race_state
+; Object fields:
+;   +$00: [unknown]
+;   +$04: speed_index/velocity
+;   +$E4: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_6200_029:

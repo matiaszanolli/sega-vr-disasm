@@ -1,7 +1,15 @@
 ; ============================================================================
-; Fn 8200 005
+; Display Status Code 005 (auto-analyzed)
 ; ROM Range: $0082E0-$0082E8 (8 bytes)
-; Source: code_8200
+; ============================================================================
+; Category: display
+; Purpose: Small leaf function
+;   RAM: $68F0 (status_code)
+;
+; Uses: D7
+; RAM:
+;   $68F0: status_code
+; Confidence: medium
 ; ============================================================================
 
 fn_8200_005:

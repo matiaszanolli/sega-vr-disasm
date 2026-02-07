@@ -1,7 +1,16 @@
 ; ============================================================================
-; Fn 200 028
+; Input Button Remap 028 (auto-analyzed)
 ; ROM Range: $00178E-$0017D6 (72 bytes)
-; Source: code_200
+; ============================================================================
+; Category: input
+; Purpose: Reads controller input
+;   Calls: zbus_request, button_remap
+;
+; Uses: D0, D2, A0, A1, A2, A3
+; Calls:
+;   $0017EE: button_remap
+;   $00185E: zbus_request
+; Confidence: high
 ; ============================================================================
 
 fn_200_028:

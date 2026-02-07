@@ -1,7 +1,16 @@
 ; ============================================================================
-; Fn 10200 007
+; Sh2 Comm 007 (auto-analyzed)
 ; ROM Range: $011A70-$011B08 (152 bytes)
-; Source: code_10200
+; ============================================================================
+; Category: sh2
+; Purpose: Accesses 32X registers: COMM0, COMM4, COMM6, COMM5
+;   Object (A1): +$00
+;
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, D2, D3, A0, A1, A2, A3
+; Object fields:
+;   +$00: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_10200_007:

@@ -1,7 +1,22 @@
 ; ============================================================================
-; Fn E200 011
+; Menu Dispatch 011 (auto-analyzed)
 ; ROM Range: $010084-$01017A (246 bytes)
-; Source: code_e200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   RAM: $C87E (game_state)
+;   Calls: object_update
+;   Object (A0): +$0E (param_e)
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D1, D2, D3, D4, D5, D6, A0
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $00B684: object_update
+; Object fields:
+;   +$0E: param_e
+; Confidence: high
 ; ============================================================================
 
 fn_e200_011:

@@ -1,7 +1,16 @@
 ; ============================================================================
-; Fn 30200 008
+; Fm Dispatch 008 (auto-analyzed)
 ; ROM Range: $0303E8-$030402 (26 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: sound
+; Purpose: State dispatcher using jump table
+;   Object (A5): +$28
+;
+; Entry: A5 = object/entity pointer
+; Uses: D0, A5
+; Object fields:
+;   +$28: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_30200_008:

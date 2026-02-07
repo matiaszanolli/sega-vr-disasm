@@ -1,7 +1,17 @@
 ; ============================================================================
-; Fn C200 025
+; Scene Object Update 025 (auto-analyzed)
 ; ROM Range: $00D8B8-$00D8CC (20 bytes)
-; Source: code_c200
+; ============================================================================
+; Category: game
+; Purpose: Short helper function
+;   RAM: $C87E (game_state)
+;   Calls: object_update
+;
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $00B684: object_update
+; Confidence: high
 ; ============================================================================
 
 fn_c200_025:

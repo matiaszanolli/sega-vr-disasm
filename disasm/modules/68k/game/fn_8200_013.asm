@@ -1,7 +1,30 @@
 ; ============================================================================
-; Fn 8200 013
+; Display Num To Decimal 013 (auto-analyzed)
 ; ROM Range: $0083E4-$0084F4 (272 bytes)
-; Source: code_8200
+; ============================================================================
+; Category: display
+; Purpose: Orchestrator calling 4 subroutines
+;   RAM: $C8AA (scene_state), $68F8 (time_display_buf), $9F00 (obj_table_3), $68F0 (status_code)
+;   Calls: num_to_decimal
+;   Object (A0, A1, A2): +$00, +$02 (flags/type), +$04 (speed_index/velocity), +$07
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Entry: A2 = object/entity pointer
+; Uses: D0, D1, D7, A0, A1, A2, A3
+; RAM:
+;   $68F0: status_code
+;   $68F8: time_display_buf
+;   $9F00: obj_table_3
+;   $C8AA: scene_state
+; Calls:
+;   $00839A: num_to_decimal
+; Object fields:
+;   +$00: [unknown]
+;   +$02: flags/type
+;   +$04: speed_index/velocity
+;   +$07: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_8200_013:

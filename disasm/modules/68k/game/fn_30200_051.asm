@@ -1,7 +1,27 @@
 ; ============================================================================
-; Fn 30200 051
+; Fm Dispatch 051 (auto-analyzed)
 ; ROM Range: $031352-$0313CA (120 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: sound
+; Purpose: State dispatcher using jump table
+;   Calls: z80_bus_request, fm_write_conditional
+;   Object (A5, A6): +$09, +$0B, +$0E (param_e), +$20, +$25, +$30 (x_position)
+;
+; Entry: A5 = object/entity pointer
+; Entry: A6 = object/entity pointer
+; Uses: D0, D1, D3, D4, D5, A1, A2, A5
+; Calls:
+;   $030CCC: fm_write_conditional
+;   $030D1C: z80_bus_request
+; Object fields:
+;   +$09: [unknown]
+;   +$0B: [unknown]
+;   +$0E: param_e
+;   +$20: [unknown]
+;   +$25: [unknown]
+;   +$30: x_position
+;   +$34: y_position
+; Confidence: high
 ; ============================================================================
 
 fn_30200_051:

@@ -1,7 +1,26 @@
 ; ============================================================================
-; Fn 30200 006
+; Fm Write Port0 006 (auto-analyzed)
 ; ROM Range: $030358-$0303CC (116 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: sound
+; Purpose: Calls: z80_bus_request, fm_write_port0
+;   Object (A0, A5, A6): +$01, +$03, +$0E (param_e), +$20, +$26, +$28
+;
+; Entry: A0 = object/entity pointer
+; Entry: A5 = object/entity pointer
+; Entry: A6 = object/entity pointer
+; Uses: D0, D1, D3, D5, D6, A0, A1, A2
+; Calls:
+;   $030CD8: fm_write_port0
+;   $030D1C: z80_bus_request
+; Object fields:
+;   +$01: [unknown]
+;   +$03: [unknown]
+;   +$0E: param_e
+;   +$20: [unknown]
+;   +$26: [unknown]
+;   +$28: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_30200_006:

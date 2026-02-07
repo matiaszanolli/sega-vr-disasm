@@ -1,7 +1,24 @@
 ; ============================================================================
-; Fn 30200 003
+; Fm Sequence Process 003 (auto-analyzed)
 ; ROM Range: $03029E-$0302EE (80 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: sound
+; Purpose: Orchestrator calling 3 subroutines
+;   Calls: fm_sequence_process, z80_bus_request, fm_write_conditional
+;   Object (A5, A6): +$01, +$0A (param_a), +$0F
+;
+; Entry: A5 = object/entity pointer
+; Entry: A6 = object/entity pointer
+; Uses: D0, D1, D6, A0, A4, A5, A6
+; Calls:
+;   $0302EE: fm_sequence_process
+;   $030CCC: fm_write_conditional
+;   $030D1C: z80_bus_request
+; Object fields:
+;   +$01: [unknown]
+;   +$0A: param_a
+;   +$0F: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_30200_003:

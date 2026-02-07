@@ -1,7 +1,18 @@
 ; ============================================================================
-; Fn 10200 008
+; Name Entry 008 (auto-analyzed)
 ; ROM Range: $011B6A-$011C7E (276 bytes)
-; Source: code_10200
+; ============================================================================
+; Category: game
+; Purpose: Object (A0, A1): +$01, +$02 (flags/type), +$03
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, D2, D3, D4, D5, D6, D7
+; Object fields:
+;   +$01: [unknown]
+;   +$02: flags/type
+;   +$03: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_10200_008:

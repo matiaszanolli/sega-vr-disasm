@@ -1,7 +1,15 @@
 ; ============================================================================
-; Fn 4200 026
+; Logic Poll Controllers 026 (auto-analyzed)
 ; ROM Range: $0055FE-$005618 (26 bytes)
-; Source: code_4200
+; ============================================================================
+; Category: game
+; Purpose: Orchestrator calling 3 subroutines
+;   Calls: sfx_queue_process, poll_controllers
+;
+; Calls:
+;   $00179E: poll_controllers
+;   $0021CA: sfx_queue_process
+; Confidence: low
 ; ============================================================================
 
 fn_4200_026:

@@ -1,7 +1,19 @@
 ; ============================================================================
-; Fn C200 021
+; Scene Sh2 Comm 021 (auto-analyzed)
 ; ROM Range: $00D1D4-$00D3FC (552 bytes)
-; Source: code_c200
+; ============================================================================
+; Category: game
+; Purpose: RAM: $C8A0 (race_state), $C89C (sh2_comm_state)
+;   Object (A0): +$00
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D1, D2, D4, D7, A0, A1, A2
+; RAM:
+;   $C89C: sh2_comm_state
+;   $C8A0: race_state
+; Object fields:
+;   +$00: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_c200_021:

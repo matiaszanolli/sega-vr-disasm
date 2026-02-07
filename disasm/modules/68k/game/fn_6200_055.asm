@@ -1,7 +1,18 @@
 ; ============================================================================
-; Fn 6200 055
+; Obj Velocity 055 (auto-analyzed)
 ; ROM Range: $007D56-$007D82 (44 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: game
+; Purpose: Object (A0): +$04 (speed_index/velocity), +$1E, +$40 (heading_angle), +$8C (velocity_x)
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, A0
+; Object fields:
+;   +$04: speed_index/velocity
+;   +$1E: [unknown]
+;   +$40: heading_angle
+;   +$8C: velocity_x
+; Confidence: medium
 ; ============================================================================
 
 fn_6200_055:

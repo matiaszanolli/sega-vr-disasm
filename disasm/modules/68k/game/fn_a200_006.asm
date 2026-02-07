@@ -1,7 +1,18 @@
 ; ============================================================================
-; Fn A200 006
+; Ai 006 (auto-analyzed)
 ; ROM Range: $00B15E-$00B1B8 (90 bytes)
-; Source: code_a200
+; ============================================================================
+; Category: game
+; Purpose: Object (A0, A1): +$00, +$01, +$09
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, D3, A0, A1, A2
+; Object fields:
+;   +$00: [unknown]
+;   +$01: [unknown]
+;   +$09: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_a200_006:

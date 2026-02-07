@@ -1,7 +1,26 @@
 ; ============================================================================
-; Fn A200 010
+; Sh2 Comm Dispatch 010 (auto-analyzed)
 ; ROM Range: $00B2FC-$00B36E (114 bytes)
-; Source: code_a200
+; ============================================================================
+; Category: sh2
+; Purpose: State dispatcher using jump table
+;   RAM: $C89E (sh2_comm_sub)
+;   Object (A0, A1, A3): +$00, +$01, +$02 (flags/type), +$03, +$06 (speed), +$E2
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Entry: A3 = object/entity pointer
+; Uses: D0, D1, D2, A0, A1, A3
+; RAM:
+;   $C89E: sh2_comm_sub
+; Object fields:
+;   +$00: [unknown]
+;   +$01: [unknown]
+;   +$02: flags/type
+;   +$03: [unknown]
+;   +$06: speed
+;   +$E2: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_a200_010:

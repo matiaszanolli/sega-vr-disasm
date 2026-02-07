@@ -1,7 +1,18 @@
 ; ============================================================================
-; Fn 2200 047
+; Vint Dispatch 047 (auto-analyzed)
 ; ROM Range: $00337A-$0033E4 (106 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: vint
+; Purpose: State dispatcher using jump table
+;   Object (A0, A4): +$2C, +$88
+;
+; Entry: A0 = object/entity pointer
+; Entry: A4 = object/entity pointer
+; Uses: D0, D2, D4, A0, A1, A2, A4, A6
+; Object fields:
+;   +$2C: [unknown]
+;   +$88: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_2200_047:

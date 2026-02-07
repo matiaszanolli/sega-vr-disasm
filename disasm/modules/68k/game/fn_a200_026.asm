@@ -1,7 +1,20 @@
 ; ============================================================================
-; Fn A200 026
+; Gfx Camera 026 (auto-analyzed)
 ; ROM Range: $00B770-$00B7E6 (118 bytes)
-; Source: code_a200
+; ============================================================================
+; Category: graphics
+; Purpose: RAM: $C048 (camera_state), $C0A2 (gfx_mode), $C972 (anim_state)
+;   Object (A1): +$00
+;
+; Entry: A1 = object/entity pointer
+; Uses: D0, A0, A1, A2
+; RAM:
+;   $C048: camera_state
+;   $C0A2: gfx_mode
+;   $C972: anim_state
+; Object fields:
+;   +$00: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_a200_026:

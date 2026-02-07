@@ -1,7 +1,29 @@
 ; ============================================================================
-; Fn 2200 063
+; Vint Obj Table 3 063 (auto-analyzed)
 ; ROM Range: $003B28-$003C1A (242 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: game
+; Purpose: RAM: $9F00 (obj_table_3), $C8A0 (race_state), $C89C (sh2_comm_state)
+;   Object (A0, A1, A2): +$00, +$02 (flags/type), +$04 (speed_index/velocity), +$06 (speed), +$0A (param_a), +$0E (param_e)
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Entry: A2 = object/entity pointer
+; Uses: D0, D1, D2, D3, D4, D5, D7, A0
+; RAM:
+;   $9F00: obj_table_3
+;   $C89C: sh2_comm_state
+;   $C8A0: race_state
+; Object fields:
+;   +$00: [unknown]
+;   +$02: flags/type
+;   +$04: speed_index/velocity
+;   +$06: speed
+;   +$0A: param_a
+;   +$0E: param_e
+;   +$10: [unknown]
+;   +$30: x_position
+; Confidence: medium
 ; ============================================================================
 
 fn_2200_063:

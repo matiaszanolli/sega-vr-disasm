@@ -1,7 +1,15 @@
 ; ============================================================================
-; Fn 2200 007
+; Vint Dispatch 007 (auto-analyzed)
 ; ROM Range: $00232A-$0023C2 (152 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: vint
+; Purpose: State dispatcher using jump table
+;   RAM: $C8C8 (vint_state)
+;
+; Uses: D0, D1, A1
+; RAM:
+;   $C8C8: vint_state
+; Confidence: medium
 ; ============================================================================
 
 fn_2200_007:

@@ -1,7 +1,16 @@
 ; ============================================================================
-; Fn 6200 052
+; Obj 052 (auto-analyzed)
 ; ROM Range: $007C4A-$007C56 (12 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: game
+; Purpose: Small leaf function
+;   Object (A0): +$04 (speed_index/velocity)
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, A0
+; Object fields:
+;   +$04: speed_index/velocity
+; Confidence: low
 ; ============================================================================
 
 fn_6200_052:

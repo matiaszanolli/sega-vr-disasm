@@ -1,7 +1,26 @@
 ; ============================================================================
-; Fn 30200 016
+; Vdp 016 (auto-analyzed)
 ; ROM Range: $030852-$030936 (228 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: vdp
+; Purpose: Accesses VDP registers
+;   Object (A0, A1, A5, A6): +$00, +$01, +$02 (flags/type), +$04 (speed_index/velocity), +$08, +$0D
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Entry: A5 = object/entity pointer
+; Entry: A6 = object/entity pointer
+; Uses: D0, D2, D3, D4, D5, D6, D7, A0
+; Object fields:
+;   +$00: [unknown]
+;   +$01: [unknown]
+;   +$02: flags/type
+;   +$04: speed_index/velocity
+;   +$08: [unknown]
+;   +$0D: [unknown]
+;   +$0E: param_e
+;   +$27: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_30200_016:

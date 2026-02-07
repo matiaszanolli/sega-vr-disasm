@@ -1,7 +1,15 @@
 ; ============================================================================
-; Fn 30200 013
+; Fm Dispatch 013 (auto-analyzed)
 ; ROM Range: $0305BA-$03061C (98 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: sound
+; Purpose: State dispatcher using jump table
+;   Calls: z80_bus_request
+;
+; Uses: D7
+; Calls:
+;   $030D1C: z80_bus_request
+; Confidence: medium
 ; ============================================================================
 
 fn_30200_013:

@@ -1,7 +1,19 @@
 ; ============================================================================
-; Fn 12200 037
+; Sh2 Comm Send Cmd 037 (auto-analyzed)
 ; ROM Range: $013C30-$013CBA (138 bytes)
-; Source: code_12200
+; ============================================================================
+; Category: sh2
+; Purpose: Accesses 32X registers: COMM0, COMM6, COMM4
+;   RAM: $C87E (game_state)
+;   Calls: dma_transfer, sh2_send_cmd
+;
+; Uses: D0, D1, A0, A1
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $00E35A: sh2_send_cmd
+;   $00E52C: dma_transfer
+; Confidence: high
 ; ============================================================================
 
 fn_12200_037:

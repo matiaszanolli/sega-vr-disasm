@@ -1,7 +1,27 @@
 ; ============================================================================
-; Fn 2200 079
+; Display Dispatch 079 (auto-analyzed)
 ; ROM Range: $004084-$00413A (182 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: display
+; Purpose: State dispatcher using jump table
+;   RAM: $C048 (camera_state), $C07C (input_state), $C050 (scroll_state), $6960 (display_state_flag)
+;   Object (A2): +$00, +$04 (speed_index/velocity), +$06 (speed), +$08, +$10
+;
+; Entry: A2 = object/entity pointer
+; Uses: D0, A0, A1, A2
+; RAM:
+;   $6960: display_state_flag
+;   $6970: race_mode_flag
+;   $C048: camera_state
+;   $C050: scroll_state
+;   $C07C: input_state
+; Object fields:
+;   +$00: [unknown]
+;   +$04: speed_index/velocity
+;   +$06: speed
+;   +$08: [unknown]
+;   +$10: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_2200_079:

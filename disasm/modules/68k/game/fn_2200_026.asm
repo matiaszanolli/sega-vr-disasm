@@ -1,7 +1,33 @@
 ; ============================================================================
-; Fn 2200 026
+; Obj Render Check 026 (auto-analyzed)
 ; ROM Range: $002BB0-$002C9A (234 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: object
+; Purpose: Orchestrator calling 8 subroutines
+;   RAM: $9F00 (obj_table_3)
+;   Calls: obj_transform_copy, obj_texture_select, obj_position_copy, obj_render_flags_set
+;   Object (A0, A1): +$14 (effect_duration), +$28, +$3C (heading_mirror), +$50, +$C0 (render_flags), +$E4
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, A0, A1, A2
+; RAM:
+;   $9F00: obj_table_3
+; Calls:
+;   $002C9A: obj_render_check
+;   $002CDC: obj_transform_copy
+;   $002DCA: obj_texture_select
+;   $002F04: obj_position_copy
+;   $003010: obj_render_flags_set
+; Object fields:
+;   +$14: effect_duration
+;   +$28: [unknown]
+;   +$3C: heading_mirror
+;   +$50: [unknown]
+;   +$C0: render_flags
+;   +$E4: [unknown]
+;   +$E5: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_2200_026:

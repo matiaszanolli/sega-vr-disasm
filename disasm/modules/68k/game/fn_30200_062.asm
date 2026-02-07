@@ -1,7 +1,20 @@
 ; ============================================================================
-; Fn 30200 062
+; Fm Conditional Write 062 (auto-analyzed)
 ; ROM Range: $0315F4-$031650 (92 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: sound
+; Purpose: Calls: fm_conditional_write
+;   Object (A5, A6): +$27, +$40 (heading_angle)
+;
+; Entry: A5 = object/entity pointer
+; Entry: A6 = object/entity pointer
+; Uses: D0, D1, D3, D4, A3, A5, A6
+; Calls:
+;   $030CA2: fm_conditional_write
+; Object fields:
+;   +$27: [unknown]
+;   +$40: heading_angle
+; Confidence: medium
 ; ============================================================================
 
 fn_30200_062:

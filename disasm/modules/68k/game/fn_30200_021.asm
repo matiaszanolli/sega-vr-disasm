@@ -1,7 +1,15 @@
 ; ============================================================================
-; Fn 30200 021
+; Fm Write Conditional 021 (auto-analyzed)
 ; ROM Range: $030B1C-$030B50 (52 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: sound
+; Purpose: Calls: z80_bus_request, fm_write_conditional
+;
+; Uses: D0, D1, D3, D4
+; Calls:
+;   $030CCC: fm_write_conditional
+;   $030D1C: z80_bus_request
+; Confidence: high
 ; ============================================================================
 
 fn_30200_021:

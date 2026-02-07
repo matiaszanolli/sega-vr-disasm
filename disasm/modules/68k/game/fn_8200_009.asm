@@ -1,7 +1,16 @@
 ; ============================================================================
-; Fn 8200 009
+; State 009 (auto-analyzed)
 ; ROM Range: $00837A-$00838A (16 bytes)
-; Source: code_8200
+; ============================================================================
+; Category: game
+; Purpose: Short helper function
+;   Object (A4): +$04 (speed_index/velocity)
+;
+; Entry: A4 = object/entity pointer
+; Uses: D0, D1, D5, A3, A4
+; Object fields:
+;   +$04: speed_index/velocity
+; Confidence: low
 ; ============================================================================
 
 fn_8200_009:

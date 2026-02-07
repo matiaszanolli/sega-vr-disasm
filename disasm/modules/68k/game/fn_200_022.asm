@@ -1,7 +1,20 @@
 ; ============================================================================
-; Fn 200 022
+; Tile Decompress Init 022 (auto-analyzed)
 ; ROM Range: $0014BE-$0014E0 (34 bytes)
-; Source: code_200
+; ============================================================================
+; Category: boot
+; Purpose: Short helper function
+;   Calls: tile_decompress_init
+;   Object (A0): +$04 (speed_index/velocity), +$08
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D1, D2, A0, A5
+; Calls:
+;   $0010F4: tile_decompress_init
+; Object fields:
+;   +$04: speed_index/velocity
+;   +$08: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_200_022:

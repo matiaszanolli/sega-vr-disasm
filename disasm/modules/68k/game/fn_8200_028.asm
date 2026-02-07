@@ -1,7 +1,20 @@
 ; ============================================================================
-; Fn 8200 028
+; State Ai Steering Calc 028 (auto-analyzed)
 ; ROM Range: $008EB6-$008ED6 (32 bytes)
-; Source: code_8200
+; ============================================================================
+; Category: game
+; Purpose: Short helper function
+;   Calls: ai_steering_calc
+;   Object (A0): +$30 (x_position), +$34 (y_position)
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D1, D2, D3, A0
+; Calls:
+;   $00A7A0: ai_steering_calc
+; Object fields:
+;   +$30: x_position
+;   +$34: y_position
+; Confidence: medium
 ; ============================================================================
 
 fn_8200_028:

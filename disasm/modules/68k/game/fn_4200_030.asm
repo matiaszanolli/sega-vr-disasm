@@ -1,7 +1,17 @@
 ; ============================================================================
-; Fn 4200 030
+; Logic Setdisplayparams 030 (auto-analyzed)
 ; ROM Range: $0056E4-$00573C (88 bytes)
-; Source: code_4200
+; ============================================================================
+; Category: game
+; Purpose: RAM: $C87E (game_state)
+;   Calls: SetDisplayParams
+;
+; Uses: D0
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $0049AA: SetDisplayParams
+; Confidence: high
 ; ============================================================================
 
 fn_4200_030:

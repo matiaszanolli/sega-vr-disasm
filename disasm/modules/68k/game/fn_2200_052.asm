@@ -1,7 +1,25 @@
 ; ============================================================================
-; Fn 2200 052
+; Vint Objs 052 (auto-analyzed)
 ; ROM Range: $0035B4-$0036C8 (276 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: game
+; Purpose: RAM: $6950 (obj_flags), $C89C (sh2_comm_state), $C8A0 (race_state), $C8C8 (vint_state)
+;   Object (A0, A1, A3): +$00, +$2C
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Entry: A3 = object/entity pointer
+; Uses: D0, D1, D2, A0, A1, A2, A3
+; RAM:
+;   $6950: obj_flags
+;   $C89C: sh2_comm_state
+;   $C8A0: race_state
+;   $C8C8: vint_state
+;   $C8CC: race_substate
+; Object fields:
+;   +$00: [unknown]
+;   +$2C: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_2200_052:

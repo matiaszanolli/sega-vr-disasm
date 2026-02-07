@@ -1,7 +1,23 @@
 ; ============================================================================
-; Fn 2200 023
+; Vint Velocity 023 (auto-analyzed)
 ; ROM Range: $002A72-$002AAA (56 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: game
+; Purpose: Object (A0, A1): +$14 (effect_duration), +$24, +$28, +$3C (heading_mirror), +$50, +$64
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, A0, A1
+; Object fields:
+;   +$14: effect_duration
+;   +$24: [unknown]
+;   +$28: [unknown]
+;   +$3C: heading_mirror
+;   +$50: [unknown]
+;   +$64: [unknown]
+;   +$8A: param_8a
+;   +$8C: velocity_x
+; Confidence: medium
 ; ============================================================================
 
 fn_2200_023:

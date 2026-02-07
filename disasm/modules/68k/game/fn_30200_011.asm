@@ -1,7 +1,18 @@
 ; ============================================================================
-; Fn 30200 011
+; Fm 011 (auto-analyzed)
 ; ROM Range: $030536-$03056A (52 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: sound
+; Purpose: Object (A0, A6): +$00, +$09, +$0A (param_a)
+;
+; Entry: A0 = object/entity pointer
+; Entry: A6 = object/entity pointer
+; Uses: D0, D1, D2, D3, A0, A1, A6
+; Object fields:
+;   +$00: [unknown]
+;   +$09: [unknown]
+;   +$0A: param_a
+; Confidence: low
 ; ============================================================================
 
 fn_30200_011:

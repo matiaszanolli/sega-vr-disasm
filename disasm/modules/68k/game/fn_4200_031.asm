@@ -1,7 +1,20 @@
 ; ============================================================================
-; Fn 4200 031
+; Vdp Dispatch 031 (auto-analyzed)
 ; ROM Range: $00573C-$005772 (54 bytes)
-; Source: code_4200
+; ============================================================================
+; Category: vdp
+; Purpose: State dispatcher using jump table
+;   Calls: sfx_queue_process, VDPSyncSH2
+;   Object (A2): +$78
+;
+; Entry: A2 = object/entity pointer
+; Uses: D0, A0, A1, A2
+; Calls:
+;   $0021CA: sfx_queue_process
+;   $0028C2: VDPSyncSH2
+; Object fields:
+;   +$78: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_4200_031:

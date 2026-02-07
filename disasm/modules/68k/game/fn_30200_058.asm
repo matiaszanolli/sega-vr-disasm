@@ -1,7 +1,17 @@
 ; ============================================================================
-; Fn 30200 058
+; Fm 058 (auto-analyzed)
 ; ROM Range: $031528-$03154E (38 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: sound
+; Purpose: Short helper function
+;   Object (A5): +$00, +$0D
+;
+; Entry: A5 = object/entity pointer
+; Uses: D0, A4, A5
+; Object fields:
+;   +$00: [unknown]
+;   +$0D: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_30200_058:

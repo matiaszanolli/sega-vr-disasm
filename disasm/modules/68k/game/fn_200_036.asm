@@ -1,7 +1,15 @@
 ; ============================================================================
-; Fn 200 036
+; Sh2 Comm Paletteramcopy 036 (auto-analyzed)
 ; ROM Range: $001C66-$001D0C (166 bytes)
-; Source: code_200
+; ============================================================================
+; Category: sh2
+; Purpose: Accesses 32X registers: COMM0, adapter_ctrl
+;   Calls: PaletteRAMCopy
+;
+; Uses: D0, D4, A5, A6
+; Calls:
+;   $002878: PaletteRAMCopy
+; Confidence: high
 ; ============================================================================
 
 fn_200_036:

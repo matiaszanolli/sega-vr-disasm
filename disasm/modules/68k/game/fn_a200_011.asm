@@ -1,7 +1,15 @@
 ; ============================================================================
-; Fn A200 011
+; Ai Dispatch 011 (auto-analyzed)
 ; ROM Range: $00B36E-$00B398 (42 bytes)
-; Source: code_a200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   RAM: $C8A0 (race_state)
+;
+; Uses: D0, A0, A1
+; RAM:
+;   $C8A0: race_state
+; Confidence: medium
 ; ============================================================================
 
 fn_a200_011:

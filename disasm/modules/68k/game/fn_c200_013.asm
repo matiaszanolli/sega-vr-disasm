@@ -1,7 +1,29 @@
 ; ============================================================================
-; Fn C200 013
+; Scene Race 013 (auto-analyzed)
 ; ROM Range: $00CA9A-$00CC06 (364 bytes)
-; Source: code_c200
+; ============================================================================
+; Category: game
+; Purpose: RAM: $C8C8 (vint_state), $C8CC (race_substate), $C8A0 (race_state)
+;   Object (A1, A2, A3, A4, A6): +$00, +$01, +$02 (flags/type), +$06 (speed), +$0E (param_e), +$10
+;
+; Entry: A1 = object/entity pointer
+; Entry: A2 = object/entity pointer
+; Entry: A3 = object/entity pointer
+; Entry: A4 = object/entity pointer
+; Entry: A6 = object/entity pointer
+; Uses: D0, D1, D4, D5, D7, A1, A2, A3
+; RAM:
+;   $C8A0: race_state
+;   $C8C8: vint_state
+;   $C8CC: race_substate
+; Object fields:
+;   +$00: [unknown]
+;   +$01: [unknown]
+;   +$02: flags/type
+;   +$06: speed
+;   +$0E: param_e
+;   +$10: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_c200_013:

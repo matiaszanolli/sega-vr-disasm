@@ -1,7 +1,17 @@
 ; ============================================================================
-; Fn 4200 020
+; Logic Animation Update 020 (auto-analyzed)
 ; ROM Range: $005348-$00535E (22 bytes)
-; Source: code_4200
+; ============================================================================
+; Category: game
+; Purpose: Short helper function
+;   RAM: $C87E (game_state)
+;   Calls: animation_update
+;
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $00B09E: animation_update
+; Confidence: medium
 ; ============================================================================
 
 fn_4200_020:

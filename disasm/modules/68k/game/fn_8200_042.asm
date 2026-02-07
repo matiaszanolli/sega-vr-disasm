@@ -1,7 +1,23 @@
 ; ============================================================================
-; Fn 8200 042
+; State Dispatch 042 (auto-analyzed)
 ; ROM Range: $009B82-$009C9C (282 bytes)
-; Source: code_8200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   Object (A0): +$04 (speed_index/velocity), +$80, +$82, +$84, +$86, +$98
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D1, A0
+; Object fields:
+;   +$04: speed_index/velocity
+;   +$80: [unknown]
+;   +$82: [unknown]
+;   +$84: [unknown]
+;   +$86: [unknown]
+;   +$98: [unknown]
+;   +$9A: [unknown]
+;   +$BE: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_8200_042:

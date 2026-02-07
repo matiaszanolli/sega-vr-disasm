@@ -1,7 +1,15 @@
 ; ============================================================================
-; Fn 200 037
+; Sh2 Comm Game 037 (auto-analyzed)
 ; ROM Range: $001D0C-$001DBE (178 bytes)
-; Source: code_200
+; ============================================================================
+; Category: sh2
+; Purpose: Accesses 32X registers: adapter_ctrl
+;   RAM: $C87E (game_state)
+;
+; Uses: D0, D4, A5, A6
+; RAM:
+;   $C87E: game_state
+; Confidence: high
 ; ============================================================================
 
 fn_200_037:

@@ -1,7 +1,29 @@
 ; ============================================================================
-; Fn C200 014
+; Scene Camera 014 (auto-analyzed)
 ; ROM Range: $00CC74-$00CD4C (216 bytes)
-; Source: code_c200
+; ============================================================================
+; Category: game
+; Purpose: RAM: $C048 (camera_state), $C89C (sh2_comm_state), $C8CC (race_substate), $C8C8 (vint_state)
+;   Object (A0, A1): +$00, +$18, +$2A, +$76, +$78, +$A4
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, A0, A1, A2
+; RAM:
+;   $C048: camera_state
+;   $C89C: sh2_comm_state
+;   $C8C8: vint_state
+;   $C8CC: race_substate
+; Object fields:
+;   +$00: [unknown]
+;   +$18: [unknown]
+;   +$2A: [unknown]
+;   +$76: [unknown]
+;   +$78: [unknown]
+;   +$A4: [unknown]
+;   +$A6: [unknown]
+;   +$AC: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_c200_014:

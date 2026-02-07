@@ -1,7 +1,21 @@
 ; ============================================================================
-; Fn 30200 034
+; Vdp 034 (auto-analyzed)
 ; ROM Range: $030F0E-$030F82 (116 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: vdp
+; Purpose: Accesses VDP registers
+;   Object (A0, A5): +$00, +$01, +$09, +$0B, +$0C
+;
+; Entry: A0 = object/entity pointer
+; Entry: A5 = object/entity pointer
+; Uses: D0, D6, A0, A5
+; Object fields:
+;   +$00: [unknown]
+;   +$01: [unknown]
+;   +$09: [unknown]
+;   +$0B: [unknown]
+;   +$0C: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_30200_034:

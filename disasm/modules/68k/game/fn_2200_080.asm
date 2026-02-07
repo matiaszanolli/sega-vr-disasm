@@ -1,7 +1,21 @@
 ; ============================================================================
-; Fn 2200 080
+; Input 080 (auto-analyzed)
 ; ROM Range: $00413A-$004168 (46 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: input
+; Purpose: RAM: $C07C (input_state), $C8AA (scene_state)
+;   Object (A2): +$04 (speed_index/velocity), +$06 (speed), +$08
+;
+; Entry: A2 = object/entity pointer
+; Uses: D0, A2
+; RAM:
+;   $C07C: input_state
+;   $C8AA: scene_state
+; Object fields:
+;   +$04: speed_index/velocity
+;   +$06: speed
+;   +$08: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_2200_080:

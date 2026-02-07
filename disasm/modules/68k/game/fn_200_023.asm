@@ -1,7 +1,16 @@
 ; ============================================================================
-; Fn 200 023
+; Init Dispatch 023 (auto-analyzed)
 ; ROM Range: $0014E0-$00154E (110 bytes)
-; Source: code_200
+; ============================================================================
+; Category: boot
+; Purpose: State dispatcher using jump table
+;   Object (A5): +$00
+;
+; Entry: A5 = object/entity pointer
+; Uses: D0, D1, D2, D6, A0, A2, A4, A5
+; Object fields:
+;   +$00: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_200_023:

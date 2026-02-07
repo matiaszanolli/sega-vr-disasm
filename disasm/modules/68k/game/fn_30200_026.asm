@@ -1,7 +1,16 @@
 ; ============================================================================
-; Fn 30200 026
+; Fm Write Conditional 026 (auto-analyzed)
 ; ROM Range: $030CA2-$030CBA (24 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: sound
+; Purpose: Short helper function
+;   Calls: z80_bus_request, fm_write_conditional
+;
+; Uses: A5
+; Calls:
+;   $030CCC: fm_write_conditional
+;   $030D1C: z80_bus_request
+; Confidence: high
 ; ============================================================================
 
 fn_30200_026:

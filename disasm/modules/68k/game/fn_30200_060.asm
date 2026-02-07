@@ -1,7 +1,15 @@
 ; ============================================================================
-; Fn 30200 060
+; Fm Conditional Write 060 (auto-analyzed)
 ; ROM Range: $031574-$031590 (28 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: sound
+; Purpose: Short helper function
+;   Calls: fm_conditional_write
+;
+; Uses: D0, D1, D3, A1, A4
+; Calls:
+;   $030CA2: fm_conditional_write
+; Confidence: medium
 ; ============================================================================
 
 fn_30200_060:

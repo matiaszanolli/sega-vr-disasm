@@ -1,7 +1,15 @@
 ; ============================================================================
-; Fn 30200 040
+; Fm Z80 Bus Request 040 (auto-analyzed)
 ; ROM Range: $031166-$03117C (22 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: sound
+; Purpose: Short helper function
+;   Calls: z80_bus_request
+;
+; Uses: D0, A4
+; Calls:
+;   $030D1C: z80_bus_request
+; Confidence: medium
 ; ============================================================================
 
 fn_30200_040:

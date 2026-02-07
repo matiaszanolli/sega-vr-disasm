@@ -1,7 +1,17 @@
 ; ============================================================================
-; Fn 8200 029
+; State Position 029 (auto-analyzed)
 ; ROM Range: $008ED6-$008EF4 (30 bytes)
-; Source: code_8200
+; ============================================================================
+; Category: game
+; Purpose: Short helper function
+;   Object (A0): +$32, +$34 (y_position)
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D2, D3, A0
+; Object fields:
+;   +$32: [unknown]
+;   +$34: y_position
+; Confidence: medium
 ; ============================================================================
 
 fn_8200_029:

@@ -1,7 +1,20 @@
 ; ============================================================================
-; Fn 4200 001
+; Input 001 (auto-analyzed)
 ; ROM Range: $004200-$004280 (128 bytes)
-; Source: code_4200
+; ============================================================================
+; Category: input
+; Purpose: RAM: $C07C (input_state)
+;   Object (A2, A3): +$00, +$08
+;
+; Entry: A2 = object/entity pointer
+; Entry: A3 = object/entity pointer
+; Uses: D0, D1, D5, D7, A0, A1, A2, A3
+; RAM:
+;   $C07C: input_state
+; Object fields:
+;   +$00: [unknown]
+;   +$08: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_4200_001:

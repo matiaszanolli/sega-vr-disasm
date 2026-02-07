@@ -1,7 +1,20 @@
 ; ============================================================================
-; Fn 12200 008
+; Camera Game 008 (auto-analyzed)
 ; ROM Range: $0136AA-$0136EA (64 bytes)
-; Source: code_12200
+; ============================================================================
+; Category: game
+; Purpose: RAM: $C87E (game_state)
+;   Object (A2, A4): +$77, +$89
+;
+; Entry: A2 = object/entity pointer
+; Entry: A4 = object/entity pointer
+; Uses: D0, D2, A2, A3, A4
+; RAM:
+;   $C87E: game_state
+; Object fields:
+;   +$77: [unknown]
+;   +$89: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_12200_008:

@@ -1,7 +1,34 @@
 ; ============================================================================
-; Fn 4200 009
+; Logic Pre Dispatch Common 009 (auto-analyzed)
 ; ROM Range: $004A32-$004C8A (600 bytes)
-; Source: code_4200
+; ============================================================================
+; Category: game
+; Purpose: Orchestrator calling 19 subroutines
+;   Accesses 32X registers: adapter_ctrl, COMM1, COMM0
+;   RAM: $C8A0 (race_state), $C8CC (race_substate), $C8AA (scene_state), $C89C (sh2_comm_state)
+;   Calls: SetDisplayParams, scene_transition, game_state_handler, race_state_read
+;   Object (A0, A1): +$00
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, A0, A1, A2, A5
+; RAM:
+;   $C87E: game_state
+;   $C89C: sh2_comm_state
+;   $C8A0: race_state
+;   $C8AA: scene_state
+;   $C8C8: vint_state
+;   $C8CC: race_substate
+; Calls:
+;   $002080: pre_dispatch_common
+;   $0020C6: sound_flag_handler
+;   $004998: WaitForVBlank
+;   $0049AA: SetDisplayParams
+;   $0058C8: sprite_input_check
+;   $005908: sprite_update_check
+; Object fields:
+;   +$00: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_4200_009:

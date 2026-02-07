@@ -1,7 +1,22 @@
 ; ============================================================================
-; Fn 10200 010
+; Name Entry Dma Transfer 010 (auto-analyzed)
 ; ROM Range: $010244-$01035C (280 bytes)
-; Source: code_10200
+; ============================================================================
+; Category: game
+; Purpose: Orchestrator calling 3 subroutines
+;   RAM: $C87E (game_state)
+;   Calls: dma_transfer
+;   Object (A0): +$00
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D1, D2, A0
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $00E52C: dma_transfer
+; Object fields:
+;   +$00: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_10200_010:

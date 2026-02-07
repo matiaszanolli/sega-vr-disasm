@@ -1,7 +1,34 @@
 ; ============================================================================
-; Fn 30200 014
+; Fm Init Channel 014 (auto-analyzed)
 ; ROM Range: $03061C-$03078C (368 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: sound
+; Purpose: Orchestrator calling 6 subroutines
+;   Accesses VDP registers
+;   Calls: fm_write_wrapper, z80_bus_request, fm_init_channel, fm_set_volume
+;   Object (A0, A1, A3, A4, A6): +$00, +$01, +$02 (flags/type), +$03, +$04 (speed_index/velocity), +$05
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Entry: A3 = object/entity pointer
+; Entry: A4 = object/entity pointer
+; Entry: A6 = object/entity pointer
+; Uses: D0, D1, D4, D5, D6, D7, A0, A1
+; Calls:
+;   $030C8A: fm_init_channel
+;   $030CBA: fm_write_wrapper
+;   $030D1C: z80_bus_request
+;   $030FB2: fm_set_volume
+; Object fields:
+;   +$00: [unknown]
+;   +$01: [unknown]
+;   +$02: flags/type
+;   +$03: [unknown]
+;   +$04: speed_index/velocity
+;   +$05: [unknown]
+;   +$08: [unknown]
+;   +$0A: param_a
+; Confidence: high
 ; ============================================================================
 
 fn_30200_014:

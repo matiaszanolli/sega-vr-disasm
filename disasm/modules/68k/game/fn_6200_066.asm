@@ -1,7 +1,22 @@
 ; ============================================================================
-; Fn 6200 066
+; Input 066 (auto-analyzed)
 ; ROM Range: $008032-$008054 (34 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: input
+; Purpose: Short helper function
+;   RAM: $C07C (input_state)
+;   Object (A0): +$24, +$26, +$2C, +$2E
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, A0
+; RAM:
+;   $C07C: input_state
+; Object fields:
+;   +$24: [unknown]
+;   +$26: [unknown]
+;   +$2C: [unknown]
+;   +$2E: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_6200_066:

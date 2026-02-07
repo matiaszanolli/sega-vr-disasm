@@ -1,7 +1,31 @@
 ; ============================================================================
-; Fn 4200 045
+; Obj Reg Write 045 (auto-analyzed)
 ; ROM Range: $005EEA-$00617A (656 bytes)
-; Source: code_4200
+; ============================================================================
+; Category: object
+; Purpose: Orchestrator calling 44 subroutines
+;   RAM: $C89C (sh2_comm_state)
+;   Calls: effect_timer_mgmt, object_frame_timer, load_object_params, timer_countdown
+;   Object (A0): +$06 (speed), +$44 (display_offset), +$46 (display_scale), +$4A, +$74
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, A0
+; RAM:
+;   $C89C: sh2_comm_state
+; Calls:
+;   $003126: vdp_reg_write
+;   $003160: vdp_dma_setup
+;   $0036DE: clear_buffer
+;   $0037B6: memory_copy
+;   $003CC4: player_table_load
+;   $003F86: clear_display_vars
+; Object fields:
+;   +$06: speed
+;   +$44: display_offset
+;   +$46: display_scale
+;   +$4A: [unknown]
+;   +$74: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_4200_045:

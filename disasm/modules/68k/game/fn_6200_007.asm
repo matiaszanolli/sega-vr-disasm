@@ -1,7 +1,32 @@
 ; ============================================================================
-; Fn 6200 007
+; Obj Dispatch 007 (auto-analyzed)
 ; ROM Range: $006A3A-$006AB4 (122 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   RAM: $C8A0 (race_state), $C8AA (scene_state), $C8AC (state_dispatch_idx), $C89C (sh2_comm_state)
+;   Calls: select_sprite_buffer, load_object_params, timer_countdown, game_update
+;   Object (A0): +$44 (display_offset), +$46 (display_scale), +$4A
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, A0, A1
+; RAM:
+;   $C89C: sh2_comm_state
+;   $C8A0: race_state
+;   $C8AA: scene_state
+;   $C8AC: state_dispatch_idx
+; Calls:
+;   $006F98: calc_steering
+;   $0070AA: angle_to_sine
+;   $007CD8: obj_position_x
+;   $007E7A: obj_velocity_y
+;   $007F50: obj_velocity_x
+;   $0080CC: load_object_params
+; Object fields:
+;   +$44: display_offset
+;   +$46: display_scale
+;   +$4A: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_6200_007:

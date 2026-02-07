@@ -1,7 +1,20 @@
 ; ============================================================================
-; Fn A200 025
+; Ai 025 (auto-analyzed)
 ; ROM Range: $00B722-$00B770 (78 bytes)
-; Source: code_a200
+; ============================================================================
+; Category: game
+; Purpose: Object (A0, A1, A2, A3): +$00, +$01, +$02 (flags/type)
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Entry: A2 = object/entity pointer
+; Entry: A3 = object/entity pointer
+; Uses: D0, D1, D2, D3, D4, D6, D7, A0
+; Object fields:
+;   +$00: [unknown]
+;   +$01: [unknown]
+;   +$02: flags/type
+; Confidence: low
 ; ============================================================================
 
 fn_a200_025:

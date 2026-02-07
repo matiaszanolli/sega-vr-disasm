@@ -1,7 +1,16 @@
 ; ============================================================================
-; Fn 30200 044
+; Fm 044 (auto-analyzed)
 ; ROM Range: $0311E2-$0311E8 (6 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: sound
+; Purpose: Small leaf function
+;   Object (A6): +$03
+;
+; Entry: A6 = object/entity pointer
+; Uses: A4, A6
+; Object fields:
+;   +$03: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_30200_044:

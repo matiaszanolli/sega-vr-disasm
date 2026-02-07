@@ -1,7 +1,26 @@
 ; ============================================================================
-; Fn 10200 040
+; Sh2 Comm Send Cmd 040 (auto-analyzed)
 ; ROM Range: $012084-$0121FA (374 bytes)
-; Source: code_10200
+; ============================================================================
+; Category: sh2
+; Purpose: Orchestrator calling 3 subroutines
+;   Accesses 32X registers: COMM0, COMM6, COMM4
+;   RAM: $C87E (game_state)
+;   Calls: dma_transfer, sh2_send_cmd, sh2_cmd_27
+;   Object (A1): +$00, +$04 (speed_index/velocity)
+;
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, D2, D3, A0, A1
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $00E35A: sh2_send_cmd
+;   $00E3B4: sh2_cmd_27
+;   $00E52C: dma_transfer
+; Object fields:
+;   +$00: [unknown]
+;   +$04: speed_index/velocity
+; Confidence: high
 ; ============================================================================
 
 fn_10200_040:

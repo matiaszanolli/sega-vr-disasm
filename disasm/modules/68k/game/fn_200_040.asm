@@ -1,7 +1,15 @@
 ; ============================================================================
-; Fn 200 040
+; Sh2 Comm Game 040 (auto-analyzed)
 ; ROM Range: $001E94-$001F4A (182 bytes)
-; Source: code_200
+; ============================================================================
+; Category: sh2
+; Purpose: Accesses 32X registers: adapter_ctrl
+;   RAM: $C87E (game_state)
+;
+; Uses: D0, D4, A1, A2, A5
+; RAM:
+;   $C87E: game_state
+; Confidence: high
 ; ============================================================================
 
 fn_200_040:

@@ -1,7 +1,22 @@
 ; ============================================================================
-; Fn 200 025
+; Init Dispatch 025 (auto-analyzed)
 ; ROM Range: $001586-$001610 (138 bytes)
-; Source: code_200
+; ============================================================================
+; Category: boot
+; Purpose: State dispatcher using jump table
+;   Calls: bit_unpack_loop
+;   Object (A1, A2, A4): +$01, +$FF
+;
+; Entry: A1 = object/entity pointer
+; Entry: A2 = object/entity pointer
+; Entry: A4 = object/entity pointer
+; Uses: D0, D1, D2, A0, A1, A2, A4, A5
+; Calls:
+;   $0013B4: bit_unpack_loop
+; Object fields:
+;   +$01: [unknown]
+;   +$FF: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_200_025:

@@ -1,7 +1,25 @@
 ; ============================================================================
-; Fn A200 002
+; Obj Table 3 002 (auto-analyzed)
 ; ROM Range: $00AF18-$00AFC2 (170 bytes)
-; Source: code_a200
+; ============================================================================
+; Category: object
+; Purpose: RAM: $9F00 (obj_table_3)
+;   Object (A0, A1): +$02 (flags/type), +$04 (speed_index/velocity), +$06 (speed), +$32, +$6A, +$88
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, D2, D3, A0, A1
+; RAM:
+;   $9F00: obj_table_3
+; Object fields:
+;   +$02: flags/type
+;   +$04: speed_index/velocity
+;   +$06: speed
+;   +$32: [unknown]
+;   +$6A: [unknown]
+;   +$88: [unknown]
+;   +$8C: velocity_x
+; Confidence: medium
 ; ============================================================================
 
 fn_a200_002:

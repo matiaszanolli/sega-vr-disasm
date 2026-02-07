@@ -1,7 +1,19 @@
 ; ============================================================================
-; Fn 30200 037
+; Vdp 037 (auto-analyzed)
 ; ROM Range: $030FA2-$030FC8 (38 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: vdp
+; Purpose: Short helper function
+;   Accesses VDP registers
+;   Object (A0, A5): +$01, +$0C
+;
+; Entry: A0 = object/entity pointer
+; Entry: A5 = object/entity pointer
+; Uses: D0, A0, A5
+; Object fields:
+;   +$01: [unknown]
+;   +$0C: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_30200_037:

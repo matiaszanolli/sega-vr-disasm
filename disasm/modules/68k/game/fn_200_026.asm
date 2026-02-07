@@ -1,7 +1,15 @@
 ; ============================================================================
-; Fn 200 026
+; Vdp Dispatch 026 (auto-analyzed)
 ; ROM Range: $001610-$00166C (92 bytes)
-; Source: code_200
+; ============================================================================
+; Category: vdp
+; Purpose: State dispatcher using jump table
+;   Calls: vdp_copy_rows
+;
+; Uses: D0, D1, D2, A0
+; Calls:
+;   $0010C4: vdp_copy_rows
+; Confidence: medium
 ; ============================================================================
 
 fn_200_026:

@@ -1,7 +1,15 @@
 ; ============================================================================
-; Fn 200 038
+; Sh2 Comm Game 038 (auto-analyzed)
 ; ROM Range: $001DBE-$001E42 (132 bytes)
-; Source: code_200
+; ============================================================================
+; Category: sh2
+; Purpose: Accesses 32X registers: adapter_ctrl
+;   RAM: $C87E (game_state)
+;
+; Uses: D0, D7, A5, A6
+; RAM:
+;   $C87E: game_state
+; Confidence: high
 ; ============================================================================
 
 fn_200_038:

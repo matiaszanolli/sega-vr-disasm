@@ -1,7 +1,16 @@
 ; ============================================================================
-; Fn 4200 032
+; Obj Dispatch 032 (auto-analyzed)
 ; ROM Range: $005780-$0057CA (74 bytes)
-; Source: code_4200
+; ============================================================================
+; Category: object
+; Purpose: State dispatcher using jump table
+;   Calls: poll_controllers, sprite_update
+;
+; Uses: D0, D2, A0, A1, A2, A6
+; Calls:
+;   $00179E: poll_controllers
+;   $00B6DA: sprite_update
+; Confidence: medium
 ; ============================================================================
 
 fn_4200_032:

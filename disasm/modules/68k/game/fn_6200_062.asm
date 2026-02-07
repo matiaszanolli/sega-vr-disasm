@@ -1,7 +1,25 @@
 ; ============================================================================
-; Fn 6200 062
+; Obj Scene 062 (auto-analyzed)
 ; ROM Range: $007F64-$007FDA (118 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: game
+; Purpose: RAM: $C8AA (scene_state)
+;   Object (A0): +$02 (flags/type), +$08, +$1C, +$28, +$2C, +$2D
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D1, A0
+; RAM:
+;   $C8AA: scene_state
+; Object fields:
+;   +$02: flags/type
+;   +$08: [unknown]
+;   +$1C: [unknown]
+;   +$28: [unknown]
+;   +$2C: [unknown]
+;   +$2D: [unknown]
+;   +$2E: [unknown]
+;   +$AC: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_6200_062:

@@ -1,7 +1,17 @@
 ; ============================================================================
-; Fn A200 007
+; Ai 007 (auto-analyzed)
 ; ROM Range: $00B1B8-$00B25E (166 bytes)
-; Source: code_a200
+; ============================================================================
+; Category: game
+; Purpose: Orchestrator calling 3 subroutines
+;   Object (A1, A3): +$00
+;
+; Entry: A1 = object/entity pointer
+; Entry: A3 = object/entity pointer
+; Uses: D0, D3, A1, A3
+; Object fields:
+;   +$00: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_a200_007:

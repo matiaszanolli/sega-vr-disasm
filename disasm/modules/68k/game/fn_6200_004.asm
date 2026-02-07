@@ -1,7 +1,28 @@
 ; ============================================================================
-; Fn 6200 004
+; Obj Calc Steering 004 (auto-analyzed)
 ; ROM Range: $00659C-$00671A (382 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: object
+; Purpose: Orchestrator calling 27 subroutines
+;   Calls: select_sprite_buffer, effect_timer_mgmt, object_frame_timer, load_object_params
+;   Object (A0): +$06 (speed), +$44 (display_offset), +$46 (display_scale), +$4A, +$74
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, A0
+; Calls:
+;   $006F98: calc_steering
+;   $007084: obj_position_update
+;   $0070AA: angle_to_sine
+;   $007816: obj_collision_test
+;   $007C4E: obj_position_y
+;   $007CD8: obj_position_x
+; Object fields:
+;   +$06: speed
+;   +$44: display_offset
+;   +$46: display_scale
+;   +$4A: [unknown]
+;   +$74: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_6200_004:

@@ -1,7 +1,16 @@
 ; ============================================================================
-; Fn 6200 063
+; Obj 063 (auto-analyzed)
 ; ROM Range: $007FDA-$007FEE (20 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: game
+; Purpose: Short helper function
+;   Object (A0): +$02 (flags/type)
+;
+; Entry: A0 = object/entity pointer
+; Uses: A0
+; Object fields:
+;   +$02: flags/type
+; Confidence: low
 ; ============================================================================
 
 fn_6200_063:

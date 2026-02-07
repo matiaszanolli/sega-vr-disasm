@@ -1,7 +1,20 @@
 ; ============================================================================
-; Fn 4200 023
+; Logic Dispatch 023 (auto-analyzed)
 ; ROM Range: $005586-$0055BA (52 bytes)
-; Source: code_4200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   RAM: $C87E (game_state)
+;   Calls: VDPSyncSH2, sfx_queue_process, sprite_input_check
+;
+; Uses: D0, A0, A1
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $0021CA: sfx_queue_process
+;   $0028C2: VDPSyncSH2
+;   $0058C8: sprite_input_check
+; Confidence: medium
 ; ============================================================================
 
 fn_4200_023:

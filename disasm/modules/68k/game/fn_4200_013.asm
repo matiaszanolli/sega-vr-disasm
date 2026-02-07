@@ -1,7 +1,23 @@
 ; ============================================================================
-; Fn 4200 013
+; Obj Poll Controllers 013 (auto-analyzed)
 ; ROM Range: $004D1A-$004D98 (126 bytes)
-; Source: code_4200
+; ============================================================================
+; Category: object
+; Purpose: Orchestrator calling 10 subroutines
+;   RAM: $C8AA (scene_state), $C87E (game_state)
+;   Calls: poll_controllers, animation_update, sprite_state_process, sprite_update
+;
+; Uses: D0, D1, A0
+; RAM:
+;   $C87E: game_state
+;   $C8AA: scene_state
+; Calls:
+;   $00179E: poll_controllers
+;   $00593C: sprite_state_process
+;   $00B09E: animation_update
+;   $00B684: object_update
+;   $00B6DA: sprite_update
+; Confidence: high
 ; ============================================================================
 
 fn_4200_013:

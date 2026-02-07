@@ -1,7 +1,16 @@
 ; ============================================================================
-; Fn 6200 012
+; Display Scroll 012 (auto-analyzed)
 ; ROM Range: $006C26-$006C46 (32 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: display
+; Purpose: Short helper function
+;   RAM: $C050 (scroll_state), $C07C (input_state)
+;
+; Uses: D0
+; RAM:
+;   $C050: scroll_state
+;   $C07C: input_state
+; Confidence: medium
 ; ============================================================================
 
 fn_6200_012:

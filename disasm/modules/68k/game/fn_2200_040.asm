@@ -1,7 +1,18 @@
 ; ============================================================================
-; Fn 2200 040
+; Vint 040 (auto-analyzed)
 ; ROM Range: $0030C6-$003116 (80 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: vint
+; Purpose: RAM: $C8C8 (vint_state)
+;   Object (A1): +$0A (param_a)
+;
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, A1
+; RAM:
+;   $C8C8: vint_state
+; Object fields:
+;   +$0A: param_a
+; Confidence: medium
 ; ============================================================================
 
 fn_2200_040:

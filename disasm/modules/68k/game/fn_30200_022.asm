@@ -1,7 +1,16 @@
 ; ============================================================================
-; Fn 30200 022
+; Fm Write Port0 022 (auto-analyzed)
 ; ROM Range: $030B50-$030B90 (64 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: sound
+; Purpose: Orchestrator calling 3 subroutines
+;   Calls: z80_bus_request, fm_write_port0
+;
+; Uses: D0, D1, D2, D3
+; Calls:
+;   $030CD8: fm_write_port0
+;   $030D1C: z80_bus_request
+; Confidence: high
 ; ============================================================================
 
 fn_30200_022:

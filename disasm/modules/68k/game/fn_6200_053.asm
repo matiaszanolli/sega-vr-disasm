@@ -1,7 +1,20 @@
 ; ============================================================================
-; Fn 6200 053
+; Obj 053 (auto-analyzed)
 ; ROM Range: $007C56-$007CD8 (130 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: game
+; Purpose: Object (A0): +$58, +$59, +$98, +$9A, +$E6, +$E8
+;
+; Entry: A0 = object/entity pointer
+; Uses: D2, A0
+; Object fields:
+;   +$58: [unknown]
+;   +$59: [unknown]
+;   +$98: [unknown]
+;   +$9A: [unknown]
+;   +$E6: [unknown]
+;   +$E8: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_6200_053:

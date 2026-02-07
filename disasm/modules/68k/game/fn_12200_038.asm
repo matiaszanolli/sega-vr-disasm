@@ -1,7 +1,27 @@
 ; ============================================================================
-; Fn 12200 038
+; Camera Send Cmd 038 (auto-analyzed)
 ; ROM Range: $013CBA-$013F80 (710 bytes)
-; Source: code_12200
+; ============================================================================
+; Category: game
+; Purpose: Orchestrator calling 4 subroutines
+;   RAM: $C87E (game_state)
+;   Calls: dma_transfer, sh2_send_cmd
+;   Object (A0, A3, A4): +$00, +$04 (speed_index/velocity), +$08
+;
+; Entry: A0 = object/entity pointer
+; Entry: A3 = object/entity pointer
+; Entry: A4 = object/entity pointer
+; Uses: D0, D1, D2, D3, D4, A0, A1, A2
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $00E35A: sh2_send_cmd
+;   $00E52C: dma_transfer
+; Object fields:
+;   +$00: [unknown]
+;   +$04: speed_index/velocity
+;   +$08: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_12200_038:

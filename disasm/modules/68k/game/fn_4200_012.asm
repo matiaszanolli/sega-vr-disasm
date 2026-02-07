@@ -1,7 +1,18 @@
 ; ============================================================================
-; Fn 4200 012
+; Logic Sprite Update Check 012 (auto-analyzed)
 ; ROM Range: $004D00-$004D1A (26 bytes)
-; Source: code_4200
+; ============================================================================
+; Category: game
+; Purpose: Orchestrator calling 3 subroutines
+;   RAM: $C87E (game_state)
+;   Calls: animation_update, sprite_update_check
+;
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $005908: sprite_update_check
+;   $00B09E: animation_update
+; Confidence: medium
 ; ============================================================================
 
 fn_4200_012:

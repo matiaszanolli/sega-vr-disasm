@@ -1,7 +1,24 @@
 ; ============================================================================
-; Fn 6200 027
+; Obj Race 027 (auto-analyzed)
 ; ROM Range: $007280-$00734E (206 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: game
+; Purpose: RAM: $C8A0 (race_state)
+;   Object (A0, A1, A3): +$00, +$30 (x_position), +$34 (y_position), +$CA, +$CC
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Entry: A3 = object/entity pointer
+; Uses: D0, D1, D2, D3, D4, D6, D7, A0
+; RAM:
+;   $C8A0: race_state
+; Object fields:
+;   +$00: [unknown]
+;   +$30: x_position
+;   +$34: y_position
+;   +$CA: [unknown]
+;   +$CC: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_6200_027:

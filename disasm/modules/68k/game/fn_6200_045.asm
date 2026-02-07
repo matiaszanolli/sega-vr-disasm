@@ -1,7 +1,16 @@
 ; ============================================================================
-; Fn 6200 045
+; Obj Dispatch 045 (auto-analyzed)
 ; ROM Range: $007BE4-$007C32 (78 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   Object (A2): +$18
+;
+; Entry: A2 = object/entity pointer
+; Uses: D0, D6, A1, A2
+; Object fields:
+;   +$18: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_6200_045:

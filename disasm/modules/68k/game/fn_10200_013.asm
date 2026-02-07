@@ -1,7 +1,24 @@
 ; ============================================================================
-; Fn 10200 013
+; Name Entry Sprite Update 013 (auto-analyzed)
 ; ROM Range: $0104A2-$0105DE (316 bytes)
-; Source: code_10200
+; ============================================================================
+; Category: game
+; Purpose: Orchestrator calling 4 subroutines
+;   RAM: $C87E (game_state)
+;   Calls: dma_transfer, sprite_update, sh2_send_cmd
+;   Object (A4): +$02 (flags/type)
+;
+; Entry: A4 = object/entity pointer
+; Uses: D0, D1, A0, A1, A4
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $00B6DA: sprite_update
+;   $00E35A: sh2_send_cmd
+;   $00E52C: dma_transfer
+; Object fields:
+;   +$02: flags/type
+; Confidence: high
 ; ============================================================================
 
 fn_10200_013:

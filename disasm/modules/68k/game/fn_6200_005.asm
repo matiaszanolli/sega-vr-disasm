@@ -1,7 +1,30 @@
 ; ============================================================================
-; Fn 6200 005
+; Obj Calc Steering 005 (auto-analyzed)
 ; ROM Range: $00671A-$00677A (96 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: game
+; Purpose: Orchestrator calling 12 subroutines
+;   RAM: $C8AA (scene_state), $C8AC (state_dispatch_idx)
+;   Calls: select_sprite_buffer, load_object_params, timer_countdown, game_update
+;   Object (A0): +$44 (display_offset), +$46 (display_scale), +$4A
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, A0
+; RAM:
+;   $C8AA: scene_state
+;   $C8AC: state_dispatch_idx
+; Calls:
+;   $006F98: calc_steering
+;   $0070AA: angle_to_sine
+;   $007CD8: obj_position_x
+;   $007E7A: obj_velocity_y
+;   $008032: race_position_check
+;   $0080CC: load_object_params
+; Object fields:
+;   +$44: display_offset
+;   +$46: display_scale
+;   +$4A: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_6200_005:

@@ -1,7 +1,23 @@
 ; ============================================================================
-; Fn 6200 060
+; Obj Movement 060 (auto-analyzed)
 ; ROM Range: $007EB2-$007EFC (74 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: game
+; Purpose: Object (A0, A1): +$00, +$02 (flags/type), +$1E, +$30 (x_position), +$34 (y_position), +$3C (heading_mirror)
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, D2, D3, A0, A1
+; Object fields:
+;   +$00: [unknown]
+;   +$02: flags/type
+;   +$1E: [unknown]
+;   +$30: x_position
+;   +$34: y_position
+;   +$3C: heading_mirror
+;   +$4E: [unknown]
+;   +$50: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_6200_060:

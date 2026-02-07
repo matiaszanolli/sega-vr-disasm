@@ -1,7 +1,16 @@
 ; ============================================================================
-; Fn 8200 012
+; State 012 (auto-analyzed)
 ; ROM Range: $0083C6-$0083E4 (30 bytes)
-; Source: code_8200
+; ============================================================================
+; Category: game
+; Purpose: Short helper function
+;   Object (A0): +$02 (flags/type)
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, A0, A1, A2
+; Object fields:
+;   +$02: flags/type
+; Confidence: low
 ; ============================================================================
 
 fn_8200_012:

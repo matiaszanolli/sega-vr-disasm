@@ -1,7 +1,29 @@
 ; ============================================================================
-; Fn 6200 008
+; Obj Dispatch 008 (auto-analyzed)
 ; ROM Range: $006AB4-$006B96 (226 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: object
+; Purpose: State dispatcher using jump table
+;   Calls: effect_timer_mgmt, object_frame_timer, load_object_params, timer_countdown
+;   Object (A0, A6): +$44 (display_offset), +$46 (display_scale), +$4A, +$88, +$92 (param_92)
+;
+; Entry: A0 = object/entity pointer
+; Entry: A6 = object/entity pointer
+; Uses: D0, A0, A2, A6
+; Calls:
+;   $006F98: calc_steering
+;   $0070AA: angle_to_sine
+;   $007816: obj_collision_test
+;   $007C4E: obj_position_y
+;   $007CD8: obj_position_x
+;   $007E7A: obj_velocity_y
+; Object fields:
+;   +$44: display_offset
+;   +$46: display_scale
+;   +$4A: [unknown]
+;   +$88: [unknown]
+;   +$92: param_92
+; Confidence: high
 ; ============================================================================
 
 fn_6200_008:

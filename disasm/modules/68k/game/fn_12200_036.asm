@@ -1,7 +1,19 @@
 ; ============================================================================
-; Fn 12200 036
+; Camera Dispatch 036 (auto-analyzed)
 ; ROM Range: $013A88-$013C30 (424 bytes)
-; Source: code_12200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   RAM: $C87E (game_state)
+;   Object (A0): +$77
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D1, D2, D3, D4, D5, D6, D7
+; RAM:
+;   $C87E: game_state
+; Object fields:
+;   +$77: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_12200_036:

@@ -1,7 +1,27 @@
 ; ============================================================================
-; Fn C200 027
+; Scene Send Cmd 027 (auto-analyzed)
 ; ROM Range: $00DA90-$00DCAC (540 bytes)
-; Source: code_c200
+; ============================================================================
+; Category: game
+; Purpose: Orchestrator calling 6 subroutines
+;   RAM: $C87E (game_state)
+;   Calls: dma_transfer, sh2_send_cmd
+;   Object (A0): +$00, +$02 (flags/type), +$04 (speed_index/velocity), +$06 (speed), +$08
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D1, D3, D4, D5, A0, A1, A4
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $00E35A: sh2_send_cmd
+;   $00E52C: dma_transfer
+; Object fields:
+;   +$00: [unknown]
+;   +$02: flags/type
+;   +$04: speed_index/velocity
+;   +$06: speed
+;   +$08: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_c200_027:

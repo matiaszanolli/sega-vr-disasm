@@ -1,7 +1,16 @@
 ; ============================================================================
-; Fn A200 015
+; Ai 015 (auto-analyzed)
 ; ROM Range: $00B422-$00B43C (26 bytes)
-; Source: code_a200
+; ============================================================================
+; Category: game
+; Purpose: Short helper function
+;   Object (A3): +$00
+;
+; Entry: A3 = object/entity pointer
+; Uses: D3, A1, A3
+; Object fields:
+;   +$00: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_a200_015:

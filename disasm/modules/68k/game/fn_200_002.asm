@@ -1,7 +1,16 @@
 ; ============================================================================
-; Fn 200 002
+; Vdp 002 (auto-analyzed)
 ; ROM Range: $0005CE-$00063E (112 bytes)
-; Source: code_200
+; ============================================================================
+; Category: vdp
+; Purpose: Accesses VDP registers
+;   Object (A1): +$04 (speed_index/velocity)
+;
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, D7, A0, A1
+; Object fields:
+;   +$04: speed_index/velocity
+; Confidence: medium
 ; ============================================================================
 
 fn_200_002:

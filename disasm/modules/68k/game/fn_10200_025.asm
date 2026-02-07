@@ -1,7 +1,18 @@
 ; ============================================================================
-; Fn 10200 025
+; Sh2 Comm Dma Transfer 025 (auto-analyzed)
 ; ROM Range: $01141A-$01146E (84 bytes)
-; Source: code_10200
+; ============================================================================
+; Category: sh2
+; Purpose: Accesses 32X registers: COMM0, COMM6, COMM4
+;   RAM: $C87E (game_state)
+;   Calls: dma_transfer
+;
+; Uses: D0
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $00E52C: dma_transfer
+; Confidence: high
 ; ============================================================================
 
 fn_10200_025:

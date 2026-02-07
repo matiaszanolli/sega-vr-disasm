@@ -1,7 +1,29 @@
 ; ============================================================================
-; Fn 2200 054
+; Vint Dispatch 054 (auto-analyzed)
 ; ROM Range: $0037B6-$00385E (168 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   RAM: $C8A0 (race_state)
+;   Object (A0, A1, A2, A4): +$00, +$02 (flags/type), +$04 (speed_index/velocity), +$06 (speed), +$0A (param_a), +$0E (param_e)
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Entry: A2 = object/entity pointer
+; Entry: A4 = object/entity pointer
+; Uses: D0, D1, D2, D4, D7, A0, A1, A2
+; RAM:
+;   $C8A0: race_state
+; Object fields:
+;   +$00: [unknown]
+;   +$02: flags/type
+;   +$04: speed_index/velocity
+;   +$06: speed
+;   +$0A: param_a
+;   +$0E: param_e
+;   +$10: [unknown]
+;   +$30: x_position
+; Confidence: high
 ; ============================================================================
 
 fn_2200_054:

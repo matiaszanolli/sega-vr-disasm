@@ -1,7 +1,19 @@
 ; ============================================================================
-; Fn 4200 019
+; Logic Dispatch 019 (auto-analyzed)
 ; ROM Range: $005308-$005348 (64 bytes)
-; Source: code_4200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   RAM: $C87E (game_state)
+;   Calls: VDPSyncSH2, animation_update
+;
+; Uses: D0, A0, A1, A6
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $0028C2: VDPSyncSH2
+;   $00B09E: animation_update
+; Confidence: medium
 ; ============================================================================
 
 fn_4200_019:

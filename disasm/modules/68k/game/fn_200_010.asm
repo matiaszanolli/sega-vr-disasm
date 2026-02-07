@@ -1,7 +1,18 @@
 ; ============================================================================
-; Fn 200 010
+; Z80 Bus Vdp Init 010 (auto-analyzed)
 ; ROM Range: $000DD2-$000FEA (536 bytes)
-; Source: code_200
+; ============================================================================
+; Category: vdp
+; Purpose: Accesses VDP registers
+;   RAM: $C87A (vint_dispatch_state)
+;   Calls: z80_bus_vdp_init
+;
+; Uses: D0, D1, D4, D6, D7, A0, A1, A5
+; RAM:
+;   $C87A: vint_dispatch_state
+; Calls:
+;   $000FEA: z80_bus_vdp_init
+; Confidence: medium
 ; ============================================================================
 
 fn_200_010:

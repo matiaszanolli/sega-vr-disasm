@@ -1,7 +1,19 @@
 ; ============================================================================
-; Fn 12200 027
+; Sh2 Comm Cmd 27 027 (auto-analyzed)
 ; ROM Range: $012F56-$012F9C (70 bytes)
-; Source: code_12200
+; ============================================================================
+; Category: sh2
+; Purpose: Calls: sh2_cmd_27
+;   Object (A1): +$00, +$04 (speed_index/velocity)
+;
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, D2, A0, A1, A2, A3, A4
+; Calls:
+;   $00E3B4: sh2_cmd_27
+; Object fields:
+;   +$00: [unknown]
+;   +$04: speed_index/velocity
+; Confidence: medium
 ; ============================================================================
 
 fn_12200_027:

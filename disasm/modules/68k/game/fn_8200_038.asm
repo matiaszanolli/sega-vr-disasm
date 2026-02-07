@@ -1,7 +1,25 @@
 ; ============================================================================
-; Fn 8200 038
+; State Dispatch 038 (auto-analyzed)
 ; ROM Range: $009802-$00987E (124 bytes)
-; Source: code_8200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   RAM: $C8CC (race_substate)
+;   Object (A0, A2): +$4C, +$62, +$88, +$92 (param_92), +$94, +$96
+;
+; Entry: A0 = object/entity pointer
+; Entry: A2 = object/entity pointer
+; Uses: D0, D1, D4, A0, A1, A2
+; RAM:
+;   $C8CC: race_substate
+; Object fields:
+;   +$4C: [unknown]
+;   +$62: [unknown]
+;   +$88: [unknown]
+;   +$92: param_92
+;   +$94: [unknown]
+;   +$96: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_8200_038:

@@ -1,7 +1,23 @@
 ; ============================================================================
-; Fn 8200 036
+; Vint 036 (auto-analyzed)
 ; ROM Range: $0094F4-$00961E (298 bytes)
-; Source: code_8200
+; ============================================================================
+; Category: vint
+; Purpose: RAM: $C8C8 (vint_state)
+;   Object (A0, A1): +$00, +$01, +$8E (velocity_y), +$94, +$AA
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, D2, D3, A0, A1
+; RAM:
+;   $C8C8: vint_state
+; Object fields:
+;   +$00: [unknown]
+;   +$01: [unknown]
+;   +$8E: velocity_y
+;   +$94: [unknown]
+;   +$AA: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_8200_036:

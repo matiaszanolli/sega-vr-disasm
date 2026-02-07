@@ -1,7 +1,20 @@
 ; ============================================================================
-; Fn A200 040
+; Ai Dispatch 040 (auto-analyzed)
 ; ROM Range: $00BDFE-$00BE50 (82 bytes)
-; Source: code_a200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   Object (A1, A2): +$02 (flags/type), +$04 (speed_index/velocity), +$12 (timer_12), +$14 (effect_duration)
+;
+; Entry: A1 = object/entity pointer
+; Entry: A2 = object/entity pointer
+; Uses: D0, D1, D2, A1, A2
+; Object fields:
+;   +$02: flags/type
+;   +$04: speed_index/velocity
+;   +$12: timer_12
+;   +$14: effect_duration
+; Confidence: low
 ; ============================================================================
 
 fn_a200_040:

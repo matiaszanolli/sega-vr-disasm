@@ -1,7 +1,22 @@
 ; ============================================================================
-; Fn 12200 026
+; Sh2 Comm Object Update 026 (auto-analyzed)
 ; ROM Range: $012CC2-$012F0A (584 bytes)
-; Source: code_12200
+; ============================================================================
+; Category: sh2
+; Purpose: Orchestrator calling 5 subroutines
+;   Accesses 32X registers: COMM0
+;   RAM: $C87E (game_state)
+;   Calls: dma_transfer, object_update, sprite_update, sh2_send_cmd
+;
+; Uses: D0, D1, D2, A0, A1
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $00B684: object_update
+;   $00B6DA: sprite_update
+;   $00E35A: sh2_send_cmd
+;   $00E52C: dma_transfer
+; Confidence: high
 ; ============================================================================
 
 fn_12200_026:

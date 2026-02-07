@@ -1,7 +1,21 @@
 ; ============================================================================
-; Fn 30200 061
+; Fm Init Channel 061 (auto-analyzed)
 ; ROM Range: $031590-$0315F4 (100 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: sound
+; Purpose: Orchestrator calling 3 subroutines
+;   Calls: fm_conditional_write, fm_init_channel, fm_set_volume
+;   Object (A6): +$40 (heading_angle)
+;
+; Entry: A6 = object/entity pointer
+; Uses: D0, D1, D2, D3, D4, D6, A0, A3
+; Calls:
+;   $030C8A: fm_init_channel
+;   $030CA2: fm_conditional_write
+;   $030FB2: fm_set_volume
+; Object fields:
+;   +$40: heading_angle
+; Confidence: high
 ; ============================================================================
 
 fn_30200_061:

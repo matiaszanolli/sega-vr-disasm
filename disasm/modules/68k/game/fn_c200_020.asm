@@ -1,7 +1,29 @@
 ; ============================================================================
-; Fn C200 020
+; Scene Sprite Table Init 020 (auto-analyzed)
 ; ROM Range: $00D08A-$00D19C (274 bytes)
-; Source: code_c200
+; ============================================================================
+; Category: game
+; Purpose: Orchestrator calling 3 subroutines
+;   RAM: $C8A0 (race_state), $C89C (sh2_comm_state), $C8C8 (vint_state), $C8CC (race_substate)
+;   Calls: sprite_table_init
+;   Object (A1, A3): +$00, +$01, +$04 (speed_index/velocity), +$10
+;
+; Entry: A1 = object/entity pointer
+; Entry: A3 = object/entity pointer
+; Uses: D0, D1, D7, A1, A2, A3
+; RAM:
+;   $C89C: sh2_comm_state
+;   $C8A0: race_state
+;   $C8C8: vint_state
+;   $C8CC: race_substate
+; Calls:
+;   $006C46: sprite_table_init
+; Object fields:
+;   +$00: [unknown]
+;   +$01: [unknown]
+;   +$04: speed_index/velocity
+;   +$10: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_c200_020:

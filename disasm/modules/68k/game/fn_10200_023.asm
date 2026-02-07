@@ -1,7 +1,18 @@
 ; ============================================================================
-; Fn 10200 023
+; Name Entry Send Cmd 023 (auto-analyzed)
 ; ROM Range: $0111B6-$011240 (138 bytes)
-; Source: code_10200
+; ============================================================================
+; Category: game
+; Purpose: RAM: $C87E (game_state)
+;   Calls: sh2_send_cmd, time_digit_render
+;
+; Uses: D0, D1, A0, A1, A2
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $00E35A: sh2_send_cmd
+;   $0118D4: time_digit_render
+; Confidence: medium
 ; ============================================================================
 
 fn_10200_023:

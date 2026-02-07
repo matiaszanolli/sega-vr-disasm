@@ -1,7 +1,23 @@
 ; ============================================================================
-; Fn 8200 033
+; State Velocity 033 (auto-analyzed)
 ; ROM Range: $009182-$009300 (382 bytes)
-; Source: code_8200
+; ============================================================================
+; Category: game
+; Purpose: Object (A0, A1): +$00, +$02 (flags/type), +$04 (speed_index/velocity), +$10, +$6A, +$74
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, D2, A0, A1
+; Object fields:
+;   +$00: [unknown]
+;   +$02: flags/type
+;   +$04: speed_index/velocity
+;   +$10: [unknown]
+;   +$6A: [unknown]
+;   +$74: [unknown]
+;   +$7A: param_7a
+;   +$7E: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_8200_033:

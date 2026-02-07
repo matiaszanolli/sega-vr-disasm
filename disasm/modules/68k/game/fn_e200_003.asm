@@ -1,7 +1,23 @@
 ; ============================================================================
-; Fn E200 003
+; Sh2 Comm Send Cmd 003 (auto-analyzed)
 ; ROM Range: $00E93A-$00EAC2 (392 bytes)
-; Source: code_e200
+; ============================================================================
+; Category: sh2
+; Purpose: RAM: $C87E (game_state)
+;   Calls: sh2_send_cmd, dma_transfer
+;   Object (A0, A1): +$00
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, D7, A0, A1, A2
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $00E35A: sh2_send_cmd
+;   $00E52C: dma_transfer
+; Object fields:
+;   +$00: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_e200_003:

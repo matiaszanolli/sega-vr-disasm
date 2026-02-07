@@ -1,7 +1,28 @@
 ; ============================================================================
-; Fn 6200 056
+; Obj Race State Read 056 (auto-analyzed)
 ; ROM Range: $007D82-$007E0C (138 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: game
+; Purpose: RAM: $C89C (sh2_comm_state), $C048 (camera_state)
+;   Calls: race_state_read
+;   Object (A0, A1): +$00, +$14 (effect_duration), +$24, +$8A (param_8a), +$8C (velocity_x), +$E5
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, D6, A0, A1
+; RAM:
+;   $C048: camera_state
+;   $C89C: sh2_comm_state
+; Calls:
+;   $00A1FC: race_state_read
+; Object fields:
+;   +$00: [unknown]
+;   +$14: effect_duration
+;   +$24: [unknown]
+;   +$8A: param_8a
+;   +$8C: velocity_x
+;   +$E5: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_6200_056:

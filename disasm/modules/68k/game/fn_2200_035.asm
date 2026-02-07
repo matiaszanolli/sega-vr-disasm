@@ -1,7 +1,18 @@
 ; ============================================================================
-; Fn 2200 035
+; Vint 035 (auto-analyzed)
 ; ROM Range: $002EB2-$002EC6 (20 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: vint
+; Purpose: Short helper function
+;   Object (A0, A1): +$24, +$8A (param_8a)
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: A0, A1
+; Object fields:
+;   +$24: [unknown]
+;   +$8A: param_8a
+; Confidence: low
 ; ============================================================================
 
 fn_2200_035:

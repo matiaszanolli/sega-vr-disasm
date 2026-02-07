@@ -1,7 +1,28 @@
 ; ============================================================================
-; Fn C200 001
+; Obj Sprite Input Check 001 (auto-analyzed)
 ; ROM Range: $00C200-$00C30A (266 bytes)
-; Source: code_c200
+; ============================================================================
+; Category: object
+; Purpose: Orchestrator calling 9 subroutines
+;   Accesses 32X registers: adapter_ctrl
+;   RAM: $C87E (game_state), $C8A0 (race_state)
+;   Calls: race_state_read, object_array_init, sprite_input_check, sprite_update_check
+;   Object (A0): +$00
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, A0, A5
+; RAM:
+;   $C87E: game_state
+;   $C8A0: race_state
+; Calls:
+;   $0058C8: sprite_input_check
+;   $005908: sprite_update_check
+;   $00593C: sprite_state_process
+;   $00A1FC: race_state_read
+;   $00CC06: object_array_init
+; Object fields:
+;   +$00: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_c200_001:

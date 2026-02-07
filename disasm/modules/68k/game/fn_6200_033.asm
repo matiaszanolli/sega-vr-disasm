@@ -1,7 +1,23 @@
 ; ============================================================================
-; Fn 6200 033
+; Obj 033 (auto-analyzed)
 ; ROM Range: $0076A2-$007700 (94 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: game
+; Purpose: Object (A1, A2): +$00, +$04 (speed_index/velocity), +$06 (speed), +$0A (param_a), +$0C, +$10
+;
+; Entry: A1 = object/entity pointer
+; Entry: A2 = object/entity pointer
+; Uses: D0, D2, A1, A2
+; Object fields:
+;   +$00: [unknown]
+;   +$04: speed_index/velocity
+;   +$06: speed
+;   +$0A: param_a
+;   +$0C: [unknown]
+;   +$10: [unknown]
+;   +$12: timer_12
+;   +$16: calc_speed
+; Confidence: low
 ; ============================================================================
 
 fn_6200_033:

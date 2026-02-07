@@ -1,7 +1,20 @@
 ; ============================================================================
-; Fn 10200 011
+; Name Entry Object Update 011 (auto-analyzed)
 ; ROM Range: $01035C-$0103C4 (104 bytes)
-; Source: code_10200
+; ============================================================================
+; Category: game
+; Purpose: Orchestrator calling 5 subroutines
+;   RAM: $C87E (game_state)
+;   Calls: dma_transfer, object_update, sh2_send_cmd
+;
+; Uses: D0, D1, A0, A1, A2
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $00B684: object_update
+;   $00E35A: sh2_send_cmd
+;   $00E52C: dma_transfer
+; Confidence: medium
 ; ============================================================================
 
 fn_10200_011:

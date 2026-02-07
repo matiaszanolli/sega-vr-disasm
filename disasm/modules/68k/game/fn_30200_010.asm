@@ -1,7 +1,24 @@
 ; ============================================================================
-; Fn 30200 010
+; Fm Write Conditional 010 (auto-analyzed)
 ; ROM Range: $03046C-$030536 (202 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: sound
+; Purpose: Orchestrator calling 4 subroutines
+;   Calls: z80_bus_request, fm_write_port0, fm_write_conditional
+;   Object (A5, A6): +$07, +$27, +$40 (heading_angle)
+;
+; Entry: A5 = object/entity pointer
+; Entry: A6 = object/entity pointer
+; Uses: D0, D1, D2, D3, D4, A5, A6
+; Calls:
+;   $030CCC: fm_write_conditional
+;   $030CD8: fm_write_port0
+;   $030D1C: z80_bus_request
+; Object fields:
+;   +$07: [unknown]
+;   +$27: [unknown]
+;   +$40: heading_angle
+; Confidence: high
 ; ============================================================================
 
 fn_30200_010:

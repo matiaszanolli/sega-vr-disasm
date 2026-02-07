@@ -1,7 +1,18 @@
 ; ============================================================================
-; Fn 4200 024
+; Logic Sfx Queue Process 024 (auto-analyzed)
 ; ROM Range: $0055BA-$0055D0 (22 bytes)
-; Source: code_4200
+; ============================================================================
+; Category: game
+; Purpose: Short helper function
+;   RAM: $C87E (game_state)
+;   Calls: sfx_queue_process, sprite_update_check
+;
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $0021CA: sfx_queue_process
+;   $005908: sprite_update_check
+; Confidence: medium
 ; ============================================================================
 
 fn_4200_024:

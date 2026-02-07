@@ -1,7 +1,15 @@
 ; ============================================================================
-; Fn 2200 014
+; Vint Tile Index Expand 014 (auto-analyzed)
 ; ROM Range: $002594-$0025B0 (28 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: vint
+; Purpose: Short helper function
+;   Calls: tile_index_expand
+;
+; Uses: A0, A5
+; Calls:
+;   $0024AE: tile_index_expand
+; Confidence: low
 ; ============================================================================
 
 fn_2200_014:

@@ -1,7 +1,27 @@
 ; ============================================================================
-; Fn 30200 009
+; Fm Dispatch 009 (auto-analyzed)
 ; ROM Range: $030404-$03046C (104 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: sound
+; Purpose: State dispatcher using jump table
+;   Calls: fm_conditional_write
+;   Object (A0, A5): +$00, +$20, +$21, +$22, +$23, +$24
+;
+; Entry: A0 = object/entity pointer
+; Entry: A5 = object/entity pointer
+; Uses: D0, D1, D3, A0, A5
+; Calls:
+;   $030CA2: fm_conditional_write
+; Object fields:
+;   +$00: [unknown]
+;   +$20: [unknown]
+;   +$21: [unknown]
+;   +$22: [unknown]
+;   +$23: [unknown]
+;   +$24: [unknown]
+;   +$27: [unknown]
+;   +$28: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_30200_009:

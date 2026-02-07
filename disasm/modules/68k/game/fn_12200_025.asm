@@ -1,7 +1,21 @@
 ; ============================================================================
-; Fn 12200 025
+; Camera Dma Transfer 025 (auto-analyzed)
 ; ROM Range: $012BFA-$012C9E (164 bytes)
-; Source: code_12200
+; ============================================================================
+; Category: game
+; Purpose: RAM: $C87E (game_state)
+;   Calls: dma_transfer
+;   Object (A0): +$00
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D1, A0, A3, A4, A5, A6
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $00E52C: dma_transfer
+; Object fields:
+;   +$00: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_12200_025:

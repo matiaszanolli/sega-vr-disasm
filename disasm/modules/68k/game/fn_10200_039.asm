@@ -1,7 +1,18 @@
 ; ============================================================================
-; Fn 10200 039
+; Name Entry Dispatch 039 (auto-analyzed)
 ; ROM Range: $011F38-$012084 (332 bytes)
-; Source: code_10200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   RAM: $C87E (game_state)
+;   Calls: object_update
+;
+; Uses: D0, D1, D3, D4, D5, D6, A0, A1
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $00B684: object_update
+; Confidence: high
 ; ============================================================================
 
 fn_10200_039:

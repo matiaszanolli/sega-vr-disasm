@@ -1,7 +1,16 @@
 ; ============================================================================
-; Fn 14200 039
+; Util Menu 039 (auto-analyzed)
 ; ROM Range: $014262-$0143C6 (356 bytes)
-; Source: code_14200
+; ============================================================================
+; Category: game
+; Purpose: Accesses 32X registers: adapter_ctrl, COMM0
+;   RAM: $C87E (game_state), $C082 (menu_state)
+;
+; Uses: D0, D1, D4, D7, A5, A6
+; RAM:
+;   $C082: menu_state
+;   $C87E: game_state
+; Confidence: high
 ; ============================================================================
 
 fn_14200_039:

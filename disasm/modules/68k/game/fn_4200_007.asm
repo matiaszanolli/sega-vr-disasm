@@ -1,7 +1,23 @@
 ; ============================================================================
-; Fn 4200 007
+; Input Dispatch 007 (auto-analyzed)
 ; ROM Range: $00456C-$0045CE (98 bytes)
-; Source: code_4200
+; ============================================================================
+; Category: input
+; Purpose: State dispatcher using jump table
+;   RAM: $C07C (input_state)
+;   Object (A2, A6): +$02 (flags/type), +$04 (speed_index/velocity), +$08, +$78
+;
+; Entry: A2 = object/entity pointer
+; Entry: A6 = object/entity pointer
+; Uses: D0, A0, A1, A2, A6
+; RAM:
+;   $C07C: input_state
+; Object fields:
+;   +$02: flags/type
+;   +$04: speed_index/velocity
+;   +$08: [unknown]
+;   +$78: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_4200_007:

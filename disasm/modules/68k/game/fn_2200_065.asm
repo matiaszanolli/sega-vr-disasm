@@ -1,7 +1,29 @@
 ; ============================================================================
-; Fn 2200 065
+; Vint Dispatch 065 (auto-analyzed)
 ; ROM Range: $003C2A-$003CCE (164 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: vint
+; Purpose: State dispatcher using jump table
+;   RAM: $C8C8 (vint_state), $C8A0 (race_state), $C89E (sh2_comm_sub)
+;   Object (A0, A1, A4): +$00, +$02 (flags/type), +$04 (speed_index/velocity), +$06 (speed), +$14 (effect_duration), +$31
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Entry: A4 = object/entity pointer
+; Uses: D0, D1, D2, D5, A0, A1, A2, A3
+; RAM:
+;   $C89E: sh2_comm_sub
+;   $C8A0: race_state
+;   $C8C8: vint_state
+; Object fields:
+;   +$00: [unknown]
+;   +$02: flags/type
+;   +$04: speed_index/velocity
+;   +$06: speed
+;   +$14: effect_duration
+;   +$31: [unknown]
+;   +$35: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_2200_065:

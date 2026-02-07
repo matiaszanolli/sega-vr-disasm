@@ -1,7 +1,24 @@
 ; ============================================================================
-; Fn 4200 002
+; Logic Dispatch 002 (auto-analyzed)
 ; ROM Range: $0043D0-$004460 (144 bytes)
-; Source: code_4200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   RAM: $C87E (game_state), $C048 (camera_state), $C07C (input_state), $C8AA (scene_state)
+;   Object (A0, A1): +$00, +$2C
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, A0, A1, A6
+; RAM:
+;   $C048: camera_state
+;   $C07C: input_state
+;   $C87E: game_state
+;   $C8AA: scene_state
+; Object fields:
+;   +$00: [unknown]
+;   +$2C: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_4200_002:

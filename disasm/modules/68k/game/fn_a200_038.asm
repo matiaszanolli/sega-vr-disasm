@@ -1,7 +1,21 @@
 ; ============================================================================
-; Fn A200 038
+; Ai Scene 038 (auto-analyzed)
 ; ROM Range: $00BD2A-$00BD9E (116 bytes)
-; Source: code_a200
+; ============================================================================
+; Category: game
+; Purpose: RAM: $C8AA (scene_state)
+;   Object (A0, A1): +$01, +$02 (flags/type), +$10
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, D2, A0, A1, A2
+; RAM:
+;   $C8AA: scene_state
+; Object fields:
+;   +$01: [unknown]
+;   +$02: flags/type
+;   +$10: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_a200_038:

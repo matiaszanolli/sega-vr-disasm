@@ -1,7 +1,27 @@
 ; ============================================================================
-; Fn 2200 056
+; Math Sine Lookup 056 (auto-analyzed)
 ; ROM Range: $003866-$003924 (190 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: math
+; Purpose: Calls: sine_lookup
+;   Object (A0, A1, A2): +$00, +$02 (flags/type), +$04 (speed_index/velocity), +$06 (speed), +$0A (param_a), +$0E (param_e)
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Entry: A2 = object/entity pointer
+; Uses: D0, D1, D2, D3, D4, D5, A0, A1
+; Calls:
+;   $008F52: sine_lookup
+; Object fields:
+;   +$00: [unknown]
+;   +$02: flags/type
+;   +$04: speed_index/velocity
+;   +$06: speed
+;   +$0A: param_a
+;   +$0E: param_e
+;   +$10: [unknown]
+;   +$14: effect_duration
+; Confidence: medium
 ; ============================================================================
 
 fn_2200_056:

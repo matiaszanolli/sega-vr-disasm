@@ -1,7 +1,14 @@
 ; ============================================================================
-; Fn 6200 014
+; Obj Sprite Table Init 014 (auto-analyzed)
 ; ROM Range: $006C88-$006CDC (84 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: object
+; Purpose: Calls: sprite_table_init
+;
+; Uses: D0, D1
+; Calls:
+;   $006C46: sprite_table_init
+; Confidence: medium
 ; ============================================================================
 
 fn_6200_014:

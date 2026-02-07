@@ -1,7 +1,16 @@
 ; ============================================================================
-; Fn C200 015
+; Scene 015 (auto-analyzed)
 ; ROM Range: $00CD92-$00CDD2 (64 bytes)
-; Source: code_c200
+; ============================================================================
+; Category: game
+; Purpose: RAM: $C8AA (scene_state), $C8AC (state_dispatch_idx), $C8AE (effect_timer)
+;
+; Uses: D1, D7, A1
+; RAM:
+;   $C8AA: scene_state
+;   $C8AC: state_dispatch_idx
+;   $C8AE: effect_timer
+; Confidence: high
 ; ============================================================================
 
 fn_c200_015:

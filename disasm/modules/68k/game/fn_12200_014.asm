@@ -1,7 +1,16 @@
 ; ============================================================================
-; Fn 12200 014
+; Camera 014 (auto-analyzed)
 ; ROM Range: $01418E-$0141DC (78 bytes)
-; Source: code_12200
+; ============================================================================
+; Category: game
+; Purpose: Object (A0, A1): +$00
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, D3, D4, D5, D6, A0, A1
+; Object fields:
+;   +$00: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_12200_014:

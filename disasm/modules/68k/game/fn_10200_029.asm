@@ -1,7 +1,18 @@
 ; ============================================================================
-; Fn 10200 029
+; Name Entry Sprite Update 029 (auto-analyzed)
 ; ROM Range: $01188A-$0118D4 (74 bytes)
-; Source: code_10200
+; ============================================================================
+; Category: game
+; Purpose: Accesses 32X registers: COMM0
+;   RAM: $C87E (game_state)
+;   Calls: sprite_update
+;
+; Uses: D0, A0
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $00B6DA: sprite_update
+; Confidence: high
 ; ============================================================================
 
 fn_10200_029:

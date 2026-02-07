@@ -1,7 +1,16 @@
 ; ============================================================================
-; Fn 6200 061
+; Obj Heading 061 (auto-analyzed)
 ; ROM Range: $007EFC-$007F50 (84 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: game
+; Purpose: Object (A0): +$1E, +$3C (heading_mirror)
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, A0, A2
+; Object fields:
+;   +$1E: [unknown]
+;   +$3C: heading_mirror
+; Confidence: low
 ; ============================================================================
 
 fn_6200_061:

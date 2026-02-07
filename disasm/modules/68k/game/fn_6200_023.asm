@@ -1,7 +1,28 @@
 ; ============================================================================
-; Fn 6200 023
+; Math Position Update Sub 023 (auto-analyzed)
 ; ROM Range: $006F98-$006FFA (98 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: math
+; Purpose: Orchestrator calling 5 subroutines
+;   Calls: position_update_sub, sine_lookup, cosine_lookup
+;   Object (A0): +$06 (speed), +$30 (x_position), +$34 (y_position), +$3C (heading_mirror), +$40 (heading_angle), +$62
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D2, D3, D4, D5, D6, A0
+; Calls:
+;   $006FDE: position_update_sub
+;   $008F4E: cosine_lookup
+;   $008F52: sine_lookup
+; Object fields:
+;   +$06: speed
+;   +$30: x_position
+;   +$34: y_position
+;   +$3C: heading_mirror
+;   +$40: heading_angle
+;   +$62: [unknown]
+;   +$92: param_92
+;   +$96: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_6200_023:

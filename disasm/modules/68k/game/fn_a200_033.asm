@@ -1,7 +1,24 @@
 ; ============================================================================
-; Fn A200 033
+; Ai Camera 033 (auto-analyzed)
 ; ROM Range: $00BA5E-$00BC1C (446 bytes)
-; Source: code_a200
+; ============================================================================
+; Category: game
+; Purpose: RAM: $C082 (menu_state), $C048 (camera_state), $C8A0 (race_state)
+;   Object (A0): +$00, +$10, +$2A, +$76, +$78
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, A0
+; RAM:
+;   $C048: camera_state
+;   $C082: menu_state
+;   $C8A0: race_state
+; Object fields:
+;   +$00: [unknown]
+;   +$10: [unknown]
+;   +$2A: [unknown]
+;   +$76: [unknown]
+;   +$78: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_a200_033:

@@ -1,7 +1,23 @@
 ; ============================================================================
-; Fn 2200 039
+; Vint Physics 039 (auto-analyzed)
 ; ROM Range: $003010-$0030C6 (182 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: game
+; Purpose: Object (A0, A1): +$30 (x_position), +$32, +$34 (y_position), +$3A, +$3C (heading_mirror), +$3E
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, D2, D3, A0, A1, A2
+; Object fields:
+;   +$30: x_position
+;   +$32: [unknown]
+;   +$34: y_position
+;   +$3A: [unknown]
+;   +$3C: heading_mirror
+;   +$3E: [unknown]
+;   +$44: display_offset
+;   +$46: display_scale
+; Confidence: medium
 ; ============================================================================
 
 fn_2200_039:

@@ -1,7 +1,18 @@
 ; ============================================================================
-; Fn 4200 008
+; Logic Dispatch 008 (auto-analyzed)
 ; ROM Range: $00471E-$0047CA (172 bytes)
-; Source: code_4200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   RAM: $C87E (game_state), $C048 (camera_state), $C07C (input_state), $C8AA (scene_state)
+;
+; Uses: D0, A1, A5
+; RAM:
+;   $C048: camera_state
+;   $C07C: input_state
+;   $C87E: game_state
+;   $C8AA: scene_state
+; Confidence: high
 ; ============================================================================
 
 fn_4200_008:

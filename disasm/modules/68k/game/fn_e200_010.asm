@@ -1,7 +1,34 @@
 ; ============================================================================
-; Fn E200 010
+; Sh2 Comm Palette Load 010 (auto-analyzed)
 ; ROM Range: $00FB98-$010084 (1260 bytes)
-; Source: code_e200
+; ============================================================================
+; Category: sh2
+; Purpose: Orchestrator calling 4 subroutines
+;   Accesses 32X registers: adapter_ctrl
+;   RAM: $C87A (vint_dispatch_state), $C0A2 (gfx_mode), $C87E (game_state)
+;   Calls: sh2_graphics_cmd, sh2_load_data, sh2_palette_load, sh2_send_cmd_wait
+;   Object (A0, A1): +$00, +$01, +$02 (flags/type), +$03, +$04 (speed_index/velocity), +$9C
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, D2, D3, D4, D5, A0, A1
+; RAM:
+;   $C0A2: gfx_mode
+;   $C87A: vint_dispatch_state
+;   $C87E: game_state
+; Calls:
+;   $00E1BC: sh2_palette_load
+;   $00E22C: sh2_graphics_cmd
+;   $00E2F0: sh2_load_data
+;   $00E316: sh2_send_cmd_wait
+; Object fields:
+;   +$00: [unknown]
+;   +$01: [unknown]
+;   +$02: flags/type
+;   +$03: [unknown]
+;   +$04: speed_index/velocity
+;   +$9C: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_e200_010:

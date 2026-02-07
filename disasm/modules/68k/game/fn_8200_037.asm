@@ -1,7 +1,25 @@
 ; ============================================================================
-; Fn 8200 037
+; State Sine Lookup 037 (auto-analyzed)
 ; ROM Range: $009688-$009802 (378 bytes)
-; Source: code_8200
+; ============================================================================
+; Category: game
+; Purpose: Calls: sine_lookup
+;   Object (A0): +$04 (speed_index/velocity), +$06 (speed), +$0C, +$1E, +$3C (heading_mirror), +$40 (heading_angle)
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D1, D2, D3, A0
+; Calls:
+;   $008F52: sine_lookup
+; Object fields:
+;   +$04: speed_index/velocity
+;   +$06: speed
+;   +$0C: [unknown]
+;   +$1E: [unknown]
+;   +$3C: heading_mirror
+;   +$40: heading_angle
+;   +$5A: [unknown]
+;   +$5C: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_8200_037:

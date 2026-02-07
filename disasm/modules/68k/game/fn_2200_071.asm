@@ -1,7 +1,17 @@
 ; ============================================================================
-; Fn 2200 071
+; Vint Dispatch 071 (auto-analyzed)
 ; ROM Range: $003E08-$003E52 (74 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   RAM: $C8AA (scene_state), $C89C (sh2_comm_state), $C8AC (state_dispatch_idx)
+;
+; Uses: D0
+; RAM:
+;   $C89C: sh2_comm_state
+;   $C8AA: scene_state
+;   $C8AC: state_dispatch_idx
+; Confidence: high
 ; ============================================================================
 
 fn_2200_071:

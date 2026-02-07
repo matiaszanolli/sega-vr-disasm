@@ -1,7 +1,30 @@
 ; ============================================================================
-; Fn 8200 043
+; State Dispatch 043 (auto-analyzed)
 ; ROM Range: $009C9C-$009DD6 (314 bytes)
-; Source: code_8200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   RAM: $C89C (sh2_comm_state), $C8CC (race_substate)
+;   Object (A0, A1, A2, A3): +$00, +$02 (flags/type), +$04 (speed_index/velocity), +$06 (speed), +$24, +$2A
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Entry: A2 = object/entity pointer
+; Entry: A3 = object/entity pointer
+; Uses: D0, D1, D2, D3, D4, D5, D6, D7
+; RAM:
+;   $C89C: sh2_comm_state
+;   $C8CC: race_substate
+; Object fields:
+;   +$00: [unknown]
+;   +$02: flags/type
+;   +$04: speed_index/velocity
+;   +$06: speed
+;   +$24: [unknown]
+;   +$2A: [unknown]
+;   +$2B: [unknown]
+;   +$2C: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_8200_043:

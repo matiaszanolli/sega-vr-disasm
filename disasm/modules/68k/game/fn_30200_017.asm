@@ -1,7 +1,29 @@
 ; ============================================================================
-; Fn 30200 017
+; Fm Init Channel 017 (auto-analyzed)
 ; ROM Range: $030936-$0309F2 (188 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: sound
+; Purpose: Orchestrator calling 4 subroutines
+;   Accesses VDP registers
+;   Calls: fm_write_wrapper, fm_init_channel, fm_set_volume
+;   Object (A0, A5, A6): +$00, +$01, +$0B, +$25, +$30 (x_position), +$34 (y_position)
+;
+; Entry: A0 = object/entity pointer
+; Entry: A5 = object/entity pointer
+; Entry: A6 = object/entity pointer
+; Uses: D0, D1, D3, D4, D6, A0, A1, A3
+; Calls:
+;   $030C8A: fm_init_channel
+;   $030CBA: fm_write_wrapper
+;   $030FB2: fm_set_volume
+; Object fields:
+;   +$00: [unknown]
+;   +$01: [unknown]
+;   +$0B: [unknown]
+;   +$25: [unknown]
+;   +$30: x_position
+;   +$34: y_position
+; Confidence: high
 ; ============================================================================
 
 fn_30200_017:

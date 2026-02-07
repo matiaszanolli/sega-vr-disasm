@@ -1,7 +1,22 @@
 ; ============================================================================
-; Fn 8200 039
+; State Velocity 039 (auto-analyzed)
 ; ROM Range: $00987E-$0099AA (300 bytes)
-; Source: code_8200
+; ============================================================================
+; Category: game
+; Purpose: Object (A0): +$02 (flags/type), +$10, +$3C (heading_mirror), +$4C, +$62, +$6A
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D1, D2, A0
+; Object fields:
+;   +$02: flags/type
+;   +$10: [unknown]
+;   +$3C: heading_mirror
+;   +$4C: [unknown]
+;   +$62: [unknown]
+;   +$6A: [unknown]
+;   +$78: [unknown]
+;   +$8C: velocity_x
+; Confidence: medium
 ; ============================================================================
 
 fn_8200_039:

@@ -1,7 +1,24 @@
 ; ============================================================================
-; Fn 6200 024
+; Obj 024 (auto-analyzed)
 ; ROM Range: $00714A-$0071A6 (92 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: game
+; Purpose: Object (A0, A1, A2): +$00, +$02 (flags/type), +$19, +$1A (direction), +$1B, +$1D
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Entry: A2 = object/entity pointer
+; Uses: D0, D1, A0, A1, A2
+; Object fields:
+;   +$00: [unknown]
+;   +$02: flags/type
+;   +$19: [unknown]
+;   +$1A: direction
+;   +$1B: [unknown]
+;   +$1D: [unknown]
+;   +$1E: [unknown]
+;   +$20: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_6200_024:

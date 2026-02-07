@@ -1,7 +1,23 @@
 ; ============================================================================
-; Fn 2200 025
+; Vint Physics 025 (auto-analyzed)
 ; ROM Range: $002ADE-$002BB0 (210 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: game
+; Purpose: Object (A0, A1): +$04 (speed_index/velocity), +$06 (speed), +$08, +$0A (param_a), +$0C, +$16 (calc_speed)
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, A0, A1
+; Object fields:
+;   +$04: speed_index/velocity
+;   +$06: speed
+;   +$08: [unknown]
+;   +$0A: param_a
+;   +$0C: [unknown]
+;   +$16: calc_speed
+;   +$18: [unknown]
+;   +$1A: direction
+; Confidence: medium
 ; ============================================================================
 
 fn_2200_025:

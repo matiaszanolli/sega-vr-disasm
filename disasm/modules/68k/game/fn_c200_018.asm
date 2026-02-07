@@ -1,7 +1,18 @@
 ; ============================================================================
-; Fn C200 018
+; Scene Race Substate 018 (auto-analyzed)
 ; ROM Range: $00CFD6-$00D04C (118 bytes)
-; Source: code_c200
+; ============================================================================
+; Category: game
+; Purpose: RAM: $C8CC (race_substate)
+;   Object (A1): +$00
+;
+; Entry: A1 = object/entity pointer
+; Uses: D0, A1, A2, A3
+; RAM:
+;   $C8CC: race_substate
+; Object fields:
+;   +$00: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_c200_018:

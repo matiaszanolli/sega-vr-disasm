@@ -1,7 +1,24 @@
 ; ============================================================================
-; Fn 8200 034
+; State Velocity 034 (auto-analyzed)
 ; ROM Range: $009300-$009458 (344 bytes)
-; Source: code_8200
+; ============================================================================
+; Category: game
+; Purpose: Object (A0, A1, A2): +$00, +$04 (speed_index/velocity), +$06 (speed), +$0C, +$0E (param_e), +$10
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Entry: A2 = object/entity pointer
+; Uses: D0, D1, D2, D3, A0, A1, A2
+; Object fields:
+;   +$00: [unknown]
+;   +$04: speed_index/velocity
+;   +$06: speed
+;   +$0C: [unknown]
+;   +$0E: param_e
+;   +$10: [unknown]
+;   +$16: calc_speed
+;   +$74: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_8200_034:

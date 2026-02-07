@@ -1,7 +1,26 @@
 ; ============================================================================
-; Fn 8200 048
+; Vdp Timer 048 (auto-analyzed)
 ; ROM Range: $00A0B4-$00A1CA (278 bytes)
-; Source: code_8200
+; ============================================================================
+; Category: vdp
+; Purpose: Accesses VDP registers
+;   RAM: $C8CC (race_substate), $C0FA (timer_state), $C8C8 (vint_state), $C89C (sh2_comm_state)
+;   Object (A0, A1): +$00, +$50, +$70, +$88
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, A0, A1
+; RAM:
+;   $C0FA: timer_state
+;   $C89C: sh2_comm_state
+;   $C8C8: vint_state
+;   $C8CC: race_substate
+; Object fields:
+;   +$00: [unknown]
+;   +$50: [unknown]
+;   +$70: [unknown]
+;   +$88: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_8200_048:

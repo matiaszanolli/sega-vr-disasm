@@ -1,7 +1,20 @@
 ; ============================================================================
-; Fn 4200 011
+; Logic Dispatch 011 (auto-analyzed)
 ; ROM Range: $004CB8-$004D00 (72 bytes)
-; Source: code_4200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   RAM: $C87E (game_state)
+;   Calls: VDPSyncSH2, animation_update, sprite_input_check
+;
+; Uses: D0, D3, D7, A1, A2
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $0028C2: VDPSyncSH2
+;   $0058C8: sprite_input_check
+;   $00B09E: animation_update
+; Confidence: medium
 ; ============================================================================
 
 fn_4200_011:

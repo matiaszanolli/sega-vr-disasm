@@ -1,7 +1,19 @@
 ; ============================================================================
-; Fn 30200 023
+; Fm Write Wrapper 023 (auto-analyzed)
 ; ROM Range: $030B90-$030BE0 (80 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: sound
+; Purpose: Calls: fm_write_wrapper
+;   Object (A6): +$00, +$09
+;
+; Entry: A6 = object/entity pointer
+; Uses: D0, D1, A0, A6
+; Calls:
+;   $030CBA: fm_write_wrapper
+; Object fields:
+;   +$00: [unknown]
+;   +$09: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_30200_023:

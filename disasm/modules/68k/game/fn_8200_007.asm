@@ -1,7 +1,21 @@
 ; ============================================================================
-; Fn 8200 007
+; State Sh2 Comm 007 (auto-analyzed)
 ; ROM Range: $0082FA-$008368 (110 bytes)
-; Source: code_8200
+; ============================================================================
+; Category: game
+; Purpose: RAM: $C89C (sh2_comm_state), $C8A0 (race_state), $C8C8 (vint_state), $C8CC (race_substate)
+;   Object (A3): +$00
+;
+; Entry: A3 = object/entity pointer
+; Uses: D0, D1, D2, D5, D6, A1, A2, A3
+; RAM:
+;   $C89C: sh2_comm_state
+;   $C8A0: race_state
+;   $C8C8: vint_state
+;   $C8CC: race_substate
+; Object fields:
+;   +$00: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_8200_007:

@@ -1,7 +1,18 @@
 ; ============================================================================
-; Fn 200 011
+; Io Port Init 011 (auto-analyzed)
 ; ROM Range: $000FEA-$001034 (74 bytes)
-; Source: code_200
+; ============================================================================
+; Category: boot
+; Purpose: Calls: io_port_init
+;   Object (A0): +$01
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D7, A0, A5
+; Calls:
+;   $0018D8: io_port_init
+; Object fields:
+;   +$01: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_200_011:

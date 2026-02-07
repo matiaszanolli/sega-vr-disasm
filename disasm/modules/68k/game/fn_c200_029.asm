@@ -1,7 +1,26 @@
 ; ============================================================================
-; Fn C200 029
+; Sh2 Comm Object Update 029 (auto-analyzed)
 ; ROM Range: $00DE98-$00DFEC (340 bytes)
-; Source: code_c200
+; ============================================================================
+; Category: sh2
+; Purpose: Orchestrator calling 5 subroutines
+;   Accesses 32X registers: COMM0
+;   RAM: $C87E (game_state)
+;   Calls: dma_transfer, object_update, sprite_update, sh2_send_cmd
+;   Object (A5): +$3B
+;
+; Entry: A5 = object/entity pointer
+; Uses: D0, D1, D2, D3, A0, A1, A2, A5
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $00B684: object_update
+;   $00B6DA: sprite_update
+;   $00E35A: sh2_send_cmd
+;   $00E52C: dma_transfer
+; Object fields:
+;   +$3B: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_c200_029:

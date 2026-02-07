@@ -1,7 +1,21 @@
 ; ============================================================================
-; Fn 2200 043
+; Obj Dispatch 043 (auto-analyzed)
 ; ROM Range: $0031A6-$003204 (94 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: object
+; Purpose: State dispatcher using jump table
+;   RAM: $6950 (obj_flags)
+;   Object (A1, A2): +$00, +$88
+;
+; Entry: A1 = object/entity pointer
+; Entry: A2 = object/entity pointer
+; Uses: D0, D1, D4, A0, A1, A2, A6
+; RAM:
+;   $6950: obj_flags
+; Object fields:
+;   +$00: [unknown]
+;   +$88: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_2200_043:

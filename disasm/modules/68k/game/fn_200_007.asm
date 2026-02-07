@@ -1,7 +1,17 @@
 ; ============================================================================
-; Fn 200 007
+; Input Controller Port Init 007 (auto-analyzed)
 ; ROM Range: $000C70-$000D68 (248 bytes)
-; Source: code_200
+; ============================================================================
+; Category: input
+; Purpose: Accesses VDP registers
+;   Reads controller input
+;   Calls: io_port_init, controller_port_init
+;
+; Uses: D0, D1, D7, A1
+; Calls:
+;   $00170C: controller_port_init
+;   $0018D8: io_port_init
+; Confidence: high
 ; ============================================================================
 
 fn_200_007:

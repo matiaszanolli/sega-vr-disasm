@@ -1,7 +1,18 @@
 ; ============================================================================
-; Fn 2200 064
+; Vint 064 (auto-analyzed)
 ; ROM Range: $003C1A-$003C2A (16 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: vint
+; Purpose: Short helper function
+;   Object (A1, A2): +$00, +$0A (param_a)
+;
+; Entry: A1 = object/entity pointer
+; Entry: A2 = object/entity pointer
+; Uses: D7, A1, A2
+; Object fields:
+;   +$00: [unknown]
+;   +$0A: param_a
+; Confidence: low
 ; ============================================================================
 
 fn_2200_064:

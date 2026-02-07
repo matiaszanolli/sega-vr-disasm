@@ -1,7 +1,17 @@
 ; ============================================================================
-; Fn 200 008
+; Sh2 Comm Z80 Bus Vdp Init 008 (auto-analyzed)
 ; ROM Range: $000D68-$000DC4 (92 bytes)
-; Source: code_200
+; ============================================================================
+; Category: sh2
+; Purpose: Orchestrator calling 4 subroutines
+;   Accesses 32X registers: adapter_ctrl
+;   Calls: z80_bus_vdp_init, controller_port_init
+;
+; Uses: D0, D1, D7, A1, A2
+; Calls:
+;   $000FEA: z80_bus_vdp_init
+;   $00170C: controller_port_init
+; Confidence: high
 ; ============================================================================
 
 fn_200_008:

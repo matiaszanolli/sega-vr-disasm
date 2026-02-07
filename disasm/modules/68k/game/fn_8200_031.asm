@@ -1,7 +1,18 @@
 ; ============================================================================
-; Fn 8200 031
+; State Dispatch 031 (auto-analyzed)
 ; ROM Range: $008F4E-$008F88 (58 bytes)
-; Source: code_8200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   Object (A0, A1): +$00, +$78
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, D6, D7, A0, A1, A4
+; Object fields:
+;   +$00: [unknown]
+;   +$78: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_8200_031:

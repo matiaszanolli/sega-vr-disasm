@@ -1,7 +1,23 @@
 ; ============================================================================
-; Fn 10200 021
+; Name Entry Dispatch 021 (auto-analyzed)
 ; ROM Range: $01103E-$0111A4 (358 bytes)
-; Source: code_10200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   RAM: $C87E (game_state)
+;   Calls: object_update
+;   Object (A0): +$0E (param_e), +$77
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D1, D2, D3, D4, D5, D6, A0
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $00B684: object_update
+; Object fields:
+;   +$0E: param_e
+;   +$77: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_10200_021:

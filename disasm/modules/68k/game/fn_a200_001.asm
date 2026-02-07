@@ -1,7 +1,38 @@
 ; ============================================================================
-; Fn A200 001
+; Ai Player Table Setup 001 (auto-analyzed)
 ; ROM Range: $00A972-$00AC3E (716 bytes)
-; Source: code_a200
+; ============================================================================
+; Category: game
+; Purpose: Orchestrator calling 6 subroutines
+;   RAM: $C89E (sh2_comm_sub), $C8A0 (race_state), $6970 (race_mode_flag), $C8AE (effect_timer)
+;   Calls: race_mode_flag_set, player_table_setup, ai_steering_calc, movement_calc
+;   Object (A0, A1): +$00, +$02 (flags/type), +$04 (speed_index/velocity), +$06 (speed), +$14 (effect_duration), +$30 (x_position)
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, D2, D3, D4, D5, A0, A1
+; RAM:
+;   $6970: race_mode_flag
+;   $C89E: sh2_comm_sub
+;   $C8A0: race_state
+;   $C8AE: effect_timer
+; Calls:
+;   $003C7E: player_table_setup
+;   $006FDE: position_update_sub
+;   $009B12: movement_calc
+;   $00A1FC: race_state_read
+;   $00A7A0: ai_steering_calc
+;   $00ACC0: race_mode_flag_set
+; Object fields:
+;   +$00: [unknown]
+;   +$02: flags/type
+;   +$04: speed_index/velocity
+;   +$06: speed
+;   +$14: effect_duration
+;   +$30: x_position
+;   +$34: y_position
+;   +$3C: heading_mirror
+; Confidence: high
 ; ============================================================================
 
 fn_a200_001:

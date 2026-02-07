@@ -1,7 +1,24 @@
 ; ============================================================================
-; Fn 30200 020
+; Fm Z80 Dac Write 020 (auto-analyzed)
 ; ROM Range: $030A86-$030AF8 (114 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: sound
+; Purpose: Orchestrator calling 3 subroutines
+;   Calls: z80_dac_write
+;   Object (A5, A6): +$04 (speed_index/velocity), +$06 (speed), +$09, +$40 (heading_angle), +$70
+;
+; Entry: A5 = object/entity pointer
+; Entry: A6 = object/entity pointer
+; Uses: D6, D7, A5, A6
+; Calls:
+;   $030DF4: z80_dac_write
+; Object fields:
+;   +$04: speed_index/velocity
+;   +$06: speed
+;   +$09: [unknown]
+;   +$40: heading_angle
+;   +$70: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_30200_020:

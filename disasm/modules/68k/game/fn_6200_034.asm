@@ -1,7 +1,25 @@
 ; ============================================================================
-; Fn 6200 034
+; Obj Frame Calc 034 (auto-analyzed)
 ; ROM Range: $007700-$00789C (412 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: game
+; Purpose: Calls: obj_frame_calc
+;   Object (A0): +$30 (x_position), +$32, +$34 (y_position), +$36, +$38, +$40 (heading_angle)
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D1, D2, D3, D4, D5, D6, D7
+; Calls:
+;   $00789C: obj_frame_calc
+; Object fields:
+;   +$30: x_position
+;   +$32: [unknown]
+;   +$34: y_position
+;   +$36: [unknown]
+;   +$38: [unknown]
+;   +$40: heading_angle
+;   +$42: [unknown]
+;   +$46: display_scale
+; Confidence: medium
 ; ============================================================================
 
 fn_6200_034:

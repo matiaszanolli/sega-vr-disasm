@@ -1,7 +1,19 @@
 ; ============================================================================
-; Fn 200 003
+; Init 003 (auto-analyzed)
 ; ROM Range: $00063E-$000694 (86 bytes)
-; Source: code_200
+; ============================================================================
+; Category: boot
+; Purpose: Object (A1): +$04 (speed_index/velocity), +$06 (speed), +$08, +$0B, +$80
+;
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, D7, A1, A4
+; Object fields:
+;   +$04: speed_index/velocity
+;   +$06: speed
+;   +$08: [unknown]
+;   +$0B: [unknown]
+;   +$80: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_200_003:

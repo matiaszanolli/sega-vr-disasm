@@ -1,7 +1,31 @@
 ; ============================================================================
-; Fn 4200 022
+; Logic Sound Flag Handler 022 (auto-analyzed)
 ; ROM Range: $0053B0-$005586 (470 bytes)
-; Source: code_4200
+; ============================================================================
+; Category: game
+; Purpose: Orchestrator calling 26 subroutines
+;   Accesses 32X registers: adapter_ctrl, COMM1, COMM0
+;   RAM: $C8A0 (race_state), $C8CC (race_substate), $C8AA (scene_state), $C87E (game_state)
+;   Calls: SetDisplayParams, scene_transition, game_state_handler, race_state_read
+;   Object (A0): +$00
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D1, A0, A2, A5
+; RAM:
+;   $C87E: game_state
+;   $C8A0: race_state
+;   $C8AA: scene_state
+;   $C8CC: race_substate
+; Calls:
+;   $0020C6: sound_flag_handler
+;   $0049AA: SetDisplayParams
+;   $0058C8: sprite_input_check
+;   $005908: sprite_update_check
+;   $00593C: sprite_state_process
+;   $00A144: game_state_handler
+; Object fields:
+;   +$00: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_4200_022:

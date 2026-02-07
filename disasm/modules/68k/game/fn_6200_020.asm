@@ -1,7 +1,21 @@
 ; ============================================================================
-; Fn 6200 020
+; Obj Position 020 (auto-analyzed)
 ; ROM Range: $006D6E-$006D8C (30 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: game
+; Purpose: Short helper function
+;   Object (A0, A2): +$00, +$02 (flags/type), +$1C, +$30 (x_position), +$34 (y_position)
+;
+; Entry: A0 = object/entity pointer
+; Entry: A2 = object/entity pointer
+; Uses: D0, A0, A2
+; Object fields:
+;   +$00: [unknown]
+;   +$02: flags/type
+;   +$1C: [unknown]
+;   +$30: x_position
+;   +$34: y_position
+; Confidence: medium
 ; ============================================================================
 
 fn_6200_020:

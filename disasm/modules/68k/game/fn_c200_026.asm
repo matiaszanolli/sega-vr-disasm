@@ -1,7 +1,30 @@
 ; ============================================================================
-; Fn C200 026
+; Sh2 Comm Dma Transfer 026 (auto-analyzed)
 ; ROM Range: $00D8CC-$00DA90 (452 bytes)
-; Source: code_c200
+; ============================================================================
+; Category: sh2
+; Purpose: Accesses 32X registers: COMM0
+;   RAM: $C87E (game_state)
+;   Calls: dma_transfer
+;   Object (A0, A1): +$00, +$02 (flags/type), +$04 (speed_index/velocity), +$06 (speed), +$08, +$0A (param_a)
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, D7, A0, A1, A2
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $00E52C: dma_transfer
+; Object fields:
+;   +$00: [unknown]
+;   +$02: flags/type
+;   +$04: speed_index/velocity
+;   +$06: speed
+;   +$08: [unknown]
+;   +$0A: param_a
+;   +$0C: [unknown]
+;   +$0E: param_e
+; Confidence: high
 ; ============================================================================
 
 fn_c200_026:

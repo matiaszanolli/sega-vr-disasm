@@ -1,7 +1,21 @@
 ; ============================================================================
-; Fn 4200 004
+; Display Dispatch 004 (auto-analyzed)
 ; ROM Range: $0044E8-$004538 (80 bytes)
-; Source: code_4200
+; ============================================================================
+; Category: display
+; Purpose: State dispatcher using jump table
+;   RAM: $C048 (camera_state), $C07C (input_state)
+;   Object (A2, A6): +$88
+;
+; Entry: A2 = object/entity pointer
+; Entry: A6 = object/entity pointer
+; Uses: D0, D2, A1, A2, A4, A6
+; RAM:
+;   $C048: camera_state
+;   $C07C: input_state
+; Object fields:
+;   +$88: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_4200_004:

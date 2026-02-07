@@ -1,7 +1,24 @@
 ; ============================================================================
-; Fn 2200 059
+; Vint Position 059 (auto-analyzed)
 ; ROM Range: $0039EC-$003A3E (82 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: game
+; Purpose: Object (A0, A1, A2): +$00, +$02 (flags/type), +$04 (speed_index/velocity), +$06 (speed), +$0A (param_a), +$0E (param_e)
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Entry: A2 = object/entity pointer
+; Uses: D0, D1, D2, D3, D4, D5, A0, A1
+; Object fields:
+;   +$00: [unknown]
+;   +$02: flags/type
+;   +$04: speed_index/velocity
+;   +$06: speed
+;   +$0A: param_a
+;   +$0E: param_e
+;   +$10: [unknown]
+;   +$30: x_position
+; Confidence: low
 ; ============================================================================
 
 fn_2200_059:

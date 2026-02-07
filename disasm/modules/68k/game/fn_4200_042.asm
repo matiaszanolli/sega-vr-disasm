@@ -1,7 +1,32 @@
 ; ============================================================================
-; Fn 4200 042
+; Logic Dispatch 042 (auto-analyzed)
 ; ROM Range: $005D08-$005DC8 (192 bytes)
-; Source: code_4200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   RAM: $C8A0 (race_state), $C8AA (scene_state), $C8AC (state_dispatch_idx), $C89C (sh2_comm_state)
+;   Calls: load_object_params, timer_countdown, game_update, obj_velocity_y
+;   Object (A0): +$44 (display_offset), +$46 (display_scale), +$4A
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, A0, A1
+; RAM:
+;   $C89C: sh2_comm_state
+;   $C8A0: race_state
+;   $C8AA: scene_state
+;   $C8AC: state_dispatch_idx
+; Calls:
+;   $002984: palette_update
+;   $0031A6: display_mode_dispatch
+;   $0036DE: clear_buffer
+;   $0037B6: memory_copy
+;   $003F86: clear_display_vars
+;   $006F98: calc_steering
+; Object fields:
+;   +$44: display_offset
+;   +$46: display_scale
+;   +$4A: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_4200_042:

@@ -1,7 +1,21 @@
 ; ============================================================================
-; Fn 4200 017
+; Logic Poll Controllers 017 (auto-analyzed)
 ; ROM Range: $00509E-$005100 (98 bytes)
-; Source: code_4200
+; ============================================================================
+; Category: game
+; Purpose: Orchestrator calling 12 subroutines
+;   RAM: $C8AA (scene_state), $C87E (game_state)
+;   Calls: animation_update, sprite_update, object_update, poll_controllers
+;
+; RAM:
+;   $C87E: game_state
+;   $C8AA: scene_state
+; Calls:
+;   $00179E: poll_controllers
+;   $00B09E: animation_update
+;   $00B684: object_update
+;   $00B6DA: sprite_update
+; Confidence: high
 ; ============================================================================
 
 fn_4200_017:

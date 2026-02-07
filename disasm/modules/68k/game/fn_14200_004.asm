@@ -1,7 +1,16 @@
 ; ============================================================================
-; Fn 14200 004
+; Vdp 004 (auto-analyzed)
 ; ROM Range: $0145F0-$01462A (58 bytes)
-; Source: code_14200
+; ============================================================================
+; Category: vdp
+; Purpose: Accesses VDP registers
+;   Object (A1): +$00
+;
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, D2, D3, D4, A1, A2, A3
+; Object fields:
+;   +$00: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_14200_004:

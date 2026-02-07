@@ -1,7 +1,19 @@
 ; ============================================================================
-; Fn 6200 065
+; Obj 065 (auto-analyzed)
 ; ROM Range: $008004-$008032 (46 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: game
+; Purpose: Object (A0): +$02 (flags/type), +$24, +$28, +$2C, +$2E
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, A0
+; Object fields:
+;   +$02: flags/type
+;   +$24: [unknown]
+;   +$28: [unknown]
+;   +$2C: [unknown]
+;   +$2E: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_6200_065:

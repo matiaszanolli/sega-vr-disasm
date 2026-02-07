@@ -1,7 +1,16 @@
 ; ============================================================================
-; Fn 200 004
+; Init 004 (auto-analyzed)
 ; ROM Range: $000694-$0006BC (40 bytes)
-; Source: code_200
+; ============================================================================
+; Category: boot
+; Purpose: Short helper function
+;   Object (A0): +$100
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D7, A0
+; Object fields:
+;   +$100: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_200_004:

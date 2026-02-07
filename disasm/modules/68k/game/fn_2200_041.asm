@@ -1,7 +1,22 @@
 ; ============================================================================
-; Fn 2200 041
+; Vint 041 (auto-analyzed)
 ; ROM Range: $003126-$003160 (58 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: vint
+; Purpose: RAM: $C8C8 (vint_state)
+;   Object (A1): +$02 (flags/type), +$06 (speed), +$08, +$0A (param_a), +$0C
+;
+; Entry: A1 = object/entity pointer
+; Uses: D0, A0, A1
+; RAM:
+;   $C8C8: vint_state
+; Object fields:
+;   +$02: flags/type
+;   +$06: speed
+;   +$08: [unknown]
+;   +$0A: param_a
+;   +$0C: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_2200_041:

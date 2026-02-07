@@ -1,7 +1,17 @@
 ; ============================================================================
-; Fn E200 007
+; Sh2 Comm Send Cmd 007 (auto-analyzed)
 ; ROM Range: $00F44C-$00F682 (566 bytes)
-; Source: code_e200
+; ============================================================================
+; Category: sh2
+; Purpose: RAM: $C87E (game_state)
+;   Calls: sh2_send_cmd
+;
+; Uses: D0, D1, D2, A0, A1, A2
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $00E35A: sh2_send_cmd
+; Confidence: medium
 ; ============================================================================
 
 fn_e200_007:

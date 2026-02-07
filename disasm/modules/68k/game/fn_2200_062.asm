@@ -1,7 +1,24 @@
 ; ============================================================================
-; Fn 2200 062
+; Vint Position 062 (auto-analyzed)
 ; ROM Range: $003AB2-$003B28 (118 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: game
+; Purpose: Object (A0, A1, A2): +$00, +$02 (flags/type), +$04 (speed_index/velocity), +$06 (speed), +$0A (param_a), +$0C
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Entry: A2 = object/entity pointer
+; Uses: D0, D1, D2, D3, D4, D5, A0, A1
+; Object fields:
+;   +$00: [unknown]
+;   +$02: flags/type
+;   +$04: speed_index/velocity
+;   +$06: speed
+;   +$0A: param_a
+;   +$0C: [unknown]
+;   +$0E: param_e
+;   +$10: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_2200_062:

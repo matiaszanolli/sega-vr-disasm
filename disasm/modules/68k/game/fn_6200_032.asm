@@ -1,7 +1,25 @@
 ; ============================================================================
-; Fn 6200 032
+; Math Cosine Lookup 032 (auto-analyzed)
 ; ROM Range: $00764E-$0076A2 (84 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: math
+; Purpose: Calls: cosine_lookup, sine_lookup
+;   Object (A0): +$1E, +$20, +$22, +$30 (x_position), +$34 (y_position), +$72
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D2, D3, D4, D5, A0
+; Calls:
+;   $008F4E: cosine_lookup
+;   $008F52: sine_lookup
+; Object fields:
+;   +$1E: [unknown]
+;   +$20: [unknown]
+;   +$22: [unknown]
+;   +$30: x_position
+;   +$34: y_position
+;   +$72: [unknown]
+;   +$E2: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_6200_032:

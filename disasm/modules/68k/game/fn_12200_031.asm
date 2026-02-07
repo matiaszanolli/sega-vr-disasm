@@ -1,7 +1,24 @@
 ; ============================================================================
-; Fn 12200 031
+; Camera Object Update 031 (auto-analyzed)
 ; ROM Range: $0134C8-$0135C4 (252 bytes)
-; Source: code_12200
+; ============================================================================
+; Category: game
+; Purpose: Orchestrator calling 4 subroutines
+;   RAM: $C87E (game_state)
+;   Calls: dma_transfer, object_update, sprite_update
+;   Object (A0): +$00
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D1, D2, D5, A0, A1, A6
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $00B684: object_update
+;   $00B6DA: sprite_update
+;   $00E52C: dma_transfer
+; Object fields:
+;   +$00: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_12200_031:

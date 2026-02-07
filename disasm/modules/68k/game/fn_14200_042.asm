@@ -1,7 +1,26 @@
 ; ============================================================================
-; Fn 14200 042
+; Util Dispatch 042 (auto-analyzed)
 ; ROM Range: $01440E-$01446C (94 bytes)
-; Source: code_14200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   RAM: $C082 (menu_state), $C084 (menu_substate)
+;   Calls: menu_state_check
+;   Object (A0, A2, A4): +$77, +$89
+;
+; Entry: A0 = object/entity pointer
+; Entry: A2 = object/entity pointer
+; Entry: A4 = object/entity pointer
+; Uses: D0, D1, A0, A1, A2, A4
+; RAM:
+;   $C082: menu_state
+;   $C084: menu_substate
+; Calls:
+;   $0145F0: menu_state_check
+; Object fields:
+;   +$77: [unknown]
+;   +$89: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_14200_042:

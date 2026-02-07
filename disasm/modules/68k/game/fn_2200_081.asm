@@ -1,7 +1,16 @@
 ; ============================================================================
-; Fn 2200 081
+; Vint Input 081 (auto-analyzed)
 ; ROM Range: $00417C-$0041E4 (104 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: game
+; Purpose: RAM: $C8AA (scene_state), $C07C (input_state), $C89C (sh2_comm_state)
+;
+; Uses: D0
+; RAM:
+;   $C07C: input_state
+;   $C89C: sh2_comm_state
+;   $C8AA: scene_state
+; Confidence: medium
 ; ============================================================================
 
 fn_2200_081:

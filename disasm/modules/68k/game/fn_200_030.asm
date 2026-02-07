@@ -1,7 +1,15 @@
 ; ============================================================================
-; Fn 200 030
+; Input Zbus Request 030 (auto-analyzed)
 ; ROM Range: $0018D8-$001992 (186 bytes)
-; Source: code_200
+; ============================================================================
+; Category: input
+; Purpose: Reads controller input
+;   Calls: zbus_request
+;
+; Uses: D0, D7, A1
+; Calls:
+;   $00185E: zbus_request
+; Confidence: high
 ; ============================================================================
 
 fn_200_030:

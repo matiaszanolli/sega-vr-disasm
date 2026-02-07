@@ -1,7 +1,28 @@
 ; ============================================================================
-; Fn A200 028
+; Display Dispatch 028 (auto-analyzed)
 ; ROM Range: $00B7EE-$00B964 (374 bytes)
-; Source: code_a200
+; ============================================================================
+; Category: display
+; Purpose: State dispatcher using jump table
+;   RAM: $C048 (camera_state)
+;   Object (A0, A1, A2): +$00, +$10, +$14 (effect_duration), +$16 (calc_speed), +$18, +$1A (direction)
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Entry: A2 = object/entity pointer
+; Uses: D0, D1, D2, D4, A0, A1, A2, A4
+; RAM:
+;   $C048: camera_state
+; Object fields:
+;   +$00: [unknown]
+;   +$10: [unknown]
+;   +$14: effect_duration
+;   +$16: calc_speed
+;   +$18: [unknown]
+;   +$1A: direction
+;   +$24: [unknown]
+;   +$28: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_a200_028:

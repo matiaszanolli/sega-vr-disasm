@@ -1,7 +1,18 @@
 ; ============================================================================
-; Fn 14200 046
+; Util Menu State Check 046 (auto-analyzed)
 ; ROM Range: $0144F2-$014518 (38 bytes)
-; Source: code_14200
+; ============================================================================
+; Category: game
+; Purpose: Short helper function
+;   RAM: $C082 (menu_state)
+;   Calls: menu_state_check
+;
+; Uses: D1, A1
+; RAM:
+;   $C082: menu_state
+; Calls:
+;   $0145F0: menu_state_check
+; Confidence: medium
 ; ============================================================================
 
 fn_14200_046:

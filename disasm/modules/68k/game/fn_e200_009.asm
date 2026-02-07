@@ -1,7 +1,21 @@
 ; ============================================================================
-; Fn E200 009
+; Sh2 Comm Cmd 27 009 (auto-analyzed)
 ; ROM Range: $00F8F6-$00FB24 (558 bytes)
-; Source: code_e200
+; ============================================================================
+; Category: sh2
+; Purpose: Accesses 32X registers: COMM0
+;   Calls: sh2_cmd_27
+;   Object (A0, A1): +$00, +$04 (speed_index/velocity)
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, D2, A0, A1
+; Calls:
+;   $00E3B4: sh2_cmd_27
+; Object fields:
+;   +$00: [unknown]
+;   +$04: speed_index/velocity
+; Confidence: high
 ; ============================================================================
 
 fn_e200_009:

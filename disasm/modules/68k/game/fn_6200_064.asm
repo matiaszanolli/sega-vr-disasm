@@ -1,7 +1,17 @@
 ; ============================================================================
-; Fn 6200 064
+; Obj 064 (auto-analyzed)
 ; ROM Range: $007FEE-$008004 (22 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: game
+; Purpose: Short helper function
+;   Object (A0): +$1C, +$2D
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, A0
+; Object fields:
+;   +$1C: [unknown]
+;   +$2D: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_6200_064:

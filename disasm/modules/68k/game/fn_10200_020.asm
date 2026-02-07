@@ -1,7 +1,34 @@
 ; ============================================================================
-; Fn 10200 020
+; Sh2 Comm Palette Load 020 (auto-analyzed)
 ; ROM Range: $010974-$01103E (1738 bytes)
-; Source: code_10200
+; ============================================================================
+; Category: sh2
+; Purpose: Orchestrator calling 7 subroutines
+;   Accesses 32X registers: adapter_ctrl, COMM0, COMM4
+;   RAM: $C87A (vint_dispatch_state), $C87E (game_state)
+;   Calls: sh2_graphics_cmd, sh2_load_data, sh2_palette_load, sh2_send_cmd_wait
+;   Object (A0, A1): +$00, +$01, +$02 (flags/type), +$03, +$10
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, D2, D3, D4, D5, D7, A0
+; RAM:
+;   $C87A: vint_dispatch_state
+;   $C87E: game_state
+; Calls:
+;   $00E1BC: sh2_palette_load
+;   $00E22C: sh2_graphics_cmd
+;   $00E2F0: sh2_load_data
+;   $00E316: sh2_send_cmd_wait
+;   $011942: name_digit_render
+;   $011A98: name_entry_check
+; Object fields:
+;   +$00: [unknown]
+;   +$01: [unknown]
+;   +$02: flags/type
+;   +$03: [unknown]
+;   +$10: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_10200_020:

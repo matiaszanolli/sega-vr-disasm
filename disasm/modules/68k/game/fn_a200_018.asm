@@ -1,7 +1,18 @@
 ; ============================================================================
-; Fn A200 018
+; Display Scroll 018 (auto-analyzed)
 ; ROM Range: $00B4CA-$00B55A (144 bytes)
-; Source: code_a200
+; ============================================================================
+; Category: display
+; Purpose: RAM: $C050 (scroll_state)
+;   Object (A0): +$00
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D1, A0, A1, A2
+; RAM:
+;   $C050: scroll_state
+; Object fields:
+;   +$00: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_a200_018:

@@ -1,7 +1,19 @@
 ; ============================================================================
-; Fn C200 002
+; Scene Dispatch 002 (auto-analyzed)
 ; ROM Range: $00C30A-$00C368 (94 bytes)
-; Source: code_c200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   RAM: $C87E (game_state)
+;   Object (A0): +$88
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D1, D2, A0, A1, A6
+; RAM:
+;   $C87E: game_state
+; Object fields:
+;   +$88: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_c200_002:

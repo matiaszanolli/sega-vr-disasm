@@ -1,7 +1,24 @@
 ; ============================================================================
-; Fn 2200 048
+; Input 048 (auto-analyzed)
 ; ROM Range: $003404-$0034D2 (206 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: input
+; Purpose: RAM: $C07C (input_state)
+;   Object (A0, A1, A3): +$00, +$01, +$02 (flags/type), +$08, +$2C
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Entry: A3 = object/entity pointer
+; Uses: D0, A0, A1, A2, A3
+; RAM:
+;   $C07C: input_state
+; Object fields:
+;   +$00: [unknown]
+;   +$01: [unknown]
+;   +$02: flags/type
+;   +$08: [unknown]
+;   +$2C: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_2200_048:

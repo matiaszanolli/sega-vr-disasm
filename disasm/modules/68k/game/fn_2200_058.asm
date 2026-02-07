@@ -1,7 +1,22 @@
 ; ============================================================================
-; Fn 2200 058
+; Vint 058 (auto-analyzed)
 ; ROM Range: $00397C-$0039EC (112 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: vint
+; Purpose: Object (A2): +$00, +$02 (flags/type), +$06 (speed), +$0A (param_a), +$0E (param_e), +$10
+;
+; Entry: A2 = object/entity pointer
+; Uses: D0, D1, D3, A1, A2
+; Object fields:
+;   +$00: [unknown]
+;   +$02: flags/type
+;   +$06: speed
+;   +$0A: param_a
+;   +$0E: param_e
+;   +$10: [unknown]
+;   +$14: effect_duration
+;   +$20: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_2200_058:

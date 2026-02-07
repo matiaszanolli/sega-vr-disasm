@@ -1,7 +1,22 @@
 ; ============================================================================
-; Fn 4200 036
+; Sh2 Comm Dispatch 036 (auto-analyzed)
 ; ROM Range: $005866-$0058EA (132 bytes)
-; Source: code_4200
+; ============================================================================
+; Category: sh2
+; Purpose: State dispatcher using jump table
+;   RAM: $C89C (sh2_comm_state)
+;   Calls: SetDisplayParams
+;   Object (A6): +$88
+;
+; Entry: A6 = object/entity pointer
+; Uses: D0, D1, D4, D7, A0, A1, A4, A6
+; RAM:
+;   $C89C: sh2_comm_state
+; Calls:
+;   $0049AA: SetDisplayParams
+; Object fields:
+;   +$88: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_4200_036:

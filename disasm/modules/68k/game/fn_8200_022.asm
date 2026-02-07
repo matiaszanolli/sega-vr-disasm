@@ -1,7 +1,18 @@
 ; ============================================================================
-; Fn 8200 022
+; State 022 (auto-analyzed)
 ; ROM Range: $008B28-$008B9C (116 bytes)
-; Source: code_8200
+; ============================================================================
+; Category: game
+; Purpose: Object (A2, A4, A6): +$00, +$78
+;
+; Entry: A2 = object/entity pointer
+; Entry: A4 = object/entity pointer
+; Entry: A6 = object/entity pointer
+; Uses: D0, D2, D5, D6, D7, A0, A2, A3
+; Object fields:
+;   +$00: [unknown]
+;   +$78: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_8200_022:

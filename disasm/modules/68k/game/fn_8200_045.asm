@@ -1,7 +1,17 @@
 ; ============================================================================
-; Fn 8200 045
+; State 045 (auto-analyzed)
 ; ROM Range: $009E5A-$009E6E (20 bytes)
-; Source: code_8200
+; ============================================================================
+; Category: game
+; Purpose: Short helper function
+;   Object (A0): +$2A, +$A8
+;
+; Entry: A0 = object/entity pointer
+; Uses: A0
+; Object fields:
+;   +$2A: [unknown]
+;   +$A8: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_8200_045:

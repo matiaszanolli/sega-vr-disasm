@@ -1,7 +1,21 @@
 ; ============================================================================
-; Fn 30200 052
+; Fm 052 (auto-analyzed)
 ; ROM Range: $0313CA-$031406 (60 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: sound
+; Purpose: Object (A5): +$0A (param_a), +$14 (effect_duration), +$18, +$19, +$1A (direction), +$1B
+;
+; Entry: A5 = object/entity pointer
+; Uses: D0, D2, A0, A4, A5
+; Object fields:
+;   +$0A: param_a
+;   +$14: effect_duration
+;   +$18: [unknown]
+;   +$19: [unknown]
+;   +$1A: direction
+;   +$1B: [unknown]
+;   +$1C: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_30200_052:

@@ -1,7 +1,14 @@
 ; ============================================================================
-; Fn 2200 070
+; Vint Scene 070 (auto-analyzed)
 ; ROM Range: $003DD4-$003E08 (52 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: game
+; Purpose: RAM: $C8AA (scene_state), $C8AC (state_dispatch_idx)
+;
+; RAM:
+;   $C8AA: scene_state
+;   $C8AC: state_dispatch_idx
+; Confidence: high
 ; ============================================================================
 
 fn_2200_070:

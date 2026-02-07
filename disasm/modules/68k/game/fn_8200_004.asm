@@ -1,7 +1,25 @@
 ; ============================================================================
-; Fn 8200 004
+; State Dispatch 004 (auto-analyzed)
 ; ROM Range: $008280-$0082E0 (96 bytes)
-; Source: code_8200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   RAM: $C8AA (scene_state), $68F8 (time_display_buf)
+;   Calls: num_to_decimal
+;   Object (A0, A1): +$02 (flags/type), +$07
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, D6, D7, A0, A1
+; RAM:
+;   $68F8: time_display_buf
+;   $C8AA: scene_state
+; Calls:
+;   $00839A: num_to_decimal
+; Object fields:
+;   +$02: flags/type
+;   +$07: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_8200_004:

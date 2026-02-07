@@ -1,7 +1,18 @@
 ; ============================================================================
-; Fn 4200 039
+; Obj Table Lookup 039 (auto-analyzed)
 ; ROM Range: $005926-$00593C (22 bytes)
-; Source: code_4200
+; ============================================================================
+; Category: object
+; Purpose: Short helper function
+;   RAM: $9700 (obj_table_2)
+;   Calls: table_lookup
+;
+; Uses: D0, D7, A0
+; RAM:
+;   $9700: obj_table_2
+; Calls:
+;   $0059EC: table_lookup
+; Confidence: medium
 ; ============================================================================
 
 fn_4200_039:

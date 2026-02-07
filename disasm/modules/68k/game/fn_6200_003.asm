@@ -1,7 +1,30 @@
 ; ============================================================================
-; Fn 6200 003
+; Obj Memory Copy 003 (auto-analyzed)
 ; ROM Range: $006496-$00659C (262 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: object
+; Purpose: Orchestrator calling 22 subroutines
+;   RAM: $9F00 (obj_table_3)
+;   Calls: race_state_read, obj_distance_calc, state_jump_table, memory_copy
+;   Object (A0, A1): +$00, +$18, +$8A (param_8a), +$B2, +$E5
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, D2, D3, D4, D5, D6, D7
+; RAM:
+;   $9F00: obj_table_3
+; Calls:
+;   $0037B6: memory_copy
+;   $0075FE: obj_distance_calc
+;   $009EC0: state_jump_table
+;   $00A1FC: race_state_read
+; Object fields:
+;   +$00: [unknown]
+;   +$18: [unknown]
+;   +$8A: param_8a
+;   +$B2: [unknown]
+;   +$E5: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_6200_003:

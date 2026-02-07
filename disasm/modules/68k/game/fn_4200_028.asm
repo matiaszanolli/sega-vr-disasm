@@ -1,7 +1,18 @@
 ; ============================================================================
-; Fn 4200 028
+; Logic Sfx Queue Process 028 (auto-analyzed)
 ; ROM Range: $005658-$005676 (30 bytes)
-; Source: code_4200
+; ============================================================================
+; Category: game
+; Purpose: Orchestrator calling 4 subroutines
+;   RAM: $C87E (game_state)
+;   Calls: sfx_queue_process, sprite_update_check
+;
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $0021CA: sfx_queue_process
+;   $005908: sprite_update_check
+; Confidence: medium
 ; ============================================================================
 
 fn_4200_028:

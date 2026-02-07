@@ -1,7 +1,15 @@
 ; ============================================================================
-; Fn 14200 040
+; Util Dispatch 040 (auto-analyzed)
 ; ROM Range: $0143C6-$0143FA (52 bytes)
-; Source: code_14200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   RAM: $C87E (game_state)
+;
+; Uses: D0, A1
+; RAM:
+;   $C87E: game_state
+; Confidence: medium
 ; ============================================================================
 
 fn_14200_040:

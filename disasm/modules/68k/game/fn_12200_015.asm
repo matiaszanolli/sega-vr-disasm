@@ -1,7 +1,26 @@
 ; ============================================================================
-; Fn 12200 015
+; Sh2 Comm Object Update 015 (auto-analyzed)
 ; ROM Range: $012200-$01250C (780 bytes)
-; Source: code_12200
+; ============================================================================
+; Category: sh2
+; Purpose: Orchestrator calling 8 subroutines
+;   Accesses 32X registers: COMM0, COMM6, COMM4
+;   RAM: $C87E (game_state)
+;   Calls: dma_transfer, object_update, sprite_update, sh2_send_cmd
+;   Object (A5): +$3B
+;
+; Entry: A5 = object/entity pointer
+; Uses: D0, D1, D2, D5, A0, A1, A2, A5
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $00B684: object_update
+;   $00B6DA: sprite_update
+;   $00E35A: sh2_send_cmd
+;   $00E52C: dma_transfer
+; Object fields:
+;   +$3B: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_12200_015:

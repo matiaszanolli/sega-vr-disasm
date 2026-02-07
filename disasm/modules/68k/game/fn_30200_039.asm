@@ -1,7 +1,24 @@
 ; ============================================================================
-; Fn 30200 039
+; Fm Dispatch 039 (auto-analyzed)
 ; ROM Range: $030FE0-$031166 (390 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: sound
+; Purpose: State dispatcher using jump table
+;   Object (A1, A4, A5, A6): +$09, +$16 (calc_speed), +$18, +$28, +$65, +$69
+;
+; Entry: A1 = object/entity pointer
+; Entry: A4 = object/entity pointer
+; Entry: A5 = object/entity pointer
+; Entry: A6 = object/entity pointer
+; Uses: D0, D1, D3, D4, D5, D7, A0, A1
+; Object fields:
+;   +$09: [unknown]
+;   +$16: calc_speed
+;   +$18: [unknown]
+;   +$28: [unknown]
+;   +$65: [unknown]
+;   +$69: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_30200_039:

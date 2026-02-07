@@ -1,7 +1,26 @@
 ; ============================================================================
-; Fn 6200 069
+; Obj Camera 069 (auto-analyzed)
 ; ROM Range: $0080D6-$008170 (154 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: game
+; Purpose: RAM: $C048 (camera_state), $C89C (sh2_comm_state)
+;   Object (A0): +$06 (speed), +$24, +$3C (heading_mirror), +$40 (heading_angle), +$8C (velocity_x), +$92 (param_92)
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D2, A0, A1
+; RAM:
+;   $C048: camera_state
+;   $C89C: sh2_comm_state
+; Object fields:
+;   +$06: speed
+;   +$24: [unknown]
+;   +$3C: heading_mirror
+;   +$40: heading_angle
+;   +$8C: velocity_x
+;   +$92: param_92
+;   +$9C: [unknown]
+;   +$9E: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_6200_069:

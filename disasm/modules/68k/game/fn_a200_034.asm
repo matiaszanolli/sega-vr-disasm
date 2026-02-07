@@ -1,7 +1,28 @@
 ; ============================================================================
-; Fn A200 034
+; Ai Dispatch 034 (auto-analyzed)
 ; ROM Range: $00BC1C-$00BCCA (174 bytes)
-; Source: code_a200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   RAM: $C8A0 (race_state), $C082 (menu_state), $C084 (menu_substate), $C8AA (scene_state)
+;   Object (A0, A1): +$00, +$01, +$02 (flags/type), +$0E (param_e), +$10, +$88
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, D6, A0, A1, A6
+; RAM:
+;   $C082: menu_state
+;   $C084: menu_substate
+;   $C8A0: race_state
+;   $C8AA: scene_state
+; Object fields:
+;   +$00: [unknown]
+;   +$01: [unknown]
+;   +$02: flags/type
+;   +$0E: param_e
+;   +$10: [unknown]
+;   +$88: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_a200_034:

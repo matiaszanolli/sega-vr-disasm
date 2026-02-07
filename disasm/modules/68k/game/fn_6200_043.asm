@@ -1,7 +1,19 @@
 ; ============================================================================
-; Fn 6200 043
+; Obj Render 043 (auto-analyzed)
 ; ROM Range: $007AB2-$007AD6 (36 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: game
+; Purpose: Short helper function
+;   Object (A0): +$32, +$C0 (render_flags), +$C6, +$C8
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D1, A0
+; Object fields:
+;   +$32: [unknown]
+;   +$C0: render_flags
+;   +$C6: [unknown]
+;   +$C8: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_6200_043:

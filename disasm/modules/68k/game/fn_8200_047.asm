@@ -1,7 +1,17 @@
 ; ============================================================================
-; Fn 8200 047
+; State Dispatch 047 (auto-analyzed)
 ; ROM Range: $00A050-$00A0B4 (100 bytes)
-; Source: code_8200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   RAM: $C0FA (timer_state), $C8A0 (race_state), $C8C8 (vint_state)
+;
+; Uses: D0, D1, A1
+; RAM:
+;   $C0FA: timer_state
+;   $C8A0: race_state
+;   $C8C8: vint_state
+; Confidence: medium
 ; ============================================================================
 
 fn_8200_047:

@@ -1,7 +1,19 @@
 ; ============================================================================
-; Fn 2200 028
+; Vint Velocity 028 (auto-analyzed)
 ; ROM Range: $002DCA-$002DF4 (42 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: game
+; Purpose: Object (A0, A1): +$24, +$64, +$8A (param_8a), +$8C (velocity_x)
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, A0, A1, A2
+; Object fields:
+;   +$24: [unknown]
+;   +$64: [unknown]
+;   +$8A: param_8a
+;   +$8C: velocity_x
+; Confidence: low
 ; ============================================================================
 
 fn_2200_028:

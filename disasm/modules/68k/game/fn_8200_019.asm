@@ -1,7 +1,32 @@
 ; ============================================================================
-; Fn 8200 019
+; Math Cosine Lookup 019 (auto-analyzed)
 ; ROM Range: $0087E2-$0088BE (220 bytes)
-; Source: code_8200
+; ============================================================================
+; Category: math
+; Purpose: RAM: $9F00 (obj_table_3), $C89C (sh2_comm_state), $C8C8 (vint_state)
+;   Calls: sine_lookup, cosine_lookup
+;   Object (A0, A2): +$04 (speed_index/velocity), +$1E, +$24, +$2A, +$2E, +$30 (x_position)
+;
+; Entry: A0 = object/entity pointer
+; Entry: A2 = object/entity pointer
+; Uses: D0, D1, D2, D3, D4, A0, A2
+; RAM:
+;   $9F00: obj_table_3
+;   $C89C: sh2_comm_state
+;   $C8C8: vint_state
+; Calls:
+;   $008F4E: cosine_lookup
+;   $008F52: sine_lookup
+; Object fields:
+;   +$04: speed_index/velocity
+;   +$1E: [unknown]
+;   +$24: [unknown]
+;   +$2A: [unknown]
+;   +$2E: [unknown]
+;   +$30: x_position
+;   +$34: y_position
+;   +$E5: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_8200_019:

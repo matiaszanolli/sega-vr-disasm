@@ -1,7 +1,16 @@
 ; ============================================================================
-; Fn A200 041
+; Ai Dispatch 041 (auto-analyzed)
 ; ROM Range: $00BE50-$00BEC4 (116 bytes)
-; Source: code_a200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   Object (A6): +$88
+;
+; Entry: A6 = object/entity pointer
+; Uses: D0, D4, D7, A0, A2, A4, A6
+; Object fields:
+;   +$88: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_a200_041:

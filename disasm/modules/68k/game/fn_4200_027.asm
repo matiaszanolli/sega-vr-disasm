@@ -1,7 +1,24 @@
 ; ============================================================================
-; Fn 4200 027
+; Logic Dispatch 027 (auto-analyzed)
 ; ROM Range: $005618-$005658 (64 bytes)
-; Source: code_4200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   RAM: $C87E (game_state)
+;   Calls: VDPSyncSH2, sfx_queue_process, sprite_input_check
+;   Object (A6): +$78
+;
+; Entry: A6 = object/entity pointer
+; Uses: D0, D6, A0, A1, A6
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $0021CA: sfx_queue_process
+;   $0028C2: VDPSyncSH2
+;   $0058C8: sprite_input_check
+; Object fields:
+;   +$78: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_4200_027:

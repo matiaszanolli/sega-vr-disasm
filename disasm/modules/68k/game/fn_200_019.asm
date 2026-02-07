@@ -1,7 +1,16 @@
 ; ============================================================================
-; Fn 200 019
+; Init Dispatch 019 (auto-analyzed)
 ; ROM Range: $0011EE-$0012F4 (262 bytes)
-; Source: code_200
+; ============================================================================
+; Category: boot
+; Purpose: State dispatcher using jump table
+;   Object (A1): +$00
+;
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, D2, D3, D4, D5, D6, D7
+; Object fields:
+;   +$00: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_200_019:

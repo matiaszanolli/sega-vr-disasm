@@ -1,7 +1,15 @@
 ; ============================================================================
-; Fn 30200 027
+; Fm Write Port0 027 (auto-analyzed)
 ; ROM Range: $030CBA-$030CCC (18 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: sound
+; Purpose: Short helper function
+;   Calls: z80_bus_request, fm_write_port0
+;
+; Calls:
+;   $030CD8: fm_write_port0
+;   $030D1C: z80_bus_request
+; Confidence: high
 ; ============================================================================
 
 fn_30200_027:

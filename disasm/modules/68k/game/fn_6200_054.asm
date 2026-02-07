@@ -1,7 +1,22 @@
 ; ============================================================================
-; Fn 6200 054
+; Obj Velocity 054 (auto-analyzed)
 ; ROM Range: $007CF0-$007D56 (102 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: game
+; Purpose: Object (A0): +$02 (flags/type), +$04 (speed_index/velocity), +$1C, +$55, +$56, +$57
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D1, A0
+; Object fields:
+;   +$02: flags/type
+;   +$04: speed_index/velocity
+;   +$1C: [unknown]
+;   +$55: [unknown]
+;   +$56: [unknown]
+;   +$57: [unknown]
+;   +$62: [unknown]
+;   +$6A: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_6200_054:

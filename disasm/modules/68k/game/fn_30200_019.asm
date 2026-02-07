@@ -1,7 +1,17 @@
 ; ============================================================================
-; Fn 30200 019
+; Fm 019 (auto-analyzed)
 ; ROM Range: $030A5C-$030A72 (22 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: sound
+; Purpose: Short helper function
+;   Object (A6): +$04 (speed_index/velocity), +$06 (speed)
+;
+; Entry: A6 = object/entity pointer
+; Uses: A6
+; Object fields:
+;   +$04: speed_index/velocity
+;   +$06: speed
+; Confidence: low
 ; ============================================================================
 
 fn_30200_019:

@@ -1,7 +1,20 @@
 ; ============================================================================
-; Fn 30200 033
+; Vdp Sequence Process 033 (auto-analyzed)
 ; ROM Range: $030ECE-$030F0E (64 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: vdp
+; Purpose: Accesses VDP registers
+;   Calls: fm_sequence_process
+;   Object (A5): +$01, +$0A (param_a)
+;
+; Entry: A5 = object/entity pointer
+; Uses: D0, D1, D6, A5
+; Calls:
+;   $0302EE: fm_sequence_process
+; Object fields:
+;   +$01: [unknown]
+;   +$0A: param_a
+; Confidence: medium
 ; ============================================================================
 
 fn_30200_033:

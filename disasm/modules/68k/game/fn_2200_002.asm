@@ -1,7 +1,15 @@
 ; ============================================================================
-; Fn 2200 002
+; Vint Random Number Gen 002 (auto-analyzed)
 ; ROM Range: $002294-$0022AA (22 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: vint
+; Purpose: Short helper function
+;   Calls: random_number_gen
+;
+; Uses: D0, D1, A1
+; Calls:
+;   $00496E: random_number_gen
+; Confidence: low
 ; ============================================================================
 
 fn_2200_002:

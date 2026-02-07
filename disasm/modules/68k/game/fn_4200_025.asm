@@ -1,7 +1,22 @@
 ; ============================================================================
-; Fn 4200 025
+; Obj Poll Controllers 025 (auto-analyzed)
 ; ROM Range: $0055D0-$0055FE (46 bytes)
-; Source: code_4200
+; ============================================================================
+; Category: object
+; Purpose: Orchestrator calling 7 subroutines
+;   RAM: $C8AA (scene_state), $C87E (game_state)
+;   Calls: sfx_queue_process, poll_controllers, sprite_state_process, sprite_update
+;
+; RAM:
+;   $C87E: game_state
+;   $C8AA: scene_state
+; Calls:
+;   $00179E: poll_controllers
+;   $0021CA: sfx_queue_process
+;   $00593C: sprite_state_process
+;   $00B684: object_update
+;   $00B6DA: sprite_update
+; Confidence: high
 ; ============================================================================
 
 fn_4200_025:

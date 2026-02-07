@@ -1,7 +1,22 @@
 ; ============================================================================
-; Fn 30200 018
+; Vdp 018 (auto-analyzed)
 ; ROM Range: $0309F2-$030A5C (106 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: vdp
+; Purpose: Orchestrator calling 3 subroutines
+;   Accesses VDP registers
+;   Object (A5, A6): +$01, +$0B, +$25, +$30 (x_position), +$100
+;
+; Entry: A5 = object/entity pointer
+; Entry: A6 = object/entity pointer
+; Uses: D0, A1, A5, A6
+; Object fields:
+;   +$01: [unknown]
+;   +$0B: [unknown]
+;   +$25: [unknown]
+;   +$30: x_position
+;   +$100: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_30200_018:

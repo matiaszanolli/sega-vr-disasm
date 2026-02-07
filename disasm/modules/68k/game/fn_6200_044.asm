@@ -1,7 +1,32 @@
 ; ============================================================================
-; Fn 6200 044
+; Obj Tile Position Calc 044 (auto-analyzed)
 ; ROM Range: $007AD6-$007BAC (214 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: game
+; Purpose: Orchestrator calling 5 subroutines
+;   Calls: tile_position_calc, angle_normalize, vector_dot_product, velocity_apply
+;   Object (A0, A3, A4): +$00, +$04 (speed_index/velocity), +$30 (x_position), +$34 (y_position), +$40 (heading_angle), +$46 (display_scale)
+;
+; Entry: A0 = object/entity pointer
+; Entry: A3 = object/entity pointer
+; Entry: A4 = object/entity pointer
+; Uses: D0, D1, D2, A0, A1, A2, A3, A4
+; Calls:
+;   $0073E8: tile_position_calc
+;   $00748C: angle_normalize
+;   $0074A4: sprite_list_process
+;   $007534: velocity_apply
+;   $0075C8: vector_dot_product
+; Object fields:
+;   +$00: [unknown]
+;   +$04: speed_index/velocity
+;   +$30: x_position
+;   +$34: y_position
+;   +$40: heading_angle
+;   +$46: display_scale
+;   +$55: [unknown]
+;   +$C6: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_6200_044:

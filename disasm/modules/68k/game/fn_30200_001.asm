@@ -1,7 +1,20 @@
 ; ============================================================================
-; Fn 30200 001
+; Fm Init Channel 001 (auto-analyzed)
 ; ROM Range: $03021A-$03023A (32 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: sound
+; Purpose: Short helper function
+;   Calls: fm_init_channel
+;   Object (A5): +$01, +$12 (timer_12)
+;
+; Entry: A5 = object/entity pointer
+; Uses: A5
+; Calls:
+;   $030C8A: fm_init_channel
+; Object fields:
+;   +$01: [unknown]
+;   +$12: timer_12
+; Confidence: medium
 ; ============================================================================
 
 fn_30200_001:

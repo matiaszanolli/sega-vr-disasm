@@ -1,7 +1,19 @@
 ; ============================================================================
-; Fn 14200 038
+; Sh2 Comm Cmd 27 038 (auto-analyzed)
 ; ROM Range: $014200-$014262 (98 bytes)
-; Source: code_14200
+; ============================================================================
+; Category: sh2
+; Purpose: Accesses 32X registers: COMM0
+;   Calls: sh2_cmd_27
+;   Object (A1): +$00
+;
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, D2, D3, D4, D5, A0, A1
+; Calls:
+;   $00E3B4: sh2_cmd_27
+; Object fields:
+;   +$00: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_14200_038:

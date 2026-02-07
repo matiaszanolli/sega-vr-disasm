@@ -1,7 +1,22 @@
 ; ============================================================================
-; Fn 14200 043
+; Util Menu State Check 043 (auto-analyzed)
 ; ROM Range: $01446C-$0144A8 (60 bytes)
-; Source: code_14200
+; ============================================================================
+; Category: game
+; Purpose: RAM: $C084 (menu_substate), $C082 (menu_state)
+;   Calls: menu_state_check
+;   Object (A0): +$00
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D1, A0, A1
+; RAM:
+;   $C082: menu_state
+;   $C084: menu_substate
+; Calls:
+;   $0145F0: menu_state_check
+; Object fields:
+;   +$00: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_14200_043:

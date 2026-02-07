@@ -1,7 +1,17 @@
 ; ============================================================================
-; Fn 30200 035
+; Fm 035 (auto-analyzed)
 ; ROM Range: $030F82-$030F90 (14 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: sound
+; Purpose: Short helper function
+;   Object (A5): +$12 (timer_12), +$13
+;
+; Entry: A5 = object/entity pointer
+; Uses: A5
+; Object fields:
+;   +$12: timer_12
+;   +$13: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_30200_035:

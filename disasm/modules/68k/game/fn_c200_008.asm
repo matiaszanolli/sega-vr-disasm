@@ -1,7 +1,20 @@
 ; ============================================================================
-; Fn C200 008
+; Scene Dispatch 008 (auto-analyzed)
 ; ROM Range: $00C4C2-$00C542 (128 bytes)
-; Source: code_c200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   RAM: $C8AA (scene_state), $C082 (menu_state)
+;   Calls: sprite_update, object_update
+;
+; Uses: D0, D1, D2, A0, A1, A2
+; RAM:
+;   $C082: menu_state
+;   $C8AA: scene_state
+; Calls:
+;   $00B684: object_update
+;   $00B6DA: sprite_update
+; Confidence: high
 ; ============================================================================
 
 fn_c200_008:

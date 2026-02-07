@@ -1,7 +1,29 @@
 ; ============================================================================
-; Fn 12200 030
+; Sh2 Comm Send Cmd 030 (auto-analyzed)
 ; ROM Range: $013346-$0134C8 (386 bytes)
-; Source: code_12200
+; ============================================================================
+; Category: sh2
+; Purpose: Orchestrator calling 3 subroutines
+;   Accesses 32X registers: COMM0
+;   RAM: $C87E (game_state)
+;   Calls: dma_transfer, sh2_send_cmd, sh2_cmd_27
+;   Object (A0, A1): +$00, +$02 (flags/type), +$04 (speed_index/velocity), +$06 (speed)
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, D2, A0, A1
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $00E35A: sh2_send_cmd
+;   $00E3B4: sh2_cmd_27
+;   $00E52C: dma_transfer
+; Object fields:
+;   +$00: [unknown]
+;   +$02: flags/type
+;   +$04: speed_index/velocity
+;   +$06: speed
+; Confidence: high
 ; ============================================================================
 
 fn_12200_030:

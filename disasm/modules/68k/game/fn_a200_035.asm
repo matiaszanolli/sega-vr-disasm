@@ -1,7 +1,15 @@
 ; ============================================================================
-; Fn A200 035
+; Ai Menu Substate 035 (auto-analyzed)
 ; ROM Range: $00BCCA-$00BCDA (16 bytes)
-; Source: code_a200
+; ============================================================================
+; Category: game
+; Purpose: Short helper function
+;   RAM: $C8AA (scene_state), $C084 (menu_substate)
+;
+; RAM:
+;   $C084: menu_substate
+;   $C8AA: scene_state
+; Confidence: high
 ; ============================================================================
 
 fn_a200_035:

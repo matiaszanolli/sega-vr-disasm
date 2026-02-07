@@ -1,7 +1,23 @@
 ; ============================================================================
-; Fn A200 031
+; Ai Heading 031 (auto-analyzed)
 ; ROM Range: $00B990-$00BA18 (136 bytes)
-; Source: code_a200
+; ============================================================================
+; Category: game
+; Purpose: Object (A1, A2): +$00, +$10, +$14 (effect_duration), +$16 (calc_speed), +$18, +$1A (direction)
+;
+; Entry: A1 = object/entity pointer
+; Entry: A2 = object/entity pointer
+; Uses: D0, A1, A2
+; Object fields:
+;   +$00: [unknown]
+;   +$10: [unknown]
+;   +$14: effect_duration
+;   +$16: calc_speed
+;   +$18: [unknown]
+;   +$1A: direction
+;   +$24: [unknown]
+;   +$28: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_a200_031:

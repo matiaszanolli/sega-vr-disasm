@@ -1,7 +1,25 @@
 ; ============================================================================
-; Fn C200 010
+; Scene Obj Table 1 010 (auto-analyzed)
 ; ROM Range: $00C6B6-$00C7C2 (268 bytes)
-; Source: code_c200
+; ============================================================================
+; Category: game
+; Purpose: Orchestrator calling 4 subroutines
+;   RAM: $C8A0 (race_state), $C8CC (race_substate), $9100 (obj_table_1)
+;   Object (A1, A2): +$00, +$0A (param_a), +$B6, +$100
+;
+; Entry: A1 = object/entity pointer
+; Entry: A2 = object/entity pointer
+; Uses: D0, D1, D2, D3, D4, D5, D6, D7
+; RAM:
+;   $9100: obj_table_1
+;   $C8A0: race_state
+;   $C8CC: race_substate
+; Object fields:
+;   +$00: [unknown]
+;   +$0A: param_a
+;   +$B6: [unknown]
+;   +$100: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_c200_010:

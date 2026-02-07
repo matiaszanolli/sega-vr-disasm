@@ -1,7 +1,17 @@
 ; ============================================================================
-; Fn A200 039
+; Ai 039 (auto-analyzed)
 ; ROM Range: $00BDD6-$00BDFE (40 bytes)
-; Source: code_a200
+; ============================================================================
+; Category: game
+; Purpose: Short helper function
+;   Object (A1): +$00, +$10
+;
+; Entry: A1 = object/entity pointer
+; Uses: D1, A1
+; Object fields:
+;   +$00: [unknown]
+;   +$10: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_a200_039:

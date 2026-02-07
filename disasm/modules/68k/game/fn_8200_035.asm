@@ -1,7 +1,23 @@
 ; ============================================================================
-; Fn 8200 035
+; State 035 (auto-analyzed)
 ; ROM Range: $009458-$0094F4 (156 bytes)
-; Source: code_8200
+; ============================================================================
+; Category: game
+; Purpose: Object (A0, A1): +$00, +$04 (speed_index/velocity), +$06 (speed), +$0A (param_a), +$14 (effect_duration), +$16 (calc_speed)
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, D1, A0, A1
+; Object fields:
+;   +$00: [unknown]
+;   +$04: speed_index/velocity
+;   +$06: speed
+;   +$0A: param_a
+;   +$14: effect_duration
+;   +$16: calc_speed
+;   +$8A: param_8a
+;   +$A8: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_8200_035:

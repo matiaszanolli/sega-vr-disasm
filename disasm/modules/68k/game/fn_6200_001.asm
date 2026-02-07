@@ -1,7 +1,17 @@
 ; ============================================================================
-; Fn 6200 001
+; Obj Dispatch 001 (auto-analyzed)
 ; ROM Range: $006200-$006240 (64 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   RAM: $C8AA (scene_state), $C8AC (state_dispatch_idx), $C89C (sh2_comm_state)
+;
+; Uses: D0, A1
+; RAM:
+;   $C89C: sh2_comm_state
+;   $C8AA: scene_state
+;   $C8AC: state_dispatch_idx
+; Confidence: high
 ; ============================================================================
 
 fn_6200_001:

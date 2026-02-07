@@ -1,7 +1,32 @@
 ; ============================================================================
-; Fn C200 017
+; Obj Heading Update 017 (auto-analyzed)
 ; ROM Range: $00CEEE-$00CFD6 (232 bytes)
-; Source: code_c200
+; ============================================================================
+; Category: object
+; Purpose: Orchestrator calling 3 subroutines
+;   RAM: $9100 (obj_table_1), $C8CC (race_substate)
+;   Calls: obj_heading_update
+;   Object (A0, A1, A2): +$00, +$02 (flags/type), +$06 (speed), +$14 (effect_duration), +$32, +$3A
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Entry: A2 = object/entity pointer
+; Uses: D0, D7, A0, A1, A2, A6
+; RAM:
+;   $9100: obj_table_1
+;   $C8CC: race_substate
+; Calls:
+;   $007AB6: obj_heading_update
+; Object fields:
+;   +$00: [unknown]
+;   +$02: flags/type
+;   +$06: speed
+;   +$14: effect_duration
+;   +$32: [unknown]
+;   +$3A: [unknown]
+;   +$3E: [unknown]
+;   +$46: display_scale
+; Confidence: high
 ; ============================================================================
 
 fn_c200_017:

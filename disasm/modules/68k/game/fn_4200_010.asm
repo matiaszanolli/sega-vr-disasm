@@ -1,7 +1,14 @@
 ; ============================================================================
-; Fn 4200 010
+; Logic Pre Dispatch Common 010 (auto-analyzed)
 ; ROM Range: $004C8A-$004CB8 (46 bytes)
-; Source: code_4200
+; ============================================================================
+; Category: game
+; Purpose: Calls: pre_dispatch_common, WaitForVBlank
+;
+; Calls:
+;   $002080: pre_dispatch_common
+;   $004998: WaitForVBlank
+; Confidence: low
 ; ============================================================================
 
 fn_4200_010:

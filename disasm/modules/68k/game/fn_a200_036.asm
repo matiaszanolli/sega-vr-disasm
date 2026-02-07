@@ -1,7 +1,20 @@
 ; ============================================================================
-; Fn A200 036
+; Ai Menu Substate 036 (auto-analyzed)
 ; ROM Range: $00BCDA-$00BD00 (38 bytes)
-; Source: code_a200
+; ============================================================================
+; Category: game
+; Purpose: Short helper function
+;   RAM: $C8AA (scene_state), $C084 (menu_substate)
+;   Object (A0): +$02 (flags/type)
+;
+; Entry: A0 = object/entity pointer
+; Uses: A0, A1
+; RAM:
+;   $C084: menu_substate
+;   $C8AA: scene_state
+; Object fields:
+;   +$02: flags/type
+; Confidence: high
 ; ============================================================================
 
 fn_a200_036:

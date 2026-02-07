@@ -1,7 +1,39 @@
 ; ============================================================================
-; Fn 4200 040
+; Logic Dispatch 040 (auto-analyzed)
 ; ROM Range: $00593C-$005AB6 (378 bytes)
-; Source: code_4200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   RAM: $C89C (sh2_comm_state), $9F00 (obj_table_3)
+;   Calls: table_lookup, movement_calc, speed_calculation, collision_avoidance
+;   Object (A0, A1, A2, A4, A6): +$00, +$02 (flags/type), +$04 (speed_index/velocity), +$18, +$24, +$26
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Entry: A2 = object/entity pointer
+; Entry: A4 = object/entity pointer
+; Entry: A6 = object/entity pointer
+; Uses: D0, D1, D7, A0, A1, A2, A4, A6
+; RAM:
+;   $9F00: obj_table_3
+;   $C89C: sh2_comm_state
+; Calls:
+;   $0059EC: table_lookup
+;   $007AB6: obj_heading_update
+;   $009B12: movement_calc
+;   $00A350: effect_timer_mgmt
+;   $00A3BA: speed_calculation
+;   $00A470: collision_avoidance
+; Object fields:
+;   +$00: [unknown]
+;   +$02: flags/type
+;   +$04: speed_index/velocity
+;   +$18: [unknown]
+;   +$24: [unknown]
+;   +$26: [unknown]
+;   +$2C: [unknown]
+;   +$32: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_4200_040:

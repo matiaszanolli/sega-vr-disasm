@@ -1,7 +1,36 @@
 ; ============================================================================
-; Fn 6200 002
+; Obj Reg Write 002 (auto-analyzed)
 ; ROM Range: $006240-$006496 (598 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: object
+; Purpose: Orchestrator calling 42 subroutines
+;   RAM: $9F00 (obj_table_3)
+;   Calls: state_jump_indexed, vdp_reg_write, vdp_dma_setup, obj_angle_calc
+;   Object (A0, A1, A6): +$00, +$18, +$44 (display_offset), +$46 (display_scale), +$4A, +$88
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Entry: A6 = object/entity pointer
+; Uses: D0, D1, D2, D3, D4, D5, D6, D7
+; RAM:
+;   $9F00: obj_table_3
+; Calls:
+;   $003126: vdp_reg_write
+;   $003160: vdp_dma_setup
+;   $0036DE: clear_buffer
+;   $0037B6: memory_copy
+;   $003F86: clear_display_vars
+;   $006F98: calc_steering
+; Object fields:
+;   +$00: [unknown]
+;   +$18: [unknown]
+;   +$44: display_offset
+;   +$46: display_scale
+;   +$4A: [unknown]
+;   +$88: [unknown]
+;   +$92: param_92
+;   +$B2: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_6200_002:

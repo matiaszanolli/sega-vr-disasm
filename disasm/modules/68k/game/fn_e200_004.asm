@@ -1,7 +1,26 @@
 ; ============================================================================
-; Fn E200 004
+; Sh2 Comm Object Update 004 (auto-analyzed)
 ; ROM Range: $00ECBE-$00EEF2 (564 bytes)
-; Source: code_e200
+; ============================================================================
+; Category: sh2
+; Purpose: Orchestrator calling 5 subroutines
+;   Accesses 32X registers: COMM0
+;   RAM: $C87E (game_state)
+;   Calls: sh2_send_cmd, dma_transfer, object_update, sprite_update
+;   Object (A3): +$2C
+;
+; Entry: A3 = object/entity pointer
+; Uses: D0, D1, D2, D3, D4, D5, D6, D7
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $00B684: object_update
+;   $00B6DA: sprite_update
+;   $00E35A: sh2_send_cmd
+;   $00E52C: dma_transfer
+; Object fields:
+;   +$2C: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_e200_004:

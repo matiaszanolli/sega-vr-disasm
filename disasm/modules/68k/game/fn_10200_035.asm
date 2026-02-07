@@ -1,7 +1,15 @@
 ; ============================================================================
-; Fn 10200 035
+; Name Entry Check 035 (auto-analyzed)
 ; ROM Range: $01199A-$0119B8 (30 bytes)
-; Source: code_10200
+; ============================================================================
+; Category: game
+; Purpose: Short helper function
+;   Calls: name_entry_check
+;
+; Uses: D0, D1, A0
+; Calls:
+;   $011A98: name_entry_check
+; Confidence: low
 ; ============================================================================
 
 fn_10200_035:

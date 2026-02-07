@@ -1,7 +1,21 @@
 ; ============================================================================
-; Fn 2200 046
+; Objs 046 (auto-analyzed)
 ; ROM Range: $003272-$00337A (264 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: object
+; Purpose: RAM: $6950 (obj_flags)
+;   Object (A0, A1, A3): +$00, +$2C
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Entry: A3 = object/entity pointer
+; Uses: D0, A0, A1, A2, A3
+; RAM:
+;   $6950: obj_flags
+; Object fields:
+;   +$00: [unknown]
+;   +$2C: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_2200_046:

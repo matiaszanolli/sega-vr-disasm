@@ -1,7 +1,22 @@
 ; ============================================================================
-; Fn 10200 024
+; Name Entry Object Update 024 (auto-analyzed)
 ; ROM Range: $011240-$01141A (474 bytes)
-; Source: code_10200
+; ============================================================================
+; Category: game
+; Purpose: Orchestrator calling 6 subroutines
+;   RAM: $C87E (game_state)
+;   Calls: dma_transfer, object_update, sprite_update, sh2_send_cmd
+;
+; Uses: D0, D1, D2, A0, A1, A2
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $00B684: object_update
+;   $00B6DA: sprite_update
+;   $00E35A: sh2_send_cmd
+;   $00E52C: dma_transfer
+;   $0118D4: time_digit_render
+; Confidence: high
 ; ============================================================================
 
 fn_10200_024:

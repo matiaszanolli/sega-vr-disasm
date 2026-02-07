@@ -1,7 +1,35 @@
 ; ============================================================================
-; Fn 200 005
+; Sh2 Comm Save All Registers 005 (auto-analyzed)
 ; ROM Range: $0006BC-$000C5A (1438 bytes)
-; Source: code_200
+; ============================================================================
+; Category: sh2
+; Purpose: Orchestrator calling 8 subroutines
+;   Accesses 32X registers: adapter_ctrl, COMM0, COMM4, COMM6, bank_set
+;   Accesses VDP registers
+;   Reads controller input
+;   Calls: save_all_registers, sh2_frame_sync, warm_boot_init, sound_update_check
+;   Object (A0, A1, A4, A5): +$01, +$02 (flags/type), +$04 (speed_index/velocity), +$06 (speed), +$08, +$0C
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Entry: A4 = object/entity pointer
+; Entry: A5 = object/entity pointer
+; Uses: D0, D1, D2, D3, D4, D5, D6, D7
+; Calls:
+;   $000C5A: save_all_registers
+;   $000D68: warm_boot_init
+;   $000DC4: sound_update_check
+;   $00203A: sh2_frame_sync
+; Object fields:
+;   +$01: [unknown]
+;   +$02: flags/type
+;   +$04: speed_index/velocity
+;   +$06: speed
+;   +$08: [unknown]
+;   +$0C: [unknown]
+;   +$10: [unknown]
+;   +$20: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_200_005:

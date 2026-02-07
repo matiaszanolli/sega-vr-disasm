@@ -1,7 +1,16 @@
 ; ============================================================================
-; Fn 12200 005
+; Sh2 Comm Dispatch 005 (auto-analyzed)
 ; ROM Range: $012F0A-$012F56 (76 bytes)
-; Source: code_12200
+; ============================================================================
+; Category: sh2
+; Purpose: State dispatcher using jump table
+;   Accesses 32X registers: COMM0
+;   RAM: $C87E (game_state)
+;
+; Uses: D1
+; RAM:
+;   $C87E: game_state
+; Confidence: high
 ; ============================================================================
 
 fn_12200_005:

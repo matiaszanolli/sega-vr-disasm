@@ -1,7 +1,15 @@
 ; ============================================================================
-; Fn 200 032
+; Vint Dispatch 032 (auto-analyzed)
 ; ROM Range: $001A64-$001A72 (14 bytes)
-; Source: code_200
+; ============================================================================
+; Category: vint
+; Purpose: Short helper function
+;   RAM: $C87A (vint_dispatch_state)
+;
+; Uses: D0, A5
+; RAM:
+;   $C87A: vint_dispatch_state
+; Confidence: medium
 ; ============================================================================
 
 fn_200_032:

@@ -1,7 +1,19 @@
 ; ============================================================================
-; Fn 2200 078
+; Vint Render 078 (auto-analyzed)
 ; ROM Range: $003F2E-$004084 (342 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: vint
+; Purpose: Object (A0, A1, A2): +$00, +$10, +$C0 (render_flags)
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Entry: A2 = object/entity pointer
+; Uses: D0, D1, D2, D3, D4, A0, A1, A2
+; Object fields:
+;   +$00: [unknown]
+;   +$10: [unknown]
+;   +$C0: render_flags
+; Confidence: low
 ; ============================================================================
 
 fn_2200_078:

@@ -1,7 +1,16 @@
 ; ============================================================================
-; Fn 8200 024
+; State Dispatch 024 (auto-analyzed)
 ; ROM Range: $008CCE-$008D06 (56 bytes)
-; Source: code_8200
+; ============================================================================
+; Category: game
+; Purpose: State dispatcher using jump table
+;   Object (A2): +$46 (display_scale)
+;
+; Entry: A2 = object/entity pointer
+; Uses: D0, D4, A2, A4, A6
+; Object fields:
+;   +$46: display_scale
+; Confidence: low
 ; ============================================================================
 
 fn_8200_024:

@@ -1,7 +1,21 @@
 ; ============================================================================
-; Fn 10200 009
+; Name Entry Send Cmd 009 (auto-analyzed)
 ; ROM Range: $010200-$010244 (68 bytes)
-; Source: code_10200
+; ============================================================================
+; Category: game
+; Purpose: RAM: $C87E (game_state)
+;   Calls: sh2_send_cmd
+;   Object (A0): +$00
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D1, A0, A1
+; RAM:
+;   $C87E: game_state
+; Calls:
+;   $00E35A: sh2_send_cmd
+; Object fields:
+;   +$00: [unknown]
+; Confidence: medium
 ; ============================================================================
 
 fn_10200_009:

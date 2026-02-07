@@ -1,7 +1,20 @@
 ; ============================================================================
-; Fn 2200 017
+; Sh2 Comm Vdpprep 017 (auto-analyzed)
 ; ROM Range: $002680-$00270A (138 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: sh2
+; Purpose: Orchestrator calling 5 subroutines
+;   Accesses 32X registers: adapter_ctrl
+;   Calls: VDPPrep
+;   Object (A4): +$8B
+;
+; Entry: A4 = object/entity pointer
+; Uses: D0, A4
+; Calls:
+;   $00281E: VDPPrep
+; Object fields:
+;   +$8B: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_2200_017:

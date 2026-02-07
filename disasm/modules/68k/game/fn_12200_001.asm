@@ -1,7 +1,15 @@
 ; ============================================================================
-; Fn 12200 001
+; Sh2 Comm Game 001 (auto-analyzed)
 ; ROM Range: $01250C-$012534 (40 bytes)
-; Source: code_12200
+; ============================================================================
+; Category: sh2
+; Purpose: Short helper function
+;   Accesses 32X registers: COMM0
+;   RAM: $C87E (game_state)
+;
+; RAM:
+;   $C87E: game_state
+; Confidence: high
 ; ============================================================================
 
 fn_12200_001:

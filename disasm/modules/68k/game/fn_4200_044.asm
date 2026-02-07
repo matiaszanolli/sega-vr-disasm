@@ -1,7 +1,27 @@
 ; ============================================================================
-; Fn 4200 044
+; Obj Palette Update 044 (auto-analyzed)
 ; ROM Range: $005E38-$005EEA (178 bytes)
-; Source: code_4200
+; ============================================================================
+; Category: object
+; Purpose: Orchestrator calling 37 subroutines
+;   Calls: sprite_buffer_alt, effect_timer_mgmt, object_frame_timer, load_object_params
+;   Object (A0): +$44 (display_offset), +$46 (display_scale), +$4A, +$92 (param_92)
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, A0
+; Calls:
+;   $002984: palette_update
+;   $0031A6: display_mode_dispatch
+;   $0036DE: clear_buffer
+;   $0037B6: memory_copy
+;   $003F86: clear_display_vars
+;   $006F98: calc_steering
+; Object fields:
+;   +$44: display_offset
+;   +$46: display_scale
+;   +$4A: [unknown]
+;   +$92: param_92
+; Confidence: high
 ; ============================================================================
 
 fn_4200_044:

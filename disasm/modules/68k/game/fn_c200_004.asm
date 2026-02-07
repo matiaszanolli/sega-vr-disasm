@@ -1,7 +1,20 @@
 ; ============================================================================
-; Fn C200 004
+; Scene Object Update 004 (auto-analyzed)
 ; ROM Range: $00C390-$00C416 (134 bytes)
-; Source: code_c200
+; ============================================================================
+; Category: game
+; Purpose: Orchestrator calling 5 subroutines
+;   RAM: $C8AA (scene_state), $C87E (game_state)
+;   Calls: sprite_update, object_update
+;
+; Uses: D0, D1, A0
+; RAM:
+;   $C87E: game_state
+;   $C8AA: scene_state
+; Calls:
+;   $00B684: object_update
+;   $00B6DA: sprite_update
+; Confidence: high
 ; ============================================================================
 
 fn_c200_004:

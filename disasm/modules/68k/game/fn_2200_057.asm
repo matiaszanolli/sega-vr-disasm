@@ -1,7 +1,18 @@
 ; ============================================================================
-; Fn 2200 057
+; Vint 057 (auto-analyzed)
 ; ROM Range: $003924-$00397C (88 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: vint
+; Purpose: Calls: collision_distance_calc
+;   Object (A3): +$00
+;
+; Entry: A3 = object/entity pointer
+; Uses: D0, D1, D2, D7, A1, A2, A3, A6
+; Calls:
+;   $0039EC: collision_distance_calc
+; Object fields:
+;   +$00: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_2200_057:

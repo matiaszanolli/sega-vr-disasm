@@ -1,7 +1,22 @@
 ; ============================================================================
-; Fn 2200 036
+; Vint Heading 036 (auto-analyzed)
 ; ROM Range: $002EC6-$002EEE (40 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: game
+; Purpose: Short helper function
+;   Object (A0, A1): +$14 (effect_duration), +$28, +$3C (heading_mirror), +$50, +$64, +$E5
+;
+; Entry: A0 = object/entity pointer
+; Entry: A1 = object/entity pointer
+; Uses: D0, A0, A1
+; Object fields:
+;   +$14: effect_duration
+;   +$28: [unknown]
+;   +$3C: heading_mirror
+;   +$50: [unknown]
+;   +$64: [unknown]
+;   +$E5: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_2200_036:

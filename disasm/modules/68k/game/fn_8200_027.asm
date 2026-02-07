@@ -1,7 +1,23 @@
 ; ============================================================================
-; Fn 8200 027
+; Math Cosine Lookup 027 (auto-analyzed)
 ; ROM Range: $008DC0-$008EB6 (246 bytes)
-; Source: code_8200
+; ============================================================================
+; Category: math
+; Purpose: Orchestrator calling 4 subroutines
+;   Calls: ai_steering_calc, cosine_lookup, sine_lookup
+;   Object (A0): +$30 (x_position), +$32, +$34 (y_position)
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D1, D2, D3, A0
+; Calls:
+;   $008F4E: cosine_lookup
+;   $008F52: sine_lookup
+;   $00A7A0: ai_steering_calc
+; Object fields:
+;   +$30: x_position
+;   +$32: [unknown]
+;   +$34: y_position
+; Confidence: high
 ; ============================================================================
 
 fn_8200_027:

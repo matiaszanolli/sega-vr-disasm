@@ -1,7 +1,20 @@
 ; ============================================================================
-; Fn 2200 018
+; Sh2 Comm Framebuffer Prep 018 (auto-analyzed)
 ; ROM Range: $00270A-$00273C (50 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: sh2
+; Purpose: Orchestrator calling 3 subroutines
+;   Accesses 32X registers: adapter_ctrl
+;   Calls: sh2_framebuffer_prep
+;   Object (A4): +$8B
+;
+; Entry: A4 = object/entity pointer
+; Uses: D0, D2, A4
+; Calls:
+;   $0027DA: sh2_framebuffer_prep
+; Object fields:
+;   +$8B: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_2200_018:

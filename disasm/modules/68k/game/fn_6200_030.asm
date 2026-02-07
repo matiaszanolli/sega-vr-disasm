@@ -1,7 +1,16 @@
 ; ============================================================================
-; Fn 6200 030
+; Obj 030 (auto-analyzed)
 ; ROM Range: $007624-$007636 (18 bytes)
-; Source: code_6200
+; ============================================================================
+; Category: game
+; Purpose: Short helper function
+;   Object (A0): +$CC
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, A0
+; Object fields:
+;   +$CC: [unknown]
+; Confidence: low
 ; ============================================================================
 
 fn_6200_030:

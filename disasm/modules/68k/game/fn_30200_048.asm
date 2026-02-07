@@ -1,7 +1,24 @@
 ; ============================================================================
-; Fn 30200 048
+; Fm Conditional Write 048 (auto-analyzed)
 ; ROM Range: $03124A-$0312A6 (92 bytes)
-; Source: code_30200
+; ============================================================================
+; Category: sound
+; Purpose: Calls: fm_conditional_write, fm_write_wrapper
+;   Object (A5, A6): +$01, +$02 (flags/type), +$20, +$27, +$30 (x_position)
+;
+; Entry: A5 = object/entity pointer
+; Entry: A6 = object/entity pointer
+; Uses: D0, D1, D3, D6, A0, A1, A2, A4
+; Calls:
+;   $030CA2: fm_conditional_write
+;   $030CBA: fm_write_wrapper
+; Object fields:
+;   +$01: [unknown]
+;   +$02: flags/type
+;   +$20: [unknown]
+;   +$27: [unknown]
+;   +$30: x_position
+; Confidence: high
 ; ============================================================================
 
 fn_30200_048:

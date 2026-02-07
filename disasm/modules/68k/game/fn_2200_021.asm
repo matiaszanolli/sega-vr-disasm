@@ -1,7 +1,17 @@
 ; ============================================================================
-; Fn 2200 021
+; Sh2 Comm 021 (auto-analyzed)
 ; ROM Range: $0028C2-$002984 (194 bytes)
-; Source: code_2200
+; ============================================================================
+; Category: sh2
+; Purpose: Accesses 32X registers: COMM0, adapter_ctrl
+;   Object (A4): +$84, +$8B
+;
+; Entry: A4 = object/entity pointer
+; Uses: D0, D1, D2, D7, A1, A2, A3, A4
+; Object fields:
+;   +$84: [unknown]
+;   +$8B: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_2200_021:

@@ -1,7 +1,18 @@
 ; ============================================================================
-; Fn 8200 001
+; Display 001 (auto-analyzed)
 ; ROM Range: $008200-$008246 (70 bytes)
-; Source: code_8200
+; ============================================================================
+; Category: display
+; Purpose: RAM: $6960 (display_state_flag)
+;   Object (A0): +$02 (flags/type)
+;
+; Entry: A0 = object/entity pointer
+; Uses: D0, D4, A0, A4
+; RAM:
+;   $6960: display_state_flag
+; Object fields:
+;   +$02: flags/type
+; Confidence: medium
 ; ============================================================================
 
 fn_8200_001:

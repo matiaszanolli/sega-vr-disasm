@@ -1,7 +1,26 @@
 ; ============================================================================
-; Fn A200 043
+; Ai Sh2 Comm 043 (auto-analyzed)
 ; ROM Range: $00BEFC-$00BF9E (162 bytes)
-; Source: code_a200
+; ============================================================================
+; Category: game
+; Purpose: RAM: $C89C (sh2_comm_state), $C8CA (race_substate_read), $C8CC (race_substate)
+;   Object (A2): +$00, +$03, +$04 (speed_index/velocity), +$05, +$06 (speed), +$07
+;
+; Entry: A2 = object/entity pointer
+; Uses: D0, D1, D2, D3, A1, A2, A3, A6
+; RAM:
+;   $C89C: sh2_comm_state
+;   $C8CA: race_substate_read
+;   $C8CC: race_substate
+; Object fields:
+;   +$00: [unknown]
+;   +$03: [unknown]
+;   +$04: speed_index/velocity
+;   +$05: [unknown]
+;   +$06: speed
+;   +$07: [unknown]
+;   +$08: [unknown]
+; Confidence: high
 ; ============================================================================
 
 fn_a200_043:

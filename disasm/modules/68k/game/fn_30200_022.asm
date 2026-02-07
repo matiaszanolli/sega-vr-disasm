@@ -5,35 +5,26 @@
 ; ============================================================================
 
 fn_30200_022:
-        dc.w    $7402                    ; $030B50
-        dc.w    $7028                    ; $030B52
-        dc.w    $4EBA                    ; $030B54
-        dc.w    $01C6                    ; $030B56
-        dc.w    $1202                    ; $030B58
-        dc.w    $4EBA                    ; $030B5A
-        dc.w    $017C                    ; $030B5C
-        dc.w    $5801                    ; $030B5E
-        dc.w    $4EBA                    ; $030B60
-        dc.w    $0176                    ; $030B62
-        dc.w    $51CA                    ; $030B64
-        dc.w    $FFF2                    ; $030B66
-        dc.w    $7040                    ; $030B68
-        dc.w    $727F                    ; $030B6A
-        dc.w    $7602                    ; $030B6C
-        dc.w    $7403                    ; $030B6E
-        dc.w    $4EBA                    ; $030B70
-        dc.w    $0166                    ; $030B72
-        dc.w    $4EBA                    ; $030B74
-        dc.w    $0188                    ; $030B76
-        dc.w    $5840                    ; $030B78
-        dc.w    $51CA                    ; $030B7A
-        dc.w    $FFF4                    ; $030B7C
-        dc.w    $0400                    ; $030B7E
-        dc.w    $000F                    ; $030B80
-        dc.w    $51CB                    ; $030B82
-        dc.w    $FFEA                    ; $030B84
-        dc.w    $33FC                    ; $030B86
-        dc.w    $0000                    ; $030B88
-        dc.w    $00A1                    ; $030B8A
-        dc.w    $1100                    ; $030B8C
-        dc.w    $4E75                    ; $030B8E
+        MOVEQ   #$02,D2                         ; $030B50
+        MOVEQ   #$28,D0                         ; $030B52
+        DC.W    $4EBA,$01C6         ; JSR     $030D1C(PC); $030B54
+.loc_0008:
+        MOVE.B  D2,D1                           ; $030B58
+        DC.W    $4EBA,$017C         ; JSR     $030CD8(PC); $030B5A
+        ADDQ.B  #4,D1                           ; $030B5E
+        DC.W    $4EBA,$0176         ; JSR     $030CD8(PC); $030B60
+        DBRA    D2,.loc_0008                    ; $030B64
+        MOVEQ   #$40,D0                         ; $030B68
+        MOVEQ   #$7F,D1                         ; $030B6A
+        MOVEQ   #$02,D3                         ; $030B6C
+.loc_001E:
+        MOVEQ   #$03,D2                         ; $030B6E
+.loc_0020:
+        DC.W    $4EBA,$0166         ; JSR     $030CD8(PC); $030B70
+        DC.W    $4EBA,$0188         ; JSR     $030CFE(PC); $030B74
+        ADDQ.W  #4,D0                           ; $030B78
+        DBRA    D2,.loc_0020                    ; $030B7A
+        SUBI.B  #$0F,D0                         ; $030B7E
+        DBRA    D3,.loc_001E                    ; $030B82
+        MOVE.W  #$0000,$00A11100                ; $030B86
+        RTS                                     ; $030B8E

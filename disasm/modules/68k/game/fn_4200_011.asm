@@ -5,39 +5,26 @@
 ; ============================================================================
 
 fn_4200_011:
-        dc.w    $A2A0                    ; $004CB8
-        dc.w    $A100                    ; $004CBA
-        dc.w    $3038                    ; $004CBC
-        dc.w    $C87E                    ; $004CBE
-        dc.w    $227B                    ; $004CC0
-        dc.w    $0004                    ; $004CC2
-        dc.w    $4ED1                    ; $004CC4
-        dc.w    $0088                    ; $004CC6
-        dc.w    $4CDA                    ; $004CC8
-        dc.w    $0088                    ; $004CCA
-        dc.w    $4D00                    ; $004CCC
-        dc.w    $0088                    ; $004CCE
-        dc.w    $4D1A                    ; $004CD0
-        dc.w    $0088                    ; $004CD2
-        dc.w    $4D7A                    ; $004CD4
-        dc.w    $0088                    ; $004CD6
-        dc.w    $573C                    ; $004CD8
-        dc.w    $4EBA                    ; $004CDA
-        dc.w    $DBE6                    ; $004CDC
-        dc.w    $4EBA                    ; $004CDE
-        dc.w    $D3F6                    ; $004CE0
-        dc.w    $4EBA                    ; $004CE2
-        dc.w    $63BA                    ; $004CE4
-        dc.w    $4EBA                    ; $004CE6
-        dc.w    $6344                    ; $004CE8
-        dc.w    $4EBA                    ; $004CEA
-        dc.w    $6946                    ; $004CEC
-        dc.w    $4EBA                    ; $004CEE
-        dc.w    $0BD8                    ; $004CF0
-        dc.w    $5878                    ; $004CF2
-        dc.w    $C87E                    ; $004CF4
-        dc.w    $33FC                    ; $004CF6
-        dc.w    $0010                    ; $004CF8
-        dc.w    $00FF                    ; $004CFA
-        dc.w    $0008                    ; $004CFC
-        dc.w    $4E75                    ; $004CFE
+        DC.W    $A2A0                           ; $004CB8
+        DC.W    $A100                           ; $004CBA
+        MOVE.W  (-14210).W,D0                   ; $004CBC
+        MOVEA.L $004CC6(PC,D0.W),A1             ; $004CC0
+        JMP     (A1)                            ; $004CC4
+        DC.W    $0088                           ; $004CC6
+        MOVEM.L (A2)+,D3/D7                     ; $004CC8
+        DC.W    $4D00                           ; $004CCC
+        DC.W    $0088                           ; $004CCE
+        DC.W    $4D1A                           ; $004CD0
+        DC.W    $0088                           ; $004CD2
+        DC.W    $4D7A                           ; $004CD4
+        DC.W    $0088                           ; $004CD6
+        DC.W    $573C                           ; $004CD8
+        DC.W    $4EBA,$DBE6         ; JSR     $0028C2(PC); $004CDA
+        DC.W    $4EBA,$D3F6         ; JSR     $0020D6(PC); $004CDE
+        DC.W    $4EBA,$63BA         ; JSR     $00B09E(PC); $004CE2
+        DC.W    $4EBA,$6344         ; JSR     $00B02C(PC); $004CE6
+        DC.W    $4EBA,$6946         ; JSR     $00B632(PC); $004CEA
+        DC.W    $4EBA,$0BD8         ; JSR     $0058C8(PC); $004CEE
+        ADDQ.W  #4,(-14210).W                   ; $004CF2
+        MOVE.W  #$0010,$00FF0008                ; $004CF6
+        RTS                                     ; $004CFE

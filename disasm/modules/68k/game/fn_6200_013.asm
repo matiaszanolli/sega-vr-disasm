@@ -5,36 +5,24 @@
 ; ============================================================================
 
 fn_6200_013:
-        dc.w    $2F0C                    ; $006C46
-        dc.w    $33FC                    ; $006C48
-        dc.w    $0001                    ; $006C4A
-        dc.w    $00FF                    ; $006C4C
-        dc.w    $3000                    ; $006C4E
-        dc.w    $43F9                    ; $006C50
-        dc.w    $0089                    ; $006C52
-        dc.w    $B844                    ; $006C54
-        dc.w    $45F9                    ; $006C56
-        dc.w    $00FF                    ; $006C58
-        dc.w    $304A                    ; $006C5A
-        dc.w    $47F9                    ; $006C5C
-        dc.w    $00FF                    ; $006C5E
-        dc.w    $301A                    ; $006C60
-        dc.w    $49F9                    ; $006C62
-        dc.w    $00FF                    ; $006C64
-        dc.w    $3002                    ; $006C66
-        dc.w    $7A05                    ; $006C68
-        dc.w    $7C01                    ; $006C6A
-        dc.w    $26CA                    ; $006C6C
-        dc.w    $3E11                    ; $006C6E
-        dc.w    $34D9                    ; $006C70
-        dc.w    $4EBA                    ; $006C72
-        dc.w    $DCAE                    ; $006C74
-        dc.w    $51CF                    ; $006C76
-        dc.w    $FFFA                    ; $006C78
-        dc.w    $51CE                    ; $006C7A
-        dc.w    $FFF0                    ; $006C7C
-        dc.w    $28CA                    ; $006C7E
-        dc.w    $51CD                    ; $006C80
-        dc.w    $FFE8                    ; $006C82
-        dc.w    $285F                    ; $006C84
-        dc.w    $4E75                    ; $006C86
+        MOVE.L  A4,-(A7)                        ; $006C46
+        MOVE.W  #$0001,$00FF3000                ; $006C48
+        LEA     $0089B844,A1                    ; $006C50
+        LEA     $00FF304A,A2                    ; $006C56
+        LEA     $00FF301A,A3                    ; $006C5C
+        LEA     $00FF3002,A4                    ; $006C62
+        MOVEQ   #$05,D5                         ; $006C68
+.loc_0024:
+        MOVEQ   #$01,D6                         ; $006C6A
+.loc_0026:
+        MOVE.L  A2,(A3)+                        ; $006C6C
+        MOVE.W  (A1),D7                         ; $006C6E
+        MOVE.W  (A1)+,(A2)+                     ; $006C70
+.loc_002C:
+        DC.W    $4EBA,$DCAE         ; JSR     $004922(PC); $006C72
+        DBRA    D7,.loc_002C                    ; $006C76
+        DBRA    D6,.loc_0026                    ; $006C7A
+        MOVE.L  A2,(A4)+                        ; $006C7E
+        DBRA    D5,.loc_0024                    ; $006C80
+        MOVEA.L (A7)+,A4                        ; $006C84
+        RTS                                     ; $006C86

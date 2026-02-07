@@ -5,24 +5,15 @@
 ; ============================================================================
 
 fn_a200_037:
-        dc.w    $43E8                    ; $00BD00
-        dc.w    $0002                    ; $00BD02
-        dc.w    $43E9                    ; $00BD04
-        dc.w    $FFF0                    ; $00BD06
-        dc.w    $0C29                    ; $00BD08
-        dc.w    $000C                    ; $00BD0A
-        dc.w    $FFFE                    ; $00BD0C
-        dc.w    $67F4                    ; $00BD0E
-        dc.w    $31D9                    ; $00BD10
-        dc.w    $C086                    ; $00BD12
-        dc.w    $31D9                    ; $00BD14
-        dc.w    $C054                    ; $00BD16
-        dc.w    $31D9                    ; $00BD18
-        dc.w    $C056                    ; $00BD1A
-        dc.w    $31D9                    ; $00BD1C
-        dc.w    $C0AE                    ; $00BD1E
-        dc.w    $31D9                    ; $00BD20
-        dc.w    $C0B0                    ; $00BD22
-        dc.w    $31D9                    ; $00BD24
-        dc.w    $C0B2                    ; $00BD26
-        dc.w    $4E75                    ; $00BD28
+        LEA     $0002(A0),A1                    ; $00BD00
+.loc_0004:
+        LEA     -$0010(A1),A1                   ; $00BD04
+        CMPI.B  #$0C,-$0002(A1)                 ; $00BD08
+        BEQ.S  .loc_0004                        ; $00BD0E
+        MOVE.W  (A1)+,(-16250).W                ; $00BD10
+        MOVE.W  (A1)+,(-16300).W                ; $00BD14
+        MOVE.W  (A1)+,(-16298).W                ; $00BD18
+        MOVE.W  (A1)+,(-16210).W                ; $00BD1C
+        MOVE.W  (A1)+,(-16208).W                ; $00BD20
+        MOVE.W  (A1)+,(-16206).W                ; $00BD24
+        RTS                                     ; $00BD28

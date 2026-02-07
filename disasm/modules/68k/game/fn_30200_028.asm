@@ -5,23 +5,17 @@
 ; ============================================================================
 
 fn_30200_028:
-        dc.w    $082D                    ; $030CCC
-        dc.w    $0002                    ; $030CCE
-        dc.w    $0001                    ; $030CD0
-        dc.w    $6620                    ; $030CD2
-        dc.w    $D02D                    ; $030CD4
-        dc.w    $0001                    ; $030CD6
-        dc.w    $41F9                    ; $030CD8
-        dc.w    $00A0                    ; $030CDA
-        dc.w    $4000                    ; $030CDC
-        dc.w    $0810                    ; $030CDE
-        dc.w    $0007                    ; $030CE0
-        dc.w    $66FA                    ; $030CE2
-        dc.w    $1080                    ; $030CE4
-        dc.w    $4E71                    ; $030CE6
-        dc.w    $0810                    ; $030CE8
-        dc.w    $0007                    ; $030CEA
-        dc.w    $66FA                    ; $030CEC
-        dc.w    $1141                    ; $030CEE
-        dc.w    $0001                    ; $030CF0
-        dc.w    $4E75                    ; $030CF2
+        BTST    #2,$0001(A5)                    ; $030CCC
+        DC.W    $6620               ; BNE.S  $030CF4; $030CD2
+        ADD.B  $0001(A5),D0                     ; $030CD4
+        LEA     $00A04000,A0                    ; $030CD8
+.loc_0012:
+        BTST    #7,(A0)                         ; $030CDE
+        BNE.S  .loc_0012                        ; $030CE2
+        MOVE.B  D0,(A0)                         ; $030CE4
+        NOP                                     ; $030CE6
+.loc_001C:
+        BTST    #7,(A0)                         ; $030CE8
+        BNE.S  .loc_001C                        ; $030CEC
+        MOVE.B  D1,$0001(A0)                    ; $030CEE
+        RTS                                     ; $030CF2

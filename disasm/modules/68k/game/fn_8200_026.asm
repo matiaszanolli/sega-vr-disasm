@@ -5,50 +5,34 @@
 ; ============================================================================
 
 fn_8200_026:
-        dc.w    $3038                    ; $008D62
-        dc.w    $C0BA                    ; $008D64
-        dc.w    $3238                    ; $008D66
-        dc.w    $C0BE                    ; $008D68
-        dc.w    $3428                    ; $008D6A
-        dc.w    $0030                    ; $008D6C
-        dc.w    $3628                    ; $008D6E
-        dc.w    $0034                    ; $008D70
-        dc.w    $4EBA                    ; $008D72
-        dc.w    $1A2C                    ; $008D74
-        dc.w    $0440                    ; $008D76
-        dc.w    $4000                    ; $008D78
-        dc.w    $4440                    ; $008D7A
-        dc.w    $31C0                    ; $008D7C
-        dc.w    $C0C2                    ; $008D7E
-        dc.w    $4EBA                    ; $008D80
-        dc.w    $01CC                    ; $008D82
-        dc.w    $3428                    ; $008D84
-        dc.w    $0030                    ; $008D86
-        dc.w    $9478                    ; $008D88
-        dc.w    $C0BA                    ; $008D8A
-        dc.w    $0C78                    ; $008D8C
-        dc.w    $C000                    ; $008D8E
-        dc.w    $C0C2                    ; $008D90
-        dc.w    $6602                    ; $008D92
-        dc.w    $4442                    ; $008D94
-        dc.w    $4A40                    ; $008D96
-        dc.w    $670E                    ; $008D98
-        dc.w    $3428                    ; $008D9A
-        dc.w    $0034                    ; $008D9C
-        dc.w    $9478                    ; $008D9E
-        dc.w    $C0BE                    ; $008DA0
-        dc.w    $48C2                    ; $008DA2
-        dc.w    $E182                    ; $008DA4
-        dc.w    $85C0                    ; $008DA6
-        dc.w    $3628                    ; $008DA8
-        dc.w    $0032                    ; $008DAA
-        dc.w    $9678                    ; $008DAC
-        dc.w    $C0BC                    ; $008DAE
-        dc.w    $E843                    ; $008DB0
-        dc.w    $3402                    ; $008DB2
-        dc.w    $4EBA                    ; $008DB4
-        dc.w    $19EE                    ; $008DB6
-        dc.w    $4440                    ; $008DB8
-        dc.w    $31C0                    ; $008DBA
-        dc.w    $C0C0                    ; $008DBC
-        dc.w    $4E75                    ; $008DBE
+        MOVE.W  (-16198).W,D0                   ; $008D62
+        MOVE.W  (-16194).W,D1                   ; $008D66
+        MOVE.W  $0030(A0),D2                    ; $008D6A
+        MOVE.W  $0034(A0),D3                    ; $008D6E
+        DC.W    $4EBA,$1A2C         ; JSR     $00A7A0(PC); $008D72
+        SUBI.W  #$4000,D0                       ; $008D76
+        NEG.W  D0                               ; $008D7A
+        MOVE.W  D0,(-16190).W                   ; $008D7C
+        DC.W    $4EBA,$01CC         ; JSR     $008F4E(PC); $008D80
+        MOVE.W  $0030(A0),D2                    ; $008D84
+        SUB.W  (-16198).W,D2                    ; $008D88
+        CMPI.W  #$C000,(-16190).W               ; $008D8C
+        BNE.S  .loc_0034                        ; $008D92
+        NEG.W  D2                               ; $008D94
+.loc_0034:
+        TST.W  D0                               ; $008D96
+        BEQ.S  .loc_0046                        ; $008D98
+        MOVE.W  $0034(A0),D2                    ; $008D9A
+        SUB.W  (-16194).W,D2                    ; $008D9E
+        EXT.L   D2                              ; $008DA2
+        ASL.L  #8,D2                            ; $008DA4
+        DIVS    D0,D2                           ; $008DA6
+.loc_0046:
+        MOVE.W  $0032(A0),D3                    ; $008DA8
+        SUB.W  (-16196).W,D3                    ; $008DAC
+        ASR.W  #4,D3                            ; $008DB0
+        MOVE.W  D2,D2                           ; $008DB2
+        DC.W    $4EBA,$19EE         ; JSR     $00A7A4(PC); $008DB4
+        NEG.W  D0                               ; $008DB8
+        MOVE.W  D0,(-16192).W                   ; $008DBA
+        RTS                                     ; $008DBE

@@ -5,35 +5,24 @@
 ; ============================================================================
 
 fn_a200_013:
-        dc.w    $7000                    ; $00B3CE
-        dc.w    $1019                    ; $00B3D0
-        dc.w    $D040                    ; $00B3D2
-        dc.w    $47F9                    ; $00B3D4
-        dc.w    $0089                    ; $00B3D6
-        dc.w    $9884                    ; $00B3D8
-        dc.w    $3033                    ; $00B3DA
-        dc.w    $0000                    ; $00B3DC
-        dc.w    $14C0                    ; $00B3DE
-        dc.w    $7000                    ; $00B3E0
-        dc.w    $1019                    ; $00B3E2
-        dc.w    $0400                    ; $00B3E4
-        dc.w    $00C4                    ; $00B3E6
-        dc.w    $D040                    ; $00B3E8
-        dc.w    $47F9                    ; $00B3EA
-        dc.w    $0089                    ; $00B3EC
-        dc.w    $9884                    ; $00B3EE
-        dc.w    $3033                    ; $00B3F0
-        dc.w    $0000                    ; $00B3F2
-        dc.w    $14C0                    ; $00B3F4
-        dc.w    $7000                    ; $00B3F6
-        dc.w    $1019                    ; $00B3F8
-        dc.w    $0400                    ; $00B3FA
-        dc.w    $00C4                    ; $00B3FC
-        dc.w    $D040                    ; $00B3FE
-        dc.w    $47F9                    ; $00B400
-        dc.w    $0089                    ; $00B402
-        dc.w    $980C                    ; $00B404
-        dc.w    $3033                    ; $00B406
-        dc.w    $0000                    ; $00B408
-        dc.w    $34C0                    ; $00B40A
-        dc.w    $4E75                    ; $00B40C
+        MOVEQ   #$00,D0                         ; $00B3CE
+        MOVE.B  (A1)+,D0                        ; $00B3D0
+        DC.W    $D040                           ; $00B3D2
+        LEA     $00899884,A3                    ; $00B3D4
+        MOVE.W  $00(A3,D0.W),D0                 ; $00B3DA
+        MOVE.B  D0,(A2)+                        ; $00B3DE
+        MOVEQ   #$00,D0                         ; $00B3E0
+        MOVE.B  (A1)+,D0                        ; $00B3E2
+        SUBI.B  #$C4,D0                         ; $00B3E4
+        DC.W    $D040                           ; $00B3E8
+        LEA     $00899884,A3                    ; $00B3EA
+        MOVE.W  $00(A3,D0.W),D0                 ; $00B3F0
+        MOVE.B  D0,(A2)+                        ; $00B3F4
+        MOVEQ   #$00,D0                         ; $00B3F6
+        MOVE.B  (A1)+,D0                        ; $00B3F8
+        SUBI.B  #$C4,D0                         ; $00B3FA
+        DC.W    $D040                           ; $00B3FE
+        LEA     $0089980C,A3                    ; $00B400
+        MOVE.W  $00(A3,D0.W),D0                 ; $00B406
+        MOVE.W  D0,(A2)+                        ; $00B40A
+        RTS                                     ; $00B40C

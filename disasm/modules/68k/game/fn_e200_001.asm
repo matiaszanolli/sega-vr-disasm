@@ -5,20 +5,16 @@
 ; ============================================================================
 
 fn_e200_001:
-        dc.w    $0EEE                    ; $00E5AC
-        dc.w    $0EEE                    ; $00E5AE
-        dc.w    $0EEE                    ; $00E5B0
-        dc.w    $0EEE                    ; $00E5B2
-        dc.w    $0000                    ; $00E5B4
-        dc.w    $0000                    ; $00E5B6
-        dc.w    $0000                    ; $00E5B8
-        dc.w    $0000                    ; $00E5BA
-        dc.w    $0EEE                    ; $00E5BC
-        dc.w    $0EEE                    ; $00E5BE
-        dc.w    $0EEE                    ; $00E5C0
-        dc.w    $0EEE                    ; $00E5C2
-        dc.w    $0000                    ; $00E5C4
-        dc.w    $0000                    ; $00E5C6
-        dc.w    $0000                    ; $00E5C8
-        dc.w    $0000                    ; $00E5CA
-        dc.w    $4E75                    ; $00E5CC
+        DC.W    $0EEE                           ; $00E5AC
+        DC.W    $0EEE                           ; $00E5AE
+        DC.W    $0EEE                           ; $00E5B0
+        DC.W    $0EEE                           ; $00E5B2
+        ORI.B  #$00,D0                          ; $00E5B4
+        ORI.B  #$00,D0                          ; $00E5B8
+        DC.W    $0EEE                           ; $00E5BC
+        DC.W    $0EEE                           ; $00E5BE
+        DC.W    $0EEE                           ; $00E5C0
+        DC.W    $0EEE                           ; $00E5C2
+        ORI.B  #$00,D0                          ; $00E5C4
+        ORI.B  #$00,D0                          ; $00E5C8
+        RTS                                     ; $00E5CC

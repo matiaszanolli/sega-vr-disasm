@@ -5,52 +5,36 @@
 ; ============================================================================
 
 fn_6200_023:
-        dc.w    $4A68                    ; $006F98
-        dc.w    $0062                    ; $006F9A
-        dc.w    $6638                    ; $006F9C
-        dc.w    $4A68                    ; $006F9E
-        dc.w    $0092                    ; $006FA0
-        dc.w    $6E2A                    ; $006FA2
-        dc.w    $3028                    ; $006FA4
-        dc.w    $003C                    ; $006FA6
-        dc.w    $D068                    ; $006FA8
-        dc.w    $0096                    ; $006FAA
-        dc.w    $3140                    ; $006FAC
-        dc.w    $0040                    ; $006FAE
-        dc.w    $4440                    ; $006FB0
-        dc.w    $3428                    ; $006FB2
-        dc.w    $0006                    ; $006FB4
-        dc.w    $3628                    ; $006FB6
-        dc.w    $0030                    ; $006FB8
-        dc.w    $3828                    ; $006FBA
-        dc.w    $0034                    ; $006FBC
-        dc.w    $4EBA                    ; $006FBE
-        dc.w    $001E                    ; $006FC0
-        dc.w    $3143                    ; $006FC2
-        dc.w    $0030                    ; $006FC4
-        dc.w    $3144                    ; $006FC6
-        dc.w    $0034                    ; $006FC8
-        dc.w    $4EFA                    ; $006FCA
-        dc.w    $0734                    ; $006FCC
-        dc.w    $4EBA                    ; $006FCE
-        dc.w    $002A                    ; $006FD0
-        dc.w    $4EFA                    ; $006FD2
-        dc.w    $0842                    ; $006FD4
-        dc.w    $4EBA                    ; $006FD6
-        dc.w    $0030                    ; $006FD8
-        dc.w    $4EFA                    ; $006FDA
-        dc.w    $083A                    ; $006FDC
-        dc.w    $7C0C                    ; $006FDE
-        dc.w    $3A00                    ; $006FE0
-        dc.w    $4EBA                    ; $006FE2
-        dc.w    $1F6E                    ; $006FE4
-        dc.w    $C1C2                    ; $006FE6
-        dc.w    $ECA0                    ; $006FE8
-        dc.w    $D640                    ; $006FEA
-        dc.w    $3005                    ; $006FEC
-        dc.w    $4EBA                    ; $006FEE
-        dc.w    $1F5E                    ; $006FF0
-        dc.w    $C1C2                    ; $006FF2
-        dc.w    $ECA0                    ; $006FF4
-        dc.w    $D840                    ; $006FF6
-        dc.w    $4E75                    ; $006FF8
+        TST.W  $0062(A0)                        ; $006F98
+        BNE.S  .loc_003E                        ; $006F9C
+        TST.W  $0092(A0)                        ; $006F9E
+        BGT.S  .loc_0036                        ; $006FA2
+        MOVE.W  $003C(A0),D0                    ; $006FA4
+        ADD.W  $0096(A0),D0                     ; $006FA8
+        MOVE.W  D0,$0040(A0)                    ; $006FAC
+        NEG.W  D0                               ; $006FB0
+        MOVE.W  $0006(A0),D2                    ; $006FB2
+        MOVE.W  $0030(A0),D3                    ; $006FB6
+        MOVE.W  $0034(A0),D4                    ; $006FBA
+        DC.W    $4EBA,$001E         ; JSR     $006FDE(PC); $006FBE
+        MOVE.W  D3,$0030(A0)                    ; $006FC2
+        MOVE.W  D4,$0034(A0)                    ; $006FC6
+        DC.W    $4EFA,$0734         ; JMP     $007700(PC); $006FCA
+.loc_0036:
+        DC.W    $4EBA,$002A         ; JSR     $006FFA(PC); $006FCE
+        DC.W    $4EFA,$0842         ; JMP     $007816(PC); $006FD2
+.loc_003E:
+        DC.W    $4EBA,$0030         ; JSR     $007008(PC); $006FD6
+        DC.W    $4EFA,$083A         ; JMP     $007816(PC); $006FDA
+        MOVEQ   #$0C,D6                         ; $006FDE
+        MOVE.W  D0,D5                           ; $006FE0
+        DC.W    $4EBA,$1F6E         ; JSR     $008F52(PC); $006FE2
+        MULS    D2,D0                           ; $006FE6
+        ASR.L  D6,D0                            ; $006FE8
+        DC.W    $D640                           ; $006FEA
+        MOVE.W  D5,D0                           ; $006FEC
+        DC.W    $4EBA,$1F5E         ; JSR     $008F4E(PC); $006FEE
+        MULS    D2,D0                           ; $006FF2
+        ASR.L  D6,D0                            ; $006FF4
+        DC.W    $D840                           ; $006FF6
+        RTS                                     ; $006FF8

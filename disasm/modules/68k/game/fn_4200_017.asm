@@ -5,52 +5,26 @@
 ; ============================================================================
 
 fn_4200_017:
-        dc.w    $4EBA                    ; $00509E
-        dc.w    $D104                    ; $0050A0
-        dc.w    $4EBA                    ; $0050A2
-        dc.w    $13F2                    ; $0050A4
-        dc.w    $4EBA                    ; $0050A6
-        dc.w    $5FF6                    ; $0050A8
-        dc.w    $4EBA                    ; $0050AA
-        dc.w    $5FE8                    ; $0050AC
-        dc.w    $4EBA                    ; $0050AE
-        dc.w    $602E                    ; $0050B0
-        dc.w    $4EBA                    ; $0050B2
-        dc.w    $6450                    ; $0050B4
-        dc.w    $4EBA                    ; $0050B6
-        dc.w    $6440                    ; $0050B8
-        dc.w    $4EBA                    ; $0050BA
-        dc.w    $649E                    ; $0050BC
-        dc.w    $4EBA                    ; $0050BE
-        dc.w    $64D0                    ; $0050C0
-        dc.w    $5278                    ; $0050C2
-        dc.w    $C8AA                    ; $0050C4
-        dc.w    $4EBA                    ; $0050C6
-        dc.w    $6612                    ; $0050C8
-        dc.w    $4EBA                    ; $0050CA
-        dc.w    $65B8                    ; $0050CC
-        dc.w    $5878                    ; $0050CE
-        dc.w    $C87E                    ; $0050D0
-        dc.w    $33FC                    ; $0050D2
-        dc.w    $0054                    ; $0050D4
-        dc.w    $00FF                    ; $0050D6
-        dc.w    $0008                    ; $0050D8
-        dc.w    $4EFA                    ; $0050DA
-        dc.w    $061C                    ; $0050DC
-        dc.w    $4EBA                    ; $0050DE
-        dc.w    $D0C4                    ; $0050E0
-        dc.w    $4EBA                    ; $0050E2
-        dc.w    $C6BA                    ; $0050E4
-        dc.w    $4EBA                    ; $0050E6
-        dc.w    $5FB6                    ; $0050E8
-        dc.w    $4EBA                    ; $0050EA
-        dc.w    $5FA8                    ; $0050EC
-        dc.w    $4EBA                    ; $0050EE
-        dc.w    $5FEE                    ; $0050F0
-        dc.w    $5238                    ; $0050F2
-        dc.w    $C886                    ; $0050F4
-        dc.w    $33FC                    ; $0050F6
-        dc.w    $0054                    ; $0050F8
-        dc.w    $00FF                    ; $0050FA
-        dc.w    $0008                    ; $0050FC
-        dc.w    $4E75                    ; $0050FE
+        DC.W    $4EBA,$D104         ; JSR     $0021A4(PC); $00509E
+        DC.W    $4EBA,$13F2         ; JSR     $006496(PC); $0050A2
+        DC.W    $4EBA,$5FF6         ; JSR     $00B09E(PC); $0050A6
+        DC.W    $4EBA,$5FE8         ; JSR     $00B094(PC); $0050AA
+        DC.W    $4EBA,$602E         ; JSR     $00B0DE(PC); $0050AE
+        DC.W    $4EBA,$6450         ; JSR     $00B504(PC); $0050B2
+        DC.W    $4EBA,$6440         ; JSR     $00B4F8(PC); $0050B6
+        DC.W    $4EBA,$649E         ; JSR     $00B55A(PC); $0050BA
+        DC.W    $4EBA,$64D0         ; JSR     $00B590(PC); $0050BE
+        ADDQ.W  #1,(-14166).W                   ; $0050C2
+        DC.W    $4EBA,$6612         ; JSR     $00B6DA(PC); $0050C6
+        DC.W    $4EBA,$65B8         ; JSR     $00B684(PC); $0050CA
+        ADDQ.W  #4,(-14210).W                   ; $0050CE
+        MOVE.W  #$0054,$00FF0008                ; $0050D2
+        DC.W    $4EFA,$061C         ; JMP     $0056F8(PC); $0050DA
+        DC.W    $4EBA,$D0C4         ; JSR     $0021A4(PC); $0050DE
+        DC.W    $4EBA,$C6BA         ; JSR     $00179E(PC); $0050E2
+        DC.W    $4EBA,$5FB6         ; JSR     $00B09E(PC); $0050E6
+        DC.W    $4EBA,$5FA8         ; JSR     $00B094(PC); $0050EA
+        DC.W    $4EBA,$5FEE         ; JSR     $00B0DE(PC); $0050EE
+        ADDQ.B  #1,(-14202).W                   ; $0050F2
+        MOVE.W  #$0054,$00FF0008                ; $0050F6
+        RTS                                     ; $0050FE

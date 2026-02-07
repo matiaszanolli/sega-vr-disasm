@@ -5,69 +5,58 @@
 ; ============================================================================
 
 fn_8200_044:
-        dc.w    $B3BB                    ; $009DD6
-        dc.w    $B3BC                    ; $009DD8
-        dc.w    $CCCD                    ; $009DDA
-        dc.w    $CCCE                    ; $009DDC
-        dc.w    $CFD0                    ; $009DDE
-        dc.w    $CFD1                    ; $009DE0
-        dc.w    $720E                    ; $009DE2
-        dc.w    $43E8                    ; $009DE4
-        dc.w    $0004                    ; $009DE6
-        dc.w    $3401                    ; $009DE8
-        dc.w    $3010                    ; $009DEA
-        dc.w    $B051                    ; $009DEC
-        dc.w    $6D52                    ; $009DEE
-        dc.w    $6E56                    ; $009DF0
-        dc.w    $3468                    ; $009DF2
-        dc.w    $0002                    ; $009DF4
-        dc.w    $3669                    ; $009DF6
-        dc.w    $0002                    ; $009DF8
-        dc.w    $302A                    ; $009DFA
-        dc.w    $001E                    ; $009DFC
-        dc.w    $0640                    ; $009DFE
-        dc.w    $2000                    ; $009E00
-        dc.w    $E758                    ; $009E02
-        dc.w    $0240                    ; $009E04
-        dc.w    $0006                    ; $009E06
-        dc.w    $4EFB                    ; $009E08
-        dc.w    $0002                    ; $009E0A
-        dc.w    $6006                    ; $009E0C
-        dc.w    $6010                    ; $009E0E
-        dc.w    $601A                    ; $009E10
-        dc.w    $6024                    ; $009E12
-        dc.w    $302A                    ; $009E14
-        dc.w    $0034                    ; $009E16
-        dc.w    $B06B                    ; $009E18
-        dc.w    $0034                    ; $009E1A
-        dc.w    $6D24                    ; $009E1C
-        dc.w    $6028                    ; $009E1E
-        dc.w    $302A                    ; $009E20
-        dc.w    $0030                    ; $009E22
-        dc.w    $B06B                    ; $009E24
-        dc.w    $0030                    ; $009E26
-        dc.w    $6E18                    ; $009E28
-        dc.w    $601C                    ; $009E2A
-        dc.w    $302A                    ; $009E2C
-        dc.w    $0034                    ; $009E2E
-        dc.w    $B06B                    ; $009E30
-        dc.w    $0034                    ; $009E32
-        dc.w    $6E0C                    ; $009E34
-        dc.w    $6010                    ; $009E36
-        dc.w    $302A                    ; $009E38
-        dc.w    $0030                    ; $009E3A
-        dc.w    $B06B                    ; $009E3C
-        dc.w    $0030                    ; $009E3E
-        dc.w    $6E06                    ; $009E40
-        dc.w    $2010                    ; $009E42
-        dc.w    $2091                    ; $009E44
-        dc.w    $2280                    ; $009E46
-        dc.w    $43E9                    ; $009E48
-        dc.w    $0004                    ; $009E4A
-        dc.w    $51CA                    ; $009E4C
-        dc.w    $FF9C                    ; $009E4E
-        dc.w    $41E8                    ; $009E50
-        dc.w    $0004                    ; $009E52
-        dc.w    $51C9                    ; $009E54
-        dc.w    $FF8E                    ; $009E56
-        dc.w    $4E75                    ; $009E58
+        DC.W    $B3BB                           ; $009DD6
+        DC.W    $B3BC                           ; $009DD8
+        DC.W    $CCCD                           ; $009DDA
+        DC.W    $CCCE                           ; $009DDC
+        MULS    (A0),D7                         ; $009DDE
+        MULS    (A1),D7                         ; $009DE0
+        MOVEQ   #$0E,D1                         ; $009DE2
+.loc_000E:
+        LEA     $0004(A0),A1                    ; $009DE4
+        MOVE.W  D1,D2                           ; $009DE8
+.loc_0014:
+        MOVE.W  (A0),D0                         ; $009DEA
+        CMP.W  (A1),D0                          ; $009DEC
+        BLT.S  .loc_006C                        ; $009DEE
+        BGT.S  .loc_0072                        ; $009DF0
+        MOVEA.W $0002(A0),A2                    ; $009DF2
+        MOVEA.W $0002(A1),A3                    ; $009DF6
+        MOVE.W  $001E(A2),D0                    ; $009DFA
+        ADDI.W  #$2000,D0                       ; $009DFE
+        ROL.W  #3,D0                            ; $009E02
+        ANDI.W  #$0006,D0                       ; $009E04
+        JMP     $009E0C(PC,D0.W)                ; $009E08
+        BRA.S  .loc_003E                        ; $009E0C
+        BRA.S  .loc_004A                        ; $009E0E
+        BRA.S  .loc_0056                        ; $009E10
+        BRA.S  .loc_0062                        ; $009E12
+.loc_003E:
+        MOVE.W  $0034(A2),D0                    ; $009E14
+        CMP.W  $0034(A3),D0                     ; $009E18
+        BLT.S  .loc_006C                        ; $009E1C
+        BRA.S  .loc_0072                        ; $009E1E
+.loc_004A:
+        MOVE.W  $0030(A2),D0                    ; $009E20
+        CMP.W  $0030(A3),D0                     ; $009E24
+        BGT.S  .loc_006C                        ; $009E28
+        BRA.S  .loc_0072                        ; $009E2A
+.loc_0056:
+        MOVE.W  $0034(A2),D0                    ; $009E2C
+        CMP.W  $0034(A3),D0                     ; $009E30
+        BGT.S  .loc_006C                        ; $009E34
+        BRA.S  .loc_0072                        ; $009E36
+.loc_0062:
+        MOVE.W  $0030(A2),D0                    ; $009E38
+        CMP.W  $0030(A3),D0                     ; $009E3C
+        BGT.S  .loc_0072                        ; $009E40
+.loc_006C:
+        MOVE.L  (A0),D0                         ; $009E42
+        MOVE.L  (A1),(A0)                       ; $009E44
+        MOVE.L  D0,(A1)                         ; $009E46
+.loc_0072:
+        LEA     $0004(A1),A1                    ; $009E48
+        DBRA    D2,.loc_0014                    ; $009E4C
+        LEA     $0004(A0),A0                    ; $009E50
+        DBRA    D1,.loc_000E                    ; $009E54
+        RTS                                     ; $009E58

@@ -5,29 +5,13 @@
 ; ============================================================================
 
 fn_2200_070:
-        dc.w    $0C78                    ; $003DD4
-        dc.w    $0014                    ; $003DD6
-        dc.w    $C8AA                    ; $003DD8
-        dc.w    $6F2A                    ; $003DDA
-        dc.w    $23FC                    ; $003DDC
-        dc.w    $222F                    ; $003DDE
-        dc.w    $29EE                    ; $003DE0
-        dc.w    $00FF                    ; $003DE2
-        dc.w    $69C8                    ; $003DE4
-        dc.w    $23FC                    ; $003DE6
-        dc.w    $222F                    ; $003DE8
-        dc.w    $1716                    ; $003DEA
-        dc.w    $00FF                    ; $003DEC
-        dc.w    $6998                    ; $003DEE
-        dc.w    $31FC                    ; $003DF0
-        dc.w    $0000                    ; $003DF2
-        dc.w    $C8AA                    ; $003DF4
-        dc.w    $11FC                    ; $003DF6
-        dc.w    $00A7                    ; $003DF8
-        dc.w    $C8A4                    ; $003DFA
-        dc.w    $08F8                    ; $003DFC
-        dc.w    $0004                    ; $003DFE
-        dc.w    $C30E                    ; $003E00
-        dc.w    $5878                    ; $003E02
-        dc.w    $C8AC                    ; $003E04
-        dc.w    $4E75                    ; $003E06
+        CMPI.W  #$0014,(-14166).W               ; $003DD4
+        BLE.S  .loc_0032                        ; $003DDA
+        MOVE.L  #$222F29EE,$00FF69C8            ; $003DDC
+        MOVE.L  #$222F1716,$00FF6998            ; $003DE6
+        MOVE.W  #$0000,(-14166).W               ; $003DF0
+        MOVE.B  #$A7,(-14172).W                 ; $003DF6
+        BSET    #4,(-15602).W                   ; $003DFC
+        ADDQ.W  #4,(-14164).W                   ; $003E02
+.loc_0032:
+        RTS                                     ; $003E06

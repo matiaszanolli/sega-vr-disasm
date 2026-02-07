@@ -5,19 +5,12 @@
 ; ============================================================================
 
 fn_8200_028:
-        dc.w    $3038                    ; $008EB6
-        dc.w    $C0BA                    ; $008EB8
-        dc.w    $3238                    ; $008EBA
-        dc.w    $C0BE                    ; $008EBC
-        dc.w    $3428                    ; $008EBE
-        dc.w    $0030                    ; $008EC0
-        dc.w    $3628                    ; $008EC2
-        dc.w    $0034                    ; $008EC4
-        dc.w    $4EBA                    ; $008EC6
-        dc.w    $18D8                    ; $008EC8
-        dc.w    $0440                    ; $008ECA
-        dc.w    $4000                    ; $008ECC
-        dc.w    $4440                    ; $008ECE
-        dc.w    $31C0                    ; $008ED0
-        dc.w    $C0C2                    ; $008ED2
-        dc.w    $4E75                    ; $008ED4
+        MOVE.W  (-16198).W,D0                   ; $008EB6
+        MOVE.W  (-16194).W,D1                   ; $008EBA
+        MOVE.W  $0030(A0),D2                    ; $008EBE
+        MOVE.W  $0034(A0),D3                    ; $008EC2
+        DC.W    $4EBA,$18D8         ; JSR     $00A7A0(PC); $008EC6
+        SUBI.W  #$4000,D0                       ; $008ECA
+        NEG.W  D0                               ; $008ECE
+        MOVE.W  D0,(-16190).W                   ; $008ED0
+        RTS                                     ; $008ED4

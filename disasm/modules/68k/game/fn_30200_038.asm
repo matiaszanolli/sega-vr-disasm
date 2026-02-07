@@ -5,15 +5,9 @@
 ; ============================================================================
 
 fn_30200_038:
-        dc.w    $41F9                    ; $030FC8
-        dc.w    $00C0                    ; $030FCA
-        dc.w    $0011                    ; $030FCC
-        dc.w    $10BC                    ; $030FCE
-        dc.w    $009F                    ; $030FD0
-        dc.w    $10BC                    ; $030FD2
-        dc.w    $00BF                    ; $030FD4
-        dc.w    $10BC                    ; $030FD6
-        dc.w    $00DF                    ; $030FD8
-        dc.w    $10BC                    ; $030FDA
-        dc.w    $00FF                    ; $030FDC
-        dc.w    $4E75                    ; $030FDE
+        LEA     $00C00011,A0                    ; $030FC8
+        MOVE.B  #$9F,(A0)                       ; $030FCE
+        MOVE.B  #$BF,(A0)                       ; $030FD2
+        MOVE.B  #$DF,(A0)                       ; $030FD6
+        MOVE.B  #$FF,(A0)                       ; $030FDA
+        RTS                                     ; $030FDE

@@ -5,21 +5,12 @@
 ; ============================================================================
 
 fn_6200_043:
-        dc.w    $80FC                    ; $007AB2
-        dc.w    $0000                    ; $007AB4
-        dc.w    $0828                    ; $007AB6
-        dc.w    $0007                    ; $007AB8
-        dc.w    $00C0                    ; $007ABA
-        dc.w    $6618                    ; $007ABC
-        dc.w    $4EBA                    ; $007ABE
-        dc.w    $00EC                    ; $007AC0
-        dc.w    $3228                    ; $007AC2
-        dc.w    $0032                    ; $007AC4
-        dc.w    $3141                    ; $007AC6
-        dc.w    $00C6                    ; $007AC8
-        dc.w    $3141                    ; $007ACA
-        dc.w    $00C8                    ; $007ACC
-        dc.w    $5239                    ; $007ACE
-        dc.w    $00FF                    ; $007AD0
-        dc.w    $5FFE                    ; $007AD2
-        dc.w    $4E75                    ; $007AD4
+        DIVU    #$0000,D0                       ; $007AB2
+        BTST    #7,$00C0(A0)                    ; $007AB6
+        DC.W    $6618               ; BNE.S  $007AD6; $007ABC
+        DC.W    $4EBA,$00EC         ; JSR     $007BAC(PC); $007ABE
+        MOVE.W  $0032(A0),D1                    ; $007AC2
+        MOVE.W  D1,$00C6(A0)                    ; $007AC6
+        MOVE.W  D1,$00C8(A0)                    ; $007ACA
+        ADDQ.B  #1,$00FF5FFE                    ; $007ACE
+        RTS                                     ; $007AD4

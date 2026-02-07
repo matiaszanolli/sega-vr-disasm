@@ -5,26 +5,13 @@
 ; ============================================================================
 
 fn_2200_069:
-        dc.w    $0C78                    ; $003DA6
-        dc.w    $0014                    ; $003DA8
-        dc.w    $C8AA                    ; $003DAA
-        dc.w    $6F24                    ; $003DAC
-        dc.w    $43F9                    ; $003DAE
-        dc.w    $00FF                    ; $003DB0
-        dc.w    $69C0                    ; $003DB2
-        dc.w    $137C                    ; $003DB4
-        dc.w    $0009                    ; $003DB6
-        dc.w    $0000                    ; $003DB8
-        dc.w    $237C                    ; $003DBA
-        dc.w    $222F                    ; $003DBC
-        dc.w    $1D4A                    ; $003DBE
-        dc.w    $0008                    ; $003DC0
-        dc.w    $31FC                    ; $003DC2
-        dc.w    $0000                    ; $003DC4
-        dc.w    $C8AA                    ; $003DC6
-        dc.w    $11FC                    ; $003DC8
-        dc.w    $00A6                    ; $003DCA
-        dc.w    $C8A4                    ; $003DCC
-        dc.w    $5878                    ; $003DCE
-        dc.w    $C8AC                    ; $003DD0
-        dc.w    $4E75                    ; $003DD2
+        CMPI.W  #$0014,(-14166).W               ; $003DA6
+        BLE.S  .loc_002C                        ; $003DAC
+        LEA     $00FF69C0,A1                    ; $003DAE
+        MOVE.B  #$09,$0000(A1)                  ; $003DB4
+        MOVE.L  #$222F1D4A,$0008(A1)            ; $003DBA
+        MOVE.W  #$0000,(-14166).W               ; $003DC2
+        MOVE.B  #$A6,(-14172).W                 ; $003DC8
+        ADDQ.W  #4,(-14164).W                   ; $003DCE
+.loc_002C:
+        RTS                                     ; $003DD2

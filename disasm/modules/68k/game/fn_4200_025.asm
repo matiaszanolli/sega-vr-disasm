@@ -5,26 +5,14 @@
 ; ============================================================================
 
 fn_4200_025:
-        dc.w    $4EBA                    ; $0055D0
-        dc.w    $CBF8                    ; $0055D2
-        dc.w    $4EBA                    ; $0055D4
-        dc.w    $C1C8                    ; $0055D6
-        dc.w    $5278                    ; $0055D8
-        dc.w    $C8AA                    ; $0055DA
-        dc.w    $4EBA                    ; $0055DC
-        dc.w    $035E                    ; $0055DE
-        dc.w    $4EBA                    ; $0055E0
-        dc.w    $665E                    ; $0055E2
-        dc.w    $4EBA                    ; $0055E4
-        dc.w    $64EE                    ; $0055E6
-        dc.w    $4EBA                    ; $0055E8
-        dc.w    $60F0                    ; $0055EA
-        dc.w    $4EBA                    ; $0055EC
-        dc.w    $6096                    ; $0055EE
-        dc.w    $5878                    ; $0055F0
-        dc.w    $C87E                    ; $0055F2
-        dc.w    $33FC                    ; $0055F4
-        dc.w    $0054                    ; $0055F6
-        dc.w    $00FF                    ; $0055F8
-        dc.w    $0008                    ; $0055FA
-        dc.w    $4E75                    ; $0055FC
+        DC.W    $4EBA,$CBF8         ; JSR     $0021CA(PC); $0055D0
+        DC.W    $4EBA,$C1C8         ; JSR     $00179E(PC); $0055D4
+        ADDQ.W  #1,(-14166).W                   ; $0055D8
+        DC.W    $4EBA,$035E         ; JSR     $00593C(PC); $0055DC
+        DC.W    $4EBA,$665E         ; JSR     $00BC40(PC); $0055E0
+        DC.W    $4EBA,$64EE         ; JSR     $00BAD4(PC); $0055E4
+        DC.W    $4EBA,$60F0         ; JSR     $00B6DA(PC); $0055E8
+        DC.W    $4EBA,$6096         ; JSR     $00B684(PC); $0055EC
+        ADDQ.W  #4,(-14210).W                   ; $0055F0
+        MOVE.W  #$0054,$00FF0008                ; $0055F4
+        RTS                                     ; $0055FC

@@ -5,45 +5,30 @@
 ; ============================================================================
 
 fn_2200_066:
-        dc.w    $43F9                    ; $003CCE
-        dc.w    $00FF                    ; $003CD0
-        dc.w    $66EC                    ; $003CD2
-        dc.w    $45F9                    ; $003CD4
-        dc.w    $0089                    ; $003CD6
-        dc.w    $5B7E                    ; $003CD8
-        dc.w    $E940                    ; $003CDA
-        dc.w    $7203                    ; $003CDC
-        dc.w    $265A                    ; $003CDE
-        dc.w    $D7C0                    ; $003CE0
-        dc.w    $228B                    ; $003CE2
-        dc.w    $43E9                    ; $003CE4
-        dc.w    $0014                    ; $003CE6
-        dc.w    $51C9                    ; $003CE8
-        dc.w    $FFF4                    ; $003CEA
-        dc.w    $3238                    ; $003CEC
-        dc.w    $C026                    ; $003CEE
-        dc.w    $0C41                    ; $003CF0
-        dc.w    $0007                    ; $003CF2
-        dc.w    $6D2C                    ; $003CF4
-        dc.w    $0C41                    ; $003CF6
-        dc.w    $0013                    ; $003CF8
-        dc.w    $6C26                    ; $003CFA
-        dc.w    $7000                    ; $003CFC
-        dc.w    $43F9                    ; $003CFE
-        dc.w    $00FF                    ; $003D00
-        dc.w    $6128                    ; $003D02
-        dc.w    $3340                    ; $003D04
-        dc.w    $0000                    ; $003D06
-        dc.w    $3340                    ; $003D08
-        dc.w    $0014                    ; $003D0A
-        dc.w    $4A78                    ; $003D0C
-        dc.w    $C04C                    ; $003D0E
-        dc.w    $660E                    ; $003D10
-        dc.w    $3340                    ; $003D12
-        dc.w    $0028                    ; $003D14
-        dc.w    $4A78                    ; $003D16
-        dc.w    $C8C8                    ; $003D18
-        dc.w    $6604                    ; $003D1A
-        dc.w    $3340                    ; $003D1C
-        dc.w    $003C                    ; $003D1E
-        dc.w    $4E75                    ; $003D20
+        LEA     $00FF66EC,A1                    ; $003CCE
+        LEA     $00895B7E,A2                    ; $003CD4
+        ASL.W  #4,D0                            ; $003CDA
+        MOVEQ   #$03,D1                         ; $003CDC
+.loc_0010:
+        MOVEA.L (A2)+,A3                        ; $003CDE
+        ADDA.L  D0,A3                           ; $003CE0
+        MOVE.L  A3,(A1)                         ; $003CE2
+        LEA     $0014(A1),A1                    ; $003CE4
+        DBRA    D1,.loc_0010                    ; $003CE8
+        MOVE.W  (-16346).W,D1                   ; $003CEC
+        CMPI.W  #$0007,D1                       ; $003CF0
+        DC.W    $6D2C               ; BLT.S  $003D22; $003CF4
+        CMPI.W  #$0013,D1                       ; $003CF6
+        DC.W    $6C26               ; BGE.S  $003D22; $003CFA
+        MOVEQ   #$00,D0                         ; $003CFC
+        LEA     $00FF6128,A1                    ; $003CFE
+        MOVE.W  D0,$0000(A1)                    ; $003D04
+        MOVE.W  D0,$0014(A1)                    ; $003D08
+        TST.W  (-16308).W                       ; $003D0C
+        BNE.S  .loc_0052                        ; $003D10
+        MOVE.W  D0,$0028(A1)                    ; $003D12
+        TST.W  (-14136).W                       ; $003D16
+        BNE.S  .loc_0052                        ; $003D1A
+        MOVE.W  D0,$003C(A1)                    ; $003D1C
+.loc_0052:
+        RTS                                     ; $003D20

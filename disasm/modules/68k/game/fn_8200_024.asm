@@ -5,31 +5,17 @@
 ; ============================================================================
 
 fn_8200_024:
-        dc.w    $1038                    ; $008CCE
-        dc.w    $C896                    ; $008CD0
-        dc.w    $303B                    ; $008CD2
-        dc.w    $000C                    ; $008CD4
-        dc.w    $4EBB                    ; $008CD6
-        dc.w    $0008                    ; $008CD8
-        dc.w    $4EF9                    ; $008CDA
-        dc.w    $0088                    ; $008CDC
-        dc.w    $8DC0                    ; $008CDE
-        dc.w    $0008                    ; $008CE0
-        dc.w    $0026                    ; $008CE2
-        dc.w    $0032                    ; $008CE4
-        dc.w    $0072                    ; $008CE6
-        dc.w    $31F8                    ; $008CE8
-        dc.w    $C0BA                    ; $008CEA
-        dc.w    $C8F8                    ; $008CEC
-        dc.w    $31F8                    ; $008CEE
-        dc.w    $C0BC                    ; $008CF0
-        dc.w    $C892                    ; $008CF2
-        dc.w    $31F8                    ; $008CF4
-        dc.w    $C0BE                    ; $008CF6
-        dc.w    $C894                    ; $008CF8
-        dc.w    $11FC                    ; $008CFA
-        dc.w    $0005                    ; $008CFC
-        dc.w    $C8F6                    ; $008CFE
-        dc.w    $5438                    ; $008D00
-        dc.w    $C896                    ; $008D02
-        dc.w    $4E75                    ; $008D04
+        MOVE.B  (-14186).W,D0                   ; $008CCE
+        MOVE.W  $008CE0(PC,D0.W),D0             ; $008CD2
+        JSR     $008CE0(PC,D0.W)                ; $008CD6
+        JMP     $00888DC0                       ; $008CDA
+        DC.W    $0008                           ; $008CE0
+        ORI.B  #$32,-(A6)                       ; $008CE2
+        ORI.W  #$31F8,-$46(A2,A4.W)             ; $008CE6
+        MULU    ($31F8).W,D4                    ; $008CEC
+        AND.L  #$C89231F8,D0                    ; $008CF0
+        DC.W    $C0BE                           ; $008CF6
+        AND.L  (A4),D4                          ; $008CF8
+        MOVE.B  #$05,(-14090).W                 ; $008CFA
+        ADDQ.B  #2,(-14186).W                   ; $008D00
+        RTS                                     ; $008D04

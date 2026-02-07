@@ -5,23 +5,13 @@
 ; ============================================================================
 
 fn_a200_039:
-        dc.w    $3238                    ; $00BDD6
-        dc.w    $A0F0                    ; $00BDD8
-        dc.w    $6720                    ; $00BDDA
-        dc.w    $43F9                    ; $00BDDC
-        dc.w    $00FF                    ; $00BDDE
-        dc.w    $6860                    ; $00BDE0
-        dc.w    $137C                    ; $00BDE2
-        dc.w    $000B                    ; $00BDE4
-        dc.w    $0000                    ; $00BDE6
-        dc.w    $137C                    ; $00BDE8
-        dc.w    $000C                    ; $00BDEA
-        dc.w    $0010                    ; $00BDEC
-        dc.w    $0C41                    ; $00BDEE
-        dc.w    $000C                    ; $00BDF0
-        dc.w    $6D0A                    ; $00BDF2
-        dc.w    $33FC                    ; $00BDF4
-        dc.w    $FFFF                    ; $00BDF6
-        dc.w    $00FF                    ; $00BDF8
-        dc.w    $60C8                    ; $00BDFA
-        dc.w    $4E75                    ; $00BDFC
+        MOVE.W  (-24336).W,D1                   ; $00BDD6
+        BEQ.S  .loc_0026                        ; $00BDDA
+        LEA     $00FF6860,A1                    ; $00BDDC
+        MOVE.B  #$0B,$0000(A1)                  ; $00BDE2
+        MOVE.B  #$0C,$0010(A1)                  ; $00BDE8
+        CMPI.W  #$000C,D1                       ; $00BDEE
+        DC.W    $6D0A               ; BLT.S  $00BDFE; $00BDF2
+        MOVE.W  #$FFFF,$00FF60C8                ; $00BDF4
+.loc_0026:
+        RTS                                     ; $00BDFC

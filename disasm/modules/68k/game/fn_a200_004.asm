@@ -5,33 +5,21 @@
 ; ============================================================================
 
 fn_a200_004:
-        dc.w    $41F8                    ; $00B0DE
-        dc.w    $A9E7                    ; $00B0E0
-        dc.w    $1038                    ; $00B0E2
-        dc.w    $B4EE                    ; $00B0E4
-        dc.w    $4EBA                    ; $00B0E6
-        dc.w    $000A                    ; $00B0E8
-        dc.w    $41F8                    ; $00B0EA
-        dc.w    $A9E3                    ; $00B0EC
-        dc.w    $1038                    ; $00B0EE
-        dc.w    $C30E                    ; $00B0F0
-        dc.w    $0800                    ; $00B0F2
-        dc.w    $0004                    ; $00B0F4
-        dc.w    $6720                    ; $00B0F6
-        dc.w    $0C10                    ; $00B0F8
-        dc.w    $003C                    ; $00B0FA
-        dc.w    $6C1A                    ; $00B0FC
-        dc.w    $5228                    ; $00B0FE
-        dc.w    $0002                    ; $00B100
-        dc.w    $6614                    ; $00B102
-        dc.w    $117C                    ; $00B104
-        dc.w    $00C4                    ; $00B106
-        dc.w    $0002                    ; $00B108
-        dc.w    $5228                    ; $00B10A
-        dc.w    $0001                    ; $00B10C
-        dc.w    $6608                    ; $00B10E
-        dc.w    $117C                    ; $00B110
-        dc.w    $00C4                    ; $00B112
-        dc.w    $0001                    ; $00B114
-        dc.w    $5210                    ; $00B116
-        dc.w    $4E75                    ; $00B118
+        LEA     (-22041).W,A0                   ; $00B0DE
+        MOVE.B  (-19218).W,D0                   ; $00B0E2
+        DC.W    $4EBA,$000A         ; JSR     $00B0F2(PC); $00B0E6
+        LEA     (-22045).W,A0                   ; $00B0EA
+        MOVE.B  (-15602).W,D0                   ; $00B0EE
+        BTST    #4,D0                           ; $00B0F2
+        BEQ.S  .loc_003A                        ; $00B0F6
+        CMPI.B  #$3C,(A0)                       ; $00B0F8
+        BGE.S  .loc_003A                        ; $00B0FC
+        ADDQ.B  #1,$0002(A0)                    ; $00B0FE
+        BNE.S  .loc_003A                        ; $00B102
+        MOVE.B  #$C4,$0002(A0)                  ; $00B104
+        ADDQ.B  #1,$0001(A0)                    ; $00B10A
+        BNE.S  .loc_003A                        ; $00B10E
+        MOVE.B  #$C4,$0001(A0)                  ; $00B110
+        ADDQ.B  #1,(A0)                         ; $00B116
+.loc_003A:
+        RTS                                     ; $00B118

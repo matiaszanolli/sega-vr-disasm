@@ -5,66 +5,35 @@
 ; ============================================================================
 
 fn_4200_013:
-        dc.w    $4EBA                    ; $004D1A
-        dc.w    $D412                    ; $004D1C
-        dc.w    $4EBA                    ; $004D1E
-        dc.w    $CA7E                    ; $004D20
-        dc.w    $4EBA                    ; $004D22
-        dc.w    $637A                    ; $004D24
-        dc.w    $4EBA                    ; $004D26
-        dc.w    $641C                    ; $004D28
-        dc.w    $4EBA                    ; $004D2A
-        dc.w    $67D8                    ; $004D2C
-        dc.w    $4EBA                    ; $004D2E
-        dc.w    $67AC                    ; $004D30
-        dc.w    $4EBA                    ; $004D32
-        dc.w    $67EE                    ; $004D34
-        dc.w    $5278                    ; $004D36
-        dc.w    $C8AA                    ; $004D38
-        dc.w    $3078                    ; $004D3A
-        dc.w    $C8C0                    ; $004D3C
-        dc.w    $B0FC                    ; $004D3E
-        dc.w    $EF00                    ; $004D40
-        dc.w    $6700                    ; $004D42
-        dc.w    $001A                    ; $004D44
-        dc.w    $1038                    ; $004D46
-        dc.w    $C971                    ; $004D48
-        dc.w    $0200                    ; $004D4A
-        dc.w    $005C                    ; $004D4C
-        dc.w    $1238                    ; $004D4E
-        dc.w    $C973                    ; $004D50
-        dc.w    $0201                    ; $004D52
-        dc.w    $0003                    ; $004D54
-        dc.w    $8001                    ; $004D56
-        dc.w    $10C0                    ; $004D58
-        dc.w    $31C8                    ; $004D5A
-        dc.w    $C8C0                    ; $004D5C
-        dc.w    $4EBA                    ; $004D5E
-        dc.w    $0BDC                    ; $004D60
-        dc.w    $4EBA                    ; $004D62
-        dc.w    $6976                    ; $004D64
-        dc.w    $4EBA                    ; $004D66
-        dc.w    $691C                    ; $004D68
-        dc.w    $5878                    ; $004D6A
-        dc.w    $C87E                    ; $004D6C
-        dc.w    $33FC                    ; $004D6E
-        dc.w    $0054                    ; $004D70
-        dc.w    $00FF                    ; $004D72
-        dc.w    $0008                    ; $004D74
-        dc.w    $4EFA                    ; $004D76
-        dc.w    $0980                    ; $004D78
-        dc.w    $4EBA                    ; $004D7A
-        dc.w    $D3B2                    ; $004D7C
-        dc.w    $4EBA                    ; $004D7E
-        dc.w    $CA1E                    ; $004D80
-        dc.w    $4EBA                    ; $004D82
-        dc.w    $631A                    ; $004D84
-        dc.w    $4EBA                    ; $004D86
-        dc.w    $63BC                    ; $004D88
-        dc.w    $5238                    ; $004D8A
-        dc.w    $C886                    ; $004D8C
-        dc.w    $33FC                    ; $004D8E
-        dc.w    $0054                    ; $004D90
-        dc.w    $00FF                    ; $004D92
-        dc.w    $0008                    ; $004D94
-        dc.w    $4E75                    ; $004D96
+        DC.W    $4EBA,$D412         ; JSR     $00212E(PC); $004D1A
+        DC.W    $4EBA,$CA7E         ; JSR     $00179E(PC); $004D1E
+        DC.W    $4EBA,$637A         ; JSR     $00B09E(PC); $004D22
+        DC.W    $4EBA,$641C         ; JSR     $00B144(PC); $004D26
+        DC.W    $4EBA,$67D8         ; JSR     $00B504(PC); $004D2A
+        DC.W    $4EBA,$67AC         ; JSR     $00B4DC(PC); $004D2E
+        DC.W    $4EBA,$67EE         ; JSR     $00B522(PC); $004D32
+        ADDQ.W  #1,(-14166).W                   ; $004D36
+        MOVEA.W (-14144).W,A0                   ; $004D3A
+        CMPA.W  #$EF00,A0                       ; $004D3E
+        BEQ.W  .loc_0044                        ; $004D42
+        MOVE.B  (-13967).W,D0                   ; $004D46
+        ANDI.B  #$5C,D0                         ; $004D4A
+        MOVE.B  (-13965).W,D1                   ; $004D4E
+        ANDI.B  #$03,D1                         ; $004D52
+        DC.W    $8001                           ; $004D56
+        MOVE.B  D0,(A0)+                        ; $004D58
+        MOVE.W  A0,(-14144).W                   ; $004D5A
+.loc_0044:
+        DC.W    $4EBA,$0BDC         ; JSR     $00593C(PC); $004D5E
+        DC.W    $4EBA,$6976         ; JSR     $00B6DA(PC); $004D62
+        DC.W    $4EBA,$691C         ; JSR     $00B684(PC); $004D66
+        ADDQ.W  #4,(-14210).W                   ; $004D6A
+        MOVE.W  #$0054,$00FF0008                ; $004D6E
+        DC.W    $4EFA,$0980         ; JMP     $0056F8(PC); $004D76
+        DC.W    $4EBA,$D3B2         ; JSR     $00212E(PC); $004D7A
+        DC.W    $4EBA,$CA1E         ; JSR     $00179E(PC); $004D7E
+        DC.W    $4EBA,$631A         ; JSR     $00B09E(PC); $004D82
+        DC.W    $4EBA,$63BC         ; JSR     $00B144(PC); $004D86
+        ADDQ.B  #1,(-14202).W                   ; $004D8A
+        MOVE.W  #$0054,$00FF0008                ; $004D8E
+        RTS                                     ; $004D96

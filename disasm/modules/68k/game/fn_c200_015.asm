@@ -5,35 +5,21 @@
 ; ============================================================================
 
 fn_c200_015:
-        dc.w    $2F38                    ; $00CD92
-        dc.w    $C260                    ; $00CD94
-        dc.w    $43F8                    ; $00CD96
-        dc.w    $C000                    ; $00CD98
-        dc.w    $7200                    ; $00CD9A
-        dc.w    $4EB9                    ; $00CD9C
-        dc.w    $0088                    ; $00CD9E
-        dc.w    $483A                    ; $00CDA0
-        dc.w    $21DF                    ; $00CDA2
-        dc.w    $C260                    ; $00CDA4
-        dc.w    $43F8                    ; $00CDA6
-        dc.w    $9000                    ; $00CDA8
-        dc.w    $7200                    ; $00CDAA
-        dc.w    $7E0F                    ; $00CDAC
-        dc.w    $4EB9                    ; $00CDAE
-        dc.w    $0088                    ; $00CDB0
-        dc.w    $4842                    ; $00CDB2
-        dc.w    $51CF                    ; $00CDB4
-        dc.w    $FFF8                    ; $00CDB6
-        dc.w    $7200                    ; $00CDB8
-        dc.w    $11C1                    ; $00CDBA
-        dc.w    $C30E                    ; $00CDBC
-        dc.w    $31C1                    ; $00CDBE
-        dc.w    $C8AA                    ; $00CDC0
-        dc.w    $31C1                    ; $00CDC2
-        dc.w    $C8AC                    ; $00CDC4
-        dc.w    $31C1                    ; $00CDC6
-        dc.w    $C8AE                    ; $00CDC8
-        dc.w    $31FC                    ; $00CDCA
-        dc.w    $FFFF                    ; $00CDCC
-        dc.w    $C026                    ; $00CDCE
-        dc.w    $4E75                    ; $00CDD0
+        MOVE.L  (-15776).W,-(A7)                ; $00CD92
+        LEA     (-16384).W,A1                   ; $00CD96
+        MOVEQ   #$00,D1                         ; $00CD9A
+        JSR     $0088483A                       ; $00CD9C
+        MOVE.L  (A7)+,(-15776).W                ; $00CDA2
+        LEA     (-28672).W,A1                   ; $00CDA6
+        MOVEQ   #$00,D1                         ; $00CDAA
+        MOVEQ   #$0F,D7                         ; $00CDAC
+.loc_001C:
+        JSR     $00884842                       ; $00CDAE
+        DBRA    D7,.loc_001C                    ; $00CDB4
+        MOVEQ   #$00,D1                         ; $00CDB8
+        MOVE.B  D1,(-15602).W                   ; $00CDBA
+        MOVE.W  D1,(-14166).W                   ; $00CDBE
+        MOVE.W  D1,(-14164).W                   ; $00CDC2
+        MOVE.W  D1,(-14162).W                   ; $00CDC6
+        MOVE.W  #$FFFF,(-16346).W               ; $00CDCA
+        RTS                                     ; $00CDD0

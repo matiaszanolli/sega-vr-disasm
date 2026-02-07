@@ -5,29 +5,22 @@
 ; ============================================================================
 
 fn_30200_021:
-        dc.w    $4EBA                    ; $030B1C
-        dc.w    $01FE                    ; $030B1E
-        dc.w    $7803                    ; $030B20
-        dc.w    $7640                    ; $030B22
-        dc.w    $727F                    ; $030B24
-        dc.w    $1003                    ; $030B26
-        dc.w    $4EBA                    ; $030B28
-        dc.w    $01A2                    ; $030B2A
-        dc.w    $5803                    ; $030B2C
-        dc.w    $51CC                    ; $030B2E
-        dc.w    $FFF6                    ; $030B30
-        dc.w    $7803                    ; $030B32
-        dc.w    $163C                    ; $030B34
-        dc.w    $0080                    ; $030B36
-        dc.w    $720F                    ; $030B38
-        dc.w    $1003                    ; $030B3A
-        dc.w    $4EBA                    ; $030B3C
-        dc.w    $018E                    ; $030B3E
-        dc.w    $5803                    ; $030B40
-        dc.w    $51CC                    ; $030B42
-        dc.w    $FFF6                    ; $030B44
-        dc.w    $33FC                    ; $030B46
-        dc.w    $0000                    ; $030B48
-        dc.w    $00A1                    ; $030B4A
-        dc.w    $1100                    ; $030B4C
-        dc.w    $4E75                    ; $030B4E
+        DC.W    $4EBA,$01FE         ; JSR     $030D1C(PC); $030B1C
+        MOVEQ   #$03,D4                         ; $030B20
+        MOVEQ   #$40,D3                         ; $030B22
+        MOVEQ   #$7F,D1                         ; $030B24
+.loc_000A:
+        MOVE.B  D3,D0                           ; $030B26
+        DC.W    $4EBA,$01A2         ; JSR     $030CCC(PC); $030B28
+        ADDQ.B  #4,D3                           ; $030B2C
+        DBRA    D4,.loc_000A                    ; $030B2E
+        MOVEQ   #$03,D4                         ; $030B32
+        MOVE.B  #$80,D3                         ; $030B34
+        MOVEQ   #$0F,D1                         ; $030B38
+.loc_001E:
+        MOVE.B  D3,D0                           ; $030B3A
+        DC.W    $4EBA,$018E         ; JSR     $030CCC(PC); $030B3C
+        ADDQ.B  #4,D3                           ; $030B40
+        DBRA    D4,.loc_001E                    ; $030B42
+        MOVE.W  #$0000,$00A11100                ; $030B46
+        RTS                                     ; $030B4E

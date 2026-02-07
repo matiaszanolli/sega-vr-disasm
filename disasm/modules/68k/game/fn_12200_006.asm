@@ -5,39 +5,33 @@
 ; ============================================================================
 
 fn_12200_006:
-        dc.w    $0401                    ; $012F9C
-        dc.w    $4014                    ; $012F9E
-        dc.w    $0039                    ; $012FA0
-        dc.w    $0401                    ; $012FA2
-        dc.w    $404C                    ; $012FA4
-        dc.w    $0038                    ; $012FA6
-        dc.w    $0401                    ; $012FA8
-        dc.w    $4083                    ; $012FAA
-        dc.w    $0039                    ; $012FAC
-        dc.w    $0401                    ; $012FAE
-        dc.w    $40BB                    ; $012FB0
-        dc.w    $0039                    ; $012FB2
-        dc.w    $0401                    ; $012FB4
-        dc.w    $40F3                    ; $012FB6
-        dc.w    $0039                    ; $012FB8
-        dc.w    $0401                    ; $012FBA
-        dc.w    $40F3                    ; $012FBC
-        dc.w    $0039                    ; $012FBE
-        dc.w    $383C                    ; $012FC0
-        dc.w    $0100                    ; $012FC2
-        dc.w    $3C00                    ; $012FC4
-        dc.w    $0886                    ; $012FC6
-        dc.w    $000F                    ; $012FC8
-        dc.w    $08C6                    ; $012FCA
-        dc.w    $000E                    ; $012FCC
-        dc.w    $3A86                    ; $012FCE
-        dc.w    $3ABC                    ; $012FD0
-        dc.w    $0003                    ; $012FD2
-        dc.w    $3A01                    ; $012FD4
-        dc.w    $3C83                    ; $012FD6
-        dc.w    $51CD                    ; $012FD8
-        dc.w    $FFFC                    ; $012FDA
-        dc.w    $D084                    ; $012FDC
-        dc.w    $51CA                    ; $012FDE
-        dc.w    $FFE4                    ; $012FE0
-        dc.w    $4E75                    ; $012FE2
+        DC.W    $0401                           ; $012F9C
+        NEGX.B (A4)                             ; $012F9E
+        DC.W    $0039                           ; $012FA0
+        DC.W    $0401                           ; $012FA2
+        DC.W    $404C                           ; $012FA4
+        DC.W    $0038                           ; $012FA6
+        DC.W    $0401                           ; $012FA8
+        NEGX.L D3                               ; $012FAA
+        DC.W    $0039                           ; $012FAC
+        DC.W    $0401                           ; $012FAE
+        DC.W    $40BB                           ; $012FB0
+        DC.W    $0039                           ; $012FB2
+        DC.W    $0401                           ; $012FB4
+        MOVE    SR,$39(A3,D0.W)                 ; $012FB6
+        DC.W    $0401                           ; $012FBA
+        MOVE    SR,$39(A3,D0.W)                 ; $012FBC
+        MOVE.W  #$0100,D4                       ; $012FC0
+.loc_0028:
+        MOVE.W  D0,D6                           ; $012FC4
+        BCLR    #15,D6                          ; $012FC6
+        BSET    #14,D6                          ; $012FCA
+        MOVE.W  D6,(A5)                         ; $012FCE
+        MOVE.W  #$0003,(A5)                     ; $012FD0
+        MOVE.W  D1,D5                           ; $012FD4
+.loc_003A:
+        MOVE.W  D3,(A6)                         ; $012FD6
+        DBRA    D5,.loc_003A                    ; $012FD8
+        DC.W    $D084                           ; $012FDC
+        DBRA    D2,.loc_0028                    ; $012FDE
+        RTS                                     ; $012FE2

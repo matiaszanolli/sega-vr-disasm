@@ -5,30 +5,18 @@
 ; ============================================================================
 
 fn_a200_012:
-        dc.w    $00A0                    ; $00B398
-        dc.w    $00D0                    ; $00B39A
-        dc.w    $00C0                    ; $00B39C
-        dc.w    $0110                    ; $00B39E
-        dc.w    $0090                    ; $00B3A0
-        dc.w    $0090                    ; $00B3A2
-        dc.w    $0080                    ; $00B3A4
-        dc.w    $00A0                    ; $00B3A6
-        dc.w    $0100                    ; $00B3A8
-        dc.w    $0080                    ; $00B3AA
-        dc.w    $0080                    ; $00B3AC
-        dc.w    $0080                    ; $00B3AE
-        dc.w    $00D0                    ; $00B3B0
-        dc.w    $00E0                    ; $00B3B2
-        dc.w    $00D0                    ; $00B3B4
-        dc.w    $0100                    ; $00B3B6
-        dc.w    $0100                    ; $00B3B8
-        dc.w    $0100                    ; $00B3BA
-        dc.w    $D078                    ; $00B3BC
-        dc.w    $C8A0                    ; $00B3BE
-        dc.w    $303B                    ; $00B3C0
-        dc.w    $00D6                    ; $00B3C2
-        dc.w    $0C11                    ; $00B3C4
-        dc.w    $0060                    ; $00B3C6
-        dc.w    $6D00                    ; $00B3C8
-        dc.w    $FF3A                    ; $00B3CA
-        dc.w    $4E75                    ; $00B3CC
+        ORI.L  #$00D000C0,-(A0)                 ; $00B398
+        BTST    D0,(A0)                         ; $00B39E
+        ORI.L  #$00900080,(A0)                  ; $00B3A0
+        ORI.L  #$01000080,-(A0)                 ; $00B3A6
+        ORI.L  #$008000D0,D0                    ; $00B3AC
+        DC.W    $00E0                           ; $00B3B2
+        DC.W    $00D0                           ; $00B3B4
+        BTST    D0,D0                           ; $00B3B6
+        BTST    D0,D0                           ; $00B3B8
+        BTST    D0,D0                           ; $00B3BA
+        ADD.W  (-14176).W,D0                    ; $00B3BC
+        MOVE.W  $00B398(PC,D0.W),D0             ; $00B3C0
+        CMPI.B  #$60,(A1)                       ; $00B3C4
+        DC.W    $6D00,$FF3A         ; BLT.W  $00B304; $00B3C8
+        RTS                                     ; $00B3CC

@@ -5,73 +5,39 @@
 ; ============================================================================
 
 fn_10200_037:
-        dc.w    $4A78                    ; $011C7E
-        dc.w    $A04E                    ; $011C80
-        dc.w    $6640                    ; $011C82
-        dc.w    $0838                    ; $011C84
-        dc.w    $0000                    ; $011C86
-        dc.w    $A050                    ; $011C88
-        dc.w    $661C                    ; $011C8A
-        dc.w    $207C                    ; $011C8C
-        dc.w    $0601                    ; $011C8E
-        dc.w    $8F80                    ; $011C90
-        dc.w    $227C                    ; $011C92
-        dc.w    $0400                    ; $011C94
-        dc.w    $D018                    ; $011C96
-        dc.w    $303C                    ; $011C98
-        dc.w    $0078                    ; $011C9A
-        dc.w    $323C                    ; $011C9C
-        dc.w    $0018                    ; $011C9E
-        dc.w    $4EBA                    ; $011CA0
-        dc.w    $C6B8                    ; $011CA2
-        dc.w    $6000                    ; $011CA4
-        dc.w    $0062                    ; $011CA6
-        dc.w    $207C                    ; $011CA8
-        dc.w    $0601                    ; $011CAA
-        dc.w    $0000                    ; $011CAC
-        dc.w    $227C                    ; $011CAE
-        dc.w    $0400                    ; $011CB0
-        dc.w    $D018                    ; $011CB2
-        dc.w    $303C                    ; $011CB4
-        dc.w    $0078                    ; $011CB6
-        dc.w    $323C                    ; $011CB8
-        dc.w    $0018                    ; $011CBA
-        dc.w    $4EBA                    ; $011CBC
-        dc.w    $C69C                    ; $011CBE
-        dc.w    $6000                    ; $011CC0
-        dc.w    $0046                    ; $011CC2
-        dc.w    $0C78                    ; $011CC4
-        dc.w    $0002                    ; $011CC6
-        dc.w    $A04E                    ; $011CC8
-        dc.w    $673C                    ; $011CCA
-        dc.w    $0838                    ; $011CCC
-        dc.w    $0000                    ; $011CCE
-        dc.w    $A050                    ; $011CD0
-        dc.w    $661C                    ; $011CD2
-        dc.w    $207C                    ; $011CD4
-        dc.w    $0601                    ; $011CD6
-        dc.w    $9AC0                    ; $011CD8
-        dc.w    $227C                    ; $011CDA
-        dc.w    $0400                    ; $011CDC
-        dc.w    $D0A0                    ; $011CDE
-        dc.w    $303C                    ; $011CE0
-        dc.w    $0078                    ; $011CE2
-        dc.w    $323C                    ; $011CE4
-        dc.w    $0018                    ; $011CE6
-        dc.w    $4EBA                    ; $011CE8
-        dc.w    $C670                    ; $011CEA
-        dc.w    $6000                    ; $011CEC
-        dc.w    $001A                    ; $011CEE
-        dc.w    $207C                    ; $011CF0
-        dc.w    $0601                    ; $011CF2
-        dc.w    $0000                    ; $011CF4
-        dc.w    $227C                    ; $011CF6
-        dc.w    $0400                    ; $011CF8
-        dc.w    $D0A0                    ; $011CFA
-        dc.w    $303C                    ; $011CFC
-        dc.w    $0078                    ; $011CFE
-        dc.w    $323C                    ; $011D00
-        dc.w    $0018                    ; $011D02
-        dc.w    $4EBA                    ; $011D04
-        dc.w    $C654                    ; $011D06
-        dc.w    $4E75                    ; $011D08
+        TST.W  (-24498).W                       ; $011C7E
+        BNE.S  .loc_0046                        ; $011C82
+        BTST    #0,(-24496).W                   ; $011C84
+        BNE.S  .loc_002A                        ; $011C8A
+        MOVEA.L #$06018F80,A0                   ; $011C8C
+        MOVEA.L #$0400D018,A1                   ; $011C92
+        MOVE.W  #$0078,D0                       ; $011C98
+        MOVE.W  #$0018,D1                       ; $011C9C
+        DC.W    $4EBA,$C6B8         ; JSR     $00E35A(PC); $011CA0
+        BRA.W  .loc_008A                        ; $011CA4
+.loc_002A:
+        MOVEA.L #$06010000,A0                   ; $011CA8
+        MOVEA.L #$0400D018,A1                   ; $011CAE
+        MOVE.W  #$0078,D0                       ; $011CB4
+        MOVE.W  #$0018,D1                       ; $011CB8
+        DC.W    $4EBA,$C69C         ; JSR     $00E35A(PC); $011CBC
+        BRA.W  .loc_008A                        ; $011CC0
+.loc_0046:
+        CMPI.W  #$0002,(-24498).W               ; $011CC4
+        BEQ.S  .loc_008A                        ; $011CCA
+        BTST    #0,(-24496).W                   ; $011CCC
+        BNE.S  .loc_0072                        ; $011CD2
+        MOVEA.L #$06019AC0,A0                   ; $011CD4
+        MOVEA.L #$0400D0A0,A1                   ; $011CDA
+        MOVE.W  #$0078,D0                       ; $011CE0
+        MOVE.W  #$0018,D1                       ; $011CE4
+        DC.W    $4EBA,$C670         ; JSR     $00E35A(PC); $011CE8
+        BRA.W  .loc_008A                        ; $011CEC
+.loc_0072:
+        MOVEA.L #$06010000,A0                   ; $011CF0
+        MOVEA.L #$0400D0A0,A1                   ; $011CF6
+        MOVE.W  #$0078,D0                       ; $011CFC
+        MOVE.W  #$0018,D1                       ; $011D00
+        DC.W    $4EBA,$C654         ; JSR     $00E35A(PC); $011D04
+.loc_008A:
+        RTS                                     ; $011D08

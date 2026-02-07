@@ -5,35 +5,24 @@
 ; ============================================================================
 
 fn_30200_033:
-        dc.w    $4A2D                    ; $030ECE
-        dc.w    $000A                    ; $030ED0
-        dc.w    $6738                    ; $030ED2
-        dc.w    $0815                    ; $030ED4
-        dc.w    $0001                    ; $030ED6
-        dc.w    $6632                    ; $030ED8
-        dc.w    $0815                    ; $030EDA
-        dc.w    $0002                    ; $030EDC
-        dc.w    $662C                    ; $030EDE
-        dc.w    $4EBA                    ; $030EE0
-        dc.w    $F40C                    ; $030EE2
-        dc.w    $102D                    ; $030EE4
-        dc.w    $0001                    ; $030EE6
-        dc.w    $0C00                    ; $030EE8
-        dc.w    $00E0                    ; $030EEA
-        dc.w    $6604                    ; $030EEC
-        dc.w    $103C                    ; $030EEE
-        dc.w    $00C0                    ; $030EF0
-        dc.w    $3206                    ; $030EF2
-        dc.w    $0201                    ; $030EF4
-        dc.w    $000F                    ; $030EF6
-        dc.w    $8001                    ; $030EF8
-        dc.w    $E84E                    ; $030EFA
-        dc.w    $0206                    ; $030EFC
-        dc.w    $003F                    ; $030EFE
-        dc.w    $13C0                    ; $030F00
-        dc.w    $00C0                    ; $030F02
-        dc.w    $0011                    ; $030F04
-        dc.w    $13C6                    ; $030F06
-        dc.w    $00C0                    ; $030F08
-        dc.w    $0011                    ; $030F0A
-        dc.w    $4E75                    ; $030F0C
+        TST.B  $000A(A5)                        ; $030ECE
+        BEQ.S  .loc_003E                        ; $030ED2
+        BTST    #1,(A5)                         ; $030ED4
+        BNE.S  .loc_003E                        ; $030ED8
+        BTST    #2,(A5)                         ; $030EDA
+        BNE.S  .loc_003E                        ; $030EDE
+        DC.W    $4EBA,$F40C         ; JSR     $0302EE(PC); $030EE0
+        MOVE.B  $0001(A5),D0                    ; $030EE4
+        CMPI.B  #$E0,D0                         ; $030EE8
+        BNE.S  .loc_0024                        ; $030EEC
+        MOVE.B  #$C0,D0                         ; $030EEE
+.loc_0024:
+        MOVE.W  D6,D1                           ; $030EF2
+        ANDI.B  #$0F,D1                         ; $030EF4
+        DC.W    $8001                           ; $030EF8
+        LSR.W  #4,D6                            ; $030EFA
+        ANDI.B  #$3F,D6                         ; $030EFC
+        MOVE.B  D0,$00C00011                    ; $030F00
+        MOVE.B  D6,$00C00011                    ; $030F06
+.loc_003E:
+        RTS                                     ; $030F0C

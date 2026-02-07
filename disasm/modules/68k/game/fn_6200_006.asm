@@ -5,355 +5,194 @@
 ; ============================================================================
 
 fn_6200_006:
-        dc.w    $7000                    ; $00677A
-        dc.w    $3140                    ; $00677C
-        dc.w    $0044                    ; $00677E
-        dc.w    $3140                    ; $006780
-        dc.w    $0046                    ; $006782
-        dc.w    $3140                    ; $006784
-        dc.w    $004A                    ; $006786
-        dc.w    $21FC                    ; $006788
-        dc.w    $0010                    ; $00678A
-        dc.w    $0010                    ; $00678C
-        dc.w    $C970                    ; $00678E
-        dc.w    $11FC                    ; $006790
-        dc.w    $0000                    ; $006792
-        dc.w    $C30F                    ; $006794
-        dc.w    $4EBA                    ; $006796
-        dc.w    $4FD8                    ; $006798
-        dc.w    $317C                    ; $00679A
-        dc.w    $0002                    ; $00679C
-        dc.w    $0092                    ; $00679E
-        dc.w    $4EBA                    ; $0067A0
-        dc.w    $1DF8                    ; $0067A2
-        dc.w    $4EBA                    ; $0067A4
-        dc.w    $3BAA                    ; $0067A6
-        dc.w    $4EBA                    ; $0067A8
-        dc.w    $19C6                    ; $0067AA
-        dc.w    $4EBA                    ; $0067AC
-        dc.w    $191E                    ; $0067AE
-        dc.w    $4EBA                    ; $0067B0
-        dc.w    $1D96                    ; $0067B2
-        dc.w    $4EBA                    ; $0067B4
-        dc.w    $2D44                    ; $0067B6
-        dc.w    $4EBA                    ; $0067B8
-        dc.w    $2B58                    ; $0067BA
-        dc.w    $4EBA                    ; $0067BC
-        dc.w    $3354                    ; $0067BE
-        dc.w    $4EBA                    ; $0067C0
-        dc.w    $29C0                    ; $0067C2
-        dc.w    $4EBA                    ; $0067C4
-        dc.w    $2E58                    ; $0067C6
-        dc.w    $4EBA                    ; $0067C8
-        dc.w    $2EBE                    ; $0067CA
-        dc.w    $4EBA                    ; $0067CC
-        dc.w    $3034                    ; $0067CE
-        dc.w    $4EBA                    ; $0067D0
-        dc.w    $16A8                    ; $0067D2
-        dc.w    $4EBA                    ; $0067D4
-        dc.w    $07C2                    ; $0067D6
-        dc.w    $4EBA                    ; $0067D8
-        dc.w    $14FE                    ; $0067DA
-        dc.w    $4EBA                    ; $0067DC
-        dc.w    $3C56                    ; $0067DE
-        dc.w    $4EBA                    ; $0067E0
-        dc.w    $08C8                    ; $0067E2
-        dc.w    $4EBA                    ; $0067E4
-        dc.w    $1468                    ; $0067E6
-        dc.w    $4EBA                    ; $0067E8
-        dc.w    $0960                    ; $0067EA
-        dc.w    $4EBA                    ; $0067EC
-        dc.w    $0E60                    ; $0067EE
-        dc.w    $4EBA                    ; $0067F0
-        dc.w    $1840                    ; $0067F2
-        dc.w    $4EBA                    ; $0067F4
-        dc.w    $335E                    ; $0067F6
-        dc.w    $4EBA                    ; $0067F8
-        dc.w    $DCEE                    ; $0067FA
-        dc.w    $4EBA                    ; $0067FC
-        dc.w    $C918                    ; $0067FE
-        dc.w    $4EFA                    ; $006800
-        dc.w    $DD1A                    ; $006802
-        dc.w    $4EBA                    ; $006804
-        dc.w    $4F6A                    ; $006806
-        dc.w    $4EBA                    ; $006808
-        dc.w    $3B46                    ; $00680A
-        dc.w    $4EBA                    ; $00680C
-        dc.w    $1962                    ; $00680E
-        dc.w    $4EBA                    ; $006810
-        dc.w    $18BA                    ; $006812
-        dc.w    $4EBA                    ; $006814
-        dc.w    $1D32                    ; $006816
-        dc.w    $4EBA                    ; $006818
-        dc.w    $2E04                    ; $00681A
-        dc.w    $4EBA                    ; $00681C
-        dc.w    $0FF8                    ; $00681E
-        dc.w    $4EBA                    ; $006820
-        dc.w    $0E2C                    ; $006822
-        dc.w    $4EBA                    ; $006824
-        dc.w    $0884                    ; $006826
-        dc.w    $4EBA                    ; $006828
-        dc.w    $40B6                    ; $00682A
-        dc.w    $4EBA                    ; $00682C
-        dc.w    $3326                    ; $00682E
-        dc.w    $4EBA                    ; $006830
-        dc.w    $2950                    ; $006832
-        dc.w    $4EBA                    ; $006834
-        dc.w    $2FCC                    ; $006836
-        dc.w    $4EBA                    ; $006838
-        dc.w    $0910                    ; $00683A
-        dc.w    $4EFA                    ; $00683C
-        dc.w    $D486                    ; $00683E
-        dc.w    $49F8                    ; $006840
-        dc.w    $A000                    ; $006842
-        dc.w    $41F8                    ; $006844
-        dc.w    $9000                    ; $006846
-        dc.w    $317C                    ; $006848
-        dc.w    $0002                    ; $00684A
-        dc.w    $00AC                    ; $00684C
-        dc.w    $11F8                    ; $00684E
-        dc.w    $FEAA                    ; $006850
-        dc.w    $C30F                    ; $006852
-        dc.w    $4EBA                    ; $006854
-        dc.w    $0368                    ; $006856
-        dc.w    $2168                    ; $006858
-        dc.w    $00B2                    ; $00685A
-        dc.w    $0018                    ; $00685C
-        dc.w    $1228                    ; $00685E
-        dc.w    $00E5                    ; $006860
-        dc.w    $0201                    ; $006862
-        dc.w    $0006                    ; $006864
-        dc.w    $6706                    ; $006866
-        dc.w    $2178                    ; $006868
-        dc.w    $C70C                    ; $00686A
-        dc.w    $0018                    ; $00686C
-        dc.w    $3038                    ; $00686E
-        dc.w    $C07A                    ; $006870
-        dc.w    $227B                    ; $006872
-        dc.w    $0034                    ; $006874
-        dc.w    $4E91                    ; $006876
-        dc.w    $4EBA                    ; $006878
-        dc.w    $168A                    ; $00687A
-        dc.w    $4EBA                    ; $00687C
-        dc.w    $27C2                    ; $00687E
-        dc.w    $4EBA                    ; $006880
-        dc.w    $19DA                    ; $006882
-        dc.w    $4EBA                    ; $006884
-        dc.w    $363A                    ; $006886
-        dc.w    $4EBA                    ; $006888
-        dc.w    $0D74                    ; $00688A
-        dc.w    $4EBA                    ; $00688C
-        dc.w    $0918                    ; $00688E
-        dc.w    $4EBA                    ; $006890
-        dc.w    $C0F2                    ; $006892
-        dc.w    $4EBA                    ; $006894
-        dc.w    $CC52                    ; $006896
-        dc.w    $4EBA                    ; $006898
-        dc.w    $CF1C                    ; $00689A
-        dc.w    $4EBA                    ; $00689C
-        dc.w    $D6E8                    ; $00689E
-        dc.w    $4EBA                    ; $0068A0
-        dc.w    $D422                    ; $0068A2
-        dc.w    $4EFA                    ; $0068A4
-        dc.w    $0344                    ; $0068A6
-        dc.w    $0088                    ; $0068A8
-        dc.w    $68C8                    ; $0068AA
-        dc.w    $0088                    ; $0068AC
-        dc.w    $6ACC                    ; $0068AE
-        dc.w    $0088                    ; $0068B0
-        dc.w    $693E                    ; $0068B2
-        dc.w    $0088                    ; $0068B4
-        dc.w    $69D0                    ; $0068B6
-        dc.w    $0088                    ; $0068B8
-        dc.w    $6A3A                    ; $0068BA
-        dc.w    $0088                    ; $0068BC
-        dc.w    $6A38                    ; $0068BE
-        dc.w    $0088                    ; $0068C0
-        dc.w    $6B04                    ; $0068C2
-        dc.w    $0088                    ; $0068C4
-        dc.w    $694A                    ; $0068C6
-        dc.w    $4EBA                    ; $0068C8
-        dc.w    $4EA6                    ; $0068CA
-        dc.w    $7000                    ; $0068CC
-        dc.w    $3140                    ; $0068CE
-        dc.w    $0044                    ; $0068D0
-        dc.w    $3140                    ; $0068D2
-        dc.w    $0046                    ; $0068D4
-        dc.w    $3140                    ; $0068D6
-        dc.w    $004A                    ; $0068D8
-        dc.w    $4EBA                    ; $0068DA
-        dc.w    $1CE8                    ; $0068DC
-        dc.w    $4EBA                    ; $0068DE
-        dc.w    $1CBA                    ; $0068E0
-        dc.w    $4EBA                    ; $0068E2
-        dc.w    $3A6C                    ; $0068E4
-        dc.w    $4EBA                    ; $0068E6
-        dc.w    $1888                    ; $0068E8
-        dc.w    $4EBA                    ; $0068EA
-        dc.w    $17E0                    ; $0068EC
-        dc.w    $4EBA                    ; $0068EE
-        dc.w    $1C58                    ; $0068F0
-        dc.w    $4EBA                    ; $0068F2
-        dc.w    $2C06                    ; $0068F4
-        dc.w    $4EBA                    ; $0068F6
-        dc.w    $2A1A                    ; $0068F8
-        dc.w    $4EBA                    ; $0068FA
-        dc.w    $3216                    ; $0068FC
-        dc.w    $4EBA                    ; $0068FE
-        dc.w    $2882                    ; $006900
-        dc.w    $4EBA                    ; $006902
-        dc.w    $2D1A                    ; $006904
-        dc.w    $4EBA                    ; $006906
-        dc.w    $2D80                    ; $006908
-        dc.w    $4EBA                    ; $00690A
-        dc.w    $2EF6                    ; $00690C
-        dc.w    $4EBA                    ; $00690E
-        dc.w    $156A                    ; $006910
-        dc.w    $4EBA                    ; $006912
-        dc.w    $0684                    ; $006914
-        dc.w    $4EBA                    ; $006916
-        dc.w    $13C0                    ; $006918
-        dc.w    $4EBA                    ; $00691A
-        dc.w    $3B18                    ; $00691C
-        dc.w    $4EBA                    ; $00691E
-        dc.w    $078A                    ; $006920
-        dc.w    $4EBA                    ; $006922
-        dc.w    $354A                    ; $006924
-        dc.w    $4EBA                    ; $006926
-        dc.w    $1326                    ; $006928
-        dc.w    $4EBA                    ; $00692A
-        dc.w    $081E                    ; $00692C
-        dc.w    $4EBA                    ; $00692E
-        dc.w    $0D1E                    ; $006930
-        dc.w    $4EBA                    ; $006932
-        dc.w    $161C                    ; $006934
-        dc.w    $4EBA                    ; $006936
-        dc.w    $4306                    ; $006938
-        dc.w    $4EFA                    ; $00693A
-        dc.w    $3218                    ; $00693C
-        dc.w    $317C                    ; $00693E
-        dc.w    $0000                    ; $006940
-        dc.w    $0006                    ; $006942
-        dc.w    $317C                    ; $006944
-        dc.w    $0000                    ; $006946
-        dc.w    $0074                    ; $006948
-        dc.w    $4EBA                    ; $00694A
-        dc.w    $4E24                    ; $00694C
-        dc.w    $7000                    ; $00694E
-        dc.w    $3140                    ; $006950
-        dc.w    $0044                    ; $006952
-        dc.w    $3140                    ; $006954
-        dc.w    $0046                    ; $006956
-        dc.w    $3140                    ; $006958
-        dc.w    $004A                    ; $00695A
-        dc.w    $4EBA                    ; $00695C
-        dc.w    $E0AE                    ; $00695E
-        dc.w    $4EBA                    ; $006960
-        dc.w    $1C38                    ; $006962
-        dc.w    $4EBA                    ; $006964
-        dc.w    $39EA                    ; $006966
-        dc.w    $4EBA                    ; $006968
-        dc.w    $1806                    ; $00696A
-        dc.w    $4EBA                    ; $00696C
-        dc.w    $175E                    ; $00696E
-        dc.w    $4EBA                    ; $006970
-        dc.w    $1BD6                    ; $006972
-        dc.w    $4EBA                    ; $006974
-        dc.w    $2B84                    ; $006976
-        dc.w    $0C78                    ; $006978
-        dc.w    $0004                    ; $00697A
-        dc.w    $C26C                    ; $00697C
-        dc.w    $6704                    ; $00697E
-        dc.w    $4EBA                    ; $006980
-        dc.w    $2990                    ; $006982
-        dc.w    $4EBA                    ; $006984
-        dc.w    $318C                    ; $006986
-        dc.w    $4EBA                    ; $006988
-        dc.w    $27F8                    ; $00698A
-        dc.w    $4EBA                    ; $00698C
-        dc.w    $2E74                    ; $00698E
-        dc.w    $4EBA                    ; $006990
-        dc.w    $06F2                    ; $006992
-        dc.w    $4EBA                    ; $006994
-        dc.w    $0714                    ; $006996
-        dc.w    $4EBA                    ; $006998
-        dc.w    $0E7C                    ; $00699A
-        dc.w    $5378                    ; $00699C
-        dc.w    $C02C                    ; $00699E
-        dc.w    $6E12                    ; $0069A0
-        dc.w    $31FC                    ; $0069A2
-        dc.w    $0000                    ; $0069A4
-        dc.w    $C02C                    ; $0069A6
-        dc.w    $317C                    ; $0069A8
-        dc.w    $0000                    ; $0069AA
-        dc.w    $0074                    ; $0069AC
-        dc.w    $31F8                    ; $0069AE
-        dc.w    $C08C                    ; $0069B0
-        dc.w    $C07A                    ; $0069B2
-        dc.w    $4EBA                    ; $0069B4
-        dc.w    $34B8                    ; $0069B6
-        dc.w    $4EBA                    ; $0069B8
-        dc.w    $1294                    ; $0069BA
-        dc.w    $4EBA                    ; $0069BC
-        dc.w    $078C                    ; $0069BE
-        dc.w    $4EBA                    ; $0069C0
-        dc.w    $0C8C                    ; $0069C2
-        dc.w    $4EBA                    ; $0069C4
-        dc.w    $158A                    ; $0069C6
-        dc.w    $4EBA                    ; $0069C8
-        dc.w    $4274                    ; $0069CA
-        dc.w    $4EFA                    ; $0069CC
-        dc.w    $3186                    ; $0069CE
-        dc.w    $4EBA                    ; $0069D0
-        dc.w    $4D9E                    ; $0069D2
-        dc.w    $7000                    ; $0069D4
-        dc.w    $3140                    ; $0069D6
-        dc.w    $0044                    ; $0069D8
-        dc.w    $3140                    ; $0069DA
-        dc.w    $0046                    ; $0069DC
-        dc.w    $3140                    ; $0069DE
-        dc.w    $004A                    ; $0069E0
-        dc.w    $4EBA                    ; $0069E2
-        dc.w    $1BB6                    ; $0069E4
-        dc.w    $4EBA                    ; $0069E6
-        dc.w    $3968                    ; $0069E8
-        dc.w    $4EBA                    ; $0069EA
-        dc.w    $1784                    ; $0069EC
-        dc.w    $4EBA                    ; $0069EE
-        dc.w    $16DC                    ; $0069F0
-        dc.w    $4EBA                    ; $0069F2
-        dc.w    $1B54                    ; $0069F4
-        dc.w    $4EBA                    ; $0069F6
-        dc.w    $2E0A                    ; $0069F8
-        dc.w    $4EBA                    ; $0069FA
-        dc.w    $147E                    ; $0069FC
-        dc.w    $4EBA                    ; $0069FE
-        dc.w    $0598                    ; $006A00
-        dc.w    $4EBA                    ; $006A02
-        dc.w    $12D4                    ; $006A04
-        dc.w    $4EBA                    ; $006A06
-        dc.w    $3A2C                    ; $006A08
-        dc.w    $4EBA                    ; $006A0A
-        dc.w    $069E                    ; $006A0C
-        dc.w    $4EBA                    ; $006A0E
-        dc.w    $345E                    ; $006A10
-        dc.w    $4EBA                    ; $006A12
-        dc.w    $123A                    ; $006A14
-        dc.w    $4EBA                    ; $006A16
-        dc.w    $0732                    ; $006A18
-        dc.w    $4EBA                    ; $006A1A
-        dc.w    $0C32                    ; $006A1C
-        dc.w    $4EBA                    ; $006A1E
-        dc.w    $1530                    ; $006A20
-        dc.w    $4EBA                    ; $006A22
-        dc.w    $2BFA                    ; $006A24
-        dc.w    $4EBA                    ; $006A26
-        dc.w    $3ED0                    ; $006A28
-        dc.w    $0838                    ; $006A2A
-        dc.w    $0004                    ; $006A2C
-        dc.w    $C30E                    ; $006A2E
-        dc.w    $6706                    ; $006A30
-        dc.w    $31F8                    ; $006A32
-        dc.w    $C08C                    ; $006A34
-        dc.w    $C07A                    ; $006A36
-        dc.w    $4E75                    ; $006A38
+        MOVEQ   #$00,D0                         ; $00677A
+        MOVE.W  D0,$0044(A0)                    ; $00677C
+        MOVE.W  D0,$0046(A0)                    ; $006780
+        MOVE.W  D0,$004A(A0)                    ; $006784
+        MOVE.L  #$00100010,(-13968).W           ; $006788
+        MOVE.B  #$00,(-15601).W                 ; $006790
+        DC.W    $4EBA,$4FD8         ; JSR     $00B770(PC); $006796
+        MOVE.W  #$0002,$0092(A0)                ; $00679A
+        DC.W    $4EBA,$1DF8         ; JSR     $00859A(PC); $0067A0
+        DC.W    $4EBA,$3BAA         ; JSR     $00A350(PC); $0067A4
+        DC.W    $4EBA,$19C6         ; JSR     $008170(PC); $0067A8
+        DC.W    $4EBA,$191E         ; JSR     $0080CC(PC); $0067AC
+        DC.W    $4EBA,$1D96         ; JSR     $008548(PC); $0067B0
+        DC.W    $4EBA,$2D44         ; JSR     $0094FA(PC); $0067B4
+        DC.W    $4EBA,$2B58         ; JSR     $009312(PC); $0067B8
+        DC.W    $4EBA,$3354         ; JSR     $009B12(PC); $0067BC
+        DC.W    $4EBA,$29C0         ; JSR     $009182(PC); $0067C0
+        DC.W    $4EBA,$2E58         ; JSR     $00961E(PC); $0067C4
+        DC.W    $4EBA,$2EBE         ; JSR     $009688(PC); $0067C8
+        DC.W    $4EBA,$3034         ; JSR     $009802(PC); $0067CC
+        DC.W    $4EBA,$16A8         ; JSR     $007E7A(PC); $0067D0
+        DC.W    $4EBA,$07C2         ; JSR     $006F98(PC); $0067D4
+        DC.W    $4EBA,$14FE         ; JSR     $007CD8(PC); $0067D8
+        DC.W    $4EBA,$3C56         ; JSR     $00A434(PC); $0067DC
+        DC.W    $4EBA,$08C8         ; JSR     $0070AA(PC); $0067E0
+        DC.W    $4EBA,$1468         ; JSR     $007C4E(PC); $0067E4
+        DC.W    $4EBA,$0960         ; JSR     $00714A(PC); $0067E8
+        DC.W    $4EBA,$0E60         ; JSR     $00764E(PC); $0067EC
+        DC.W    $4EBA,$1840         ; JSR     $008032(PC); $0067F0
+        DC.W    $4EBA,$335E         ; JSR     $009B54(PC); $0067F4
+        DC.W    $4EBA,$DCEE         ; JSR     $0044E8(PC); $0067F8
+        DC.W    $4EBA,$C918         ; JSR     $003116(PC); $0067FC
+        DC.W    $4EFA,$DD1A         ; JMP     $00451C(PC); $006800
+        DC.W    $4EBA,$4F6A         ; JSR     $00B770(PC); $006804
+        DC.W    $4EBA,$3B46         ; JSR     $00A350(PC); $006808
+        DC.W    $4EBA,$1962         ; JSR     $008170(PC); $00680C
+        DC.W    $4EBA,$18BA         ; JSR     $0080CC(PC); $006810
+        DC.W    $4EBA,$1D32         ; JSR     $008548(PC); $006814
+        DC.W    $4EBA,$2E04         ; JSR     $00961E(PC); $006818
+        DC.W    $4EBA,$0FF8         ; JSR     $007816(PC); $00681C
+        DC.W    $4EBA,$0E2C         ; JSR     $00764E(PC); $006820
+        DC.W    $4EBA,$0884         ; JSR     $0070AA(PC); $006824
+        DC.W    $4EBA,$40B6         ; JSR     $00A8E0(PC); $006828
+        DC.W    $4EBA,$3326         ; JSR     $009B54(PC); $00682C
+        DC.W    $4EBA,$2950         ; JSR     $009182(PC); $006830
+        DC.W    $4EBA,$2FCC         ; JSR     $009802(PC); $006834
+        DC.W    $4EBA,$0910         ; JSR     $00714A(PC); $006838
+        DC.W    $4EFA,$D486         ; JMP     $003CC4(PC); $00683C
+        LEA     (-24576).W,A4                   ; $006840
+        LEA     (-28672).W,A0                   ; $006844
+        MOVE.W  #$0002,$00AC(A0)                ; $006848
+        MOVE.B  (-342).W,(-15601).W             ; $00684E
+        DC.W    $4EBA,$0368         ; JSR     $006BBE(PC); $006854
+        MOVE.L  $00B2(A0),$0018(A0)             ; $006858
+        MOVE.B  $00E5(A0),D1                    ; $00685E
+        ANDI.B  #$06,D1                         ; $006862
+        BEQ.S  .loc_00F4                        ; $006866
+        MOVE.L  (-14580).W,$0018(A0)            ; $006868
+.loc_00F4:
+        MOVE.W  (-16262).W,D0                   ; $00686E
+        MOVEA.L $0068A8(PC,D0.W),A1             ; $006872
+        JSR     (A1)                            ; $006876
+        DC.W    $4EBA,$168A         ; JSR     $007F04(PC); $006878
+.loc_0102:
+        DC.W    $4EBA,$27C2         ; JSR     $009040(PC); $00687C
+        DC.W    $4EBA,$19DA         ; JSR     $00825C(PC); $006880
+        DC.W    $4EBA,$363A         ; JSR     $009EC0(PC); $006884
+.loc_010E:
+        DC.W    $4EBA,$0D74         ; JSR     $0075FE(PC); $006888
+        DC.W    $4EBA,$0918         ; JSR     $0071A6(PC); $00688C
+        DC.W    $4EBA,$C0F2         ; JSR     $002984(PC); $006890
+        DC.W    $4EBA,$CC52         ; JSR     $0034E8(PC); $006894
+        DC.W    $4EBA,$CF1C         ; JSR     $0037B6(PC); $006898
+        DC.W    $4EBA,$D6E8         ; JSR     $003F86(PC); $00689C
+        DC.W    $4EBA,$D422         ; JSR     $003CC4(PC); $0068A0
+        DC.W    $4EFA,$0344         ; JMP     $006BEA(PC); $0068A4
+        DC.W    $0088                           ; $0068A8
+        BVC.S  $006874                          ; $0068AA
+        DC.W    $0088                           ; $0068AC
+        BPL.S  .loc_0102                        ; $0068AE
+        DC.W    $0088                           ; $0068B0
+        BVS.S  .loc_0178                        ; $0068B2
+        DC.W    $0088                           ; $0068B4
+        BVS.S  .loc_010E                        ; $0068B6
+        DC.W    $0088                           ; $0068B8
+        BPL.S  .loc_017C                        ; $0068BA
+        DC.W    $0088                           ; $0068BC
+        BPL.S  $0068F8                          ; $0068BE
+        DC.W    $0088                           ; $0068C0
+        BMI.S  .loc_014E                        ; $0068C2
+        DC.W    $0088                           ; $0068C4
+        BVS.S  .loc_0198                        ; $0068C6
+.loc_014E:
+        DC.W    $4EBA,$4EA6         ; JSR     $00B770(PC); $0068C8
+        MOVEQ   #$00,D0                         ; $0068CC
+        MOVE.W  D0,$0044(A0)                    ; $0068CE
+        MOVE.W  D0,$0046(A0)                    ; $0068D2
+        MOVE.W  D0,$004A(A0)                    ; $0068D6
+        DC.W    $4EBA,$1CE8         ; JSR     $0085C4(PC); $0068DA
+        DC.W    $4EBA,$1CBA         ; JSR     $00859A(PC); $0068DE
+        DC.W    $4EBA,$3A6C         ; JSR     $00A350(PC); $0068E2
+        DC.W    $4EBA,$1888         ; JSR     $008170(PC); $0068E6
+        DC.W    $4EBA,$17E0         ; JSR     $0080CC(PC); $0068EA
+        DC.W    $4EBA,$1C58         ; JSR     $008548(PC); $0068EE
+.loc_0178:
+        DC.W    $4EBA,$2C06         ; JSR     $0094FA(PC); $0068F2
+.loc_017C:
+        DC.W    $4EBA,$2A1A         ; JSR     $009312(PC); $0068F6
+        DC.W    $4EBA,$3216         ; JSR     $009B12(PC); $0068FA
+        DC.W    $4EBA,$2882         ; JSR     $009182(PC); $0068FE
+        DC.W    $4EBA,$2D1A         ; JSR     $00961E(PC); $006902
+        DC.W    $4EBA,$2D80         ; JSR     $009688(PC); $006906
+        DC.W    $4EBA,$2EF6         ; JSR     $009802(PC); $00690A
+        DC.W    $4EBA,$156A         ; JSR     $007E7A(PC); $00690E
+.loc_0198:
+        DC.W    $4EBA,$0684         ; JSR     $006F98(PC); $006912
+        DC.W    $4EBA,$13C0         ; JSR     $007CD8(PC); $006916
+        DC.W    $4EBA,$3B18         ; JSR     $00A434(PC); $00691A
+        DC.W    $4EBA,$078A         ; JSR     $0070AA(PC); $00691E
+        DC.W    $4EBA,$354A         ; JSR     $009E6E(PC); $006922
+        DC.W    $4EBA,$1326         ; JSR     $007C4E(PC); $006926
+        DC.W    $4EBA,$081E         ; JSR     $00714A(PC); $00692A
+        DC.W    $4EBA,$0D1E         ; JSR     $00764E(PC); $00692E
+        DC.W    $4EBA,$161C         ; JSR     $007F50(PC); $006932
+        DC.W    $4EBA,$4306         ; JSR     $00AC3E(PC); $006936
+        DC.W    $4EFA,$3218         ; JMP     $009B54(PC); $00693A
+        MOVE.W  #$0000,$0006(A0)                ; $00693E
+        MOVE.W  #$0000,$0074(A0)                ; $006944
+        DC.W    $4EBA,$4E24         ; JSR     $00B770(PC); $00694A
+        MOVEQ   #$00,D0                         ; $00694E
+        MOVE.W  D0,$0044(A0)                    ; $006950
+        MOVE.W  D0,$0046(A0)                    ; $006954
+        MOVE.W  D0,$004A(A0)                    ; $006958
+        DC.W    $4EBA,$E0AE         ; JSR     $004A0C(PC); $00695C
+        DC.W    $4EBA,$1C38         ; JSR     $00859A(PC); $006960
+        DC.W    $4EBA,$39EA         ; JSR     $00A350(PC); $006964
+        DC.W    $4EBA,$1806         ; JSR     $008170(PC); $006968
+        DC.W    $4EBA,$175E         ; JSR     $0080CC(PC); $00696C
+        DC.W    $4EBA,$1BD6         ; JSR     $008548(PC); $006970
+        DC.W    $4EBA,$2B84         ; JSR     $0094FA(PC); $006974
+        CMPI.W  #$0004,(-15764).W               ; $006978
+        BEQ.S  .loc_020A                        ; $00697E
+        DC.W    $4EBA,$2990         ; JSR     $009312(PC); $006980
+.loc_020A:
+        DC.W    $4EBA,$318C         ; JSR     $009B12(PC); $006984
+        DC.W    $4EBA,$27F8         ; JSR     $009182(PC); $006988
+        DC.W    $4EBA,$2E74         ; JSR     $009802(PC); $00698C
+        DC.W    $4EBA,$06F2         ; JSR     $007084(PC); $006990
+        DC.W    $4EBA,$0714         ; JSR     $0070AA(PC); $006994
+        DC.W    $4EBA,$0E7C         ; JSR     $007816(PC); $006998
+        SUBQ.W  #1,(-16340).W                   ; $00699C
+        BGT.S  .loc_023A                        ; $0069A0
+        MOVE.W  #$0000,(-16340).W               ; $0069A2
+        MOVE.W  #$0000,$0074(A0)                ; $0069A8
+        MOVE.W  (-16244).W,(-16262).W           ; $0069AE
+.loc_023A:
+        DC.W    $4EBA,$34B8         ; JSR     $009E6E(PC); $0069B4
+        DC.W    $4EBA,$1294         ; JSR     $007C4E(PC); $0069B8
+        DC.W    $4EBA,$078C         ; JSR     $00714A(PC); $0069BC
+        DC.W    $4EBA,$0C8C         ; JSR     $00764E(PC); $0069C0
+        DC.W    $4EBA,$158A         ; JSR     $007F50(PC); $0069C4
+        DC.W    $4EBA,$4274         ; JSR     $00AC3E(PC); $0069C8
+        DC.W    $4EFA,$3186         ; JMP     $009B54(PC); $0069CC
+        DC.W    $4EBA,$4D9E         ; JSR     $00B770(PC); $0069D0
+        MOVEQ   #$00,D0                         ; $0069D4
+        MOVE.W  D0,$0044(A0)                    ; $0069D6
+        MOVE.W  D0,$0046(A0)                    ; $0069DA
+        MOVE.W  D0,$004A(A0)                    ; $0069DE
+        DC.W    $4EBA,$1BB6         ; JSR     $00859A(PC); $0069E2
+        DC.W    $4EBA,$3968         ; JSR     $00A350(PC); $0069E6
+        DC.W    $4EBA,$1784         ; JSR     $008170(PC); $0069EA
+        DC.W    $4EBA,$16DC         ; JSR     $0080CC(PC); $0069EE
+        DC.W    $4EBA,$1B54         ; JSR     $008548(PC); $0069F2
+        DC.W    $4EBA,$2E0A         ; JSR     $009802(PC); $0069F6
+        DC.W    $4EBA,$147E         ; JSR     $007E7A(PC); $0069FA
+        DC.W    $4EBA,$0598         ; JSR     $006F98(PC); $0069FE
+        DC.W    $4EBA,$12D4         ; JSR     $007CD8(PC); $006A02
+        DC.W    $4EBA,$3A2C         ; JSR     $00A434(PC); $006A06
+        DC.W    $4EBA,$069E         ; JSR     $0070AA(PC); $006A0A
+        DC.W    $4EBA,$345E         ; JSR     $009E6E(PC); $006A0E
+        DC.W    $4EBA,$123A         ; JSR     $007C4E(PC); $006A12
+        DC.W    $4EBA,$0732         ; JSR     $00714A(PC); $006A16
+        DC.W    $4EBA,$0C32         ; JSR     $00764E(PC); $006A1A
+        DC.W    $4EBA,$1530         ; JSR     $007F50(PC); $006A1E
+        DC.W    $4EBA,$2BFA         ; JSR     $00961E(PC); $006A22
+        DC.W    $4EBA,$3ED0         ; JSR     $00A8F8(PC); $006A26
+        BTST    #4,(-15602).W                   ; $006A2A
+        BEQ.S  .loc_02BE                        ; $006A30
+        MOVE.W  (-16244).W,(-16262).W           ; $006A32
+.loc_02BE:
+        RTS                                     ; $006A38

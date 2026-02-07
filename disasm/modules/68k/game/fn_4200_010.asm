@@ -5,26 +5,10 @@
 ; ============================================================================
 
 fn_4200_010:
-        dc.w    $11FC                    ; $004C8A
-        dc.w    $009A                    ; $004C8C
-        dc.w    $C8A5                    ; $004C8E
-        dc.w    $4EBA                    ; $004C90
-        dc.w    $D3EE                    ; $004C92
-        dc.w    $4EBA                    ; $004C94
-        dc.w    $FD02                    ; $004C96
-        dc.w    $23FC                    ; $004C98
-        dc.w    $0088                    ; $004C9A
-        dc.w    $5618                    ; $004C9C
-        dc.w    $00FF                    ; $004C9E
-        dc.w    $0002                    ; $004CA0
-        dc.w    $23FC                    ; $004CA2
-        dc.w    $0000                    ; $004CA4
-        dc.w    $0000                    ; $004CA6
-        dc.w    $00FF                    ; $004CA8
-        dc.w    $5FF8                    ; $004CAA
-        dc.w    $23FC                    ; $004CAC
-        dc.w    $0000                    ; $004CAE
-        dc.w    $0000                    ; $004CB0
-        dc.w    $00FF                    ; $004CB2
-        dc.w    $5FFC                    ; $004CB4
-        dc.w    $4E75                    ; $004CB6
+        MOVE.B  #$9A,(-14171).W                 ; $004C8A
+        DC.W    $4EBA,$D3EE         ; JSR     $002080(PC); $004C90
+        DC.W    $4EBA,$FD02         ; JSR     $004998(PC); $004C94
+        MOVE.L  #$00885618,$00FF0002            ; $004C98
+        MOVE.L  #$00000000,$00FF5FF8            ; $004CA2
+        MOVE.L  #$00000000,$00FF5FFC            ; $004CAC
+        RTS                                     ; $004CB6

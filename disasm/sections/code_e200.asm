@@ -1845,189 +1845,21 @@ table_dual_dispatch:
         dc.w    $0401        ; $00EFBC
         dc.w    $B0A0        ; $00EFBE
         dc.w    $0090        ; $00EFC0
-        dc.w    $43F9        ; $00EFC2
-        dc.w    $00FF        ; $00EFC4
-        dc.w    $6100        ; $00EFC6
-        dc.w    $337C        ; $00EFC8
-        dc.w    $0001        ; $00EFCA
-        dc.w    $0000        ; $00EFCC
-        dc.w    $337C        ; $00EFCE
-        dc.w    $0000        ; $00EFD0
-        dc.w    $0002        ; $00EFD2
-        dc.w    $3379        ; $00EFD4
-        dc.w    $00FF        ; $00EFD6
-        dc.w    $2002        ; $00EFD8
-        dc.w    $0004        ; $00EFDA
-        dc.w    $3379        ; $00EFDC
-        dc.w    $00FF        ; $00EFDE
-        dc.w    $2004        ; $00EFE0
-        dc.w    $0006        ; $00EFE2
-        dc.w    $3379        ; $00EFE4
-        dc.w    $00FF        ; $00EFE6
-        dc.w    $2000        ; $00EFE8
-        dc.w    $0008        ; $00EFEA
-        dc.w    $3340        ; $00EFEC
-        dc.w    $000A        ; $00EFEE
-        dc.w    $337C        ; $00EFF0
-        dc.w    $0000        ; $00EFF2
-        dc.w    $000C        ; $00EFF4
-        dc.w    $337C        ; $00EFF6
-        dc.w    $0000        ; $00EFF8
-        dc.w    $000E        ; $00EFFA
-        dc.w    $237C        ; $00EFFC
-        dc.w    $222B        ; $00EFFE
-        dc.w    $DAE6        ; $00F000
-        dc.w    $0010        ; $00F002
-        dc.w    $D3FC        ; $00F004
-        dc.w    $0000        ; $00F006
-        dc.w    $0014        ; $00F008
-        dc.w    $33FC        ; $00F00A
-        dc.w    $0044        ; $00F00C
-        dc.w    $00A1        ; $00F00E
-        dc.w    $5110        ; $00F010
-        dc.w    $13FC        ; $00F012
-        dc.w    $0004        ; $00F014
-        dc.w    $00A1        ; $00F016
-        dc.w    $5107        ; $00F018
-        dc.w    $4A39        ; $00F01A
-        dc.w    $00A1        ; $00F01C
-        dc.w    $5120        ; $00F01E
-        dc.w    $66F8        ; $00F020
-        dc.w    $13FC        ; $00F022
-        dc.w    $002A        ; $00F024
-        dc.w    $00A1        ; $00F026
-        dc.w    $5121        ; $00F028
-        dc.w    $13FC        ; $00F02A
-        dc.w    $0001        ; $00F02C
-        dc.w    $00A1        ; $00F02E
-        dc.w    $5120        ; $00F030
-        dc.w    $4E75        ; $00F032
+        include "modules/68k/sh2/comm_transfer_setup_a.asm"
         dc.w    $2228        ; $00F034
         dc.w    $1450        ; $00F036
         dc.w    $2228        ; $00F038
         dc.w    $155A        ; $00F03A
         dc.w    $2228        ; $00F03C
         dc.w    $1664        ; $00F03E
-        dc.w    $43F9        ; $00F040
-        dc.w    $00FF        ; $00F042
-        dc.w    $6100        ; $00F044
-        dc.w    $337C        ; $00F046
-        dc.w    $0001        ; $00F048
-        dc.w    $0000        ; $00F04A
-        dc.w    $337C        ; $00F04C
-        dc.w    $0000        ; $00F04E
-        dc.w    $0002        ; $00F050
-        dc.w    $3379        ; $00F052
-        dc.w    $00FF        ; $00F054
-        dc.w    $2008        ; $00F056
-        dc.w    $0004        ; $00F058
-        dc.w    $3379        ; $00F05A
-        dc.w    $00FF        ; $00F05C
-        dc.w    $200A        ; $00F05E
-        dc.w    $0006        ; $00F060
-        dc.w    $3379        ; $00F062
-        dc.w    $00FF        ; $00F064
-        dc.w    $2006        ; $00F066
-        dc.w    $0008        ; $00F068
-        dc.w    $3340        ; $00F06A
-        dc.w    $000A        ; $00F06C
-        dc.w    $337C        ; $00F06E
-        dc.w    $0000        ; $00F070
-        dc.w    $000C        ; $00F072
-        dc.w    $337C        ; $00F074
-        dc.w    $0000        ; $00F076
-        dc.w    $000E        ; $00F078
-        dc.w    $237C        ; $00F07A
-        dc.w    $222B        ; $00F07C
-        dc.w    $EA76        ; $00F07E
-        dc.w    $0010        ; $00F080
-        dc.w    $D3FC        ; $00F082
-        dc.w    $0000        ; $00F084
-        dc.w    $0014        ; $00F086
-        dc.w    $33FC        ; $00F088
-        dc.w    $0044        ; $00F08A
-        dc.w    $00A1        ; $00F08C
-        dc.w    $5110        ; $00F08E
-        dc.w    $13FC        ; $00F090
-        dc.w    $0004        ; $00F092
-        dc.w    $00A1        ; $00F094
-        dc.w    $5107        ; $00F096
-        dc.w    $4A39        ; $00F098
-        dc.w    $00A1        ; $00F09A
-        dc.w    $5120        ; $00F09C
-        dc.w    $66F8        ; $00F09E
-        dc.w    $13FC        ; $00F0A0
-        dc.w    $002A        ; $00F0A2
-        dc.w    $00A1        ; $00F0A4
-        dc.w    $5121        ; $00F0A6
-        dc.w    $13FC        ; $00F0A8
-        dc.w    $0001        ; $00F0AA
-        dc.w    $00A1        ; $00F0AC
-        dc.w    $5120        ; $00F0AE
-        dc.w    $4E75        ; $00F0B0
+        include "modules/68k/sh2/comm_transfer_setup_b.asm"
         dc.w    $2228        ; $00F0B2
         dc.w    $4FAA        ; $00F0B4
         dc.w    $2228        ; $00F0B6
         dc.w    $506C        ; $00F0B8
         dc.w    $2228        ; $00F0BA
         dc.w    $512E        ; $00F0BC
-        dc.w    $43F9        ; $00F0BE
-        dc.w    $00FF        ; $00F0C0
-        dc.w    $6100        ; $00F0C2
-        dc.w    $337C        ; $00F0C4
-        dc.w    $0001        ; $00F0C6
-        dc.w    $0000        ; $00F0C8
-        dc.w    $337C        ; $00F0CA
-        dc.w    $0000        ; $00F0CC
-        dc.w    $0002        ; $00F0CE
-        dc.w    $3379        ; $00F0D0
-        dc.w    $00FF        ; $00F0D2
-        dc.w    $200E        ; $00F0D4
-        dc.w    $0004        ; $00F0D6
-        dc.w    $3379        ; $00F0D8
-        dc.w    $00FF        ; $00F0DA
-        dc.w    $2010        ; $00F0DC
-        dc.w    $0006        ; $00F0DE
-        dc.w    $3379        ; $00F0E0
-        dc.w    $00FF        ; $00F0E2
-        dc.w    $200C        ; $00F0E4
-        dc.w    $0008        ; $00F0E6
-        dc.w    $3340        ; $00F0E8
-        dc.w    $000A        ; $00F0EA
-        dc.w    $337C        ; $00F0EC
-        dc.w    $0000        ; $00F0EE
-        dc.w    $000C        ; $00F0F0
-        dc.w    $337C        ; $00F0F2
-        dc.w    $0000        ; $00F0F4
-        dc.w    $000E        ; $00F0F6
-        dc.w    $237C        ; $00F0F8
-        dc.w    $222B        ; $00F0FA
-        dc.w    $F710        ; $00F0FC
-        dc.w    $0010        ; $00F0FE
-        dc.w    $D3FC        ; $00F100
-        dc.w    $0000        ; $00F102
-        dc.w    $0014        ; $00F104
-        dc.w    $33FC        ; $00F106
-        dc.w    $0044        ; $00F108
-        dc.w    $00A1        ; $00F10A
-        dc.w    $5110        ; $00F10C
-        dc.w    $13FC        ; $00F10E
-        dc.w    $0004        ; $00F110
-        dc.w    $00A1        ; $00F112
-        dc.w    $5107        ; $00F114
-        dc.w    $4A39        ; $00F116
-        dc.w    $00A1        ; $00F118
-        dc.w    $5120        ; $00F11A
-        dc.w    $66F8        ; $00F11C
-        dc.w    $13FC        ; $00F11E
-        dc.w    $002A        ; $00F120
-        dc.w    $00A1        ; $00F122
-        dc.w    $5121        ; $00F124
-        dc.w    $13FC        ; $00F126
-        dc.w    $0001        ; $00F128
-        dc.w    $00A1        ; $00F12A
-        dc.w    $5120        ; $00F12C
-        dc.w    $4E75        ; $00F12E
+        include "modules/68k/sh2/comm_transfer_setup_c.asm"
         dc.w    $2228        ; $00F130
         dc.w    $819A        ; $00F132
         dc.w    $2228        ; $00F134
@@ -2946,83 +2778,8 @@ table_dual_dispatch:
         dc.w    $ECC4        ; $00F856
         dc.w    $0048        ; $00F858
         dc.w    $0010        ; $00F85A
-        dc.w    $4A39        ; $00F85C
-        dc.w    $00A1        ; $00F85E
-        dc.w    $5120        ; $00F860
-        dc.w    $66F8        ; $00F862
-        dc.w    $4239        ; $00F864
-        dc.w    $00A1        ; $00F866
-        dc.w    $5123        ; $00F868
-        dc.w    $31FC        ; $00F86A
-        dc.w    $0000        ; $00F86C
-        dc.w    $C87E        ; $00F86E
-        dc.w    $23FC        ; $00F870
-        dc.w    $0089        ; $00F872
-        dc.w    $26D2        ; $00F874
-        dc.w    $00FF        ; $00F876
-        dc.w    $0002        ; $00F878
-        dc.w    $4A38        ; $00F87A
-        dc.w    $A018        ; $00F87C
-        dc.w    $660A        ; $00F87E
-        dc.w    $23FC        ; $00F880
-        dc.w    $0088        ; $00F882
-        dc.w    $D4B8        ; $00F884
-        dc.w    $00FF        ; $00F886
-        dc.w    $0002        ; $00F888
-        dc.w    $4E75        ; $00F88A
-        dc.w    $41F8        ; $00F88C
-        dc.w    $84A2        ; $00F88E
-        dc.w    $43F8        ; $00F890
-        dc.w    $84C2        ; $00F892
-        dc.w    $45F8        ; $00F894
-        dc.w    $84E2        ; $00F896
-        dc.w    $4242        ; $00F898
-        dc.w    $323C        ; $00F89A
-        dc.w    $0007        ; $00F89C
-        dc.w    $31BC        ; $00F89E
-        dc.w    $0000        ; $00F8A0
-        dc.w    $2000        ; $00F8A2
-        dc.w    $33BC        ; $00F8A4
-        dc.w    $0000        ; $00F8A6
-        dc.w    $2000        ; $00F8A8
-        dc.w    $5442        ; $00F8AA
-        dc.w    $51C9        ; $00F8AC
-        dc.w    $FFF0        ; $00F8AE
-        dc.w    $41F8        ; $00F8B0
-        dc.w    $84C2        ; $00F8B2
-        dc.w    $4A40        ; $00F8B4
-        dc.w    $6604        ; $00F8B6
-        dc.w    $41F8        ; $00F8B8
-        dc.w    $84A2        ; $00F8BA
-        dc.w    $47F9        ; $00F8BC
-        dc.w    $0088        ; $00F8BE
-        dc.w    $F8F6        ; $00F8C0
-        dc.w    $7200        ; $00F8C2
-        dc.w    $3238        ; $00F8C4
-        dc.w    $A012        ; $00F8C6
-        dc.w    $D241        ; $00F8C8
-        dc.w    $D7C1        ; $00F8CA
-        dc.w    $4242        ; $00F8CC
-        dc.w    $323C        ; $00F8CE
-        dc.w    $0007        ; $00F8D0
-        dc.w    $3193        ; $00F8D2
-        dc.w    $2000        ; $00F8D4
-        dc.w    $359B        ; $00F8D6
-        dc.w    $2000        ; $00F8D8
-        dc.w    $5442        ; $00F8DA
-        dc.w    $51C9        ; $00F8DC
-        dc.w    $FFF4        ; $00F8DE
-        dc.w    $3238        ; $00F8E0
-        dc.w    $A012        ; $00F8E2
-        dc.w    $5241        ; $00F8E4
-        dc.w    $0C41        ; $00F8E6
-        dc.w    $0007        ; $00F8E8
-        dc.w    $6F00        ; $00F8EA
-        dc.w    $0004        ; $00F8EC
-        dc.w    $4241        ; $00F8EE
-        dc.w    $31C1        ; $00F8F0
-        dc.w    $A012        ; $00F8F2
-        dc.w    $4E75        ; $00F8F4
+        include "modules/68k/sh2/sync_wait_reset.asm"
+        include "modules/68k/display/palette_table_init.asm"
         dc.w    $0EEE        ; $00F8F6
         dc.w    $0EEE        ; $00F8F8
         dc.w    $0EEE        ; $00F8FA
@@ -3311,55 +3068,7 @@ table_dual_dispatch:
         dc.w    $0400        ; $00FB30
         dc.w    $70CF        ; $00FB32
         dc.w    $0061        ; $00FB34
-        dc.w    $4A39        ; $00FB36
-        dc.w    $00A1        ; $00FB38
-        dc.w    $5120        ; $00FB3A
-        dc.w    $66F8        ; $00FB3C
-        dc.w    $33FC        ; $00FB3E
-        dc.w    $001C        ; $00FB40
-        dc.w    $00A1        ; $00FB42
-        dc.w    $5110        ; $00FB44
-        dc.w    $13FC        ; $00FB46
-        dc.w    $0004        ; $00FB48
-        dc.w    $00A1        ; $00FB4A
-        dc.w    $5107        ; $00FB4C
-        dc.w    $4239        ; $00FB4E
-        dc.w    $00A1        ; $00FB50
-        dc.w    $5123        ; $00FB52
-        dc.w    $13FC        ; $00FB54
-        dc.w    $002D        ; $00FB56
-        dc.w    $00A1        ; $00FB58
-        dc.w    $5121        ; $00FB5A
-        dc.w    $13FC        ; $00FB5C
-        dc.w    $0001        ; $00FB5E
-        dc.w    $00A1        ; $00FB60
-        dc.w    $5120        ; $00FB62
-        dc.w    $0839        ; $00FB64
-        dc.w    $0001        ; $00FB66
-        dc.w    $00A1        ; $00FB68
-        dc.w    $5123        ; $00FB6A
-        dc.w    $67F6        ; $00FB6C
-        dc.w    $08B9        ; $00FB6E
-        dc.w    $0001        ; $00FB70
-        dc.w    $00A1        ; $00FB72
-        dc.w    $5123        ; $00FB74
-        dc.w    $43F9        ; $00FB76
-        dc.w    $00FF        ; $00FB78
-        dc.w    $60C8        ; $00FB7A
-        dc.w    $45F9        ; $00FB7C
-        dc.w    $00A1        ; $00FB7E
-        dc.w    $5112        ; $00FB80
-        dc.w    $3E3C        ; $00FB82
-        dc.w    $001B        ; $00FB84
-        dc.w    $0839        ; $00FB86
-        dc.w    $0007        ; $00FB88
-        dc.w    $00A1        ; $00FB8A
-        dc.w    $5107        ; $00FB8C
-        dc.w    $66F6        ; $00FB8E
-        dc.w    $3499        ; $00FB90
-        dc.w    $51CF        ; $00FB92
-        dc.w    $FFF2        ; $00FB94
-        dc.w    $4E75        ; $00FB96
+        include "modules/68k/sh2/comm_transfer_block.asm"
         dc.w    $33FC        ; $00FB98
         dc.w    $002C        ; $00FB9A
         dc.w    $00FF        ; $00FB9C

@@ -101,6 +101,10 @@ adapter_init:
 ; Initialize async command queue ring buffer (Phase 1)
         bsr.w   ring_buffer_init                ; Initialize ring buffer in SDRAM
 
+; Test async command queue (Phase 1 Step 6 - single test command)
+        jsr     test_async_single_cmd           ; Test harness (uses absolute JSR)
+        jsr     sh2_wait_queue_empty            ; Wait for command to process
+
 ; VDP initialization - load register values from ROM table
         lea     VDP_CTRL,a1                     ; $000876: $43F9 $00C0 $0000 - VDP control
         lea     $0004(a1),a2                    ; $00087C: $45E9 $0004       - VDP data

@@ -38,6 +38,7 @@ vrd_opt_start:
 ; --- Phase 1: Async Command Queue Infrastructure ---
         include "modules/68k/optimization/sh2_send_cmd_async.asm"
         include "modules/68k/optimization/sh2_wait_queue_empty.asm"
+        include "modules/68k/optimization/test_async_single_cmd.asm"
 
 vrd_opt_end:
 

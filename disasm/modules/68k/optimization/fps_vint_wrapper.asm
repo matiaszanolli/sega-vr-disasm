@@ -102,17 +102,26 @@ vint_epilogue:
         move.w  d0,fps_fs_last          ; Update last state
 
 .no_flip:
-        ; === FPS SAMPLING: Once per second ===
-        addq.w  #1,fps_vint_tick        ; Increment tick counter
-        cmpi.w  #60,fps_vint_tick       ; 60 V-INTs = 1 second (NTSC)
-        blt.s   .render
+        ; === TEST 1: Display raw flip counter modulo 100 every V-INT ===
+        ; TEMP: Bypasses once-per-second sampling to show raw counter
+        move.w  fps_flip_counter,d0     ; Low 16 bits (enough for test window)
+        divu    #100,d0                 ; Quotient:low, remainder:high
+        swap    d0                      ; Remainder -> low word
+        move.w  d0,fps_value            ; Show raw counter % 100
 
-        ; Sample FPS: delta of flip counter over 1 second
-        move.l  fps_flip_counter,d0     ; Current flip count
-        sub.l   fps_flip_last,d0        ; Subtract last sample = flips per second
-        move.w  d0,fps_value            ; Store FPS for display
-        move.l  fps_flip_counter,fps_flip_last  ; Update snapshot
-        clr.w   fps_vint_tick           ; Reset tick counter
+        ; COMM mirrors for debugging (visible in debugger or via register dump)
+        move.w  fps_flip_counter,$00A15128  ; COMM4 = flip_counter low word
+        move.w  fps_value,$00A1512A         ; COMM5 = display value (counter % 100)
+
+        ; === DISABLED: Once-per-second sampling (for Test 1) ===
+        ; addq.w  #1,fps_vint_tick
+        ; cmpi.w  #60,fps_vint_tick
+        ; blt.s   .render
+        ; move.l  fps_flip_counter,d0
+        ; sub.l   fps_flip_last,d0
+        ; move.w  d0,fps_value
+        ; move.l  fps_flip_counter,fps_flip_last
+        ; clr.w   fps_vint_tick
 
 .render:
         ; WORK PATH: Render on frames with work (should be minority during idle)

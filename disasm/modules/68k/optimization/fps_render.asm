@@ -5,7 +5,7 @@
 ;
 ; PURPOSE
 ; -------
-; Renders the current FPS value (from fps_value at $FFFFC8FA) to both
+; Renders the current FPS value (from fps_value at $FFFFE602) to both
 ; frame buffers using an embedded 4x5 pixel font.
 ;
 ; DISPLAY LAYOUT
@@ -38,9 +38,8 @@
 ; Cost: ~800 cycles (~0.6% of 68K frame budget)
 ; ============================================================================
 
-; --- Import FPS state symbols from fps_vint_wrapper ---
-FPS_BASE         equ     $FFFFC8F8      ; Base address for all FPS variables
-fps_value        equ     FPS_BASE+2     ; $FFFFC8FA: Current FPS display value (word)
+; --- FPS state symbols defined in fps_vint_wrapper.asm ---
+; FPS_BASE, fps_value are imported from fps_vint_wrapper
 
 fps_render:
         movem.l d0-d5/a0-a2,-(sp)

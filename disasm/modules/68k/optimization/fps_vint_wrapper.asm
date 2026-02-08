@@ -23,13 +23,15 @@
 ; $CA20, $D200, etc). State written in wrapper does not survive to epilogue.
 ; Solution: All FPS state writes happen in epilogue (single execution context).
 ;
-; RAM LAYOUT (8 bytes at $C8F8-$C8FF)
+; RAM LAYOUT (10 bytes at $FFFFE600-$FFFFE609)
 ; ------------------------------------------------------------
-; $FFFFC8F8: fps_vint_tick   (word) - V-INT tick counter (0-59)
-; $FFFFC8FA: fps_value       (word) - Current FPS for display (0-99)
-; $FFFFC8FC: fps_last_c964   (long) - Frame counter snapshot from last sample
+; $FFFFE600: fps_vint_tick   (word) - V-INT tick counter (0-59)
+; $FFFFE602: fps_value       (word) - Current FPS for display (0-99)
+; $FFFFE604: fps_last_c964   (long) - Frame counter snapshot from last sample
+; $FFFFE608: fps_canary      (word) - Persistence test canary (0xA55A)
 ;
 ; NOTE: Uses existing game frame counter at $FFFFC964 as data source.
+; NOTE: Relocated to $FFFFE600 after collision confirmed at $FFFFC8F8.
 ;
 ; CALLING CONVENTION
 ; ------------------
@@ -42,11 +44,12 @@
 ; Related: fps_render.asm, vint_handler (code_200.asm)
 ; ============================================================================
 
-; --- RAM variable addresses (epilogue-only state, 8 bytes) ---
-FPS_BASE         equ     $FFFFC8F8      ; Base address for all FPS variables
-fps_vint_tick    equ     FPS_BASE+0     ; $FFFFC8F8: V-INT tick counter (word)
-fps_value        equ     FPS_BASE+2     ; $FFFFC8FA: Current FPS display value (word)
-fps_last_c964    equ     FPS_BASE+4     ; $FFFFC8FC: Last sampled frame counter (long)
+; --- RAM variable addresses (epilogue-only state, 10 bytes) ---
+FPS_BASE         equ     $FFFFE600      ; Base address for all FPS variables
+fps_vint_tick    equ     FPS_BASE+0     ; $FFFFE600: V-INT tick counter (word)
+fps_value        equ     FPS_BASE+2     ; $FFFFE602: Current FPS display value (word)
+fps_last_c964    equ     FPS_BASE+4     ; $FFFFE604: Last sampled frame counter (long)
+fps_canary       equ     FPS_BASE+8     ; $FFFFE608: Persistence canary (word)
 
 ; --- Game frame counter (existing VRD state) ---
 FRAME_COUNTER    equ     $FFFFC964      ; Game's frame counter (increments on work frames)
@@ -81,18 +84,22 @@ vint_epilogue:
         ; Drain async queue first (SH2 rendering must complete)
         bsr.w   sh2_wait_queue_empty
 
-        ; === EPILOGUE-ONLY FPS LOGIC (all state management here) ===
-        ; Increment tick counter (counts V-INTs to measure seconds)
-        addq.w  #1,fps_vint_tick
-        cmpi.w  #60,fps_vint_tick       ; 60 V-INTs = 1 second (NTSC)
-        blt.s   .render
+        ; === TEST LADDER STEP 1: Render-path sanity (epilogue write only) ===
+        ; Write constant 42 to verify render path works at $FFFFE600
+        ; Expected: Stable "42" display
+        move.w  #42,fps_value
 
-        ; Sample FPS once per second: delta of $FFFFC964 frame counter
-        move.l  FRAME_COUNTER.w,d0      ; Current frame count
-        sub.l   fps_last_c964,d0        ; Subtract last sample = frames in last second
-        move.w  d0,fps_value            ; Store FPS for display
-        move.l  FRAME_COUNTER.w,fps_last_c964  ; Update snapshot for next sample
-        clr.w   fps_vint_tick           ; Reset tick counter
+        ; === FULL FPS LOGIC (disabled for step 1) ===
+        ; addq.w  #1,fps_vint_tick
+        ; cmpi.w  #60,fps_vint_tick       ; 60 V-INTs = 1 second (NTSC)
+        ; blt.s   .render
+        ;
+        ; ; Sample FPS once per second: delta of $FFFFC964 frame counter
+        ; move.l  FRAME_COUNTER.w,d0      ; Current frame count
+        ; sub.l   fps_last_c964,d0        ; Subtract last sample = frames in last second
+        ; move.w  d0,fps_value            ; Store FPS for display
+        ; move.l  FRAME_COUNTER.w,fps_last_c964  ; Update snapshot for next sample
+        ; clr.w   fps_vint_tick           ; Reset tick counter
 
 .render:
         ; WORK PATH: Render on frames with work (should be minority during idle)

@@ -1,76 +1,57 @@
 ; ============================================================================
-; FPS Renderer - Direct Frame Buffer Digit Display
+; FPS Renderer - 2-Digit Frame Counter Display
 ; Location: Optimization area ($89C208+, after fps_vint_wrapper)
 ; ============================================================================
 ;
 ; PURPOSE
 ; -------
-; Renders a 2-digit FPS counter directly to the 32X frame buffer.
-; Called from V-INT handler after sh2_wait_queue_empty (SH2 is idle).
+; Renders the current FPS value (from fps_value at $FFFFFE02) to both
+; frame buffers using an embedded 4x5 pixel font.
+;
+; DISPLAY LAYOUT
+; --------------
+; 14x7 pixel box at top-left (rows 3-9, columns 2-15):
+;   - 1px black border (top/bottom/left/right)
+;   - 2 digits: tens at cols 4-7, ones at cols 10-13
+;   - 2px spacer between digits (cols 8-9)
 ;
 ; RENDERING METHOD
 ; ----------------
-; Direct 68K frame buffer write (NOT through SH2 command pipeline).
-; Avoids blocking COMM handshakes that would skew FPS measurement.
+; Uses a 16-entry nibble-to-pixels LUT: each 4-bit font row maps to a
+; longword of 4 pixel bytes. One MOVE.L per digit per row = fast rendering.
+; Palette: CRAM[254]=$0000 (black BG), CRAM[255]=$7FFF (white FG).
 ;
-; FRAME BUFFER (32X Packed Pixel Mode, 8bpp)
-; -------------------------------------------
-; - Line table: 256 words at offset 0 (maps scanline → pixel data offset)
-; - Pixel data: 1 byte per pixel (palette index), 320 pixels per line
-; - We read the line table to correctly handle any line layout
+; FM BIT PROTOCOL
+; ---------------
+; Called from V-INT epilogue. FM is likely 1 (SH2 owns VDP).
+; Saves/restores FM state, temporarily clearing FM for 68K FB access.
 ;
-; DOUBLE BUFFERING
-; ----------------
-; Writes to BOTH frame buffers ($840000 and $860000) so the counter
-; is always visible regardless of which buffer is currently displayed.
-;
-; FM BIT PROTOCOL (matches VRD fn_200_036-041 pattern)
-; ----------------------------------------------------
-;   BCLR #7,$A15100  → FM=0 (68K gets frame buffer access)
-;   ... write pixels ...
-;   BSET #7,$A15100  → FM=1 (return access to SH2)
-;
-; BYTE WRITE $00 LIMITATION
-; -------------------------
-; Hardware ignores byte writes of $00 to frame buffer.
-; All writes use MOVE.W (word writes, 2 pixels at a time).
-;
-; DISPLAY
-; -------
-; Position: top-left (line 4, column 4). Size: 9x5 pixels.
-; Font: embedded 4x5 digits. Color: palette $FF fg, $00 bg.
+; LINE TABLE
+; ----------
+; Entries are WORD offsets (per 32XDK wiki). Must double to get byte offset.
 ;
 ; CALLING CONVENTION
 ; ------------------
-; Parameters: None
+; Parameters: None (reads fps_value from $FFFFC8FA)
 ; Returns: Nothing
 ; Clobbers: Nothing (all registers saved/restored)
-; Cost: ~500 cycles (0.4% of frame budget)
-;
-; Related: fps_vint_wrapper.asm
+; Cost: ~800 cycles (~0.6% of 68K frame budget)
 ; ============================================================================
 
-; --- Constants ---
-FPS_FG          equ     $FF             ; Foreground palette index
-FPS_BG          equ     $00             ; Background palette index
-FPS_LINE        equ     4               ; Starting display line
-FPS_COL         equ     4               ; Starting display column
-FPS_ROWS        equ     5               ; Font height
-FB0             equ     $840000         ; Frame buffer 0
-FB1             equ     $860000         ; Frame buffer 1
-
-; ============================================================================
-; fps_render - Entry point
-; ============================================================================
 fps_render:
         movem.l d0-d5/a0-a2,-(sp)
 
-        ; Claim frame buffer access (FM=0)
-        bclr    #7,$A15100
+        ; --- Save FM state and claim FB + CRAM access ---
+        move.w  $00A15100,d5            ; D5 = saved adapter ctrl (FM in bit 15)
+        bclr    #7,$00A15100            ; FM=0 (68K gets FB + CRAM access)
 
-        ; Load FPS value and split into digits
+        ; --- Set palette entries for counter ---
+        move.w  #$0000,$00A153FC        ; CRAM[254] = black (background)
+        move.w  #$7FFF,$00A153FE        ; CRAM[255] = white (foreground)
+
+        ; --- Get FPS value, clamp 0-99, split into digits ---
         moveq   #0,d0
-        move.w  fps_value.w,d0
+        move.w  $FFFFD202.w,d0          ; Read fps_value from RAM
         cmpi.w  #99,d0
         bls.s   .clamp_ok
         moveq   #99,d0
@@ -80,158 +61,132 @@ fps_render:
         swap    d0
         move.w  d0,d2                   ; D2 = ones digit (0-9)
 
-        ; Compute font byte offsets (digit * 5 rows)
-        mulu    #FPS_ROWS,d1            ; D1 = tens font offset
-        mulu    #FPS_ROWS,d2            ; D2 = ones font offset
-        lea     fps_font(pc),a2         ; A2 = font base
+        ; --- Compute font byte offsets (digit * 5 rows) ---
+        mulu    #5,d1                   ; D1 = tens * 5
+        mulu    #5,d2                   ; D2 = ones * 5
 
-        ; Draw to both frame buffers
-        lea     FB0,a0
-        bsr.s   .draw_digits
-        lea     FB1,a0
-        bsr.s   .draw_digits
+        ; --- Render to both frame buffers ---
+        lea     $840000,a1              ; FB0
+        bsr.w   .render_fb
+        lea     $860000,a1              ; FB1
+        bsr.w   .render_fb
 
-        ; Return frame buffer access (FM=1)
-        bset    #7,$A15100
-
+        ; --- Restore FM state ---
+        btst    #15,d5                  ; Was FM=1 originally?
+        beq.s   .fm_done
+        bset    #7,$00A15100            ; Restore FM=1
+.fm_done:
         movem.l (sp)+,d0-d5/a0-a2
         rts
 
-; ============================================================================
-; .draw_digits - Internal: render 2 digits to one frame buffer
-; ============================================================================
-; Inputs: A0=FB base, A2=font, D1=tens offset, D2=ones offset (all preserved)
-; Uses: D0,D3-D5,A1 as scratch
-; ============================================================================
-.draw_digits:
-        moveq   #0,d5                   ; D5 = row counter (0→4)
+; ---- Render 2 digits to one frame buffer ----
+; Input: A1 = FB base, D1 = tens*5, D2 = ones*5
+; Uses: D0, D3, D4 (scratch), A0, A2
+.render_fb:
+        lea     fps_font(pc),a2         ; A2 = font + LUT base
 
-.row:
-        ; --- Calculate pixel address for this row ---
-        move.w  d5,d3
-        addi.w  #FPS_LINE,d3            ; D3 = scanline number
-        add.w   d3,d3                   ; D3 = line table byte offset (line * 2)
-        movea.l a0,a1
-        adda.w  d3,a1                   ; A1 → line table entry
-        move.w  (a1),d3                 ; D3 = pixel data offset for this line
-        movea.l a0,a1
-        adda.w  d3,a1                   ; A1 → pixel row start
-        adda.w  #FPS_COL,a1             ; A1 → first display pixel
+        ; --- Top border row (line 3): solid black ---
+        move.w  6(a1),d0                ; Line table[3] (byte offset 3*2=6)
+        add.w   d0,d0                   ; Word offset -> byte offset
+        lea     0(a1,d0.w),a0           ; A0 = pixel row for line 3
+        bsr.s   .fill_bg_row
 
-        ; --- Load font bytes for this row ---
-        move.w  d1,d3
-        add.w   d5,d3                   ; D3 = tens_offset + row
-        move.b  0(a2,d3.w),d3          ; D3.B = tens font row (bits 3-0)
+        ; --- 5 digit rows (lines 4-8, font rows 0-4) ---
+        moveq   #0,d3                   ; Font row counter
+.rowloop:
+        ; Get pixel row address for display line (d3 + 4)
+        move.w  d3,d4
+        addq.w  #4,d4                   ; Display line = row + 4
+        add.w   d4,d4                   ; Line table byte index = line * 2
+        move.w  0(a1,d4.w),d0          ; Line table entry (word offset)
+        add.w   d0,d0                   ; Word offset -> byte offset
+        lea     0(a1,d0.w),a0          ; A0 = pixel row base
 
+        ; Left border (cols 2-3)
+        move.w  #$FEFE,2(a0)
+
+        ; Tens digit (cols 4-7): look up font row in nibble LUT
+        move.w  d1,d4
+        add.w   d3,d4                   ; D4 = tens*5 + row
+        moveq   #0,d0
+        move.b  0(a2,d4.w),d0          ; Font byte (bits 3-0 = pixels)
+        andi.w  #$0F,d0
+        lsl.w   #2,d0                   ; LUT index = nibble * 4
+        move.l  50(a2,d0.w),4(a0)      ; 4 pixels from LUT -> cols 4-7
+
+        ; Spacer (cols 8-9)
+        move.w  #$FEFE,8(a0)
+
+        ; Ones digit (cols 10-13): same lookup
         move.w  d2,d4
-        add.w   d5,d4                   ; D4 = ones_offset + row
-        move.b  0(a2,d4.w),d4          ; D4.B = ones font row (bits 3-0)
-
-        ; --- Write 5 words (10 pixels) ---
-        ; Word 1: tens[bit3], tens[bit2]
-        bsr.s   .make_word_d3_32
-        move.w  d0,(a1)+
-
-        ; Word 2: tens[bit1], tens[bit0]
-        bsr.s   .make_word_d3_10
-        move.w  d0,(a1)+
-
-        ; Word 3: space(BG), ones[bit3]
+        add.w   d3,d4                   ; D4 = ones*5 + row
         moveq   #0,d0
-        btst    #3,d4
-        beq.s   .w3
-        ori.w   #(FPS_BG<<8)|FPS_FG,d0
-.w3:    move.w  d0,(a1)+
+        move.b  0(a2,d4.w),d0
+        andi.w  #$0F,d0
+        lsl.w   #2,d0
+        move.l  50(a2,d0.w),10(a0)     ; 4 pixels from LUT -> cols 10-13
 
-        ; Word 4: ones[bit2], ones[bit1]
-        bsr.s   .make_word_d4_21
-        move.w  d0,(a1)+
+        ; Right border (cols 14-15)
+        move.w  #$FEFE,14(a0)
 
-        ; Word 5: ones[bit0], trailing BG
-        moveq   #0,d0
-        btst    #0,d4
-        beq.s   .w5
-        ori.w   #(FPS_FG<<8)|FPS_BG,d0
-.w5:    move.w  d0,(a1)+
+        addq.w  #1,d3
+        cmpi.w  #5,d3
+        blt.s   .rowloop
 
-        ; --- Next row ---
-        addq.w  #1,d5
-        cmpi.w  #FPS_ROWS,d5
-        blt.s   .row
+        ; --- Bottom border row (line 9): solid black ---
+        move.w  18(a1),d0               ; Line table[9] (byte offset 9*2=18)
+        add.w   d0,d0
+        lea     0(a1,d0.w),a0
+        ; Fall through to .fill_bg_row (tail call: its RTS returns from .render_fb)
 
-        rts
-
-; --- Pixel word helpers ---
-; Build a word from 2 font bits in D3 (tens digit)
-.make_word_d3_32:
-        moveq   #0,d0
-        btst    #3,d3
-        beq.s   .mw32_b2
-        ori.w   #(FPS_FG<<8),d0         ; High byte = FG
-.mw32_b2:
-        btst    #2,d3
-        beq.s   .mw32_done
-        ori.b   #FPS_FG,d0              ; Low byte = FG
-.mw32_done:
-        rts
-
-.make_word_d3_10:
-        moveq   #0,d0
-        btst    #1,d3
-        beq.s   .mw10_b0
-        ori.w   #(FPS_FG<<8),d0
-.mw10_b0:
-        btst    #0,d3
-        beq.s   .mw10_done
-        ori.b   #FPS_FG,d0
-.mw10_done:
-        rts
-
-; Build a word from 2 font bits in D4 (ones digit)
-.make_word_d4_21:
-        moveq   #0,d0
-        btst    #2,d4
-        beq.s   .mw21_b1
-        ori.w   #(FPS_FG<<8),d0
-.mw21_b1:
-        btst    #1,d4
-        beq.s   .mw21_done
-        ori.b   #FPS_FG,d0
-.mw21_done:
+.fill_bg_row:
+        move.l  #$FEFEFEFE,2(a0)        ; Cols 2-5
+        move.l  #$FEFEFEFE,6(a0)        ; Cols 6-9
+        move.l  #$FEFEFEFE,10(a0)       ; Cols 10-13
+        move.w  #$FEFE,14(a0)           ; Cols 14-15
         rts
 
 ; ============================================================================
-; fps_font - Embedded 4x5 Pixel Digit Font
+; Data: 4x5 pixel font for digits 0-9 (50 bytes)
+; Each byte = one row, bits 3-0 = pixels (bit 3 = leftmost)
 ; ============================================================================
-; Each digit: 5 rows, 4 pixels wide. 1 byte per row, bits 3-0 used.
-; Bit 3 = leftmost pixel, bit 0 = rightmost.
-;
-;  0: .##.   1: .#..   2: .##.   3: .##.   4: #.#.
-;     #..#      ##..      ...#      ...#      #.#.
-;     #..#      .#..      .##.      .##.      ####
-;     #..#      .#..      #...      ...#      ..#.
-;     .##.      .###      ####      .##.      ..#.
-;
-;  5: ####   6: .##.   7: ####   8: .##.   9: .##.
-;     #...      #...      ...#      #..#      #..#
-;     ###.      ###.      ..#.      .##.      .###
-;     ...#      #..#      .#..      #..#      ...#
-;     ###.      .##.      .#..      .##.      .##.
-; ============================================================================
-
 fps_font:
-        dc.b    $06,$09,$09,$09,$06     ; 0: .##. #..# #..# #..# .##.
-        dc.b    $04,$0C,$04,$04,$07     ; 1: .#.. ##.. .#.. .#.. .###
-        dc.b    $06,$01,$06,$08,$0F     ; 2: .##. ...# .##. #... ####
-        dc.b    $06,$01,$06,$01,$06     ; 3: .##. ...# .##. ...# .##.
-        dc.b    $0A,$0A,$0F,$02,$02     ; 4: #.#. #.#. #### ..#. ..#.
-        dc.b    $0F,$08,$0E,$01,$0E     ; 5: #### #... ###. ...# ###.
-        dc.b    $06,$08,$0E,$09,$06     ; 6: .##. #... ###. #..# .##.
-        dc.b    $0F,$01,$02,$04,$04     ; 7: #### ...# ..#. .#.. .#..
-        dc.b    $06,$09,$06,$09,$06     ; 8: .##. #..# .##. #..# .##.
-        dc.b    $06,$09,$07,$01,$06     ; 9: .##. #..# .### ...# .##.
-        even                            ; Word-align after byte data
+        dc.b    $06,$09,$09,$09,$06     ; 0: .XX. X..X X..X X..X .XX.
+        dc.b    $04,$0C,$04,$04,$07     ; 1: .X.. XX.. .X.. .X.. .XXX
+        dc.b    $06,$01,$06,$08,$0F     ; 2: .XX. ...X .XX. X... XXXX
+        dc.b    $06,$01,$06,$01,$06     ; 3: .XX. ...X .XX. ...X .XX.
+        dc.b    $0A,$0A,$0F,$02,$02     ; 4: X.X. X.X. XXXX ..X. ..X.
+        dc.b    $0F,$08,$0E,$01,$0E     ; 5: XXXX X... XXX. ...X XXX.
+        dc.b    $06,$08,$0E,$09,$06     ; 6: .XX. X... XXX. X..X .XX.
+        dc.b    $0F,$01,$02,$04,$04     ; 7: XXXX ...X ..X. .X.. .X..
+        dc.b    $06,$09,$06,$09,$06     ; 8: .XX. X..X .XX. X..X .XX.
+        dc.b    $06,$09,$07,$01,$06     ; 9: .XX. X..X .XXX ...X .XX.
+        even
 
 ; ============================================================================
-; End of fps_render module (~280 bytes)
+; Data: Nibble-to-pixels LUT (64 bytes)
+; Maps each 4-bit font pattern to 4 pixel bytes (1 longword).
+; $FE = palette 254 (black BG), $FF = palette 255 (white FG)
+; Index = nibble * 4. Bit 3 = leftmost pixel (highest byte).
+; ============================================================================
+nibble_pixels:
+        dc.l    $FEFEFEFE               ; $0 = ....
+        dc.l    $FEFEFEFF               ; $1 = ...X
+        dc.l    $FEFEFFFE               ; $2 = ..X.
+        dc.l    $FEFEFFFF               ; $3 = ..XX
+        dc.l    $FEFFFEFE               ; $4 = .X..
+        dc.l    $FEFFFEFF               ; $5 = .X.X
+        dc.l    $FEFFFFFE               ; $6 = .XX.
+        dc.l    $FEFFFFFF               ; $7 = .XXX
+        dc.l    $FFFEFEFE               ; $8 = X...
+        dc.l    $FFFEFEFF               ; $9 = X..X
+        dc.l    $FFFEFFFE               ; $A = X.X.
+        dc.l    $FFFEFFFF               ; $B = X.XX
+        dc.l    $FFFFFEFE               ; $C = XX..
+        dc.l    $FFFFFEFF               ; $D = XX.X
+        dc.l    $FFFFFFFE               ; $E = XXX.
+        dc.l    $FFFFFFFF               ; $F = XXXX
+
+; ============================================================================
+; End of fps_render module (~314 bytes: ~200 code + 50 font + 64 LUT)
 ; ============================================================================

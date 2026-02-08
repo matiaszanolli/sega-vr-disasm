@@ -39,6 +39,9 @@ vrd_opt_start:
         include "modules/68k/optimization/fps_vint_wrapper.asm"
         include "modules/68k/optimization/fps_render.asm"
 
+; --- FPS Marker Hook (called from fn_200_041 via size-neutral JSR replacement) ---
+        include "modules/68k/optimization/fps_marker_hook.asm"
+
 ; --- Phase 1: Async Command Queue Infrastructure ---
         include "modules/68k/optimization/sh2_send_cmd_async.asm"
         include "modules/68k/optimization/sh2_wait_queue_empty.asm"

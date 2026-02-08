@@ -17,7 +17,7 @@
 ; 4. Every 60 ticks (1 second), FPS = delta of flip counter
 ; 5. Epilogue: Renders FPS on work frames, returns via RTE
 ;
-; FS BIT TRACKING: Reads $00A15100 bit 0 every V-INT. When bit changes,
+; FS BIT TRACKING: Reads $00A1518A (FBCTL) bit 0 every V-INT. When bit changes,
 ; a buffer flip occurred (new frame presented). Count transitions = actual FPS.
 ;
 ; WHY EPILOGUE-ONLY STATE
@@ -34,7 +34,7 @@
 ; $FFFFE608: fps_flip_last    (long) - Last sampled flip count
 ; $FFFFE60C: fps_fs_last      (word) - Last FS bit state (0 or 1)
 ;
-; NOTE: Measures actual buffer flips (FS bit transitions in $00A15100).
+; NOTE: Measures actual buffer flips (FS bit transitions in $00A1518A FBCTL).
 ; NOTE: This is true presented frame rate, not V-INT frequency.
 ; NOTE: Relocated to $FFFFE600 after collision confirmed at $FFFFC8F8.
 ;
@@ -58,7 +58,7 @@ fps_flip_last    equ     FPS_BASE+8     ; $FFFFE608: Last sampled flip count (lo
 fps_fs_last      equ     FPS_BASE+12    ; $FFFFE60C: Last FS bit state (word)
 
 ; --- 32X hardware registers ---
-ADAPTER_CTRL     equ     $00A15100      ; Adapter control register (bit 0 = FS buffer select)
+FBCTL            equ     $00A1518A      ; Frame Buffer Control (bit 0 = FS buffer select)
 
 ; --- Original V-INT handler address ---
 ORIG_VINT        equ     $00881684      ; Original handler (68K CPU address)
@@ -91,8 +91,8 @@ vint_epilogue:
         bsr.w   sh2_wait_queue_empty
 
         ; === TRACK FS BIT TRANSITIONS (actual buffer flips) ===
-        ; Read current FS bit from adapter control register
-        move.w  ADAPTER_CTRL,d0         ; Read adapter_ctrl register
+        ; Read current FS bit from frame buffer control register
+        move.w  FBCTL,d0                ; Read FBCTL ($00A1518A)
         andi.w  #1,d0                   ; Isolate FS bit (bit 0)
         cmp.w   fps_fs_last,d0          ; Compare to last known state
         beq.s   .no_flip                ; Same state = no flip

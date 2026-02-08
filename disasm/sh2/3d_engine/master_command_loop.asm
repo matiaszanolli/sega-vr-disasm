@@ -43,6 +43,17 @@ master_init_comm:
     /* $02045C: E020 */ mov     #32,r0                  /* R0 = 0x20 (32) */
     /* $02045E: 400E */ ldc     r0,sr                   /* Set status register */
 
+/* --- Phase 1: Enable CMDINT (Command Interrupt) ---
+ * The 32X has two interrupt mask mechanisms:
+ * 1. SH2 SR register (I mask bits 3-0) - set above to level 2
+ * 2. 32X interrupt mask register at $20004000 - CMD bit must be enabled
+ * Both must be configured for CMDINT to fire.
+ */
+    mov.l   int_mask_reg,r1             /* R1 = 0x20004000 (interrupt mask register) */
+    mov.w   @r1,r0                      /* Read current mask value */
+    or      #0x08,r0                    /* Set CMD bit (bit 3, enables CMDINT) */
+    mov.w   r0,@r1                      /* Write back */
+
 /* ============================================================================
  * Main Polling Loop ($020460-$020476)
  * Waits for COMM0 != 0, then dispatches command
@@ -71,6 +82,8 @@ master_poll_loop:
  * Literal Pool (4-byte aligned)
  * ============================================================================ */
 .align 4
+int_mask_reg:
+    .long 0x20004000          /* Phase 1: Interrupt mask register */
     /* $020478: FFFF FE10 */ .long 0xFFFFFE10          /* ? */
 comm_base_literal:
     /* $02047C: 2000 4000 */ .long 0x20004020          /* COMM base address */

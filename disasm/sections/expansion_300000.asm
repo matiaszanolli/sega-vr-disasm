@@ -252,24 +252,28 @@ cmd27_queue_drain:
         include "sh2/generated/cmd27_queue_drain.inc"
 
 ; ============================================================================
-; PHASE 1 RESERVED SPACE
+; PHASE 1: CMDINT HANDLER AND QUEUE PROCESSOR
 ; ============================================================================
 ; Pad from end of cmd27_queue_drain (~0x300682) to Phase 1 allocation at 0x300800
         dcb.b   ($800 - $700), $FF
 
-; --- Phase 1: Master SH2 CMDINT Handler (reserved at 0x300800) ---
+; --- Phase 1: Master SH2 CMDINT Handler (at 0x300800) ---
 ; SH2 address: 0x02300800
-; Will contain: CMDINT ISR that reads ring buffer entries from SDRAM
-; and dispatches them to the appropriate command handlers.
-cmdint_handler_reserved:
-        dcb.b   $400, $FF               ; 1KB reserved
+; CMDINT ISR that processes ring buffer entries from SDRAM.
+; See: disasm/sh2/expansion/cmdint_handler.asm for source
+cmdint_handler:
+        include "sh2/generated/cmdint_handler.inc"
 
-; --- Phase 1: Queue Processor (reserved at 0x300C00) ---
+; --- Pad to queue_processor at 0x300C00 ---
+        dcb.b   ($C00 - $900), $FF      ; Pad from ~$900 to $C00
+
+; --- Phase 1: Queue Processor (at 0x300C00) ---
 ; SH2 address: 0x02300C00
-; Will contain: Ring buffer drain loop called by CMDINT handler.
+; Ring buffer drain loop called by CMDINT handler.
 ; Processes entries: [cmd_id, param1, param2, param3] × 16-bit words
-queue_processor_reserved:
-        dcb.b   $400, $FF               ; 1KB reserved
+; See: disasm/sh2/expansion/queue_processor.asm for source
+queue_processor:
+        include "sh2/generated/queue_processor.inc"
 
 ; ============================================================================
 ; REMAINING EXPANSION ROM SPACE (from 0x301000)

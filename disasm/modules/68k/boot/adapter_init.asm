@@ -98,6 +98,9 @@ adapter_init:
         beq.s   .wait_sh2_ready                 ; $000870: $67FA             - Loop if not ready
         clr.b   COMM3-ADAPTER_BASE(a4)          ; $000872: $422C $002C       - Acknowledge
 
+; Initialize async command queue ring buffer (Phase 1)
+        bsr.w   ring_buffer_init                ; Initialize ring buffer in SDRAM
+
 ; VDP initialization - load register values from ROM table
         lea     VDP_CTRL,a1                     ; $000876: $43F9 $00C0 $0000 - VDP control
         lea     $0004(a1),a2                    ; $00087C: $45E9 $0004       - VDP data
@@ -198,6 +201,11 @@ loc_0009BA:
 ; Additional constants
 VDP_MODE        equ     $C816   ; VDP mode storage
 VDP_MODE2       equ     $C818   ; Secondary mode storage
+
+; ============================================================================
+; Ring Buffer Initialization (Phase 1 - Async Command Queue)
+; ============================================================================
+        include "modules/68k/boot/ring_buffer_init.asm"
 
 ; ============================================================================
 ; End of adapter_init module

@@ -84,12 +84,21 @@ vint_epilogue:
         ; Drain async queue first (SH2 rendering must complete)
         bsr.w   sh2_wait_queue_empty
 
-        ; === TEST LADDER STEP 1: Render-path sanity (epilogue write only) ===
-        ; Write constant 42 to verify render path works at $FFFFE600
-        ; Expected: Stable "42" display
+        ; === TEST LADDER STEP 2: Persistence canary test ===
+        ; Check if canary survives across frames (cross-frame RAM test)
+        ; Expected: "42" stable if canary intact, "88" if RAM corrupted
+        cmpi.w  #$A55A,fps_canary       ; Check if canary is intact
+        beq.s   .canary_ok
+        ; Canary corrupted or uninitialized - display 88
+        move.w  #88,fps_value
+        bra.s   .write_canary
+.canary_ok:
+        ; Canary intact - persistence confirmed
         move.w  #42,fps_value
+.write_canary:
+        move.w  #$A55A,fps_canary       ; Write/refresh canary for next frame
 
-        ; === FULL FPS LOGIC (disabled for step 1) ===
+        ; === FULL FPS LOGIC (disabled for step 2) ===
         ; addq.w  #1,fps_vint_tick
         ; cmpi.w  #60,fps_vint_tick       ; 60 V-INTs = 1 second (NTSC)
         ; blt.s   .render

@@ -3989,10 +3989,10 @@
         dc.w    $06AC        ; $02011A
         dc.w    $0600        ; $02011C
         dc.w    $06AC        ; $02011E
-        dc.w    $0600        ; $020120
-        dc.w    $06AC        ; $020122
-        dc.w    $0600        ; $020124
-        dc.w    $06AC        ; $020126
+        dc.w    $0230        ; $020120 - CMDINT level 8 vector (Phase 1)
+        dc.w    $0800        ; $020122 - Points to cmdint_handler at 0x02300800
+        dc.w    $0230        ; $020124 - CMDINT level 9 vector (Phase 1, SH2 bug workaround)
+        dc.w    $0800        ; $020126 - Same handler (both odd/even levels)
         dc.w    $0600        ; $020128
         dc.w    $06AC        ; $02012A
         dc.w    $0600        ; $02012C

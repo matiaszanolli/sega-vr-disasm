@@ -19,62 +19,38 @@ These checks are cheap and eliminate risk before we commit to an architecture.
 | # | Task | Status | Notes |
 |---|------|--------|-------|
 | 0.1.1 | Verify RV bit is never set during gameplay | **DONE** | Confirmed safe — no writes to DREQ_CTRL ($A15106) outside boot |
-| 0.1.2 | Run 68K PC-level hotspot profiling | TODO | Adapt existing `VRD_PROFILE_PC` for 68K; identify which addresses consume cycles |
-| 0.1.3 | Confirm COMM register write directions | TODO | Grep all 68K+SH2 modules for COMM0-7 writes; verify unidirectional per register |
-| 0.1.4 | Profile FM bit switching timing | TODO | Check if FM transitions happen strictly during V-Blank |
+| 0.1.2 | Run 68K PC-level hotspot profiling | **DONE** | Frame-level: 68K 127,987c/f (100.1%), MSH2 45c/f (0.0%), SSH2 307,296c/f (80.2%). PC-level limited by FAME end-of-burst sampling bias |
+| 0.1.3 | Confirm COMM register write directions | **DONE** | COMM6 is bidirectional (critical race). COMM1/2/7 safe. See findings below |
+| 0.1.4 | Profile FM bit switching timing | **DONE** | All 29 FM writes during V-Blank (V-INT handler). No mid-transfer switches. Safe |
 
-**0.1.2 detail — 68K PC-level profiling:**
-The profiler already captures SH2 PC hotspots. Extending it to 68K will show exactly which addresses burn cycles in the blocking loops, confirming that `sh2_send_cmd_wait` ($00E316) and `sh2_cmd_27` ($00E3B4) dominate. This data guides which call sites to convert first in Phase 2.
+**0.1.2 results — Frame + PC profiling:**
+Built v3 profiling patch into PicoDrive (4 files modified: `32x.c`, `pico_cmn.c`, `sh2pico.c`, `libretro.c`). Frame-level data confirms the architectural bottleneck:
+- **68K: 127,987 cycles/frame (100.1%)** — saturated, the sole bottleneck
+- **Master SH2: 45 cycles/frame (0.0%)** — completely idle, available for interrupt queue
+- **Slave SH2: 307,296 cycles/frame (80.2%)** — doing all rendering work
+
+PC-level 68K sampling hit a FAME core limitation: end-of-burst sampling always catches the PC at exception vector trampolines ($880200+) rather than actual game code. The 68K hotspot identification relies on static analysis instead (35 blocking COMM polls per frame, ~60% of 68K time).
 
 ```bash
-# Expected command (once 68K PC profiling is built)
-VRD_PROFILE_PC=1 VRD_PROFILE_68K=1 VRD_PROFILE_PC_LOG=68k_profile.csv \
+# Working profiling command
+cd tools/libretro-profiling
+VRD_PROFILE_LOG=frame.csv VRD_PROFILE_PC=1 VRD_PROFILE_PC_LOG=pc.csv \
 ./profiling_frontend ../../build/vr_rebuild.32x 2400 --autoplay
-python3 analyze_pc_profile.py 68k_profile.csv --cpu 68k
+python3 analyze_profile.py frame.csv
+python3 analyze_pc_profile.py pc.csv
 ```
 
 ---
 
 ### 0.2 SH2 Code Relocation to Expansion ROM
 
-**Goal:** Move SH2 functions from the main 3MB ROM ($020000-$2FFFFF) to the expansion ROM ($300000-$3FFFFF), freeing space in the main ROM that the 68K can use for optimization code.
+**Status: SKIPPED** — Large $FF-filled gaps found in existing ROM (see 0.3).
 
-**Why this matters:** The $00E200 68K section has 0 bytes free. The 68K async shim must go *somewhere*. By relocating SH2 code, we create room in the main ROM for new 68K code reachable via `JSR` (absolute addressing).
+The original plan was to free ROM space by relocating SH2 functions to expansion ROM. ROM analysis discovered **55,614 bytes** of unused $FF-filled gaps already present in the first 512KB, eliminating the need for any SH2 relocation.
 
-**Critical constraint — BSR range:** SH2 `BSR` has ±32KB range. Functions calling each other via BSR must either stay together or have their BSR calls converted to absolute `JSR @Rn` (load address from literal pool, then `JSR @R0`).
-
-#### Strategy: Leaf Functions First
-
-78 of 107 SH2 functions are **leaf functions** (no outgoing calls to other SH2 functions). These can be relocated independently:
-
-1. Copy function body to expansion ROM
-2. Update any absolute addresses in literal pools
-3. At the original location, place a **trampoline stub**: load new address from literal pool → `JMP @R0` (6-8 bytes)
-4. The freed bytes (function size minus stub size) become available
-
-Alternatively, update all callers to use the new absolute address directly (more work, cleaner result).
-
-| # | Task | Details |
-|---|------|---------|
-| 0.2.1 | Inventory SH2 leaf functions with sizes | List all 78 leaf functions, their ROM addresses, and byte sizes |
-| 0.2.2 | Identify largest leaf functions | Prioritize by bytes freed: func_065 (150B), func_006 (98B), func_008 (66B), etc. |
-| 0.2.3 | Choose relocation candidates | Select functions that free the most space in sections adjacent to 68K code |
-| 0.2.4 | Design relocation pattern | Decide: trampoline stubs vs. caller updates. Document the pattern for consistency |
-| 0.2.5 | Relocate first candidate function | Move one leaf function to expansion ROM, update references, build, verify byte-match for non-relocated regions |
-| 0.2.6 | Validate with profiler | Run profiled ROM to ensure no cycle count regression from cache effects |
-| 0.2.7 | Relocate remaining candidates | Apply pattern to additional functions as needed for space |
-
-**Space budget needed:** ~200 bytes minimum for 68K async infrastructure (shim + trampolines). A single func_065 relocation (150B) plus $E200 padding reclamation (166B) would provide ~316 bytes — more than enough.
-
-#### SH2 Data Table Relocation (Lower Risk Alternative)
-
-If executable code relocation proves complex, SH2 **data tables** (lookup tables, trig tables, constants) can be moved instead. Data relocation only requires updating the load address — no BSR/JSR concerns.
-
-| # | Task | Details |
-|---|------|---------|
-| 0.2.8 | Identify SH2 data tables in main ROM | Scan for `.long`/`.short` data blocks referenced by SH2 code but not executed |
-| 0.2.9 | Move data tables to expansion ROM | Copy data, update all literal pool references to new address |
-| 0.2.10 | Verify data access works from expansion ROM | Ensure SH2 cached reads from $02300000+ work correctly |
+| # | Task | Status |
+|---|------|--------|
+| 0.2.1-0.2.10 | SH2 relocation tasks | **SKIPPED** — sufficient space found in existing ROM gaps |
 
 ---
 
@@ -82,27 +58,40 @@ If executable code relocation proves complex, SH2 **data tables** (lookup tables
 
 **Goal:** Create usable 68K code space for async shims, trampolines, and new logic.
 
-| # | Task | Details |
-|---|------|---------|
-| 0.3.1 | Reclaim $E200 section padding | The section has 166 bytes of zero padding + fn_e200_001 (34B possible placeholder). Analyze whether these bytes are truly unused |
-| 0.3.2 | Analyze $E200 section for dead code | Check if all functions in the section are actually called. Use call graph to verify reachability |
-| 0.3.3 | Create 68K code region in freed SH2 space | After 0.2.x, define a new 68K code section at the freed ROM address. Add to build system |
-| 0.3.4 | Verify 68K can execute from freed addresses | Build test ROM with simple 68K `JSR` to new section, confirm it executes correctly |
-| 0.3.5 | Document 68K space map | Record all available 68K code regions with addresses and sizes |
+**Discovery:** ROM analysis found **55,614 bytes** of $FF-filled gaps in the first 512KB — no SH2 relocation needed!
 
-**Addressing note:** The 68K can address the full 4MB ROM ($000000-$3FFFFF). Code placed at $022200 (formerly SH2) is reachable via `JSR $022200` from anywhere. However, `BSR.W` from $00E200 to $022200 exceeds ±32KB range ($022200 - $00E200 = $14000 = 80KB). Use `JSR` (absolute) or `JMP` (absolute), not `BSR`.
+#### Available ROM Gaps (all verified $FF-filled)
+
+| Region | 68K Address | Size | Location |
+|--------|------------|------|----------|
+| **Primary** | **$01C208-$01FFFF** | **15,864 bytes** | Between last 68K data and SH2 code |
+| Secondary | $07B782-$07FFFF | 18,558 bytes | End of 68K section block |
+| Tertiary | $03BFDC-$03EFFF | 12,324 bytes | Mid-ROM gap |
+| Reserve | $02DD5C-$02FFFF | 8,868 bytes | Mid-ROM gap |
+
+All gaps are in the first 512KB, accessible via the unbanked ROM window at $880000+. The 68K executes from $880000-based addresses on the 32X (e.g., $01C208 = 68K address $89C208).
+
+**Addressing note:** On the 32X, 68K ROM access is via the bank window at $880000. Code at file offset $01C208 is reachable via `JSR $0089C208` from any 68K code. `BSR.W` from $00E200 to $01C208 = $DA08 = 55,816 bytes — exceeds ±32KB. Use `JSR` (absolute).
+
+| # | Task | Details | Status |
+|---|------|---------|--------|
+| 0.3.1 | Verify $E200 section padding is NOT usable | The 166 bytes of zeros are palette table entries (indices > 5), not free space | **DONE** |
+| 0.3.2 | Verify ROM gaps are truly unused | Confirmed all 4 gaps are 100% $FF-filled | **DONE** |
+| 0.3.3 | Create 68K code section at $01C208 | Replace $FF padding in code_1c200.asm with labeled optimization area + `dcb.b` fill | **DONE** |
+| 0.3.4 | Verify 68K can execute from $01C208 | Memory mapping confirmed: $89C208 via unbanked ROM window. Callers use `JSR $0089C208` | **DONE** |
+| 0.3.5 | Document 68K space map | Record all available 68K code regions with addresses and sizes | **DONE** (this table) |
 
 ---
 
 ### 0.4 Build System Preparation
 
-| # | Task | Details |
-|---|------|---------|
-| 0.4.1 | Add `make profile-68k` target | Convenience target for 68K PC-level profiling |
-| 0.4.2 | Add `make profile-frame` target | Convenience target for frame-level CPU profiling |
-| 0.4.3 | Add `make test` target | Boot ROM in PicoDrive, run for N frames, report success/failure |
-| 0.4.4 | Add expansion ROM section labels | Create `.equ` symbols for expansion ROM allocation (queue buffer, CMDINT handler, etc.) |
-| 0.4.5 | Create `disasm/modules/68k/optimization/` directory | New module category for all optimization code |
+| # | Task | Details | Status |
+|---|------|---------|--------|
+| 0.4.1 | Add `make profile-pc` target | PC-level hotspot profiling | **DONE** |
+| 0.4.2 | Add `make profile-frame` target | Frame-level CPU profiling | **DONE** |
+| 0.4.3 | Add `make test` target | Boot ROM for 300 frames, verify no crash | **DONE** |
+| 0.4.4 | Add expansion ROM section labels | Reserved $300800 (CMDINT handler) + $300C00 (queue processor) in expansion_300000.asm | **DONE** |
+| 0.4.5 | Create `disasm/modules/68k/optimization/` directory | New module category for optimization code | **DONE** |
 
 ---
 

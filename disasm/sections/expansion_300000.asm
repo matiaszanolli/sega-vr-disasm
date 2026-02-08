@@ -35,7 +35,10 @@
 ;   0x300400-0x300433  shadow_path_wrapper (52 bytes)
 ;   0x300500-0x300537  batch_copy_handler (~56 bytes)
 ;   0x300600-0x30067F  cmd27_queue_drain (128 bytes)
-;   0x300700-0x3FFFFF  Padding (remaining)
+;   --- Phase 1 allocations (reserved) ---
+;   0x300800-0x300BFF  cmdint_handler (Master SH2 CMDINT ISR, 1KB reserved)
+;   0x300C00-0x300FFF  queue_processor (ring buffer drain loop, 1KB reserved)
+;   0x301000-0x3FFFFF  Free space (remaining ~1020KB)
 ;
 ; ============================================================================
 
@@ -249,8 +252,26 @@ cmd27_queue_drain:
         include "sh2/generated/cmd27_queue_drain.inc"
 
 ; ============================================================================
-; REMAINING EXPANSION ROM SPACE
+; PHASE 1 RESERVED SPACE
 ; ============================================================================
-; cmd27_queue_drain is ~130 bytes, ending around 0x300682
-; Pad to end of 1MB expansion space
-        dcb.b   ($100000 - $700), $FF
+; Pad from end of cmd27_queue_drain (~0x300682) to Phase 1 allocation at 0x300800
+        dcb.b   ($800 - $700), $FF
+
+; --- Phase 1: Master SH2 CMDINT Handler (reserved at 0x300800) ---
+; SH2 address: 0x02300800
+; Will contain: CMDINT ISR that reads ring buffer entries from SDRAM
+; and dispatches them to the appropriate command handlers.
+cmdint_handler_reserved:
+        dcb.b   $400, $FF               ; 1KB reserved
+
+; --- Phase 1: Queue Processor (reserved at 0x300C00) ---
+; SH2 address: 0x02300C00
+; Will contain: Ring buffer drain loop called by CMDINT handler.
+; Processes entries: [cmd_id, param1, param2, param3] × 16-bit words
+queue_processor_reserved:
+        dcb.b   $400, $FF               ; 1KB reserved
+
+; ============================================================================
+; REMAINING EXPANSION ROM SPACE (from 0x301000)
+; ============================================================================
+        dcb.b   ($100000 - $1000), $FF

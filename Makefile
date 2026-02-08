@@ -32,7 +32,7 @@ OUTPUT_ROM_RAW = $(BUILD_DIR)/vr_rebuild_raw.32x
 OUTPUT_ROM_MODULAR = $(BUILD_DIR)/vr_rebuild_modular.32x
 OUTPUT_ROM_MNEMONIC = $(BUILD_DIR)/vr_rebuild_mnemonic.32x
 
-.PHONY: all clean disasm compare tools test modular compare-modular raw compare-raw mnemonic compare-mnemonic
+.PHONY: all clean disasm compare tools test modular compare-modular raw compare-raw mnemonic compare-mnemonic profile-frame profile-pc
 
 # ============================================================================
 # Main targets
@@ -2567,6 +2567,37 @@ sh2-verify: $(SH2_FUNC000_BIN) $(SH2_FUNC022_BIN) $(SH2_FUNC017_BIN) $(SH2_FUNC0
 	@echo "✓✓✓ All SH2 functions verified! ✓✓✓"
 
 # ============================================================================
+# Profiling & Testing
+# ============================================================================
+
+PROFILE_DIR = tools/libretro-profiling
+PROFILE_FRONTEND = $(PROFILE_DIR)/profiling_frontend
+PROFILE_CORE = $(PROFILE_DIR)/picodrive_libretro.so
+PROFILE_FRAMES ?= 2400
+
+# Frame-level CPU profiling (68K/MSH2/SSH2 cycles per frame)
+profile-frame: all
+	@echo "==> Running frame-level profiling ($(PROFILE_FRAMES) frames)..."
+	cd $(PROFILE_DIR) && ./profiling_frontend ../../$(OUTPUT_ROM) $(PROFILE_FRAMES) --autoplay
+	@echo "==> Analyzing frame profile..."
+	$(PYTHON) $(PROFILE_DIR)/analyze_profile.py $(PROFILE_DIR)/frame_profile.csv
+
+# PC-level hotspot profiling (per-address cycle breakdown)
+profile-pc: all
+	@echo "==> Running PC-level profiling ($(PROFILE_FRAMES) frames)..."
+	cd $(PROFILE_DIR) && VRD_PROFILE_PC=1 VRD_PROFILE_PC_LOG=pc_profile.csv \
+		./profiling_frontend ../../$(OUTPUT_ROM) $(PROFILE_FRAMES) --autoplay
+	@echo "==> Analyzing PC profile..."
+	$(PYTHON) $(PROFILE_DIR)/analyze_pc_profile.py $(PROFILE_DIR)/pc_profile.csv
+
+# Quick boot test: run ROM for 300 frames (~5 seconds), verify no crash
+test: all
+	@echo "==> Boot-testing ROM (300 frames)..."
+	@cd $(PROFILE_DIR) && ./profiling_frontend ../../$(OUTPUT_ROM) 300 --autoplay > /dev/null 2>&1 \
+		&& echo "✓ ROM booted successfully (300 frames)" \
+		|| (echo "✗ ROM failed to boot" && exit 1)
+
+# ============================================================================
 # Cleanup
 # ============================================================================
 
@@ -2609,7 +2640,12 @@ help:
 	@echo "  analyze        - Analyze ROM structure"
 	@echo "  find-sections  - Find code sections"
 	@echo ""
-	@echo "Maintenance:
+	@echo "Profiling & Testing:"
+	@echo "  profile-frame  - Frame-level CPU profiling (cycles per frame)"
+	@echo "  profile-pc     - PC-level hotspot profiling (per-address)"
+	@echo "  test           - Quick boot test (300 frames)"
+	@echo ""
+	@echo "Maintenance:"
 	@echo "  clean          - Remove build files"
 	@echo "  clean-all      - Remove all generated files including tools"
 	@echo "  tools          - Build assembler tools"

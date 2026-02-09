@@ -5,7 +5,7 @@
 ;
 ; PURPOSE
 ; -------
-; Renders the current FPS value (from fps_value at $FFFFE602) to both
+; Renders the current FPS value (from fps_value at $FFFFF802) to both
 ; frame buffers using an embedded 4x5 pixel font.
 ;
 ; DISPLAY LAYOUT
@@ -52,17 +52,19 @@ fps_render:
         move.w  #$0000,$00A153FC        ; CRAM[254] = black (background)
         move.w  #$7FFF,$00A153FE        ; CRAM[255] = white (foreground)
 
-        ; --- Get FPS value, clamp 0-99, split into digits ---
+        ; --- Get FPS value, clamp to 0-99, split into digits ---
         moveq   #0,d0
         move.w  fps_value,d0            ; Read fps_value from RAM
-        cmpi.w  #99,d0
-        bls.s   .clamp_ok
-        moveq   #99,d0
-.clamp_ok:
-        divu    #10,d0                  ; D0.W = tens, D0[31:16] = ones
-        move.w  d0,d1                   ; D1 = tens digit (0-9)
-        swap    d0
-        move.w  d0,d2                   ; D2 = ones digit (0-9)
+        cmpi.w  #99,d0                  ; Check if > 99
+        bls.s   .fps_ok                 ; Branch if 0-99 (unsigned <=)
+        move.w  #99,d0                  ; Clamp to 99
+.fps_ok:
+        moveq   #0,d1
+        move.w  d0,d1                   ; D1 = clamped value (0-99)
+        divu    #10,d1                  ; D1.W = tens, D1[31:16] = ones
+        move.w  d1,d2                   ; D2 = tens digit (0-9)
+        swap    d1                      ; D1.W = ones digit (0-9)
+        exg     d1,d2                   ; D1 = tens, D2 = ones
 
         ; --- Compute font byte offsets (digit * 5 rows) ---
         mulu    #5,d1                   ; D1 = tens * 5

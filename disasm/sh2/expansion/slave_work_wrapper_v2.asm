@@ -2,15 +2,17 @@
  * slave_work_wrapper_v2 - Slave SH2 Work Dispatcher (with queue support)
  * ======================================================================
  * Location: Expansion ROM at $300200
- * Size: ~100 bytes (including literal pool)
+ * Size: ~112 bytes (including literal pool)
  *
  * PURPOSE
  * -------
  * Slave SH2 main loop - polls COMM7 for work signals from Master/68K.
  * Dispatches based on COMM7 value:
- *   0x01 = Frame sync (increment COMM4)
- *   0x16 = Vertex transform (call slave_test_func, increment COMM5)
- *   0x27 = Queue drain (call cmd27_queue_drain) ← NEW
+ *   0x01 = Frame sync (increment frame counter in RAM at 0x2203E014)
+ *   0x16 = Vertex transform (call slave_test_func, increment Slave counter at 0x2203E012)
+ *   0x27 = Queue drain (call cmd27_queue_drain)
+ *
+ * FIXED: Moved counters from COMM4/COMM5 to dedicated RAM to avoid conflicts
  *
  * PROTOCOL
  * --------
@@ -22,7 +24,7 @@
  * --------------
  * R0 = COMM7 value / scratch
  * R1 = COMM7 address
- * R2 = comparison value / COMM address
+ * R2 = comparison value / counter address
  * R3 = function address (for JSR)
  */
 
@@ -65,11 +67,11 @@ slave_work_wrapper_v2:
 
 /* ============================================================================
  * Frame Sync Handler (COMM7 = 0x01)
- * Increments COMM4 (frame counter)
+ * Increments frame counter in RAM (NOT COMM4)
  * ============================================================================ */
 .frame_sync:
-        mov.l   .L_comm4_addr,r2        /* R2 = COMM4 address */
-        mov.w   @r2,r0                  /* R0 = COMM4 value */
+        mov.l   .L_frame_counter,r2     /* R2 = frame counter (RAM) */
+        mov.w   @r2,r0                  /* R0 = counter value */
         add     #1,r0                   /* Increment */
         mov.w   r0,@r2                  /* Write back */
         bra     .clear_and_loop
@@ -77,14 +79,14 @@ slave_work_wrapper_v2:
 
 /* ============================================================================
  * Vertex Transform Handler (COMM7 = 0x16)
- * Calls slave_test_func, then increments COMM5
+ * Calls slave_test_func, then increments Slave completion counter in RAM
  * ============================================================================ */
 .vertex_transform:
         mov.l   .L_slave_test_func,r3   /* R3 = slave_test_func address */
         jsr     @r3                     /* Call slave_test_func */
         nop
-        mov.l   .L_comm5_addr,r2        /* R2 = COMM5 address */
-        mov.w   @r2,r0                  /* R0 = COMM5 value */
+        mov.l   .L_slave_counter,r2     /* R2 = Slave counter (RAM) */
+        mov.w   @r2,r0                  /* R0 = counter value */
         add     #1,r0                   /* Increment */
         mov.w   r0,@r2                  /* Write back */
         bra     .clear_and_loop
@@ -109,11 +111,11 @@ slave_work_wrapper_v2:
 .L_comm7_addr:
         .long   0x2000402E              /* COMM7 register */
 
-.L_comm4_addr:
-        .long   0x20004028              /* COMM4 register */
+.L_frame_counter:
+        .long   0x2203E014              /* Frame counter (RAM, NOT COMM4) */
 
-.L_comm5_addr:
-        .long   0x2000402A              /* COMM5 register */
+.L_slave_counter:
+        .long   0x2203E012              /* Slave completion counter (RAM, NOT COMM5) */
 
 .L_slave_test_func:
         .long   0x02300280              /* slave_test_func address */

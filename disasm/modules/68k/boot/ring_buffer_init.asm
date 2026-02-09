@@ -40,12 +40,13 @@ ring_buffer_init:
         clr.l   (a0)+               ; Head = 0
         clr.l   (a0)                ; Tail = 0 (A0 now points to $2203F204)
 
-        ; Initialize FPS counter RAM variables (14 bytes at $FFFFE600-$FFFFE60D)
-        clr.w   $FFFFE600           ; fps_vint_tick = 0
-        clr.w   $FFFFE602           ; fps_value = 0
-        clr.l   $FFFFE604           ; fps_flip_counter = 0
-        clr.l   $FFFFE608           ; fps_flip_last = 0
-        clr.w   $FFFFE60C           ; fps_fs_last = 0
+        ; Initialize FPS counter state (14 bytes at $FFFFF000-$FFFFF00D)
+        ; Work RAM above game's highest usage ($FFFFEF00), ~4KB below stack
+        clr.w   $FFFFF000           ; fps_vint_tick = 0
+        clr.w   $FFFFF002           ; fps_value = 0
+        clr.l   $FFFFF004           ; fps_flip_counter = 0
+        clr.l   $FFFFF008           ; fps_flip_last = 0
+        clr.w   $FFFFF00C           ; fps_fs_last = 0
 
         rts                         ; Return to caller
 

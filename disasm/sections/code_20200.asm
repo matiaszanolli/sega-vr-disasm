@@ -235,12 +235,12 @@
         dc.w    $524C        ; $0203C6
         dc.w    $0009        ; $0203C8
         dc.w    $0009        ; $0203CA
-; Original Slave idle loop (RESTORED)
-        dc.w    $D101        ; $0203CC - MOV.L @(PC+offset),R1
+; Original Slave idle loop (writes R0 to COMM6, loops forever)
+        dc.w    $D101        ; $0203CC - MOV.L @(4,PC),R1
         dc.w    $2102        ; $0203CE - MOV.L R0,@R1
         dc.w    $AFFE        ; $0203D0 - BRA $0203D0 (loop forever)
         dc.w    $0009        ; $0203D2 - NOP
-        dc.w    $2000        ; $0203D4 - \ COMM3 address literal
+        dc.w    $2000        ; $0203D4 - \ COMM6 address literal
         dc.w    $402C        ; $0203D6 - / (0x2000402C)
         dc.w    $2F06        ; $0203D8
         dc.w    $2F16        ; $0203DA
@@ -315,10 +315,10 @@
         dc.w    $8800        ; $020464
         dc.w    $89FB        ; $020466
         dc.w    $8481        ; $020468
-; Original dispatch code (RESTORED)
+; Original Master dispatch (shift, table lookup, indirect JSR)
         dc.w    $4008        ; $02046A - SHLL2 R0
-        dc.w    $D107        ; $02046C - MOV.L @(PC+offset),R1
-        dc.w    $001E        ; $02046E - MOV.L R1,@(R0,R1)
+        dc.w    $D107        ; $02046C - MOV.L @(28,PC),R1
+        dc.w    $001E        ; $02046E - MOV.L @(R0,R1),R0
         dc.w    $400B        ; $020470 - JSR @R0
         dc.w    $0009        ; $020472 - NOP
         dc.w    $AFF4        ; $020474 - BRA -12

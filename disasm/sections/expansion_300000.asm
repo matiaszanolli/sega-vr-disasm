@@ -14,31 +14,42 @@
 ; Handler MUST be placed at exactly this offset (EVEN address required for SH2).
 ;
 ; COMM Register Addresses (SH2 perspective):
-;   COMM4 = 0x20004028 (Slave work counter)
-;   COMM5 = 0x2000402A (Vertex transform counter)
-;   COMM7 = 0x2000402E (Slave work signal)
+;   COMM7 = 0x2000402E (Master→Slave work signal)
 ;
 ; Signal Values (COMM7):
 ;   0x0000 = Idle
-;   0x0001 = Frame sync (increment COMM4)
-;   0x0016 = Vertex transform (Phase 16)
+;   0x0001 = Frame sync
+;   0x0016 = Vertex transform (func_021 parallel processing)
 ;   0x0027 = Queue drain (cmd $27 async processing)
+;
+; Shared Counter Block (cache-through SDRAM):
+;   0x2203E010 = Master call counter (word) - incremented by shadow_path_wrapper
+;   0x2203E012 = Slave completion counter (word) - incremented by slave_work_wrapper
+;   0x2203E014 = Frame counter (word) - incremented by slave_work_wrapper on frame sync
+;   0x2203E016 = Reserved (word)
+;
+; FIXED: Moved counters from COMM4/COMM5/COMM6 to dedicated RAM to avoid conflicts
+;        Original game uses COMM4-COMM6 for command protocol
 ;
 ; MEMORY LAYOUT:
 ;   0x300000-0x300027  Padding (40 bytes)
 ;   0x300028-0x30003F  handler_frame_sync (22 bytes)
 ;   0x300050-0x30007B  master_dispatch_hook (44 bytes)
 ;   0x300100-0x30015F  func_021_optimized (96 bytes)
-;   0x300200-0x30026F  slave_work_wrapper_v2 (112 bytes)
-;   0x300280-0x3002AB  slave_test_func (44 bytes)
+;   0x300200-0x30026F  slave_work_wrapper_v2 (112 bytes, updated for RAM counters)
+;   0x300280-0x3002AB  slave_test_func (32 bytes, reduced - counter removed)
 ;   0x300300-0x300325  func_021_original_relocated (36 bytes)
-;   0x300400-0x300433  shadow_path_wrapper (52 bytes)
+;   0x300400-0x300450  shadow_path_wrapper (~80 bytes, added per-call barrier)
 ;   0x300500-0x300537  batch_copy_handler (~56 bytes)
 ;   0x300600-0x30067F  cmd27_queue_drain (128 bytes)
 ;   --- Phase 1 allocations (reserved) ---
 ;   0x300800-0x300BFF  cmdint_handler (Master SH2 CMDINT ISR, 1KB reserved)
 ;   0x300C00-0x300FFF  queue_processor (ring buffer drain loop, 1KB reserved)
 ;   0x301000-0x3FFFFF  Free space (remaining ~1020KB)
+;
+; Shared Data Structures (cache-through SDRAM, NOT in expansion ROM):
+;   0x2203E000-0x2203E00F  Parameter block (16 bytes: R14, R7, R8, R5)
+;   0x2203E010-0x2203E017  Counter block (8 bytes: Master, Slave, Frame, Reserved)
 ;
 ; ============================================================================
 
@@ -65,7 +76,7 @@ handler_frame_sync:
 ; ============================================================================
 ; Current position: 0x30003E (handler ends at 0x28 + 22 bytes)
 ; Pad to 0x300050 for master dispatch hook
-        dcb.b   ($50 - $3E), $FF
+        dcb.b   ($300050 - *), $FF
 
 ; ============================================================================
 ; MASTER DISPATCH HOOK: 0x300050 (SH2 address: 0x02300050)
@@ -88,7 +99,7 @@ master_dispatch_hook:
 ; ============================================================================
 ; Current position: 0x30007C (hook ends at 0x50 + 44 bytes)
 ; Pad to 0x300100 for nice alignment
-        dcb.b   ($100 - $7C), $FF
+        dcb.b   ($300100 - *), $FF
 
 ; ============================================================================
 ; func_021_optimized: Coordinate Transform + Cull (with func_016 inlined)
@@ -102,7 +113,7 @@ func_021_optimized:
 ; ============================================================================
 ; Current position: ~0x300160 (func_021_optimized is ~96 bytes)
 ; Pad to 0x300200 for nice alignment
-        dcb.b   ($200 - $160), $FF
+        dcb.b   ($300200 - *), $FF
 
 ; ============================================================================
 ; SLAVE WORK WRAPPER V2: 0x300200 (SH2 address: 0x02300200)
@@ -129,7 +140,7 @@ slave_work_wrapper:
 ; ============================================================================
 ; Current position: 0x300270 (slave_work_wrapper_v2 is 112 bytes)
 ; Pad to 0x300280 for nice alignment
-        dcb.b   ($280 - $270), $FF
+        dcb.b   ($300280 - *), $FF
 
 ; ============================================================================
 ; SLAVE TEST FUNCTION: 0x300280 (SH2 address: 0x02300280)
@@ -160,7 +171,7 @@ slave_test_func:
 ; Address: 0x300300 (SH2: 0x02300300)
 ; Size: 36 bytes (ends at 0x300326)
 ;
-        dcb.b   ($300 - $2AC), $FF  ; Pad from 0x3002AC to 0x300300 (84 bytes)
+        dcb.b   ($300300 - *), $FF  ; Pad to 0x300300 (auto-sized)
 func_021_original_relocated:
         dc.w    $4F22        ; $300300  STS.L PR,@-R15
         dc.w    $BF4D        ; $300302  BSR (func_016)
@@ -199,7 +210,7 @@ func_021_original_relocated:
 ;
 ; See: disasm/sh2/expansion/shadow_path_wrapper.asm for source
 ;
-        dcb.b   ($400 - $326), $FF  ; Pad from 0x300326 to 0x300400 (218 bytes)
+        dcb.b   ($300400 - *), $FF  ; Pad to 0x300400 (auto-sized)
 shadow_path_wrapper:
         include "sh2/generated/shadow_path_wrapper.inc"
 
@@ -218,7 +229,7 @@ shadow_path_wrapper:
 ;
 ; See: analysis/optimization/BATCH_COPY_COMMAND_DESIGN.md
 ;
-        dcb.b   ($500 - $434), $FF  ; Pad to 0x300500
+        dcb.b   ($300500 - *), $FF  ; Pad to 0x300500 (auto-sized)
 batch_copy_handler:
         include "sh2/generated/batch_copy_handler.inc"
 
@@ -227,7 +238,7 @@ batch_copy_handler:
 ; ============================================================================
 ; Current position: 0x300538 (after batch_copy_handler)
 ; Pad to 0x300600 for nice alignment
-        dcb.b   ($600 - $538), $FF
+        dcb.b   ($300600 - *), $FF
 
 ; ============================================================================
 ; CMD27 QUEUE DRAIN: 0x300600 (SH2 address: 0x02300600)

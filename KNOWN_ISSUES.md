@@ -92,6 +92,21 @@ Most interrupts (VRES, VINT, HINT, PWMINT) persist until explicitly cleared. CMD
 - Missing interrupt clear = handler fires only once, then stops (for non-CMD interrupts)
 - Clear registers: VRES=$20004014, V=$20004016, H=$20004018, CMD=$2000401A, PWM=$2000401C
 
+### DREQ Registers Mislabeled as Bank Registers
+`adapter_init.asm` originally labeled `$A1510A` as `ADAPTER_BANK` and `$A1510C` as `ADAPTER_BANKDAT`. These are actually **DREQ Source Address Low** and **DREQ Destination Address High** respectively (see 32X Hardware Manual §4.3).
+- The code at adapter_init lines 117-126 configures DREQ, **not** ROM banking
+- Fixed in this session: renamed to `ADAPTER_DREQ_SL` / `ADAPTER_DREQ_DH`
+- **Actual bank register candidates:** `$A130F1` (Genesis standard, byte write) and `$A15104` (32X Bank Set Register, word write, bits 0-1)
+
+### Bank Register Probe — Access Path Unresolved
+A boot-time probe at [bank_probe.asm](disasm/modules/68k/optimization/bank_probe.asm) tests three 68K access paths to expansion ROM ($300000-$3FFFFF):
+- **Direct** (`$300000`): Works if 32X maps full 4MB at $000000-$3FFFFF
+- **Bank A** (`$A130F1`): Genesis standard bank register, bank 3 → $900000 window
+- **Bank B** (`$A15104`): 32X Bank Set Register, bank 3 → $900000 window
+- Results written to Work RAM `$FFFFF080` (28 bytes): signature "PROB", test values, winner code ('D'/'A'/'B'/'?'), completion marker $DEAD
+- **Status:** Probe integrated into boot sequence, ROM builds. Awaiting PicoDrive test to read results.
+- **Do not hardcode a bank register** until probe results confirm which path works
+
 ### Cache-Through Addressing for Shared Memory
 Use `0x22XXXXXX` (cache-through), not `0x0XXXXXXX` (cached) for:
 - System registers (COMM, control registers)
@@ -127,9 +142,12 @@ Original SH2 silicon has a documented bug (see [32x-hardware-manual-supplement-2
 The SH2 communication section is completely full. Any new 68K-side code must either:
 1. Reclaim dead code within the section
 2. Use a BSR trampoline to a section with space
-3. Be implemented entirely on the SH2 side (expansion ROM)
+3. Use a banked-call trampoline to expansion ROM at $300000+ (see bank_probe results)
 
 Previous attempt to add async queue logic here was removed (commit 0dd98c4).
+
+### Expansion ROM — 68K Access via Banking (Pending Confirmation)
+ROM $300000-$3FFFFF (~1MB, 99.9% free) is accessible to the 68K via banking or possibly direct access. Once `bank_probe` results confirm the access path, heavy 68K logic can be relocated here using fixed-window trampolines (see [bank_call.asm](disasm/modules/shared/bank_call.asm) for patterns). This solves the B-001 space blocker.
 
 ---
 

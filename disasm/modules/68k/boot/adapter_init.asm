@@ -54,8 +54,8 @@
 ADAPTER_BASE    equ     $A15100 ; Adapter control register base
 ADAPTER_CTRL    equ     $A15100 ; Control register
 ADAPTER_STATUS  equ     $A15101 ; Status register (read FM bit here)
-ADAPTER_BANK    equ     $A1510A ; Bank select register
-ADAPTER_BANKDAT equ     $A1510C ; Bank data register
+ADAPTER_DREQ_SL equ     $A1510A ; DREQ Source Address Low (mislabeled as "Bank" previously)
+ADAPTER_DREQ_DH equ     $A1510C ; DREQ Destination Address High
 COMM3           equ     $A1512C ; COMM3 - SH2 ready flag
 
 ; VDP registers
@@ -98,12 +98,16 @@ adapter_init:
         beq.s   .wait_sh2_ready                 ; $000870: $67FA             - Loop if not ready
         clr.b   COMM3-ADAPTER_BASE(a4)          ; $000872: $422C $002C       - Acknowledge
 
-; Initialize async command queue ring buffer (Phase 1)
+; Initialize ring buffer pointers + FPS counter state
         bsr.w   ring_buffer_init                ; Initialize ring buffer in SDRAM
 
-; Test async command queue (Phase 1 Step 6 - single test command)
-        jsr     test_async_single_cmd           ; Test harness (uses absolute JSR)
-        jsr     sh2_wait_queue_empty            ; Wait for command to process
+; Bank register probe — identify 68K access path to expansion ROM
+; Results at $FFFFF080 (see bank_probe.asm for layout)
+        jsr     bank_probe                      ; Probe runs once, stores results in WRAM
+
+; DISABLED: Async test harness — isolate banking experiment from async
+;       jsr     test_async_single_cmd           ; (Phase 1 test — disabled)
+;       jsr     sh2_wait_queue_empty            ; (Phase 1 test — disabled)
 
 ; VDP initialization - load register values from ROM table
         lea     VDP_CTRL,a1                     ; $000876: $43F9 $00C0 $0000 - VDP control
@@ -114,16 +118,17 @@ adapter_init:
         move.w  (a3)+,(a1)                      ; $000888: $32DB             - Write VDP reg
         dbra    d7,.vdp_init_loop               ; $00088A: $51CF $FFFC       - Loop
 
-; Configure 32X adapter bank registers
-; This sets up the ROM banking for 32X mode
-        move.b  #$01,ADAPTER_BANK-ADAPTER_BASE(a4) ; $00088E: $197C $0001 $000A - Bank 1
-        move.w  $0002(a4),ADAPTER_BANKDAT-ADAPTER_BASE(a4) ; $000894: $396C $0002 $000C
-        move.b  #$02,ADAPTER_BANK-ADAPTER_BASE(a4) ; $00089A: $197C $0002 $000A - Bank 2
-        move.w  $0002(a4),ADAPTER_BANKDAT-ADAPTER_BASE(a4) ; $0008A0: $396C $0002 $000C
-        move.b  #$03,ADAPTER_BANK-ADAPTER_BASE(a4) ; $0008A6: $197C $0003 $000A - Bank 3
-        move.w  $0002(a4),ADAPTER_BANKDAT-ADAPTER_BASE(a4) ; $0008AC: $396C $0002 $000C
-        move.b  #$00,ADAPTER_BANK-ADAPTER_BASE(a4) ; $0008B2: $197C $0000 $000A - Bank 0
-        move.w  $0002(a4),ADAPTER_BANKDAT-ADAPTER_BASE(a4) ; $0008B8: $396C $0002 $000C
+; Configure 32X adapter DREQ registers (NOT banking — see KNOWN_ISSUES.md)
+; These are DREQ Source/Destination regs ($A1510A/$A1510C), not ROM bank control.
+; Original labels "ADAPTER_BANK" were incorrect — corrected Feb 2026.
+        move.b  #$01,ADAPTER_DREQ_SL-ADAPTER_BASE(a4) ; $00088E: $197C $0001 $000A
+        move.w  $0002(a4),ADAPTER_DREQ_DH-ADAPTER_BASE(a4) ; $000894: $396C $0002 $000C
+        move.b  #$02,ADAPTER_DREQ_SL-ADAPTER_BASE(a4) ; $00089A: $197C $0002 $000A
+        move.w  $0002(a4),ADAPTER_DREQ_DH-ADAPTER_BASE(a4) ; $0008A0: $396C $0002 $000C
+        move.b  #$03,ADAPTER_DREQ_SL-ADAPTER_BASE(a4) ; $0008A6: $197C $0003 $000A
+        move.w  $0002(a4),ADAPTER_DREQ_DH-ADAPTER_BASE(a4) ; $0008AC: $396C $0002 $000C
+        move.b  #$00,ADAPTER_DREQ_SL-ADAPTER_BASE(a4) ; $0008B2: $197C $0000 $000A
+        move.w  $0002(a4),ADAPTER_DREQ_DH-ADAPTER_BASE(a4) ; $0008B8: $396C $0002 $000C
 
 ; VDP mode configuration
         move.w  #$8000,VDP_DATA.w               ; $0008BE: $33FC $8000 $C004 - VDP flag

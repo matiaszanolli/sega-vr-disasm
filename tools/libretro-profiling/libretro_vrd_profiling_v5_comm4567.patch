@@ -1,0 +1,336 @@
+diff --git a/pico/32x/32x.c b/pico/32x/32x.c
+index 4dded95..8d3ae1b 100644
+--- a/pico/32x/32x.c
++++ b/pico/32x/32x.c
+@@ -13,6 +13,10 @@
+ struct Pico32x Pico32x;
+ SH2 sh2s[2];
+
++/* VRD Profiling: per-frame work cycle counters */
++unsigned int vrd_msh2_work_cycles = 0;
++unsigned int vrd_ssh2_work_cycles = 0;
++
+ #define SH2_IDLE_STATES (SH2_STATE_CPOLL|SH2_STATE_VPOLL|SH2_STATE_RPOLL|SH2_STATE_SLEEP)
+
+ static int REGPARM(2) sh2_irq_cb(SH2 *sh2, int level)
+@@ -472,6 +476,10 @@ static void p32x_run_events(unsigned int until)
+       oldest, event_time_next);
+ }
+
++/* VRD Profiling: external counters declared in 32x.c */
++extern unsigned int vrd_msh2_work_cycles;
++extern unsigned int vrd_ssh2_work_cycles;
++
+ static void run_sh2(SH2 *sh2, unsigned int m68k_cycles)
+ {
+   unsigned int cycles, done;
+@@ -484,6 +492,12 @@ static void run_sh2(SH2 *sh2, unsigned int m68k_cycles)
+
+   done = sh2_execute(sh2, cycles);
+
++  /* VRD Profiling: track actual work cycles */
++  if (sh2->is_slave)
++    vrd_ssh2_work_cycles += done;
++  else
++    vrd_msh2_work_cycles += done;
++
+   sh2->m68krcycles_done += C_SH2_TO_M68K(sh2, done);
+   sh2->state &= ~SH2_STATE_RUN;
+   pevt_log_sh2_o(sh2, EVT_RUN_END);
+diff --git a/cpu/sh2/mame/sh2pico.c b/cpu/sh2/mame/sh2pico.c
+index 2c2ea40..7f9c8a6 100644
+--- a/cpu/sh2/mame/sh2pico.c
++++ b/cpu/sh2/mame/sh2pico.c
+@@ -7,6 +7,7 @@
+ #include "../../pico/pico_int.h"
+ #include "../../pico/memory.h"
+ #include "compiler.h"
++#include <stdlib.h>
+
+ #define I 0xff
+
+@@ -40,6 +41,11 @@ typedef struct
+ #define RdByte(A)	((A) < 0xe0000000 ? p32x_sh2_read8(A, sh2) : sdram_read8(A))
+ #define RdWord(A)	((A) < 0xe0000000 ? p32x_sh2_read16(A, sh2) : sdram_read16(A))
+
++/* VRD PC-level profiling support */
++extern int vrd_profile_pc_enabled;
++extern void vrd_profile_pc_sample(int cpu_id, unsigned int pc, int cycles);
++extern int vrd_m68k_cycles_last;
++
+ #define Sh2Execute		sh2_execute_interpreter
+
+ #define INLINE static
+@@ -230,6 +236,14 @@ int sh2_execute_interpreter(SH2 *sh2, int cycles)
+ 			}
+
+ 			do_sh2_trace(sh2, sh2->icount);
++
++			/* VRD PC-level profiling: sample PC after each instruction */
++			if (vrd_profile_pc_enabled) {
++				int sh2_cycles_executed = cycles_to_do - sh2->icount;
++				int cpu_id = sh2->is_slave ? 2 : 1;  // 0=68K, 1=Master, 2=Slave
++				int cycles_this_inst = sh2_cycles_executed - (cycles_to_do - sh2->icount);
++				vrd_profile_pc_sample(cpu_id, sh2->pc, cycles_this_inst > 0 ? cycles_this_inst : 1);
++			}
+ 		}
+ 		pc_expect += 2;
+ 	}
+diff --git a/pico/pico_cmn.c b/pico/pico_cmn.c
+index a1b2c4d..e8f9a17 100644
+--- a/pico/pico_cmn.c
++++ b/pico/pico_cmn.c
+@@ -10,6 +10,10 @@
+ #include "sound/ym2612.h"
+ #include "z80_if.h"
+
++/* VRD PC-level profiling support */
++extern int vrd_profile_pc_enabled;
++extern void vrd_profile_pc_sample(int cpu_id, unsigned int pc, int cycles);
++
+ #define CYCLES_M68K_LINE     488 // suitable for both PAL/NTSC
+ #define CYCLES_M68K_VINT_LAG  68
+ #define CYCLES_M68K_ASD      148
+@@ -19,10 +23,17 @@
+ // pad delay (for 6 button pads)
+ #define PAD_DELAY() { \
+   if(Pico.m.padDelay[0]++ > 25) Pico.m.padTHPhase[0]=0; \
+   if(Pico.m.padDelay[1]++ > 25) Pico.m.padTHPhase[1]=0; \
+ }
+
++/* VRD: 68K PC sampling state */
++static int vrd_68k_sample_counter = 0;
++#define VRD_68K_SAMPLE_INTERVAL 1000  /* Sample every 1000 cycles */
++
+ // CPUS_RUN
+ static __inline void SekRunM68k(int cyc)
+ {
++  int cycles_before = SekCyclesLeft;
++
+   if (SekShouldInterrupt()) {
+     Pico.t.m68c_cnt = 0;
+     elprintf(EL_32X, "hint");
+@@ -36,6 +47,19 @@ static __inline void SekRunM68k(int cyc)
+   SekCyclesLeft=0;
+
+   SekTrace(cyc);
++
++  /* VRD: Sample 68K PC periodically for profiling */
++  if (vrd_profile_pc_enabled) {
++    int cycles_executed = cycles_before - SekCyclesLeft;
++    vrd_68k_sample_counter += cycles_executed;
++
++    while (vrd_68k_sample_counter >= VRD_68K_SAMPLE_INTERVAL) {
++      unsigned int pc = SekPc;  /* Get current 68K PC */
++      vrd_profile_pc_sample(0, pc, VRD_68K_SAMPLE_INTERVAL);
++      vrd_68k_sample_counter -= VRD_68K_SAMPLE_INTERVAL;
++    }
++  }
+ }
+diff --git a/platform/libretro/libretro.c b/platform/libretro/libretro.c
+index 7612396..9d1b3ed 100644
+--- a/platform/libretro/libretro.c
++++ b/platform/libretro/libretro.c
+@@ -94,6 +94,30 @@ static retro_input_state_t input_state_cb;
+ static retro_environment_t environ_cb;
+ static retro_audio_sample_batch_t audio_batch_cb;
+
++/* VRD Profiling instrumentation - for v4.0 parallel processing analysis */
++static FILE *vrd_profile_log = NULL;
++static int vrd_profile_enabled = 0;
++static int vrd_profile_frame = 0;
++static int vrd_profile_max_frames = 2400; /* 40 seconds @ 60fps (menus + racing) */
++
++/* VRD PC-level profiling */
++int vrd_profile_pc_enabled = 0;
++static FILE *vrd_profile_pc_log = NULL;
++static int vrd_profile_pc_max_samples = 100000;  /* Limit samples to avoid huge files */
++static int vrd_profile_pc_sample_count = 0;
++
++/* PC sample histogram: track total cycles per PC */
++#define MAX_PC_SAMPLES 10000
++typedef struct {
++    unsigned int pc;
++    unsigned int total_cycles;
++    unsigned int count;
++} pc_sample_t;
++static pc_sample_t vrd_pc_samples[3][MAX_PC_SAMPLES];  /* 0=68K, 1=Master, 2=Slave */
++static int vrd_pc_sample_idx[3] = {0, 0, 0};
++
++int vrd_m68k_cycles_last = 0;  /* Track 68K cycles for profiling */
++
+ /* VRD Profiling: actual work cycle counters from 32x.c */
+ extern unsigned int vrd_msh2_work_cycles;
+ extern unsigned int vrd_ssh2_work_cycles;
+@@ -2441,8 +2465,67 @@ void retro_run(void)
+       update_audio_latency = false;
+    }
+
++   /* VRD Profiling: Initialize on first frame */
++   if (vrd_profile_frame == 0) {
++      const char *profile_path = getenv("VRD_PROFILE_LOG");
++      const char *max_frames_str = getenv("VRD_PROFILE_FRAMES");
++      const char *pc_profile_path = getenv("VRD_PROFILE_PC_LOG");
++      const char *pc_enabled_str = getenv("VRD_PROFILE_PC");
++
++      if (max_frames_str) {
++         int custom_max = atoi(max_frames_str);
++         if (custom_max > 0) vrd_profile_max_frames = custom_max;
++      }
++
++      /* Frame-level profiling */
++      if (profile_path) {
++         vrd_profile_log = fopen(profile_path, "w");
++         if (vrd_profile_log) {
++            vrd_profile_enabled = 1;
++            fprintf(vrd_profile_log, "frame,m68k_cycles,msh2_cycles,ssh2_cycles,comm4_before,comm4_after,comm5_before,comm5_after,comm6_before,comm6_after,comm7_before,comm7_after,is_32x\n");
++            if (log_cb) log_cb(RETRO_LOG_INFO, "VRD Frame Profiling enabled: %s (max %d frames)\n", profile_path, vrd_profile_max_frames);
++         }
++      }
++
++      /* PC-level profiling */
++      if (pc_enabled_str && atoi(pc_enabled_str) > 0) {
++         vrd_profile_pc_enabled = 1;
++         if (pc_profile_path) {
++            vrd_profile_pc_log = fopen(pc_profile_path, "w");
++            if (vrd_profile_pc_log) {
++               fprintf(vrd_profile_pc_log, "cpu,pc,total_cycles,count,avg_cycles,share\n");
++               if (log_cb) log_cb(RETRO_LOG_INFO, "VRD PC Profiling enabled: %s (max %d samples)\n", pc_profile_path, vrd_profile_pc_max_samples);
++            }
++         } else {
++            if (log_cb) log_cb(RETRO_LOG_WARN, "VRD_PROFILE_PC enabled but VRD_PROFILE_PC_LOG not set\n");
++            vrd_profile_pc_enabled = 0;
++         }
++      }
++   }
++
++   /* VRD Profiling: Capture state before frame */
++   unsigned short vrd_comm4_before = 0;
++   unsigned short vrd_comm5_before = 0;
++   unsigned short vrd_comm6_before = 0;
++   unsigned short vrd_comm7_before = 0;
++   int vrd_is_32x = (PicoIn.AHW & PAHW_32X) ? 1 : 0;
++   unsigned int vrd_m68k_cycles_before = 0;
++
++   if ((vrd_profile_enabled || vrd_profile_pc_enabled) && vrd_profile_frame < vrd_profile_max_frames && vrd_is_32x) {
++      /* Reset work cycle counters before frame */
++      vrd_msh2_work_cycles = 0;
++      vrd_ssh2_work_cycles = 0;
++      vrd_m68k_cycles_last = 0;
++      vrd_comm4_before = Pico32x.regs[4];  /* COMM4 ($00A15128) */
++      vrd_comm5_before = Pico32x.regs[5];  /* COMM5 ($2000402A) */
++      vrd_comm6_before = Pico32x.regs[6];  /* COMM6 ($2000402C) */
++      vrd_comm7_before = Pico32x.regs[7];  /* COMM7 ($2000402E) */
++      /* Get 68K cycle count before frame (approximate via SH2_M68K ratio) */
++      vrd_m68k_cycles_before = SekCyclesDoneT();
++   }
++
+    PicoFrame();
+
++   /* VRD Profiling: Calculate 68K cycles for this frame */
++   if ((vrd_profile_enabled || vrd_profile_pc_enabled) && vrd_profile_frame < vrd_profile_max_frames && vrd_is_32x) {
++      unsigned int vrd_m68k_cycles_after = SekCyclesDoneT();
++      vrd_m68k_cycles_last = vrd_m68k_cycles_after - vrd_m68k_cycles_before;
++   }
++
+    /* Check whether frontend needs to be notified
+     * of timing/geometry changes */
+    if (libretro_update_av_info || libretro_update_geometry) {
+@@ -2471,6 +2554,65 @@ void retro_run(void)
+       libretro_msg_interface_version = 0;
+    }
+
++   /* VRD Frame Profiling: Log frame data */
++   if (vrd_profile_enabled && vrd_profile_frame < vrd_profile_max_frames && vrd_is_32x) {
++      unsigned short vrd_comm4_after = Pico32x.regs[4];
++      unsigned short vrd_comm5_after = Pico32x.regs[5];
++      unsigned short vrd_comm6_after = Pico32x.regs[6];
++      unsigned short vrd_comm7_after = Pico32x.regs[7];
++      /* Use actual work cycles from run_sh2() accumulation */
++      fprintf(vrd_profile_log, "%d,%u,%u,%u,0x%04x,0x%04x,0x%04x,0x%04x,0x%04x,0x%04x,0x%04x,0x%04x,%d\n",
++              vrd_profile_frame, vrd_m68k_cycles_last, vrd_msh2_work_cycles, vrd_ssh2_work_cycles,
++              vrd_comm4_before, vrd_comm4_after, vrd_comm5_before, vrd_comm5_after,
++              vrd_comm6_before, vrd_comm6_after, vrd_comm7_before, vrd_comm7_after, vrd_is_32x);
++
++      if (vrd_profile_frame == vrd_profile_max_frames - 1) {
++         fclose(vrd_profile_log);
++         vrd_profile_log = NULL;
++         if (log_cb) log_cb(RETRO_LOG_INFO, "VRD Frame Profiling complete: %d frames\n", vrd_profile_max_frames);
++      }
++   }
++
++   /* VRD PC Profiling: Export histogram at end */
++   if (vrd_profile_pc_enabled && vrd_profile_pc_log && vrd_profile_frame == vrd_profile_max_frames - 1) {
++      const char *cpu_names[] = {"68K", "Master", "Slave"};
++      unsigned int total_cycles[3] = {0, 0, 0};
++
++      /* Calculate total cycles per CPU */
++      for (int cpu = 0; cpu < 3; cpu++) {
++         for (int i = 0; i < vrd_pc_sample_idx[cpu]; i++) {
++            total_cycles[cpu] += vrd_pc_samples[cpu][i].total_cycles;
++         }
++      }
++
++      /* Export samples sorted by total_cycles descending */
++      for (int cpu = 0; cpu < 3; cpu++) {
++         /* Simple bubble sort (good enough for small dataset) */
++         for (int i = 0; i < vrd_pc_sample_idx[cpu] - 1; i++) {
++            for (int j = i + 1; j < vrd_pc_sample_idx[cpu]; j++) {
++               if (vrd_pc_samples[cpu][j].total_cycles > vrd_pc_samples[cpu][i].total_cycles) {
++                  pc_sample_t tmp = vrd_pc_samples[cpu][i];
++                  vrd_pc_samples[cpu][i] = vrd_pc_samples[cpu][j];
++                  vrd_pc_samples[cpu][j] = tmp;
++               }
++            }
++         }
++
++         /* Export top samples */
++         for (int i = 0; i < vrd_pc_sample_idx[cpu] && i < 100; i++) {
++            pc_sample_t *s = &vrd_pc_samples[cpu][i];
++            float avg = (float)s->total_cycles / s->count;
++            float share = total_cycles[cpu] > 0 ? (100.0f * s->total_cycles / total_cycles[cpu]) : 0.0f;
++            fprintf(vrd_profile_pc_log, "%s,0x%08X,%u,%u,%.1f,%.2f\n",
++                    cpu_names[cpu], s->pc, s->total_cycles, s->count, avg, share);
++         }
++      }
++
++      fclose(vrd_profile_pc_log);
++      vrd_profile_pc_log = NULL;
++      if (log_cb) log_cb(RETRO_LOG_INFO, "VRD PC Profiling complete: %d samples\n", vrd_profile_pc_sample_count);
++   }
++
+    vrd_profile_frame++;
+ }
+
+@@ -2494,3 +2636,31 @@ size_t retro_get_memory_size(unsigned id)
+    }
+    return 0;
+ }
++
++/* VRD PC-level profiling: sample collection */
++void vrd_profile_pc_sample(int cpu_id, unsigned int pc, int cycles) {
++    if (!vrd_profile_pc_enabled || vrd_profile_pc_sample_count >= vrd_profile_pc_max_samples) return;
++    if (cpu_id < 0 || cpu_id > 2) return;  /* 0=68K, 1=Master, 2=Slave */
++
++    /* Find existing sample for this PC */
++    for (int i = 0; i < vrd_pc_sample_idx[cpu_id]; i++) {
++        if (vrd_pc_samples[cpu_id][i].pc == pc) {
++            vrd_pc_samples[cpu_id][i].total_cycles += cycles;
++            vrd_pc_samples[cpu_id][i].count++;
++            vrd_profile_pc_sample_count++;
++            return;
++        }
++    }
++
++    /* No existing sample - add new entry */
++    if (vrd_pc_sample_idx[cpu_id] < MAX_PC_SAMPLES) {
++        int idx = vrd_pc_sample_idx[cpu_id]++;
++        vrd_pc_samples[cpu_id][idx].pc = pc;
++        vrd_pc_samples[cpu_id][idx].total_cycles = cycles;
++        vrd_pc_samples[cpu_id][idx].count = 1;
++        vrd_profile_pc_sample_count++;
++    } else {
++        /* Sample buffer full for this CPU */
++        if (log_cb) log_cb(RETRO_LOG_WARN, "VRD PC sample buffer full for CPU %d\n", cpu_id);
++    }
++}

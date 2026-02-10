@@ -47,6 +47,9 @@ vrd_opt_start:
         include "modules/68k/optimization/sh2_wait_queue_empty.asm"
         include "modules/68k/optimization/test_async_single_cmd.asm"
 
+; --- Bank Register Probe (called once at boot) ---
+        include "modules/68k/optimization/bank_probe.asm"
+
 vrd_opt_end:
 
 ; --- Fill remaining space with $FF (preserves original ROM content) ---

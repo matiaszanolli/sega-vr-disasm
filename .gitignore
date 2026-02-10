@@ -102,3 +102,6 @@ tools/libretro-profiling/profiling_frontend
 tools/libretro-profiling/build_log.txt
 *.lds
 disasm/sections-mnemonic-backup-*/
+
+# Blog posts
+BLOG_*.md

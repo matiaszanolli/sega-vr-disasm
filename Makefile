@@ -25,26 +25,13 @@ ASMFLAGS = -Fbin -m68000 -no-opt -spaces -quiet
 
 # Source files
 M68K_SRC = $(DISASM_DIR)/vrd.asm
-M68K_SRC_RAW = $(DISASM_DIR)/vrd_raw.asm
-M68K_SRC_MODULAR = $(DISASM_DIR)/vrd_modular.asm
-M68K_SRC_MNEMONIC = $(DISASM_DIR)/vrd_mnemonic.asm
-OUTPUT_ROM_RAW = $(BUILD_DIR)/vr_rebuild_raw.32x
-OUTPUT_ROM_MODULAR = $(BUILD_DIR)/vr_rebuild_modular.32x
-OUTPUT_ROM_MNEMONIC = $(BUILD_DIR)/vr_rebuild_mnemonic.32x
-
-.PHONY: all clean disasm compare tools test modular compare-modular raw compare-raw mnemonic compare-mnemonic profile-frame profile-pc
+.PHONY: all clean disasm compare tools test profile-frame profile-pc
 
 # ============================================================================
 # Main targets
 # ============================================================================
 
 all: dirs sh2-assembly $(OUTPUT_ROM)
-
-raw: dirs $(OUTPUT_ROM_RAW)
-
-modular: dirs $(OUTPUT_ROM_MODULAR)
-
-mnemonic: dirs $(OUTPUT_ROM_MNEMONIC)
 
 dirs:
 	@mkdir -p $(BUILD_DIR)
@@ -57,26 +44,6 @@ $(OUTPUT_ROM): $(M68K_SRC) $(SH2_FUNC000_INC) $(SH2_FUNC022_INC) $(SH2_FUNC017_I
 	@echo "==> Build complete: $@"
 	@ls -lh $@
 
-# Build the ROM from raw DC.W sections (guaranteed correct)
-$(OUTPUT_ROM_RAW): $(M68K_SRC_RAW)
-	@echo "==> Assembling 68000 code (from sections_raw/)..."
-	$(ASM) $(ASMFLAGS) -o $@ $<
-	@echo "==> Build complete: $@"
-	@ls -lh $@
-
-# Build the ROM from modular structure
-$(OUTPUT_ROM_MODULAR): $(M68K_SRC_MODULAR)
-	@echo "==> Assembling 68000 code (from modules/)..."
-	$(ASM) $(ASMFLAGS) -o $@ $<
-	@echo "==> Build complete: $@"
-	@ls -lh $@
-
-# Build the ROM from mnemonic sections (proper assembly, not DC.W)
-$(OUTPUT_ROM_MNEMONIC): $(M68K_SRC_MNEMONIC)
-	@echo "==> Assembling 68000 code (from sections-mnemonic/)..."
-	$(ASM) $(ASMFLAGS) -o $@ $<
-	@echo "==> Build complete: $@"
-	@ls -lh $@
 
 # ============================================================================
 # Disassembly targets
@@ -119,99 +86,6 @@ compare: $(OUTPUT_ROM)
 		fi; \
 	else \
 		echo "✗ Size mismatch!"; \
-	fi
-
-# Compare raw ROM build with original
-compare-raw: $(OUTPUT_ROM_RAW)
-	@echo "==> Comparing ROM files (raw sections build)..."
-	@if [ ! -f "$(ORIGINAL_ROM)" ]; then \
-		echo "ERROR: Original ROM not found: $(ORIGINAL_ROM)"; \
-		exit 1; \
-	fi
-	@ORIG_SIZE=$$(stat -c%s "$(ORIGINAL_ROM)"); \
-	BUILD_SIZE=$$(stat -c%s "$(OUTPUT_ROM_RAW)"); \
-	echo "Original ROM size: $$ORIG_SIZE bytes"; \
-	echo "Raw build ROM size:  $$BUILD_SIZE bytes"; \
-	if [ $$ORIG_SIZE -eq $$BUILD_SIZE ]; then \
-		echo "✓ Sizes match!"; \
-		echo "==> Comparing bytes..."; \
-		cmp -l "$(ORIGINAL_ROM)" "$(OUTPUT_ROM_RAW)" | head -20; \
-		DIFF_COUNT=$$(cmp -l "$(ORIGINAL_ROM)" "$(OUTPUT_ROM_RAW)" | wc -l); \
-		if [ $$DIFF_COUNT -eq 0 ]; then \
-			echo "✓✓✓ PERFECT MATCH! ROMs are identical! ✓✓✓"; \
-		else \
-			echo "⚠ Found $$DIFF_COUNT differing bytes"; \
-		fi; \
-	else \
-		echo "✗ Size mismatch!"; \
-	fi
-
-# Compare modular ROM build with original
-compare-modular: $(OUTPUT_ROM_MODULAR)
-	@echo "==> Comparing ROM files (modules/ build)..."
-	@if [ ! -f "$(ORIGINAL_ROM)" ]; then \
-		echo "ERROR: Original ROM not found: $(ORIGINAL_ROM)"; \
-		exit 1; \
-	fi
-	@ORIG_SIZE=$$(stat -c%s "$(ORIGINAL_ROM)"); \
-	BUILD_SIZE=$$(stat -c%s "$(OUTPUT_ROM_MODULAR)"); \
-	echo "Original ROM size: $$ORIG_SIZE bytes"; \
-	echo "Modular build ROM size:  $$BUILD_SIZE bytes"; \
-	if [ $$ORIG_SIZE -eq $$BUILD_SIZE ]; then \
-		echo "✓ Sizes match!"; \
-		echo "==> Comparing bytes..."; \
-		cmp -l "$(ORIGINAL_ROM)" "$(OUTPUT_ROM_MODULAR)" | head -20; \
-		DIFF_COUNT=$$(cmp -l "$(ORIGINAL_ROM)" "$(OUTPUT_ROM_MODULAR)" | wc -l); \
-		if [ $$DIFF_COUNT -eq 0 ]; then \
-			echo "✓✓✓ PERFECT MATCH! ROMs are identical! ✓✓✓"; \
-		else \
-			echo "⚠ Found $$DIFF_COUNT differing bytes"; \
-		fi; \
-	else \
-		echo "✗ Size mismatch!"; \
-	fi
-
-# Compare mnemonic ROM build with DC.W build (both 4MB with expansion)
-compare-mnemonic: $(OUTPUT_ROM_MNEMONIC) $(OUTPUT_ROM)
-	@echo "==> Comparing mnemonic build vs DC.W build..."
-	@MNEMONIC_SIZE=$$(stat -c%s "$(OUTPUT_ROM_MNEMONIC)"); \
-	DCW_SIZE=$$(stat -c%s "$(OUTPUT_ROM)"); \
-	echo "Mnemonic build size: $$MNEMONIC_SIZE bytes"; \
-	echo "DC.W build size:     $$DCW_SIZE bytes"; \
-	if [ $$MNEMONIC_SIZE -eq $$DCW_SIZE ]; then \
-		echo "✓ Sizes match!"; \
-		echo "==> Comparing bytes (first 3MB = 68K region)..."; \
-		dd if="$(OUTPUT_ROM)" bs=1 count=3145728 2>/dev/null > /tmp/dcw_3mb.bin; \
-		dd if="$(OUTPUT_ROM_MNEMONIC)" bs=1 count=3145728 2>/dev/null > /tmp/mnemonic_3mb.bin; \
-		cmp -l /tmp/dcw_3mb.bin /tmp/mnemonic_3mb.bin | head -20; \
-		DIFF_COUNT=$$(cmp -l /tmp/dcw_3mb.bin /tmp/mnemonic_3mb.bin | wc -l); \
-		rm -f /tmp/dcw_3mb.bin /tmp/mnemonic_3mb.bin; \
-		if [ $$DIFF_COUNT -eq 0 ]; then \
-			echo "✓✓✓ PERFECT MATCH! Mnemonic build is byte-identical! ✓✓✓"; \
-		else \
-			echo "⚠ Found $$DIFF_COUNT differing bytes in 68K region"; \
-		fi; \
-	else \
-		echo "✗ Size mismatch!"; \
-	fi
-
-# Compare both builds against each other
-compare-both: $(OUTPUT_ROM) $(OUTPUT_ROM_MODULAR)
-	@echo "==> Comparing sections/ vs modules/ builds..."
-	@SECTIONS_SIZE=$$(stat -c%s "$(OUTPUT_ROM)"); \
-	MODULAR_SIZE=$$(stat -c%s "$(OUTPUT_ROM_MODULAR)"); \
-	echo "sections/ build size: $$SECTIONS_SIZE bytes"; \
-	echo "modules/ build size:  $$MODULAR_SIZE bytes"; \
-	if [ $$SECTIONS_SIZE -eq $$MODULAR_SIZE ]; then \
-		echo "✓ Sizes match!"; \
-		DIFF_COUNT=$$(cmp -l "$(OUTPUT_ROM)" "$(OUTPUT_ROM_MODULAR)" | wc -l); \
-		if [ $$DIFF_COUNT -eq 0 ]; then \
-			echo "✓✓✓ PERFECT MATCH! Both builds are identical! ✓✓✓"; \
-		else \
-			echo "⚠ Found $$DIFF_COUNT differing bytes between builds"; \
-		fi; \
-	else \
-		echo "✗ Size mismatch between builds!"; \
 	fi
 
 # Quick hex dump comparison
@@ -2667,14 +2541,9 @@ help:
 	@echo ""
 	@echo "Build Targets:"
 	@echo "  all            - Build the ROM from sections/ (original disasm)"
-	@echo "  raw            - Build the ROM from sections_raw/ (guaranteed correct)"
-	@echo "  modular        - Build the ROM from modules/ (refactored structure)"
 	@echo ""
 	@echo "Verification:"
 	@echo "  compare        - Compare sections/ build with original"
-	@echo "  compare-raw    - Compare sections_raw/ build with original"
-	@echo "  compare-modular- Compare modules/ build with original"
-	@echo "  compare-both   - Compare sections/ vs modules/ builds"
 	@echo "  hexdump        - Show hex dump comparison"
 	@echo ""
 	@echo "SH2 Assembly:"

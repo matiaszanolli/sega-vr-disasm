@@ -100,12 +100,11 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 **Key files:** `disasm/sh2/src/`, [SH2_TRANSLATION_INTEGRATION.md](analysis/sh2-analysis/SH2_TRANSLATION_INTEGRATION.md)
 
 ### B-012: Replace raw hex register addresses with symbolic names
-**Status:** IN PROGRESS (2026-02-10)
+**Status:** DONE (2026-02-10)
 **Why:** Raw hex like `$00A15120` is unreadable; `COMM0_HI` is self-documenting. Critical for Track 1 work where COMM register logic must be clearly understood.
-**Progress:** ~34 modules hardened across 4 commits. Covers game, sh2, vdp, input, sound, hardware-regs, optimization, display, and boot modules.
+**Result:** All mnemonic-format modules hardened across 5 commits (118+ modules total). Covers all 17 module categories.
 **Symbols used:** MARS_SYS_*, MARS_VDP_*, MARS_CRAM*, MARS_DREQ_*, MARS_FIFO, COMM0-7, COMM0_HI/LO, COMM1_HI/LO, Z80_BUSREQ, Z80_RESET, Z80_RAM, PSG, SRAM_BANK0, VDP_DATA, VDP_CTRL, MARS_FRAMEBUFFER, MARS_OVERWRITE.
-**Remaining:** ~45 game files with scattered MARS refs, `init_sequence.asm` (dc.w boot code — cannot replace), ~10 sound files with PSG refs.
-**Acceptance:** All replaced modules build byte-identical. No regressions.
+**Note:** Remaining raw hex exists only in DC.W-encoded files (z80_commands.asm, init_sequence.asm, hw_reg_init.asm) where addresses are split across machine words. These need DC.W→mnemonic translation first (see B-010).
 **Key files:** `disasm/modules/shared/definitions.asm` (master symbol table)
 
 ---
@@ -117,6 +116,7 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 | B-012 | Symbolic register hardening batch 1 (6 sh2/vdp modules) | 3b347d3 | 2026-02-10 |
 | B-012 | Symbolic register hardening batch 2 (8 modules + COMM6 fix) | 350e346 | 2026-02-10 |
 | B-012 | Symbolic register hardening batch 3 (20 modules, all categories) | 170c6e7 | 2026-02-10 |
+| B-012 | Symbolic register hardening batch 4-6 (84 modules, all remaining) | a022098 | 2026-02-10 |
 | — | dc.w→mnemonic translations in code_e200.asm (30+ instructions) | e8a0b5e | 2026-02-10 |
 | — | Bank probe + DREQ register fix in adapter_init | 423f2e4 | 2026-02-10 |
 | — | Codebase consolidation (133 MB removed, 775 files) | 53a9324 | 2026-02-09 |

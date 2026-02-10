@@ -18,6 +18,13 @@ Lessons learned across sessions. **Read this before modifying code.**
 - VRD uses `JSR (d16,PC)` for intra-section subroutine calls
 - **Fix:** Use `jsr label(pc)` syntax in vasm to get the $4EBA encoding
 
+### Indexed vs Displacement Addressing — Easy to Confuse
+- `dc.w $31BC,$0000,$2000` is **NOT** `move.w #$0000,$2000(a0)` (d16,An mode 5)
+- It IS `move.w #$0000,(a0,d2.w)` (d8,An,Xn mode 6) — $2000 is the extension word
+- Extension word $2000 = D2.W index register, displacement $00
+- The disassembler may show these as `$2000(A0)` which is misleading
+- **Rule:** When translating dc.w with 3+ words, decode the addressing mode bits before choosing mnemonic syntax
+
 ### m68k_disasm.py Known Bugs
 The project disassembler (`tools/m68k_disasm.py`) has these confirmed issues:
 - **ASL/LSL:** Shift count field 000 means 8, not 0 (shows wrong count)

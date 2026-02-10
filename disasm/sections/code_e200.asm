@@ -96,14 +96,14 @@ sh2_graphics_cmd:
         subq.w  #3,d5                           ; $00E262: $5745       - D5 -= 3 (loop count)
 
 .upper_loop:
-        dc.w    $4EBA,$007E                     ; $00E264: BSR.W sh2_sprite_calc
+        jsr     sh2_sprite_calc(pc)             ; $00E264: JSR (d16,PC) sh2_sprite_calc
         move.w  d6,(a0)                         ; $00E268: $3086       - Store index
         adda.l  #$00000080,a0                   ; $00E26A: $D1FC $0000 $0080 - Next row
         dbra    d5,.upper_loop                  ; $00E270: $51CD $FFF2 - Loop
 
 ; Center row - special index
         move.w  #$0007,d2                       ; $00E274: $343C $0007 - D2 = 7
-        dc.w    $4EBA,$006A                     ; $00E278: BSR.W sh2_sprite_calc
+        jsr     sh2_sprite_calc(pc)             ; $00E278: JSR (d16,PC) sh2_sprite_calc
         move.w  d6,(a0)+                        ; $00E27C: $30C6       - Store and advance
 
 ; Build horizontal strip
@@ -112,7 +112,7 @@ sh2_graphics_cmd:
         subq.w  #3,d5                           ; $00E284: $5745       - D5 -= 3
 
 .horiz_loop:
-        dc.w    $4EBA,$005C                     ; $00E286: BSR.W sh2_sprite_calc
+        jsr     sh2_sprite_calc(pc)             ; $00E286: JSR (d16,PC) sh2_sprite_calc
         move.w  d6,(a0)+                        ; $00E28A: $30C6       - Store and advance
         dbra    d5,.horiz_loop                  ; $00E28C: $51CD $FFF8 - Loop
 
@@ -122,7 +122,7 @@ sh2_graphics_cmd:
 
 ; End of center row
         move.w  #$0005,d2                       ; $00E298: $343C $0005 - D2 = 5
-        dc.w    $4EBA,$0046                     ; $00E29C: BSR.W sh2_sprite_calc
+        jsr     sh2_sprite_calc(pc)             ; $00E29C: JSR (d16,PC) sh2_sprite_calc
         move.w  d6,(a0)                         ; $00E2A0: $3086       - Store index
         suba.l  #$00000080,a0                   ; $00E2A2: $91FC $0000 $0080 - Previous row
 
@@ -132,14 +132,14 @@ sh2_graphics_cmd:
         subq.w  #3,d5                           ; $00E2AE: $5745       - D5 -= 3
 
 .lower_loop:
-        dc.w    $4EBA,$0032                     ; $00E2B0: BSR.W sh2_sprite_calc
+        jsr     sh2_sprite_calc(pc)             ; $00E2B0: JSR (d16,PC) sh2_sprite_calc
         move.w  d6,(a0)                         ; $00E2B4: $3086       - Store
         suba.l  #$00000080,a0                   ; $00E2B6: $91FC $0000 $0080 - Previous row
         dbra    d5,.lower_loop                  ; $00E2BC: $51CD $FFF2 - Loop
 
 ; Final corner index
         move.w  #$0007,d2                       ; $00E2C0: $343C $0007 - D2 = 7
-        dc.w    $4EBA,$001E                     ; $00E2C4: BSR.W sh2_sprite_calc
+        jsr     sh2_sprite_calc(pc)             ; $00E2C4: JSR (d16,PC) sh2_sprite_calc
         move.w  d6,(a0)                         ; $00E2C8: $3086       - Store
         subq.l  #2,a0                           ; $00E2CA: $5588       - Back 2 bytes
 
@@ -149,7 +149,7 @@ sh2_graphics_cmd:
         subq.w  #3,d5                           ; $00E2D2: $5745       - D5 -= 3
 
 .final_loop:
-        dc.w    $4EBA,$000E                     ; $00E2D4: BSR.W sh2_sprite_calc
+        jsr     sh2_sprite_calc(pc)             ; $00E2D4: JSR (d16,PC) sh2_sprite_calc
         move.w  d6,(a0)                         ; $00E2D8: $3086       - Store
         subq.l  #2,a0                           ; $00E2DA: $5588       - Back 2 bytes
         dbra    d5,.final_loop                  ; $00E2DC: $51CD $FFF6 - Loop
@@ -191,18 +191,18 @@ sh2_sprite_calc:
 ; Total: 28 rows × 64 longs = 1792 longs = 7168 bytes
 ; ============================================================================
 sh2_load_data:
-        dc.w    $2ABC,$6000,$0002               ; $00E2F0: MOVE.L #$60000002,(A5)+
+        move.l  #$60000002,(a5)                 ; $00E2F0: VDP VRAM write setup command
         moveq   #$1B,d0                         ; $00E2F6: $701B               - D0 = 27 (28 rows)
 
 .row_loop:
         move.w  #$001F,d1                       ; $00E2F8: $323C $001F         - D1 = 31 (32 longs)
 .copy_loop:
-        dc.w    $2C98                           ; $00E2FC: MOVE.L (A0)+,(A6)+
+        move.l  (a0)+,(a6)                      ; $00E2FC: Copy long to VDP data port
         dbra    d1,.copy_loop                   ; $00E2FE: $51C9 $FFFC         - Loop 32 times
 
         move.w  #$001F,d1                       ; $00E302: $323C $001F         - D1 = 31
 .zero_loop:
-        dc.w    $2CBC,$0000,$0000               ; $00E306: MOVE.L #$00000000,(A6)+
+        move.l  #$00000000,(a6)                 ; $00E306: Zero-fill VDP data
         dbra    d1,.zero_loop                   ; $00E30C: $51C9 $FFF8         - Loop 32 times
 
         dbra    d0,.row_loop                    ; $00E310: $51C8 $FFE6         - Loop 28 rows
@@ -435,11 +435,11 @@ ByteProcessLoop:
         move.b  d2,d1                           ; $00E4A0: $1202       - D1 = D2 (byte)
         lsr.b   #4,d1                           ; $00E4A2: $E809       - D1 >>= 4 (high nibble)
         andi.w  #$000F,d1                       ; $00E4A4: $0241 $000F - Mask to 4 bits
-        dc.w    $6100,$0012                     ; $00E4A8: BSR.W DigitToASCII (+18)
+        bsr.w   DigitToASCII                    ; $00E4A8: BSR.W DigitToASCII
         addq.l  #8,a1                           ; $00E4AC: $5089       - A1 += 8
         move.w  d2,d1                           ; $00E4AE: $3202       - D1 = D2 (word)
         andi.w  #$000F,d1                       ; $00E4B0: $0241 $000F - Mask to 4 bits (low nibble)
-        dc.w    $6100,$0006                     ; $00E4B4: BSR.W DigitToASCII (+6)
+        bsr.w   DigitToASCII                    ; $00E4B4: BSR.W DigitToASCII
         addq.l  #8,a1                           ; $00E4B8: $5089       - A1 += 8
         rts                                     ; $00E4BA: $4E75
 
@@ -459,7 +459,7 @@ DigitToASCII:
         add.w   d1,a0                           ; $00E4CA: A0 += D1 (offset)
         move.w  #$000C,d0                       ; $00E4CC: D0 = 12 (width)
         move.w  #$0010,d1                       ; $00E4D0: D1 = 16 (height)
-        dc.w    $4EBA,$FE84                     ; $00E4D4: BSR.W sh2_send_cmd_wait
+        jsr     sh2_send_cmd(pc)                ; $00E4D4: JSR (d16,PC) sh2_send_cmd
         rts                                     ; $00E4D8
 
 ; ============================================================================
@@ -512,50 +512,50 @@ sh2_cmd_21:
 ; Uses: A0, A1, A2, A3, D1, D2
 ; ============================================================================
 MemoryInit:
-        dc.w    $41F8,$84A2                     ; $00E52C: LEA $84A2.W,A0
-        dc.w    $43F8,$84C2                     ; $00E530: LEA $84C2.W,A1
-        dc.w    $45F8,$84E2                     ; $00E534: LEA $84E2.W,A2
+        lea     ($FFFF84A2).w,a0                ; $00E52C - Buffer A base
+        lea     ($FFFF84C2).w,a1                ; $00E530 - Buffer B base
+        lea     ($FFFF84E2).w,a2                ; $00E534 - Buffer C base
 
-        clr.w   d2                              ; $00E538: $4242       - D2 = 0
-        move.w  #$0007,d1                       ; $00E53A: $323C $0007 - D1 = 7 (loop counter)
+        clr.w   d2                              ; $00E538 - D2 = 0
+        move.w  #$0007,d1                       ; $00E53A - D1 = 7 (loop counter)
 
 .clear_loop:
-        dc.w    $31BC,$0000,$2000               ; $00E53E: MOVE.W #$0000,$2000(A0)
-        dc.w    $33BC,$0000,$2000               ; $00E544: MOVE.W #$0000,$2000(A1)
-        dc.w    $35BC,$0000,$2000               ; $00E54A: MOVE.W #$0000,$2000(A2)
-        addq.w  #2,d2                           ; $00E550: $5442       - D2 += 2
-        dbra    d1,.clear_loop                  ; $00E552: $51C9 $FFEA - Loop 8 times
+        move.w  #$0000,(a0,d2.w)                ; $00E53E - Clear A[D2]
+        move.w  #$0000,(a1,d2.w)                ; $00E544 - Clear B[D2]
+        move.w  #$0000,(a2,d2.w)                ; $00E54A - Clear C[D2]
+        addq.w  #2,d2                           ; $00E550 - D2 += 2
+        dbra    d1,.clear_loop                  ; $00E552 - Loop 8 times
 
 ; Select address based on D0
-        tst.w   d0                              ; $00E556: Test D0
-        bne.s   .check_one                      ; $00E558: Branch if != 0
-        dc.w    $41F8,$84A2                     ; $00E55A: LEA $84A2.W,A0
-        dc.w    $6000,$0016                     ; $00E55E: BRA.W .setup_table
+        tst.w   d0                              ; $00E556 - Test D0
+        bne.s   .check_one                      ; $00E558 - Branch if != 0
+        lea     ($FFFF84A2).w,a0                ; $00E55A - Buffer A
+        bra.w   .setup_table                    ; $00E55E
 
 .check_one:
-        cmpi.w  #$0001,d0                       ; $00E562: Compare D0 with 1
-        dc.w    $6600,$000A                     ; $00E566: BNE.W .use_addr3
-        dc.w    $41F8,$84C2                     ; $00E56A: LEA $84C2.W,A0
-        dc.w    $6000,$0006                     ; $00E56E: BRA.W .setup_table
+        cmpi.w  #$0001,d0                       ; $00E562 - Compare D0 with 1
+        bne.w   .use_addr3                      ; $00E566
+        lea     ($FFFF84C2).w,a0                ; $00E56A - Buffer B
+        bra.w   .setup_table                    ; $00E56E
 
 .use_addr3:
-        dc.w    $41F8,$84E2                     ; $00E572: LEA $84E2.W,A0
+        lea     ($FFFF84E2).w,a0                ; $00E572 - Buffer C
 
 .setup_table:
-        lea     ($0088E5AC).l,a3                ; $00E576: $47F9 $0088 $E5AC - Load table address
-        moveq   #0,d1                           ; $00E57C: $7200       - D1 = 0
+        lea     ($0088E5AC).l,a3                ; $00E576 - Load table address
+        moveq   #0,d1                           ; $00E57C - D1 = 0
 
 .copy_loop:
-        dc.w    $3238,$A012                     ; $00E57E: MOVE.W ($A012).W,D1
-        dc.w    $D241                           ; $00E582: ADD.W D1,D1
-        dc.w    $D7C1                           ; $00E584: ADDA.W D1,A3
-        clr.w   d2                              ; $00E586: $4242       - D2 = 0
-        move.w  #$0007,d1                       ; $00E588: $323C $0007 - D1 = 7 (loop counter)
+        move.w  ($FFFFA012).w,d1                ; $00E57E - Load table index
+        add.w   d1,d1                           ; $00E582 - D1 *= 2 (word offset)
+        adda.l  d1,a3                           ; $00E584 - A3 += D1
+        clr.w   d2                              ; $00E586 - D2 = 0
+        move.w  #$0007,d1                       ; $00E588 - D1 = 7 (loop counter)
 
 .inner_loop:
-        dc.w    $319B,$2000                     ; $00E58C: MOVE.W (A3)+,$2000(A0)
-        addq.w  #2,d2                           ; $00E590: $5442       - D2 += 2
-        dbra    d1,.inner_loop                  ; $00E592: $51C9 $FFF8 - Loop 8 times
+        move.w  (a3)+,(a0,d2.w)                 ; $00E58C - Copy table entry to buffer[D2]
+        addq.w  #2,d2                           ; $00E590 - D2 += 2
+        dbra    d1,.inner_loop                  ; $00E592 - Loop 8 times
 ; ============================================================================
 ; VDP register manipulation ($00E596-$00E5AA)
 ; ============================================================================
@@ -564,13 +564,13 @@ MemoryInit:
 ; Uses: D1, VDP control port ($A012)
 ; ============================================================================
 VDPRegManipulate:
-        dc.w    $3238,$A012                     ; $00E596: MOVE.W ($A012).W,D1
-        dc.w    $5241                           ; $00E59A: ADDQ.W #1,D1
-        cmpi.w  #$0007,d1                       ; $00E59C: Compare with 7
-        dc.w    $6F00,$0004                     ; $00E5A0: BLE.W .store_value
-        clr.w   d1                              ; $00E5A4: Clear D1
+        move.w  ($FFFFA012).w,d1                ; $00E596 - Load current value
+        addq.w  #1,d1                           ; $00E59A - Increment
+        cmpi.w  #$0007,d1                       ; $00E59C - Compare with 7
+        ble.w   .store_value                    ; $00E5A0 - Skip clear if <= 7
+        clr.w   d1                              ; $00E5A4 - Wrap to 0
 .store_value:
-        dc.w    $31C1,$A012                     ; $00E5A6: MOVE.W D1,($A012).W
+        move.w  d1,($FFFFA012).w                ; $00E5A6 - Store updated value
         rts                                     ; $00E5AA
         include "modules/68k/game/fn_e200_001.asm"
         include "modules/68k/game/fn_e200_002.asm"
@@ -676,10 +676,10 @@ VDPRegManipulate:
 ; Uses: None (bit test and conditional increment only)
 ; ============================================================================
 post_dispatch_callback:
-        dc.w    $4EBA,$CD5A                     ; $00E928: JSR (PC),$CD5A -> $00B684
-        dc.w    $0838,$0006,$C80E               ; $00E92C: BTST #$06,($C80E).W - Test bit 6
+        dc.w    $4EBA,$CD5A                     ; $00E928: JSR (d16,PC) → $00B684 (cross-section)
+        btst    #6,($FFFFC80E).w                ; $00E92C - Test bit 6 of game state
         bne.s   .skip_advance                   ; $00E932 - Skip if set
-        dc.w    $5878,$C87E                     ; $00E934: ADDQ.W #4,($C87E).W - Advance index
+        addq.w  #4,($FFFFC87E).w                ; $00E934 - Advance jump table index
 .skip_advance:
         rts                                     ; $00E938
         include "modules/68k/game/fn_e200_003.asm"
@@ -880,22 +880,22 @@ sh2_status_check_and_vector_setup:
         bne.s   .wait_master                    ; $00EEF8 - Loop until clear
 
         clr.b   COMM1_LO                        ; $00EEFA - Clear COMM1 low byte
-        dc.w    $31FC,$0000,$C87E               ; $00EF00: MOVE.W #$0000,($C87E).W - Reset index
+        move.w  #$0000,($FFFFC87E).w           ; $00EF00 - Reset jump table index
 
         ; Write first ROM vector ($008926D2)
-        dc.w    $23FC,$0089,$26D2,$00FF,$0002   ; $00EF06: MOVE.L #$008926D2,($FF0002).W
+        move.l  #$008926D2,($00FF0002).l        ; $00EF06 - Default VINT handler
 
         ; Check VINT enable flags and conditionally write alternate vectors
-        dc.w    $4A38,$A018                     ; $00EF10: TST.B ($A018).W - Test VINT enable 1
-        dc.w    $661A                           ; $00EF14: BNE.S .done (+$1A)
+        tst.b   ($FFFFA018).w                   ; $00EF10 - Test VINT enable flag 1
+        bne.s   .done                           ; $00EF14 - Skip if set
 
-        dc.w    $23FC,$0088,$D4A4,$00FF,$0002   ; $00EF16: MOVE.L #$0088D4A4,($FF0002).W - Alternate vector 1
+        move.l  #$0088D4A4,($00FF0002).l        ; $00EF16 - Alternate vector 1
 
 .check_second_flag:
-        dc.w    $4A38,$A01F                     ; $00EF20: TST.B ($A01F).W - Test VINT enable 2
-        dc.w    $660A                           ; $00EF24: BNE.S .done (+$0A)
+        tst.b   ($FFFFA01F).w                   ; $00EF20 - Test VINT enable flag 2
+        bne.s   .done                           ; $00EF24 - Skip if set
 
-        dc.w    $23FC,$0088,$D48A,$00FF,$0002   ; $00EF26: MOVE.L #$0088D48A,($FF0002).W - Alternate vector 2
+        move.l  #$0088D48A,($00FF0002).l        ; $00EF26 - Alternate vector 2
 
 .done:
         rts                                     ; $00EF30
@@ -923,12 +923,12 @@ sh2_status_check_and_vector_setup:
 table_dual_dispatch:
         ; ---- First table dispatch ----
         moveq   #$00,d0                         ; $00EF32 - Clear D0
-        dc.w    $4A38,$A01A                     ; $00EF34: TST.B ($A01A).W - Test flag 1
+        tst.b   ($FFFFA01A).w                   ; $00EF34 - Test flag 1
         bne.s   .use_alt1_index                 ; $00EF38 - Branch if set
-        dc.w    $1038,$A019                     ; $00EF3A: MOVE.B ($A019).W,D0 - Load index A
+        move.b  ($FFFFA019).w,d0                ; $00EF3A - Load table index A
         bra.s   .dispatch1                      ; $00EF3E
 .use_alt1_index:
-        dc.w    $1038,$A01E                     ; $00EF40: MOVE.B ($A01E).W,D0 - Load index B
+        move.b  ($FFFFA01E).w,d0                ; $00EF40 - Load table index B
 
 .dispatch1:
         lea     $0088EFA4.l,a1                  ; $00EF44 - Load table 1 base
@@ -940,16 +940,16 @@ table_dual_dispatch:
         move.w  ($04,a1,d0.w),d0                ; $00EF56 - Load word param
         move.w  #$0030,d1                       ; $00EF5A - Width = $30
         move.w  #$0010,d2                       ; $00EF5E - Height = $10
-        dc.w    $4EBA,$F450                     ; $00EF62: JSR (PC),$F450 -> $00E3B4
+        jsr     sh2_cmd_27(pc)                  ; $00EF62: JSR (d16,PC) sh2_cmd_27
 
         ; ---- Second table dispatch ----
         moveq   #$00,d0                         ; $00EF66 - Clear D0
-        dc.w    $4A38,$A01A                     ; $00EF68: TST.B ($A01A).W - Test flag 1
+        tst.b   ($FFFFA01A).w                   ; $00EF68 - Test flag 1
         beq.s   .use_alt2_index                 ; $00EF6C - Branch if clear
-        dc.w    $1038,$A019                     ; $00EF6E: MOVE.B ($A019).W,D0 - Load index A
+        move.b  ($FFFFA019).w,d0                ; $00EF6E - Load table index A
         bra.s   .dispatch2                      ; $00EF72
 .use_alt2_index:
-        dc.w    $1038,$A01D                     ; $00EF74: MOVE.B ($A01D).W,D0 - Load index B
+        move.b  ($FFFFA01D).w,d0                ; $00EF74 - Load table index B
 
 .dispatch2:
         lea     $0088EFB6.l,a1                  ; $00EF78 - Load table 2 base
@@ -966,7 +966,7 @@ table_dual_dispatch:
         tst.b   COMM0                           ; $00EF96 - Check COMM0 clear
         bne.s   .wait_comm_ready                ; $00EF9C - Wait until clear
 
-        dc.w    $4EBA,$F414                     ; $00EF9E: JSR (PC),$F414 -> sh2_cmd_27
+        jsr     sh2_cmd_27(pc)                  ; $00EF9E: JSR (d16,PC) sh2_cmd_27
         rts                                     ; $00EFA2
         dc.w    $0401        ; $00EFA4
         dc.w    $2010        ; $00EFA6

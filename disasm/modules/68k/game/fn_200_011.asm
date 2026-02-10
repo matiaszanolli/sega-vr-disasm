@@ -18,12 +18,12 @@
 fn_200_011:
         MOVE    SR,-(A7)                        ; $000FEA
         MOVE    #$2700,SR                       ; $000FEC
-        MOVE.W  #$0100,$00A11100                ; $000FF0
+        MOVE.W  #$0100,Z80_BUSREQ                ; $000FF0
 .loc_000E:
-        BTST    #0,$00A11100                    ; $000FF8
+        BTST    #0,Z80_BUSREQ                    ; $000FF8
         BNE.S  .loc_000E                        ; $001000
         DC.W    $4EBA,$08D4         ; JSR     $0018D8(PC); $001002
-        MOVE.W  #$0000,$00A11100                ; $001006
+        MOVE.W  #$0000,Z80_BUSREQ                ; $001006
         MOVE    (A7)+,SR                        ; $00100E
         DC.W    $41FA,$0022         ; LEA     $001034(PC),A0; $001010
         MOVE.B  #$81,(-14220).W                 ; $001014

@@ -89,13 +89,13 @@ fn_12200_024:
 .loc_00F4:
         MOVE.W  #$0041,$00A15110                ; $012B66
         MOVE.B  #$04,$00A15107                  ; $012B6E
-        CLR.B  $00A15123                        ; $012B76
-        MOVE.B  #$2B,$00A15121                  ; $012B7C
-        MOVE.B  #$01,$00A15120                  ; $012B84
+        CLR.B  COMM1_LO                        ; $012B76
+        MOVE.B  #$2B,COMM0_LO                  ; $012B7C
+        MOVE.B  #$01,COMM0_HI                  ; $012B84
 .loc_011A:
-        BTST    #1,$00A15123                    ; $012B8C
+        BTST    #1,COMM1_LO                    ; $012B8C
         BEQ.S  .loc_011A                        ; $012B94
-        BCLR    #1,$00A15123                    ; $012B96
+        BCLR    #1,COMM1_LO                    ; $012B96
         LEA     $00FF60C8,A1                    ; $012B9E
         LEA     $00A15112,A2                    ; $012BA4
         MOVE.W  #$0040,D7                       ; $012BAA

@@ -16,7 +16,7 @@
 fn_200_002:
         MOVEM.L D0/D7/A0/A1,-(A7)               ; $0005CE
         LEA     $0000063E,A0                    ; $0005D2
-        LEA     $00C00004,A1                    ; $0005D8
+        LEA     VDP_CTRL,A1                    ; $0005D8
         MOVE.W  (A0)+,(A1)                      ; $0005DE
         MOVE.W  (A0)+,(A1)                      ; $0005E0
         MOVE.W  (A0)+,(A1)                      ; $0005E2

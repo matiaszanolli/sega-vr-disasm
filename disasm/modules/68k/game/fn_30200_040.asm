@@ -16,5 +16,5 @@ fn_30200_040:
         MOVE.B  (A4)+,D0                        ; $031166
         DC.W    $4EBA,$FBB2         ; JSR     $030D1C(PC); $031168
         MOVE.B  D0,$00A00FFE                    ; $03116C
-        MOVE.W  #$0000,$00A11100                ; $031172
+        MOVE.W  #$0000,Z80_BUSREQ                ; $031172
         RTS                                     ; $03117A

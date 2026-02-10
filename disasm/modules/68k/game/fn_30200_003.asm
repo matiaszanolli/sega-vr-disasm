@@ -42,6 +42,6 @@ fn_30200_003:
         MOVE.B  D6,D1                           ; $0302DA
         MOVE.B  #$A0,D0                         ; $0302DC
         DC.W    $4EBA,$09EA         ; JSR     $030CCC(PC); $0302E0
-        MOVE.W  #$0000,$00A11100                ; $0302E4
+        MOVE.W  #$0000,Z80_BUSREQ                ; $0302E4
 .loc_004E:
         RTS                                     ; $0302EC

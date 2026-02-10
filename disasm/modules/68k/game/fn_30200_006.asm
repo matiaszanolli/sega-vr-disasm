@@ -60,5 +60,5 @@ fn_30200_006:
         MOVE.B  (A1)+,D0                        ; $0303B8
         DC.W    $4EBA,$091C         ; JSR     $030CD8(PC); $0303BA
         DBRA    D5,.loc_004E                    ; $0303BE
-        MOVE.W  #$0000,$00A11100                ; $0303C2
+        MOVE.W  #$0000,Z80_BUSREQ                ; $0303C2
         RTS                                     ; $0303CA

@@ -30,5 +30,5 @@ fn_30200_021:
         DC.W    $4EBA,$018E         ; JSR     $030CCC(PC); $030B3C
         ADDQ.B  #4,D3                           ; $030B40
         DBRA    D4,.loc_001E                    ; $030B42
-        MOVE.W  #$0000,$00A11100                ; $030B46
+        MOVE.W  #$0000,Z80_BUSREQ                ; $030B46
         RTS                                     ; $030B4E

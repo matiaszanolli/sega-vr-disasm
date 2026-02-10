@@ -35,5 +35,5 @@ fn_30200_022:
         DBRA    D2,.loc_0020                    ; $030B7A
         SUBI.B  #$0F,D0                         ; $030B7E
         DBRA    D3,.loc_001E                    ; $030B82
-        MOVE.W  #$0000,$00A11100                ; $030B86
+        MOVE.W  #$0000,Z80_BUSREQ                ; $030B86
         RTS                                     ; $030B8E

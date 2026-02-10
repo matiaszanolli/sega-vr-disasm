@@ -57,7 +57,7 @@ fn_e200_009:
         MOVE.W  #$0010,D1                       ; $00F95E
         MOVE.W  #$0010,D2                       ; $00F962
 .loc_0070:
-        TST.B  $00A15120                        ; $00F966
+        TST.B  COMM0_HI                        ; $00F966
         BNE.S  .loc_0070                        ; $00F96C
         DC.W    $4EBA,$EA44         ; JSR     $00E3B4(PC); $00F96E
         MOVE.B  (-24551).W,D0                   ; $00F972
@@ -77,7 +77,7 @@ fn_e200_009:
         MOVE.W  #$0010,D1                       ; $00F996
         MOVE.W  #$0010,D2                       ; $00F99A
 .loc_00A8:
-        TST.B  $00A15120                        ; $00F99E
+        TST.B  COMM0_HI                        ; $00F99E
         BNE.S  .loc_00A8                        ; $00F9A4
         DC.W    $4EBA,$EA0C         ; JSR     $00E3B4(PC); $00F9A6
         MOVEQ   #$00,D0                         ; $00F9AA
@@ -88,7 +88,7 @@ fn_e200_009:
         MOVE.W  #$0010,D1                       ; $00F9BE
         MOVE.W  #$0010,D2                       ; $00F9C2
 .loc_00D0:
-        TST.B  $00A15120                        ; $00F9C6
+        TST.B  COMM0_HI                        ; $00F9C6
         BNE.S  .loc_00D0                        ; $00F9CC
         DC.W    $4EBA,$E9E4         ; JSR     $00E3B4(PC); $00F9CE
         MOVEA.L #$04019018,A0                   ; $00F9D2
@@ -96,7 +96,7 @@ fn_e200_009:
         MOVE.W  #$0010,D1                       ; $00F9DC
         MOVE.W  #$0010,D2                       ; $00F9E0
 .loc_00EE:
-        TST.B  $00A15120                        ; $00F9E4
+        TST.B  COMM0_HI                        ; $00F9E4
         BNE.S  .loc_00EE                        ; $00F9EA
         DC.W    $4EBA,$E9C6         ; JSR     $00E3B4(PC); $00F9EC
         MOVE.B  (-24551).W,D0                   ; $00F9F0
@@ -122,7 +122,7 @@ fn_e200_009:
         MOVE.W  #$0010,D1                       ; $00FA22
         MOVE.W  #$0010,D2                       ; $00FA26
 .loc_0134:
-        TST.B  $00A15120                        ; $00FA2A
+        TST.B  COMM0_HI                        ; $00FA2A
         BNE.S  .loc_0134                        ; $00FA30
         DC.W    $4EBA,$E980         ; JSR     $00E3B4(PC); $00FA32
         MOVEQ   #$00,D0                         ; $00FA36
@@ -133,7 +133,7 @@ fn_e200_009:
         MOVE.W  #$0010,D1                       ; $00FA4A
         MOVE.W  #$0010,D2                       ; $00FA4E
 .loc_015C:
-        TST.B  $00A15120                        ; $00FA52
+        TST.B  COMM0_HI                        ; $00FA52
         BNE.S  .loc_015C                        ; $00FA58
         DC.W    $4EBA,$E958         ; JSR     $00E3B4(PC); $00FA5A
         MOVE.B  (-24550).W,D0                   ; $00FA5E
@@ -153,7 +153,7 @@ fn_e200_009:
         MOVE.W  #$0010,D1                       ; $00FA82
         MOVE.W  #$0010,D2                       ; $00FA86
 .loc_0194:
-        TST.B  $00A15120                        ; $00FA8A
+        TST.B  COMM0_HI                        ; $00FA8A
         BNE.S  .loc_0194                        ; $00FA90
         DC.W    $4EBA,$E920         ; JSR     $00E3B4(PC); $00FA92
         MOVEQ   #$00,D0                         ; $00FA96
@@ -164,7 +164,7 @@ fn_e200_009:
         MOVE.W  #$0010,D1                       ; $00FAAA
         MOVE.W  #$0010,D2                       ; $00FAAE
 .loc_01BC:
-        TST.B  $00A15120                        ; $00FAB2
+        TST.B  COMM0_HI                        ; $00FAB2
         BNE.S  .loc_01BC                        ; $00FAB8
         DC.W    $4EBA,$E8F8         ; JSR     $00E3B4(PC); $00FABA
         MOVEA.L #$040190B0,A0                   ; $00FABE
@@ -172,7 +172,7 @@ fn_e200_009:
         MOVE.W  #$0010,D1                       ; $00FAC8
         MOVE.W  #$0010,D2                       ; $00FACC
 .loc_01DA:
-        TST.B  $00A15120                        ; $00FAD0
+        TST.B  COMM0_HI                        ; $00FAD0
         BNE.S  .loc_01DA                        ; $00FAD6
         DC.W    $4EBA,$E8DA         ; JSR     $00E3B4(PC); $00FAD8
         MOVE.B  (-24550).W,D0                   ; $00FADC
@@ -198,7 +198,7 @@ fn_e200_009:
         MOVE.W  #$0010,D1                       ; $00FB0E
         MOVE.W  #$0010,D2                       ; $00FB12
 .loc_0220:
-        TST.B  $00A15120                        ; $00FB16
+        TST.B  COMM0_HI                        ; $00FB16
         BNE.S  .loc_0220                        ; $00FB1C
         DC.W    $4EBA,$E894         ; JSR     $00E3B4(PC); $00FB1E
         RTS                                     ; $00FB22

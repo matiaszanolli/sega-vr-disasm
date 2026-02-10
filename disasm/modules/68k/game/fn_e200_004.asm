@@ -137,7 +137,7 @@ fn_e200_004:
         MOVE.W  #$0010,D1                       ; $00EDEA
         DC.W    $4EBA,$F56A         ; JSR     $00E35A(PC); $00EDEE
 .loc_0134:
-        TST.B  $00A15120                        ; $00EDF2
+        TST.B  COMM0_HI                        ; $00EDF2
         BNE.S  .loc_0134                        ; $00EDF8
         DC.W    $6100,$0136         ; BSR.W  $00EF32; $00EDFA
         MOVEA.L #$0603D800,A0                   ; $00EDFE

@@ -29,8 +29,8 @@ fn_e200_005:
         MOVE.W  #$002C,(-14214).W               ; $00F14A
         BCLR    #6,(-14219).W                   ; $00F150
         MOVE.W  (-14220).W,(A5)                 ; $00F156
-        MOVE.W  #$0083,$00A15100                ; $00F15A
-        ANDI.B  #$FC,$00A15181                  ; $00F162
+        MOVE.W  #$0083,MARS_SYS_INTCTL                ; $00F15A
+        ANDI.B  #$FC,MARS_VDP_MODE+1                  ; $00F162
         JSR     $008826C8                       ; $00F16A
         MOVE.L  #$000A0907,D0                   ; $00F170
         JSR     $008814BE                       ; $00F176
@@ -94,7 +94,7 @@ fn_e200_005:
         LEA     $00FF1000,A0                    ; $00F262
         DC.W    $4EBA,$F086         ; JSR     $00E2F0(PC); $00F268
         DC.W    $4EBA,$EF4E         ; JSR     $00E1BC(PC); $00F26C
-        BCLR    #7,$00A15181                    ; $00F270
+        BCLR    #7,MARS_VDP_MODE+1                    ; $00F270
         LEA     $00FF6E00,A0                    ; $00F278
         ADDA.L  #$00000160,A0                   ; $00F27E
         LEA     $0088F39C,A1                    ; $00F284
@@ -138,9 +138,9 @@ fn_e200_005:
         MOVE.B  (-339).W,(-24543).W             ; $00F342
         MOVE.B  (-338).W,(-24541).W             ; $00F348
         JSR     $0088204A                       ; $00F34E
-        ANDI.B  #$FC,$00A15181                  ; $00F354
-        ORI.B  #$01,$00A15181                   ; $00F35C
-        MOVE.W  #$8083,$00A15100                ; $00F364
+        ANDI.B  #$FC,MARS_VDP_MODE+1                  ; $00F354
+        ORI.B  #$01,MARS_VDP_MODE+1                   ; $00F35C
+        MOVE.W  #$8083,MARS_SYS_INTCTL                ; $00F364
         BSET    #6,(-14219).W                   ; $00F36C
         MOVE.W  (-14220).W,(A5)                 ; $00F372
         MOVE.W  #$0020,$00FF0008                ; $00F376

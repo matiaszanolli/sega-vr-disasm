@@ -63,7 +63,7 @@ fn_10200_040:
 .loc_0084:
         MOVE.W  #$0010,D1                       ; $012108
 .loc_0088:
-        TST.B  $00A15120                        ; $01210C
+        TST.B  COMM0_HI                        ; $01210C
         BNE.S  .loc_0088                        ; $012112
         DC.W    $4EBA,$C29E         ; JSR     $00E3B4(PC); $012114
         MOVEQ   #$00,D0                         ; $012118
@@ -85,21 +85,21 @@ fn_10200_040:
         MOVE.W  $04(A1,D0.W),D0                 ; $012144
         MOVE.W  #$0010,D1                       ; $012148
 .loc_00C8:
-        TST.B  $00A15120                        ; $01214C
+        TST.B  COMM0_HI                        ; $01214C
         BNE.S  .loc_00C8                        ; $012152
         DC.W    $4EBA,$C25E         ; JSR     $00E3B4(PC); $012154
 .loc_00D4:
-        TST.B  $00A15120                        ; $012158
+        TST.B  COMM0_HI                        ; $012158
         BNE.S  .loc_00D4                        ; $01215E
-        MOVE.W  #$0101,$00A1512C                ; $012160
-        MOVE.W  #$4000,$00A15128                ; $012168
-        MOVE.B  #$2C,$00A15121                  ; $012170
-        MOVE.B  #$01,$00A15120                  ; $012178
+        MOVE.W  #$0101,COMM6                ; $012160
+        MOVE.W  #$4000,COMM4                ; $012168
+        MOVE.B  #$2C,COMM0_LO                  ; $012170
+        MOVE.B  #$01,COMM0_HI                  ; $012178
 .loc_00FC:
-        TST.B  $00A1512C                        ; $012180
+        TST.B  COMM6                        ; $012180
         BNE.S  .loc_00FC                        ; $012186
-        MOVE.W  #$0078,$00A15128                ; $012188
-        MOVE.W  #$0101,$00A1512C                ; $012190
+        MOVE.W  #$0078,COMM4                ; $012188
+        MOVE.W  #$0101,COMM6                ; $012190
         MOVEQ   #$00,D0                         ; $012198
         MOVE.B  (-24551).W,D0                   ; $01219A
         TST.B  (-24550).W                       ; $01219E

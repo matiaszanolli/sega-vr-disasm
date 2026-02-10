@@ -11,25 +11,25 @@
 
 fn_12200_007:
 .loc_0000:
-        TST.B  $00A15120                        ; $012FE4
+        TST.B  COMM0_HI                        ; $012FE4
         BNE.S  .loc_0000                        ; $012FEA
-        MOVE.L  A1,$00A15128                    ; $012FEC
-        MOVE.W  #$0101,$00A1512C                ; $012FF2
-        MOVE.B  #$21,$00A15121                  ; $012FFA
-        MOVE.B  #$01,$00A15120                  ; $013002
+        MOVE.L  A1,COMM4                    ; $012FEC
+        MOVE.W  #$0101,COMM6                ; $012FF2
+        MOVE.B  #$21,COMM0_LO                  ; $012FFA
+        MOVE.B  #$01,COMM0_HI                  ; $013002
 .loc_0026:
-        TST.B  $00A1512C                        ; $01300A
+        TST.B  COMM6                        ; $01300A
         BNE.S  .loc_0026                        ; $013010
-        MOVE.W  D0,$00A15128                    ; $013012
-        MOVE.W  D1,$00A1512A                    ; $013018
-        MOVE.W  #$0101,$00A1512C                ; $01301E
-        TST.B  $00A1512C                        ; $013026
+        MOVE.W  D0,COMM4                    ; $013012
+        MOVE.W  D1,COMM5                    ; $013018
+        MOVE.W  #$0101,COMM6                ; $01301E
+        TST.B  COMM6                        ; $013026
         BNE.S  .loc_0026                        ; $01302C
-        MOVE.W  D2,$00A15128                    ; $01302E
-        MOVE.W  #$0101,$00A1512C                ; $013034
+        MOVE.W  D2,COMM4                    ; $01302E
+        MOVE.W  #$0101,COMM6                ; $013034
 .loc_0058:
-        TST.B  $00A1512C                        ; $01303C
+        TST.B  COMM6                        ; $01303C
         BNE.S  .loc_0058                        ; $013042
-        MOVE.L  A0,$00A15128                    ; $013044
-        MOVE.W  #$0101,$00A1512C                ; $01304A
+        MOVE.L  A0,COMM4                    ; $013044
+        MOVE.W  #$0101,COMM6                ; $01304A
         RTS                                     ; $013052

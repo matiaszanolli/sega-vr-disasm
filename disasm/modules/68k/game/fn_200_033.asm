@@ -14,9 +14,9 @@ fn_200_033:
         MOVE.L  #$40000010,(A5)                 ; $001A74
         MOVE.W  (-14208).W,(A6)                 ; $001A7A
         MOVE.W  (-14206).W,(A6)                 ; $001A7E
-        MOVE.W  #$0100,$00A11100                ; $001A82
+        MOVE.W  #$0100,Z80_BUSREQ                ; $001A82
 .loc_0018:
-        BTST    #0,$00A11100                    ; $001A8A
+        BTST    #0,Z80_BUSREQ                    ; $001A8A
         BNE.S  .loc_0018                        ; $001A92
         MOVE.W  (-14220).W,D4                   ; $001A94
         BSET    #4,D4                           ; $001A98
@@ -28,5 +28,5 @@ fn_200_033:
         MOVE.W  #$0080,(-14218).W               ; $001AB2
         MOVE.W  (-14218).W,(A5)                 ; $001AB8
         MOVE.W  (-14220).W,(A5)                 ; $001ABC
-        MOVE.W  #$0000,$00A11100                ; $001AC0
+        MOVE.W  #$0000,Z80_BUSREQ                ; $001AC0
         RTS                                     ; $001AC8

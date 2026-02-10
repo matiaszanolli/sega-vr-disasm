@@ -28,7 +28,7 @@ fn_200_039:
         BCLR    #0,$00A1518B                    ; $001E78
 .loc_003E:
         LEA     (-24320).W,A0                   ; $001E80
-        LEA     $00A15200,A1                    ; $001E84
+        LEA     MARS_CRAM,A1                    ; $001E84
         MOVEQ   #$7F,D0                         ; $001E8A
 .loc_004A:
         MOVE.L  (A0)+,(A1)+                     ; $001E8C

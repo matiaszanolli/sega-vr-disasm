@@ -27,7 +27,7 @@ fn_200_003:
         NEGX.B D0                               ; $00064C
         ORI.L  #$81048F02,D0                    ; $00064E
         MOVEM.L D0/D1/D7/A1,-(A7)               ; $000654
-        LEA     $00A15180,A1                    ; $000658
+        LEA     MARS_VDP_MODE,A1                    ; $000658
 .loc_0020:
         BCLR    #7,-$0080(A1)                   ; $00065E
         BNE.S  .loc_0020                        ; $000664

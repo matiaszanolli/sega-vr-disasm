@@ -19,7 +19,7 @@
 
 fn_2200_019:
         DC.W    $6142               ; BSR.S  $00281E; $0027DA
-        LEA     $00A15100,A4                    ; $0027DC
+        LEA     MARS_SYS_BASE,A4                    ; $0027DC
         LEA     $00A15186,A2                    ; $0027E2
         LEA     $00A15188,A3                    ; $0027E8
         MOVE.W  #$2000,D1                       ; $0027EE

@@ -67,6 +67,6 @@ fn_30200_051:
         DC.W    $4EBA,$F912         ; JSR     $030CCC(PC); $0313B8
 .loc_006A:
         DBRA    D5,.loc_005A                    ; $0313BC
-        MOVE.W  #$0000,$00A11100                ; $0313C0
+        MOVE.W  #$0000,Z80_BUSREQ                ; $0313C0
 .loc_0076:
         RTS                                     ; $0313C8

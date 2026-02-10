@@ -127,7 +127,7 @@ fn_12200_026:
         TST.L  (-24540).W                       ; $012E2E
         BNE.W  .loc_0180                        ; $012E32
 .loc_0174:
-        TST.B  $00A15120                        ; $012E36
+        TST.B  COMM0_HI                        ; $012E36
         BNE.S  .loc_0174                        ; $012E3C
         DC.W    $6100,$0132         ; BSR.W  $012F72; $012E3E
 .loc_0180:
@@ -137,7 +137,7 @@ fn_12200_026:
         MOVE.W  #$0010,D1                       ; $012E52
         DC.W    $4EBA,$B502         ; JSR     $00E35A(PC); $012E56
 .loc_0198:
-        TST.B  $00A15120                        ; $012E5A
+        TST.B  COMM0_HI                        ; $012E5A
         BNE.S  .loc_0198                        ; $012E60
         TST.L  (-24540).W                       ; $012E62
         BNE.W  .loc_01D4                        ; $012E66

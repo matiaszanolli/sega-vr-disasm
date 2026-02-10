@@ -14,9 +14,9 @@
 
 fn_10200_001:
 .loc_0000:
-        TST.B  $00A15120                        ; $0105DE
+        TST.B  COMM0_HI                        ; $0105DE
         BNE.S  .loc_0000                        ; $0105E4
-        CLR.B  $00A15123                        ; $0105E6
+        CLR.B  COMM1_LO                        ; $0105E6
         MOVE.W  #$0000,(-14210).W               ; $0105EC
         MOVE.W  #$0020,$00FF0008                ; $0105F2
         MOVE.L  #$008909AE,$00FF0002            ; $0105FA

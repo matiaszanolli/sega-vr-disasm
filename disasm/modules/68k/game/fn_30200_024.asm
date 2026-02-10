@@ -14,12 +14,12 @@
 
 fn_30200_024:
         LEA     $00FF8500,A6                    ; $030BF6
-        MOVE.W  #$0100,$00A11100                ; $030BFC
+        MOVE.W  #$0100,Z80_BUSREQ                ; $030BFC
 .loc_000E:
-        BTST    #0,$00A11100                    ; $030C04
+        BTST    #0,Z80_BUSREQ                    ; $030C04
         BNE.S  .loc_000E                        ; $030C0C
         DC.W    $41FA,$0A78         ; LEA     $031688(PC),A0; $030C0E
-        LEA     $00A00000,A1                    ; $030C12
+        LEA     Z80_RAM,A1                    ; $030C12
         MOVE.W  #$028C,D0                       ; $030C18
 .loc_0026:
         MOVE.B  (A0)+,(A1)+                     ; $030C1C
@@ -30,7 +30,7 @@ fn_30200_024:
 .loc_003A:
         MOVE.B  (A0)+,(A1)+                     ; $030C30
         DBRA    D0,.loc_003A                    ; $030C32
-        MOVE.W  #$0000,$00A11200                ; $030C36
+        MOVE.W  #$0000,Z80_RESET                ; $030C36
         NOP                                     ; $030C3E
         NOP                                     ; $030C40
         NOP                                     ; $030C42
@@ -45,8 +45,8 @@ fn_30200_024:
         NOP                                     ; $030C54
         NOP                                     ; $030C56
         NOP                                     ; $030C58
-        MOVE.W  #$0100,$00A11200                ; $030C5A
-        MOVE.W  #$0000,$00A11100                ; $030C62
+        MOVE.W  #$0100,Z80_RESET                ; $030C5A
+        MOVE.W  #$0000,Z80_BUSREQ                ; $030C62
         DC.W    $6000,$FF24         ; BRA.W  $030B90; $030C6A
         BTST    #1,(A5)                         ; $030C6E
         BNE.S  .loc_0092                        ; $030C72

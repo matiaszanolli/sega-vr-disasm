@@ -49,7 +49,7 @@ fn_30200_010:
         ADDQ.B  #4,D1                           ; $0304A8
         DC.W    $4EBA,$082C         ; JSR     $030CD8(PC); $0304AA
         DBRA    D2,.loc_0036                    ; $0304AE
-        MOVE.W  #$0000,$00A11100                ; $0304B2
+        MOVE.W  #$0000,Z80_BUSREQ                ; $0304B2
         DC.W    $6000,$0B0C         ; BRA.W  $030FC8; $0304BA
 .loc_0052:
         CLR.B  $0007(A6)                        ; $0304BE
@@ -90,5 +90,5 @@ fn_30200_010:
         MOVE.B  $0027(A5),D1                    ; $030524
         DC.W    $4EBA,$07A2         ; JSR     $030CCC(PC); $030528
 .loc_00C0:
-        MOVE.W  #$0000,$00A11100                ; $03052C
+        MOVE.W  #$0000,Z80_BUSREQ                ; $03052C
         RTS                                     ; $030534

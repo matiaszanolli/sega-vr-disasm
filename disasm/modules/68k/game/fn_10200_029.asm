@@ -26,9 +26,9 @@ fn_10200_029:
         BTST    #7,(-14322).W                   ; $0118A4
         BNE.S  .loc_0048                        ; $0118AA
 .loc_0022:
-        TST.B  $00A15120                        ; $0118AC
+        TST.B  COMM0_HI                        ; $0118AC
         BNE.S  .loc_0022                        ; $0118B2
-        CLR.B  $00A15123                        ; $0118B4
+        CLR.B  COMM1_LO                        ; $0118B4
         MOVE.W  #$0000,(-14210).W               ; $0118BA
         MOVE.W  #$0020,$00FF0008                ; $0118C0
         MOVE.L  #$0088D4B8,$00FF0002            ; $0118C8

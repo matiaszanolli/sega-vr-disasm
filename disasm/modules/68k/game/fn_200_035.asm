@@ -17,9 +17,9 @@ fn_200_035:
         MOVE.L  #$40000010,(A5)                 ; $001B24
         MOVE.W  (-14208).W,(A6)                 ; $001B2A
         MOVE.W  (-14206).W,(A6)                 ; $001B2E
-        MOVE.W  #$0100,$00A11100                ; $001B32
+        MOVE.W  #$0100,Z80_BUSREQ                ; $001B32
 .loc_0026:
-        BTST    #0,$00A11100                    ; $001B3A
+        BTST    #0,Z80_BUSREQ                    ; $001B3A
         BNE.S  .loc_0026                        ; $001B42
         MOVE.W  (-14220).W,D4                   ; $001B44
         BSET    #4,D4                           ; $001B48
@@ -41,12 +41,12 @@ fn_200_035:
         MOVE.W  #$0080,(-14218).W               ; $001B8E
         MOVE.W  (-14218).W,(A5)                 ; $001B94
         MOVE.W  (-14220).W,(A5)                 ; $001B98
-        MOVE.W  #$0000,$00A11100                ; $001B9C
+        MOVE.W  #$0000,Z80_BUSREQ                ; $001B9C
         DC.W    $4EFA,$FBF8         ; JMP     $00179E(PC); $001BA4
         MOVE.W  (A5),D0                         ; $001BA8
-        MOVE.W  #$0100,$00A11100                ; $001BAA
+        MOVE.W  #$0100,Z80_BUSREQ                ; $001BAA
 .loc_009E:
-        BTST    #0,$00A11100                    ; $001BB2
+        BTST    #0,Z80_BUSREQ                    ; $001BB2
         BNE.S  .loc_009E                        ; $001BBA
         MOVE.W  (-14220).W,D4                   ; $001BBC
         BSET    #4,D4                           ; $001BC0
@@ -78,7 +78,7 @@ fn_200_035:
         MOVE.W  #$0080,(-14218).W               ; $001C32
         MOVE.W  (-14218).W,(A5)                 ; $001C38
         MOVE.W  (-14220).W,(A5)                 ; $001C3C
-        MOVE.W  #$0000,$00A11100                ; $001C40
+        MOVE.W  #$0000,Z80_BUSREQ                ; $001C40
         MOVE.L  #$6C000003,(A5)                 ; $001C48
         MOVE.W  (-32768).W,(A6)                 ; $001C4E
         MOVE.W  (-32766).W,(A6)                 ; $001C52

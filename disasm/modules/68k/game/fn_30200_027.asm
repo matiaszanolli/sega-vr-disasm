@@ -15,5 +15,5 @@
 fn_30200_027:
         DC.W    $4EBA,$0060         ; JSR     $030D1C(PC); $030CBA
         DC.W    $4EBA,$0018         ; JSR     $030CD8(PC); $030CBE
-        MOVE.W  #$0000,$00A11100                ; $030CC2
+        MOVE.W  #$0000,Z80_BUSREQ                ; $030CC2
         RTS                                     ; $030CCA

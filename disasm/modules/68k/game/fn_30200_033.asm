@@ -35,7 +35,7 @@ fn_30200_033:
         DC.W    $8001                           ; $030EF8
         LSR.W  #4,D6                            ; $030EFA
         ANDI.B  #$3F,D6                         ; $030EFC
-        MOVE.B  D0,$00C00011                    ; $030F00
-        MOVE.B  D6,$00C00011                    ; $030F06
+        MOVE.B  D0,PSG                    ; $030F00
+        MOVE.B  D6,PSG                    ; $030F06
 .loc_003E:
         RTS                                     ; $030F0C

@@ -21,18 +21,18 @@ fn_200_007:
         ORI.B  #$00,D0                          ; $000C7C
         MOVE    SR,-(A7)                        ; $000C80
         MOVE    #$2700,SR                       ; $000C82
-        MOVE.W  #$0100,$00A11100                ; $000C86
-        MOVE.W  #$0100,$00A11200                ; $000C8E
+        MOVE.W  #$0100,Z80_BUSREQ                ; $000C86
+        MOVE.W  #$0100,Z80_RESET                ; $000C8E
 .loc_0026:
-        BTST    #0,$00A11100                    ; $000C96
+        BTST    #0,Z80_BUSREQ                    ; $000C96
         BNE.S  .loc_0026                        ; $000C9E
-        LEA     $00A00000,A1                    ; $000CA0
+        LEA     Z80_RAM,A1                    ; $000CA0
         MOVE.B  #$F3,(A1)+                      ; $000CA6
         MOVE.B  #$F3,(A1)+                      ; $000CAA
         MOVE.B  #$C3,(A1)+                      ; $000CAE
         MOVE.B  #$00,(A1)+                      ; $000CB2
         MOVE.B  #$00,(A1)+                      ; $000CB6
-        MOVE.W  #$0000,$00A11200                ; $000CBA
+        MOVE.W  #$0000,Z80_RESET                ; $000CBA
         NOP                                     ; $000CC2
         NOP                                     ; $000CC4
         NOP                                     ; $000CC6
@@ -47,23 +47,23 @@ fn_200_007:
         NOP                                     ; $000CD8
         NOP                                     ; $000CDA
         NOP                                     ; $000CDC
-        MOVE.W  #$0000,$00A11100                ; $000CDE
-        MOVE.W  #$0100,$00A11200                ; $000CE6
+        MOVE.W  #$0000,Z80_BUSREQ                ; $000CDE
+        MOVE.W  #$0100,Z80_RESET                ; $000CE6
         MOVE    (A7)+,SR                        ; $000CEE
         MOVEQ   #-$01,D0                        ; $000CF0
-        MOVE.B  D0,$00C00011                    ; $000CF2
+        MOVE.B  D0,PSG                    ; $000CF2
         NOP                                     ; $000CF8
         NOP                                     ; $000CFA
         SUBI.B  #$20,D0                         ; $000CFC
-        MOVE.B  D0,$00C00011                    ; $000D00
+        MOVE.B  D0,PSG                    ; $000D00
         NOP                                     ; $000D06
         NOP                                     ; $000D08
         SUBI.B  #$20,D0                         ; $000D0A
-        MOVE.B  D0,$00C00011                    ; $000D0E
+        MOVE.B  D0,PSG                    ; $000D0E
         NOP                                     ; $000D14
         NOP                                     ; $000D16
         SUBI.B  #$20,D0                         ; $000D18
-        MOVE.B  D0,$00C00011                    ; $000D1C
+        MOVE.B  D0,PSG                    ; $000D1C
         LEA     (-13920).W,A1                   ; $000D22
         MOVEQ   #$00,D1                         ; $000D26
         MOVE.W  #$0D57,D7                       ; $000D28

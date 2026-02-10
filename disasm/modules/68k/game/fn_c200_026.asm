@@ -65,13 +65,13 @@ fn_c200_026:
         MOVE.L  $00(A0,D1.W),$0010(A1)          ; $00D94E
         MOVE.W  #$0044,$00A15110                ; $00D954
         MOVE.B  #$04,$00A15107                  ; $00D95C
-        CLR.B  $00A15123                        ; $00D964
-        MOVE.B  #$2B,$00A15121                  ; $00D96A
-        MOVE.B  #$01,$00A15120                  ; $00D972
+        CLR.B  COMM1_LO                        ; $00D964
+        MOVE.B  #$2B,COMM0_LO                  ; $00D96A
+        MOVE.B  #$01,COMM0_HI                  ; $00D972
 .loc_00AE:
-        BTST    #1,$00A15123                    ; $00D97A
+        BTST    #1,COMM1_LO                    ; $00D97A
         BEQ.S  .loc_00AE                        ; $00D982
-        BCLR    #1,$00A15123                    ; $00D984
+        BCLR    #1,COMM1_LO                    ; $00D984
         LEA     $00FF60C8,A1                    ; $00D98C
         LEA     $00A15112,A2                    ; $00D992
         MOVE.W  #$0043,D7                       ; $00D998

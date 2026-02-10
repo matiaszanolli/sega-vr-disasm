@@ -94,7 +94,7 @@ fn_30200_054:
         BSET    #1,(A0)                         ; $0314C4
         CMPI.B  #$E0,$0001(A0)                  ; $0314C8
         BNE.S  .loc_00C0                        ; $0314CE
-        MOVE.B  $0025(A0),$00C00011             ; $0314D0
+        MOVE.B  $0025(A0),PSG             ; $0314D0
 .loc_00C0:
         ADDQ.W  #8,A7                           ; $0314D8
         RTS                                     ; $0314DA

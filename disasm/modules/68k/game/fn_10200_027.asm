@@ -21,17 +21,17 @@ fn_10200_027:
         CLR.W  D0                               ; $0115A8
         DC.W    $4EBA,$CF80         ; JSR     $00E52C(PC); $0115AA
 .loc_0006:
-        TST.B  $00A15120                        ; $0115AE
+        TST.B  COMM0_HI                        ; $0115AE
         BNE.S  .loc_0006                        ; $0115B4
-        MOVE.W  #$0101,$00A1512C                ; $0115B6
-        MOVE.W  #$8000,$00A15128                ; $0115BE
-        MOVE.B  #$2C,$00A15121                  ; $0115C6
-        MOVE.B  #$01,$00A15120                  ; $0115CE
+        MOVE.W  #$0101,COMM6                ; $0115B6
+        MOVE.W  #$8000,COMM4                ; $0115BE
+        MOVE.B  #$2C,COMM0_LO                  ; $0115C6
+        MOVE.B  #$01,COMM0_HI                  ; $0115CE
 .loc_002E:
-        TST.B  $00A1512C                        ; $0115D6
+        TST.B  COMM6                        ; $0115D6
         BNE.S  .loc_002E                        ; $0115DC
-        MOVE.W  #$0050,$00A15128                ; $0115DE
-        MOVE.W  #$0101,$00A1512C                ; $0115E6
+        MOVE.W  #$0050,COMM4                ; $0115DE
+        MOVE.W  #$0101,COMM6                ; $0115E6
         MOVEA.L #$26028000,A0                   ; $0115EE
         MOVE.L  (-24542).W,D0                   ; $0115F4
         ADDA.L  D0,A0                           ; $0115F8

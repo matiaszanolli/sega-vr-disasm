@@ -65,8 +65,8 @@ fn_10200_020:
         MOVE.W  #$002C,(-14214).W               ; $0109B6
         BCLR    #6,(-14219).W                   ; $0109BC
         MOVE.W  (-14220).W,(A5)                 ; $0109C2
-        MOVE.W  #$0083,$00A15100                ; $0109C6
-        ANDI.B  #$FC,$00A15181                  ; $0109CE
+        MOVE.W  #$0083,MARS_SYS_INTCTL                ; $0109C6
+        ANDI.B  #$FC,MARS_VDP_MODE+1                  ; $0109CE
         JSR     $008826C8                       ; $0109D6
         MOVE.L  #$000A0907,D0                   ; $0109DC
         JSR     $008814BE                       ; $0109E2
@@ -119,7 +119,7 @@ fn_10200_020:
         LEA     $00FF1000,A0                    ; $010A92
         DC.W    $4EBA,$D856         ; JSR     $00E2F0(PC); $010A98
         DC.W    $4EBA,$D71E         ; JSR     $00E1BC(PC); $010A9C
-        BCLR    #7,$00A15181                    ; $010AA0
+        BCLR    #7,MARS_VDP_MODE+1                    ; $010AA0
         LEA     $00FF6E00,A0                    ; $010AA8
         ADDA.L  #$00000160,A0                   ; $010AAE
         LEA     $00891062,A1                    ; $010AB4
@@ -310,11 +310,11 @@ fn_10200_020:
         ADDI.L  #$00000D80,D2                   ; $010D66
         DBRA    D3,.loc_03DC                    ; $010D6C
 .loc_03FC:
-        TST.B  $00A15120                        ; $010D70
+        TST.B  COMM0_HI                        ; $010D70
         BNE.S  .loc_03FC                        ; $010D76
-        MOVE.L  #$06020000,$00A15128            ; $010D78
-        MOVE.B  #$26,$00A15121                  ; $010D82
-        MOVE.B  #$01,$00A15120                  ; $010D8A
+        MOVE.L  #$06020000,COMM4            ; $010D78
+        MOVE.B  #$26,COMM0_LO                  ; $010D82
+        MOVE.B  #$01,COMM0_HI                  ; $010D8A
         BTST    #4,(-14322).W                   ; $010D92
         BNE.W  .loc_050A                        ; $010D98
         MOVEA.L #$0601AD00,A0                   ; $010D9C
@@ -487,9 +487,9 @@ fn_10200_020:
         JSR     $0088204A                       ; $010FC2
 .loc_0654:
         MOVE.B  #$01,(-14303).W                 ; $010FC8
-        ANDI.B  #$FC,$00A15181                  ; $010FCE
-        ORI.B  #$01,$00A15181                   ; $010FD6
-        MOVE.W  #$8083,$00A15100                ; $010FDE
+        ANDI.B  #$FC,MARS_VDP_MODE+1                  ; $010FCE
+        ORI.B  #$01,MARS_VDP_MODE+1                   ; $010FD6
+        MOVE.W  #$8083,MARS_SYS_INTCTL                ; $010FDE
         BSET    #6,(-14219).W                   ; $010FE6
         MOVE.W  (-14220).W,(A5)                 ; $010FEC
         MOVE.W  #$0018,$00FF0008                ; $010FF0

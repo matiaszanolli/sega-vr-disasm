@@ -29,26 +29,26 @@ fn_10200_007:
         DC.W    $000F                           ; $011A94
         DC.W    $0013                           ; $011A96
 .loc_0028:
-        TST.B  $00A15120                        ; $011A98
+        TST.B  COMM0_HI                        ; $011A98
         BNE.S  .loc_0028                        ; $011A9E
-        MOVE.L  A1,$00A15128                    ; $011AA0
-        MOVE.B  #$01,$00A1512C                  ; $011AA6
-        MOVE.B  #$20,$00A15121                  ; $011AAE
-        MOVE.B  #$01,$00A15120                  ; $011AB6
+        MOVE.L  A1,COMM4                    ; $011AA0
+        MOVE.B  #$01,COMM6                  ; $011AA6
+        MOVE.B  #$20,COMM0_LO                  ; $011AAE
+        MOVE.B  #$01,COMM0_HI                  ; $011AB6
 .loc_004E:
-        TST.B  $00A1512C                        ; $011ABE
+        TST.B  COMM6                        ; $011ABE
         BNE.S  .loc_004E                        ; $011AC4
-        MOVE.W  D0,$00A15128                    ; $011AC6
-        MOVE.W  D1,$00A1512A                    ; $011ACC
-        MOVE.B  #$01,$00A1512C                  ; $011AD2
+        MOVE.W  D0,COMM4                    ; $011AC6
+        MOVE.W  D1,COMM5                    ; $011ACC
+        MOVE.B  #$01,COMM6                  ; $011AD2
 .loc_006A:
-        TST.B  $00A1512C                        ; $011ADA
+        TST.B  COMM6                        ; $011ADA
         BNE.S  .loc_006A                        ; $011AE0
-        MOVE.W  D2,$00A15128                    ; $011AE2
-        MOVE.B  #$01,$00A1512C                  ; $011AE8
+        MOVE.W  D2,COMM4                    ; $011AE2
+        MOVE.B  #$01,COMM6                  ; $011AE8
 .loc_0080:
-        TST.B  $00A1512C                        ; $011AF0
+        TST.B  COMM6                        ; $011AF0
         BNE.S  .loc_0080                        ; $011AF6
-        MOVE.L  A0,$00A15128                    ; $011AF8
-        MOVE.B  #$01,$00A1512C                  ; $011AFE
+        MOVE.L  A0,COMM4                    ; $011AF8
+        MOVE.B  #$01,COMM6                  ; $011AFE
         RTS                                     ; $011B06

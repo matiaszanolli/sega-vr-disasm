@@ -40,8 +40,8 @@ fn_e200_002:
         MOVE.W  #$002C,(-14214).W               ; $00E61E
         BCLR    #6,(-14219).W                   ; $00E624
         MOVE.W  (-14220).W,(A5)                 ; $00E62A
-        MOVE.W  #$0083,$00A15100                ; $00E62E
-        ANDI.B  #$FC,$00A15181                  ; $00E636
+        MOVE.W  #$0083,MARS_SYS_INTCTL                ; $00E62E
+        ANDI.B  #$FC,MARS_VDP_MODE+1                  ; $00E636
         JSR     $008826C8                       ; $00E63E
         MOVE.L  #$000A0907,D0                   ; $00E644
         JSR     $008814BE                       ; $00E64A
@@ -98,7 +98,7 @@ fn_e200_002:
         LEA     $00FF1000,A0                    ; $00E718
         DC.W    $4EBA,$FBD0         ; JSR     $00E2F0(PC); $00E71E
         DC.W    $4EBA,$FA98         ; JSR     $00E1BC(PC); $00E722
-        BCLR    #7,$00A15181                    ; $00E726
+        BCLR    #7,MARS_VDP_MODE+1                    ; $00E726
         LEA     $00FF6E00,A0                    ; $00E72E
         LEA     $008BA220,A1                    ; $00E734
         MOVEA.L (A1),A1                         ; $00E73A
@@ -139,9 +139,9 @@ fn_e200_002:
         MOVE.W  #$FF80,$00FF200E                ; $00E7EA
         MOVE.W  #$003C,$00FF2010                ; $00E7F2
         JSR     $0088204A                       ; $00E7FA
-        ANDI.B  #$FC,$00A15181                  ; $00E800
-        ORI.B  #$01,$00A15181                   ; $00E808
-        MOVE.W  #$8083,$00A15100                ; $00E810
+        ANDI.B  #$FC,MARS_VDP_MODE+1                  ; $00E800
+        ORI.B  #$01,MARS_VDP_MODE+1                   ; $00E808
+        MOVE.W  #$8083,MARS_SYS_INTCTL                ; $00E810
         BSET    #6,(-14219).W                   ; $00E818
         MOVE.W  (-14220).W,(A5)                 ; $00E81E
         MOVE.W  #$0020,$00FF0008                ; $00E822
@@ -160,10 +160,10 @@ fn_e200_002:
         CLR.L  (A0)+                            ; $00E860
         DBRA    D0,.loc_028A                    ; $00E862
 .loc_0298:
-        TST.B  $00A15120                        ; $00E866
+        TST.B  COMM0_HI                        ; $00E866
         BNE.S  .loc_0298                        ; $00E86C
-        CLR.B  $00A15122                        ; $00E86E
-        CLR.B  $00A15123                        ; $00E874
-        MOVE.B  #$03,$00A15121                  ; $00E87A
-        MOVE.B  #$01,$00A15120                  ; $00E882
+        CLR.B  COMM1_HI                        ; $00E86E
+        CLR.B  COMM1_LO                        ; $00E874
+        MOVE.B  #$03,COMM0_LO                  ; $00E87A
+        MOVE.B  #$01,COMM0_HI                  ; $00E882
         RTS                                     ; $00E88A

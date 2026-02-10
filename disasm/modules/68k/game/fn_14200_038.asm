@@ -30,7 +30,7 @@ fn_14200_038:
         MOVE.W  #$0007,D1                       ; $01421A
         MOVE.W  #$003C,D2                       ; $01421E
 .loc_0022:
-        TST.B  $00A15120                        ; $014222
+        TST.B  COMM0_HI                        ; $014222
         BNE.S  .loc_0022                        ; $014228
         DC.W    $4EBA,$A188         ; JSR     $00E3B4(PC); $01422A
         DC.W    $9644                           ; $01422E
@@ -46,7 +46,7 @@ fn_14200_038:
         MOVE.W  #$0007,D1                       ; $014246
         MOVE.W  #$0040,D2                       ; $01424A
 .loc_004E:
-        TST.B  $00A15120                        ; $01424E
+        TST.B  COMM0_HI                        ; $01424E
         BNE.S  .loc_004E                        ; $014254
         DC.W    $4EBA,$A15C         ; JSR     $00E3B4(PC); $014256
         ADDQ.W  #1,D4                           ; $01425A

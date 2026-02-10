@@ -18,6 +18,6 @@ fn_30200_026:
         BNE.S  .loc_0016                        ; $030CA6
         DC.W    $4EBA,$0072         ; JSR     $030D1C(PC); $030CA8
         DC.W    $4EBA,$001E         ; JSR     $030CCC(PC); $030CAC
-        MOVE.W  #$0000,$00A11100                ; $030CB0
+        MOVE.W  #$0000,Z80_BUSREQ                ; $030CB0
 .loc_0016:
         RTS                                     ; $030CB8

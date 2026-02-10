@@ -12,7 +12,7 @@
 fn_200_013:
         MOVEM.L D0/D1/D2/D3/D4/D5/D6/D7/A0/A1/A3/A4/A5,-(A7); $0010F4
         LEA     $008811B8,A3                    ; $0010F8
-        LEA     $00C00000,A4                    ; $0010FE
+        LEA     VDP_DATA,A4                    ; $0010FE
         BRA.S  .loc_001C                        ; $001104
         MOVEM.L D0/D1/D2/D3/D4/D5/D6/D7/A0/A1/A3/A4/A5,-(A7); $001106
         LEA     $008811CE,A3                    ; $00110A

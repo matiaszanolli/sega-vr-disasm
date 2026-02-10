@@ -20,9 +20,9 @@ fn_200_010:
         JSR     $008814BE                       ; $000DD4
         MOVEQ   #$0A,D1                         ; $000DDA
         JSR     $0088155E                       ; $000DDC
-        MOVE.W  #$0100,$00A11100                ; $000DE2
+        MOVE.W  #$0100,Z80_BUSREQ                ; $000DE2
 .loc_0018:
-        BTST    #0,$00A11100                    ; $000DEA
+        BTST    #0,Z80_BUSREQ                    ; $000DEA
         BNE.S  .loc_0018                        ; $000DF2
         MOVE.W  #$8C00,(A5)                     ; $000DF4
         MOVE.W  #$9010,(A5)                     ; $000DF8
@@ -68,18 +68,18 @@ fn_200_010:
         NOP                                     ; $000EA6
         MOVE    SR,-(A7)                        ; $000EA8
         MOVE    #$2700,SR                       ; $000EAA
-        MOVE.W  #$0100,$00A11100                ; $000EAE
-        MOVE.W  #$0100,$00A11200                ; $000EB6
+        MOVE.W  #$0100,Z80_BUSREQ                ; $000EAE
+        MOVE.W  #$0100,Z80_RESET                ; $000EB6
 .loc_00EC:
-        BTST    #0,$00A11100                    ; $000EBE
+        BTST    #0,Z80_BUSREQ                    ; $000EBE
         BNE.S  .loc_00EC                        ; $000EC6
-        LEA     $00A00000,A1                    ; $000EC8
+        LEA     Z80_RAM,A1                    ; $000EC8
         MOVE.B  #$F3,(A1)+                      ; $000ECE
         MOVE.B  #$F3,(A1)+                      ; $000ED2
         MOVE.B  #$C3,(A1)+                      ; $000ED6
         MOVE.B  #$00,(A1)+                      ; $000EDA
         MOVE.B  #$00,(A1)+                      ; $000EDE
-        MOVE.W  #$0000,$00A11200                ; $000EE2
+        MOVE.W  #$0000,Z80_RESET                ; $000EE2
         NOP                                     ; $000EEA
         NOP                                     ; $000EEC
         NOP                                     ; $000EEE
@@ -94,26 +94,26 @@ fn_200_010:
         NOP                                     ; $000F00
         NOP                                     ; $000F02
         NOP                                     ; $000F04
-        MOVE.W  #$0000,$00A11100                ; $000F06
-        MOVE.W  #$0100,$00A11200                ; $000F0E
+        MOVE.W  #$0000,Z80_BUSREQ                ; $000F06
+        MOVE.W  #$0100,Z80_RESET                ; $000F0E
         MOVE    (A7)+,SR                        ; $000F16
         MOVEQ   #-$01,D0                        ; $000F18
-        MOVE.B  D0,$00C00011                    ; $000F1A
+        MOVE.B  D0,PSG                    ; $000F1A
         NOP                                     ; $000F20
         NOP                                     ; $000F22
         SUBI.B  #$20,D0                         ; $000F24
-        MOVE.B  D0,$00C00011                    ; $000F28
+        MOVE.B  D0,PSG                    ; $000F28
         NOP                                     ; $000F2E
         NOP                                     ; $000F30
         SUBI.B  #$20,D0                         ; $000F32
-        MOVE.B  D0,$00C00011                    ; $000F36
+        MOVE.B  D0,PSG                    ; $000F36
         NOP                                     ; $000F3C
         NOP                                     ; $000F3E
         SUBI.B  #$20,D0                         ; $000F40
-        MOVE.B  D0,$00C00011                    ; $000F44
-        MOVE.W  #$0100,$00A11100                ; $000F4A
+        MOVE.B  D0,PSG                    ; $000F44
+        MOVE.W  #$0100,Z80_BUSREQ                ; $000F4A
 .loc_0180:
-        BTST    #0,$00A11100                    ; $000F52
+        BTST    #0,Z80_BUSREQ                    ; $000F52
         BNE.S  .loc_0180                        ; $000F5A
         MOVE.L  D1,-(A7)                        ; $000F5C
         DC.W    $4EBA,$008A         ; JSR     $000FEA(PC); $000F5E
@@ -122,7 +122,7 @@ fn_200_010:
         MOVEQ   #$3F,D7                         ; $000F6A
         MOVEQ   #$0E,D6                         ; $000F6C
 .loc_019C:
-        MOVE.W  D6,$00C00000                    ; $000F6E
+        MOVE.W  D6,VDP_DATA                    ; $000F6E
         DBRA    D7,.loc_019C                    ; $000F74
         BSET    #6,(-14219).W                   ; $000F78
         MOVE.W  (-14220).W,(A5)                 ; $000F7E

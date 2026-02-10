@@ -32,9 +32,9 @@ fn_12200_013:
         MOVE.B  (A0)+,(A1)+                     ; $013FB2
         DBRA    D0,.loc_0032                    ; $013FB4
 .loc_0038:
-        TST.B  $00A15120                        ; $013FB8
+        TST.B  COMM0_HI                        ; $013FB8
         BNE.S  .loc_0000                        ; $013FBE
-        CLR.B  $00A15123                        ; $013FC0
+        CLR.B  COMM1_LO                        ; $013FC0
         MOVE.W  #$0000,(-14210).W               ; $013FC6
         MOVE.W  #$0020,$00FF0008                ; $013FCC
         MOVE.L  #$0089305E,$00FF0002            ; $013FD4

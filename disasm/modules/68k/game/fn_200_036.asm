@@ -20,9 +20,9 @@ fn_200_036:
         MOVE.L  #$40000010,(A5)                 ; $001C76
         MOVE.W  (-14208).W,(A6)                 ; $001C7C
         MOVE.W  (-14206).W,(A6)                 ; $001C80
-        MOVE.W  #$0100,$00A11100                ; $001C84
+        MOVE.W  #$0100,Z80_BUSREQ                ; $001C84
 .loc_0026:
-        BTST    #0,$00A11100                    ; $001C8C
+        BTST    #0,Z80_BUSREQ                    ; $001C8C
         BNE.S  .loc_0026                        ; $001C94
         MOVE.W  (-14220).W,D4                   ; $001C96
         BSET    #4,D4                           ; $001C9A
@@ -34,10 +34,10 @@ fn_200_036:
         MOVE.W  #$0080,(-14218).W               ; $001CB4
         MOVE.W  (-14218).W,(A5)                 ; $001CBA
         MOVE.W  (-14220).W,(A5)                 ; $001CBE
-        MOVE.W  #$0000,$00A11100                ; $001CC2
-        TST.B  $00A15120                        ; $001CCA
+        MOVE.W  #$0000,Z80_BUSREQ                ; $001CC2
+        TST.B  COMM0_HI                        ; $001CCA
         BNE.S  .loc_00A4                        ; $001CD0
-        BCLR    #7,$00A15100                    ; $001CD2
+        BCLR    #7,MARS_SYS_INTCTL                    ; $001CD2
 .loc_0074:
         BTST    #7,$00A1518A                    ; $001CDA
         BEQ.S  .loc_0074                        ; $001CE2
@@ -49,6 +49,6 @@ fn_200_036:
 .loc_0094:
         BCLR    #0,$00A1518B                    ; $001CFA
 .loc_009C:
-        BSET    #7,$00A15100                    ; $001D02
+        BSET    #7,MARS_SYS_INTCTL                    ; $001D02
 .loc_00A4:
         RTS                                     ; $001D0A

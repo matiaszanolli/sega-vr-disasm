@@ -88,7 +88,7 @@ fn_30200_017:
         BSET    #1,(A0)                         ; $0309D4
         CMPI.B  #$E0,$0001(A0)                  ; $0309D8
         BNE.S  .loc_00B2                        ; $0309DE
-        MOVE.B  $0025(A0),$00C00011             ; $0309E0
+        MOVE.B  $0025(A0),PSG             ; $0309E0
 .loc_00B2:
         ADDA.W  #$0030,A5                       ; $0309E8
         DBRA    D6,.loc_002A                    ; $0309EC

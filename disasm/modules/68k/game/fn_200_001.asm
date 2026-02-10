@@ -85,7 +85,7 @@ fn_200_001:
         MOVE.W  $3000(A6),-(A0)                 ; $0005A2
 .loc_0094:
         MOVEM.L D0/D1/A1,-(A7)                  ; $0005A6
-        LEA     $00C00004,A1                    ; $0005AA
+        LEA     VDP_CTRL,A1                    ; $0005AA
 .loc_009E:
         MOVE.W  (A1),D0                         ; $0005B0
         MOVE.W  #$8000,D0                       ; $0005B2

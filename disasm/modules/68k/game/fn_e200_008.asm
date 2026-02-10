@@ -65,7 +65,7 @@ fn_e200_008:
         SUB.L  $78(A0,D0.W),D0                  ; $00F6DC
         DC.W    $0020                           ; $00F6E0
 .loc_0060:
-        TST.B  $00A15120                        ; $00F6E2
+        TST.B  COMM0_HI                        ; $00F6E2
         BNE.S  .loc_0060                        ; $00F6E8
         DC.W    $6100,$022A         ; BSR.W  $00F916; $00F6EA
         LEA     $0088F838,A2                    ; $00F6EE

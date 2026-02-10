@@ -24,8 +24,8 @@ fn_200_008:
         MOVE.B  (-14312).W,(-348).W             ; $000D7E
 .loc_001C:
         DC.W    $4EBA,$02C2         ; JSR     $001048(PC); $000D84
-        MOVE.W  #$0083,$00A15100                ; $000D88
-        ANDI.B  #$FC,$00A15181                  ; $000D90
+        MOVE.W  #$0083,MARS_SYS_INTCTL                ; $000D88
+        ANDI.B  #$FC,MARS_VDP_MODE+1                  ; $000D90
         JSR     $0088266C                       ; $000D98
         JSR     $008826C8                       ; $000D9E
         LEA     $008BA020,A2                    ; $000DA4

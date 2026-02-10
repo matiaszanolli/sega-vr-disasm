@@ -111,12 +111,23 @@ Official SEGA software development guide covering:
 ---
 
 ### Sega Genesis Software Manual (159 pages)
-**File:** `SegaGenesisSoftwareManual_1990-02-06.pdf`
+**File:** `SegaGenesisSoftwareManual_1990-02-06.pdf` → [sega-genesis-software-manual.md](sega-genesis-software-manual.md)
 **Date:** February 6, 1990 (earlier comprehensive version)
 
-Earlier, more comprehensive software manual. Likely contains additional details not in the V2.0 manual.
+Comprehensive Genesis/Mega Drive software development reference covering:
+- Memory maps (68000 address space, Z80 area, I/O registers)
+- VDP (315-5313) complete reference: registers, scroll planes, sprites, priority system
+- Color palette, shadow/highlight mode, interlace mode
+- System I/O: controller ports, serial communication
+- VRAM mapping and access methods
+- ROM cartridge data format and checksum program
+- Genesis Sound Software Manual (FM + PSG)
+- YM-2612 / YM3438 FM sound source complete register reference
+- PSG (SN76489) documentation
+- YM3438/YM2612 Application Manual and electrical characteristics
+- Genesis Technical Bulletins #11-#14
 
-**Key for:** Complete Genesis software development reference
+**Key for:** Complete Genesis software development reference, VDP programming, sound programming
 
 ---
 
@@ -235,7 +246,7 @@ The following PDFs have been converted to version-controlled markdown files:
 | IC_BD_32M_SRAM.pdf | [ic-bd-32m-sram-manual.md](ic-bd-32m-sram-manual.md) | - |
 | IC_BD_4M_32PIN.pdf | [ic-bd-4m-32pin-eprom-manual.md](ic-bd-4m-32pin-eprom-manual.md) | - |
 
-**Not converted:** `SegaGenesisSoftwareManual_1990-02-06.pdf` (145 MB, exceeds 100 MB PDF processing limit)
+| SegaGenesisSoftwareManual_1990-02-06.pdf | [sega-genesis-software-manual.md](sega-genesis-software-manual.md) | 168 KB |
 
 ## Integration with Existing Documentation
 

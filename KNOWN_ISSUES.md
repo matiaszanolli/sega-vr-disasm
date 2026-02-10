@@ -99,6 +99,12 @@ Most interrupts (VRES, VINT, HINT, PWMINT) persist until explicitly cleared. CMD
 - Missing interrupt clear = handler fires only once, then stops (for non-CMD interrupts)
 - Clear registers: VRES=$20004014, V=$20004016, H=$20004018, CMD=$2000401A, PWM=$2000401C
 
+### COMM Register Mislabeling in Legacy Code
+Two COMM registers were mislabeled as "COMM3" in different files:
+- `comm_transfer_block.asm`: `$A15123` was called "COMM3" — actually **COMM1_LO** (COMM1 low byte). Fixed in 3b347d3.
+- `adapter_init.asm`: `$A1512C` was called "COMM3" — actually **COMM6** (handshake flag). Fixed in 350e346.
+- **Rule:** Always verify COMM register identity against the byte map: COMM0=$A15120, COMM1=$A15122, ..., COMM7=$A1512E. Byte access adds 0 (HI) or 1 (LO) to the word address.
+
 ### DREQ Registers Mislabeled as Bank Registers
 `adapter_init.asm` originally labeled `$A1510A` as `ADAPTER_BANK` and `$A1510C` as `ADAPTER_BANKDAT`. These are actually **DREQ Source Address Low** and **DREQ Destination Address High** respectively (see 32X Hardware Manual §4.3).
 - The code at adapter_init lines 117-126 configures DREQ, **not** ROM banking

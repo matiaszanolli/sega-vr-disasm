@@ -9,8 +9,8 @@
 ; ============================================================================
 
 vdp_clear_palette:
-        andi.b  #$40,$00A15181        ; Configure VDP access
-        lea     $00A15200,a2          ; CRAM palette base
+        andi.b  #$40,MARS_VDP_MODE+1   ; Configure VDP access
+        lea     MARS_CRAM,a2          ; CRAM palette base
         moveq   #31,d7               ; 32 iterations
 .loop:
         move.l  d0,(a2)+              ; 4x unrolled

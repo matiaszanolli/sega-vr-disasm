@@ -9,7 +9,7 @@
 ; ============================================================================
 
 palette_copy_full:
-        lea     $00A15200,a3          ; CRAM destination
+        lea     MARS_CRAM,a3          ; CRAM destination
         moveq   #31,d7               ; 32 iterations
 .loop:
         move.l  (a2)+,(a3)+           ; 4x unrolled

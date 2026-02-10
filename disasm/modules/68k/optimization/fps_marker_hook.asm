@@ -34,17 +34,17 @@ fps_marker_hook:
 
         ; --- DIAGNOSTIC: Layered tests to isolate failure point ---
         ; Test A: Write $CAFE to COMM4 (proves hook executes; check in debugger)
-        move.w  #$CAFE,$00A15128        ; COMM4 = $CAFE
+        move.w  #$CAFE,COMM4            ; COMM4 = $CAFE
         ; Test B: Set CRAM[0] = bright green (proves CRAM writes work; visible on screen)
         ;         In BGR555: B=0, G=31, R=0 = $03E0
-        move.w  #$03E0,$00A15200        ; CRAM[0] = green background
+        move.w  #$03E0,MARS_CRAM        ; CRAM[0] = green background
 
         ; --- Step 2: Force CRAM[0xFF] = white AFTER palette copy ---
         ; The palette routines just wrote the game's full 256-entry palette
         ; to CRAM, overwriting our init-time setup. We must re-set entry $FF
         ; to white here, every frame, so our $FF-indexed marker pixels show
         ; as white instead of whatever the game uses for palette entry $FF.
-        move.w  #$FFFF,$00A153FE        ; CRAM[0xFF] = white (RGB555 + priority)
+        move.w  #$FFFF,MARS_CRAM_LAST1  ; CRAM[0xFF] = white (RGB555 + priority)
 
         ; --- Step 3: Write minimal test marker to frame buffers ---
         ; FM=0 and VBLK guaranteed by caller. Write 10 white pixels
@@ -54,7 +54,7 @@ fps_marker_hook:
         movem.l d0/a0,-(sp)
 
         ; FB0 ($840000)
-        lea     $840000,a0              ; Frame buffer 0 base
+        lea     MARS_FRAMEBUFFER,a0     ; Frame buffer 0 base
         move.w  (40)(a0),d0             ; Line table entry for line 20 (20*2=40)
         add.w   d0,d0                   ; Convert word offset → byte offset
         adda.w  d0,a0                   ; A0 = pixel row base
@@ -65,7 +65,7 @@ fps_marker_hook:
         move.w  #$FFFF,12(a0)           ; Columns 12-13
 
         ; FB1 ($860000)
-        lea     $860000,a0              ; Frame buffer 1 base
+        lea     MARS_OVERWRITE,a0       ; Frame buffer 1 base
         move.w  (40)(a0),d0             ; Line table entry for line 20
         add.w   d0,d0                   ; Convert word offset → byte offset
         adda.w  d0,a0

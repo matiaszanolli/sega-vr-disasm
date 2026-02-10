@@ -58,7 +58,7 @@ VDPPrep:
 
 ; --- VDP operation 4 ---
 VDPOp4:
-        LEA $00A15200,A3        ; $00284C: Palette RAM
+        LEA MARS_CRAM,A3        ; $00284C: Palette RAM
         MOVEQ #$1F,D7           ; $002852: 32 iterations
 .loop:
         MOVE.L (A2)+,(A3)+        ; $002854
@@ -70,7 +70,7 @@ VDPOp4:
 
 ; --- Memory operation 3 ---
 MemoryOp3:
-        LEA $00A15240,A3        ; $002862: COMM port area
+        LEA MARS_CRAM+$40,A3    ; $002862: Palette RAM offset $40
         MOVEQ #$07,D7           ; $002868: 8 iterations
 .loop:
         MOVE.L (A2)+,(A3)+        ; $00286A
@@ -85,7 +85,7 @@ PaletteRAMCopy:
         TST.B   ($C821).W           ; $002878: Check V-INT state flag
         BEQ.S   .skip_copy          ; $00287C: Skip if zero
         LEA $00FF6E00,A1        ; $00287E: Source buffer
-        LEA $00A15200,A2        ; $002884: Palette RAM
+        LEA MARS_CRAM,A2        ; $002884: Palette RAM
         BSR.W   VDPOp4              ; $00288A: Copy palette (jumps forward)
 .skip_copy:
         RTS        ; $00288E
@@ -93,26 +93,26 @@ PaletteRAMCopy:
 ; --- SH2 communication sync ---
 sh2_comm_sync:
 .wait_ready:
-        BTST    #0,($A15123).L      ; $002890: Test COMM ready bit
+        BTST    #0,COMM1_LO         ; $002890: Test COMM1_LO ready bit
         BEQ.S   .wait_ready         ; $002898: Loop until ready
-        BCLR    #0,($A15123).L      ; $00289A: Clear ready bit
-        MOVE.W  #0,($C8A8).W        ; $0028A2: Clear counter
-        MOVE.B  ($C810).W,($A15123).L ; $0028A8: Write command byte 1
-        MOVE.B  ($C8A9).W,($A15121).L ; $0028AA: Write command byte 2
-        MOVE.B  ($C8A8).W,($A15120).L ; $0028B0: Write counter
-        MOVE.B  #0,($A15123).L      ; $0028B8: Clear COMM
+        BCLR    #0,COMM1_LO         ; $00289A: Clear ready bit
+        MOVE.W  #0,($C8A8).W        ; $0028A2: Clear command staging
+        MOVE.B  ($C810).W,COMM1_LO  ; $0028A8: Write control byte
+        MOVE.B  ($C8A9).W,COMM0_LO  ; $0028AA: Write command code
+        MOVE.B  ($C8A8).W,COMM0_HI  ; $0028B0: Write command flag
+        MOVE.B  #0,COMM1_LO         ; $0028B8: Clear handshake
         RTS                         ; $0028C0
 
 ; --- VDP/SH2 COMM synchronization ---
 VDPSyncSH2:
         MOVE.W  #$0500,MARS_DREQ_LEN    ; $0028C2: Set DMA length
-        MOVE.B  #4,($A15107).L          ; $0028CA: Write to COMM control
-        MOVE.B  ($C8A9).W,($A15121).L   ; $0028D2: Write COMM1
-        MOVE.B  ($C8A8).W,($A15120).L   ; $0028DA: Write COMM0
+        MOVE.B  #4,MARS_DREQ_CTRL+1     ; $0028CA: Set DMA mode
+        MOVE.B  ($C8A9).W,COMM0_LO      ; $0028D2: Write command code
+        MOVE.B  ($C8A8).W,COMM0_HI      ; $0028DA: Write command flag
 .wait_ack:
-        BTST    #1,$00A15123            ; $0028E2: Test ack bit
+        BTST    #1,COMM1_LO             ; $0028E2: Test ack bit
         BEQ.S   .wait_ack               ; $0028EA: Loop until set
-        BCLR    #1,$00A15123            ; $0028EC: Clear ack bit
+        BCLR    #1,COMM1_LO             ; $0028EC: Clear ack bit
         LEA $00FF6000,A1        ; $0028F4
         LEA MARS_FIFO,A2        ; $0028FA
         JSR $008988EC        ; $002900

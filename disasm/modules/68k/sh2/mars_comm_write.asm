@@ -11,11 +11,11 @@
 
 mars_comm_write:
 .wait_handshake:
-        btst    #0,$00A15123          ; Check SH2 handshake flag
-        beq.s   .wait_handshake       ; Spin until set
-        bclr    #0,$00A15123          ; Clear handshake
-        dc.w    $31FC,$0000,$C8A8     ; MOVE.W #$0000,($C8A8).W
-        dc.w    $13F8,$C8A9,$00A1,$5121  ; MOVE.B ($C8A9).W,$00A15121
-        dc.w    $13F8,$C8A8,$00A1,$5120  ; MOVE.B ($C8A8).W,$00A15120
-        move.b  #$00,$00A15123        ; Clear handshake register
+        btst    #0,COMM1_LO            ; Check SH2 handshake flag
+        beq.s   .wait_handshake         ; Spin until set
+        bclr    #0,COMM1_LO            ; Clear handshake
+        move.w  #$0000,($FFFFC8A8).w   ; Clear command staging
+        move.b  ($FFFFC8A9).w,COMM0_LO ; Write command code to COMM0 low
+        move.b  ($FFFFC8A8).w,COMM0_HI ; Write command flag to COMM0 high
+        move.b  #$00,COMM1_LO          ; Clear handshake register
         rts

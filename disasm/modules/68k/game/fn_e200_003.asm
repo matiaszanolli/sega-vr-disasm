@@ -56,14 +56,14 @@ fn_e200_003:
         MOVE.L  (-24556).W,D0                   ; $00E9AA
         JSR     (A0)                            ; $00E9AE
 .loc_0076:
-        BTST    #1,$00A15123                    ; $00E9B0
+        BTST    #1,COMM1_LO                     ; $00E9B0: Poll ack bit
         BEQ.S  .loc_0076                        ; $00E9B8
-        BCLR    #1,$00A15123                    ; $00E9BA
-        LEA     $00FF60C8,A1                    ; $00E9C2
-        LEA     $00A15112,A2                    ; $00E9C8
-        MOVE.W  #$0043,D7                       ; $00E9CE
+        BCLR    #1,COMM1_LO                     ; $00E9BA: Clear ack bit
+        LEA     $00FF60C8,A1                    ; $00E9C2: Source buffer
+        LEA     MARS_FIFO,A2                    ; $00E9C8: FIFO register
+        MOVE.W  #$0043,D7                       ; $00E9CE: 68 words
 .loc_0098:
-        BTST    #7,$00A15107                    ; $00E9D2
+        BTST    #7,MARS_DREQ_CTRL+1             ; $00E9D2: Wait FIFO not full
         BNE.S  .loc_0098                        ; $00E9DA
         MOVE.W  (A1)+,(A2)                      ; $00E9DC
         DBRA    D7,.loc_0098                    ; $00E9DE

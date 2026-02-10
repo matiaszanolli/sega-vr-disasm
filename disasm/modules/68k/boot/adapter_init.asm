@@ -22,7 +22,7 @@
 ;   Bit 7: ADEN (adapter enable)
 ;
 ; $A15104 - Interrupt mask register
-; $A1512C - COMM3 (SH2 ready flag)
+; $A1512C - COMM6 (SH2 ready/handshake flag)
 ;
 ; MEMORY MAPPING
 ; --------------
@@ -56,7 +56,7 @@ ADAPTER_CTRL    equ     $A15100 ; Control register
 ADAPTER_STATUS  equ     $A15101 ; Status register (read FM bit here)
 ADAPTER_DREQ_SL equ     $A1510A ; DREQ Source Address Low (mislabeled as "Bank" previously)
 ADAPTER_DREQ_DH equ     $A1510C ; DREQ Destination Address High
-COMM3           equ     $A1512C ; COMM3 - SH2 ready flag
+COMM6_LOCAL     equ     $A1512C ; COMM6 - SH2 ready/handshake flag (was mislabeled COMM3)
 
 ; VDP registers
 VDP_CTRL        equ     $C00000 ; VDP control port
@@ -92,11 +92,11 @@ adapter_init:
         move.w  #0,VINT_STATE.w                 ; $000860: $33FC $0000 $C87A - State = 0
         move.w  #0,VINT_FLAG2.w                 ; $000866: $33FC $0000 $C87C - Flag2 = 0
 
-; Wait for SH2 ready (polls COMM3 until non-zero)
+; Wait for SH2 ready (polls COMM6 until non-zero)
 .wait_sh2_ready:
-        tst.b   COMM3-ADAPTER_BASE(a4)          ; $00086C: $4A2C $002C       - COMM3 ready?
+        tst.b   COMM6_LOCAL-ADAPTER_BASE(a4)          ; $00086C: $4A2C $002C       - COMM6 ready?
         beq.s   .wait_sh2_ready                 ; $000870: $67FA             - Loop if not ready
-        clr.b   COMM3-ADAPTER_BASE(a4)          ; $000872: $422C $002C       - Acknowledge
+        clr.b   COMM6_LOCAL-ADAPTER_BASE(a4)          ; $000872: $422C $002C       - Acknowledge
 
 ; Initialize ring buffer pointers + FPS counter state
         bsr.w   ring_buffer_init                ; Initialize ring buffer in SDRAM
@@ -166,7 +166,7 @@ loc_000920:
         lea     ADAPTER_BASE,a5                 ; $000924: $4BF9 $00A1 $5100 - Adapter base in A5
         lea     VDP_CTRL,a6                     ; $00092A: $4DF9 $00C0 $0000 - VDP base in A6
 .wait_sh2:
-        tst.b   COMM3-ADAPTER_BASE(a5)          ; $000930: $4A2D $002C       - SH2 ready?
+        tst.b   COMM6_LOCAL-ADAPTER_BASE(a5)          ; $000930: $4A2D $002C       - COMM6 ready?
         beq.s   .wait_sh2                       ; $000934: $67FA             - Loop
 
 ; Initialize work RAM ($FFC800-$FFEFFF)

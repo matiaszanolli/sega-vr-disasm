@@ -75,6 +75,7 @@ disasm/vrd.asm (entry point)
 | Strategic optimization roadmap | [OPTIMIZATION_PLAN.md](OPTIMIZATION_PLAN.md) |
 | Hardware reference (start here) | [docs/development-guide.md](docs/development-guide.md) |
 | Complete hardware manual | [docs/32x-hardware-manual.md](docs/32x-hardware-manual.md) |
+| SH7604 CPU datasheet (600+ pp) | [docs/SH7604_Hardware_Manual.pdf](docs/SH7604_Hardware_Manual.pdf) |
 | All documentation index | [docs/DOCUMENTATION_INDEX.md](docs/DOCUMENTATION_INDEX.md) |
 | 68K function catalog (503+) | [analysis/68K_FUNCTION_REFERENCE.md](analysis/68K_FUNCTION_REFERENCE.md) |
 | 68K↔SH2 communication | [analysis/68K_SH2_COMMUNICATION.md](analysis/68K_SH2_COMMUNICATION.md) |

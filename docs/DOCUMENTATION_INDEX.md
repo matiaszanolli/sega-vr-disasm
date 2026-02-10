@@ -19,6 +19,25 @@ Complete 32X hardware reference including:
 
 ---
 
+### SH7604 Hardware Manual — Hitachi (600+ pages)
+**File:** `SH7604_Hardware_Manual.pdf`
+
+Definitive CPU datasheet for the SH2 processor (SH7604) used in the 32X:
+- Section 2: CPU registers, instruction set, addressing modes, opcode map
+- Section 4: Exception handling, interrupt vectors, priority order
+- Section 5: Interrupt Controller (INTC) — priority registers, IRL sampling, response time
+- Section 7: Bus State Controller — SDRAM burst reads/writes, wait states, bus arbitration, Master/Slave coordination
+- Section 8: Cache — CCR register, cache-through access, coherency, two-way mode, associative purges
+- Section 9: DMAC — DMA controller registers, transfer modes, channel priority
+- Section 10: Division Unit (DIVU)
+- Section 11: Free-Running Timer (FRT) — used in SH2 interrupt bug workaround
+- Section 12: Watchdog Timer (WDT)
+- Section 13: Serial Communication Interface (SCI)
+
+**Key for:** SH2 instruction cycle counts, interrupt latency, cache behavior, bus timing, DMAC configuration
+
+---
+
 ### Genesis Technical Overview (120 pages)
 **File:** `GenesisTechnicalOverview.pdf`
 

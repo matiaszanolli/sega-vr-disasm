@@ -8,12 +8,11 @@ Agent briefing for Virtua Racing Deluxe 32X disassembly/reassembly project.
 
 ```bash
 make all          # Build 4MB ROM from disassembly
-make compare      # Compare with original (code regions byte-identical)
 make clean        # Remove build artifacts
 picodrive build/vr_rebuild.32x  # Test in emulator (PicoDrive only — BlastEm has NO 32X support)
 ```
 
-Build produces `build/vr_rebuild.32x` (4,194,304 bytes). Code regions are byte-identical to original; 700 bytes differ (dormant FPS counter code in unused space at $01C208-$01C4FB).
+Build produces `build/vr_rebuild.32x`. Binary compatibility with the original ROM is no longer maintained — the codebase is now actively modified for optimization and correctness.
 
 ## Ground Rules — STRICTLY ENFORCED
 
@@ -22,7 +21,7 @@ Build produces `build/vr_rebuild.32x` (4,194,304 bytes). Code regions are byte-i
 3. **Use Available Tools** — Profiler at `tools/libretro-profiling/`, disassemblers `tools/m68k_disasm.py` and `tools/sh2_disasm.py`. Measure, don't assume.
 4. **Proper Assembly** — Modify assembly source, not raw binary. Convert `dc.w` to mnemonics when possible (see [KNOWN_ISSUES.md](KNOWN_ISSUES.md) for SH2 exceptions).
 5. **Clean Commits** — No stale comments, no partial changes. Revert completely if something doesn't work.
-6. **Verify Changes** — `make clean && make all` after every modification. Confirm 700 diff bytes (or justify new diffs).
+6. **Verify Changes** — `make clean && make all` after every modification. Confirm build succeeds.
 7. **DRY** — Never create duplicate files. Fix in place. Use git branches for experiments.
 
 ## Architecture

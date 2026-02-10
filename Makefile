@@ -25,7 +25,7 @@ ASMFLAGS = -Fbin -m68000 -no-opt -spaces -quiet
 
 # Source files
 M68K_SRC = $(DISASM_DIR)/vrd.asm
-.PHONY: all clean disasm compare tools test profile-frame profile-pc
+.PHONY: all clean disasm tools test profile-frame profile-pc
 
 # ============================================================================
 # Main targets
@@ -58,43 +58,6 @@ disasm-m68k:
 disasm-sh2:
 	@echo "==> Disassembling SH2 code..."
 	$(PYTHON) $(TOOLS_DIR)/sh2_disasm.py "$(ORIGINAL_ROM)" 0x245E4 100
-
-# ============================================================================
-# Verification targets
-# ============================================================================
-
-# Compare rebuilt ROM with original (from sections/)
-compare: $(OUTPUT_ROM)
-	@echo "==> Comparing ROM files (sections/ build)..."
-	@if [ ! -f "$(ORIGINAL_ROM)" ]; then \
-		echo "ERROR: Original ROM not found: $(ORIGINAL_ROM)"; \
-		exit 1; \
-	fi
-	@ORIG_SIZE=$$(stat -c%s "$(ORIGINAL_ROM)"); \
-	BUILD_SIZE=$$(stat -c%s "$(OUTPUT_ROM)"); \
-	echo "Original ROM size: $$ORIG_SIZE bytes"; \
-	echo "Rebuilt ROM size:  $$BUILD_SIZE bytes"; \
-	if [ $$ORIG_SIZE -eq $$BUILD_SIZE ]; then \
-		echo "✓ Sizes match!"; \
-		echo "==> Comparing bytes..."; \
-		cmp -l "$(ORIGINAL_ROM)" "$(OUTPUT_ROM)" | head -20; \
-		DIFF_COUNT=$$(cmp -l "$(ORIGINAL_ROM)" "$(OUTPUT_ROM)" | wc -l); \
-		if [ $$DIFF_COUNT -eq 0 ]; then \
-			echo "✓✓✓ PERFECT MATCH! ROMs are identical! ✓✓✓"; \
-		else \
-			echo "⚠ Found $$DIFF_COUNT differing bytes"; \
-		fi; \
-	else \
-		echo "✗ Size mismatch!"; \
-	fi
-
-# Quick hex dump comparison
-hexdump: $(OUTPUT_ROM)
-	@echo "==> Original ROM (first 512 bytes):"
-	@hexdump -C "$(ORIGINAL_ROM)" | head -32
-	@echo ""
-	@echo "==> Rebuilt ROM (first 512 bytes):"
-	@hexdump -C "$(OUTPUT_ROM)" | head -32
 
 # ============================================================================
 # Analysis targets
@@ -2541,10 +2504,6 @@ help:
 	@echo ""
 	@echo "Build Targets:"
 	@echo "  all            - Build the ROM from sections/ (original disasm)"
-	@echo ""
-	@echo "Verification:"
-	@echo "  compare        - Compare sections/ build with original"
-	@echo "  hexdump        - Show hex dump comparison"
 	@echo ""
 	@echo "SH2 Assembly:"
 	@echo "  sh2-assembly   - Build SH2 sources to dc.w includes"

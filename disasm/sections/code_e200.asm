@@ -5,27 +5,7 @@
 
         include "disasm/modules/shared/vasm_macros.asm"
 
-; 32X Communication Registers (per Hardware Manual - 2-byte spacing)
-COMM0           equ     $A15120     ; COMM0 byte - Master SH2 ready flag
-COMM0_HI        equ     $A15120     ; COMM0 high byte - Command flag (68K→SH2)
-COMM0_LO        equ     $A15121     ; COMM0 low byte - Command code
-COMM3           equ     $A15123     ; COMM3 byte - General purpose
-COMM4           equ     $A15128     ; COMM4 word - Data pointer (hi), also longword base
-COMM5           equ     $A1512A     ; COMM5 word - Data pointer (lo)
-COMM6           equ     $A1512C     ; COMM6 word - Handshake flag
-
-; SH2 Address Space Offset
-SH2_ADDR_OFFSET equ     $02000000
-
-; Command codes
-CMD_21          equ     $21         ; Command $21
-CMD_DIRECT      equ     $22         ; Direct command send
-CMD_WAIT_SEND   equ     $25         ; Wait and send command
-CMD_27          equ     $27         ; Command $27 (21 calls/frame)
-CMD_EXTENDED    equ     $2F         ; Extended command
-
-; Handshake values
-HANDSHAKE_READY equ     $0101       ; Ready for next phase
+; All hardware register equates in modules/shared/definitions.asm (global)
 
         org     $00E200
 
@@ -899,7 +879,7 @@ sh2_status_check_and_vector_setup:
         tst.b   COMM0                           ; $00EEF2 - Test Master ready
         bne.s   .wait_master                    ; $00EEF8 - Loop until clear
 
-        clr.b   COMM3                           ; $00EEFA - Clear COMM3
+        clr.b   COMM1_LO                        ; $00EEFA - Clear COMM1 low byte
         dc.w    $31FC,$0000,$C87E               ; $00EF00: MOVE.W #$0000,($C87E).W - Reset index
 
         ; Write first ROM vector ($008926D2)

@@ -44,8 +44,7 @@
 ; Related: cmdint_handler, queue_processor, sh2_cmd_27
 ; ============================================================================
 
-; --- 32X System Register Definitions ---
-MARS_SYS_INTMASK    equ $A15102     ; Interrupt Control (INTS, INTM)
+; Uses MARS_SYS_INTMASK from modules/shared/definitions.asm
 
 sh2_send_cmd_async:
         ; Read head pointer

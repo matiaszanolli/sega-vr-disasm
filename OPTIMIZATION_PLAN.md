@@ -251,11 +251,11 @@ The 68K async shim needs to fit in the cramped `$00E200` section. Minimum footpr
 | Queue drain logic | Expansion ROM $300800 | ~128 bytes |
 | Frame sync | Expansion ROM $300900 | ~64 bytes |
 
-**Blocker:** The 68K section has 0 bytes free. Options:
-1. Find dead code to reclaim (most promising — analyze all 68K modules for unreachable paths)
+**Blocker (partially resolved):** The 68K $E200 section has 0 bytes free. Options:
+1. Find dead code to reclaim (analyze all 68K modules for unreachable paths)
 2. Shorten existing code (compress adjacent functions by 20 bytes)
 3. Move the shim to a different 68K section with space
-4. Use a BSR trampoline to a free area elsewhere
+4. **Use banked-call trampoline to expansion ROM** (bank_call.asm pattern exists, pending bank_probe results)
 
 #### References
 - [ASYNC_COMMAND_IMPLEMENTATION_PLAN.md](analysis/optimization/ASYNC_COMMAND_IMPLEMENTATION_PLAN.md)
@@ -517,9 +517,9 @@ python3 analyze_pc_profile.py profile.csv
 1. Analyze all 68K modules in the `$00E200-$010200` section for dead code
 2. Identify functions that are never called or have redundant paths
 3. Verify with call graph analysis and profiling
-4. If impossible: design BSR trampoline to a section with space
+4. If impossible: use banked-call trampoline to expansion ROM ($300000+, pending bank_probe test)
 
-**Deliverable:** 20+ free bytes for `sh2_send_cmd_async` shim
+**Deliverable:** 20+ free bytes for `sh2_send_cmd_async` shim (or equivalent trampoline)
 
 ### Phase 2: Master SH2 Interrupt Queue
 
@@ -615,7 +615,7 @@ python3 analyze_pc_profile.py profile.csv
 | Risk | Severity | Mitigation |
 |------|----------|------------|
 | COMM register corruption from async writes | High | Single-slot queue, Master SH2 serializes |
-| 68K section has 0 bytes for async shim | High | Dead code reclamation or BSR trampoline |
+| 68K section has 0 bytes for async shim | Medium | Dead code reclamation, BSR trampoline, or banked-call to expansion ROM |
 | CMDINT timing issues | Medium | CMDINT is level-triggered, reliable |
 | Master SH2 queue overhead exceeds savings | Low | Master is 0% utilized, has massive headroom |
 

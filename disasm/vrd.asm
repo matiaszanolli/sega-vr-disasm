@@ -1,7 +1,11 @@
 ; ============================================================================
 ; Virtua Racing Deluxe (USA) - Sega 32X
-; Clean Disassembly - Pure DC.W (guaranteed byte-accurate)
+; Full ROM rebuild from disassembly
 ; ============================================================================
+
+; Global hardware register definitions (canonical — do not redefine locally)
+        include "modules/shared/definitions.asm"
+
         include "sections/header.asm"
         include "sections/code_200.asm"
         include "sections/code_2200.asm"

@@ -83,8 +83,9 @@ cmdint_handler:
     mov.w   clear_value,r0      /* R0 = 0x0001 (any value clears interrupt) */
     mov.w   r0,@r1              /* Write to clear register */
 
-    /* Synchronization: read back to ensure write completes
-     * Hardware manual requires 2+ cycles between clear and RTE */
+    /* Synchronization: read back to ensure write completes.
+     * Hardware manual requires 1+ cycle between sync read and RTE
+     * (register restores below provide ample margin). */
     mov.w   @r1,r0              /* Dummy read (forces write completion) */
 
     /* Restore context */

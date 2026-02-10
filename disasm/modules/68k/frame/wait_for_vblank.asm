@@ -10,9 +10,9 @@
 ; ============================================================================
 
 wait_for_vblank:
-        dc.w    $31FC,$0004,$C87A     ; MOVE.W #$0004,($C87A).W - set wait flag
-        dc.w    $46FC,$2300           ; MOVE #$2300,SR - enable interrupts
+        move.w  #$0004,VINT_STATE.w             ; $004998: $31FC $0004 $C87A - set wait flag
+        move    #$2300,sr                       ; $00499E: $46FC $2300 - enable interrupts (level 3)
 .spin:
-        dc.w    $4A78,$C87A           ; TST.W ($C87A).W
-        bne.s   .spin                 ; Wait until V-INT clears flag
-        rts
+        tst.w   VINT_STATE.w                    ; $0049A2: $4A78 $C87A - check flag
+        bne.s   .spin                           ; $0049A6: $66FA - wait until V-INT clears it
+        rts                                     ; $0049A8: $4E75

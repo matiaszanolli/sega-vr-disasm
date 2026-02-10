@@ -9,7 +9,7 @@
 ; ============================================================================
 
 palette_copy_partial:
-        lea     $00A15240,a3          ; CRAM destination (offset $40)
+        lea     MARS_CRAM+$40,a3          ; CRAM destination (offset $40)
         moveq   #7,d7                ; 8 iterations
 .loop:
         move.l  (a2)+,(a3)+           ; 4x unrolled

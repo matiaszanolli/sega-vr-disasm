@@ -9,9 +9,9 @@
 ; ============================================================================
 
 vdp_fill_pattern:
-        lea     $00A15100,a4          ; MARS system base
-        lea     $00A15186,a2          ; VDP fill address register
-        lea     $00A15188,a3          ; VDP fill data register
+        lea     MARS_SYS_BASE,a4      ; MARS system base
+        lea     MARS_VDP_FILLADR,a2   ; VDP fill address register
+        lea     MARS_VDP_FILLDATA,a3  ; VDP fill data register
         move.w  #$1F00,d1             ; Fill address
         move.w  #$0101,d0             ; Fill pattern
         move.w  #$00FF,$0084(a4)      ; Auto-increment

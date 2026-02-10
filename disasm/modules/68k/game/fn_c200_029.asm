@@ -53,7 +53,7 @@ fn_c200_029:
         DC.W    $4EBA,$D7AA         ; JSR     $00B684(PC); $00DED8
         DC.W    $4EBA,$D7FC         ; JSR     $00B6DA(PC); $00DEDC
 .loc_0048:
-        TST.B  $00A15120                        ; $00DEE0
+        TST.B  COMM0_HI                        ; $00DEE0
         BNE.S  .loc_0048                        ; $00DEE6
         MOVEA.L #$06037000,A0                   ; $00DEE8
         MOVEA.L #$24014010,A1                   ; $00DEEE
@@ -66,7 +66,7 @@ fn_c200_029:
         MOVE.W  #$0010,D1                       ; $00DF10
         DC.W    $6100,$0444         ; BSR.W  $00E35A; $00DF14
 .loc_0080:
-        TST.B  $00A15120                        ; $00DF18
+        TST.B  COMM0_HI                        ; $00DF18
         BNE.S  .loc_0080                        ; $00DF1E
         DC.W    $6100,$01F6         ; BSR.W  $00E118; $00DF20
         MOVEA.L #$0603DA00,A0                   ; $00DF24

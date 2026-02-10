@@ -32,8 +32,8 @@ fn_4200_022:
         MOVE    #$2700,SR                       ; $0053B0
         BCLR    #6,(-14219).W                   ; $0053B4
         MOVE.W  (-14220).W,(A5)                 ; $0053BA
-        MOVE.W  #$0083,$00A15100                ; $0053BE
-        ANDI.B  #$FC,$00A15181                  ; $0053C6
+        MOVE.W  #$0083,MARS_SYS_INTCTL                ; $0053BE
+        ANDI.B  #$FC,MARS_VDP_MODE+1                  ; $0053C6
         DC.W    $4EBA,$D33A         ; JSR     $00270A(PC); $0053CE
         MOVEQ   #$07,D0                         ; $0053D2
         JSR     $008814BE                       ; $0053D4
@@ -48,10 +48,10 @@ fn_4200_022:
         DC.W    $4EBA,$7DA8         ; JSR     $00D19C(PC); $0053F2
         MOVE.B  (-14135).W,D0                   ; $0053F6
         ADDQ.B  #1,D0                           ; $0053FA
-        MOVE.B  D0,$00A15122                    ; $0053FC
+        MOVE.B  D0,COMM1_HI                    ; $0053FC
         MOVE.W  #$0103,(-14168).W               ; $005402
-        MOVE.B  (-14167).W,$00A15121            ; $005408
-        MOVE.B  (-14168).W,$00A15120            ; $005410
+        MOVE.B  (-14167).W,COMM0_LO            ; $005408
+        MOVE.B  (-14168).W,COMM0_HI            ; $005410
         MOVE.B  #$00,(-14321).W                 ; $005418
         MOVE.W  #$0000,(-14148).W               ; $00541E
         JSR     $0088D1D4                       ; $005424
@@ -98,9 +98,9 @@ fn_4200_022:
         DC.W    $4EBA,$03EE         ; JSR     $0058C8(PC); $0054D8
         DC.W    $4EBA,$042A         ; JSR     $005908(PC); $0054DC
         DC.W    $4EBA,$045A         ; JSR     $00593C(PC); $0054E0
-        ANDI.B  #$FC,$00A15181                  ; $0054E4
-        ORI.B  #$01,$00A15181                   ; $0054EC
-        MOVE.W  #$8083,$00A15100                ; $0054F4
+        ANDI.B  #$FC,MARS_VDP_MODE+1                  ; $0054E4
+        ORI.B  #$01,MARS_VDP_MODE+1                   ; $0054EC
+        MOVE.W  #$8083,MARS_SYS_INTCTL                ; $0054F4
         DC.W    $4EBA,$CB4C         ; JSR     $00204A(PC); $0054FC
         DC.W    $4EBA,$CBC4         ; JSR     $0020C6(PC); $005500
         BSET    #6,(-14219).W                   ; $005504
@@ -114,9 +114,9 @@ fn_4200_022:
         BSET    #6,(-14322).W                   ; $005530
         MOVE.B  #$01,(-14334).W                 ; $005536
 .loc_018C:
-        BTST    #0,$00A15123                    ; $00553C
+        BTST    #0,COMM1_LO                    ; $00553C
         BEQ.S  .loc_018C                        ; $005544
-        BCLR    #0,$00A15123                    ; $005546
+        BCLR    #0,COMM1_LO                    ; $005546
         MOVE.B  #$9B,(-14171).W                 ; $00554E
         JSR     $00882080                       ; $005554
         JSR     $00884998                       ; $00555A

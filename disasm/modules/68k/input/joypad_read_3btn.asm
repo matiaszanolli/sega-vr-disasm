@@ -14,5 +14,5 @@ joypad_read_3btn:
         not.w   d0                      ; Complement (active low -> high)
         and.w   d5,d0                   ; Mask to 8-bit (3-button only)
         move.b  d7,(a1)                 ; TH=1 (reset controller state)
-        move.w  #$0000,$00A11100        ; Release Z80 bus
+        move.w  #$0000,Z80_BUSREQ        ; Release Z80 bus
         rts

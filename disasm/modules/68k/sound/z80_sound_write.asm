@@ -13,13 +13,13 @@
 ; ============================================================================
 
 z80_sound_write:
-        move.w  #$0100,$00A11100        ; Request Z80 bus
+        move.w  #$0100,Z80_BUSREQ        ; Request Z80 bus
 .wait_grant:
-        btst    #0,$00A11100            ; Check bus grant status
+        btst    #0,Z80_BUSREQ            ; Check bus grant status
         bne.s   .wait_grant             ; Loop until bus granted
         move.b  $0009(a5),d0            ; D0 = channel volume
         lsr.b   #3,d0                   ; Shift right 3 (divide by 8)
         andi.b  #$0F,d0                 ; Mask to 4 bits (0-15)
         move.b  d0,$00A00FFD            ; Write to Z80 sound RAM
-        move.w  #$0000,$00A11100        ; Release Z80 bus
+        move.w  #$0000,Z80_BUSREQ        ; Release Z80 bus
         rts

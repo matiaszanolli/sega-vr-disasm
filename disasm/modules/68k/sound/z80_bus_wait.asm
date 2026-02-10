@@ -12,13 +12,13 @@
 ; ============================================================================
 
 z80_bus_wait:
-        move.w  #$0100,$00A11100        ; Request Z80 bus
+        move.w  #$0100,Z80_BUSREQ        ; Request Z80 bus
 .wait_grant:
-        btst    #0,$00A11100            ; Check bus grant status
+        btst    #0,Z80_BUSREQ            ; Check bus grant status
         bne.s   .wait_grant             ; Loop until bus granted
         btst    #7,$00A00FFF            ; Check sound driver busy flag
         beq.s   .done                   ; If not busy, return
-        move.w  #$0000,$00A11100        ; Release Z80 bus
+        move.w  #$0000,Z80_BUSREQ        ; Release Z80 bus
         nop                             ; Wait for bus release
         nop
         nop

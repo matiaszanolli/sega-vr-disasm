@@ -14,9 +14,9 @@
 ; ============================================================================
 
 joypad_read_hw:
-        move.w  #$0100,$00A11100        ; Request Z80 bus
+        move.w  #$0100,Z80_BUSREQ        ; Request Z80 bus
 .wait_bus:
-        btst    #0,$00A11100            ; Check bus grant
+        btst    #0,Z80_BUSREQ            ; Check bus grant
         bne.s   .wait_bus               ; Wait until granted
 ; --- TH toggle protocol ---
         move.b  #$40,(a1)               ; TH=1 (select high)
@@ -58,5 +58,5 @@ joypad_read_hw:
         lsl.w   #8,d1                   ; Shift to high byte
         or.w    d1,d0                   ; Merge: ZYXM_SACBRLDU
         not.w   d0                      ; Complement (active low -> high)
-        move.w  #$0000,$00A11100        ; Release Z80 bus
+        move.w  #$0000,Z80_BUSREQ        ; Release Z80 bus
         rts

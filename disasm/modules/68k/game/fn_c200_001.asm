@@ -42,9 +42,9 @@ fn_c200_001:
         DC.W    $4EBA,$9686         ; JSR     $0058C8(PC); $00C240
         DC.W    $4EBA,$96C2         ; JSR     $005908(PC); $00C244
         DC.W    $4EBA,$96F2         ; JSR     $00593C(PC); $00C248
-        ANDI.B  #$FC,$00A15181                  ; $00C24C
-        ORI.B  #$01,$00A15181                   ; $00C254
-        MOVE.W  #$8083,$00A15100                ; $00C25C
+        ANDI.B  #$FC,MARS_VDP_MODE+1                  ; $00C24C
+        ORI.B  #$01,MARS_VDP_MODE+1                   ; $00C254
+        MOVE.W  #$8083,MARS_SYS_INTCTL                ; $00C25C
         JSR     $0088204A                       ; $00C264
         JSR     $008820C6                       ; $00C26A
         BSET    #6,(-14219).W                   ; $00C270
@@ -64,9 +64,9 @@ fn_c200_001:
         BSET    #6,(-14322).W                   ; $00C2B4
         MOVE.B  #$01,(-14334).W                 ; $00C2BA
 .loc_00C0:
-        BTST    #0,$00A15123                    ; $00C2C0
+        BTST    #0,COMM1_LO                    ; $00C2C0
         BEQ.S  .loc_00C0                        ; $00C2C8
-        BCLR    #0,$00A15123                    ; $00C2CA
+        BCLR    #0,COMM1_LO                    ; $00C2CA
         MOVE.W  #$0102,(-14168).W               ; $00C2D2
         MOVE.B  #$9C,(-14171).W                 ; $00C2D8
         JSR     $00882080                       ; $00C2DE

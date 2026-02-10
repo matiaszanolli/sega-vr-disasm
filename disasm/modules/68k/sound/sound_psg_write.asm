@@ -16,6 +16,6 @@ sound_psg_write:
         move.b  (a4)+,$0025(a5)         ; Read stream byte to volume field
         btst    #2,(a5)                 ; Test mute bit
         bne.s   .return                 ; If muted, skip PSG write
-        move.b  -$0001(a4),$00C00011    ; Write volume to PSG port
+        move.b  -$0001(a4),PSG    ; Write volume to PSG port
 .return:
         rts

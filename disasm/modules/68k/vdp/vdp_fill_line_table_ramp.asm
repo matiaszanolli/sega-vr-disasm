@@ -9,7 +9,7 @@
 ; ============================================================================
 
 vdp_fill_line_table_ramp:
-        andi.b  #$40,$00A15181        ; Configure VDP access
+        andi.b  #$40,MARS_VDP_MODE+1        ; Configure VDP access
         lea     $00840000,a1          ; Line table base
         move.w  #$0100,d0             ; Stride increment
         move.w  #$2000,d1             ; Starting offset

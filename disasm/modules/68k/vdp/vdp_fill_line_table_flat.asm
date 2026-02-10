@@ -9,7 +9,7 @@
 ; ============================================================================
 
 vdp_fill_line_table_flat:
-        andi.b  #$40,$00A15181        ; Configure VDP access
+        andi.b  #$40,MARS_VDP_MODE+1        ; Configure VDP access
         lea     $00840000,a1          ; Line table base
         move.w  #$1F00,d2             ; Constant line offset
         move.w  #$00DF,d7             ; 224 lines

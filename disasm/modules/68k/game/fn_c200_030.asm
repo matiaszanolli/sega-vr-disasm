@@ -64,7 +64,7 @@ fn_c200_030:
         MOVE.W  #$0048,D0                       ; $00E18A
         SUBQ.L  #1,A0                           ; $00E18E
 .loc_0078:
-        TST.B  $00A15120                        ; $00E190
+        TST.B  COMM0_HI                        ; $00E190
         BNE.S  .loc_0078                        ; $00E196
         DC.W    $4EBA,$021A         ; JSR     $00E3B4(PC); $00E198
         RTS                                     ; $00E19C

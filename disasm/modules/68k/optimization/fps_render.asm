@@ -45,12 +45,12 @@ fps_render:
         movem.l d0-d5/a0-a2,-(sp)
 
         ; --- Save FM state and claim FB + CRAM access ---
-        move.w  $00A15100,d5            ; D5 = saved adapter ctrl (FM in bit 15)
-        bclr    #7,$00A15100            ; FM=0 (68K gets FB + CRAM access)
+        move.w  MARS_SYS_INTCTL,d5            ; D5 = saved adapter ctrl (FM in bit 15)
+        bclr    #7,MARS_SYS_INTCTL            ; FM=0 (68K gets FB + CRAM access)
 
         ; --- Set palette entries for counter ---
-        move.w  #$0000,$00A153FC        ; CRAM[254] = black (background)
-        move.w  #$7FFF,$00A153FE        ; CRAM[255] = white (foreground)
+        move.w  #$0000,MARS_CRAM_LAST2        ; CRAM[254] = black (background)
+        move.w  #$7FFF,MARS_CRAM_LAST1        ; CRAM[255] = white (foreground)
 
         ; --- Get FPS value, clamp to 0-99, split into digits ---
         moveq   #0,d0
@@ -71,15 +71,15 @@ fps_render:
         mulu    #5,d2                   ; D2 = ones * 5
 
         ; --- Render to both frame buffers ---
-        lea     $840000,a1              ; FB0
+        lea     MARS_FRAMEBUFFER,a1     ; FB0
         bsr.w   .render_fb
-        lea     $860000,a1              ; FB1
+        lea     MARS_OVERWRITE,a1       ; FB1
         bsr.w   .render_fb
 
         ; --- Restore FM state ---
         btst    #15,d5                  ; Was FM=1 originally?
         beq.s   .fm_done
-        bset    #7,$00A15100            ; Restore FM=1
+        bset    #7,MARS_SYS_INTCTL            ; Restore FM=1
 .fm_done:
         movem.l (sp)+,d0-d5/a0-a2
         rts

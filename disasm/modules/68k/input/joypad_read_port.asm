@@ -14,9 +14,9 @@
 ; ============================================================================
 
 joypad_read_port:
-        move.w  #$0100,$00A11100        ; Request Z80 bus
+        move.w  #$0100,Z80_BUSREQ        ; Request Z80 bus
 .wait_bus:
-        btst    #0,$00A11100            ; Check bus grant
+        btst    #0,Z80_BUSREQ            ; Check bus grant
         bne.s   .wait_bus               ; Wait until granted
         movem.l d1/d2/a1,-(a7)          ; Save registers
         add.w   d0,d0                   ; D0 *= 2
@@ -44,5 +44,5 @@ joypad_read_port:
 ; --- Cleanup ---
         clr.b   $0006(a0)               ; Clear port control register
         movem.l (a7)+,d1/d2/a1          ; Restore registers
-        move.w  #$0000,$00A11100        ; Release Z80 bus
+        move.w  #$0000,Z80_BUSREQ        ; Release Z80 bus
         rts

@@ -9,12 +9,12 @@
 ; ============================================================================
 
 sync_wait_reset:
-.wait:  tst.b   $00A15120               ; Poll SH2 busy flag
+.wait:  tst.b   COMM0_HI                ; Poll SH2 busy flag
         bne.s   .wait                   ;   (wait loop)
-        clr.b   $00A15123               ; Clear SH2 status byte
-        dc.w    $31FC,$0000,$C87E       ; MOVE.W #$0000,($C87E).W - reset state
+        clr.b   COMM1_LO                ; Clear SH2 status byte
+        move.w  #$0000,($FFFFC87E).w   ; Reset state counter
         move.l  #$008926D2,$00FF0002    ; Store function pointer A
-        dc.w    $4A38,$A018             ; TST.B ($A018).W - test flag
+        tst.b   ($FFFFA018).w           ; Test flag
         bne.s   .done                   ; If set, keep pointer A
         move.l  #$0088D4B8,$00FF0002    ; Store function pointer B
 .done:  rts

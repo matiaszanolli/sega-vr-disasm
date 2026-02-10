@@ -21,10 +21,10 @@ comm_transfer_setup_a:
         move.w  #$0000,$000E(a1)        ; Clear field E
         move.l  #$222BDAE6,$0010(a1)    ; SH2 callback addr
         adda.l  #$00000014,a1           ; Advance past block
-        move.w  #$0044,$00A15110        ; Set DREQ length
-        move.b  #$04,$00A15107          ; Set COMM control
-.wait:  tst.b   $00A15120               ; Wait SH2 ready
+        move.w  #$0044,MARS_DREQ_LEN    ; Set DREQ length
+        move.b  #$04,MARS_DREQ_CTRL+1   ; Set DMA mode
+.wait:  tst.b   COMM0_HI                ; Wait SH2 ready
         bne.s   .wait                   ;   (poll loop)
-        move.b  #$2A,$00A15121          ; Send command $2A
-        move.b  #$01,$00A15120          ; Signal SH2
+        move.b  #$2A,COMM0_LO           ; Send command $2A
+        move.b  #$01,COMM0_HI           ; Signal SH2
         rts

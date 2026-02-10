@@ -211,11 +211,38 @@ Official SEGA assembler (SNASM68K) syntax and usage notes:
 
 ---
 
+## Markdown Conversions
+
+The following PDFs have been converted to version-controlled markdown files:
+
+| PDF Source | Markdown File | Size |
+|-----------|---------------|------|
+| 32XUSHardwareManual.pdf | [32x-hardware-information.md](32x-hardware-information.md) | - |
+| 32X_Introduction_and_System_Features.pdf | [32x-introduction-and-system-features.md](32x-introduction-and-system-features.md) | - |
+| Genesis32XUSOverview.pdf | [genesis-32x-overview.md](genesis-32x-overview.md) | - |
+| Genesis_Software_Development_Manual...pdf | [genesis-software-development-manual.md](genesis-software-development-manual.md) | - |
+| GenesisTechnicalBulletins.pdf | [genesis-technical-bulletins.md](genesis-technical-bulletins.md) | - |
+| GenesisTechnicalOverview.pdf | [genesis-technical-overview.md](genesis-technical-overview.md) | 109 KB |
+| SH7604_Hardware_Manual.pdf | [sh7604-hardware-manual.md](sh7604-hardware-manual.md) | 582 KB |
+| SegaGenesisReferenceSheets...pdf | [sega-genesis-reference-sheets.md](sega-genesis-reference-sheets.md) | - |
+| SNASM68K_Console_and_Z80_Notes.pdf | [snasm68k-console-z80-notes.md](snasm68k-console-z80-notes.md) | - |
+| The_Sega_Development_System_(Accolade).pdf | [sega-development-system-accolade.md](sega-development-system-accolade.md) | - |
+| Interim_Release_Notes.pdf | [interim-release-notes-accolade.md](interim-release-notes-accolade.md) | - |
+| HM65256B_datasheet.pdf | [hm65256b-datasheet.md](hm65256b-datasheet.md) | - |
+| M27C322.pdf | [m27c322-datasheet.md](m27c322-datasheet.md) | - |
+| MB838200B.pdf | [mb838200b-datasheet.md](mb838200b-datasheet.md) | - |
+| IC_BD_16M_42PIN_EPROM.pdf | [ic-bd-16m-42pin-eprom-manual.md](ic-bd-16m-42pin-eprom-manual.md) | - |
+| IC_BD_32M_SRAM.pdf | [ic-bd-32m-sram-manual.md](ic-bd-32m-sram-manual.md) | - |
+| IC_BD_4M_32PIN.pdf | [ic-bd-4m-32pin-eprom-manual.md](ic-bd-4m-32pin-eprom-manual.md) | - |
+
+**Not converted:** `SegaGenesisSoftwareManual_1990-02-06.pdf` (145 MB, exceeds 100 MB PDF processing limit)
+
 ## Integration with Existing Documentation
 
-These PDFs complement the existing markdown documentation:
+These PDFs and markdown conversions complement the pre-existing markdown documentation:
 - `development-guide.md` - 32X development guide
 - `32x-hardware-manual.md` - 32X hardware manual (markdown version)
+- `32x-hardware-manual-supplement-2.md` - SH2 interrupt bug errata
 - `32x-technical-info.md` - Hardware bugs and workarounds
-
-The PDF files provide **official SEGA source material** that informed the markdown documentation.
+- `32x-technical-info-attachment-1.md` - VRES/RV bit corrective programs
+- `sound-driver-v3.md` - Sound Driver V3.00 system calls

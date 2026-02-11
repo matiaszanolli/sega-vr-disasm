@@ -235,16 +235,17 @@
         dc.w    $524C        ; $0203C6
         dc.w    $0009        ; $0203C8
         dc.w    $0009        ; $0203CA
-; PATCH #1: Slave idle loop → slave_work_wrapper_v2 at 0x02300200
-        dc.w    $D003        ; $0203CC - MOV.L @(12,PC),R0 - Load wrapper addr
+; PATCH #1 FIXED: Slave idle loop → slave_work_wrapper_v2 at 0x02300200
+; FIX: Moved literal pool to avoid overwriting executable code at $0203D8
+        dc.w    $D002        ; $0203CC - MOV.L @(8,PC),R0 - Load wrapper addr
         dc.w    $402B        ; $0203CE - JMP @R0 - Jump to wrapper
         dc.w    $0009        ; $0203D0 - NOP - Delay slot
         dc.w    $0009        ; $0203D2 - NOP - Padding
-        dc.w    $0009        ; $0203D4 - NOP - Padding
-        dc.w    $0009        ; $0203D6 - NOP - Padding
-        dc.w    $0230        ; $0203D8 - Literal: 0x02300200 (high word)
-        dc.w    $0200        ; $0203DA - Literal: 0x02300200 (low word)
-        dc.w    $0009        ; $0203DC - NOP - Padding
+        dc.w    $0230        ; $0203D4 - Literal: 0x02300200 (high word)
+        dc.w    $0200        ; $0203D6 - Literal: 0x02300200 (low word)
+        dc.w    $2F06        ; $0203D8 - RESTORED: MOV.L R0,@-R15 (original code!)
+        dc.w    $2F16        ; $0203DA - RESTORED: MOV.L R1,@-R15
+        dc.w    $2F26        ; $0203DC - RESTORED: MOV.L R2,@-R15
         dc.w    $2F36        ; $0203DE
         dc.w    $2F46        ; $0203E0
         dc.w    $2F56        ; $0203E2

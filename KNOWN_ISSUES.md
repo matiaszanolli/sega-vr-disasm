@@ -138,7 +138,108 @@ Original SH2 silicon has a documented bug (see [32x-hardware-manual-supplement-2
 
 ---
 
+## SH2 Patch Design
+
+### COMM7 Signal Namespace Collision — Don't Broadcast Game Commands
+
+**Status:** Root cause of race-mode crash in B-006 activation (commits 651a415, 7bab6fc).
+
+The `master_dispatch_hook` (Patch #2) was designed to write every game command byte to COMM7 so the Slave could "see" what the Master was dispatching. This is fundamentally wrong because **game command codes overlap with expansion ROM signal values**:
+
+| Value | Game meaning | Expansion meaning | Collision? |
+|-------|-------------|-------------------|------------|
+| 0x01 | Frame init | Frame sync signal | **YES** |
+| 0x16 | Vertex transform | Vertex transform signal | Skipped (by design) |
+| 0x27 | Pixel region fill (21×/frame) | Queue drain signal | **YES — CRASH** |
+
+The Slave's `slave_work_wrapper` interprets COMM7 values as expansion ROM signals. When the hook writes `COMM7 = 0x27` (from a normal game cmd), the Slave calls `cmd27_queue_drain`, which reads from uninitialized Work RAM at `$02FFFB00` — garbage pointers, widths, heights → writes to random memory → corruption → crash with stuck engine sound.
+
+**Rules:**
+1. **Never broadcast raw game command bytes to COMM7.** The game's command namespace and the expansion ROM's signal namespace are independent; conflating them causes collisions.
+2. **Only write COMM7 from code that knows the Slave's signal protocol** (currently only `shadow_path_wrapper` for signal 0x16).
+3. **Don't activate signal consumers (queue drain) before their producers (async queue) exist.** Infrastructure without data = garbage processing.
+4. **A dispatch hook that only dispatches is pointless overhead.** If the hook doesn't add behavior beyond what the original code does, don't have a hook.
+
+**Fix:** Revert Patch #2 entirely. The original Master dispatch at `$02046A` works correctly. COMM7 signaling for cmd 0x16 is already handled by `shadow_path_wrapper` (Patch #3), which writes COMM7 only when vertex transform parameters are ready.
+
+### B-006 Patch #2 Had Three Independent Bugs (Committed in 651a415)
+
+The committed `master_dispatch_hook` trampoline at `$02046A` had three bugs beyond the COMM7 design flaw:
+
+1. **R0 clobbered before hook reads it.** `D005` (MOV.L hook_addr,**R0**) overwrites the command byte that the hook needs. Fix: use R1 for the hook address (`D102`).
+
+2. **Literal pool collision at `$020480`.** The hook's literal (0x02300050) was placed at `$020480`, which is also the target of `D011` at `$020438` (Master SH2 init code). This made the init code JSR to the hook address instead of `0x060045CC`. Fix: place literal at `$020474` (dead code area after the BRA), restore `$020480` to original value.
+
+3. **COMM7 broadcast (the crash).** Described above. Writing every game command to COMM7 triggers uninitialized queue drain on the Slave.
+
+**Lesson:** When patching SH2 code, always check whether literal pool addresses are shared by other `MOV.L @(disp,PC)` instructions in the surrounding code. SH2 literal pools are positional — moving code can silently redirect other instructions' data loads.
+
+### SH2 Literal Pool Sharing — Verify Before Overwriting
+
+SH2 `MOV.L @(disp,PC),Rn` instructions reference literal pools by PC-relative offset. Multiple instructions can share the same literal. When patching code, verify with:
+
+```python
+# Find all MOV.L @(disp,PC) that reference a given address
+target = 0x020480  # address being overwritten
+for addr in range(section_start, section_end, 2):
+    opcode = read_word(addr)
+    if (opcode & 0xF000) == 0xD000:  # MOV.L @(disp,PC),Rn
+        disp = (opcode & 0xFF) * 4
+        pc = (addr + 4) & ~3
+        ea = pc + disp
+        if ea == target:
+            print(f"WARNING: ${addr:06X} also loads from ${target:06X}")
+```
+
+**Rule:** Before placing a literal at any address, scan the entire section for `$Dnxx` opcodes that resolve to that address.
+
+### Slave SH2 Idle Loop at $0203CC — Context and Constraints
+
+The original Slave idle loop at `$0203CC` is:
+```
+$0203CC: D101  MOV.L @(4,PC),R1   ; R1 = 0x2000402C (COMM6)
+$0203CE: 2102  MOV.L R0,@R1       ; COMM6 = R0 (boot-complete signal)
+$0203D0: AFFE  BRA $0203D0        ; Loop forever
+$0203D2: 0009  NOP
+$0203D4: 2000 402C               ; COMM6 address literal
+```
+
+This is a **terminal idle loop**, not the Slave's main dispatch. The Slave's rendering dispatch loop is at `$06000608` in SDRAM (confirmed by profiling hotspot at `$0600060A`). The Slave reaches `$0203CC` once during boot, writes a status value to COMM6, and spins forever. Rendering work arrives via **interrupts**, not by breaking out of this loop.
+
+**Implication for Patch #1:** Replacing this loop with `slave_work_wrapper` (COMM7 polling) is safe for rendering — the interrupt-driven SDRAM dispatch continues to handle COMM1 commands. The COMM7 poll runs in the "background" (base level), and interrupts preempt it normally.
+
+**Caution:** The COMM6 write at `$0203CE` may serve as a boot handshake. If the 68K or Master polls COMM6 to confirm Slave readiness, skipping this write could cause init-time issues. Current testing shows menus work without it, but the write should be preserved if possible. See [MASTER_SH2_DISPATCH_ANALYSIS.md](analysis/architecture/MASTER_SH2_DISPATCH_ANALYSIS.md) for the full control flow analysis.
+
+### Master SH2 JMP vs JSR for Command Dispatch
+
+Both work correctly for dispatching to command handlers, because SH2 handlers follow a strict save/restore PR convention:
+
+**JSR dispatch (original):**
+```
+JSR @R0          ; PR = return_addr
+                 ; Handler saves PR, does work, restores PR, RTS → return_addr
+```
+
+**JMP dispatch (hook):**
+```
+; Caller: JSR @R1 (sets PR = loop_BRA)
+; Hook:   JMP @R0 (PR unchanged = loop_BRA)
+;         Handler saves PR, does work, restores PR, RTS → loop_BRA
+```
+
+Both produce the same result: handler returns to the dispatch loop. The difference is which address is saved — but both point to BRA $020460 (loop back). **JMP is valid** as long as PR was set correctly by the caller's JSR.
+
+**Exception:** If a handler is a leaf function that doesn't save PR AND also modifies PR (impossible for a true leaf), JMP would break. In practice all non-trivial handlers save/restore PR.
+
+---
+
 ## Active Bugs
+
+### B-006 Race-Mode Crash (All Patches Reverted)
+**Status:** FIXED — all 3 B-006 patches reverted to original game code (2026-02-11)
+**Symptom:** ROM boots, menus work, crashes with stuck engine sound when entering race mode.
+**Root cause:** Multiple interacting issues. Patch #2 (COMM7 broadcast) was the primary cause, but reverting Patch #2 alone was insufficient — Patches #1+#3 together also produced the same crash. Likely causes: shadow_path_wrapper's COMM7 barrier deadlocks the Master (blocks waiting for Slave to clear COMM7), and/or parallel func_021 execution on both CPUs creates data races on shared output buffers.
+**Fix:** Full revert of all 3 patches. Original game code restored at $0203CC, $02046A, $0234C8.
 
 ### FPS Counter Production Sampling Shows 00
 **Status:** Parked (diagnostic mode works, production mode broken)
@@ -174,3 +275,5 @@ ROM $300000-$3FFFFF (~1MB, 99.9% free) is accessible to the 68K via banking or p
 | SH2 optimization alone for FPS | 66.6% Slave reduction → 0% FPS change (68K is bottleneck) |
 | func_065 FIFO batching | Fall-through control flow, can't restructure without breaking callers |
 | func_017-019 optimization in isolation | Tightly coupled: shared code paths, cross-function branching |
+| COMM7 broadcast of game commands via dispatch hook | Game cmd bytes (0x01, 0x27) collide with expansion signal values → Slave processes uninitialized queue → crash. See §COMM7 Signal Namespace Collision above. |
+| Placing Patch #2 literal at $020480 | Shared by D011@$020438 (init code). Silently redirects init JSR to hook address. Always scan for $Dnxx refs before overwriting. |

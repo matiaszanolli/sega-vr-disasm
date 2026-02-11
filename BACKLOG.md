@@ -51,12 +51,14 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 **Ref:** [OPTIMIZATION_PLAN.md](OPTIMIZATION_PLAN.md) § Track 2
 
 ### B-006: Activate v4.0 parallel hooks
-**Status:** DONE (2026-02-10)
+**Status:** REVERTED — all 3 patches disabled (2026-02-11)
 **Why:** Enable Slave CPU vertex transform offload (infrastructure built but dormant).
-**Result:** All 3 patches applied successfully. ROM boots, parallel processing active. Slave polls COMM7, Master dispatch routes cmd $16 to hook, func_021 redirects to shadow_path_wrapper.
-**Patches:** Slave idle ($0203CC→$02300200), Master dispatch ($02046A→$02300050), func_021 trampoline ($0234C8→$02300400).
+**Result (2026-02-10):** 3 patches applied. ROM boots, menus work. **Crashes with stuck engine sound when entering race mode.**
+**Root cause (2026-02-11):** Patch #2 (master_dispatch_hook) writes every game command byte to COMM7. Game's cmd 0x27 (sent 21×/frame) triggers `cmd27_queue_drain` on the Slave with uninitialized queue data → random memory writes → crash. Three additional bugs in committed Patch #2: R0 clobbered, literal pool collision at $020480, COMM7 namespace collision. Reverting Patch #2 alone was insufficient — Patches #1 and #3 together also caused race-mode crashes (likely shadow_path_wrapper COMM7 barrier deadlock or data races from parallel func_021 execution on both CPUs). See [KNOWN_ISSUES.md](KNOWN_ISSUES.md) and [MASTER_SH2_DISPATCH_ANALYSIS.md](analysis/architecture/MASTER_SH2_DISPATCH_ANALYSIS.md).
+**Fix:** Full revert of all 3 patches to original game code. Expansion ROM code still exists but is dead (nothing jumps to it).
+**Patches:** ~~Slave idle ($0203CC→$02300200)~~ REVERTED, ~~Master dispatch ($02046A→$02300050)~~ REVERTED, ~~func_021 trampoline ($0234C8→$02300400)~~ REVERTED.
 **Key files:** `disasm/sections/code_20200.asm`, `disasm/sections/code_22200.asm`, `disasm/sections/expansion_300000.asm`
-**Next:** Profile to measure FPS improvement and CPU utilization changes.
+**Next:** Requires redesign. Patches #1 and #3 need independent validation before re-activation. Test each patch in isolation with race-mode verification.
 
 ---
 
@@ -113,7 +115,7 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 
 | ID | Description | Commit | Date |
 |----|-------------|--------|------|
-| B-006 | Activate v4.0 parallel hooks (3 patches: Slave loop, Master dispatch, func_021) | 651a415 | 2026-02-10 |
+| B-006 | Activate v4.0 parallel hooks — **PARTIAL**: Patch #2 needs revert (COMM7 collision crash) | 651a415 | 2026-02-10 |
 | B-012 | Symbolic register hardening batch 1 (6 sh2/vdp modules) | 3b347d3 | 2026-02-10 |
 | B-012 | Symbolic register hardening batch 2 (8 modules + COMM6 fix) | 350e346 | 2026-02-10 |
 | B-012 | Symbolic register hardening batch 3 (20 modules, all categories) | 170c6e7 | 2026-02-10 |

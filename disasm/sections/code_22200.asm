@@ -1964,29 +1964,11 @@
 ; func_020: Vertex processor helper (starts at $0234A0)
 ; Called by func_018/func_019 for vertex processing loop
         include "sh2/generated/func_020.inc"
-; func_021: PATCHED → shadow_path_wrapper at 0x02300400
-; Original vertex transform redirected to expansion ROM for parallel processing
-; PATCH #3: Activation of v4.0 parallel hooks (38 bytes total to match original)
-        dc.w    $D002        ; $0234C8 - MOV.L @(8,PC),R0 - Load wrapper addr
-        dc.w    $402B        ; $0234CA - JMP @R0 - Jump to wrapper
-        dc.w    $0009        ; $0234CC - NOP - Delay slot
-        dc.w    $0009        ; $0234CE - NOP - Padding
-        dc.w    $0009        ; $0234D0 - NOP - Padding
-        dc.w    $0009        ; $0234D2 - NOP - Padding
-        dc.w    $0230        ; $0234D4 - Literal: 0x02300400 (high word)
-        dc.w    $0400        ; $0234D6 - Literal: 0x02300400 (low word)
-; Original func_021 preserved bytes (unreachable but maintains section size)
-        dc.w    $68F6        ; $0234D8
-        dc.w    $67F6        ; $0234DA
-        dc.w    $8581        ; $0234DC
-        dc.w    $C801        ; $0234DE
-        dc.w    $8F01        ; $0234E0
-        dc.w    $7810        ; $0234E2
-        dc.w    $7804        ; $0234E4
-        dc.w    $4710        ; $0234E6
-        dc.w    $8BF2        ; $0234E8
-        dc.w    $4F26        ; $0234EA
-        dc.w    $000B        ; $0234EC
+; func_021: Original vertex transform implementation (starts at $0234C8)
+; PATCH #3 REVERTED — all expansion ROM patches disabled for clean baseline.
+; Processes vertices in a loop, calling $023368 and $02350A
+; Note: Optimized version exists at expansion ROM ($300100)
+        include "sh2/generated/func_021_orig.inc"
 ; ═══════════════════════════════════════════════════════════════════════════
 ; func_022: Wait for Ready / Hardware Sync (26 bytes, $0234EE-$023507)
 ; Source: disasm/sh2/3d_engine/func_022_wait_ready.asm

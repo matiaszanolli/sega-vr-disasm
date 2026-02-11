@@ -1964,7 +1964,7 @@ $(SH2_MASTER_DISPATCH_HOOK_BIN): $(SH2_MASTER_DISPATCH_HOOK_SRC) $(SH2_MASTER_DI
 	$(SH2_AS) $(SH2_ASFLAGS) -o $(BUILD_DIR)/sh2/master_dispatch_hook.o $<
 	$(SH2_LD) -T $(SH2_MASTER_DISPATCH_HOOK_LDS) -o $(BUILD_DIR)/sh2/master_dispatch_hook.elf $(BUILD_DIR)/sh2/master_dispatch_hook.o
 	$(SH2_OBJCOPY) -O binary --only-section=.text $(BUILD_DIR)/sh2/master_dispatch_hook.elf $@
-	@echo "    Output: $@ ($$(wc -c < $@) bytes, expected 44)"
+	@echo "    Output: $@ ($$(wc -c < $@) bytes, expected 28)"
 
 $(SH2_MASTER_DISPATCH_HOOK_INC): $(SH2_MASTER_DISPATCH_HOOK_BIN)
 	@mkdir -p $(SH2_GEN_DIR)

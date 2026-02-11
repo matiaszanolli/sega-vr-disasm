@@ -97,7 +97,7 @@ master_dispatch_hook:
 ; ============================================================================
 ; PADDING TO func_021_optimized
 ; ============================================================================
-; Current position: 0x30007C (hook ends at 0x50 + 44 bytes)
+; Current position: 0x30006C (hook ends at 0x50 + 28 bytes)
 ; Pad to 0x300100 for nice alignment
         dcb.b   ($300100 - *), $FF
 
@@ -160,38 +160,44 @@ slave_test_func:
         include "sh2/generated/slave_test_func.inc"
 
 ; ============================================================================
-; ORIGINAL func_021 (RELOCATED FOR SHADOW PATH)
+; ORIGINAL func_021 (RELOCATED FOR SHADOW PATH — FIXED)
 ; ============================================================================
 ; Relocated from ROM $0234C8 to enable shadow path instrumentation.
-; Original 36 bytes preserved byte-for-byte for correct rendering.
-;
-; Shadow wrapper at $0234C8 calls this after instrumenting COMM6/COMM7.
-; Slave works in parallel using func_021_optimized while Master uses this.
+; FIXED: Replaced PC-relative BSR with absolute MOV.L+JSR because the
+; original BSR targets (func_016 at $023368, nested at $02350A) are in
+; main ROM, unreachable by BSR from expansion ROM.
 ;
 ; Address: 0x300300 (SH2: 0x02300300)
-; Size: 36 bytes (ends at 0x300326)
+; Size: 52 bytes (26 words, ends at 0x300333)
 ;
         dcb.b   ($300300 - *), $FF  ; Pad to 0x300300 (auto-sized)
 func_021_original_relocated:
         dc.w    $4F22        ; $300300  STS.L PR,@-R15
-        dc.w    $BF4D        ; $300302  BSR (func_016)
-        dc.w    $0009        ; $300304  NOP
-        dc.w    $2F76        ; $300306  MOV.L R7,@-R15
-        dc.w    $2F86        ; $300308  MOV.L R8,@-R15
-        dc.w    $B01A        ; $30030A  BSR (nested func)
-        dc.w    $4F22        ; $30030C  STS.L PR,@-R15
-        dc.w    $68F6        ; $30030E  MOV.L @R15+,R8
-        dc.w    $67F6        ; $300310  MOV.L @R15+,R7
-        dc.w    $8581        ; $300312  MOV.B R0,@($1,R5)
-        dc.w    $C801        ; $300314  TST #1,R0
-        dc.w    $8F01        ; $300316  BF/S +1
-        dc.w    $7810        ; $300318  ADD #$10,R8
-        dc.w    $7804        ; $30031A  ADD #$04,R8
-        dc.w    $4710        ; $30031C  DT R7
-        dc.w    $8BF2        ; $30031E  BF -12
-        dc.w    $4F26        ; $300320  LDS.L @R15+,PR
-        dc.w    $000B        ; $300322  RTS
-        dc.w    $0009        ; $300324  NOP
+        dc.w    $D30A        ; $300302  MOV.L @(40,PC),R3 → func_016 addr
+        dc.w    $430B        ; $300304  JSR @R3
+        dc.w    $0009        ; $300306  NOP (delay slot)
+        dc.w    $2F76        ; $300308  MOV.L R7,@-R15       ← LOOP TARGET
+        dc.w    $2F86        ; $30030A  MOV.L R8,@-R15
+        dc.w    $D308        ; $30030C  MOV.L @(32,PC),R3 → nested func addr
+        dc.w    $430B        ; $30030E  JSR @R3
+        dc.w    $4F22        ; $300310  STS.L PR,@-R15 (delay slot — saves PR)
+        dc.w    $68F6        ; $300312  MOV.L @R15+,R8
+        dc.w    $67F6        ; $300314  MOV.L @R15+,R7
+        dc.w    $8581        ; $300316  MOV.B R0,@($1,R5)
+        dc.w    $C801        ; $300318  TST #1,R0
+        dc.w    $8F01        ; $30031A  BF/S +1
+        dc.w    $7810        ; $30031C  ADD #$10,R8 (delay slot)
+        dc.w    $7804        ; $30031E  ADD #$04,R8
+        dc.w    $4710        ; $300320  DT R7
+        dc.w    $8BF1        ; $300322  BF $300308 (disp=-15, loop back)
+        dc.w    $4F26        ; $300324  LDS.L @R15+,PR
+        dc.w    $000B        ; $300326  RTS
+        dc.w    $0009        ; $300328  NOP
+        dc.w    $0009        ; $30032A  NOP (align to 4 bytes)
+        dc.w    $0202        ; $30032C  Literal: func_016 = 0x02023368 (high)
+        dc.w    $3368        ; $30032E  Literal: func_016 = 0x02023368 (low)
+        dc.w    $0202        ; $300330  Literal: nested func = 0x0202350A (high)
+        dc.w    $350A        ; $300332  Literal: nested func = 0x0202350A (low)
 
 ; ============================================================================
 ; SHADOW PATH WRAPPER: 0x300400 (SH2: 0x02300400)
@@ -289,4 +295,7 @@ queue_processor:
 ; ============================================================================
 ; REMAINING EXPANSION ROM SPACE (from 0x301000)
 ; ============================================================================
-        dcb.b   ($100000 - $1000), $FF
+; Pad to $3F0000 (960KB) instead of $400000 (1MB) to avoid PicoDrive
+; emulator bug triggered by ROM files > ~0x3F1F40 bytes.
+; Still provides ~960KB expansion space (99.7% free).
+        dcb.b   ($F0000 - $1000), $FF

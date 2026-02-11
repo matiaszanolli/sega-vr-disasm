@@ -235,17 +235,18 @@
         dc.w    $524C        ; $0203C6
         dc.w    $0009        ; $0203C8
         dc.w    $0009        ; $0203CA
-; PATCH #1 FIXED: Slave idle loop → slave_work_wrapper_v2 at 0x02300200
-; FIX: Moved literal pool to avoid overwriting executable code at $0203D8
-        dc.w    $D002        ; $0203CC - MOV.L @(8,PC),R0 - Load wrapper addr
-        dc.w    $402B        ; $0203CE - JMP @R0 - Jump to wrapper
-        dc.w    $0009        ; $0203D0 - NOP - Delay slot
-        dc.w    $0009        ; $0203D2 - NOP - Padding
-        dc.w    $0230        ; $0203D4 - Literal: 0x02300200 (high word)
-        dc.w    $0200        ; $0203D6 - Literal: 0x02300200 (low word)
-        dc.w    $2F06        ; $0203D8 - RESTORED: MOV.L R0,@-R15 (original code!)
-        dc.w    $2F16        ; $0203DA - RESTORED: MOV.L R1,@-R15
-        dc.w    $2F26        ; $0203DC - RESTORED: MOV.L R2,@-R15
+; Original Slave idle loop (writes R0 to COMM6, loops forever)
+; PATCH #1 REVERTED — all expansion ROM patches disabled for clean baseline.
+; See: KNOWN_ISSUES.md § Slave SH2 Idle Loop at $0203CC
+        dc.w    $D101        ; $0203CC - MOV.L @(4,PC),R1
+        dc.w    $2102        ; $0203CE - MOV.L R0,@R1
+        dc.w    $AFFE        ; $0203D0 - BRA $0203D0 (loop forever)
+        dc.w    $0009        ; $0203D2 - NOP
+        dc.w    $2000        ; $0203D4 - \ COMM6 address literal
+        dc.w    $402C        ; $0203D6 - / (0x2000402C)
+        dc.w    $2F06        ; $0203D8
+        dc.w    $2F16        ; $0203DA
+        dc.w    $2F26        ; $0203DC
         dc.w    $2F36        ; $0203DE
         dc.w    $2F46        ; $0203E0
         dc.w    $2F56        ; $0203E2
@@ -316,20 +317,23 @@
         dc.w    $8800        ; $020464
         dc.w    $89FB        ; $020466
         dc.w    $8481        ; $020468
-; PATCH #2: Master dispatch → master_dispatch_hook at 0x02300050
-        dc.w    $D005        ; $02046A - MOV.L @(20,PC),R0 - Load hook addr
-        dc.w    $400B        ; $02046C - JSR @R0 - Call hook
-        dc.w    $0009        ; $02046E - NOP - Delay slot
-        dc.w    $AFF6        ; $020470 - BRA -10 ($020460) - Loop back
-        dc.w    $0009        ; $020472 - NOP - Delay slot
-        dc.w    $AFF4        ; $020474 - BRA -12
-        dc.w    $0009        ; $020476 - NOP
+; Original Master dispatch (shift, table lookup, JSR to handler)
+; PATCH #2 REVERTED — master_dispatch_hook caused COMM7 signal collision crash.
+; See: KNOWN_ISSUES.md § COMM7 Signal Namespace Collision
+; See: analysis/architecture/MASTER_SH2_DISPATCH_ANALYSIS.md
+        dc.w    $4008        ; $02046A - SHLL2 R0 (cmd * 4 for table index)
+        dc.w    $D107        ; $02046C - MOV.L @(28,PC),R1 → jump table at 0x06000780
+        dc.w    $001E        ; $02046E - MOV.L @(R0,R1),R0 (load handler address)
+        dc.w    $400B        ; $020470 - JSR @R0 (call handler, PR=$020474)
+        dc.w    $0009        ; $020472 - NOP (delay slot)
+        dc.w    $AFF4        ; $020474 - BRA $020460 (loop back to idle poll)
+        dc.w    $0009        ; $020476 - NOP (delay slot)
         dc.w    $FFFF        ; $020478
         dc.w    $FE10        ; $02047A
         dc.w    $2000        ; $02047C
         dc.w    $4000        ; $02047E
-        dc.w    $0230        ; $020480 - Literal: master_dispatch_hook high word
-        dc.w    $0050        ; $020482 - Literal: master_dispatch_hook low word (0x02300050)
+        dc.w    $0600        ; $020480
+        dc.w    $45CC        ; $020482
         dc.w    $0600        ; $020484
         dc.w    $FF80        ; $020486
         dc.w    $2000        ; $020488

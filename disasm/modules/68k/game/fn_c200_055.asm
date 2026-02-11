@@ -1,141 +1,156 @@
 ; ============================================================================
-; C200 Func 025
-; ROM Range: $00E00C-$00E118 (268 bytes)
+; Scene Setup / Game Mode Transition
+; ROM Range: $00E00C-$00E117 (268 bytes)
 ; Source: code_c200
+; ============================================================================
+;
+; PURPOSE
+; -------
+; Configures the game's scene handler function pointer ($FF0002) based on
+; the current game sub-mode ($A024) and related flags. This is the central
+; dispatch that selects which scene loop runs during gameplay.
+;
+; Also copies track selection parameters to per-mode RAM slots ($FEA5-$FEAC)
+; and configures display control bits ($C80E) for split-screen modes.
+;
+; GAME SUB-MODES ($A024)
+; ----------------------
+;   0 = Default (single player / standard)
+;   1 = Mode 1 (split-screen player 1 primary)
+;   2 = Mode 2 (split-screen player 2 primary)
+;
+; SCENE HANDLERS SET (at $FF0002)
+; -------------------------------
+; The scene handler is called each frame by the main loop.
+;
+;   Mode 0 (default):      $0088E5CE
+;   Mode 0 + mirror flag:  $0088E5E6  (bit 7 of $FDA8 set)
+;   Mode 1:                $0088E5FE
+;   Mode 2:                $0088F13C
+;
+; If not in demo mode ($A018 == 0), also sets a loading/init handler:
+;   Mode 0 (default):  $00884A3E
+;   Mode 1:            $00885100  (+ display bit 5 set, bit 4 clear)
+;   Mode 2:            $00884D98  (+ display bit 4 set, bit 5 clear)
+;   Fallback:          $00884D98
+;
+; MEMORY VARIABLES
+; ----------------
+;   $FFFFA018  Player 1 data pointer (non-zero = demo/replay mode)
+;   $FFFFA019  Player 1 track selection (byte, 0-4)
+;   $FFFFA024  Game sub-mode (byte: 0, 1, or 2)
+;   $FFFFA025  Saved P1 selection (byte, persisted across calls)
+;   $FFFFA026  Saved P2 selection (byte, persisted across calls)
+;   $FFFFA027  Two-player flag (byte: 0=first call, non-zero=update)
+;   $FFFFC80E  Display control flags (bits 4,5 = split-screen config)
+;   $FFFFC87E  Game state (word, cleared to 0 by this function)
+;   $FFFFFDA8  Mode flags (bit 7 = mirror/alternate track flag)
+;   $FFFFFEA5  Track param: mode 0, primary slot
+;   $FFFFFEA6  Track param: mode 0, mirror slot
+;   $FFFFFEA7  Track param: mode 1, P1 slot
+;   $FFFFFEA8  Track param: mode 1, P2 slot
+;   $FFFFFEAB  Track param: mode 2, P1 slot
+;   $FFFFFEAC  Track param: mode 2, P2 slot
+;   $00FF0002  Scene handler function pointer (long)
+;
+; Entry: No register inputs (reads state from RAM)
+; Exit:  $FF0002 set to appropriate scene handler
+; Uses:  No registers modified (all operands are memory-to-memory)
 ; ============================================================================
 
 c200_func_025:
-        dc.w    $4A38                    ; $00E00C
-        dc.w    $A027                    ; $00E00E
-        dc.w    $6600                    ; $00E010
-        dc.w    $000A                    ; $00E012
-        dc.w    $11F8                    ; $00E014
-        dc.w    $A019                    ; $00E016
-        dc.w    $A025                    ; $00E018
-        dc.w    $6006                    ; $00E01A
-        dc.w    $11F8                    ; $00E01C
-        dc.w    $A019                    ; $00E01E
-        dc.w    $A026                    ; $00E020
-        dc.w    $4A38                    ; $00E022
-        dc.w    $A024                    ; $00E024
-        dc.w    $6718                    ; $00E026
-        dc.w    $0C38                    ; $00E028
-        dc.w    $0001                    ; $00E02A
-        dc.w    $A024                    ; $00E02C
-        dc.w    $672A                    ; $00E02E
-        dc.w    $11F8                    ; $00E030
-        dc.w    $A025                    ; $00E032
-        dc.w    $FEAB                    ; $00E034
-        dc.w    $11F8                    ; $00E036
-        dc.w    $A026                    ; $00E038
-        dc.w    $FEAC                    ; $00E03A
-        dc.w    $6000                    ; $00E03C
-        dc.w    $0028                    ; $00E03E
-        dc.w    $11F8                    ; $00E040
-        dc.w    $A019                    ; $00E042
-        dc.w    $FEA5                    ; $00E044
-        dc.w    $0838                    ; $00E046
-        dc.w    $0007                    ; $00E048
-        dc.w    $FDA8                    ; $00E04A
-        dc.w    $6700                    ; $00E04C
-        dc.w    $0018                    ; $00E04E
-        dc.w    $11F8                    ; $00E050
-        dc.w    $A019                    ; $00E052
-        dc.w    $FEA6                    ; $00E054
-        dc.w    $6000                    ; $00E056
-        dc.w    $000E                    ; $00E058
-        dc.w    $11F8                    ; $00E05A
-        dc.w    $A025                    ; $00E05C
-        dc.w    $FEA7                    ; $00E05E
-        dc.w    $11F8                    ; $00E060
-        dc.w    $A026                    ; $00E062
-        dc.w    $FEA8                    ; $00E064
-        dc.w    $31FC                    ; $00E066
-        dc.w    $0000                    ; $00E068
-        dc.w    $C87E                    ; $00E06A
-        dc.w    $23FC                    ; $00E06C
-        dc.w    $0088                    ; $00E06E
-        dc.w    $E5CE                    ; $00E070
-        dc.w    $00FF                    ; $00E072
-        dc.w    $0002                    ; $00E074
-        dc.w    $0C38                    ; $00E076
-        dc.w    $0001                    ; $00E078
-        dc.w    $A024                    ; $00E07A
-        dc.w    $671C                    ; $00E07C
-        dc.w    $0C38                    ; $00E07E
-        dc.w    $0002                    ; $00E080
-        dc.w    $A024                    ; $00E082
-        dc.w    $6720                    ; $00E084
-        dc.w    $0838                    ; $00E086
-        dc.w    $0007                    ; $00E088
-        dc.w    $FDA8                    ; $00E08A
-        dc.w    $6722                    ; $00E08C
-        dc.w    $23FC                    ; $00E08E
-        dc.w    $0088                    ; $00E090
-        dc.w    $E5E6                    ; $00E092
-        dc.w    $00FF                    ; $00E094
-        dc.w    $0002                    ; $00E096
-        dc.w    $6016                    ; $00E098
-        dc.w    $23FC                    ; $00E09A
-        dc.w    $0088                    ; $00E09C
-        dc.w    $E5FE                    ; $00E09E
-        dc.w    $00FF                    ; $00E0A0
-        dc.w    $0002                    ; $00E0A2
-        dc.w    $600A                    ; $00E0A4
-        dc.w    $23FC                    ; $00E0A6
-        dc.w    $0088                    ; $00E0A8
-        dc.w    $F13C                    ; $00E0AA
-        dc.w    $00FF                    ; $00E0AC
-        dc.w    $0002                    ; $00E0AE
-        dc.w    $4A38                    ; $00E0B0
-        dc.w    $A018                    ; $00E0B2
-        dc.w    $6660                    ; $00E0B4
-        dc.w    $23FC                    ; $00E0B6
-        dc.w    $0088                    ; $00E0B8
-        dc.w    $4D98                    ; $00E0BA
-        dc.w    $00FF                    ; $00E0BC
-        dc.w    $0002                    ; $00E0BE
-        dc.w    $0C38                    ; $00E0C0
-        dc.w    $0001                    ; $00E0C2
-        dc.w    $A024                    ; $00E0C4
-        dc.w    $6700                    ; $00E0C6
-        dc.w    $001A                    ; $00E0C8
-        dc.w    $0C38                    ; $00E0CA
-        dc.w    $0002                    ; $00E0CC
-        dc.w    $A024                    ; $00E0CE
-        dc.w    $6700                    ; $00E0D0
-        dc.w    $002A                    ; $00E0D2
-        dc.w    $23FC                    ; $00E0D4
-        dc.w    $0088                    ; $00E0D6
-        dc.w    $4A3E                    ; $00E0D8
-        dc.w    $00FF                    ; $00E0DA
-        dc.w    $0002                    ; $00E0DC
-        dc.w    $6000                    ; $00E0DE
-        dc.w    $0036                    ; $00E0E0
-        dc.w    $08F8                    ; $00E0E2
-        dc.w    $0005                    ; $00E0E4
-        dc.w    $C80E                    ; $00E0E6
-        dc.w    $08B8                    ; $00E0E8
-        dc.w    $0004                    ; $00E0EA
-        dc.w    $C80E                    ; $00E0EC
-        dc.w    $23FC                    ; $00E0EE
-        dc.w    $0088                    ; $00E0F0
-        dc.w    $5100                    ; $00E0F2
-        dc.w    $00FF                    ; $00E0F4
-        dc.w    $0002                    ; $00E0F6
-        dc.w    $6000                    ; $00E0F8
-        dc.w    $001C                    ; $00E0FA
-        dc.w    $08F8                    ; $00E0FC
-        dc.w    $0004                    ; $00E0FE
-        dc.w    $C80E                    ; $00E100
-        dc.w    $08B8                    ; $00E102
-        dc.w    $0005                    ; $00E104
-        dc.w    $C80E                    ; $00E106
-        dc.w    $23FC                    ; $00E108
-        dc.w    $0088                    ; $00E10A
-        dc.w    $4D98                    ; $00E10C
-        dc.w    $00FF                    ; $00E10E
-        dc.w    $0002                    ; $00E110
-        dc.w    $6000                    ; $00E112
-        dc.w    $0002                    ; $00E114
-        dc.w    $4E75                    ; $00E116
+; --- Save current track selection to appropriate player slot ---
+; On first call ($A027 == 0): save to P1 slot ($A025)
+; On subsequent calls ($A027 != 0): save to P2 slot ($A026)
+        tst.b   ($FFFFA027).w                   ; $00E00C: $4A38 $A027
+        bne.w   .save_p2                        ; $00E010: $6600 $000A
+        move.b  ($FFFFA019).w,($FFFFA025).w     ; $00E014: $11F8 $A019 $A025 — P1 selection → saved P1
+        bra.s   .check_sub_mode                 ; $00E01A: $6006
+.save_p2:
+        move.b  ($FFFFA019).w,($FFFFA026).w     ; $00E01C: $11F8 $A019 $A026 — P1 selection → saved P2
+
+; --- Copy track selections to per-mode parameter slots ---
+.check_sub_mode:
+        tst.b   ($FFFFA024).w                   ; $00E022: $4A38 $A024
+        beq.s   .params_mode_0                  ; $00E026: $6718 — Mode 0
+        cmpi.b  #$01,($FFFFA024).w              ; $00E028: $0C38 $0001 $A024
+        beq.s   .params_mode_1                  ; $00E02E: $672A — Mode 1
+
+; Mode 2: copy both saved selections to $FEAB/$FEAC
+        move.b  ($FFFFA025).w,($FFFFFEAB).w     ; $00E030: $11F8 $A025 $FEAB
+        move.b  ($FFFFA026).w,($FFFFFEAC).w     ; $00E036: $11F8 $A026 $FEAC
+        bra.w   .set_game_state                 ; $00E03C: $6000 $0028
+
+; Mode 0: copy current selection to $FEA5; if mirror flag set, also to $FEA6
+.params_mode_0:
+        move.b  ($FFFFA019).w,($FFFFFEA5).w     ; $00E040: $11F8 $A019 $FEA5 — primary slot
+        btst    #7,($FFFFFDA8).w                ; $00E046: $0838 $0007 $FDA8 — mirror flag?
+        beq.w   .set_game_state                 ; $00E04C: $6700 $0018 — no mirror, skip
+        move.b  ($FFFFA019).w,($FFFFFEA6).w     ; $00E050: $11F8 $A019 $FEA6 — mirror slot
+        bra.w   .set_game_state                 ; $00E056: $6000 $000E
+
+; Mode 1: copy saved P1/P2 selections to $FEA7/$FEA8
+.params_mode_1:
+        move.b  ($FFFFA025).w,($FFFFFEA7).w     ; $00E05A: $11F8 $A025 $FEA7
+        move.b  ($FFFFA026).w,($FFFFFEA8).w     ; $00E060: $11F8 $A026 $FEA8
+
+; --- Clear game state and select scene handler ---
+.set_game_state:
+        move.w  #$0000,($FFFFC87E).w            ; $00E066: $31FC $0000 $C87E — game_state = 0
+
+; Default scene handler (will be overridden below if mode 1 or 2)
+        move.l  #$0088E5CE,$00FF0002            ; $00E06C: $23FC ... — default scene
+
+; Select scene handler based on sub-mode
+        cmpi.b  #$01,($FFFFA024).w              ; $00E076: $0C38 $0001 $A024
+        beq.s   .scene_mode_1                   ; $00E07C: $671C
+        cmpi.b  #$02,($FFFFA024).w              ; $00E07E: $0C38 $0002 $A024
+        beq.s   .scene_mode_2                   ; $00E084: $6720
+
+; Mode 0: check mirror flag for alternate scene variant
+        btst    #7,($FFFFFDA8).w                ; $00E086: $0838 $0007 $FDA8
+        beq.s   .check_demo                     ; $00E08C: $6722 — no mirror, keep default
+        move.l  #$0088E5E6,$00FF0002            ; $00E08E: $23FC ... — mirror variant scene
+        bra.s   .check_demo                     ; $00E098: $6016
+
+.scene_mode_1:
+        move.l  #$0088E5FE,$00FF0002            ; $00E09A: $23FC ... — mode 1 scene
+        bra.s   .check_demo                     ; $00E0A4: $600A
+
+.scene_mode_2:
+        move.l  #$0088F13C,$00FF0002            ; $00E0A6: $23FC ... — mode 2 scene
+
+; --- Demo mode check: if $A018 != 0, skip loading handler setup ---
+.check_demo:
+        tst.b   ($FFFFA018).w                   ; $00E0B0: $4A38 $A018
+        bne.s   .done                           ; $00E0B4: $6660 — demo/replay: skip init
+
+; --- Set loading/init handler (non-demo only) ---
+; Default loading handler (overridden below per mode)
+        move.l  #$00884D98,$00FF0002            ; $00E0B6: $23FC ... — default loading handler
+
+        cmpi.b  #$01,($FFFFA024).w              ; $00E0C0: $0C38 $0001 $A024
+        beq.w   .loading_mode_1                 ; $00E0C6: $6700 $001A
+        cmpi.b  #$02,($FFFFA024).w              ; $00E0CA: $0C38 $0002 $A024
+        beq.w   .loading_mode_2                 ; $00E0D0: $6700 $002A
+
+; Mode 0 loading handler
+        move.l  #$00884A3E,$00FF0002            ; $00E0D4: $23FC ... — mode 0 loading handler
+        bra.w   .done                           ; $00E0DE: $6000 $0036
+
+; Mode 1 loading: set split-screen bit 5 (P1 primary), clear bit 4
+.loading_mode_1:
+        bset    #5,($FFFFC80E).w                ; $00E0E2: $08F8 $0005 $C80E — enable P1 split
+        bclr    #4,($FFFFC80E).w                ; $00E0E8: $08B8 $0004 $C80E — disable P2 split
+        move.l  #$00885100,$00FF0002            ; $00E0EE: $23FC ... — mode 1 loading handler
+        bra.w   .done                           ; $00E0F8: $6000 $001C
+
+; Mode 2 loading: set split-screen bit 4 (P2 primary), clear bit 5
+.loading_mode_2:
+        bset    #4,($FFFFC80E).w                ; $00E0FC: $08F8 $0004 $C80E — enable P2 split
+        bclr    #5,($FFFFC80E).w                ; $00E102: $08B8 $0005 $C80E — disable P1 split
+        move.l  #$00884D98,$00FF0002            ; $00E108: $23FC ... — mode 2 loading handler
+        bra.w   .done                           ; $00E112: $6000 $0002
+
+.done:
+        rts                                     ; $00E116: $4E75

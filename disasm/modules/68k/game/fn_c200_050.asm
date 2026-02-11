@@ -1,29 +1,63 @@
 ; ============================================================================
-; C200 Func 020
+; Score/Stat Lookup and Accumulate — Dual Entry Point
 ; ROM Range: $00CEC2-$00CEEE (44 bytes)
 ; Source: code_c200
 ; ============================================================================
+;
+; PURPOSE
+; -------
+; Looks up a score or stat modifier from a PC-relative data table and adds
+; it to an accumulator at $C0E8. Has two entry points for different object
+; table bases (primary at $FFFF9000, alternate at $FFFF9F00).
+;
+; The lookup index is computed from:
+;   - A byte from $FEAD (primary) or $FEAE (alternate), sign-extended × 2
+;   - Track index: ($C8CC × 2) + $C8CA = track × 10
+;   Combined: index = 2 × sign_ext(byte) + track × 10
+;
+; The data table is located at the start of fn_c200_017 ($CEEE), accessed
+; via PC-relative indexed read. The table words are interleaved with the
+; code of fn_c200_017 (a common compiled-code optimization).
+;
+; ENTRY POINTS
+; ------------
+;   c200_func_020   Primary:   A0=$FFFF9000, input from $FEAD
+;   c200_func_020b  Alternate: A0=$FFFF9F00, input from $FEAE
+;
+; MEMORY VARIABLES
+; ----------------
+;   $FFFFFEAD  Input byte for primary entry (sign-extended)
+;   $FFFFFEAE  Input byte for alternate entry (sign-extended)
+;   $FFFFC8CA  Track × 2 (word, added to index)
+;   $FFFFC8CC  Track × 4 (word, doubled to track × 8)
+;   $FFFFC0E8  Accumulator (word, lookup value added to it)
+;
+; Entry: No register inputs (entry point selects configuration)
+; Exit:  Accumulator updated with looked-up modifier
+; Uses:  D0, D1, A0
+; ============================================================================
 
+; --- Primary entry: object table at $FFFF9000 ---
 c200_func_020:
-        dc.w    $41F8                    ; $00CEC2
-        dc.w    $9000                    ; $00CEC4
-        dc.w    $1038                    ; $00CEC6
-        dc.w    $FEAD                    ; $00CEC8
-        dc.w    $6008                    ; $00CECA
-        dc.w    $41F8                    ; $00CECC
-        dc.w    $9F00                    ; $00CECE
-        dc.w    $1038                    ; $00CED0
-        dc.w    $FEAE                    ; $00CED2
-        dc.w    $3238                    ; $00CED4
-        dc.w    $C8CC                    ; $00CED6
-        dc.w    $D241                    ; $00CED8
-        dc.w    $D278                    ; $00CEDA
-        dc.w    $C8CA                    ; $00CEDC
-        dc.w    $4880                    ; $00CEDE
-        dc.w    $D040                    ; $00CEE0
-        dc.w    $D041                    ; $00CEE2
-        dc.w    $303B                    ; $00CEE4
-        dc.w    $0008                    ; $00CEE6
-        dc.w    $D178                    ; $00CEE8
-        dc.w    $C0E8                    ; $00CEEA
-        dc.w    $4E75                    ; $00CEEC
+        lea     ($FFFF9000).w,a0                ; $00CEC2: $41F8 $9000 — primary base
+        move.b  ($FFFFFEAD).w,d0                ; $00CEC6: $1038 $FEAD — load input byte
+        bra.s   .shared                         ; $00CECA: $6008 — skip alternate entry
+
+; --- Alternate entry: object table at $FFFF9F00 ---
+.alt_entry:
+        lea     ($FFFF9F00).w,a0                ; $00CECC: $41F8 $9F00 — alternate base
+        move.b  ($FFFFFEAE).w,d0                ; $00CED0: $1038 $FEAE — load input byte
+
+; --- Compute lookup index ---
+.shared:
+        move.w  ($FFFFC8CC).w,d1                ; $00CED4: $3238 $C8CC — track × 4
+        add.w   d1,d1                           ; $00CED8: $D241 — track × 8
+        add.w   ($FFFFC8CA).w,d1                ; $00CEDA: $D278 $C8CA — + track × 2 = track × 10
+        ext.w   d0                              ; $00CEDE: $4880 — sign-extend byte to word
+        add.w   d0,d0                           ; $00CEE0: $D040 — byte × 2
+        add.w   d1,d0                           ; $00CEE2: $D041 — index = byte×2 + track×10
+
+; --- Look up modifier and accumulate ---
+        move.w  fn_c200_017(pc,d0.w),d0         ; $00CEE4: $303B $0008 — read from data table at $CEEE
+        add.w   d0,($FFFFC0E8).w                ; $00CEE8: $D178 $C0E8 — add to accumulator
+        rts                                     ; $00CEEC: $4E75

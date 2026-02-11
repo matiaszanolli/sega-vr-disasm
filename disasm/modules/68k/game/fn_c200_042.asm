@@ -1,20 +1,27 @@
 ; ============================================================================
-; C200 Func 012
+; VDP Slot Activation — Configuration B
 ; ROM Range: $00CA66-$00CA80 (26 bytes)
 ; Source: code_c200
 ; ============================================================================
+;
+; PURPOSE
+; -------
+; Activates three VDP register slots by writing control bytes to their base
+; addresses in the VDP work area ($FF6800). Same pattern as configuration A
+; (fn_c200_041) but with different slot selection.
+;
+; Slot layout:
+;   $FF6920 = slot 18 (offset $120): set to 4 (active/priority)
+;   $FF6880 = slot  8 (offset $080): set to 1 (enabled)
+;   $FF6800 = slot  0 (offset $000): set to 1 (enabled)
+;
+; Entry: No register inputs
+; Exit:  Three VDP slots activated
+; Uses:  (none)
+; ============================================================================
 
 c200_func_012:
-        dc.w    $13FC                    ; $00CA66
-        dc.w    $0004                    ; $00CA68
-        dc.w    $00FF                    ; $00CA6A
-        dc.w    $6920                    ; $00CA6C
-        dc.w    $13FC                    ; $00CA6E
-        dc.w    $0001                    ; $00CA70
-        dc.w    $00FF                    ; $00CA72
-        dc.w    $6880                    ; $00CA74
-        dc.w    $13FC                    ; $00CA76
-        dc.w    $0001                    ; $00CA78
-        dc.w    $00FF                    ; $00CA7A
-        dc.w    $6800                    ; $00CA7C
-        dc.w    $4E75                    ; $00CA7E
+        move.b  #$04,$00FF6920                  ; $00CA66: $13FC $0004 $00FF $6920 — slot 18 = active
+        move.b  #$01,$00FF6880                  ; $00CA6E: $13FC $0001 $00FF $6880 — slot 8 = enabled
+        move.b  #$01,$00FF6800                  ; $00CA76: $13FC $0001 $00FF $6800 — slot 0 = enabled
+        rts                                     ; $00CA7E: $4E75

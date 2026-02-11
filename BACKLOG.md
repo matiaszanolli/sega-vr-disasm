@@ -113,7 +113,7 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 
 | ID | Description | Commit | Date |
 |----|-------------|--------|------|
-| B-006 | Activate v4.0 parallel hooks (3 patches: Slave loop, Master dispatch, func_021) | PENDING | 2026-02-10 |
+| B-006 | Activate v4.0 parallel hooks (3 patches: Slave loop, Master dispatch, func_021) | 651a415 | 2026-02-10 |
 | B-012 | Symbolic register hardening batch 1 (6 sh2/vdp modules) | 3b347d3 | 2026-02-10 |
 | B-012 | Symbolic register hardening batch 2 (8 modules + COMM6 fix) | 350e346 | 2026-02-10 |
 | B-012 | Symbolic register hardening batch 3 (20 modules, all categories) | 170c6e7 | 2026-02-10 |

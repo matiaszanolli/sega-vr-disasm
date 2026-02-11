@@ -235,16 +235,16 @@
         dc.w    $524C        ; $0203C6
         dc.w    $0009        ; $0203C8
         dc.w    $0009        ; $0203CA
-; Original Slave idle loop (writes R0 to COMM6, loops forever)
-        dc.w    $D101        ; $0203CC - MOV.L @(4,PC),R1
-        dc.w    $2102        ; $0203CE - MOV.L R0,@R1
-        dc.w    $AFFE        ; $0203D0 - BRA $0203D0 (loop forever)
-        dc.w    $0009        ; $0203D2 - NOP
-        dc.w    $2000        ; $0203D4 - \ COMM6 address literal
-        dc.w    $402C        ; $0203D6 - / (0x2000402C)
-        dc.w    $2F06        ; $0203D8
-        dc.w    $2F16        ; $0203DA
-        dc.w    $2F26        ; $0203DC
+; PATCH #1: Slave idle loop → slave_work_wrapper_v2 at 0x02300200
+        dc.w    $D003        ; $0203CC - MOV.L @(12,PC),R0 - Load wrapper addr
+        dc.w    $402B        ; $0203CE - JMP @R0 - Jump to wrapper
+        dc.w    $0009        ; $0203D0 - NOP - Delay slot
+        dc.w    $0009        ; $0203D2 - NOP - Padding
+        dc.w    $0009        ; $0203D4 - NOP - Padding
+        dc.w    $0009        ; $0203D6 - NOP - Padding
+        dc.w    $0230        ; $0203D8 - Literal: 0x02300200 (high word)
+        dc.w    $0200        ; $0203DA - Literal: 0x02300200 (low word)
+        dc.w    $0009        ; $0203DC - NOP - Padding
         dc.w    $2F36        ; $0203DE
         dc.w    $2F46        ; $0203E0
         dc.w    $2F56        ; $0203E2
@@ -315,20 +315,20 @@
         dc.w    $8800        ; $020464
         dc.w    $89FB        ; $020466
         dc.w    $8481        ; $020468
-; Original Master dispatch (shift, table lookup, indirect JSR)
-        dc.w    $4008        ; $02046A - SHLL2 R0
-        dc.w    $D107        ; $02046C - MOV.L @(28,PC),R1
-        dc.w    $001E        ; $02046E - MOV.L @(R0,R1),R0
-        dc.w    $400B        ; $020470 - JSR @R0
-        dc.w    $0009        ; $020472 - NOP
+; PATCH #2: Master dispatch → master_dispatch_hook at 0x02300050
+        dc.w    $D005        ; $02046A - MOV.L @(20,PC),R0 - Load hook addr
+        dc.w    $400B        ; $02046C - JSR @R0 - Call hook
+        dc.w    $0009        ; $02046E - NOP - Delay slot
+        dc.w    $AFF6        ; $020470 - BRA -10 ($020460) - Loop back
+        dc.w    $0009        ; $020472 - NOP - Delay slot
         dc.w    $AFF4        ; $020474 - BRA -12
         dc.w    $0009        ; $020476 - NOP
         dc.w    $FFFF        ; $020478
         dc.w    $FE10        ; $02047A
         dc.w    $2000        ; $02047C
         dc.w    $4000        ; $02047E
-        dc.w    $0600        ; $020480
-        dc.w    $45CC        ; $020482
+        dc.w    $0230        ; $020480 - Literal: master_dispatch_hook high word
+        dc.w    $0050        ; $020482 - Literal: master_dispatch_hook low word (0x02300050)
         dc.w    $0600        ; $020484
         dc.w    $FF80        ; $020486
         dc.w    $2000        ; $020488

@@ -1,6 +1,6 @@
 # Virtua Racing Deluxe (32X) - Performance Optimization Project
 
-**Status: v6.0 - Active Optimization**
+**Status: v5.1.0 — Symbolic Hardening & Active Optimization**
 
 A complete, buildable disassembly of Virtua Racing Deluxe for the Sega 32X, now actively optimized to make full use of the 32X hardware. The original game runs at ~20 FPS due to a conservative blocking synchronization model that leaves significant hardware capacity untapped. This project aims to unlock that potential.
 
@@ -54,8 +54,13 @@ picodrive build/vr_rebuild.32x
 ├── disasm/
 │   ├── vrd.asm                    # Main build file
 │   ├── sections/                  # Buildable section sources
-│   ├── modules/68k/               # 693 modularized 68K functions (17 categories)
-│   ├── sh2/3d_engine/             # 75 translated SH2 functions
+│   ├── modules/
+│   │   ├── 68k/                   # 693 modularized 68K functions (17 categories)
+│   │   └── shared/definitions.asm # Master symbol table (all HW register equates)
+│   ├── sh2/                       # SH2 functions + expansion code
+│   │   ├── 3d_engine/             # 75 translated SH2 3D pipeline functions
+│   │   ├── generated/             # 78 SH2 function includes
+│   │   └── expansion/             # SH2 expansion ROM code ($300000+)
 │   └── sh2_symbols.inc            # 107 SH2 function symbols
 │
 ├── analysis/                      # Reverse engineering & optimization research
@@ -65,7 +70,7 @@ picodrive build/vr_rebuild.32x
 │   ├── optimization/              # Optimization designs & research
 │   └── architecture/              # Memory maps, state machines, registers
 │
-├── docs/                          # Official SEGA hardware manuals & guides
+├── docs/                          # Hardware manuals & guides (markdown)
 │
 ├── tools/
 │   ├── libretro-profiling/        # Custom PicoDrive profiler (cycle-accurate)
@@ -100,6 +105,12 @@ The expansion space at $300000+ is executed by SH2 processors only and already c
 - **503+ 68K functions** named and categorized
 - All translations verified **byte-identical** to original ROM
 
+### Symbolic Hardening (v5.1.0 — complete)
+- **118+ modules** hardened with symbolic register names across all 17 categories
+- Centralized [definitions.asm](disasm/modules/shared/definitions.asm) with MARS/COMM/VDP/Z80/PSG equates
+- Raw hex like `$00A15120` replaced with self-documenting `COMM0_HI` throughout
+- Tracked as [B-012](BACKLOG.md) — 5 commits, zero binary impact
+
 ### Profiling (operational)
 - Custom PicoDrive libretro core with cycle-accurate instrumentation
 - Frame-level and PC-level hotspot analysis
@@ -110,6 +121,7 @@ The expansion space at $300000+ is executed by SH2 processors only and already c
 - SH2 interrupt queue designed (Path B — uses idle Master SH2)
 - Batch command protocol designed
 - v4.0 parallel processing infrastructure built (not yet activated)
+- Task tracking in [BACKLOG.md](BACKLOG.md), pitfalls in [KNOWN_ISSUES.md](KNOWN_ISSUES.md)
 
 ## Key Architectural Findings
 
@@ -141,6 +153,8 @@ python3 analyze_pc_profile.py profile.csv
 
 | Category | Key Documents |
 |----------|---------------|
+| **Task Queue** | [BACKLOG.md](BACKLOG.md) (prioritized work items) |
+| **Known Pitfalls** | [KNOWN_ISSUES.md](KNOWN_ISSUES.md) (hardware hazards, translation issues) |
 | **Optimization Plan** | [OPTIMIZATION_PLAN.md](OPTIMIZATION_PLAN.md) (strategy & rationale) |
 | **Implementation Roadmap** | [ROADMAP.md](ROADMAP.md) (10 phases, 94 tasks) |
 | **Bottleneck Analysis** | [ARCHITECTURAL_BOTTLENECK_ANALYSIS.md](analysis/ARCHITECTURAL_BOTTLENECK_ANALYSIS.md) |

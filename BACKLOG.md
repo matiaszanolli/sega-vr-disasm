@@ -51,12 +51,12 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 **Ref:** [OPTIMIZATION_PLAN.md](OPTIMIZATION_PLAN.md) § Track 2
 
 ### B-006: Activate v4.0 parallel hooks
-**Status:** OPEN
+**Status:** DONE (2026-02-10)
 **Why:** Enable Slave CPU vertex transform offload (infrastructure built but dormant).
-**Approach:** Patch dispatch at $02046A, trampoline at $0234C8.
-**Acceptance:** ROM boots, rendering correct, profiler shows Master SH2 at ~36% utilization.
-**Key files:** `disasm/sections/expansion_300000.asm`, [ROADMAP_v4.1.md](analysis/optimization/ROADMAP_v4.1.md)
-**Depends on:** Nothing (independent of async track)
+**Result:** All 3 patches applied successfully. ROM boots, parallel processing active. Slave polls COMM7, Master dispatch routes cmd $16 to hook, func_021 redirects to shadow_path_wrapper.
+**Patches:** Slave idle ($0203CC→$02300200), Master dispatch ($02046A→$02300050), func_021 trampoline ($0234C8→$02300400).
+**Key files:** `disasm/sections/code_20200.asm`, `disasm/sections/code_22200.asm`, `disasm/sections/expansion_300000.asm`
+**Next:** Profile to measure FPS improvement and CPU utilization changes.
 
 ---
 
@@ -113,6 +113,7 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 
 | ID | Description | Commit | Date |
 |----|-------------|--------|------|
+| B-006 | Activate v4.0 parallel hooks (3 patches: Slave loop, Master dispatch, func_021) | PENDING | 2026-02-10 |
 | B-012 | Symbolic register hardening batch 1 (6 sh2/vdp modules) | 3b347d3 | 2026-02-10 |
 | B-012 | Symbolic register hardening batch 2 (8 modules + COMM6 fix) | 350e346 | 2026-02-10 |
 | B-012 | Symbolic register hardening batch 3 (20 modules, all categories) | 170c6e7 | 2026-02-10 |

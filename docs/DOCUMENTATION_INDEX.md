@@ -38,6 +38,36 @@ Definitive CPU datasheet for the SH2 processor (SH7604) used in the 32X:
 
 ---
 
+### SH-1/SH-2 CPU Core Programming Manual — Hitachi
+**File:** [sh1-sh2-cpu-core-architecture.md](sh1-sh2-cpu-core-architecture.md)
+
+Official Hitachi programming manual for the SH-1/SH-2 CPU core:
+- Section 2: Register configuration (general, control, system registers)
+- Section 4: Instruction features, addressing modes, instruction formats
+- Section 5: Complete instruction set by category
+- Section 6: Full instruction descriptions (all ~70 mnemonics with operations)
+- Section 7: Pipeline operation — execution state counts, IF/MA contention, slot timing
+- Appendix A: Opcode map — 16-bit instruction encoding/decoding tables
+- Appendix B: Pipeline contention patterns
+- SH2-only instructions flagged: BF/S, BT/S, BRAF, BSRF, DT, DMULS.L, DMULU.L, MUL.L, MAC.L
+
+**Key for:** SH2 instruction encoding/decoding, dc.w→mnemonic translation verification, pipeline optimization, MAC instruction cycle counts
+
+---
+
+### Motorola 68000 Programmer's Reference Manual
+**File:** [motorola-68000-programmers-reference.md](motorola-68000-programmers-reference.md)
+
+Complete 68000 programming reference:
+- Instruction set (all mnemonics with encoding, condition codes, timing)
+- Addressing modes and effective address encoding
+- Exception processing model
+- Instruction format details and operation code map
+
+**Key for:** 68K dc.w→mnemonic translation, instruction encoding verification, addressing mode identification
+
+---
+
 ### Genesis Technical Overview (120 pages)
 **File:** `GenesisTechnicalOverview.pdf`
 
@@ -208,9 +238,14 @@ Official SEGA assembler (SNASM68K) syntax and usage notes:
 ## Quick Reference
 
 ### For 68K Assembly Translation Work:
-1. **Genesis Technical Overview** - Hardware register addresses, VDP specs
-2. **Genesis Software Manual** - ROM header format, development practices
-3. **SNASM68K Notes** - Official assembler syntax
+1. **Motorola 68000 Programmer's Reference** - Instruction encodings, addressing modes, opcode map
+2. **Genesis Technical Overview** - Hardware register addresses, VDP specs
+3. **Genesis Software Manual** - ROM header format, development practices
+4. **SNASM68K Notes** - Official assembler syntax
+
+### For SH2 Assembly Translation Work:
+1. **SH-1/SH-2 CPU Core Programming Manual** - Instruction encodings, opcode map, pipeline timing
+2. **SH7604 Hardware Manual** - Peripheral registers, cache, DMAC, bus controller
 
 ### For 32X Development:
 1. **32X Hardware Manual** - Complete 32X hardware reference
@@ -247,6 +282,8 @@ The following PDFs have been converted to version-controlled markdown files:
 | IC_BD_4M_32PIN.pdf | [ic-bd-4m-32pin-eprom-manual.md](ic-bd-4m-32pin-eprom-manual.md) | - |
 
 | SegaGenesisSoftwareManual_1990-02-06.pdf | [sega-genesis-software-manual.md](sega-genesis-software-manual.md) | 168 KB |
+| SH-1/SH-2 Programming Manual (Hitachi) | [sh1-sh2-cpu-core-architecture.md](sh1-sh2-cpu-core-architecture.md) | 165 KB |
+| Motorola 68000 Programmer's Reference | [motorola-68000-programmers-reference.md](motorola-68000-programmers-reference.md) | 120 KB |
 
 ## Integration with Existing Documentation
 

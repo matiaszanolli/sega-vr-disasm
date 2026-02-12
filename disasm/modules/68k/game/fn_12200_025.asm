@@ -65,6 +65,7 @@ fn_12200_025:
         CMPA.W  (A4)+,A7                        ; $012C84
         DC.W    $008B                           ; $012C86
         CMPA.L  (A4)+,A5                        ; $012C88
+fn_12200_025_exec:
         CLR.W  D0                               ; $012C8A
         DC.W    $6100,$B89E         ; BSR.W  $00E52C; $012C8C
         MOVE.W  #$0020,$00FF0008                ; $012C90

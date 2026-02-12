@@ -22,6 +22,7 @@ fn_a200_023:
         LSL.W  #5,D1                            ; $00B67C
         ADDA.W  D1,A1                           ; $00B67E
         DC.W    $4EFA,$9298         ; JMP     $00491A(PC); $00B680
+object_update:
         BTST    #6,(-14322).W                   ; $00B684
         BEQ.S  .loc_0074                        ; $00B68A
         SUBQ.B  #1,(-14326).W                   ; $00B68C

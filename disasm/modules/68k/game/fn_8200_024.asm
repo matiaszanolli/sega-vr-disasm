@@ -1,30 +1,46 @@
 ; ============================================================================
-; State Dispatch 024 (auto-analyzed)
+; State Dispatcher + Register Copy Handler
 ; ROM Range: $008CCE-$008D06 (56 bytes)
 ; ============================================================================
 ; Category: game
-; Purpose: State dispatcher using jump table
-;   Object (A2): +$46 (display_scale)
+; Purpose: Reads state index from $C896, dispatches via PC-relative word-offset
+;   jump table (4 entries for states 0/2/4/6). After handler returns,
+;   jumps to $888DC0 (shared exit).
+;   State 0 handler (within this fn): copies 3 word pairs from $C0BA/$C0BC/$C0BE
+;   to $C8F8/$C892/$C894, sets $C8F6=5, advances state by 2.
+;   States 2/4/6 handlers are external (at $008D06/$008D12/$008D52).
 ;
-; Entry: A2 = object/entity pointer
-; Uses: D0, D4, A2, A4, A6
-; Object fields:
-;   +$46: display_scale
-; Confidence: low
+; Uses: D0
+; RAM:
+;   $C896: state index (byte, 0/2/4/6)
+;   $C0BA: source param A (word)
+;   $C0BC: source param B (word)
+;   $C0BE: source param C (word)
+;   $C892: target param B (word)
+;   $C894: target param C (word)
+;   $C8F6: counter/flag (byte, set to 5)
+;   $C8F8: target param A (word)
+; Calls:
+;   $00888DC0: shared exit
 ; ============================================================================
 
 fn_8200_024:
-        MOVE.B  (-14186).W,D0                   ; $008CCE
-        MOVE.W  $008CE0(PC,D0.W),D0             ; $008CD2
-        JSR     $008CE0(PC,D0.W)                ; $008CD6
-        JMP     $00888DC0                       ; $008CDA
-        DC.W    $0008                           ; $008CE0
-        ORI.B  #$32,-(A6)                       ; $008CE2
-        ORI.W  #$31F8,-$46(A2,A4.W)             ; $008CE6
-        MULU    ($31F8).W,D4                    ; $008CEC
-        AND.L  #$C89231F8,D0                    ; $008CF0
-        DC.W    $C0BE                           ; $008CF6
-        AND.L  (A4),D4                          ; $008CF8
-        MOVE.B  #$05,(-14090).W                 ; $008CFA
-        ADDQ.B  #2,(-14186).W                   ; $008D00
-        RTS                                     ; $008D04
+; --- dispatcher ---
+        move.b  ($FFFFC896).w,D0               ; $008CCE  D0 = state index
+        move.w  .jump_table(PC,D0.W),D0        ; $008CD2  D0 = handler offset
+        jsr     .jump_table(PC,D0.W)           ; $008CD6  call handler
+        jmp     $00888DC0                       ; $008CDA  shared exit
+; --- jump table (4 word offsets from table base) ---
+.jump_table:
+        dc.w    $0008                           ; $008CE0  state 0 → .handler_0
+        dc.w    $0026                           ; $008CE2  state 2 → $008D06 (external)
+        dc.w    $0032                           ; $008CE4  state 4 → $008D12 (external)
+        dc.w    $0072                           ; $008CE6  state 6 → $008D52 (external)
+; --- state 0 handler: copy register triplet ---
+.handler_0:
+        move.w  ($FFFFC0BA).w,($FFFFC8F8).w    ; $008CE8  copy param A
+        move.w  ($FFFFC0BC).w,($FFFFC892).w    ; $008CEE  copy param B
+        move.w  ($FFFFC0BE).w,($FFFFC894).w    ; $008CF4  copy param C
+        move.b  #$05,($FFFFC8F6).w             ; $008CFA  set counter = 5
+        addq.b  #2,($FFFFC896).w               ; $008D00  advance state
+        rts                                     ; $008D04

@@ -1,34 +1,31 @@
 ; ============================================================================
-; Vint Heading 036 (auto-analyzed)
+; Object Field Clear (Conditional)
 ; ROM Range: $002EC6-$002EEE (40 bytes)
 ; ============================================================================
 ; Category: game
-; Purpose: Short helper function
-;   Object (A0, A1): +$14 (effect_duration), +$28, +$3C (heading_mirror), +$50, +$64, +$E5
+; Purpose: If $C31C is nonzero and obj.field_E5 bit 3 is set:
+;   clears 7 fields of target object (A1) at offsets
+;   $00/$14/$28/$3C/$50/$64 to zero. Otherwise exits to $002EEE.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
+; Entry: A0 = source object, A1 = target object
 ; Uses: D0, A0, A1
 ; Object fields:
-;   +$14: effect_duration
-;   +$28: [unknown]
-;   +$3C: heading_mirror
-;   +$50: [unknown]
-;   +$64: [unknown]
-;   +$E5: [unknown]
-; Confidence: low
+;   A0+$E5: control flags (byte, bit 3)
+;   A1+$00/$14/$28/$3C/$50/$64: animation fields (word, cleared)
+; RAM:
+;   $C31C: enable flag (byte)
 ; ============================================================================
 
 fn_2200_036:
-        TST.B  (-15588).W                       ; $002EC6
-        DC.W    $6722               ; BEQ.S  $002EEE; $002ECA
-        BTST    #3,$00E5(A0)                    ; $002ECC
-        DC.W    $671A               ; BEQ.S  $002EEE; $002ED2
-        MOVEQ   #$00,D0                         ; $002ED4
-        MOVE.W  D0,(A1)                         ; $002ED6
-        MOVE.W  D0,$0014(A1)                    ; $002ED8
-        MOVE.W  D0,$0028(A1)                    ; $002EDC
-        MOVE.W  D0,$003C(A1)                    ; $002EE0
-        MOVE.W  D0,$0050(A1)                    ; $002EE4
-        MOVE.W  D0,$0064(A1)                    ; $002EE8
-        RTS                                     ; $002EEC
+        tst.b   ($FFFFC31C).w                   ; $002EC6  flag active?
+        dc.w    $6722                           ; $002ECA  beq.s $002EEE → exit (past fn)
+        btst    #3,$00E5(A0)                    ; $002ECC  obj.flags bit 3 set?
+        dc.w    $671A                           ; $002ED2  beq.s $002EEE → exit (past fn)
+        moveq   #$00,D0                         ; $002ED4  D0 = 0
+        move.w  D0,(A1)                         ; $002ED6  clear field $00
+        move.w  D0,$0014(A1)                    ; $002ED8  clear field $14
+        move.w  D0,$0028(A1)                    ; $002EDC  clear field $28
+        move.w  D0,$003C(A1)                    ; $002EE0  clear field $3C
+        move.w  D0,$0050(A1)                    ; $002EE4  clear field $50
+        move.w  D0,$0064(A1)                    ; $002EE8  clear field $64
+        rts                                     ; $002EEC

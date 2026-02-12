@@ -1,25 +1,22 @@
 ; ============================================================================
-; Obj Heading 031 (auto-analyzed)
+; Calculate Object Heading Composite
 ; ROM Range: $007636-$00764E (24 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Short helper function
-;   Object (A0): +$3C (heading_mirror), +$96, +$CC
+; Computes a heading value: ($C0CA + $C0B0) * 8 + object+$3C +
+; object+$96, storing the result in object+$CC.
 ;
-; Entry: A0 = object/entity pointer
-; Uses: D0, A0
-; Object fields:
-;   +$3C: heading_mirror
-;   +$96: [unknown]
-;   +$CC: [unknown]
-; Confidence: low
+; Memory:
+;   $FFFFC0CA = heading base (word)
+;   $FFFFC0B0 = segment 2 position (word)
+; Entry: A0 = object pointer | Exit: +$CC updated | Uses: D0, A0
 ; ============================================================================
 
 fn_6200_031:
-        MOVE.W  (-16182).W,D0                   ; $007636
-        ADD.W  (-16208).W,D0                    ; $00763A
-        ASL.W  #3,D0                            ; $00763E
-        ADD.W  $003C(A0),D0                     ; $007640
-        ADD.W  $0096(A0),D0                     ; $007644
-        MOVE.W  D0,$00CC(A0)                    ; $007648
-        RTS                                     ; $00764C
+        move.w  ($FFFFC0CA).w,d0                ; $007636: $3038 $C0CA — load heading base
+        add.w   ($FFFFC0B0).w,d0                ; $00763A: $D078 $C0B0 — add segment 2 position
+        asl.w   #3,d0                           ; $00763E: $E740 — multiply by 8
+        add.w   $003C(a0),d0                    ; $007640: $D068 $003C — add heading mirror
+        add.w   $0096(a0),d0                    ; $007644: $D068 $0096 — add offset field
+        move.w  d0,$00CC(a0)                    ; $007648: $3140 $00CC — store composite heading
+        rts                                     ; $00764C: $4E75
+

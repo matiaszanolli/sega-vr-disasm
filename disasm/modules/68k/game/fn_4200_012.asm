@@ -1,24 +1,22 @@
 ; ============================================================================
-; Logic Sprite Update Check 012 (auto-analyzed)
+; Call Subs + Advance Game State
 ; ROM Range: $004D00-$004D1A (26 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Orchestrator calling 3 subroutines
-;   RAM: $C87E (game_state)
-;   Calls: animation_update, sprite_update_check
+; Calls three subroutines: $00210A, animation_update ($00B09E),
+; and sprite_update_check ($005908). Advances game state dispatch
+; ($C87E) by 4 and sets display mode/frame delay to $0010.
 ;
-; RAM:
-;   $C87E: game_state
-; Calls:
-;   $005908: sprite_update_check
-;   $00B09E: animation_update
-; Confidence: medium
+; Memory:
+;   $FFFFC87E = game state dispatch (word, advanced by 4)
+;   $00FF0008 = SH2 display mode/frame delay (word, set to $0010)
+; Entry: none | Exit: game state advanced | Uses: none
 ; ============================================================================
 
 fn_4200_012:
-        DC.W    $4EBA,$D408         ; JSR     $00210A(PC); $004D00
-        DC.W    $4EBA,$6398         ; JSR     $00B09E(PC); $004D04
-        DC.W    $4EBA,$0BFE         ; JSR     $005908(PC); $004D08
-        ADDQ.W  #4,(-14210).W                   ; $004D0C
-        MOVE.W  #$0010,$00FF0008                ; $004D10
-        RTS                                     ; $004D18
+        dc.w    $4EBA,$D408                     ; BSR.W $00210A ; $004D00: — call sub
+        dc.w    $4EBA,$6398                     ; BSR.W $00B09E ; $004D04: — call animation_update
+        dc.w    $4EBA,$0BFE                     ; BSR.W $005908 ; $004D08: — call sprite_update_check
+        addq.w  #4,($FFFFC87E).w               ; $004D0C: $5878 $C87E — advance game state
+        move.w  #$0010,$00FF0008                ; $004D10: $33FC $0010 $00FF $0008 — set display mode
+        rts                                     ; $004D18: $4E75
+

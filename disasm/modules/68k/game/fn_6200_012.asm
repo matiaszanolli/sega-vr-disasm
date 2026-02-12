@@ -1,24 +1,28 @@
 ; ============================================================================
-; Display Scroll 012 (auto-analyzed)
+; Conditional Scroll State Init
 ; ROM Range: $006C26-$006C46 (32 bytes)
 ; ============================================================================
-; Category: display
-; Purpose: Short helper function
-;   RAM: $C050 (scroll_state), $C07C (input_state)
+; Reads scroll trigger ($C050). If positive, returns. Otherwise
+; sets bit 0 of control flag ($C30E), copies $C096 → $C07A
+; (state parameter), sets input state ($C07C) to $0014, and
+; clears the scroll trigger back to zero.
 ;
-; Uses: D0
-; RAM:
-;   $C050: scroll_state
-;   $C07C: input_state
-; Confidence: medium
+; Memory:
+;   $FFFFC050 = scroll trigger (word, tested, conditionally cleared)
+;   $FFFFC30E = control flag (byte, bit 0 set)
+;   $FFFFC096 = state parameter source (word, read)
+;   $FFFFC07A = state parameter dest (word, written)
+;   $FFFFC07C = input state (word, set to $0014)
+; Entry: none | Exit: scroll state initialized or no-op | Uses: D0
 ; ============================================================================
 
 fn_6200_012:
-        MOVE.W  (-16304).W,D0                   ; $006C26
-        BPL.S  .loc_001E                        ; $006C2A
-        BSET    #0,(-15602).W                   ; $006C2C
-        MOVE.W  (-16234).W,(-16262).W           ; $006C32
-        MOVE.W  #$0014,(-16260).W               ; $006C38
-        MOVE.W  #$0000,(-16304).W               ; $006C3E
-.loc_001E:
-        RTS                                     ; $006C44
+        move.w  ($FFFFC050).w,d0                ; $006C26: $3038 $C050 — load scroll trigger
+        bpl.s   .done                           ; $006C2A: $6A18 — positive → skip
+        bset    #0,($FFFFC30E).w                ; $006C2C: $08F8 $0000 $C30E — set control bit 0
+        move.w  ($FFFFC096).w,($FFFFC07A).w     ; $006C32: $31F8 $C096 $C07A — copy state parameter
+        move.w  #$0014,($FFFFC07C).w            ; $006C38: $31FC $0014 $C07C — set input state
+        move.w  #$0000,($FFFFC050).w            ; $006C3E: $31FC $0000 $C050 — clear scroll trigger
+.done:
+        rts                                     ; $006C44: $4E75
+

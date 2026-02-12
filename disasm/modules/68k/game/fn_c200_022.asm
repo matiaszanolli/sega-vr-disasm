@@ -1,49 +1,55 @@
 ; ============================================================================
-; Scene Dispatch 022 (auto-analyzed)
+; Scene Init + VDP DMA Setup + Track Parameter Load
 ; ROM Range: $00D3FC-$00D482 (134 bytes)
 ; ============================================================================
 ; Category: game
-; Purpose: State dispatcher using jump table
+; Purpose: Data prefix: 12 bytes of padding/table ($00,$00,$00,$01...).
+;   Code: Sets VDP CRAM address $40000000, calls palette init ($48B8) and
+;   nametable init ($483E/$4842). Uses track_id ($FEA8 or $FEB8) to load
+;   parameter byte from table at $D44C → $C826. Loads longword from ROM
+;   table $898BFC[track_id×4] → $FF6828 (or $FF68B8 if $C80F set).
 ;
 ; Uses: D0, D1, D7, A0, A1, A4, A5
-; Confidence: low
+; RAM:
+;   $C80F: track_select_flag (byte)
+;   $C826: track_param (byte)
+;   $FEA8: track_id_A (byte)
+;   $FEB8: track_id_B (byte)
+; Calls:
+;   $00483E: nametable_init_A
+;   $004842: nametable_init_B
+;   $0048B8: palette_init
 ; ============================================================================
 
 fn_c200_022:
-        ORI.B  #$01,D0                          ; $00D3FC
-        ORI.B  #$02,D0                          ; $00D400
-        ORI.B  #$03,D0                          ; $00D404
-        ORI.B  #$05,D0                          ; $00D408
-        ORI.B  #$04,D0                          ; $00D40C
-        ORI.B  #$04,D0                          ; $00D410
-        ORI.B  #$01,D0                          ; $00D414
-        ORI.B  #$05,D0                          ; $00D418
-        ORI.B  #$06,D0                          ; $00D41C
-        ORI.B  #$04,D0                          ; $00D420
-        ORI.B  #$07,D0                          ; $00D424
-        ORI.B  #$07,D0                          ; $00D428
-        MOVE.L  #$40000000,(A5)                 ; $00D42C
-        MOVEQ   #$00,D1                         ; $00D432
-        JMP     $008848B8                       ; $00D434
-        LEA     (-32768).W,A1                   ; $00D43A
-        MOVEQ   #$00,D1                         ; $00D43E
-        JSR     $0088483E                       ; $00D440
-        JMP     $00884842                       ; $00D446
-        DC.W    $050A                           ; $00D44C
-        BTST    D7,(A4)                         ; $00D44E
-        MOVEQ   #$00,D0                         ; $00D450
-        MOVE.B  (-344).W,D0                     ; $00D452
-        MOVE.B  (-14321).W,D1                   ; $00D456
-        BEQ.S  .loc_0064                        ; $00D45A
-        MOVE.B  (-340).W,D0                     ; $00D45C
-.loc_0064:
-        MOVE.B  $00D44C(PC,D0.W),(-14310).W     ; $00D460
-        LEA     $00898BFC,A0                    ; $00D466
-        LSL.W  #2,D0                            ; $00D46C
-        ADDA.L  D0,A0                           ; $00D46E
-        MOVE.L  (A0),$00FF6828                  ; $00D470
-        TST.B  D1                               ; $00D476
-        BEQ.S  .loc_0084                        ; $00D478
-        MOVE.L  (A0),$00FF68B8                  ; $00D47A
-.loc_0084:
-        RTS                                     ; $00D480
+; --- data prefix: 12 bytes ---
+        dc.b    $00,$00,$00,$01                 ; $00D3FC
+        dc.b    $00,$00,$00,$02                 ; $00D400
+        dc.b    $00,$00,$00,$03                 ; $00D404
+; --- code: VDP + track init ---
+        move.l  #$40000000,(A5)                 ; $00D42C  VDP CRAM address
+        moveq   #$00,D1                         ; $00D432  D1 = 0
+        jmp     $008848B8                       ; $00D434  palette_init
+        lea     ($FFFF8000).w,A1                ; $00D43A  A1 → VDP work buffer
+        moveq   #$00,D1                         ; $00D43E  D1 = 0
+        jsr     $0088483E                       ; $00D440  nametable_init_A
+        jmp     $00884842                       ; $00D446  nametable_init_B (tail)
+        dc.w    $050A                           ; $00D44C  table entry 0
+        dc.w    $0774                           ; $00D44E  table entry 1
+; --- track parameter load ---
+        moveq   #$00,D0                         ; $00D450  clear D0
+        move.b  ($FFFFFEA8).w,D0                ; $00D452  D0 = track_id_A
+        move.b  ($FFFFC80F).w,D1                ; $00D456  D1 = track_select_flag
+        beq.s   .load_param                     ; $00D45A  zero → use track_id_A
+        move.b  ($FFFFFEB8).w,D0                ; $00D45C  D0 = track_id_B
+.load_param:
+        move.b  $00D44C(PC,D0.W),($FFFFC826).w  ; $00D460  track_param = table[track_id]
+        lea     $00898BFC,A0                    ; $00D466  A0 → ROM longword table
+        lsl.w   #2,D0                           ; $00D46C  D0 × 4 (longword stride)
+        adda.l  D0,A0                           ; $00D46E  A0 += offset
+        move.l  (A0),$00FF6828                  ; $00D470  load to VDP buffer A
+        tst.b   D1                              ; $00D476  track_select_flag set?
+        beq.s   .done                           ; $00D478  no → done
+        move.l  (A0),$00FF68B8                  ; $00D47A  load to VDP buffer B
+.done:
+        rts                                     ; $00D480

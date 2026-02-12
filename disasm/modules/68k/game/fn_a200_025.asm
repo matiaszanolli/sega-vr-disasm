@@ -1,49 +1,50 @@
 ; ============================================================================
-; Ai 025 (auto-analyzed)
+; Animation Sequence Player (3-Word Data Prefix + Frame Loop)
 ; ROM Range: $00B722-$00B770 (78 bytes)
 ; ============================================================================
 ; Category: game
-; Purpose: Object (A0, A1, A2, A3): +$00, +$01, +$02 (flags/type)
+; Purpose: Data prefix: 3 words ($0102,$0304,$0506) — bit test masks.
+;   Code: D7-count loop over animation channels. For each: decrements
+;   tick counter (A1+1). On expire: reads sequence index (A1+0), loads
+;   byte from A2 table[index], computes word offset (index×2), reads
+;   value from A3[offset]. If negative: resets index to 1, uses A3+2.
+;   Writes value to work buffer A0[byte_offset], increments index.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
-; Entry: A2 = object/entity pointer
-; Entry: A3 = object/entity pointer
 ; Uses: D0, D1, D2, D3, D4, D6, D7, A0
-; Object fields:
-;   +$00: [unknown]
-;   +$01: [unknown]
-;   +$02: flags/type
-; Confidence: low
+; RAM:
+;   $8480: work_buffer (word array indexed by byte)
 ; ============================================================================
 
 fn_a200_025:
-        BTST    D0,D2                           ; $00B722
-        BTST    D1,D4                           ; $00B724
-        BTST    D2,D6                           ; $00B726
-        DC.W    $0708                           ; $00B728
-        DC.W    $0800                           ; $00B72A
-        MOVEQ   #$00,D0                         ; $00B72C
-        MOVEQ   #$00,D1                         ; $00B72E
-        MOVEQ   #$00,D2                         ; $00B730
-        LEA     (-31616).W,A0                   ; $00B732
-.loc_0014:
-        SUBQ.B  #1,$01(A1,D0.W)                 ; $00B736
-        BNE.S  .loc_0046                        ; $00B73A
-        MOVEA.L A2,A3                           ; $00B73C
-        ADDA.W  $00(A2,D0.W),A3                 ; $00B73E
-        MOVE.B  $00(A1,D0.W),D2                 ; $00B742
-        DC.W    $D442                           ; $00B746
-        MOVE.B  (A3),D1                         ; $00B748
-        MOVE.B  $0001(A3),$01(A1,D0.W)          ; $00B74A
-        MOVE.W  $00(A3,D2.W),D3                 ; $00B750
-        BPL.S  .loc_003E                        ; $00B754
-        MOVE.B  #$01,$00(A1,D0.W)               ; $00B756
-        MOVE.W  $0002(A3),D3                    ; $00B75C
-.loc_003E:
-        MOVE.W  D3,$00(A0,D1.W)                 ; $00B760
-        ADDQ.B  #1,$00(A1,D0.W)                 ; $00B764
-.loc_0046:
-        ADDQ.B  #2,D0                           ; $00B768
-        DBRA    D7,.loc_0014                    ; $00B76A
-        RTS                                     ; $00B76E
+; --- data prefix: bit test masks (3 words) ---
+        dc.w    $0102                           ; $00B722  mask A
+        dc.w    $0304                           ; $00B724  mask B
+        dc.w    $0506                           ; $00B726  mask C
+; --- code: animation frame loop ---
+        dc.w    $0708                           ; $00B728  dc.w $0708 (data or padding)
+        dc.w    $0800                           ; $00B72A  dc.w $0800 (data or padding)
+        moveq   #$00,D0                         ; $00B72C  clear D0
+        moveq   #$00,D1                         ; $00B72E  clear D1
+        moveq   #$00,D2                         ; $00B730  clear D2
+        lea     ($FFFF8480).w,A0                ; $00B732  A0 → work buffer
+.loop_channel:
+        subq.b  #1,$01(A1,D0.W)                 ; $00B736  tick_counter--
+        bne.s   .next_channel                   ; $00B73A  not zero → next
+        movea.l A2,A3                           ; $00B73C  A3 = sequence table base
+        adda.w  $00(A2,D0.W),A3                 ; $00B73E  A3 += table[D0] (sequence offset)
+        move.b  $00(A1,D0.W),D2                 ; $00B742  D2 = sequence index
+        dc.w    $D442                           ; $00B746  add.w d2,d2 — D2 × 2
+        move.b  (A3),D1                         ; $00B748  D1 = byte offset (for A0)
+        move.b  $0001(A3),$01(A1,D0.W)          ; $00B74A  reload tick counter
+        move.w  $00(A3,D2.W),D3                 ; $00B750  D3 = sequence value
+        bpl.s   .write_value                    ; $00B754  positive → write
+        move.b  #$01,$00(A1,D0.W)               ; $00B756  reset index to 1
+        move.w  $0002(A3),D3                    ; $00B75C  use fallback value
+.write_value:
+        move.w  D3,$00(A0,D1.W)                 ; $00B760  write to buffer[byte_offset]
+        addq.b  #1,$00(A1,D0.W)                 ; $00B764  sequence index++
+.next_channel:
+        addq.b  #2,D0                           ; $00B768  D0 += 2 (next channel)
+        dbra    D7,.loop_channel                ; $00B76A  loop D7+1 times
+        rts                                     ; $00B76E
+

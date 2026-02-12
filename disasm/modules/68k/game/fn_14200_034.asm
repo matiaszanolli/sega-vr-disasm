@@ -1,20 +1,22 @@
 ; ============================================================================
-; Util 034 (auto-analyzed)
+; Fade Level Increment (Brightness Up)
 ; ROM Range: $01482E-$014848 (26 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Short helper function
+; Reads the fade level from $C888 (long), increments by 8, and
+; clamps at $00FFFFFF (maximum). Writes the result back.
 ;
-; Uses: D0
-; Confidence: low
+; Memory:
+;   $FFFFC888 = fade level (long, incremented by 8, max $00FFFFFF)
+; Entry: none | Exit: fade level incremented | Uses: D0
 ; ============================================================================
 
 fn_14200_034:
-        MOVE.L  (-14200).W,D0                   ; $01482E
-        ADDQ.L  #8,D0                           ; $014832
-        CMPI.L  #$00FFFFFF,D0                   ; $014834
-        BLE.S  .loc_0014                        ; $01483A
-        MOVE.L  #$00FF0000,D0                   ; $01483C
-.loc_0014:
-        MOVE.L  D0,(-14200).W                   ; $014842
-        RTS                                     ; $014846
+        move.l  ($FFFFC888).w,d0                ; $01482E: $2038 $C888 — load fade level
+        addq.l  #8,d0                           ; $014832: $5080 — increment
+        cmpi.l  #$00FFFFFF,d0                   ; $014834: $0C80 $00FF $FFFF — at max?
+        ble.s   .write                          ; $01483A: $6F06 — no → write
+        move.l  #$00FF0000,d0                   ; $01483C: $203C $00FF $0000 — clamp to base
+.write:
+        move.l  d0,($FFFFC888).w                ; $014842: $21C0 $C888 — store fade level
+        rts                                     ; $014846: $4E75
+

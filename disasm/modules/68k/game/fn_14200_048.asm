@@ -1,19 +1,27 @@
 ; ============================================================================
-; Util 048 (auto-analyzed)
+; Conditional SH2 Scene Reset
 ; ROM Range: $014540-$014566 (38 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Short helper function
+; Tests player data word ($A008). If non-zero, returns immediately.
+; Otherwise resets: sets display mode $0020, clears timeline counter
+; ($C080), sets SH2 scene handler to $008853B0, and jumps to
+; SH2 comm init at $00882890.
 ;
-; Confidence: low
+; Memory:
+;   $FFFFA008 = player data word (tested, non-zero → early return)
+;   $00FF0008 = SH2 display mode/frame delay (word, set to $0020)
+;   $FFFFC080 = timeline counter (byte, cleared)
+;   $00FF0002 = SH2 scene handler pointer (long, set to $008853B0)
+; Entry: none | Exit: scene reset or early return | Uses: none
 ; ============================================================================
 
 fn_14200_048:
-        TST.W  (-24568).W                       ; $014540
-        BNE.S  .loc_0024                        ; $014544
-        MOVE.W  #$0020,$00FF0008                ; $014546
-        MOVE.B  #$00,(-16256).W                 ; $01454E
-        MOVE.L  #$008853B0,$00FF0002            ; $014554
-        JMP     $00882890                       ; $01455E
-.loc_0024:
-        RTS                                     ; $014564
+        tst.w   ($FFFFA008).w                   ; $014540: $4A78 $A008 — test player data
+        bne.s   .done                           ; $014544: $661E — non-zero → return
+        move.w  #$0020,$00FF0008                ; $014546: $33FC $0020 $00FF $0008 — display mode $20
+        move.b  #$00,($FFFFC080).w              ; $01454E: $11FC $0000 $C080 — clear timeline counter
+        move.l  #$008853B0,$00FF0002            ; $014554: $23FC $0088 $53B0 $00FF $0002 — SH2 handler
+        jmp     $00882890                       ; $01455E: $4EF9 $0088 $2890 — jump to SH2 comm init
+.done:
+        rts                                     ; $014564: $4E75
+

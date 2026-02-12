@@ -1,48 +1,60 @@
 ; ============================================================================
-; Scene Race Substate 018 (auto-analyzed)
+; Scene Init + VDP Block Setup + Counter Reset
 ; ROM Range: $00CFD6-$00D04C (118 bytes)
 ; ============================================================================
 ; Category: game
-; Purpose: RAM: $C8CC (race_substate)
-;   Object (A1): +$00
+; Purpose: Loads scene data pointer from $00895BCC indexed by race_substate
+;   ($C8CC), calls block_copy ($CFC2) 4× to copy to VDP buffers at
+;   $FF6178/$FF627C/$FF63A8/$FF64AC. Second entry ($D00C): initializes
+;   counter block $C806 to (0,$C4,$C4), sets $C076=$C200.
+;   If $C80E bit 3 clear: sets work params $C254/$C260.
+;   Reads race_active ($FDA9) as index into table at $D050 → $C051.
 ;
-; Entry: A1 = object/entity pointer
 ; Uses: D0, A1, A2, A3
 ; RAM:
-;   $C8CC: race_substate
-; Object fields:
-;   +$00: [unknown]
-; Confidence: high
+;   $C051: track_param (byte, from table)
+;   $C076: scene_type (word, set to $C200)
+;   $C254: work_param_A (longword)
+;   $C260: work_param_B (longword)
+;   $C806: counter block (3 bytes)
+;   $C80E: display_flags (byte, bit 3)
+;   $C8CC: race_substate (word)
+;   $FDA9: race_active (byte, table index)
+; Calls:
+;   $00CFC2: block_copy (4×)
 ; ============================================================================
 
 fn_c200_018:
-        MOVE.W  (-14132).W,D0                   ; $00CFD6
-        LEA     $008955CC,A1                    ; $00CFDA
-        MOVEA.L $00(A1,D0.W),A1                 ; $00CFE0
-        MOVEA.L A1,A3                           ; $00CFE4
-        LEA     $00FF6178,A2                    ; $00CFE6
-        DC.W    $61D4               ; BSR.S  $00CFC2; $00CFEC
-        MOVEA.L A3,A1                           ; $00CFEE
-        LEA     $00FF627C,A2                    ; $00CFF0
-        DC.W    $61CA               ; BSR.S  $00CFC2; $00CFF6
-        MOVEA.L A3,A1                           ; $00CFF8
-        LEA     $00FF63A8,A2                    ; $00CFFA
-        DC.W    $61C0               ; BSR.S  $00CFC2; $00D000
-        MOVEA.L A3,A1                           ; $00D002
-        LEA     $00FF64AC,A2                    ; $00D004
-        DC.W    $60B6               ; BRA.S  $00CFC2; $00D00A
-        LEA     (-14330).W,A1                   ; $00D00C
-        MOVE.B  #$00,(A1)+                      ; $00D010
-        MOVE.B  #$C4,(A1)+                      ; $00D014
-        MOVE.B  #$C4,(A1)                       ; $00D018
-        MOVE.W  #$C200,(-16266).W               ; $00D01C
-        BTST    #3,(-14322).W                   ; $00D022
-        BNE.S  .loc_0064                        ; $00D028
-        MOVE.L  #$61000000,(-15788).W           ; $00D02A
-        MOVE.L  #$60000000,(-15776).W           ; $00D032
-.loc_0064:
-        DC.W    $43FA,$0014         ; LEA     $00D050(PC),A1; $00D03A
-        MOVEQ   #$00,D0                         ; $00D03E
-        MOVE.B  (-599).W,D0                     ; $00D040
-        MOVE.B  $00(A1,D0.W),(-16303).W         ; $00D044
-        RTS                                     ; $00D04A
+; --- VDP block setup (4 copies) ---
+        move.w  ($FFFFC8CC).w,D0                ; $00CFD6  D0 = race_substate
+        lea     $008955CC,A1                    ; $00CFDA  A1 → scene data table
+        movea.l $00(A1,D0.W),A1                 ; $00CFE0  A1 = data[substate]
+        movea.l A1,A3                           ; $00CFE4  A3 = save ptr
+        lea     $00FF6178,A2                    ; $00CFE6  A2 → VDP buffer 1
+        dc.w    $61D4                           ; $00CFEC  bsr.s $00CFC2 — block_copy [1]
+        movea.l A3,A1                           ; $00CFEE  restore ptr
+        lea     $00FF627C,A2                    ; $00CFF0  A2 → VDP buffer 2
+        dc.w    $61CA                           ; $00CFF6  bsr.s $00CFC2 — block_copy [2]
+        movea.l A3,A1                           ; $00CFF8  restore ptr
+        lea     $00FF63A8,A2                    ; $00CFFA  A2 → VDP buffer 3
+        dc.w    $61C0                           ; $00D000  bsr.s $00CFC2 — block_copy [3]
+        movea.l A3,A1                           ; $00D002  restore ptr
+        lea     $00FF64AC,A2                    ; $00D004  A2 → VDP buffer 4
+        dc.w    $60B6                           ; $00D00A  bra.s $00CFC2 — block_copy [4] (tail)
+; --- counter + scene init ---
+        lea     ($FFFFC806).w,A1                ; $00D00C  A1 → counter block
+        move.b  #$00,(A1)+                      ; $00D010  main = 0
+        move.b  #$C4,(A1)+                      ; $00D014  tick = $C4
+        move.b  #$C4,(A1)                       ; $00D018  sub-tick = $C4
+        move.w  #$C200,($FFFFC076).w            ; $00D01C  scene_type = $C200
+        btst    #3,($FFFFC80E).w                ; $00D022  display bit 3 set?
+        bne.s   .load_track                     ; $00D028  yes → skip work params
+        move.l  #$61000000,($FFFFC254).w        ; $00D02A  work_param_A
+        move.l  #$60000000,($FFFFC260).w        ; $00D032  work_param_B
+.load_track:
+        dc.w    $43FA,$0014                     ; $00D03A  lea $00D050(pc),a1 — track table
+        moveq   #$00,D0                         ; $00D03E  clear D0
+        move.b  ($FFFFFDA9).w,D0                ; $00D040  D0 = race_active
+        move.b  $00(A1,D0.W),($FFFFC051).w      ; $00D044  track_param = table[D0]
+        rts                                     ; $00D04A
+

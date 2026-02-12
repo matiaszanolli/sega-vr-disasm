@@ -1,31 +1,38 @@
 ; ============================================================================
-; Vint 009 (auto-analyzed)
+; Weighted Average Position Clamp (Variant B)
 ; ROM Range: $0023DC-$00240C (48 bytes)
 ; ============================================================================
-; Category: vint
-; Purpose: Function in 2200 section (48 bytes)
+; Category: game
+; Purpose: Computes weighted average: D1 = (D0×29/256 + $1A5E + *A1) / 2.
+;   Clamps result to range [$1A5E, $21D0].
+;   If D1 > $21D0 → branches to $00240C (external upper-clamp path).
+;   If D1 in range → branches to $002410 (external store path).
+;   If D1 ≤ $1A5E → clamps to $1A5E, stores to (A1) and $8760.
+;   Same structure as fn_2200_011 but different coefficients and upper bound.
 ;
+; Entry: D0 = input value, A1 = position pointer
 ; Uses: D0, D1, A1
-; Confidence: low
+; RAM:
+;   $8760: output position (word)
 ; ============================================================================
 
 fn_2200_009:
-        LSR.W  #4,D0                            ; $0023DC
-        MOVE.W  D0,D1                           ; $0023DE
-        LSR.W  #1,D0                            ; $0023E0
-        DC.W    $D240                           ; $0023E2
-        LSR.W  #1,D0                            ; $0023E4
-        DC.W    $D240                           ; $0023E6
-        LSR.W  #2,D0                            ; $0023E8
-        DC.W    $D240                           ; $0023EA
-        ADDI.W  #$1A5E,D1                       ; $0023EC
-        ADD.W  (A1),D1                          ; $0023F0
-        LSR.W  #1,D1                            ; $0023F2
-        CMPI.W  #$21D0,D1                       ; $0023F4
-        DC.W    $6E12               ; BGT.S  $00240C; $0023F8
-        CMPI.W  #$1A5E,D1                       ; $0023FA
-        DC.W    $6E10               ; BGT.S  $002410; $0023FE
-        MOVE.W  #$1A5E,D1                       ; $002400
-        MOVE.W  D1,(A1)                         ; $002404
-        MOVE.W  (A1),(-30880).W                 ; $002406
-        RTS                                     ; $00240A
+        lsr.w   #4,D0                           ; $0023DC  D0 = input >> 4
+        move.w  D0,D1                           ; $0023DE  D1 = D0 (×1)
+        lsr.w   #1,D0                           ; $0023E0  D0 >>= 1
+        dc.w    $D240                           ; $0023E2  add.w d0,d1 — D1 += D0 (×1.5)
+        lsr.w   #1,D0                           ; $0023E4  D0 >>= 1
+        dc.w    $D240                           ; $0023E6  add.w d0,d1 — D1 += D0 (×1.75)
+        lsr.w   #2,D0                           ; $0023E8  D0 >>= 2
+        dc.w    $D240                           ; $0023EA  add.w d0,d1 — D1 += D0 (≈29/256)
+        addi.w  #$1A5E,D1                       ; $0023EC  D1 += base ($1A5E)
+        add.w   (A1),D1                         ; $0023F0  D1 += current value
+        lsr.w   #1,D1                           ; $0023F2  D1 /= 2 (average)
+        cmpi.w  #$21D0,D1                       ; $0023F4  D1 > max?
+        dc.w    $6E12                           ; $0023F8  bgt.s $00240C → external upper path
+        cmpi.w  #$1A5E,D1                       ; $0023FA  D1 > min?
+        dc.w    $6E10                           ; $0023FE  bgt.s $002410 → external store path
+        move.w  #$1A5E,D1                       ; $002400  clamp D1 = min
+        move.w  D1,(A1)                         ; $002404  store to position
+        move.w  (A1),($FFFF8760).w              ; $002406  copy to output
+        rts                                     ; $00240A

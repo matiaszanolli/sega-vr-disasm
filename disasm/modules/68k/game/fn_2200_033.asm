@@ -1,27 +1,24 @@
 ; ============================================================================
-; Vint Velocity 033 (auto-analyzed)
+; Object Velocity Init (Dual Object, Source $C754)
 ; ROM Range: $002E7E-$002E9E (32 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Short helper function
-;   Object (A0, A1): +$24, +$64, +$8C (velocity_x)
+; Copies velocity data from $C754 to both A1+$24 and A2+$128.
+; Sets A1+$64 to 1 (active). Tests A0+$8C (velocity_x): if non-zero,
+; clears the active flag before returning.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
-; Uses: A0, A1, A2
-; Object fields:
-;   +$24: [unknown]
-;   +$64: [unknown]
-;   +$8C: velocity_x
-; Confidence: low
+; Memory:
+;   $FFFFC754 = velocity data source (long)
+; Entry: A0 = source obj, A1 = target obj 1, A2 = target obj 2
+; Exit: velocity set | Uses: A0, A1, A2
 ; ============================================================================
 
 fn_2200_033:
-        MOVE.L  (-14508).W,$0024(A1)            ; $002E7E
-        MOVE.L  (-14508).W,$0128(A2)            ; $002E84
-        MOVE.W  #$0001,$0064(A1)                ; $002E8A
-        TST.W  $008C(A0)                        ; $002E90
-        BEQ.S  .loc_001E                        ; $002E94
-        MOVE.W  #$0000,$0064(A1)                ; $002E96
-.loc_001E:
-        RTS                                     ; $002E9C
+        move.l  ($FFFFC754).w,$0024(a1)         ; $002E7E: $2378 $C754 $0024 — copy velocity to obj 1
+        move.l  ($FFFFC754).w,$0128(a2)         ; $002E84: $2578 $C754 $0128 — copy velocity to obj 2
+        move.w  #$0001,$0064(a1)                ; $002E8A: $337C $0001 $0064 — set active flag
+        tst.w   $008C(a0)                       ; $002E90: $4A68 $008C — test velocity_x
+        beq.s   .done                           ; $002E94: $6706 — zero → done
+        move.w  #$0000,$0064(a1)                ; $002E96: $337C $0000 $0064 — clear active flag
+.done:
+        rts                                     ; $002E9C: $4E75
+

@@ -1,25 +1,26 @@
 ; ============================================================================
-; Vint Random Number Gen 012 (auto-analyzed)
+; Randomized Sound Parameter (Base $21A0)
 ; ROM Range: $002452-$00246C (26 bytes)
 ; ============================================================================
-; Category: vint
-; Purpose: Short helper function
-;   Calls: random_number_gen
+; Loads base value $21A0 into D1. If current value at (A1) matches
+; the base, calls random_number_gen, masks to 0-15, and subtracts
+; from D1 to add jitter. Stores D1 to (A1) and copies to sound
+; register $8760.
 ;
-; Uses: D0, D1, A1
-; Calls:
-;   $00496E: random_number_gen
-; Confidence: low
+; Memory:
+;   $FFFF8760 = sound register (word, updated)
+; Entry: A1 = parameter pointer | Exit: sound param updated | Uses: D0, D1
 ; ============================================================================
 
 fn_2200_012:
-        MOVE.W  #$21A0,D1                       ; $002452
-        CMP.W  (A1),D1                          ; $002456
-        BNE.S  .loc_0012                        ; $002458
-        DC.W    $4EBA,$2512         ; JSR     $00496E(PC); $00245A
-        ANDI.W  #$000F,D0                       ; $00245E
-        DC.W    $9240                           ; $002462
-.loc_0012:
-        MOVE.W  D1,(A1)                         ; $002464
-        MOVE.W  (A1),(-30880).W                 ; $002466
-        RTS                                     ; $00246A
+        move.w  #$21A0,d1                       ; $002452: $323C $21A0 — base value
+        cmp.w   (a1),d1                         ; $002456: $B251 — compare with current
+        bne.s   .store                          ; $002458: $660A — different → just store
+        dc.w    $4EBA,$2512                     ; BSR.W $00496E ; $00245A: — call random_number_gen
+        andi.w  #$000F,d0                       ; $00245E: $0240 $000F — mask to 0-15
+        sub.w   d0,d1                           ; $002462: $9240 — D1 = D1 - D0 (add jitter)
+.store:
+        move.w  d1,(a1)                         ; $002464: $3281 — store to parameter
+        move.w  (a1),($FFFF8760).w              ; $002466: $31D1 $8760 — copy to sound register
+        rts                                     ; $00246A: $4E75
+

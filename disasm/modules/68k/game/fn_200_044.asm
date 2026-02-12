@@ -1,18 +1,22 @@
 ; ============================================================================
-; Init 044 (auto-analyzed)
+; Clear Communication and State Variables
 ; ROM Range: $00204A-$00205E (20 bytes)
 ; ============================================================================
-; Category: boot
-; Purpose: Short helper function
+; Clears five state/communication variables to zero: $C8A4, $C822
+; (comm ready flag), $C823, and $C8A2.
 ;
-; Uses: D0
-; Confidence: low
+; Memory:
+;   $FFFFC8A4 = state variable (word, cleared)
+;   $FFFFC822 = comm/input ready flag (byte, cleared)
+;   $FFFFC823 = comm flag extension (byte, cleared)
+;   $FFFFC8A2 = state variable (word, cleared)
+; Entry: none | Exit: variables cleared | Uses: D0
 ; ============================================================================
 
 fn_200_044:
-        MOVEQ   #$00,D0                         ; $00204A
-        MOVE.W  D0,(-14172).W                   ; $00204C
-        MOVE.B  D0,(-14302).W                   ; $002050
-        MOVE.B  D0,(-14301).W                   ; $002054
-        MOVE.W  D0,(-14174).W                   ; $002058
-        RTS                                     ; $00205C
+        moveq   #$00,d0                         ; $00204A: $7000 — zero
+        move.w  d0,($FFFFC8A4).w               ; $00204C: $31C0 $C8A4 — clear state var
+        move.b  d0,($FFFFC822).w               ; $002050: $11C0 $C822 — clear comm ready flag
+        move.b  d0,($FFFFC823).w               ; $002054: $11C0 $C823 — clear comm flag ext
+        move.w  d0,($FFFFC8A2).w               ; $002058: $31C0 $C8A2 — clear state var
+        rts                                     ; $00205C: $4E75

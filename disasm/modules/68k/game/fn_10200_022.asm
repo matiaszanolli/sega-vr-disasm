@@ -1,18 +1,18 @@
 ; ============================================================================
-; Name Entry Game 022 (auto-analyzed)
+; Advance Game State + Set Frame Delay
 ; ROM Range: $0111A4-$0111B6 (18 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Short helper function
-;   RAM: $C87E (game_state)
+; Calls a sub-routine at $011B08, then advances the main game state
+; by 4 and sets the frame delay parameter to $0018 (24 frames).
 ;
-; RAM:
-;   $C87E: game_state
-; Confidence: medium
+; Memory:
+;   $FFFFC87E = main game state (word, incremented by 4)
+;   $00FF0008 = display mode / frame delay (word, set to $0018)
+; Entry: none | Exit: state advanced | Uses: none
 ; ============================================================================
 
 fn_10200_022:
-        DC.W    $4EBA,$0962         ; JSR     $011B08(PC); $0111A4
-        ADDQ.W  #4,(-14210).W                   ; $0111A8
-        MOVE.W  #$0018,$00FF0008                ; $0111AC
-        RTS                                     ; $0111B4
+        dc.w    $4EBA,$0962                     ; JSR $011B08(PC) ; $0111A4: — call sub-routine
+        addq.w  #4,($FFFFC87E).w               ; $0111A8: $5878 $C87E — advance game state
+        move.w  #$0018,$00FF0008                ; $0111AC: $33FC $0018 $00FF $0008 — 24 frame delay
+        rts                                     ; $0111B4: $4E75

@@ -1,22 +1,23 @@
 ; ============================================================================
-; Obj 030 (auto-analyzed)
+; Conditional Object Velocity Negate
 ; ROM Range: $007624-$007636 (18 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Short helper function
-;   Object (A0): +$CC
+; If the word at $C0BA is nonzero, loads the word at $C0C2, negates
+; it, and stores the result into object+$CC. Falls through past $7636
+; if $C0BA is zero.
 ;
-; Entry: A0 = object/entity pointer
+; Memory:
+;   $FFFFC0BA = velocity enable flag (word, tested)
+;   $FFFFC0C2 = velocity value (word, read and negated)
+; Entry: A0 = object pointer | Exit: object+$CC set or falls through
 ; Uses: D0, A0
-; Object fields:
-;   +$CC: [unknown]
-; Confidence: low
 ; ============================================================================
 
 fn_6200_030:
-        TST.W  (-16198).W                       ; $007624
-        DC.W    $670C               ; BEQ.S  $007636; $007628
-        MOVE.W  (-16190).W,D0                   ; $00762A
-        NEG.W  D0                               ; $00762E
-        MOVE.W  D0,$00CC(A0)                    ; $007630
-        RTS                                     ; $007634
+        tst.w   ($FFFFC0BA).w                   ; $007624: $4A78 $C0BA — velocity enabled?
+        beq.s   fn_6200_030_end                 ; $007628: $670C — zero → fall through
+        move.w  ($FFFFC0C2).w,d0               ; $00762A: $3038 $C0C2 — load velocity
+        neg.w   d0                              ; $00762E: $4440 — negate
+        move.w  d0,$00CC(a0)                    ; $007630: $3140 $00CC — store in object+$CC
+        rts                                     ; $007634: $4E75
+fn_6200_030_end:

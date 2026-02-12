@@ -1,63 +1,67 @@
 ; ============================================================================
-; Obj Dispatch 007 (auto-analyzed)
+; Race Frame Update (State 7)
 ; ROM Range: $006A3A-$006AB4 (122 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: State dispatcher using jump table
-;   RAM: $C8A0 (race_state), $C8AA (scene_state), $C8AC (state_dispatch_idx), $C89C (sh2_comm_state)
-;   Calls: select_sprite_buffer, load_object_params, timer_countdown, game_update
-;   Object (A0): +$44 (display_offset), +$46 (display_scale), +$4A
+; Race-mode frame update: calls camera selector, sets game_active,
+; clears display offsets, then executes 12 subroutine calls for
+; physics/steering/position updates. Dispatches to state handler
+; via external jump table at $006AB4. On frame 20: copies camera
+; state, clears game_active, and advances dispatch state.
 ;
-; Entry: A0 = object/entity pointer
+; Entry: A0 = object pointer (+$44, +$46, +$4A cleared)
 ; Uses: D0, A0, A1
 ; RAM:
-;   $C89C: sh2_comm_state
-;   $C8A0: race_state
-;   $C8AA: scene_state
+;   $C048: camera_position (set to 1 on dispatch)
+;   $C07A: camera_state_copy (receives value from $C092)
+;   $C092: camera_state
+;   $C800: game_active
+;   $C89C: race_substate
+;   $C8A0: race_state (jump table index at $006AB4)
+;   $C8AA: scene_state (frame counter)
 ;   $C8AC: state_dispatch_idx
 ; Calls:
-;   $006F98: calc_steering
-;   $0070AA: angle_to_sine
-;   $007CD8: obj_position_x
-;   $007E7A: obj_velocity_y
-;   $007F50: obj_velocity_x
-;   $0080CC: load_object_params
-; Object fields:
-;   +$44: display_offset
-;   +$46: display_scale
-;   +$4A: [unknown]
-; Confidence: high
+;   $006F98: calc_steering (JSR PC-relative)
+;   $0070AA: angle_to_sine (JSR PC-relative)
+;   $007CD8: obj_position_x (JSR PC-relative)
+;   $007E7A: obj_velocity_y (JSR PC-relative)
+;   $007F50: obj_velocity_x (JSR PC-relative)
+;   $0080CC: load_object_params (JSR PC-relative)
+;   $00B770: camera_state_selector (JSR PC-relative)
+; Jump table: external at $006AB4 (5 entries, in next module)
 ; ============================================================================
 
 fn_6200_007:
-        DC.W    $4EBA,$4D34         ; JSR     $00B770(PC); $006A3A
-        MOVE.B  #$01,(-14336).W                 ; $006A3E
-        MOVEQ   #$00,D0                         ; $006A44
-        MOVE.W  D0,$0044(A0)                    ; $006A46
-        MOVE.W  D0,$0046(A0)                    ; $006A4A
-        MOVE.W  D0,$004A(A0)                    ; $006A4E
-        DC.W    $4EBA,$1678         ; JSR     $0080CC(PC); $006A52
-        DC.W    $4EBA,$1AF0         ; JSR     $008548(PC); $006A56
-        DC.W    $4EBA,$2DA6         ; JSR     $009802(PC); $006A5A
-        DC.W    $4EBA,$141A         ; JSR     $007E7A(PC); $006A5E
-        DC.W    $4EBA,$0534         ; JSR     $006F98(PC); $006A62
-        DC.W    $4EBA,$1270         ; JSR     $007CD8(PC); $006A66
-        DC.W    $4EBA,$063E         ; JSR     $0070AA(PC); $006A6A
-        DC.W    $4EBA,$06DA         ; JSR     $00714A(PC); $006A6E
-        DC.W    $4EBA,$0BDA         ; JSR     $00764E(PC); $006A72
-        DC.W    $4EBA,$14D8         ; JSR     $007F50(PC); $006A76
-        DC.W    $4EBA,$41C2         ; JSR     $00AC3E(PC); $006A7A
-        DC.W    $4EBA,$30D4         ; JSR     $009B54(PC); $006A7E
-        MOVE.W  (-14176).W,D0                   ; $006A82
-        MOVEA.L $006AB4(PC,D0.W),A1             ; $006A86
-        JSR     (A1)                            ; $006A8A
-        CMPI.W  #$0014,(-14166).W               ; $006A8C
-        BNE.S  .loc_0078                        ; $006A92
-        MOVE.W  (-16238).W,(-16262).W           ; $006A94
-        MOVE.B  #$00,(-14336).W                 ; $006A9A
-        MOVE.W  #$0004,(-14164).W               ; $006AA0
-        TST.W  (-14180).W                       ; $006AA6
-        BEQ.S  .loc_0078                        ; $006AAA
-        MOVE.W  #$0020,(-14164).W               ; $006AAC
-.loc_0078:
-        RTS                                     ; $006AB2
+        dc.w    $4EBA,$4D34                      ; jsr camera_state_selector(pc) → $00B770
+        move.b  #$01,($FFFFC800).w              ; set game_active
+        moveq   #$00,d0
+        move.w  d0,$0044(a0)                    ; clear display_offset
+        move.w  d0,$0046(a0)                    ; clear display_scale
+        move.w  d0,$004A(a0)                    ; clear object field +$4A
+; --- 12 physics/update subroutine calls ---
+        dc.w    $4EBA,$1678                      ; jsr load_object_params(pc) → $0080CC
+        dc.w    $4EBA,$1AF0                      ; jsr $008548(pc)
+        dc.w    $4EBA,$2DA6                      ; jsr $009802(pc)
+        dc.w    $4EBA,$141A                      ; jsr obj_velocity_y(pc) → $007E7A
+        dc.w    $4EBA,$0534                      ; jsr calc_steering(pc) → $006F98
+        dc.w    $4EBA,$1270                      ; jsr obj_position_x(pc) → $007CD8
+        dc.w    $4EBA,$063E                      ; jsr angle_to_sine(pc) → $0070AA
+        dc.w    $4EBA,$06DA                      ; jsr $00714A(pc)
+        dc.w    $4EBA,$0BDA                      ; jsr $00764E(pc)
+        dc.w    $4EBA,$14D8                      ; jsr obj_velocity_x(pc) → $007F50
+        dc.w    $4EBA,$41C2                      ; jsr $00AC3E(pc)
+        dc.w    $4EBA,$30D4                      ; jsr $009B54(pc)
+; --- state dispatch via external jump table ---
+        move.w  ($FFFFC8A0).w,d0                ; race_state (table index)
+        movea.l $006AB4(pc,d0.w),a1             ; load handler from table at $006AB4
+        jsr     (a1)                            ; call state handler
+; --- check frame 20: copy camera + advance state ---
+        cmpi.w  #$0014,($FFFFC8AA).w            ; frame 20?
+        bne.s   .done
+        move.w  ($FFFFC092).w,($FFFFC07A).w     ; copy camera_state → camera_state_copy
+        move.b  #$00,($FFFFC800).w              ; clear game_active
+        move.w  #$0004,($FFFFC8AC).w            ; advance state_dispatch_idx
+        tst.w   ($FFFFC89C).w                   ; race_substate active?
+        beq.s   .done
+        move.w  #$0020,($FFFFC8AC).w            ; alternate dispatch index
+.done:
+        rts

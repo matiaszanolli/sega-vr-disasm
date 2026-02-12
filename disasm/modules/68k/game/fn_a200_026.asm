@@ -1,59 +1,60 @@
 ; ============================================================================
-; Gfx Camera 026 (auto-analyzed)
+; Camera State Selector
 ; ROM Range: $00B770-$00B7E6 (118 bytes)
 ; ============================================================================
-; Category: graphics
-; Purpose: RAM: $C048 (camera_state), $C0A2 (gfx_mode), $C972 (anim_state)
-;   Object (A1): +$00
+; Selects camera view based on button input. Increments per-camera
+; frame counter, then checks directional buttons (bits 5, 8-10)
+; in game_input to switch between 4 camera positions (0-3).
 ;
-; Entry: A1 = object/entity pointer
+; Entry: A0 = buffer selector ($9000 = alternate)
 ; Uses: D0, A0, A1, A2
 ; RAM:
-;   $C048: camera_state
-;   $C0A2: gfx_mode
-;   $C972: anim_state
-; Object fields:
-;   +$00: [unknown]
-; Confidence: high
+;   $C048: camera_position (0-3, word index)
+;   $C064: camera_enable
+;   $C0A2: camera_frame_counters (word array, indexed by position×2)
+;   $C302: camera_max_frames
+;   $C314: camera_input_enable
+;   $C972: game_input (button bitmap)
 ; ============================================================================
 
 fn_a200_026:
-        LEA     $00FF6344,A2                    ; $00B770
-        CMPA.W  #$9000,A0                       ; $00B776
-        BNE.S  .loc_0012                        ; $00B77A
-        LEA     $00FF6114,A2                    ; $00B77C
-.loc_0012:
-        MOVE.W  (-16312).W,D0                   ; $00B782
-        DC.W    $D040                           ; $00B786
-        LEA     (-16222).W,A1                   ; $00B788
-        ADDQ.W  #1,$00(A1,D0.W)                 ; $00B78C
-        TST.B  (-16284).W                       ; $00B790
-        DC.W    $6658               ; BNE.S  $00B7EE; $00B794
-        MOVE.W  (-16312).W,D0                   ; $00B796
-        DC.W    $D040                           ; $00B79A
-        DC.W    $D040                           ; $00B79C
-        CMP.B  (-15614).W,D0                    ; $00B79E
-        DC.W    $6656               ; BNE.S  $00B7FA; $00B7A2
-        MOVE.W  (-13966).W,D0                   ; $00B7A4
-        TST.B  (-15596).W                       ; $00B7A8
-        DC.W    $6738               ; BEQ.S  $00B7E6; $00B7AC
-        BTST    #10,D0                          ; $00B7AE
-        BEQ.S  .loc_004C                        ; $00B7B2
-        MOVE.W  #$0001,(-16312).W               ; $00B7B4
-        BRA.S  .loc_0074                        ; $00B7BA
-.loc_004C:
-        BTST    #9,D0                           ; $00B7BC
-        BEQ.S  .loc_005A                        ; $00B7C0
-        MOVE.W  #$0002,(-16312).W               ; $00B7C2
-        BRA.S  .loc_0074                        ; $00B7C8
-.loc_005A:
-        BTST    #8,D0                           ; $00B7CA
-        BEQ.S  .loc_0068                        ; $00B7CE
-        MOVE.W  #$0003,(-16312).W               ; $00B7D0
-        BRA.S  .loc_0074                        ; $00B7D6
-.loc_0068:
-        BTST    #5,D0                           ; $00B7D8
-        BEQ.S  .loc_0074                        ; $00B7DC
-        MOVE.W  #$0000,(-16312).W               ; $00B7DE
-.loc_0074:
-        RTS                                     ; $00B7E4
+        lea     $00FF6344,a2                    ; default gfx buffer
+        cmpa.w  #$9000,a0                       ; alternate mode?
+        bne.s   .selected
+        lea     $00FF6114,a2                    ; alternate gfx buffer
+.selected:
+        move.w  ($FFFFC048).w,d0                ; camera_position
+        add.w   d0,d0                            ; ×2 for word index
+        lea     ($FFFFC0A2).w,a1                ; camera_frame_counters
+        addq.w  #1,$00(a1,d0.w)                 ; increment frame counter
+        tst.b   ($FFFFC064).w                   ; camera enabled?
+        dc.w    $6658                            ; bne.s $00B7EE → external handler
+        move.w  ($FFFFC048).w,d0                ; camera_position
+        add.w   d0,d0                            ; ×2
+        add.w   d0,d0                            ; ×4
+        cmp.b   ($FFFFC302).w,d0                ; reached max frames?
+        dc.w    $6656                            ; bne.s $00B7FA → external handler
+        move.w  ($FFFFC972).w,d0                ; game_input buttons
+        tst.b   ($FFFFC314).w                   ; camera input enabled?
+        dc.w    $6738                            ; beq.s $00B7E6 → skip (input disabled)
+; --- check directional buttons ---
+        btst    #10,d0                          ; button bit 10?
+        beq.s   .check_bit9
+        move.w  #$0001,($FFFFC048).w            ; camera position 1
+        bra.s   .done
+.check_bit9:
+        btst    #9,d0                           ; button bit 9?
+        beq.s   .check_bit8
+        move.w  #$0002,($FFFFC048).w            ; camera position 2
+        bra.s   .done
+.check_bit8:
+        btst    #8,d0                           ; button bit 8?
+        beq.s   .check_bit5
+        move.w  #$0003,($FFFFC048).w            ; camera position 3
+        bra.s   .done
+.check_bit5:
+        btst    #5,d0                           ; button bit 5?
+        beq.s   .done
+        move.w  #$0000,($FFFFC048).w            ; camera position 0 (default)
+.done:
+        rts

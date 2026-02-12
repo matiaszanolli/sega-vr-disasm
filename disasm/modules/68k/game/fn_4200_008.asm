@@ -1,59 +1,74 @@
 ; ============================================================================
-; Logic Dispatch 008 (auto-analyzed)
+; Game Logic Init + State Dispatch
 ; ROM Range: $00471E-$0047CA (172 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: State dispatcher using jump table
-;   RAM: $C87E (game_state), $C048 (camera_state), $C07C (input_state), $C8AA (scene_state)
+; Two entry points: (1) init path — sets up VDP, sprite table, SH2
+; command handler, then jumps to external init routine; (2) dispatch
+; path — sets camera position, reads state index from input_state,
+; and dispatches via 4-entry jump table. State 0 activates game and
+; clears scene_state. State 1 waits 40 frames then advances state.
 ;
 ; Uses: D0, A1, A5
 ; RAM:
-;   $C048: camera_state
-;   $C07C: input_state
+;   $C048: camera_position
+;   $C07C: input_state (jump table index: 0/4/8/12)
+;   $C260: sprite_table_init
+;   $C30E: state_flags
+;   $C800: game_active
+;   $C802: init_flag_a
+;   $C809: init_flag_b
+;   $C80A: init_flag_c
+;   $C80E: mode_flags
 ;   $C87E: game_state
+;   $C880: vscroll_a
+;   $C882: vscroll_b
+;   $C8A8: state_timer
 ;   $C8AA: scene_state
-; Confidence: high
+; Calls:
+;   $002890: game_init (JMP PC-relative)
+;   $00B25E: state_advance (JMP PC-relative)
 ; ============================================================================
 
 fn_4200_008:
-        BTST    #5,(-15602).W                   ; $00471E
-        BNE.S  .loc_0010                        ; $004724
-        MOVE.L  #$60000000,(-15776).W           ; $004726
-.loc_0010:
-        ANDI.B  #$7F,(-14322).W                 ; $00472E
-        MOVE.W  #$0000,(-14210).W               ; $004734
-        MOVEQ   #$00,D0                         ; $00473A
-        MOVE.W  D0,(-14208).W                   ; $00473C
-        MOVE.W  D0,(-14206).W                   ; $004740
-        MOVE.W  #$8B00,(A5)                     ; $004744
-        MOVE.W  #$0000,(-14168).W               ; $004748
-        MOVE.W  #$0020,$00FF0008                ; $00474E
-        MOVE.L  #$0088FB98,$00FF0002            ; $004756
-        MOVE.B  #$00,(-14336).W                 ; $004760
-        DC.W    $4EFA,$E128         ; JMP     $002890(PC); $004766
-        MOVE.W  #$0001,(-16312).W               ; $00476A
-        MOVE.W  (-16260).W,D0                   ; $004770
-        MOVEA.L $00477A(PC,D0.W),A1             ; $004774
-        JMP     (A1)                            ; $004778
-        DC.W    $0088                           ; $00477A
-        DC.W    $478A                           ; $00477C
-        DC.W    $0088                           ; $00477E
-        DC.W    $479E                           ; $004780
-        DC.W    $0088                           ; $004782
-        DC.W    $47CA                           ; $004784
-        DC.W    $0088                           ; $004786
-        DC.W    $47E4                           ; $004788
-        MOVE.B  #$01,(-14336).W                 ; $00478A
-        MOVE.W  #$0000,(-14166).W               ; $004790
-        ADDQ.W  #4,(-16260).W                   ; $004796
-        DC.W    $4EFA,$6AC2         ; JMP     $00B25E(PC); $00479A
-        CMPI.W  #$0028,(-14166).W               ; $00479E
-        BNE.S  .loc_00AA                        ; $0047A4
-        MOVE.W  #$0000,(-14166).W               ; $0047A6
-        ADDQ.W  #4,(-16260).W                   ; $0047AC
-        MOVE.B  #$01,(-14327).W                 ; $0047B0
-        MOVE.B  #$01,(-14326).W                 ; $0047B6
-        BSET    #7,(-14322).W                   ; $0047BC
-        MOVE.B  #$01,(-14334).W                 ; $0047C2
-.loc_00AA:
-        RTS                                     ; $0047C8
+; --- init entry point ---
+        btst    #5,($FFFFC30E).w                ; sprite table initialized?
+        bne.s   .skip_sprite_init
+        move.l  #$60000000,($FFFFC260).w        ; init sprite_table (BRA $0)
+.skip_sprite_init:
+        andi.b  #$7F,($FFFFC80E).w              ; clear bit 7 of mode_flags
+        move.w  #$0000,($FFFFC87E).w            ; clear game_state
+        moveq   #$00,d0
+        move.w  d0,($FFFFC880).w                ; clear vscroll_a
+        move.w  d0,($FFFFC882).w                ; clear vscroll_b
+        move.w  #$8B00,(a5)                     ; VDP reg $0B = $00 (H-scroll full)
+        move.w  #$0000,($FFFFC8A8).w            ; clear state_timer
+        move.w  #$0020,$00FF0008                ; set SH2 command $0020
+        move.l  #$0088FB98,$00FF0002            ; set SH2 handler address
+        move.b  #$00,($FFFFC800).w              ; clear game_active
+        dc.w    $4EFA,$E128                      ; jmp game_init(pc) → $002890
+; --- dispatch entry point ---
+        move.w  #$0001,($FFFFC048).w            ; camera_position = 1
+        move.w  ($FFFFC07C).w,d0                ; input_state (table index)
+        movea.l $00477A(pc,d0.w),a1             ; load handler address
+        jmp     (a1)                            ; dispatch to handler
+; --- jump table (4 entries) ---
+        dc.l    $0088478A                        ; state 0 → activate game
+        dc.l    $0088479E                        ; state 1 → wait + advance
+        dc.l    $008847CA                        ; state 2 → external handler
+        dc.l    $008847E4                        ; state 3 → external handler
+; --- state 0: activate game ---
+        move.b  #$01,($FFFFC800).w              ; set game_active
+        move.w  #$0000,($FFFFC8AA).w            ; clear scene_state
+        addq.w  #4,($FFFFC07C).w                ; advance to next state
+        dc.w    $4EFA,$6AC2                      ; jmp state_advance(pc) → $00B25E
+; --- state 1: wait 40 frames then advance ---
+        cmpi.w  #$0028,($FFFFC8AA).w            ; frame count = 40?
+        bne.s   .state1_done
+        move.w  #$0000,($FFFFC8AA).w            ; reset scene_state
+        addq.w  #4,($FFFFC07C).w                ; advance to next state
+        move.b  #$01,($FFFFC809).w              ; set init_flag_b
+        move.b  #$01,($FFFFC80A).w              ; set init_flag_c
+        bset    #7,($FFFFC80E).w                ; set bit 7 of mode_flags
+        move.b  #$01,($FFFFC802).w              ; set init_flag_a
+.state1_done:
+        rts

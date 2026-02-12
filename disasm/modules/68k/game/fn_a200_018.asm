@@ -1,61 +1,79 @@
 ; ============================================================================
-; Display Scroll 018 (auto-analyzed)
+; Display Digit Extract (Multi-Entry)
 ; ROM Range: $00B4CA-$00B55A (144 bytes)
 ; ============================================================================
-; Category: display
-; Purpose: RAM: $C050 (scroll_state)
-;   Object (A0): +$00
+; Multiple entry points for extracting BCD/display digits from
+; various game values. Each path looks up a digit pair from a ROM
+; table at $00899884 (indexed by value×2), then splits into high
+; and low nibbles for display buffer output.
 ;
-; Entry: A0 = object/entity pointer
+; Entry 1 ($00B4CA): copy scroll data + JMP to copy routine
+; Entry 2 ($00B4DC): scroll_state → digit pair → display
+; Entry 3a ($00B4F8): H-scroll value → digit pair → display
+; Entry 3b ($00B504): V-scroll value → digit pair → display
+; Entry 4 ($00B522): track sector → name + digit pair → display
+;
 ; Uses: D0, D1, A0, A1, A2
 ; RAM:
+;   $9004: vscroll_lookup
+;   $9F04: hscroll_lookup
 ;   $C050: scroll_state
-; Object fields:
-;   +$00: [unknown]
-; Confidence: medium
+;   $C200: game_data (source for copy)
+;   $C254: camera_scroll
+;   $C30C: track_sector
+;   $EEDC: display_buf_copy_dest
+;   $EEFC: camera_scroll_display
+; Calls:
+;   $004920: data_copy (JMP PC-relative)
 ; ============================================================================
 
 fn_a200_018:
-        MOVE.L  (-15788).W,(-4356).W            ; $00B4CA
-        LEA     (-15872).W,A1                   ; $00B4D0
-        LEA     (-4384).W,A2                    ; $00B4D4
-        DC.W    $4EFA,$9446         ; JMP     $004920(PC); $00B4D8
-        MOVE.W  (-16304).W,D0                   ; $00B4DC
-        BPL.S  .loc_001A                        ; $00B4E0
-        MOVEQ   #$00,D0                         ; $00B4E2
-.loc_001A:
-        DC.W    $D040                           ; $00B4E4
-        LEA     $00899884,A0                    ; $00B4E6
-        MOVE.W  $00(A0,D0.W),D0                 ; $00B4EC
-        LEA     $00FF68BA,A1                    ; $00B4F0
-        BRA.S  .loc_0082                        ; $00B4F6
-        LEA     $00FF6908,A1                    ; $00B4F8
-        MOVE.W  (-24828).W,D0                   ; $00B4FE
-        BRA.S  .loc_0044                        ; $00B502
-        LEA     $00FF68C8,A1                    ; $00B504
-        MOVE.W  (-28668).W,D0                   ; $00B50A
-.loc_0044:
-        DC.W    $D040                           ; $00B50E
-        LEA     $00899884,A0                    ; $00B510
-        MOVE.W  $00(A0,D0.W),D0                 ; $00B516
-        MOVE.W  D0,D1                           ; $00B51A
-        LSR.W  #8,D1                            ; $00B51C
-        MOVE.W  D1,(A1)+                        ; $00B51E
-        BRA.S  .loc_0082                        ; $00B520
-        MOVEQ   #$00,D0                         ; $00B522
-        MOVE.B  (-15604).W,D0                   ; $00B524
-        DC.W    $D040                           ; $00B528
-        MOVE.W  D0,D1                           ; $00B52A
-        DC.W    $D040                           ; $00B52C
-        LEA     $00898C24,A0                    ; $00B52E
-        MOVE.L  $00(A0,D0.W),$00FF68A8          ; $00B534
-        LEA     $00899884,A0                    ; $00B53C
-        MOVE.W  $00(A0,D1.W),D0                 ; $00B542
-        LEA     $00FF689A,A1                    ; $00B546
-.loc_0082:
-        MOVE.B  D0,D1                           ; $00B54C
-        LSR.B  #4,D1                            ; $00B54E
-        MOVE.B  D1,(A1)+                        ; $00B550
-        ANDI.B  #$0F,D0                         ; $00B552
-        MOVE.B  D0,(A1)                         ; $00B556
-        RTS                                     ; $00B558
+; --- entry 1: copy scroll data ---
+        move.l  ($FFFFC254).w,($FFFFEEFC).w     ; copy camera_scroll → display
+        lea     ($FFFFC200).w,a1                ; game_data source
+        lea     ($FFFFEEE0).w,a2                ; display buffer dest
+        dc.w    $4EFA,$9446                      ; jmp data_copy(pc) → $004920
+; --- entry 2: scroll_state → digit pair ---
+        move.w  ($FFFFC050).w,d0                ; scroll_state
+        bpl.s   .positive
+        moveq   #$00,d0                         ; clamp negative to 0
+.positive:
+        add.w   d0,d0                            ; ×2 for word index
+        lea     $00899884,a0                    ; digit lookup table (ROM)
+        move.w  $00(a0,d0.w),d0                 ; read digit pair
+        lea     $00FF68BA,a1                    ; display buffer
+        bra.s   .split_digits
+; --- entry 3a: H-scroll → digit pair ---
+        lea     $00FF6908,a1                    ; H-display buffer
+        move.w  ($FFFF9F04).w,d0                ; hscroll_lookup value
+        bra.s   .lookup
+; --- entry 3b: V-scroll → digit pair ---
+        lea     $00FF68C8,a1                    ; V-display buffer
+        move.w  ($FFFF9004).w,d0                ; vscroll_lookup value
+.lookup:
+        add.w   d0,d0                            ; ×2 for word index
+        lea     $00899884,a0                    ; digit lookup table (ROM)
+        move.w  $00(a0,d0.w),d0                 ; read digit pair
+        move.w  d0,d1
+        lsr.w   #8,d1                           ; high byte = tens digit
+        move.w  d1,(a1)+                        ; store tens digit
+        bra.s   .split_digits
+; --- entry 4: track sector → name + digit pair ---
+        moveq   #$00,d0
+        move.b  ($FFFFC30C).w,d0                ; track_sector
+        add.w   d0,d0                            ; ×2
+        move.w  d0,d1                           ; save ×2
+        add.w   d0,d0                            ; ×4 for longword index
+        lea     $00898C24,a0                    ; sector name table (ROM)
+        move.l  $00(a0,d0.w),$00FF68A8          ; copy sector name to display
+        lea     $00899884,a0                    ; digit lookup table (ROM)
+        move.w  $00(a0,d1.w),d0                 ; read digit pair (×2 index)
+        lea     $00FF689A,a1                    ; sector display buffer
+; --- shared: split digit pair into high/low nibble ---
+.split_digits:
+        move.b  d0,d1                           ; low byte
+        lsr.b   #4,d1                           ; extract high nibble
+        move.b  d1,(a1)+                        ; store high digit
+        andi.b  #$0F,d0                         ; extract low nibble
+        move.b  d0,(a1)                         ; store low digit
+        rts

@@ -1,54 +1,60 @@
 ; ============================================================================
-; Vint Unpack Tiles Vdp 013 (auto-analyzed)
+; VDP Tile Unpack (12 regions)
 ; ROM Range: $0024CA-$002594 (202 bytes)
 ; ============================================================================
-; Category: vint
-; Purpose: Calls: unpack_tiles_vdp
+; Unpacks tile data to 12 VRAM regions via repeated calls to
+; unpack_tiles_vdp. Each call sets a VRAM write address command
+; via (A5) and loads A0 with the source tile data pointer.
+; Skipped entirely if tile_update_flag ($C80D) is set.
 ;
+; Entry: A5 = VDP control port
 ; Uses: A0, A5
+; RAM:
+;   $C80D: tile_update_flag (nonzero = skip)
+;   $C880: vscroll_a (set to $FFF8 during unpack)
 ; Calls:
-;   $00247C: unpack_tiles_vdp
-; Confidence: low
+;   $00247C: unpack_tiles_vdp (JSR PC-relative, called 12 times)
 ; ============================================================================
 
 fn_2200_013:
-        TST.B  (-14323).W                       ; $0024CA
-        BNE.W  .loc_00C8                        ; $0024CE
-        MOVE.W  #$0000,(-32768).W               ; $0024D2
-        MOVE.W  #$FFF8,(-14208).W               ; $0024D8
-        LEA     $00FF6116,A0                    ; $0024DE
-        MOVE.L  #$62020002,(A5)                 ; $0024E4
-        DC.W    $4EBA,$FF90         ; JSR     $00247C(PC); $0024EA
-        LEA     (-28622).W,A0                   ; $0024EE
-        MOVE.L  #$620C0002,(A5)                 ; $0024F2
-        DC.W    $4EBA,$FF82         ; JSR     $00247C(PC); $0024F8
-        LEA     $00FF611A,A0                    ; $0024FC
-        MOVE.L  #$62160002,(A5)                 ; $002502
-        DC.W    $4EBA,$FF72         ; JSR     $00247C(PC); $002508
-        LEA     $00FF6108,A0                    ; $00250C
-        MOVE.L  #$63020002,(A5)                 ; $002512
-        DC.W    $4EBA,$FF62         ; JSR     $00247C(PC); $002518
-        LEA     $00FF610A,A0                    ; $00251C
-        MOVE.L  #$630C0002,(A5)                 ; $002522
-        DC.W    $4EBA,$FF52         ; JSR     $00247C(PC); $002528
-        LEA     $00FF610C,A0                    ; $00252C
-        MOVE.L  #$63160002,(A5)                 ; $002532
-        DC.W    $4EBA,$FF42         ; JSR     $00247C(PC); $002538
-        LEA     $00FF6104,A0                    ; $00253C
-        MOVE.L  #$632A0002,(A5)                 ; $002542
-        DC.W    $4EBA,$FF32         ; JSR     $00247C(PC); $002548
-        LEA     $00FF6106,A0                    ; $00254C
-        MOVE.L  #$63340002,(A5)                 ; $002552
-        DC.W    $4EBA,$FF22         ; JSR     $00247C(PC); $002558
-        LEA     $00FF5FF8,A0                    ; $00255C
-        MOVE.L  #$640C0002,(A5)                 ; $002562
-        DC.W    $4EBA,$FF12         ; JSR     $00247C(PC); $002568
-        MOVE.L  #$64160002,(A5)                 ; $00256C
-        DC.W    $4EBA,$FF08         ; JSR     $00247C(PC); $002572
-        MOVE.L  #$64200002,(A5)                 ; $002576
-        DC.W    $4EBA,$FEFE         ; JSR     $00247C(PC); $00257C
-        MOVE.L  #$642A0002,(A5)                 ; $002580
-        DC.W    $4EBA,$FEF4         ; JSR     $00247C(PC); $002586
-        MOVE.B  #$00,$00FF5FFF                  ; $00258A
-.loc_00C8:
-        RTS                                     ; $002592
+        tst.b   ($FFFFC80D).w                   ; tile update needed?
+        bne.w   .done                            ; no → skip all
+        move.w  #$0000,($FFFF8000).w            ; clear hscroll_a
+        move.w  #$FFF8,($FFFFC880).w            ; vscroll_a = -8
+; --- unpack 12 tile regions ---
+        lea     $00FF6116,a0                    ; tile source 1
+        move.l  #$62020002,(a5)                 ; VRAM write addr
+        dc.w    $4EBA,$FF90                      ; jsr unpack_tiles_vdp(pc) → $00247C
+        lea     ($FFFF9032).w,a0                ; tile source 2
+        move.l  #$620C0002,(a5)
+        dc.w    $4EBA,$FF82                      ; jsr unpack_tiles_vdp(pc) → $00247C
+        lea     $00FF611A,a0                    ; tile source 3
+        move.l  #$62160002,(a5)
+        dc.w    $4EBA,$FF72                      ; jsr unpack_tiles_vdp(pc) → $00247C
+        lea     $00FF6108,a0                    ; tile source 4
+        move.l  #$63020002,(a5)
+        dc.w    $4EBA,$FF62                      ; jsr unpack_tiles_vdp(pc) → $00247C
+        lea     $00FF610A,a0                    ; tile source 5
+        move.l  #$630C0002,(a5)
+        dc.w    $4EBA,$FF52                      ; jsr unpack_tiles_vdp(pc) → $00247C
+        lea     $00FF610C,a0                    ; tile source 6
+        move.l  #$63160002,(a5)
+        dc.w    $4EBA,$FF42                      ; jsr unpack_tiles_vdp(pc) → $00247C
+        lea     $00FF6104,a0                    ; tile source 7
+        move.l  #$632A0002,(a5)
+        dc.w    $4EBA,$FF32                      ; jsr unpack_tiles_vdp(pc) → $00247C
+        lea     $00FF6106,a0                    ; tile source 8
+        move.l  #$63340002,(a5)
+        dc.w    $4EBA,$FF22                      ; jsr unpack_tiles_vdp(pc) → $00247C
+        lea     $00FF5FF8,a0                    ; tile source 9
+        move.l  #$640C0002,(a5)
+        dc.w    $4EBA,$FF12                      ; jsr unpack_tiles_vdp(pc) → $00247C
+        move.l  #$64160002,(a5)                 ; tile source 9 continued
+        dc.w    $4EBA,$FF08                      ; jsr unpack_tiles_vdp(pc) → $00247C
+        move.l  #$64200002,(a5)
+        dc.w    $4EBA,$FEFE                      ; jsr unpack_tiles_vdp(pc) → $00247C
+        move.l  #$642A0002,(a5)
+        dc.w    $4EBA,$FEF4                      ; jsr unpack_tiles_vdp(pc) → $00247C
+        move.b  #$00,$00FF5FFF                  ; clear tile buffer flag
+.done:
+        rts

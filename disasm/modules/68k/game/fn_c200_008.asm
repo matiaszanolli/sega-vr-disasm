@@ -1,55 +1,66 @@
 ; ============================================================================
-; Scene Dispatch 008 (auto-analyzed)
+; Scene Dispatch + Input Replay
 ; ROM Range: $00C4C2-$00C542 (128 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: State dispatcher using jump table
-;   RAM: $C8AA (scene_state), $C082 (menu_state)
-;   Calls: sprite_update, object_update
+; Increments frame/scene counters, reads next input byte from replay
+; buffer (splitting direction + button bits), calls scene logic,
+; then dispatches to state handler via 4-entry jump table indexed
+; by menu_state. Post-dispatch calls sprite_update, object_update,
+; and tail-calls to frame finalize.
 ;
 ; Uses: D0, D1, D2, A0, A1, A2
 ; RAM:
-;   $C082: menu_state
+;   $C080: frame_counter
+;   $C082: menu_state (jump table index: 0/4/8/12)
+;   $C886: sub_frame
 ;   $C8AA: scene_state
+;   $C8C0: replay_buffer_ptr
+;   $C8C4: frame_counter_b
+;   $C970: anim_state (init $FFFF0000)
+;   $C971: direction_bits (from replay: bits masked $5C)
+;   $C973: button_bits (from replay: bits masked $03)
 ; Calls:
-;   $00B684: object_update
-;   $00B6DA: sprite_update
-; Confidence: high
+;   $00B684: object_update (JSR PC-relative)
+;   $00B6DA: sprite_update (JSR PC-relative)
+;   $00C070: scene_logic (JSR PC-relative)
+;   $00C662: frame_finalize (JMP PC-relative)
 ; ============================================================================
 
 fn_c200_008:
-        JSR     $0088179E                       ; $00C4C2
-        ADDQ.W  #1,(-16256).W                   ; $00C4C8
-        ADDQ.W  #1,(-14166).W                   ; $00C4CC
-        MOVE.L  #$FFFF0000,(-13968).W           ; $00C4D0
-        MOVEA.W (-14144).W,A0                   ; $00C4D8
-        MOVE.B  (A0)+,D0                        ; $00C4DC
-        MOVE.B  D0,D1                           ; $00C4DE
-        ANDI.B  #$5C,D0                         ; $00C4E0
-        MOVE.B  D0,(-13967).W                   ; $00C4E4
-        ANDI.B  #$03,D1                         ; $00C4E8
-        MOVE.B  D1,(-13965).W                   ; $00C4EC
-        MOVE.W  A0,(-14144).W                   ; $00C4F0
-        JSR     $00886DF0                       ; $00C4F4
-        JSR     $008824CA                       ; $00C4FA
-        ADDQ.B  #1,(-14202).W                   ; $00C500
-        ADDQ.B  #4,(-14140).W                   ; $00C504
-        MOVE.W  #$0044,$00FF0008                ; $00C508
-        MOVEQ   #$00,D0                         ; $00C510
-        MOVE.B  (-16254).W,D0                   ; $00C512
-        MOVEA.L $00C52C(PC,D0.W),A1             ; $00C516
-        JSR     (A1)                            ; $00C51A
-        DC.W    $4EBA,$FB52         ; JSR     $00C070(PC); $00C51C
-        DC.W    $4EBA,$F1B8         ; JSR     $00B6DA(PC); $00C520
-        DC.W    $4EBA,$F15E         ; JSR     $00B684(PC); $00C524
-        DC.W    $4EFA,$0138         ; JMP     $00C662(PC); $00C528
-        DC.W    $0088                           ; $00C52C
-        DC.W    $C542                           ; $00C52E
-        DC.W    $0088                           ; $00C530
-        DC.W    $C544                           ; $00C532
-        DC.W    $0088                           ; $00C534
-        DC.W    $C586                           ; $00C536
-        DC.W    $0088                           ; $00C538
-        AND.L  D2,(A2)                          ; $00C53A
-        ADDQ.B  #1,(-14202).W                   ; $00C53C
-        RTS                                     ; $00C540
+        jsr     $0088179E                       ; external call
+        addq.w  #1,($FFFFC080).w                ; increment frame_counter
+        addq.w  #1,($FFFFC8AA).w                ; increment scene_state
+        move.l  #$FFFF0000,($FFFFC970).w        ; init anim_state
+; --- read next input from replay buffer ---
+        movea.w ($FFFFC8C0).w,a0                ; replay_buffer_ptr
+        move.b  (a0)+,d0                        ; read input byte
+        move.b  d0,d1                           ; copy
+        andi.b  #$5C,d0                         ; extract direction bits
+        move.b  d0,($FFFFC971).w                ; store direction_bits
+        andi.b  #$03,d1                         ; extract button bits
+        move.b  d1,($FFFFC973).w                ; store button_bits
+        move.w  a0,($FFFFC8C0).w                ; update replay_buffer_ptr
+; --- scene logic calls ---
+        jsr     $00886DF0                       ; external call
+        jsr     $008824CA                       ; external call
+        addq.b  #1,($FFFFC886).w                ; increment sub_frame
+        addq.b  #4,($FFFFC8C4).w                ; advance frame_counter_b by 4
+        move.w  #$0044,$00FF0008                ; set SH2 command
+; --- state dispatch via jump table ---
+        moveq   #$00,d0
+        move.b  ($FFFFC082).w,d0                ; menu_state (table index)
+        movea.l $00C52C(pc,d0.w),a1             ; load handler address
+        jsr     (a1)                            ; call state handler
+; --- post-dispatch calls ---
+        dc.w    $4EBA,$FB52                      ; jsr scene_logic(pc) → $00C070
+        dc.w    $4EBA,$F1B8                      ; jsr sprite_update(pc) → $00B6DA
+        dc.w    $4EBA,$F15E                      ; jsr object_update(pc) → $00B684
+        dc.w    $4EFA,$0138                      ; jmp frame_finalize(pc) → $00C662
+; --- jump table (4 entries) ---
+        dc.l    $0088C542                        ; state 0 → external handler
+        dc.l    $0088C544                        ; state 1 → external handler
+        dc.l    $0088C586                        ; state 2 → external handler
+        dc.l    $0088C592                        ; state 3 → external handler
+; --- auxiliary exit (reached via state handler return) ---
+        addq.b  #1,($FFFFC886).w                ; increment sub_frame
+        rts

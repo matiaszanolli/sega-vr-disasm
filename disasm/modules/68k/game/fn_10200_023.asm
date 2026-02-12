@@ -1,47 +1,50 @@
 ; ============================================================================
-; Name Entry Send Cmd 023 (auto-analyzed)
+; Name Entry Score Display Transfer
 ; ROM Range: $0111B6-$011240 (138 bytes)
 ; ============================================================================
 ; Category: game
-; Purpose: RAM: $C87E (game_state)
-;   Calls: sh2_send_cmd, time_digit_render
+; Purpose: Sends 4 SH2 DMA transfers for score display areas, then renders
+;   two time digit fields from BCD buffers at $A046 and $A04A.
+;   Also transfers two identical UI element blocks.
+;   Advances game_state, display mode $0018.
 ;
 ; Uses: D0, D1, A0, A1, A2
 ; RAM:
-;   $C87E: game_state
+;   $A046: time digits buffer 1 (long, BCD)
+;   $A04A: time digits buffer 2 (long, BCD)
+;   $C87E: game_state (word, advanced by 4)
 ; Calls:
-;   $00E35A: sh2_send_cmd
-;   $0118D4: time_digit_render
-; Confidence: medium
+;   $00E35A: sh2_send_cmd (A0=src, A1=dest, D0=size, D1=width)
+;   $0118D4: time_digit_render (A1=dest, A2=BCD source)
 ; ============================================================================
 
 fn_10200_023:
-        MOVEA.L #$06018F80,A0                   ; $0111B6
-        MOVEA.L #$0400D018,A1                   ; $0111BC
-        MOVE.W  #$0078,D0                       ; $0111C2
-        MOVE.W  #$0018,D1                       ; $0111C6
-        DC.W    $4EBA,$D18E         ; JSR     $00E35A(PC); $0111CA
-        MOVEA.L #$06019AC0,A0                   ; $0111CE
-        MOVEA.L #$0400D0A0,A1                   ; $0111D4
-        MOVE.W  #$0078,D0                       ; $0111DA
-        MOVE.W  #$0018,D1                       ; $0111DE
-        DC.W    $4EBA,$D176         ; JSR     $00E35A(PC); $0111E2
-        LEA     $0403B048,A1                    ; $0111E6
-        LEA     (-24506).W,A2                   ; $0111EC
-        DC.W    $4EBA,$06E2         ; JSR     $0118D4(PC); $0111F0
-        LEA     $0403B0D0,A1                    ; $0111F4
-        LEA     (-24502).W,A2                   ; $0111FA
-        DC.W    $4EBA,$06D4         ; JSR     $0118D4(PC); $0111FE
-        MOVEA.L #$06018C00,A0                   ; $011202
-        MOVEA.L #$0401B010,A1                   ; $011208
-        MOVE.W  #$0038,D0                       ; $01120E
-        MOVE.W  #$0010,D1                       ; $011212
-        DC.W    $4EBA,$D142         ; JSR     $00E35A(PC); $011216
-        MOVEA.L #$06018C00,A0                   ; $01121A
-        MOVEA.L #$0401B098,A1                   ; $011220
-        MOVE.W  #$0038,D0                       ; $011226
-        MOVE.W  #$0010,D1                       ; $01122A
-        DC.W    $4EBA,$D12A         ; JSR     $00E35A(PC); $01122E
-        ADDQ.W  #4,(-14210).W                   ; $011232
-        MOVE.W  #$0018,$00FF0008                ; $011236
-        RTS                                     ; $01123E
+        movea.l #$06018F80,A0                   ; $0111B6  A0 = VRAM source (score area 1)
+        movea.l #$0400D018,A1                   ; $0111BC  A1 = display dest 1
+        move.w  #$0078,D0                       ; $0111C2  size = $78
+        move.w  #$0018,D1                       ; $0111C6  width = $18
+        dc.w    $4EBA,$D18E                     ; $0111CA  bsr.w sh2_send_cmd ($00E35A)
+        movea.l #$06019AC0,A0                   ; $0111CE  A0 = VRAM source (score area 2)
+        movea.l #$0400D0A0,A1                   ; $0111D4  A1 = display dest 2
+        move.w  #$0078,D0                       ; $0111DA  size = $78
+        move.w  #$0018,D1                       ; $0111DE  width = $18
+        dc.w    $4EBA,$D176                     ; $0111E2  bsr.w sh2_send_cmd ($00E35A)
+        lea     $0403B048,A1                    ; $0111E6  A1 = time digit dest 1
+        lea     ($FFFFA046).w,A2                ; $0111EC  A2 = BCD buffer 1
+        dc.w    $4EBA,$06E2                     ; $0111F0  bsr.w time_digit_render ($0118D4)
+        lea     $0403B0D0,A1                    ; $0111F4  A1 = time digit dest 2
+        lea     ($FFFFA04A).w,A2                ; $0111FA  A2 = BCD buffer 2
+        dc.w    $4EBA,$06D4                     ; $0111FE  bsr.w time_digit_render ($0118D4)
+        movea.l #$06018C00,A0                   ; $011202  A0 = UI element source
+        movea.l #$0401B010,A1                   ; $011208  A1 = UI dest 1
+        move.w  #$0038,D0                       ; $01120E  size = $38
+        move.w  #$0010,D1                       ; $011212  width = $10
+        dc.w    $4EBA,$D142                     ; $011216  bsr.w sh2_send_cmd ($00E35A)
+        movea.l #$06018C00,A0                   ; $01121A  A0 = UI element source (same)
+        movea.l #$0401B098,A1                   ; $011220  A1 = UI dest 2
+        move.w  #$0038,D0                       ; $011226  size = $38
+        move.w  #$0010,D1                       ; $01122A  width = $10
+        dc.w    $4EBA,$D12A                     ; $01122E  bsr.w sh2_send_cmd ($00E35A)
+        addq.w  #4,($FFFFC87E).w                ; $011232  advance game_state
+        move.w  #$0018,$00FF0008                ; $011236  display mode = $0018
+        rts                                     ; $01123E

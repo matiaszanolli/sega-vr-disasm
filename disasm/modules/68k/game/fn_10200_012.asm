@@ -1,81 +1,90 @@
 ; ============================================================================
-; Name Entry Dma Transfer 012 (auto-analyzed)
+; Name Entry Character Input (Player 2)
 ; ROM Range: $0103C4-$0104A2 (222 bytes)
 ; ============================================================================
 ; Category: game
-; Purpose: Orchestrator calling 3 subroutines
-;   RAM: $C87E (game_state)
-;   Calls: dma_transfer
-;   Object (A0): +$00
+; Purpose: Handles character input for player 2 name entry.
+;   Nearly identical to fn_10200_010 (Player 1) but uses P2 buffer ($A01C).
+;   No dual-player buffer mirroring (single buffer only).
+;   Same character validation, backspace, and completion logic.
 ;
-; Entry: A0 = object/entity pointer
 ; Uses: D0, D1, D2, A0
 ; RAM:
-;   $C87E: game_state
+;   $A01C: name buffer pointer P2 (long)
+;   $A020: cursor position (byte)
+;   $A024: character index (word)
+;   $A02C: input active flag (byte)
+;   $A02D: blink timer (byte)
+;   $A036: confirm state (word)
+;   $C86C: controller data (word)
+;   $C87E: game_state (word)
+;   $C8A4: sound effect (byte)
+;   $C80E: display control (byte)
 ; Calls:
 ;   $00E52C: dma_transfer
-; Object fields:
-;   +$00: [unknown]
-; Confidence: high
+;   $010796: cursor_render
+;   $0088179E: controller_poll
+;   $01084C: input_handler
+;   $0088FB36: SH2 transition check
 ; ============================================================================
 
 fn_10200_012:
-        CLR.W  D0                               ; $0103C4
-        DC.W    $4EBA,$E164         ; JSR     $00E52C(PC); $0103C6
-        MOVEA.L (-24548).W,A0                   ; $0103CA
-        DC.W    $6100,$03C6         ; BSR.W  $010796; $0103CE
-        JSR     $0088179E                       ; $0103D2
-        CMPI.W  #$0001,(-24522).W               ; $0103D8
-        BEQ.W  .loc_00BE                        ; $0103DE
-        MOVE.W  (-14228).W,D1                   ; $0103E2
-        BTST    #4,D1                           ; $0103E6
-        BNE.W  .loc_008A                        ; $0103EA
-        MOVE.W  D1,D2                           ; $0103EE
-        ANDI.B  #$E0,D2                         ; $0103F0
-        BEQ.W  .loc_00BA                        ; $0103F4
-        MOVE.B  #$01,(-24532).W                 ; $0103F8
-        MOVE.B  #$00,(-24531).W                 ; $0103FE
-        MOVE.B  #$A8,(-14172).W                 ; $010404
-        BTST    #7,D1                           ; $01040A
-        BNE.W  .loc_0082                        ; $01040E
-        MOVE.W  (-24540).W,D0                   ; $010412
-        CMPI.B  #$03,D0                         ; $010416
-        BEQ.W  .loc_0082                        ; $01041A
-        CMPI.B  #$08,D0                         ; $01041E
-        BEQ.W  .loc_008A                        ; $010422
-        CLR.W  D1                               ; $010426
-        MOVE.B  (-24544).W,D1                   ; $010428
-        MOVEA.L (-24548).W,A0                   ; $01042C
-        MOVE.B  D0,$00(A0,D1.W)                 ; $010430
-        ADDQ.B  #1,(-24544).W                   ; $010434
-        CMPI.B  #$03,(-24544).W                 ; $010438
-        BGE.W  .loc_0082                        ; $01043E
-        BRA.W  .loc_00D0                        ; $010442
-.loc_0082:
-        ADDQ.W  #4,(-14210).W                   ; $010446
-        BRA.W  .loc_00D4                        ; $01044A
-.loc_008A:
-        CLR.W  D1                               ; $01044E
-        MOVE.B  (-24544).W,D1                   ; $010450
-        MOVEA.L (-24548).W,A0                   ; $010454
-        MOVE.B  #$20,$00(A0,D1.W)               ; $010458
-        TST.B  (-24544).W                       ; $01045E
-        BEQ.W  .loc_00D0                        ; $010462
-        SUBQ.B  #1,(-24544).W                   ; $010466
-        CLR.W  D1                               ; $01046A
-        MOVE.B  (-24544).W,D1                   ; $01046C
-        MOVEA.L (-24548).W,A0                   ; $010470
-        MOVE.B  #$20,$00(A0,D1.W)               ; $010474
-        BRA.W  .loc_00D0                        ; $01047A
-.loc_00BA:
-        DC.W    $6100,$03CC         ; BSR.W  $01084C; $01047E
-.loc_00BE:
-        JSR     $0088FB36                       ; $010482
-        BTST    #6,(-14322).W                   ; $010488
-        BNE.S  .loc_00D0                        ; $01048E
-        CLR.W  (-24522).W                       ; $010490
-.loc_00D0:
-        SUBQ.W  #4,(-14210).W                   ; $010494
-.loc_00D4:
-        MOVE.W  #$0018,$00FF0008                ; $010498
-        RTS                                     ; $0104A0
+        clr.w   D0                              ; $0103C4  mode = 0
+        dc.w    $4EBA,$E164                     ; $0103C6  bsr.w dma_transfer ($00E52C)
+        movea.l ($FFFFA01C).w,A0                ; $0103CA  A0 = P2 name buffer
+        dc.w    $6100,$03C6                     ; $0103CE  bsr.w cursor_render ($010796)
+        jsr     $0088179E                       ; $0103D2  poll controllers
+        cmpi.w  #$0001,($FFFFA036).w            ; $0103D8  confirm state = 1?
+        beq.w   .confirm_check                  ; $0103DE  yes → check SH2
+        move.w  ($FFFFC86C).w,D1                ; $0103E2  D1 = controller data
+        btst    #4,D1                           ; $0103E6  start button?
+        bne.w   .handle_delete                  ; $0103EA  yes → delete
+        move.w  D1,D2                           ; $0103EE  D2 = input copy
+        andi.b  #$E0,D2                         ; $0103F0  mask action buttons
+        beq.w   .no_action_btn                  ; $0103F4  none → handle input
+        move.b  #$01,($FFFFA02C).w              ; $0103F8  set input active
+        move.b  #$00,($FFFFA02D).w              ; $0103FE  reset blink timer
+        move.b  #$A8,($FFFFC8A4).w              ; $010404  play confirm sound
+        btst    #7,D1                           ; $01040A  A button?
+        bne.w   .complete                       ; $01040E  yes → complete entry
+        move.w  ($FFFFA024).w,D0                ; $010412  D0 = char index
+        cmpi.b  #$03,D0                         ; $010416  end marker?
+        beq.w   .complete                       ; $01041A  yes → complete
+        cmpi.b  #$08,D0                         ; $01041E  backspace?
+        beq.w   .handle_delete                  ; $010422  yes → delete
+        clr.w   D1                              ; $010426
+        move.b  ($FFFFA020).w,D1                ; $010428  D1 = cursor position
+        movea.l ($FFFFA01C).w,A0                ; $01042C  A0 = P2 buffer
+        move.b  D0,$00(A0,D1.W)                 ; $010430  write char
+        addq.b  #1,($FFFFA020).w                ; $010434  advance cursor
+        cmpi.b  #$03,($FFFFA020).w              ; $010438  at max?
+        bge.w   .complete                       ; $01043E  yes → complete
+        bra.w   .update_display                 ; $010442
+.complete:
+        addq.w  #4,($FFFFC87E).w                ; $010446  advance game_state
+        bra.w   .set_display                    ; $01044A
+.handle_delete:
+        clr.w   D1                              ; $01044E
+        move.b  ($FFFFA020).w,D1                ; $010450  D1 = cursor pos
+        movea.l ($FFFFA01C).w,A0                ; $010454  A0 = P2 buffer
+        move.b  #$20,$00(A0,D1.W)               ; $010458  clear char (space)
+        tst.b   ($FFFFA020).w                   ; $01045E  cursor at start?
+        beq.w   .update_display                 ; $010462  yes → skip
+        subq.b  #1,($FFFFA020).w                ; $010466  move cursor back
+        clr.w   D1                              ; $01046A
+        move.b  ($FFFFA020).w,D1                ; $01046C  D1 = new pos
+        movea.l ($FFFFA01C).w,A0                ; $010470  A0 = P2 buffer
+        move.b  #$20,$00(A0,D1.W)               ; $010474  clear prev pos
+        bra.w   .update_display                 ; $01047A
+.no_action_btn:
+        dc.w    $6100,$03CC                     ; $01047E  bsr.w input_handler ($01084C)
+.confirm_check:
+        jsr     $0088FB36                       ; $010482  SH2 transition check
+        btst    #6,($FFFFC80E).w                ; $010488  display busy?
+        bne.s   .update_display                 ; $01048E  yes → skip clear
+        clr.w   ($FFFFA036).w                   ; $010490  clear confirm state
+.update_display:
+        subq.w  #4,($FFFFC87E).w                ; $010494  revert game_state
+.set_display:
+        move.w  #$0018,$00FF0008                ; $010498  display mode = $0018
+        rts                                     ; $0104A0

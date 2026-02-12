@@ -1,57 +1,65 @@
 ; ============================================================================
-; Obj 053 (auto-analyzed)
+; Tire Screech Sound Trigger 053
 ; ROM Range: $007C56-$007CD8 (130 bytes)
 ; ============================================================================
 ; Category: game
-; Purpose: Object (A0): +$58, +$59, +$98, +$9A, +$E6, +$E8
+; Purpose: Checks 4 collision/contact channels and triggers screech sound
+;   Each channel: tests cooldown timer, checks contact bit, sets 15-frame timer
+;   Only queues sound $D2 if no other sound is pending
 ;
 ; Entry: A0 = object/entity pointer
 ; Uses: D2, A0
-; Object fields:
-;   +$58: [unknown]
-;   +$59: [unknown]
-;   +$98: [unknown]
-;   +$9A: [unknown]
-;   +$E6: [unknown]
-;   +$E8: [unknown]
-; Confidence: low
+; RAM:
+;   $C8A4: sound_command
+; Object fields (A0):
+;   +$58: contact_flags_a
+;   +$59: contact_flags_b
+;   +$98: screech_timer_a (bit 3 of +$58)
+;   +$9A: screech_timer_b (bit 3 of +$59)
+;   +$E6: screech_timer_c (bit 4 of +$58)
+;   +$E8: screech_timer_d (bit 4 of +$59)
+; Confidence: high
 ; ============================================================================
 
 fn_6200_053:
-        TST.W  $0098(A0)                        ; $007C56
-        BNE.S  .loc_0020                        ; $007C5A
-        BTST    #3,$0058(A0)                    ; $007C5C
-        BEQ.S  .loc_0020                        ; $007C62
-        MOVE.W  #$000F,$0098(A0)                ; $007C64
-        TST.B  (-14172).W                       ; $007C6A
-        BNE.S  .loc_0020                        ; $007C6E
-        MOVE.B  #$D2,(-14172).W                 ; $007C70
-.loc_0020:
-        TST.W  $009A(A0)                        ; $007C76
-        BNE.S  .loc_0040                        ; $007C7A
-        BTST    #3,$0059(A0)                    ; $007C7C
-        BEQ.S  .loc_0040                        ; $007C82
-        MOVE.W  #$000F,$009A(A0)                ; $007C84
-        TST.B  (-14172).W                       ; $007C8A
-        BNE.S  .loc_0040                        ; $007C8E
-        MOVE.B  #$D2,(-14172).W                 ; $007C90
-.loc_0040:
-        TST.W  $00E6(A0)                        ; $007C96
-        BNE.S  .loc_0060                        ; $007C9A
-        BTST    #4,$0058(A0)                    ; $007C9C
-        BEQ.S  .loc_0060                        ; $007CA2
-        MOVE.W  #$000F,$00E6(A0)                ; $007CA4
-        TST.B  (-14172).W                       ; $007CAA
-        BNE.S  .loc_0060                        ; $007CAE
-        MOVE.B  #$D2,(-14172).W                 ; $007CB0
-.loc_0060:
-        TST.W  $00E8(A0)                        ; $007CB6
-        BNE.S  .loc_0080                        ; $007CBA
-        BTST    #4,$0059(A0)                    ; $007CBC
-        BEQ.S  .loc_0080                        ; $007CC2
-        MOVE.W  #$000F,$00E8(A0)                ; $007CC4
-        TST.B  (-14172).W                       ; $007CCA
-        BNE.S  .loc_0080                        ; $007CCE
-        MOVE.B  #$D2,(-14172).W                 ; $007CD0
-.loc_0080:
-        RTS                                     ; $007CD6
+; --- channel A: contact_flags_a bit 3 ---
+        tst.w   $0098(A0)                        ; $007C56  timer_a active?
+        bne.s   .chan_b                          ; $007C5A  yes → skip
+        btst    #3,$0058(A0)                     ; $007C5C  contact bit 3?
+        beq.s   .chan_b                          ; $007C62  no → skip
+        move.w  #$000F,$0098(A0)                 ; $007C64  timer_a = 15 frames
+        tst.b   ($FFFFC8A4).w                    ; $007C6A  sound pending?
+        bne.s   .chan_b                          ; $007C6E  yes → skip sound
+        move.b  #$D2,($FFFFC8A4).w               ; $007C70  sound_command = $D2 (screech)
+.chan_b:
+; --- channel B: contact_flags_b bit 3 ---
+        tst.w   $009A(A0)                        ; $007C76  timer_b active?
+        bne.s   .chan_c                          ; $007C7A  yes → skip
+        btst    #3,$0059(A0)                     ; $007C7C  contact bit 3?
+        beq.s   .chan_c                          ; $007C82  no → skip
+        move.w  #$000F,$009A(A0)                 ; $007C84  timer_b = 15 frames
+        tst.b   ($FFFFC8A4).w                    ; $007C8A  sound pending?
+        bne.s   .chan_c                          ; $007C8E  yes → skip sound
+        move.b  #$D2,($FFFFC8A4).w               ; $007C90  sound_command = $D2
+.chan_c:
+; --- channel C: contact_flags_a bit 4 ---
+        tst.w   $00E6(A0)                        ; $007C96  timer_c active?
+        bne.s   .chan_d                          ; $007C9A  yes → skip
+        btst    #4,$0058(A0)                     ; $007C9C  contact bit 4?
+        beq.s   .chan_d                          ; $007CA2  no → skip
+        move.w  #$000F,$00E6(A0)                 ; $007CA4  timer_c = 15 frames
+        tst.b   ($FFFFC8A4).w                    ; $007CAA  sound pending?
+        bne.s   .chan_d                          ; $007CAE  yes → skip sound
+        move.b  #$D2,($FFFFC8A4).w               ; $007CB0  sound_command = $D2
+.chan_d:
+; --- channel D: contact_flags_b bit 4 ---
+        tst.w   $00E8(A0)                        ; $007CB6  timer_d active?
+        bne.s   .done                            ; $007CBA  yes → skip
+        btst    #4,$0059(A0)                     ; $007CBC  contact bit 4?
+        beq.s   .done                            ; $007CC2  no → skip
+        move.w  #$000F,$00E8(A0)                 ; $007CC4  timer_d = 15 frames
+        tst.b   ($FFFFC8A4).w                    ; $007CCA  sound pending?
+        bne.s   .done                            ; $007CCE  yes → skip sound
+        move.b  #$D2,($FFFFC8A4).w               ; $007CD0  sound_command = $D2
+.done:
+        rts                                     ; $007CD6

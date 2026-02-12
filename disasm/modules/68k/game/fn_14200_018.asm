@@ -1,15 +1,17 @@
 ; ============================================================================
-; Util 018 (auto-analyzed)
+; Add Track Segment 1 Offset
 ; ROM Range: $01475E-$014768 (10 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Small leaf function
+; Reads track segment value 1 from $C8B2 and adds it to its
+; accumulator at $C086. Paired with fn_14200_019 (subtract).
 ;
-; Uses: D0
-; Confidence: low
+; Memory:
+;   $FFFFC8B2 = track segment value 1 (word, read)
+;   $FFFFC086 = segment accumulator 1 (word, incremented)
+; Entry: none | Exit: accumulator updated | Uses: D0
 ; ============================================================================
 
 fn_14200_018:
-        MOVE.W  (-14158).W,D0                   ; $01475E
-        ADD.W  D0,(-16250).W                    ; $014762
-        RTS                                     ; $014766
+        move.w  ($FFFFC8B2).w,d0               ; $01475E: $3038 $C8B2 — load segment value 1
+        add.w   d0,($FFFFC086).w               ; $014762: $D178 $C086 — add to accumulator
+        rts                                     ; $014766: $4E75

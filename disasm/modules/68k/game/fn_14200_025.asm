@@ -1,15 +1,17 @@
 ; ============================================================================
-; Util 025 (auto-analyzed)
+; Subtract Track Segment 4 Offset
 ; ROM Range: $0147A4-$0147AE (10 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Small leaf function
+; Reads track segment value 4 from $C8B8 and subtracts it from its
+; accumulator at $C0B2. Paired with fn_14200_024 (add).
 ;
-; Uses: D0
-; Confidence: low
+; Memory:
+;   $FFFFC8B8 = track segment value 4 (word, read)
+;   $FFFFC0B2 = segment accumulator 4 (word, decremented)
+; Entry: none | Exit: accumulator updated | Uses: D0
 ; ============================================================================
 
 fn_14200_025:
-        MOVE.W  (-14152).W,D0                   ; $0147A4
-        SUB.W  D0,(-16206).W                    ; $0147A8
-        RTS                                     ; $0147AC
+        move.w  ($FFFFC8B8).w,d0               ; $0147A4: $3038 $C8B8 — load segment value 4
+        sub.w   d0,($FFFFC0B2).w               ; $0147A8: $9178 $C0B2 — subtract from accumulator
+        rts                                     ; $0147AC: $4E75

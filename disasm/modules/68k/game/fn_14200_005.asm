@@ -1,40 +1,43 @@
 ; ============================================================================
-; Vdp 005 (auto-analyzed)
+; Menu Item Address Table + VDP Register Clear
 ; ROM Range: $01462A-$014696 (108 bytes)
 ; ============================================================================
-; Category: vdp
-; Purpose: Accesses VDP registers
-;   Object (A6): +$6F
+; Category: game
+; Purpose: Data prefix: 16-entry longword table of menu item data
+;   addresses ($0090E732..$009286AE in ROM data segment).
+;   Code: sets D0 = 0, writes to $C80D and 6 VDP tile registers
+;   at $FF6870/$FF68A0/$FF6820/$FF6850/$FF6830/$FF68B0 (clear all).
 ;
-; Entry: A6 = object/entity pointer
-; Uses: D0, D2, A0, A1, A2, A6
-; Object fields:
-;   +$6F: [unknown]
-; Confidence: medium
+; Uses: D0
+; RAM:
+;   $C80D: menu state flag (byte, cleared)
 ; ============================================================================
 
 fn_14200_005:
-        ORI.L  #$E7320090,(A0)                  ; $01462A
-        DC.W    $FD28                           ; $014630
-        ORI.L  #$1BCA0091,(A1)                  ; $014632
-        MOVE.W  -(A6),-$6F(A6,D0.W)             ; $014638
-        SLE     -(A0)                           ; $01463C
-        ORI.L  #$81900091,(A1)                  ; $01463E
-        DC.W    $A1D8                           ; $014644
-        ORI.L  #$C2FE0091,(A1)                  ; $014646
-        ROR.B  #1,D2                            ; $01464C
-        ORI.L  #$FD760092,(A1)                  ; $01464E
-        DC.W    $1662                           ; $014654
-        ORI.L  #$2DD40092,(A2)                  ; $014656
-        MOVE    D0,CCR                          ; $01465C
-        ORI.L  #$5AEA0092,(A2)                  ; $01465E
-        MOVEQ   #-$3A,D0                        ; $014664
-        ORI.L  #$86AE7000,(A2)                  ; $014666
-        MOVE.B  D0,(-14323).W                   ; $01466C
-        MOVE.B  D0,$00FF6870                    ; $014670
-        MOVE.B  D0,$00FF68A0                    ; $014676
-        MOVE.B  D0,$00FF6820                    ; $01467C
-        MOVE.B  D0,$00FF6850                    ; $014682
-        MOVE.B  D0,$00FF6830                    ; $014688
-        MOVE.B  D0,$00FF68B0                    ; $01468E
-        RTS                                     ; $014694
+; --- data prefix: 16-entry longword jump table (menu item addresses) ---
+        dc.l    $0090E732                       ; $01462A  [0] menu item 0
+        dc.l    $0090FD28                       ; $01462E  [1] menu item 1
+        dc.l    $00911BCA                       ; $014632  [2] menu item 2
+        dc.l    $00913DA6                       ; $014636  [3] menu item 3
+        dc.l    $00915FE0                       ; $01463A  [4] menu item 4
+        dc.l    $00918190                       ; $01463E  [5] menu item 5
+        dc.l    $0091A1D8                       ; $014642  [6] menu item 6
+        dc.l    $0091C2FE                       ; $014646  [7] menu item 7
+        dc.l    $0091E21A                       ; $01464A  [8] menu item 8
+        dc.l    $0091FD76                       ; $01464E  [9] menu item 9
+        dc.l    $00921662                       ; $014652  [A] menu item 10
+        dc.l    $00922DD4                       ; $014656  [B] menu item 11
+        dc.l    $009244C0                       ; $01465A  [C] menu item 12
+        dc.l    $00925AEA                       ; $01465E  [D] menu item 13
+        dc.l    $009270C6                       ; $014662  [E] menu item 14
+        dc.l    $009286AE                       ; $014666  [F] menu item 15
+; --- code ---
+        moveq   #$00,D0                         ; $01466A  D0 = 0
+        move.b  D0,($FFFFC80D).w               ; $01466C  clear menu state flag
+        move.b  D0,$00FF6870                   ; $014670  clear VDP tile reg A
+        move.b  D0,$00FF68A0                   ; $014676  clear VDP tile reg B
+        move.b  D0,$00FF6820                   ; $01467C  clear VDP tile reg C
+        move.b  D0,$00FF6850                   ; $014682  clear VDP tile reg D
+        move.b  D0,$00FF6830                   ; $014688  clear VDP tile reg E
+        move.b  D0,$00FF68B0                   ; $01468E  clear VDP tile reg F
+        rts                                     ; $014694

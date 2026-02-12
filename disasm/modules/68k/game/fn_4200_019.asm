@@ -1,40 +1,41 @@
 ; ============================================================================
-; Logic Dispatch 019 (auto-analyzed)
+; State Dispatcher (5-Entry Jump Table + 5 Subroutines)
 ; ROM Range: $005308-$005348 (64 bytes)
 ; ============================================================================
 ; Category: game
-; Purpose: State dispatcher using jump table
-;   RAM: $C87E (game_state)
-;   Calls: VDPSyncSH2, animation_update
+; Purpose: Dispatches via 5-entry longword jump table indexed by
+;   state_dispatch_idx ($C87E). State 0 handler: calls VDPSyncSH2,
+;   init ($0020D6), animation_update, frame_update ($00B02C),
+;   sprite_setup ($00B632), then advances state by 4 and writes
+;   $10 to SH2 COMM.
 ;
 ; Uses: D0, A0, A1, A6
 ; RAM:
-;   $C87E: game_state
+;   $C87E: state_dispatch_idx (word)
 ; Calls:
+;   $0020D6: init handler
 ;   $0028C2: VDPSyncSH2
+;   $00B02C: frame_update
 ;   $00B09E: animation_update
-; Confidence: medium
+;   $00B632: sprite_setup
 ; ============================================================================
 
 fn_4200_019:
-        MOVE.W  (-14210).W,D0                   ; $005308
-        MOVEA.L $005312(PC,D0.W),A1             ; $00530C
-        JMP     (A1)                            ; $005310
-        DC.W    $0088                           ; $005312
-        SUBQ.B  #1,-(A6)                        ; $005314
-        DC.W    $0088                           ; $005316
-        SUBQ.W  #1,A0                           ; $005318
-        DC.W    $0088                           ; $00531A
-        SUBQ.W  #1,(A6)+                        ; $00531C
-        DC.W    $0088                           ; $00531E
-        SUBQ.L  #1,(A6)                         ; $005320
-        DC.W    $0088                           ; $005322
-        DC.W    $573C                           ; $005324
-        DC.W    $4EBA,$D59A         ; JSR     $0028C2(PC); $005326
-        DC.W    $4EBA,$CDAA         ; JSR     $0020D6(PC); $00532A
-        DC.W    $4EBA,$5D6E         ; JSR     $00B09E(PC); $00532E
-        DC.W    $4EBA,$5CF8         ; JSR     $00B02C(PC); $005332
-        DC.W    $4EBA,$62FA         ; JSR     $00B632(PC); $005336
-        ADDQ.W  #4,(-14210).W                   ; $00533A
-        MOVE.W  #$0010,$00FF0008                ; $00533E
-        RTS                                     ; $005346
+        move.w  ($FFFFC87E).w,D0               ; $005308  D0 = state_dispatch_idx
+        movea.l $005312(PC,D0.W),A1            ; $00530C  A1 = handler address
+        jmp     (A1)                            ; $005310  dispatch
+; --- jump table (5 longword entries) ---
+        dc.l    $00885326                       ; $005312  [00] → state 0 handler
+        dc.l    $00885348                       ; $005316  [04] → $005348 (past fn)
+        dc.l    $0088535E                       ; $00531A  [08] → $00535E (past fn)
+        dc.l    $00885396                       ; $00531E  [0C] → $005396 (past fn)
+        dc.l    $0088573C                       ; $005322  [10] → $00573C (past fn)
+; --- state 0 handler ---
+        dc.w    $4EBA,$D59A                     ; $005326  jsr $0028C2(pc) — VDPSyncSH2
+        dc.w    $4EBA,$CDAA                     ; $00532A  jsr $0020D6(pc) — init handler
+        dc.w    $4EBA,$5D6E                     ; $00532E  jsr $00B09E(pc) — animation_update
+        dc.w    $4EBA,$5CF8                     ; $005332  jsr $00B02C(pc) — frame_update
+        dc.w    $4EBA,$62FA                     ; $005336  jsr $00B632(pc) — sprite_setup
+        addq.w  #4,($FFFFC87E).w               ; $00533A  advance state
+        move.w  #$0010,$00FF0008               ; $00533E  SH2 COMM = $10
+        rts                                     ; $005346

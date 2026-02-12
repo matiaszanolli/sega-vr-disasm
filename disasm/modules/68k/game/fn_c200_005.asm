@@ -1,29 +1,35 @@
 ; ============================================================================
-; Scene Dispatch 005 (auto-analyzed)
+; Scene Dispatch (Jump Table)
 ; ROM Range: $00C416-$00C44C (54 bytes)
 ; ============================================================================
 ; Category: game
-; Purpose: State dispatcher using jump table
-;   RAM: $C87E (game_state), $C082 (menu_state)
+; Purpose: Reads scene dispatch index from $C8F5, looks up target scene ID
+;   from PC-relative table at $C44C. If it matches current scene ($C080),
+;   initializes scene: SH2 call, sets game/menu/sub-sequence states,
+;   advances dispatch index by 2, sets display mode $0044.
 ;
 ; Uses: D0
 ; RAM:
-;   $C082: menu_state
-;   $C87E: game_state
-; Confidence: high
+;   $C8F5: scene dispatch index (byte)
+;   $C080: current scene ID (word)
+;   $C87E: game_state (word, set to $0010)
+;   $C8C4: sub-sequence state (word, set to $0C00)
+;   $C082: menu_state (byte, set to $04)
+; Calls:
+;   $008849AA: SH2 scene init
 ; ============================================================================
 
 fn_c200_005:
-        MOVEQ   #$00,D0                         ; $00C416
-        MOVE.B  (-14091).W,D0                   ; $00C418
-        MOVE.W  $00C44C(PC,D0.W),D0             ; $00C41C
-        CMP.W  (-16256).W,D0                    ; $00C420
-        BNE.S  .loc_0034                        ; $00C424
-        JSR     $008849AA                       ; $00C426
-        MOVE.W  #$0010,(-14210).W               ; $00C42C
-        MOVE.W  #$0C00,(-14140).W               ; $00C432
-        MOVE.B  #$04,(-16254).W                 ; $00C438
-        ADDQ.B  #2,(-14091).W                   ; $00C43E
-        MOVE.W  #$0044,$00FF0008                ; $00C442
-.loc_0034:
-        RTS                                     ; $00C44A
+        moveq   #$00,D0                         ; $00C416  clear D0
+        move.b  ($FFFFC8F5).w,D0                ; $00C418  D0 = dispatch index
+        move.w  $00C44C(PC,D0.W),D0             ; $00C41C  D0 = table[index] (scene ID)
+        cmp.w   ($FFFFC080).w,D0                ; $00C420  matches current scene?
+        bne.s   .done                           ; $00C424  no → skip
+        jsr     $008849AA                       ; $00C426  SH2 scene init
+        move.w  #$0010,($FFFFC87E).w            ; $00C42C  game_state = $0010
+        move.w  #$0C00,($FFFFC8C4).w            ; $00C432  sub-sequence = $0C00
+        move.b  #$04,($FFFFC082).w              ; $00C438  menu_state = $04
+        addq.b  #2,($FFFFC8F5).w                ; $00C43E  advance dispatch index
+        move.w  #$0044,$00FF0008                ; $00C442  display mode = $0044
+.done:
+        rts                                     ; $00C44A

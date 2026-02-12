@@ -1,30 +1,33 @@
 ; ============================================================================
-; Ai Menu Substate 036 (auto-analyzed)
+; Clear State + Copy Scroll Data from Object
 ; ROM Range: $00BCDA-$00BD00 (38 bytes)
 ; ============================================================================
 ; Category: game
-; Purpose: Short helper function
-;   RAM: $C8AA (scene_state), $C084 (menu_substate)
-;   Object (A0): +$02 (flags/type)
+; Purpose: Clears scene_state and menu_substate, then copies 6 words from
+;   object data at A0+$02 to scroll/position registers.
+;   Same destination registers as fn_a200_037.
 ;
-; Entry: A0 = object/entity pointer
-; Uses: A0, A1
+; Entry: A0 = object pointer
+; Uses: A1
 ; RAM:
-;   $C084: menu_substate
-;   $C8AA: scene_state
-; Object fields:
-;   +$02: flags/type
-; Confidence: high
+;   $C8AA: scene_state (word, cleared)
+;   $C084: menu_substate (word, cleared)
+;   $C086: scroll register 1 (word)
+;   $C054: scroll register 2 (word)
+;   $C056: scroll register 3 (word)
+;   $C0AE: position register 1 (word)
+;   $C0B0: position register 2 (word)
+;   $C0B2: position register 3 (word)
 ; ============================================================================
 
 fn_a200_036:
-        CLR.W  (-14166).W                       ; $00BCDA
-        CLR.W  (-16252).W                       ; $00BCDE
-        LEA     $0002(A0),A1                    ; $00BCE2
-        MOVE.W  (A1)+,(-16250).W                ; $00BCE6
-        MOVE.W  (A1)+,(-16300).W                ; $00BCEA
-        MOVE.W  (A1)+,(-16298).W                ; $00BCEE
-        MOVE.W  (A1)+,(-16210).W                ; $00BCF2
-        MOVE.W  (A1)+,(-16208).W                ; $00BCF6
-        MOVE.W  (A1)+,(-16206).W                ; $00BCFA
-        RTS                                     ; $00BCFE
+        clr.w   ($FFFFC8AA).w                   ; $00BCDA  clear scene_state
+        clr.w   ($FFFFC084).w                   ; $00BCDE  clear menu_substate
+        lea     $0002(A0),A1                    ; $00BCE2  A1 = object data + 2
+        move.w  (A1)+,($FFFFC086).w             ; $00BCE6  copy word 1 → scroll reg 1
+        move.w  (A1)+,($FFFFC054).w             ; $00BCEA  copy word 2 → scroll reg 2
+        move.w  (A1)+,($FFFFC056).w             ; $00BCEE  copy word 3 → scroll reg 3
+        move.w  (A1)+,($FFFFC0AE).w             ; $00BCF2  copy word 4 → position reg 1
+        move.w  (A1)+,($FFFFC0B0).w             ; $00BCF6  copy word 5 → position reg 2
+        move.w  (A1)+,($FFFFC0B2).w             ; $00BCFA  copy word 6 → position reg 3
+        rts                                     ; $00BCFE

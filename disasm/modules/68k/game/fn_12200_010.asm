@@ -1,40 +1,42 @@
 ; ============================================================================
-; Camera Game 010 (auto-analyzed)
+; Camera Selection Counter (Sound Effect A)
 ; ROM Range: $013734-$01377A (70 bytes)
 ; ============================================================================
 ; Category: game
-; Purpose: RAM: $C87E (game_state)
-;   Object (A0): +$00
+; Purpose: If D2 == 0: adds D0 to SFX counter A ($A01E), wraps 0-12.
+;   If D2 != 0: checks ranking ($A022), sets sound effect ($C822=$CA),
+;   looks up SFX from table at $0089ACB0, stores to $C8A4, reverts game_state.
 ;
-; Entry: A0 = object/entity pointer
+; Entry: D0 = increment, D2 = action flag
 ; Uses: D0, D2, A0
 ; RAM:
-;   $C87E: game_state
-; Object fields:
-;   +$00: [unknown]
-; Confidence: medium
+;   $A01E: SFX counter A (word, range 0-12)
+;   $A022: ranking result (word)
+;   $C822: sound effect ID (byte, set to $CA)
+;   $C8A4: sound parameter (byte, from table)
+;   $C87E: game_state (word)
 ; ============================================================================
 
 fn_12200_010:
-        TST.W  D2                               ; $013734
-        BNE.S  .loc_0022                        ; $013736
-        ADD.W  D0,(-24546).W                    ; $013738
-        TST.W  (-24546).W                       ; $01373C
-        BGE.S  .loc_0014                        ; $013740
-        MOVE.W  #$000C,(-24546).W               ; $013742
-.loc_0014:
-        CMPI.W  #$000C,(-24546).W               ; $013748
-        BLE.S  .loc_0044                        ; $01374E
-        CLR.W  (-24546).W                       ; $013750
-        BRA.S  .loc_0044                        ; $013754
-.loc_0022:
-        CMPI.W  #$0002,(-24542).W               ; $013756
-        BEQ.S  .loc_0030                        ; $01375C
-        MOVE.B  #$CA,(-14302).W                 ; $01375E
-.loc_0030:
-        LEA     $0089ACB0,A0                    ; $013764
-        MOVE.W  (-24546).W,D0                   ; $01376A
-        MOVE.B  $00(A0,D0.W),(-14172).W         ; $01376E
-        SUBQ.W  #4,(-14210).W                   ; $013774
-.loc_0044:
-        RTS                                     ; $013778
+        tst.w   D2                              ; $013734  action flag
+        bne.s   .select_sfx                     ; $013736  non-zero → select
+        add.w   D0,($FFFFA01E).w                ; $013738  add increment to counter
+        tst.w   ($FFFFA01E).w                   ; $01373C  counter < 0?
+        bge.s   .check_max                      ; $013740  no → check max
+        move.w  #$000C,($FFFFA01E).w            ; $013742  wrap to 12
+.check_max:
+        cmpi.w  #$000C,($FFFFA01E).w            ; $013748  counter <= 12?
+        ble.s   .done                           ; $01374E  yes → done
+        clr.w   ($FFFFA01E).w                   ; $013750  wrap to 0
+        bra.s   .done                           ; $013754
+.select_sfx:
+        cmpi.w  #$0002,($FFFFA022).w            ; $013756  ranking == 2?
+        beq.s   .set_sound                      ; $01375C  yes → skip $C822
+        move.b  #$CA,($FFFFC822).w              ; $01375E  sound effect = $CA
+.set_sound:
+        lea     $0089ACB0,A0                    ; $013764  A0 = SFX table A
+        move.w  ($FFFFA01E).w,D0                ; $01376A  D0 = SFX counter
+        move.b  $00(A0,D0.W),($FFFFC8A4).w      ; $01376E  sound param = table[sfx]
+        subq.w  #4,($FFFFC87E).w                ; $013774  revert game_state
+.done:
+        rts                                     ; $013778

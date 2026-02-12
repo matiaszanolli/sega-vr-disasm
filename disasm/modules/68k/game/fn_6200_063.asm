@@ -1,20 +1,18 @@
 ; ============================================================================
-; Obj 063 (auto-analyzed)
+; Clear Object Flags + Reset State
 ; ROM Range: $007FDA-$007FEE (20 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Short helper function
-;   Object (A0): +$02 (flags/type)
+; Clears bit 14 of the object flags at A0+$02, then zeroes out
+; state variable $C04E and flag byte $C305.
 ;
-; Entry: A0 = object/entity pointer
-; Uses: A0
-; Object fields:
-;   +$02: flags/type
-; Confidence: low
+; Memory:
+;   $FFFFC04E = state variable (word, cleared)
+;   $FFFFC305 = flag byte (byte, cleared)
+; Entry: A0 = object pointer | Exit: flags/state reset | Uses: A0
 ; ============================================================================
 
 fn_6200_063:
-        ANDI.W  #$BFFF,$0002(A0)                ; $007FDA
-        MOVE.W  #$0000,(-16306).W               ; $007FE0
-        MOVE.B  #$00,(-15611).W                 ; $007FE6
-        RTS                                     ; $007FEC
+        andi.w  #$BFFF,$0002(a0)                ; $007FDA: $0268 $BFFF $0002 — clear bit 14 of flags
+        move.w  #$0000,($FFFFC04E).w           ; $007FE0: $31FC $0000 $C04E — clear state
+        move.b  #$00,($FFFFC305).w             ; $007FE6: $11FC $0000 $C305 — clear flag
+        rts                                     ; $007FEC: $4E75

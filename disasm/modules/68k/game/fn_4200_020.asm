@@ -1,22 +1,19 @@
 ; ============================================================================
-; Logic Animation Update 020 (auto-analyzed)
+; Call Subs + Advance Game State + Set Frame Delay
 ; ROM Range: $005348-$00535E (22 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Short helper function
-;   RAM: $C87E (game_state)
-;   Calls: animation_update
+; Calls two sub-routines ($00210A and animation_update at $00B09E),
+; then advances the main game state by 4 and sets frame delay to $0010.
 ;
-; RAM:
-;   $C87E: game_state
-; Calls:
-;   $00B09E: animation_update
-; Confidence: medium
+; Memory:
+;   $FFFFC87E = main game state (word, incremented by 4)
+;   $00FF0008 = display mode / frame delay (word, set to $0010)
+; Entry: none | Exit: state advanced | Uses: none
 ; ============================================================================
 
 fn_4200_020:
-        DC.W    $4EBA,$CDC0         ; JSR     $00210A(PC); $005348
-        DC.W    $4EBA,$5D50         ; JSR     $00B09E(PC); $00534C
-        ADDQ.W  #4,(-14210).W                   ; $005350
-        MOVE.W  #$0010,$00FF0008                ; $005354
-        RTS                                     ; $00535C
+        dc.w    $4EBA,$CDC0                     ; JSR $00210A(PC) ; $005348:
+        dc.w    $4EBA,$5D50                     ; JSR animation_update(PC) ; $00534C: → $00B09E
+        addq.w  #4,($FFFFC87E).w               ; $005350: $5878 $C87E — advance game state
+        move.w  #$0010,$00FF0008                ; $005354: $33FC $0010 $00FF $0008 — 16 frame delay
+        rts                                     ; $00535C: $4E75

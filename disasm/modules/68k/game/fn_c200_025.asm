@@ -1,24 +1,21 @@
 ; ============================================================================
-; Scene Object Update 025 (auto-analyzed)
+; Object Update + Conditional Game State Advance
 ; ROM Range: $00D8B8-$00D8CC (20 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Short helper function
-;   RAM: $C87E (game_state)
-;   Calls: object_update
+; Calls object_update ($00B684), then checks sync flag bit 6.
+; If clear, advances the main game state by 4. If set, skips.
 ;
-; RAM:
-;   $C87E: game_state
-; Calls:
-;   $00B684: object_update
-; Confidence: high
+; Memory:
+;   $FFFFC80E = sync/transition flags (byte, bit 6 tested)
+;   $FFFFC87E = main game state (word, conditionally incremented by 4)
+; Entry: none | Exit: state optionally advanced | Uses: none
 ; ============================================================================
 
 fn_c200_025:
-        DC.W    $4EBA,$DDCA         ; JSR     $00B684(PC); $00D8B8
-        BTST    #6,(-14322).W                   ; $00D8BC
-        BNE.S  .loc_0012                        ; $00D8C2
-        ADDQ.W  #4,(-14210).W                   ; $00D8C4
-        NOP                                     ; $00D8C8
-.loc_0012:
-        RTS                                     ; $00D8CA
+        dc.w    $4EBA,$DDCA                     ; JSR object_update(PC) ; $00D8B8: → $00B684
+        btst    #6,($FFFFC80E).w               ; $00D8BC: $0838 $0006 $C80E — sync flag set?
+        bne.s   .done                           ; $00D8C2: $6606 — yes → skip advance
+        addq.w  #4,($FFFFC87E).w               ; $00D8C4: $5878 $C87E — advance game state
+        nop                                     ; $00D8C8: $4E71
+.done:
+        rts                                     ; $00D8CA: $4E75

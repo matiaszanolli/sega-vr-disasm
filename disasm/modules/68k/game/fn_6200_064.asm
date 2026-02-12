@@ -1,24 +1,21 @@
 ; ============================================================================
-; Obj 064 (auto-analyzed)
+; Conditional Set State Byte from Object Comparison
 ; ROM Range: $007FEE-$008004 (22 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Short helper function
-;   Object (A0): +$1C, +$2D
+; Compares D0 with object+$2D. If they match AND object+$1C < $0064,
+; sets $C8A4 to $BE. Otherwise does nothing.
 ;
-; Entry: A0 = object/entity pointer
-; Uses: D0, A0
-; Object fields:
-;   +$1C: [unknown]
-;   +$2D: [unknown]
-; Confidence: low
+; Memory:
+;   $FFFFC8A4 = state byte (byte, conditionally set to $BE)
+; Entry: A0 = object pointer, D0 = comparison value
+; Exit: $C8A4 optionally set | Uses: D0, A0
 ; ============================================================================
 
 fn_6200_064:
-        CMP.B  $002D(A0),D0                     ; $007FEE
-        BNE.S  .loc_0014                        ; $007FF2
-        CMPI.W  #$0064,$001C(A0)                ; $007FF4
-        BCC.S  .loc_0014                        ; $007FFA
-        MOVE.B  #$BE,(-14172).W                 ; $007FFC
-.loc_0014:
-        RTS                                     ; $008002
+        cmp.b   $002D(a0),d0                    ; $007FEE: $B028 $002D — compare with object+$2D
+        bne.s   .done                           ; $007FF2: $660E — mismatch → skip
+        cmpi.w  #$0064,$001C(a0)                ; $007FF4: $0C68 $0064 $001C — object+$1C >= $64?
+        bcc.s   .done                           ; $007FFA: $6406 — yes → skip
+        move.b  #$BE,($FFFFC8A4).w             ; $007FFC: $11FC $00BE $C8A4 — set state byte
+.done:
+        rts                                     ; $008002: $4E75

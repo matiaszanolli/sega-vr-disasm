@@ -1,47 +1,49 @@
 ; ============================================================================
-; Sh2 Comm Send Cmd 037 (auto-analyzed)
+; Camera SH2 Scene Transition + Dual DMA
 ; ROM Range: $013C30-$013CBA (138 bytes)
 ; ============================================================================
-; Category: sh2
-; Purpose: Accesses 32X registers: COMM0, COMM6, COMM4
-;   RAM: $C87E (game_state)
-;   Calls: dma_transfer, sh2_send_cmd
+; Category: game
+; Purpose: Calls SH2 scene transition, then DMA transfer.
+;   Sends COMM protocol (cmd $2C, COMM4=$4000) to SH2, waits for ack.
+;   Then sets height=$B8 via COMM4, sends two sh2_send_cmd DMA transfers
+;   for dual display buffers ($06017CC0→$04007010 and $0601DFC0→$04013010).
+;   Advances game_state, display mode $0020.
 ;
 ; Uses: D0, D1, A0, A1
 ; RAM:
-;   $C87E: game_state
+;   $C87E: game_state (word, advanced by 4)
 ; Calls:
 ;   $00E35A: sh2_send_cmd
 ;   $00E52C: dma_transfer
-; Confidence: high
+;   $0088205E: SH2 scene transition
 ; ============================================================================
 
 fn_12200_037:
-        JSR     $0088205E                       ; $013C30
-        CLR.W  D0                               ; $013C36
-        DC.W    $4EBA,$A8F2         ; JSR     $00E52C(PC); $013C38
-.loc_000C:
-        TST.B  COMM0_HI                        ; $013C3C
-        BNE.S  .loc_000C                        ; $013C42
-        MOVE.W  #$0101,COMM6                ; $013C44
-        MOVE.W  #$4000,COMM4                ; $013C4C
-        MOVE.B  #$2C,COMM0_LO                  ; $013C54
-        MOVE.B  #$01,COMM0_HI                  ; $013C5C
-.loc_0034:
-        TST.B  COMM6                        ; $013C64
-        BNE.S  .loc_0034                        ; $013C6A
-        MOVE.W  #$00B8,COMM4                ; $013C6C
-        MOVE.W  #$0101,COMM6                ; $013C74
-        MOVEA.L #$06017CC0,A0                   ; $013C7C
-        MOVEA.L #$04007010,A1                   ; $013C82
-        MOVE.W  #$0120,D0                       ; $013C88
-        MOVE.W  #$0058,D1                       ; $013C8C
-        DC.W    $4EBA,$A6C8         ; JSR     $00E35A(PC); $013C90
-        MOVEA.L #$0601DFC0,A0                   ; $013C94
-        MOVEA.L #$04013010,A1                   ; $013C9A
-        MOVE.W  #$0120,D0                       ; $013CA0
-        MOVE.W  #$0058,D1                       ; $013CA4
-        DC.W    $4EBA,$A6B0         ; JSR     $00E35A(PC); $013CA8
-        ADDQ.W  #4,(-14210).W                   ; $013CAC
-        MOVE.W  #$0020,$00FF0008                ; $013CB0
-        RTS                                     ; $013CB8
+        jsr     $0088205E                       ; $013C30  SH2 scene transition
+        clr.w   D0                              ; $013C36  mode = 0
+        dc.w    $4EBA,$A8F2                     ; $013C38  bsr.w dma_transfer ($00E52C)
+.wait_comm0:
+        tst.b   COMM0_HI                        ; $013C3C  COMM0 busy?
+        bne.s   .wait_comm0                     ; $013C42  yes → wait
+        move.w  #$0101,COMM6                    ; $013C44  COMM6 = $0101
+        move.w  #$4000,COMM4                    ; $013C4C  COMM4 = $4000
+        move.b  #$2C,COMM0_LO                   ; $013C54  cmd = $2C
+        move.b  #$01,COMM0_HI                   ; $013C5C  trigger command
+.wait_comm6:
+        tst.b   COMM6                           ; $013C64  COMM6 cleared?
+        bne.s   .wait_comm6                     ; $013C6A  no → wait
+        move.w  #$00B8,COMM4                    ; $013C6C  height = $B8
+        move.w  #$0101,COMM6                    ; $013C74  signal ready
+        movea.l #$06017CC0,A0                   ; $013C7C  source A
+        movea.l #$04007010,A1                   ; $013C82  dest A
+        move.w  #$0120,D0                       ; $013C88  size = $120
+        move.w  #$0058,D1                       ; $013C8C  width = $58
+        dc.w    $4EBA,$A6C8                     ; $013C90  bsr.w sh2_send_cmd ($00E35A)
+        movea.l #$0601DFC0,A0                   ; $013C94  source B
+        movea.l #$04013010,A1                   ; $013C9A  dest B
+        move.w  #$0120,D0                       ; $013CA0  size = $120
+        move.w  #$0058,D1                       ; $013CA4  width = $58
+        dc.w    $4EBA,$A6B0                     ; $013CA8  bsr.w sh2_send_cmd ($00E35A)
+        addq.w  #4,($FFFFC87E).w                ; $013CAC  advance game_state
+        move.w  #$0020,$00FF0008                ; $013CB0  display mode = $0020
+        rts                                     ; $013CB8

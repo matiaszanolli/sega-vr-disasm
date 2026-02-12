@@ -1,133 +1,147 @@
 ; ============================================================================
-; Sh2 Comm Send Cmd 040 (auto-analyzed)
+; Name Entry Rendering + SH2 Transfer
 ; ROM Range: $012084-$0121FA (374 bytes)
 ; ============================================================================
-; Category: sh2
-; Purpose: Orchestrator calling 3 subroutines
-;   Accesses 32X registers: COMM0, COMM6, COMM4
-;   RAM: $C87E (game_state)
-;   Calls: dma_transfer, sh2_send_cmd, sh2_cmd_27
-;   Object (A1): +$00, +$04 (speed_index/velocity)
+; Category: game
+; Purpose: DMA transfer + 3 static sh2_send_cmd DMA transfers.
+;   Two sh2_cmd_27 calls with dynamic table lookups based on player flag
+;   ($A01A): if 0, uses $A019 index with D2=$10; else uses $A01B with
+;   D2=$FFC0. First cmd27 uses ×4 table at $8921FA, second uses ×6 table
+;   at $892206. COMM protocol (cmd $2C, COMM4=$4000) sends transfer params.
+;   Resolves active player selection indices and stores to $A01E/$A022.
+;   Calculates row offset ($A02C × $280) for final DMA from $0601BE00.
+;   Advances game_state, display mode $0020.
 ;
-; Entry: A1 = object/entity pointer
 ; Uses: D0, D1, D2, D3, A0, A1
 ; RAM:
-;   $C87E: game_state
+;   $A019: camera mode index P1 (byte)
+;   $A01A: active player flag (byte, 0=P1, !0=P2)
+;   $A01B: camera mode index P2 (byte)
+;   $A01C: selection index P2 (byte)
+;   $A01E: resolved selection A (long)
+;   $A022: resolved selection B (long)
+;   $A02C: display row (word)
+;   $A034: VRAM dest pointer (long)
+;   $C87E: game_state (word, advanced by 4)
 ; Calls:
 ;   $00E35A: sh2_send_cmd
 ;   $00E3B4: sh2_cmd_27
 ;   $00E52C: dma_transfer
-; Object fields:
-;   +$00: [unknown]
-;   +$04: speed_index/velocity
-; Confidence: high
 ; ============================================================================
 
 fn_10200_040:
-        CLR.W  D0                               ; $012084
-        DC.W    $4EBA,$C4A4         ; JSR     $00E52C(PC); $012086
-        MOVEA.L #$06018000,A0                   ; $01208A
-        MOVEA.L #$04004C74,A1                   ; $012090
-        MOVE.W  #$0058,D0                       ; $012096
-        MOVE.W  #$0010,D1                       ; $01209A
-        DC.W    $4EBA,$C2BA         ; JSR     $00E35A(PC); $01209E
-        MOVEA.L #$06018900,A0                   ; $0120A2
-        MOVEA.L #$04019010,A1                   ; $0120A8
-        MOVE.W  #$0120,D0                       ; $0120AE
-        MOVE.W  #$0010,D1                       ; $0120B2
-        DC.W    $4EBA,$C2A2         ; JSR     $00E35A(PC); $0120B6
-        MOVEA.L #$06019B00,A0                   ; $0120BA
-        MOVEA.L #$0401C010,A1                   ; $0120C0
-        MOVE.W  #$0120,D0                       ; $0120C6
-        MOVE.W  #$0010,D1                       ; $0120CA
-        DC.W    $4EBA,$C28A         ; JSR     $00E35A(PC); $0120CE
-        MOVEQ   #$00,D0                         ; $0120D2
-        TST.B  (-24550).W                       ; $0120D4
-        BNE.S  .loc_0060                        ; $0120D8
-        MOVE.B  (-24551).W,D0                   ; $0120DA
-        MOVE.W  #$0010,D2                       ; $0120DE
-        BRA.S  .loc_0068                        ; $0120E2
-.loc_0060:
-        MOVE.B  (-24549).W,D0                   ; $0120E4
-        MOVE.W  #$FFC0,D2                       ; $0120E8
-.loc_0068:
-        MOVE.B  D0,D3                           ; $0120EC
-        LEA     $008921FA,A1                    ; $0120EE
-        DC.W    $D040                           ; $0120F4
-        DC.W    $D040                           ; $0120F6
-        MOVEA.L $00(A1,D0.W),A0                 ; $0120F8
-        MOVE.W  #$0061,D0                       ; $0120FC
-        TST.B  D3                               ; $012100
-        BNE.S  .loc_0084                        ; $012102
-        MOVE.W  #$0060,D0                       ; $012104
-.loc_0084:
-        MOVE.W  #$0010,D1                       ; $012108
-.loc_0088:
-        TST.B  COMM0_HI                        ; $01210C
-        BNE.S  .loc_0088                        ; $012112
-        DC.W    $4EBA,$C29E         ; JSR     $00E3B4(PC); $012114
-        MOVEQ   #$00,D0                         ; $012118
-        TST.B  (-24550).W                       ; $01211A
-        BEQ.S  .loc_00A6                        ; $01211E
-        MOVE.B  (-24551).W,D0                   ; $012120
-        MOVE.W  #$0010,D2                       ; $012124
-        BRA.S  .loc_00AE                        ; $012128
-.loc_00A6:
-        MOVE.B  (-24548).W,D0                   ; $01212A
-        MOVE.W  #$FFC0,D2                       ; $01212E
-.loc_00AE:
-        LEA     $00892206,A1                    ; $012132
-        DC.W    $D040                           ; $012138
-        MOVE.W  D0,D1                           ; $01213A
-        DC.W    $D040                           ; $01213C
-        DC.W    $D041                           ; $01213E
-        MOVEA.L $00(A1,D0.W),A0                 ; $012140
-        MOVE.W  $04(A1,D0.W),D0                 ; $012144
-        MOVE.W  #$0010,D1                       ; $012148
-.loc_00C8:
-        TST.B  COMM0_HI                        ; $01214C
-        BNE.S  .loc_00C8                        ; $012152
-        DC.W    $4EBA,$C25E         ; JSR     $00E3B4(PC); $012154
-.loc_00D4:
-        TST.B  COMM0_HI                        ; $012158
-        BNE.S  .loc_00D4                        ; $01215E
-        MOVE.W  #$0101,COMM6                ; $012160
-        MOVE.W  #$4000,COMM4                ; $012168
-        MOVE.B  #$2C,COMM0_LO                  ; $012170
-        MOVE.B  #$01,COMM0_HI                  ; $012178
-.loc_00FC:
-        TST.B  COMM6                        ; $012180
-        BNE.S  .loc_00FC                        ; $012186
-        MOVE.W  #$0078,COMM4                ; $012188
-        MOVE.W  #$0101,COMM6                ; $012190
-        MOVEQ   #$00,D0                         ; $012198
-        MOVE.B  (-24551).W,D0                   ; $01219A
-        TST.B  (-24550).W                       ; $01219E
-        BEQ.S  .loc_0124                        ; $0121A2
-        MOVE.B  (-24549).W,D0                   ; $0121A4
-.loc_0124:
-        MOVE.L  D0,(-24546).W                   ; $0121A8
-        MOVEQ   #$00,D0                         ; $0121AC
-        MOVE.B  (-24551).W,D0                   ; $0121AE
-        TST.B  (-24550).W                       ; $0121B2
-        BNE.S  .loc_0138                        ; $0121B6
-        MOVE.B  (-24548).W,D0                   ; $0121B8
-.loc_0138:
-        MOVE.L  D0,(-24542).W                   ; $0121BC
-        MOVEA.L #$0601BE00,A0                   ; $0121C0
-        MOVEQ   #$00,D1                         ; $0121C6
-        MOVE.W  (-24532).W,D0                   ; $0121C8
-        BEQ.S  .loc_0158                        ; $0121CC
-        SUBQ.W  #1,D0                           ; $0121CE
-.loc_014C:
-        ADDI.L  #$00000280,D1                   ; $0121D0
-        DBRA    D0,.loc_014C                    ; $0121D6
-        ADDA.L  D1,A0                           ; $0121DA
-.loc_0158:
-        MOVEA.L (-24524).W,A1                   ; $0121DC
-        MOVE.W  #$0028,D0                       ; $0121E0
-        MOVE.W  #$0060,D1                       ; $0121E4
-        DC.W    $4EBA,$C170         ; JSR     $00E35A(PC); $0121E8
-        ADDQ.W  #4,(-14210).W                   ; $0121EC
-        MOVE.W  #$0020,$00FF0008                ; $0121F0
-        RTS                                     ; $0121F8
+        clr.w   D0                              ; $012084  mode = 0
+        dc.w    $4EBA,$C4A4                     ; $012086  bsr.w dma_transfer ($00E52C)
+; --- static DMA: header ---
+        movea.l #$06018000,A0                   ; $01208A  source
+        movea.l #$04004C74,A1                   ; $012090  dest
+        move.w  #$0058,D0                       ; $012096  size = $58
+        move.w  #$0010,D1                       ; $01209A  width = $10
+        dc.w    $4EBA,$C2BA                     ; $01209E  bsr.w sh2_send_cmd ($00E35A)
+; --- static DMA: display A ---
+        movea.l #$06018900,A0                   ; $0120A2  source
+        movea.l #$04019010,A1                   ; $0120A8  dest
+        move.w  #$0120,D0                       ; $0120AE  size = $120
+        move.w  #$0010,D1                       ; $0120B2  width = $10
+        dc.w    $4EBA,$C2A2                     ; $0120B6  bsr.w sh2_send_cmd ($00E35A)
+; --- static DMA: display B ---
+        movea.l #$06019B00,A0                   ; $0120BA  source
+        movea.l #$0401C010,A1                   ; $0120C0  dest
+        move.w  #$0120,D0                       ; $0120C6  size = $120
+        move.w  #$0010,D1                       ; $0120CA  width = $10
+        dc.w    $4EBA,$C28A                     ; $0120CE  bsr.w sh2_send_cmd ($00E35A)
+; --- first sh2_cmd_27: ×4 table lookup ---
+        moveq   #$00,D0                         ; $0120D2  clear D0
+        tst.b   ($FFFFA01A).w                   ; $0120D4  active player flag
+        bne.s   .player2_idx1                   ; $0120D8  P2 → use $A01B
+        move.b  ($FFFFA019).w,D0                ; $0120DA  D0 = P1 mode index
+        move.w  #$0010,D2                       ; $0120DE  D2 = $10
+        bra.s   .cmd27_first                    ; $0120E2
+.player2_idx1:
+        move.b  ($FFFFA01B).w,D0                ; $0120E4  D0 = P2 mode index
+        move.w  #$FFC0,D2                       ; $0120E8  D2 = $FFC0
+.cmd27_first:
+        move.b  D0,D3                           ; $0120EC  D3 = save index
+        lea     $008921FA,A1                    ; $0120EE  A1 = source table (×4)
+        dc.w    $D040                           ; $0120F4  add.w d0,d0 — D0 × 2
+        dc.w    $D040                           ; $0120F6  add.w d0,d0 — D0 × 4
+        movea.l $00(A1,D0.W),A0                 ; $0120F8  A0 = table[idx].source
+        move.w  #$0061,D0                       ; $0120FC  size = $61
+        tst.b   D3                              ; $012100  index == 0?
+        bne.s   .send_cmd27_1                   ; $012102  no → keep $61
+        move.w  #$0060,D0                       ; $012104  size = $60 (for index 0)
+.send_cmd27_1:
+        move.w  #$0010,D1                       ; $012108  width = $10
+.wait_comm0_1:
+        tst.b   COMM0_HI                        ; $01210C  COMM0 busy?
+        bne.s   .wait_comm0_1                   ; $012112  yes → wait
+        dc.w    $4EBA,$C29E                     ; $012114  bsr.w sh2_cmd_27 ($00E3B4)
+; --- second sh2_cmd_27: ×6 table lookup ---
+        moveq   #$00,D0                         ; $012118  clear D0
+        tst.b   ($FFFFA01A).w                   ; $01211A  active player flag
+        beq.s   .player1_idx2                   ; $01211E  P1 → use $A019
+        move.b  ($FFFFA019).w,D0                ; $012120  D0 = P1 mode index
+        move.w  #$0010,D2                       ; $012124  D2 = $10
+        bra.s   .cmd27_second                   ; $012128
+.player1_idx2:
+        move.b  ($FFFFA01C).w,D0                ; $01212A  D0 = P2 selection
+        move.w  #$FFC0,D2                       ; $01212E  D2 = $FFC0
+.cmd27_second:
+        lea     $00892206,A1                    ; $012132  A1 = source table (×6)
+        dc.w    $D040                           ; $012138  add.w d0,d0 — D0 × 2
+        move.w  D0,D1                           ; $01213A  D1 = D0 × 2
+        dc.w    $D040                           ; $01213C  add.w d0,d0 — D0 × 4
+        dc.w    $D041                           ; $01213E  add.w d1,d0 — D0 × 6
+        movea.l $00(A1,D0.W),A0                 ; $012140  A0 = table[idx].source
+        move.w  $04(A1,D0.W),D0                 ; $012144  D0 = table[idx].size
+        move.w  #$0010,D1                       ; $012148  width = $10
+.wait_comm0_2:
+        tst.b   COMM0_HI                        ; $01214C  COMM0 busy?
+        bne.s   .wait_comm0_2                   ; $012152  yes → wait
+        dc.w    $4EBA,$C25E                     ; $012154  bsr.w sh2_cmd_27 ($00E3B4)
+; --- COMM protocol: cmd $2C ---
+.wait_comm0_3:
+        tst.b   COMM0_HI                        ; $012158  COMM0 busy?
+        bne.s   .wait_comm0_3                   ; $01215E  yes → wait
+        move.w  #$0101,COMM6                    ; $012160  COMM6 = $0101
+        move.w  #$4000,COMM4                    ; $012168  COMM4 = $4000
+        move.b  #$2C,COMM0_LO                   ; $012170  cmd = $2C
+        move.b  #$01,COMM0_HI                   ; $012178  trigger
+.wait_comm6:
+        tst.b   COMM6                           ; $012180  COMM6 cleared?
+        bne.s   .wait_comm6                     ; $012186  no → wait
+        move.w  #$0078,COMM4                    ; $012188  height = $78
+        move.w  #$0101,COMM6                    ; $012190  signal ready
+; --- resolve active selection indices ---
+        moveq   #$00,D0                         ; $012198
+        move.b  ($FFFFA019).w,D0                ; $01219A  D0 = P1 mode
+        tst.b   ($FFFFA01A).w                   ; $01219E  player flag
+        beq.s   .store_sel_a                    ; $0121A2  P1 → use $A019
+        move.b  ($FFFFA01B).w,D0                ; $0121A4  D0 = P2 mode
+.store_sel_a:
+        move.l  D0,($FFFFA01E).w                ; $0121A8  store selection A
+        moveq   #$00,D0                         ; $0121AC
+        move.b  ($FFFFA019).w,D0                ; $0121AE  D0 = P1 mode
+        tst.b   ($FFFFA01A).w                   ; $0121B2  player flag
+        bne.s   .store_sel_b                    ; $0121B6  P2 → use $A019
+        move.b  ($FFFFA01C).w,D0                ; $0121B8  D0 = P2 selection
+.store_sel_b:
+        move.l  D0,($FFFFA022).w                ; $0121BC  store selection B
+; --- final DMA: row-offset display ---
+        movea.l #$0601BE00,A0                   ; $0121C0  source base
+        moveq   #$00,D1                         ; $0121C6  clear offset
+        move.w  ($FFFFA02C).w,D0                ; $0121C8  D0 = display row
+        beq.s   .send_final                     ; $0121CC  row 0 → no offset
+        subq.w  #1,D0                           ; $0121CE  D0 = row - 1
+.calc_row_offset:
+        addi.l  #$00000280,D1                   ; $0121D0  D1 += $280 per row
+        dbra    D0,.calc_row_offset             ; $0121D6
+        adda.l  D1,A0                           ; $0121DA  A0 += row offset
+.send_final:
+        movea.l ($FFFFA034).w,A1                ; $0121DC  A1 = VRAM dest
+        move.w  #$0028,D0                       ; $0121E0  size = $28
+        move.w  #$0060,D1                       ; $0121E4  width = $60
+        dc.w    $4EBA,$C170                     ; $0121E8  bsr.w sh2_send_cmd ($00E35A)
+        addq.w  #4,($FFFFC87E).w                ; $0121EC  advance game_state
+        move.w  #$0020,$00FF0008                ; $0121F0  display mode = $0020
+        rts                                     ; $0121F8

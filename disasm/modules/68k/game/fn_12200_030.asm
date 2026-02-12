@@ -1,129 +1,145 @@
 ; ============================================================================
-; Sh2 Comm Send Cmd 030 (auto-analyzed)
+; Camera Render DMA + Overlay
 ; ROM Range: $013346-$0134C8 (386 bytes)
 ; ============================================================================
-; Category: sh2
-; Purpose: Orchestrator calling 3 subroutines
-;   Accesses 32X registers: COMM0
-;   RAM: $C87E (game_state)
-;   Calls: dma_transfer, sh2_send_cmd, sh2_cmd_27
-;   Object (A0, A1): +$00, +$02 (flags/type), +$04 (speed_index/velocity), +$06 (speed)
+; Category: game
+; Purpose: DMA transfer + 3 static SH2 DMA transfers (header, main display,
+;   bottom panel). Then 5 dynamic SH2 transfers using pointer tables
+;   indexed by camera selection counters ($A01A-$A020):
+;     $89ABEE[replay_angle]  → $04009088 (40×10)
+;     $89ABFA[music_track]   → $0400C088 (78×10)
+;     $89AC7C[sfx_a]         → $0400F088 (68×10)
+;     $89ACBE[sfx_b]         → $04012088 (88×10)
+;   If blink toggle ($A026) active and mode != 5: sends overlay via
+;   sh2_cmd_27 using table at $8934C8, waits for COMM0.
+;   Copies 5×8 bytes of highlight palette from $8934E8 to CRAM+$178.
+;   If blinking and mode-specific: overwrites 8 bytes in CRAM.
+;   Sets $C821 display update flag, advances game_state, display $0020.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
 ; Uses: D0, D1, D2, A0, A1
 ; RAM:
-;   $C87E: game_state
+;   $A019: camera mode index (byte)
+;   $A01A: replay angle counter (word)
+;   $A01C: music track counter (word)
+;   $A01E: SFX counter A (word)
+;   $A020: SFX counter B (word)
+;   $A026: blink toggle (word)
+;   $C821: display update flag (byte)
+;   $C87E: game_state (word, advanced by 4)
 ; Calls:
 ;   $00E35A: sh2_send_cmd
 ;   $00E3B4: sh2_cmd_27
 ;   $00E52C: dma_transfer
-; Object fields:
-;   +$00: [unknown]
-;   +$02: flags/type
-;   +$04: speed_index/velocity
-;   +$06: speed
-; Confidence: high
 ; ============================================================================
 
 fn_12200_030:
-        CLR.W  D0                               ; $013346
-        DC.W    $4EBA,$B1E2         ; JSR     $00E52C(PC); $013348
-        MOVEA.L #$06018000,A0                   ; $01334C
-        MOVEA.L #$04004C74,A1                   ; $013352
-        MOVE.W  #$0058,D0                       ; $013358
-        MOVE.W  #$0010,D1                       ; $01335C
-        DC.W    $4EBA,$AFF8         ; JSR     $00E35A(PC); $013360
-        MOVEA.L #$0601AD00,A0                   ; $013364
-        MOVEA.L #$04009038,A1                   ; $01336A
-        MOVE.W  #$0048,D0                       ; $013370
-        MOVE.W  #$00A0,D1                       ; $013374
-        DC.W    $4EBA,$AFE0         ; JSR     $00E35A(PC); $013378
-        MOVEA.L #$0601DA00,A0                   ; $01337C
-        MOVEA.L #$04015088,A1                   ; $013382
-        MOVE.W  #$0098,D0                       ; $013388
-        MOVE.W  #$0020,D1                       ; $01338C
-        DC.W    $4EBA,$AFC8         ; JSR     $00E35A(PC); $013390
-        LEA     $0089ABEE,A0                    ; $013394
-        MOVE.W  (-24550).W,D0                   ; $01339A
-        DC.W    $D040                           ; $01339E
-        DC.W    $D040                           ; $0133A0
-        MOVEA.L $00(A0,D0.W),A0                 ; $0133A2
-        MOVEA.L #$04009088,A1                   ; $0133A6
-        MOVE.W  #$0040,D0                       ; $0133AC
-        MOVE.W  #$0010,D1                       ; $0133B0
-        DC.W    $4EBA,$AFA4         ; JSR     $00E35A(PC); $0133B4
-        LEA     $0089ABFA,A0                    ; $0133B8
-        MOVE.W  (-24548).W,D0                   ; $0133BE
-        DC.W    $D040                           ; $0133C2
-        DC.W    $D040                           ; $0133C4
-        MOVEA.L $00(A0,D0.W),A0                 ; $0133C6
-        MOVEA.L #$0400C088,A1                   ; $0133CA
-        MOVE.W  #$0078,D0                       ; $0133D0
-        MOVE.W  #$0010,D1                       ; $0133D4
-        DC.W    $4EBA,$AF80         ; JSR     $00E35A(PC); $0133D8
-        LEA     $0089AC7C,A0                    ; $0133DC
-        MOVE.W  (-24546).W,D0                   ; $0133E2
-        DC.W    $D040                           ; $0133E6
-        DC.W    $D040                           ; $0133E8
-        MOVEA.L $00(A0,D0.W),A0                 ; $0133EA
-        MOVEA.L #$0400F088,A1                   ; $0133EE
-        MOVE.W  #$0068,D0                       ; $0133F4
-        MOVE.W  #$0010,D1                       ; $0133F8
-        DC.W    $4EBA,$AF5C         ; JSR     $00E35A(PC); $0133FC
-        LEA     $0089ACBE,A0                    ; $013400
-        MOVE.W  (-24544).W,D0                   ; $013406
-        DC.W    $D040                           ; $01340A
-        DC.W    $D040                           ; $01340C
-        MOVEA.L $00(A0,D0.W),A0                 ; $01340E
-        MOVEA.L #$04012088,A1                   ; $013412
-        MOVE.W  #$0088,D0                       ; $013418
-        MOVE.W  #$0010,D1                       ; $01341C
-        DC.W    $4EBA,$AF38         ; JSR     $00E35A(PC); $013420
-        TST.W  (-24538).W                       ; $013424
-        BEQ.S  .loc_0110                        ; $013428
-        MOVEQ   #$00,D0                         ; $01342A
-        MOVE.B  (-24551).W,D0                   ; $01342C
-        LEA     $008934C8,A1                    ; $013430
-        DC.W    $D040                           ; $013436
-        DC.W    $D040                           ; $013438
-        MOVEA.L $00(A1,D0.W),A0                 ; $01343A
-        MOVE.W  #$0048,D0                       ; $01343E
-        MOVE.W  #$0010,D1                       ; $013442
-        MOVE.W  #$0010,D2                       ; $013446
-.loc_0104:
-        TST.B  COMM0_HI                        ; $01344A
-        BNE.S  .loc_0104                        ; $013450
-        DC.W    $4EBA,$AF60         ; JSR     $00E3B4(PC); $013452
-.loc_0110:
-        LEA     $00FF6E00,A1                    ; $013456
-        ADDA.L  #$00000178,A1                   ; $01345C
-        MOVE.W  #$0004,D2                       ; $013462
-.loc_0120:
-        LEA     $008934E8,A0                    ; $013466
-        MOVE.W  (A0)+,(A1)+                     ; $01346C
-        MOVE.W  (A0)+,(A1)+                     ; $01346E
-        MOVE.W  (A0)+,(A1)+                     ; $013470
-        MOVE.W  (A0),(A1)+                      ; $013472
-        DBRA    D2,.loc_0120                    ; $013474
-        TST.W  (-24538).W                       ; $013478
-        BEQ.S  .loc_016E                        ; $01347C
-        CMPI.B  #$05,(-24551).W                 ; $01347E
-        BEQ.S  .loc_016E                        ; $013484
-        CLR.W  D0                               ; $013486
-        MOVE.B  (-24551).W,D0                   ; $013488
-        DC.W    $D040                           ; $01348C
-        DC.W    $D040                           ; $01348E
-        DC.W    $D040                           ; $013490
-        LEA     $00FF6E00,A1                    ; $013492
-        ADDA.L  #$00000178,A1                   ; $013498
-        LEA     $008934E0,A0                    ; $01349E
-        MOVE.W  (A0)+,$00(A1,D0.W)              ; $0134A4
-        MOVE.W  (A0)+,$02(A1,D0.W)              ; $0134A8
-        MOVE.W  (A0)+,$04(A1,D0.W)              ; $0134AC
-        MOVE.W  (A0),$06(A1,D0.W)               ; $0134B0
-.loc_016E:
-        MOVE.B  #$01,(-14303).W                 ; $0134B4
-        ADDQ.W  #4,(-14210).W                   ; $0134BA
-        MOVE.W  #$0020,$00FF0008                ; $0134BE
-        RTS                                     ; $0134C6
+        clr.w   D0                              ; $013346  mode = 0
+        dc.w    $4EBA,$B1E2                     ; $013348  bsr.w dma_transfer ($00E52C)
+; --- static DMA: header area ---
+        movea.l #$06018000,A0                   ; $01334C  source
+        movea.l #$04004C74,A1                   ; $013352  dest
+        move.w  #$0058,D0                       ; $013358  size = $58
+        move.w  #$0010,D1                       ; $01335C  width = $10
+        dc.w    $4EBA,$AFF8                     ; $013360  bsr.w sh2_send_cmd ($00E35A)
+; --- static DMA: main display ---
+        movea.l #$0601AD00,A0                   ; $013364  source
+        movea.l #$04009038,A1                   ; $01336A  dest
+        move.w  #$0048,D0                       ; $013370  size = $48
+        move.w  #$00A0,D1                       ; $013374  width = $A0
+        dc.w    $4EBA,$AFE0                     ; $013378  bsr.w sh2_send_cmd ($00E35A)
+; --- static DMA: bottom panel ---
+        movea.l #$0601DA00,A0                   ; $01337C  source
+        movea.l #$04015088,A1                   ; $013382  dest
+        move.w  #$0098,D0                       ; $013388  size = $98
+        move.w  #$0020,D1                       ; $01338C  width = $20
+        dc.w    $4EBA,$AFC8                     ; $013390  bsr.w sh2_send_cmd ($00E35A)
+; --- dynamic DMA: replay angle label ---
+        lea     $0089ABEE,A0                    ; $013394  A0 = replay angle table
+        move.w  ($FFFFA01A).w,D0                ; $01339A  D0 = replay_angle counter
+        dc.w    $D040                           ; $01339E  add.w d0,d0 — D0 × 2
+        dc.w    $D040                           ; $0133A0  add.w d0,d0 — D0 × 4
+        movea.l $00(A0,D0.W),A0                 ; $0133A2  A0 = table[replay_angle]
+        movea.l #$04009088,A1                   ; $0133A6  dest
+        move.w  #$0040,D0                       ; $0133AC  size = $40
+        move.w  #$0010,D1                       ; $0133B0  width = $10
+        dc.w    $4EBA,$AFA4                     ; $0133B4  bsr.w sh2_send_cmd ($00E35A)
+; --- dynamic DMA: music track label ---
+        lea     $0089ABFA,A0                    ; $0133B8  A0 = music track table
+        move.w  ($FFFFA01C).w,D0                ; $0133BE  D0 = music_track counter
+        dc.w    $D040                           ; $0133C2  add.w d0,d0 — D0 × 2
+        dc.w    $D040                           ; $0133C4  add.w d0,d0 — D0 × 4
+        movea.l $00(A0,D0.W),A0                 ; $0133C6  A0 = table[music_track]
+        movea.l #$0400C088,A1                   ; $0133CA  dest
+        move.w  #$0078,D0                       ; $0133D0  size = $78
+        move.w  #$0010,D1                       ; $0133D4  width = $10
+        dc.w    $4EBA,$AF80                     ; $0133D8  bsr.w sh2_send_cmd ($00E35A)
+; --- dynamic DMA: SFX A label ---
+        lea     $0089AC7C,A0                    ; $0133DC  A0 = SFX A table
+        move.w  ($FFFFA01E).w,D0                ; $0133E2  D0 = sfx_a counter
+        dc.w    $D040                           ; $0133E6  add.w d0,d0 — D0 × 2
+        dc.w    $D040                           ; $0133E8  add.w d0,d0 — D0 × 4
+        movea.l $00(A0,D0.W),A0                 ; $0133EA  A0 = table[sfx_a]
+        movea.l #$0400F088,A1                   ; $0133EE  dest
+        move.w  #$0068,D0                       ; $0133F4  size = $68
+        move.w  #$0010,D1                       ; $0133F8  width = $10
+        dc.w    $4EBA,$AF5C                     ; $0133FC  bsr.w sh2_send_cmd ($00E35A)
+; --- dynamic DMA: SFX B label ---
+        lea     $0089ACBE,A0                    ; $013400  A0 = SFX B table
+        move.w  ($FFFFA020).w,D0                ; $013406  D0 = sfx_b counter
+        dc.w    $D040                           ; $01340A  add.w d0,d0 — D0 × 2
+        dc.w    $D040                           ; $01340C  add.w d0,d0 — D0 × 4
+        movea.l $00(A0,D0.W),A0                 ; $01340E  A0 = table[sfx_b]
+        movea.l #$04012088,A1                   ; $013412  dest
+        move.w  #$0088,D0                       ; $013418  size = $88
+        move.w  #$0010,D1                       ; $01341C  width = $10
+        dc.w    $4EBA,$AF38                     ; $013420  bsr.w sh2_send_cmd ($00E35A)
+; --- conditional overlay via sh2_cmd_27 ---
+        tst.w   ($FFFFA026).w                   ; $013424  blink toggle active?
+        beq.s   .copy_palette                   ; $013428  no → palette
+        moveq   #$00,D0                         ; $01342A  clear D0
+        move.b  ($FFFFA019).w,D0                ; $01342C  D0 = mode index
+        lea     $008934C8,A1                    ; $013430  A1 = overlay table
+        dc.w    $D040                           ; $013436  add.w d0,d0 — D0 × 2
+        dc.w    $D040                           ; $013438  add.w d0,d0 — D0 × 4
+        movea.l $00(A1,D0.W),A0                 ; $01343A  A0 = overlay[mode]
+        move.w  #$0048,D0                       ; $01343E  height = $48
+        move.w  #$0010,D1                       ; $013442  width = $10
+        move.w  #$0010,D2                       ; $013446  param = $10
+.wait_comm0:
+        tst.b   COMM0_HI                        ; $01344A  COMM0 busy?
+        bne.s   .wait_comm0                     ; $013450  yes → wait
+        dc.w    $4EBA,$AF60                     ; $013452  bsr.w sh2_cmd_27 ($00E3B4)
+; --- copy highlight palette to CRAM+$178 ---
+.copy_palette:
+        lea     $00FF6E00,A1                    ; $013456  A1 = CRAM base
+        adda.l  #$00000178,A1                   ; $01345C  A1 += $178
+        move.w  #$0004,D2                       ; $013462  copy 5 entries
+.copy_pal_loop:
+        lea     $008934E8,A0                    ; $013466  A0 = highlight palette
+        move.w  (A0)+,(A1)+                     ; $01346C  copy word 0
+        move.w  (A0)+,(A1)+                     ; $01346E  copy word 1
+        move.w  (A0)+,(A1)+                     ; $013470  copy word 2
+        move.w  (A0),(A1)+                      ; $013472  copy word 3
+        dbra    D2,.copy_pal_loop               ; $013474  next entry
+; --- conditional: overwrite mode-specific palette ---
+        tst.w   ($FFFFA026).w                   ; $013478  blink active?
+        beq.s   .finish                         ; $01347C  no → finish
+        cmpi.b  #$05,($FFFFA019).w              ; $01347E  mode == 5?
+        beq.s   .finish                         ; $013484  yes → skip
+        clr.w   D0                              ; $013486
+        move.b  ($FFFFA019).w,D0                ; $013488  D0 = mode index
+        dc.w    $D040                           ; $01348C  add.w d0,d0 — D0 × 2
+        dc.w    $D040                           ; $01348E  add.w d0,d0 — D0 × 4
+        dc.w    $D040                           ; $013490  add.w d0,d0 — D0 × 8
+        lea     $00FF6E00,A1                    ; $013492  A1 = CRAM base
+        adda.l  #$00000178,A1                   ; $013498  A1 += $178
+        lea     $008934E0,A0                    ; $01349E  A0 = active palette
+        move.w  (A0)+,$00(A1,D0.W)              ; $0134A4  overwrite word 0
+        move.w  (A0)+,$02(A1,D0.W)              ; $0134A8  overwrite word 1
+        move.w  (A0)+,$04(A1,D0.W)              ; $0134AC  overwrite word 2
+        move.w  (A0),$06(A1,D0.W)               ; $0134B0  overwrite word 3
+.finish:
+        move.b  #$01,($FFFFC821).w              ; $0134B4  set display update flag
+        addq.w  #4,($FFFFC87E).w                ; $0134BA  advance game_state
+        move.w  #$0020,$00FF0008                ; $0134BE  display mode = $0020
+        rts                                     ; $0134C6

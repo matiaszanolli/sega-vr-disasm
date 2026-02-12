@@ -1,20 +1,26 @@
 ; ============================================================================
-; Obj 011 (auto-analyzed)
+; Control Flag Check + Conditional Position Copy
 ; ROM Range: $006C08-$006C26 (30 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Short helper function
+; Reads control flag ($C30E), checks bits 0 and 5. If neither set,
+; falls through to next function. Otherwise clears bit 4 of $C30E.
+; If bit 5 was set, copies state parameter from $C098 → $C07A
+; before returning.
 ;
-; Uses: D0
-; Confidence: low
+; Memory:
+;   $FFFFC30E = control flag (byte, bits 0/4/5 tested/modified)
+;   $FFFFC098 = state parameter source (word, read)
+;   $FFFFC07A = state parameter dest (word, conditionally written)
+; Entry: none | Exit: flag processed | Uses: D0
 ; ============================================================================
 
 fn_6200_011:
-        MOVE.B  (-15602).W,D0                   ; $006C08
-        ANDI.B  #$21,D0                         ; $006C0C
-        DC.W    $6714               ; BEQ.S  $006C26; $006C10
-        BCLR    #4,(-15602).W                   ; $006C12
-        BTST    #5,D0                           ; $006C18
-        DC.W    $6708               ; BEQ.S  $006C26; $006C1C
-        MOVE.W  (-16232).W,(-16262).W           ; $006C1E
-        RTS                                     ; $006C24
+        move.b  ($FFFFC30E).w,d0                ; $006C08: $1038 $C30E — load control flag
+        andi.b  #$21,d0                         ; $006C0C: $0200 $0021 — mask bits 0+5
+        dc.w    $6714                           ; BEQ.S fn_6200_011_end ; $006C10: — neither set → fall through
+        bclr    #4,($FFFFC30E).w                ; $006C12: $08B8 $0004 $C30E — clear bit 4
+        btst    #5,d0                           ; $006C18: $0800 $0005 — bit 5 set?
+        dc.w    $6708                           ; BEQ.S fn_6200_011_end ; $006C1C: — no → fall through
+        move.w  ($FFFFC098).w,($FFFFC07A).w     ; $006C1E: $31F8 $C098 $C07A — copy state parameter
+        rts                                     ; $006C24: $4E75
+

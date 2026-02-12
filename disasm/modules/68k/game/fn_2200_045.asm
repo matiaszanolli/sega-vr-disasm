@@ -1,25 +1,24 @@
 ; ============================================================================
-; Objs 045 (auto-analyzed)
+; Load Object Pointer + Clear Object State
 ; ROM Range: $003250-$003272 (34 bytes)
 ; ============================================================================
-; Category: object
-; Purpose: Short helper function
-;   RAM: $6950 (obj_flags)
-;   Object (A1): +$00
+; Loads object pointer from $C258 into A1, sets object command byte
+; (offset $00) to $02, then clears three state bytes: two SH2 shared
+; ($FF6940, $FF6950) and flag byte $C305.
 ;
-; Entry: A1 = object/entity pointer
-; Uses: A1
-; RAM:
-;   $6950: obj_flags
-; Object fields:
-;   +$00: [unknown]
-; Confidence: medium
+; Memory:
+;   $FFFFC258 = object pointer (long, loaded into A1)
+;   $00FF6940 = SH2 shared object byte 1 (cleared)
+;   $00FF6950 = SH2 shared object byte 2 (cleared)
+;   $FFFFC305 = flag byte (byte, cleared)
+; Entry: none | Exit: object + state cleared | Uses: A1
 ; ============================================================================
 
 fn_2200_045:
-        MOVEA.L (-15784).W,A1                   ; $003250
-        MOVE.B  #$02,$0000(A1)                  ; $003254
-        MOVE.B  #$00,$00FF6940                  ; $00325A
-        MOVE.B  #$00,$00FF6950                  ; $003262
-        MOVE.B  #$00,(-15611).W                 ; $00326A
-        RTS                                     ; $003270
+        movea.l ($FFFFC258).w,a1                ; $003250: $2278 $C258 — load object pointer
+        move.b  #$02,$0000(a1)                  ; $003254: $137C $0002 $0000 — set object command
+        move.b  #$00,$00FF6940                  ; $00325A: $13FC $0000 $00FF $6940 — clear SH2 obj byte 1
+        move.b  #$00,$00FF6950                  ; $003262: $13FC $0000 $00FF $6950 — clear SH2 obj byte 2
+        move.b  #$00,($FFFFC305).w              ; $00326A: $11FC $0000 $C305 — clear flag byte
+        rts                                     ; $003270: $4E75
+

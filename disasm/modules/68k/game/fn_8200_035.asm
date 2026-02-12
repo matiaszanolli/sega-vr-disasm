@@ -1,79 +1,92 @@
 ; ============================================================================
-; State 035 (auto-analyzed)
+; Speed Calculation + Multiplier Chain
 ; ROM Range: $009458-$0094F4 (156 bytes)
 ; ============================================================================
 ; Category: game
-; Purpose: Object (A0, A1): +$00, +$04 (speed_index/velocity), +$06 (speed), +$0A (param_a), +$14 (effect_duration), +$16 (calc_speed)
+; Purpose: Computes effective speed ($0016) from velocity index ($0004) via
+;   ROM lookup table, applies MULS scaling by track_speed_factor, then
+;   applies ×6 multiplier (high-speed) or ×1.5 (braking) boost depending
+;   on state. Adds wind_resistance correction and boost_timer bonus.
 ;
 ; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
 ; Uses: D0, D1, A0, A1
+; RAM:
+;   $C27C: speed_table_ptr (longword → ROM speed lookup)
+;   $C0E6: track_speed_factor (word, signed)
+;   $C826: has_boost_flag (byte)
+;   $C31B: wind_active (byte)
 ; Object fields:
-;   +$00: [unknown]
-;   +$04: speed_index/velocity
-;   +$06: speed
-;   +$0A: param_a
-;   +$14: effect_duration
-;   +$16: calc_speed
-;   +$8A: param_8a
-;   +$A8: [unknown]
-; Confidence: low
+;   +$04: velocity_index
+;   +$06: base_speed
+;   +$0A: min_speed_threshold
+;   +$14: boost_timer (countdown)
+;   +$16: calc_speed (output)
+;   +$8A: boost_modifier
+;   +$A8: speed_state
+; Calls:
+;   $009B32: wind_resistance_calc
 ; ============================================================================
 
 fn_8200_035:
-        MOVEM.L D0/A1,-(A7)                     ; $009458
-        MOVEA.L (-15748).W,A1                   ; $00945C
-        MOVE.W  $0004(A0),D0                    ; $009460
-        DC.W    $D040                           ; $009464
-        MOVE.W  $00(A1,D0.W),D0                 ; $009466
-        MULS    (-16154).W,D0                   ; $00946A
-        ASR.L  #8,D0                            ; $00946E
-        MOVE.W  D0,$0016(A0)                    ; $009470
-        TST.B  (-14298).W                       ; $009474
-        BEQ.S  .loc_0032                        ; $009478
-        MOVEQ   #$10,D0                         ; $00947A
-        ADD.W  $008A(A0),D0                     ; $00947C
-        MULS    $0016(A0),D0                    ; $009480
-        ASR.L  #4,D0                            ; $009484
-        MOVE.W  D0,$0016(A0)                    ; $009486
-.loc_0032:
-        MOVE.W  $0016(A0),D0                    ; $00948A
-        CMPI.W  #$0004,$00A8(A0)                ; $00948E
-        BLE.S  .loc_004E                        ; $009494
-        MOVE.W  D0,D1                           ; $009496
-        DC.W    $D040                           ; $009498
-        DC.W    $D040                           ; $00949A
-        DC.W    $D041                           ; $00949C
-        DC.W    $D040                           ; $00949E
-        DC.W    $D041                           ; $0094A0
-        ASR.W  #4,D0                            ; $0094A2
-        BRA.S  .loc_0064                        ; $0094A4
-.loc_004E:
-        TST.W  $00A8(A0)                        ; $0094A6
-        BEQ.S  .loc_0064                        ; $0094AA
-        MOVE.W  $0006(A0),D1                    ; $0094AC
-        CMP.W  $000A(A0),D1                     ; $0094B0
-        BLE.S  .loc_0064                        ; $0094B4
-        MOVE.W  D0,D1                           ; $0094B6
-        ASR.W  #1,D1                            ; $0094B8
-        DC.W    $D041                           ; $0094BA
-.loc_0064:
-        MOVE.W  D0,$0016(A0)                    ; $0094BC
-        DC.W    $4EBA,$0670         ; JSR     $009B32(PC); $0094C0
-        ADD.W  D0,$0016(A0)                     ; $0094C4
-        TST.B  (-15589).W                       ; $0094C8
-        BEQ.S  .loc_0086                        ; $0094CC
-        MOVE.W  $0016(A0),D0                    ; $0094CE
-        ASR.W  #1,D0                            ; $0094D2
-        MOVE.W  D0,D1                           ; $0094D4
-        ASR.W  #1,D1                            ; $0094D6
-        DC.W    $D041                           ; $0094D8
-        ADD.W  D0,$0016(A0)                     ; $0094DA
-.loc_0086:
-        TST.W  $0014(A0)                        ; $0094DE
-        BLE.S  .loc_0096                        ; $0094E2
-        SUBQ.W  #1,$0014(A0)                    ; $0094E4
-        ADDI.W  #$0738,$0016(A0)                ; $0094E8
-.loc_0096:
-        MOVEM.L (A7)+,D0/A1                     ; $0094EE
-        RTS                                     ; $0094F2
+        movem.l D0/A1,-(A7)                    ; $009458  save regs
+        movea.l ($FFFFC27C).w,A1                    ; $00945C  A1 = speed_table_ptr
+        move.w  $0004(A0),D0                    ; $009460  D0 = velocity_index
+        add.w   D0,D0                           ; $009464  word index
+        move.w  $00(A1,D0.W),D0                 ; $009466  D0 = base_speed_lookup
+        muls    ($FFFFC0E6).w,D0                    ; $00946A  scale by track_speed_factor
+        asr.l   #8,D0                           ; $00946E  fixed-point >> 8
+        move.w  D0,$0016(A0)                    ; $009470  calc_speed = scaled speed
+; --- boost modifier ---
+        tst.b   ($FFFFC826).w                       ; $009474  has_boost_flag?
+        beq.s   .check_high_speed               ; $009478  no → skip
+        moveq   #$10,D0                         ; $00947A
+        add.w   $008A(A0),D0                    ; $00947C  D0 = 16 + boost_modifier
+        muls    $0016(A0),D0                    ; $009480  D0 *= calc_speed
+        asr.l   #4,D0                           ; $009484  >> 4
+        move.w  D0,$0016(A0)                    ; $009486  update calc_speed
+; --- high-speed ×6 multiplier ---
+.check_high_speed:
+        move.w  $0016(A0),D0                    ; $00948A
+        cmpi.w  #$0004,$00A8(A0)                ; $00948E  speed_state > 4?
+        ble.s   .check_braking                  ; $009494  no → check braking
+        move.w  D0,D1                           ; $009496  D1 = speed
+        add.w   D0,D0                           ; $009498  D0 = 2×speed
+        add.w   D0,D0                           ; $00949A  D0 = 4×speed
+        add.w   D1,D0                           ; $00949C  D0 = 5×speed
+        add.w   D0,D0                           ; $00949E  D0 = 10s
+        add.w   D1,D0                           ; $0094A0  D0 = 11s
+        asr.w   #4,D0                           ; $0094A2  D0 = 11s/16 ≈ 0.69×speed
+        bra.s   .store_speed                    ; $0094A4
+; --- braking ×1.5 multiplier ---
+.check_braking:
+        tst.w   $00A8(A0)                       ; $0094A6  speed_state != 0?
+        beq.s   .store_speed                    ; $0094AA  zero → skip
+        move.w  $0006(A0),D1                    ; $0094AC  base_speed
+        cmp.w   $000A(A0),D1                    ; $0094B0  above min_speed_threshold?
+        ble.s   .store_speed                    ; $0094B4  no → skip
+        move.w  D0,D1                           ; $0094B6  D1 = calc_speed
+        asr.w   #1,D1                           ; $0094B8  D1 = speed/2
+        add.w   D1,D0                           ; $0094BA  D0 = speed + speed/2 = 1.5×speed
+; --- store + wind + boost ---
+.store_speed:
+        move.w  D0,$0016(A0)                    ; $0094BC
+        dc.w    $4EBA,$0670         ; jsr     $009B32(pc)         ; $0094C0  wind_resistance_calc
+        add.w   D0,$0016(A0)                    ; $0094C4  add wind correction
+; --- wind active: ×1.5 extra ---
+        tst.b   ($FFFFC31B).w                       ; $0094C8  wind_active?
+        beq.s   .check_boost                    ; $0094CC  no → skip
+        move.w  $0016(A0),D0                    ; $0094CE
+        asr.w   #1,D0                           ; $0094D2  D0 = speed/2
+        move.w  D0,D1                           ; $0094D4
+        asr.w   #1,D1                           ; $0094D6  D1 = speed/4
+        add.w   D1,D0                           ; $0094D8  D0 = speed/2 + speed/4 = 3/4
+        add.w   D0,$0016(A0)                    ; $0094DA  calc_speed += 3/4 speed
+; --- boost timer bonus ---
+.check_boost:
+        tst.w   $0014(A0)                       ; $0094DE  boost_timer > 0?
+        ble.s   .exit                           ; $0094E2  no → exit
+        subq.w  #1,$0014(A0)                    ; $0094E4  decrement timer
+        addi.w  #$0738,$0016(A0)                ; $0094E8  calc_speed += $738 boost
+.exit:
+        movem.l (A7)+,D0/A1                     ; $0094EE  restore regs
+        rts                                     ; $0094F2

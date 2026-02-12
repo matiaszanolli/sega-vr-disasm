@@ -1,13 +1,14 @@
 ; ============================================================================
-; Util 032 (auto-analyzed)
+; Adjust $903C: Add $1000
 ; ROM Range: $01481E-$014826 (8 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Small leaf function
+; Adds $1000 to the word at $903C. One of a group of four related
+; adjustment functions (fn_14200_030 through fn_14200_033).
 ;
-; Confidence: low
+; Memory: $FFFF903C = adjustable parameter (word)
+; Entry: none | Exit: value incremented | Uses: none
 ; ============================================================================
 
 fn_14200_032:
-        ADDI.W  #$1000,(-28612).W               ; $01481E
-        RTS                                     ; $014824
+        addi.w  #$1000,($FFFF903C).w            ; $01481E: $0678 $1000 $903C — add $1000
+        rts                                     ; $014824: $4E75

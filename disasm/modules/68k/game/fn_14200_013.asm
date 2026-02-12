@@ -1,16 +1,18 @@
 ; ============================================================================
-; Util 013 (auto-analyzed)
+; Scroll X: Decrement by 32
 ; ROM Range: $01471A-$01472A (16 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Short helper function
+; Subtracts 32 ($20) from the horizontal scroll position and copies to SH2.
+; Part of a group of 6 scroll adjustment functions (fn_14200_008-013).
 ;
-; Uses: D0
-; Confidence: low
+; Memory:
+;   $FFFFC054 = scroll X position (word)
+;   $00FF6104 = scroll X shared memory mirror (word)
+; Entry: none | Exit: scroll X decremented by 32 | Uses: D0
 ; ============================================================================
 
 fn_14200_013:
-        MOVEQ   #$20,D0                         ; $01471A
-        SUB.W  D0,(-16300).W                    ; $01471C
-        MOVE.W  (-16300).W,$00FF6104            ; $014720
-        RTS                                     ; $014728
+        moveq   #$20,d0                         ; $01471A: $7020 — decrement value (32)
+        sub.w   d0,($FFFFC054).w               ; $01471C: $9178 $C054 — scroll X -= 32
+        move.w  ($FFFFC054).w,$00FF6104         ; $014720: $33F8 $C054 $00FF $6104 — copy to SH2
+        rts                                     ; $014728: $4E75

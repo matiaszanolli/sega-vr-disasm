@@ -1,13 +1,13 @@
 ; ============================================================================
-; Util 006 (auto-analyzed)
+; Set Control Flag $C30D
 ; ROM Range: $0146B4-$0146BC (8 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Small leaf function
+; Sets the control flag byte at $C30D to 1.
 ;
-; Confidence: low
+; Memory: $FFFFC30D = control flag (byte)
+; Entry: none | Exit: flag set | Uses: none
 ; ============================================================================
 
 fn_14200_006:
-        MOVE.B  #$01,(-15603).W                 ; $0146B4
-        RTS                                     ; $0146BA
+        move.b  #$01,($FFFFC30D).w              ; $0146B4: $11FC $0001 $C30D — set flag
+        rts                                     ; $0146BA: $4E75

@@ -1,13 +1,14 @@
 ; ============================================================================
-; Init 045 (auto-analyzed)
+; Set Communication Ready Flag
 ; ROM Range: $00205E-$002066 (8 bytes)
 ; ============================================================================
-; Category: boot
-; Purpose: Small leaf function
+; Sets the communication flag at $C822 to $F0, signalling that the 68K
+; is ready for SH2 communication. Called during frame sync and init.
 ;
-; Confidence: low
+; Memory: $FFFFC822 = comm/input state flag (byte, set to $F0)
+; Entry: none | Exit: flag set | Uses: none
 ; ============================================================================
 
 fn_200_045:
-        MOVE.B  #$F0,(-14302).W                 ; $00205E
-        RTS                                     ; $002064
+        move.b  #$F0,($FFFFC822).w              ; $00205E: $11FC $00F0 $C822 — set comm ready
+        rts                                     ; $002064: $4E75

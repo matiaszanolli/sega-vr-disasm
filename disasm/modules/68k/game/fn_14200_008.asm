@@ -1,16 +1,18 @@
 ; ============================================================================
-; Util 008 (auto-analyzed)
+; Scroll X: Increment by 1
 ; ROM Range: $0146CA-$0146DA (16 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Short helper function
+; Adds 1 to the horizontal scroll position and copies to SH2 shared memory.
+; Part of a group of 6 scroll adjustment functions (fn_14200_008-013).
 ;
-; Uses: D0
-; Confidence: low
+; Memory:
+;   $FFFFC054 = scroll X position (word)
+;   $00FF6104 = scroll X shared memory mirror (word)
+; Entry: none | Exit: scroll X incremented | Uses: D0
 ; ============================================================================
 
 fn_14200_008:
-        MOVEQ   #$01,D0                         ; $0146CA
-        ADD.W  D0,(-16300).W                    ; $0146CC
-        MOVE.W  (-16300).W,$00FF6104            ; $0146D0
-        RTS                                     ; $0146D8
+        moveq   #$01,d0                         ; $0146CA: $7001 — increment value
+        add.w   d0,($FFFFC054).w               ; $0146CC: $D178 $C054 — scroll X += 1
+        move.w  ($FFFFC054).w,$00FF6104         ; $0146D0: $33F8 $C054 $00FF $6104 — copy to SH2
+        rts                                     ; $0146D8: $4E75

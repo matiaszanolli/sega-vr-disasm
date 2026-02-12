@@ -1,16 +1,13 @@
 ; ============================================================================
-; Input 006 (auto-analyzed)
+; Advance Input State
 ; ROM Range: $004566-$00456C (6 bytes)
 ; ============================================================================
-; Category: input
-; Purpose: Small leaf function
-;   RAM: $C07C (input_state)
+; Advances the input/controller state machine by one step (4 = one entry).
 ;
-; RAM:
-;   $C07C: input_state
-; Confidence: medium
+; Memory: $FFFFC07C = input state index (word)
+; Entry: none | Exit: state advanced | Uses: none
 ; ============================================================================
 
 fn_4200_006:
-        ADDQ.W  #4,(-16260).W                   ; $004566
-        RTS                                     ; $00456A
+        addq.w  #4,($FFFFC07C).w               ; $004566: $5878 $C07C — advance input state
+        rts                                     ; $00456A: $4E75

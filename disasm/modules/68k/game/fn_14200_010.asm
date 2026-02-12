@@ -1,16 +1,18 @@
 ; ============================================================================
-; Util 010 (auto-analyzed)
+; Scroll Y: Increment by 1
 ; ROM Range: $0146EA-$0146FA (16 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Short helper function
+; Adds 1 to the vertical scroll position and copies to SH2 shared memory.
+; Part of a group of 6 scroll adjustment functions (fn_14200_008-013).
 ;
-; Uses: D0
-; Confidence: low
+; Memory:
+;   $FFFFC056 = scroll Y position (word)
+;   $00FF6106 = scroll Y shared memory mirror (word)
+; Entry: none | Exit: scroll Y incremented | Uses: D0
 ; ============================================================================
 
 fn_14200_010:
-        MOVEQ   #$01,D0                         ; $0146EA
-        ADD.W  D0,(-16298).W                    ; $0146EC
-        MOVE.W  (-16298).W,$00FF6106            ; $0146F0
-        RTS                                     ; $0146F8
+        moveq   #$01,d0                         ; $0146EA: $7001 — increment value
+        add.w   d0,($FFFFC056).w               ; $0146EC: $D178 $C056 — scroll Y += 1
+        move.w  ($FFFFC056).w,$00FF6106         ; $0146F0: $33F8 $C056 $00FF $6106 — copy to SH2
+        rts                                     ; $0146F8: $4E75

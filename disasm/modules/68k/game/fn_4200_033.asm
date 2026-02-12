@@ -1,13 +1,14 @@
 ; ============================================================================
-; Logic 033 (auto-analyzed)
+; Advance Sub-Sequence Timer
 ; ROM Range: $0057CA-$0057D0 (6 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Small leaf function
+; Increments the sub-sequence timer byte at $C8C5 by 4.
 ;
-; Confidence: low
+; Memory:
+;   $FFFFC8C5 = sub-sequence timer value (byte, incremented by 4)
+; Entry: none | Exit: timer updated | Uses: none
 ; ============================================================================
 
 fn_4200_033:
-        ADDQ.B  #4,(-14139).W                   ; $0057CA
-        RTS                                     ; $0057CE
+        addq.b  #4,($FFFFC8C5).w               ; $0057CA: $5038 $C8C5 — advance timer
+        rts                                     ; $0057CE: $4E75

@@ -1,14 +1,18 @@
 ; ============================================================================
-; Ai 019 (auto-analyzed)
+; Conditional Return on Display Config Flag
 ; ROM Range: $00B590-$00B598 (8 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Small leaf function
+; Tests the display config flag at $C819. If nonzero, returns to caller.
+; If zero, falls through to the next function (skip return).
 ;
-; Confidence: low
+; Memory:
+;   $FFFFC819 = display config flag (byte, tested)
+; Entry: none | Exit: returns if flag set, falls through if clear
+; Uses: none
 ; ============================================================================
 
 fn_a200_019:
-        TST.B  (-14311).W                       ; $00B590
-        DC.W    $6702               ; BEQ.S  $00B598; $00B594
-        RTS                                     ; $00B596
+        tst.b   ($FFFFC819).w                   ; $00B590: $4A38 $C819 — check display config flag
+        beq.s   fn_a200_019_end                 ; $00B594: $6702 — zero → fall through
+        rts                                     ; $00B596: $4E75 — nonzero → return
+fn_a200_019_end:

@@ -1,15 +1,17 @@
 ; ============================================================================
-; Util 026 (auto-analyzed)
+; Add Track Segment 5 Offset
 ; ROM Range: $0147AE-$0147B8 (10 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Small leaf function
+; Reads track segment value 5 from $C8BA and adds it to the scroll X
+; accumulator at $C054. Paired with fn_14200_027 (subtract).
 ;
-; Uses: D0
-; Confidence: low
+; Memory:
+;   $FFFFC8BA = track segment value 5 (word, read)
+;   $FFFFC054 = scroll X position / accumulator (word, incremented)
+; Entry: none | Exit: accumulator updated | Uses: D0
 ; ============================================================================
 
 fn_14200_026:
-        MOVE.W  (-14150).W,D0                   ; $0147AE
-        ADD.W  D0,(-16300).W                    ; $0147B2
-        RTS                                     ; $0147B6
+        move.w  ($FFFFC8BA).w,d0               ; $0147AE: $3038 $C8BA — load segment value 5
+        add.w   d0,($FFFFC054).w               ; $0147B2: $D178 $C054 — add to scroll X
+        rts                                     ; $0147B6: $4E75

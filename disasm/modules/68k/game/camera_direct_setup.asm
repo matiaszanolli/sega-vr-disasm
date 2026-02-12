@@ -2,20 +2,36 @@
 ; Camera Direct Setup
 ; ROM Range: $008B9C-$008BC2 (38 bytes)
 ; ============================================================================
-; Direct camera parameter setup from stored values.
-; Clears override, sets elevation, copies pitch/yaw.
 ;
-; Entry: none
-; Uses: D0
+; PURPOSE
+; -------
+; Direct camera parameter setup from stored configuration values. Clears
+; the camera override flag, sets elevation to $0080, then copies pitch
+; and yaw from configuration RAM to both viewport and working registers.
+;
+; MEMORY VARIABLES
+; ----------------
+;   $FFFFC0BA  Camera override flag (word, cleared to 0)
+;   $FFFFC0B0  Camera elevation (word, set to $0080)
+;   $FFFFC8DC  Pitch input config (word, read)
+;   $FFFFC8DE  Yaw input config (word, read)
+;   $FFFFC054  Viewport pitch (word, written)
+;   $FFFFC892  Working pitch (word, written)
+;   $FFFFC056  Viewport yaw (word, written)
+;   $FFFFC894  Working yaw (word, written)
+;
+; Entry: No register inputs
+; Exit:  Camera parameters configured from stored values
+; Uses:  D0
 ; ============================================================================
 
 camera_direct_setup:
-        dc.w    $31FC,$0000,$C0BA     ; MOVE.W #0,($C0BA).W - clear override
-        dc.w    $31FC,$0080,$C0B0     ; MOVE.W #$80,($C0B0).W - elevation
-        dc.w    $3038,$C8DC           ; MOVE.W ($C8DC).W,D0 - pitch input
-        dc.w    $31C0,$C054           ; MOVE.W D0,($C054).W - viewport pitch
-        dc.w    $31C0,$C892           ; MOVE.W D0,($C892).W - working pitch
-        dc.w    $3038,$C8DE           ; MOVE.W ($C8DE).W,D0 - yaw input
-        dc.w    $31C0,$C056           ; MOVE.W D0,($C056).W - viewport yaw
-        dc.w    $31C0,$C894           ; MOVE.W D0,($C894).W - working yaw
-        rts
+        move.w  #$0000,($FFFFC0BA).w           ; $008B9C: $31FC $0000 $C0BA — clear override flag
+        move.w  #$0080,($FFFFC0B0).w           ; $008BA2: $31FC $0080 $C0B0 — set elevation
+        move.w  ($FFFFC8DC).w,d0                ; $008BA8: $3038 $C8DC — load pitch config
+        move.w  d0,($FFFFC054).w                ; $008BAC: $31C0 $C054 — write viewport pitch
+        move.w  d0,($FFFFC892).w                ; $008BB0: $31C0 $C892 — write working pitch
+        move.w  ($FFFFC8DE).w,d0                ; $008BB4: $3038 $C8DE — load yaw config
+        move.w  d0,($FFFFC056).w                ; $008BB8: $31C0 $C056 — write viewport yaw
+        move.w  d0,($FFFFC894).w                ; $008BBC: $31C0 $C894 — write working yaw
+        rts                                     ; $008BC0: $4E75

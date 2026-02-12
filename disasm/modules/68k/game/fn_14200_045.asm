@@ -1,27 +1,25 @@
 ; ============================================================================
-; Util Menu State Check 045 (auto-analyzed)
+; Menu State Check + Conditional Advance (Variant A)
 ; ROM Range: $0144D0-$0144F2 (34 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Short helper function
-;   RAM: $C082 (menu_state)
-;   Calls: menu_state_check
+; Loads table address and parameter, calls menu_state_check.
+; Tests player data ($A008): if non-zero, returns. Otherwise
+; advances menu dispatch ($C082) by 4 and sets $A008 to $0801.
 ;
-; Uses: D1, A1
-; RAM:
-;   $C082: menu_state
-; Calls:
-;   $0145F0: menu_state_check
-; Confidence: medium
+; Memory:
+;   $FFFFA008 = player data (word, tested, conditionally set to $0801)
+;   $FFFFC082 = menu dispatch index (word, advanced by 4)
+; Entry: none | Exit: menu state checked | Uses: D1, A1
 ; ============================================================================
 
 fn_14200_045:
-        LEA     $009286AE,A1                    ; $0144D0
-        MOVE.L  #$00009A00,D1                   ; $0144D6
-        DC.W    $4EBA,$0112         ; JSR     $0145F0(PC); $0144DC
-        TST.W  (-24568).W                       ; $0144E0
-        BNE.S  .loc_0020                        ; $0144E4
-        ADDQ.W  #4,(-16254).W                   ; $0144E6
-        MOVE.W  #$0801,(-24568).W               ; $0144EA
-.loc_0020:
-        RTS                                     ; $0144F0
+        lea     $009286AE,a1                    ; $0144D0: $43F9 $0092 $86AE — table address
+        move.l  #$00009A00,d1                   ; $0144D6: $223C $0000 $9A00 — parameter
+        dc.w    $4EBA,$0112                     ; BSR.W $0145F0 ; $0144DC: — call menu_state_check
+        tst.w   ($FFFFA008).w                   ; $0144E0: $4A78 $A008 — test player data
+        bne.s   .done                           ; $0144E4: $660A — non-zero → return
+        addq.w  #4,($FFFFC082).w               ; $0144E6: $5878 $C082 — advance menu dispatch
+        move.w  #$0801,($FFFFA008).w            ; $0144EA: $31FC $0801 $A008 — set player data
+.done:
+        rts                                     ; $0144F0: $4E75
+

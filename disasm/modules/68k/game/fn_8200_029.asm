@@ -1,26 +1,27 @@
 ; ============================================================================
-; State Position 029 (auto-analyzed)
+; Calculate Relative Position + Negate
 ; ROM Range: $008ED6-$008EF4 (30 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Short helper function
-;   Object (A0): +$32, +$34 (y_position)
+; Computes relative position from object to viewport: loads
+; object+$32 minus $C0BC (X offset), shifted right 4. Loads
+; object+$34 minus $C0BE (Y offset). Calls sub at $00A7A4,
+; negates result D0, and stores in $C0C0.
 ;
-; Entry: A0 = object/entity pointer
-; Uses: D0, D2, D3, A0
-; Object fields:
-;   +$32: [unknown]
-;   +$34: y_position
-; Confidence: medium
+; Memory:
+;   $FFFFC0BC = viewport X reference (word, subtracted)
+;   $FFFFC0BE = viewport Y reference (word, subtracted)
+;   $FFFFC0C0 = result (word, negated value stored)
+; Entry: A0 = object pointer | Exit: $C0C0 set | Uses: D0, D2, D3
 ; ============================================================================
 
 fn_8200_029:
-        MOVE.W  $0032(A0),D3                    ; $008ED6
-        SUB.W  (-16196).W,D3                    ; $008EDA
-        ASR.W  #4,D3                            ; $008EDE
-        MOVE.W  $0034(A0),D2                    ; $008EE0
-        SUB.W  (-16194).W,D2                    ; $008EE4
-        DC.W    $4EBA,$18BA         ; JSR     $00A7A4(PC); $008EE8
-        NEG.W  D0                               ; $008EEC
-        MOVE.W  D0,(-16192).W                   ; $008EEE
-        RTS                                     ; $008EF2
+        move.w  $0032(a0),d3                    ; $008ED6: $3628 $0032 — load object X
+        sub.w   ($FFFFC0BC).w,d3                ; $008EDA: $9678 $C0BC — subtract viewport X
+        asr.w   #4,d3                           ; $008EDE: $E843 — divide by 16
+        move.w  $0034(a0),d2                    ; $008EE0: $3428 $0034 — load object Y
+        sub.w   ($FFFFC0BE).w,d2                ; $008EE4: $9478 $C0BE — subtract viewport Y
+        dc.w    $4EBA,$18BA                     ; BSR.W $00A7A4 ; $008EE8: — call position sub
+        neg.w   d0                              ; $008EEC: $4440 — negate result
+        move.w  d0,($FFFFC0C0).w                ; $008EEE: $31C0 $C0C0 — store result
+        rts                                     ; $008EF2: $4E75
+

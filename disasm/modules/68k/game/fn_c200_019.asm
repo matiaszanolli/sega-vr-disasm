@@ -1,42 +1,40 @@
 ; ============================================================================
-; Scene Dispatch 019 (auto-analyzed)
+; Race Scene Init + 6-Entry Jump Table Dispatch
 ; ROM Range: $00D04C-$00D08A (62 bytes)
 ; ============================================================================
 ; Category: game
-; Purpose: State dispatcher using jump table
-;   RAM: $C8A0 (race_state)
-;   Object (A1): +$00
+; Purpose: Data prefix: 4 words ($5041,$4100,$504B,$4600) — ASCII-like
+;   scene identifiers ("PA","A\0","PK","F\0").
+;   Calls $00D00C (scene pre-init), loads race_state ($C8A0) and
+;   copies 4-byte data from table at $00898C0C indexed by race_state
+;   to VDP at $FF6868. Dispatches via 6-entry longword jump table
+;   (all 6 entries point to $00D088 = shared RTS).
 ;
-; Entry: A1 = object/entity pointer
 ; Uses: D0, D1, A0, A1, A3
 ; RAM:
-;   $C8A0: race_state
-; Object fields:
-;   +$00: [unknown]
-; Confidence: medium
+;   $C8A0: race_state (word, dispatch index)
+; Calls:
+;   $00D00C: scene pre-init
 ; ============================================================================
 
 fn_c200_019:
-        ADDQ.W  #8,D1                           ; $00D04C
-        DC.W    $4100                           ; $00D04E
-        ADDQ.W  #8,A3                           ; $00D050
-        NOT.B  D0                               ; $00D052
-        DC.W    $4EBA,$FFB6         ; JSR     $00D00C(PC); $00D054
-        MOVE.W  (-14176).W,D0                   ; $00D058
-        LEA     $00898C0C,A1                    ; $00D05C
-        MOVE.L  $00(A1,D0.W),$00FF6868          ; $00D062
-        MOVEA.L $00D070(PC,D0.W),A1             ; $00D06A
-        JMP     (A1)                            ; $00D06E
-        DC.W    $0088                           ; $00D070
-        ADD.L  A0,D0                            ; $00D072
-        DC.W    $0088                           ; $00D074
-        ADD.L  A0,D0                            ; $00D076
-        DC.W    $0088                           ; $00D078
-        ADD.L  A0,D0                            ; $00D07A
-        DC.W    $0088                           ; $00D07C
-        ADD.L  A0,D0                            ; $00D07E
-        DC.W    $0088                           ; $00D080
-        ADD.L  A0,D0                            ; $00D082
-        DC.W    $0088                           ; $00D084
-        ADD.L  A0,D0                            ; $00D086
-        RTS                                     ; $00D088
+; --- data prefix: 4-word scene identifiers ---
+        dc.w    $5041                           ; $00D04C  "PA"
+        dc.w    $4100                           ; $00D04E  "A\0"
+        dc.w    $504B                           ; $00D050  "PK"
+        dc.w    $4600                           ; $00D052  "F\0"
+; --- code ---
+        dc.w    $4EBA,$FFB6                     ; $00D054  jsr $00D00C(pc) — scene pre-init
+        move.w  ($FFFFC8A0).w,D0               ; $00D058  D0 = race_state
+        lea     $00898C0C,A1                    ; $00D05C  A1 → race data table
+        move.l  $00(A1,D0.W),$00FF6868         ; $00D062  VDP = table[race_state]
+        movea.l $00D070(PC,D0.W),A1            ; $00D06A  A1 = handler address
+        jmp     (A1)                            ; $00D06E  dispatch
+; --- jump table (6 longword entries — all point to RTS) ---
+        dc.l    $0088D088                       ; $00D070  [00] → $00D088 (RTS)
+        dc.l    $0088D088                       ; $00D074  [04] → $00D088 (RTS)
+        dc.l    $0088D088                       ; $00D078  [08] → $00D088 (RTS)
+        dc.l    $0088D088                       ; $00D07C  [0C] → $00D088 (RTS)
+        dc.l    $0088D088                       ; $00D080  [10] → $00D088 (RTS)
+        dc.l    $0088D088                       ; $00D084  [14] → $00D088 (RTS)
+        rts                                     ; $00D088

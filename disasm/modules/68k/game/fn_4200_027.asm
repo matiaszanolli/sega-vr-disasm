@@ -1,42 +1,40 @@
 ; ============================================================================
-; Logic Dispatch 027 (auto-analyzed)
+; State Dispatcher (5-Entry Jump Table + 4 Subroutines)
 ; ROM Range: $005618-$005658 (64 bytes)
 ; ============================================================================
 ; Category: game
-; Purpose: State dispatcher using jump table
-;   RAM: $C87E (game_state)
-;   Calls: VDPSyncSH2, sfx_queue_process, sprite_input_check
-;   Object (A6): +$78
+; Purpose: Dispatches via 5-entry longword jump table indexed by
+;   state_dispatch_idx ($C87E). State 0 handler: calls VDPSyncSH2,
+;   sfx_queue_process, $0088BE, sprite_input_check, increments
+;   scene counter ($C886), advances state by 4, writes $10 to SH2 COMM.
 ;
-; Entry: A6 = object/entity pointer
 ; Uses: D0, D6, A0, A1, A6
 ; RAM:
-;   $C87E: game_state
+;   $C886: scene counter (byte, +1)
+;   $C87E: state_dispatch_idx (word)
 ; Calls:
 ;   $0021CA: sfx_queue_process
 ;   $0028C2: VDPSyncSH2
 ;   $0058C8: sprite_input_check
-; Object fields:
-;   +$78: [unknown]
-; Confidence: medium
+;   $0088BE: handler subroutine
 ; ============================================================================
 
 fn_4200_027:
-        MOVE.W  (-14210).W,D0                   ; $005618
-        MOVEA.L $005622(PC,D0.W),A1             ; $00561C
-        JMP     (A1)                            ; $005620
-        DC.W    $0088                           ; $005622
-        ADDQ.B  #3,-$78(A6,D0.W)                ; $005624
-        ADDQ.W  #3,(A0)+                        ; $005628
-        DC.W    $0088                           ; $00562A
-        ADDQ.W  #3,-$78(A6,D0.W)                ; $00562C
-        DC.W    $56CE,$0088         ; DBNE    D6,$0056BA; $005630
-        DC.W    $573C                           ; $005634
-        DC.W    $4EBA,$D28A         ; JSR     $0028C2(PC); $005636
-        DC.W    $4EBA,$CB8E         ; JSR     $0021CA(PC); $00563A
-        DC.W    $4EBA,$327E         ; JSR     $0088BE(PC); $00563E
-        DC.W    $4EBA,$0284         ; JSR     $0058C8(PC); $005642
-        ADDQ.B  #1,(-14202).W                   ; $005646
-        ADDQ.W  #4,(-14210).W                   ; $00564A
-        MOVE.W  #$0010,$00FF0008                ; $00564E
-        RTS                                     ; $005656
+        move.w  ($FFFFC87E).w,D0               ; $005618  D0 = state_dispatch_idx
+        movea.l $005622(PC,D0.W),A1            ; $00561C  A1 = handler address
+        jmp     (A1)                            ; $005620  dispatch
+; --- jump table (5 longword entries) ---
+        dc.l    $00885636                       ; $005622  [00] → state 0 handler
+        dc.l    $00885658                       ; $005626  [04] → $005658 (past fn)
+        dc.l    $00885676                       ; $00562A  [08] → $005676 (past fn)
+        dc.l    $008856CE                       ; $00562E  [0C] → $0056CE (past fn)
+        dc.l    $0088573C                       ; $005632  [10] → $00573C (past fn)
+; --- state 0 handler ---
+        dc.w    $4EBA,$D28A                     ; $005636  jsr $0028C2(pc) — VDPSyncSH2
+        dc.w    $4EBA,$CB8E                     ; $00563A  jsr $0021CA(pc) — sfx_queue_process
+        dc.w    $4EBA,$327E                     ; $00563E  jsr $0088BE(pc) — handler sub
+        dc.w    $4EBA,$0284                     ; $005642  jsr $0058C8(pc) — sprite_input_check
+        addq.b  #1,($FFFFC886).w               ; $005646  scene counter++
+        addq.w  #4,($FFFFC87E).w               ; $00564A  advance state
+        move.w  #$0010,$00FF0008               ; $00564E  SH2 COMM = $10
+        rts                                     ; $005656

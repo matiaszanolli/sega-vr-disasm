@@ -1,41 +1,45 @@
 ; ============================================================================
-; Objs 050 (auto-analyzed)
+; Object Timer Tick + SFX Lookup (Variant B — Extra Flag Check)
 ; ROM Range: $003540-$00359C (92 bytes)
 ; ============================================================================
-; Category: object
-; Purpose: RAM: $6950 (obj_flags)
-;   Object (A0, A1): +$00, +$2C
+; Category: game
+; Purpose: Like fn_2200_044 but adds extra checks:
+;   Decrements countdown ($C308); when zero and $C08E != $C07A and
+;   $C30E bit 5 clear: indexes SFX table at $008989EE by object +$2C,
+;   writes to $C8A5. Special case: if $FF6948 == $222E0508 → SFX = $97.
+;   Reloads sub-counter $C305 = 4.
+;   If $C04E nonzero: clears VDP flags $FF6940/$FF6950, advances $C305.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
 ; Uses: D0, A0, A1
 ; RAM:
-;   $6950: obj_flags
-; Object fields:
-;   +$00: [unknown]
-;   +$2C: [unknown]
-; Confidence: medium
+;   $C04E: timer/counter (word)
+;   $C07A: bitmask table index (word)
+;   $C08E: current param (word)
+;   $C305: sub-counter (byte, reload=4)
+;   $C308: countdown timer (byte, decremented)
+;   $C30E: button/control flags (byte, bit 5)
+;   $C8A5: sound effect (byte)
 ; ============================================================================
 
 fn_2200_050:
-        SUBQ.B  #1,(-15608).W                   ; $003540
-        BNE.S  .loc_003A                        ; $003544
-        MOVE.W  (-16242).W,D0                   ; $003546
-        CMP.W  (-16262).W,D0                    ; $00354A
-        BEQ.S  .loc_003A                        ; $00354E
-        BTST    #5,(-15602).W                   ; $003550
-        BNE.S  .loc_003A                        ; $003556
-        MOVE.W  $002C(A0),D0                    ; $003558
-        LEA     $008989EE,A1                    ; $00355C
-        MOVE.B  $00(A1,D0.W),(-14171).W         ; $003562
-        CMPI.L  #$222E0508,$00FF6948            ; $003568
-        BNE.S  .loc_003A                        ; $003572
-        MOVE.B  #$97,(-14171).W                 ; $003574
-.loc_003A:
-        MOVE.B  #$04,(-15611).W                 ; $00357A
-        TST.W  (-16306).W                       ; $003580
-        DC.W    $6716               ; BEQ.S  $00359C; $003584
-        MOVE.B  #$00,$00FF6940                  ; $003586
-        MOVE.B  #$00,$00FF6950                  ; $00358E
-        ADDQ.B  #4,(-15611).W                   ; $003596
-        RTS                                     ; $00359A
+        subq.b  #1,($FFFFC308).w               ; $003540  countdown--
+        bne.s   .reload                         ; $003544  not zero → reload
+        move.w  ($FFFFC08E).w,D0               ; $003546  D0 = current param
+        cmp.w   ($FFFFC07A).w,D0               ; $00354A  same as table index?
+        beq.s   .reload                         ; $00354E  yes → skip SFX
+        btst    #5,($FFFFC30E).w               ; $003550  control bit 5 set?
+        bne.s   .reload                         ; $003556  yes → skip SFX
+        move.w  $002C(A0),D0                   ; $003558  D0 = object field +$2C
+        lea     $008989EE,A1                    ; $00355C  A1 → SFX table
+        move.b  $00(A1,D0.W),($FFFFC8A5).w    ; $003562  SFX = table[field_2C]
+        cmpi.l  #$222E0508,$00FF6948           ; $003568  special VDP pattern?
+        bne.s   .reload                         ; $003572  no → reload
+        move.b  #$97,($FFFFC8A5).w             ; $003574  override SFX = $97
+.reload:
+        move.b  #$04,($FFFFC305).w             ; $00357A  reload sub-counter = 4
+        tst.w   ($FFFFC04E).w                  ; $003580  timer active?
+        dc.w    $6716                           ; $003584  beq.s $00359C → exit (past fn)
+        move.b  #$00,$00FF6940                 ; $003586  clear VDP flag A
+        move.b  #$00,$00FF6950                 ; $00358E  clear VDP flag B
+        addq.b  #4,($FFFFC305).w               ; $003596  advance sub-counter
+        rts                                     ; $00359A

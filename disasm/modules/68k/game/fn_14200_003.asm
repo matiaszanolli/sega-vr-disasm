@@ -1,55 +1,66 @@
 ; ============================================================================
-; Util 003 (auto-analyzed)
+; Palette Fade 003
 ; ROM Range: $01457C-$0145F0 (116 bytes)
 ; ============================================================================
 ; Category: game
-; Purpose: Function in 14200 section (116 bytes)
+; Purpose: Applies brightness fade to 256-entry CRAM palette
+;   Scales R/G/B channels (5-bit each in $7C00/$03E0/$001F format)
+;   Decrements fade counter; clears when done
 ;
 ; Uses: D0, D1, D2, D3, D4, D5, A1
-; Confidence: low
+; RAM:
+;   $A008: fade_counter (byte: intensity 0-8; word: nonzero = active)
+;   $A009: fade_mode
+;   $A100: cram_shadow (256 words)
+; Confidence: high
 ; ============================================================================
 
 fn_14200_003:
-        NOP                                     ; $01457C
-        NOP                                     ; $01457E
-        NOP                                     ; $014580
-        TST.W  (-24568).W                       ; $014582
-        BEQ.W  .loc_006C                        ; $014586
-        LEA     (-24320).W,A1                   ; $01458A
-        MOVEQ   #$00,D2                         ; $01458E
-        MOVE.B  (-24568).W,D2                   ; $014590
-        CMPI.B  #$02,(-24567).W                 ; $014594
-        BEQ.S  .loc_0028                        ; $01459A
-        MOVE.W  #$0008,D2                       ; $01459C
-        SUB.B  (-24568).W,D2                    ; $0145A0
-.loc_0028:
-        MOVE.W  #$00FF,D1                       ; $0145A4
-.loc_002C:
-        MOVE.W  (A1),D0                         ; $0145A8
-        MOVE.W  D0,D3                           ; $0145AA
-        ANDI.W  #$001F,D3                       ; $0145AC
-        MULU    D2,D3                           ; $0145B0
-        LSR.W  #3,D3                            ; $0145B2
-        ANDI.W  #$001F,D3                       ; $0145B4
-        MOVE.W  D0,D4                           ; $0145B8
-        ANDI.W  #$03E0,D4                       ; $0145BA
-        MULU    D2,D4                           ; $0145BE
-        LSR.W  #3,D4                            ; $0145C0
-        ANDI.W  #$03E0,D4                       ; $0145C2
-        MOVE.W  D0,D5                           ; $0145C6
-        ANDI.W  #$7C00,D5                       ; $0145C8
-        MULU    D2,D5                           ; $0145CC
-        LSR.L  #3,D5                            ; $0145CE
-        ANDI.W  #$7C00,D5                       ; $0145D0
-        DC.W    $8644                           ; $0145D4
-        DC.W    $8645                           ; $0145D6
-        MOVE.W  D3,(A1)+                        ; $0145D8
-        DBRA    D1,.loc_002C                    ; $0145DA
-        SUBQ.B  #1,(-24568).W                   ; $0145DE
-        BNE.S  .loc_006C                        ; $0145E2
-        CLR.W  (-24568).W                       ; $0145E4
-.loc_006C:
-        NOP                                     ; $0145E8
-        NOP                                     ; $0145EA
-        NOP                                     ; $0145EC
-        RTS                                     ; $0145EE
+        nop                                     ; $01457C
+        nop                                     ; $01457E
+        nop                                     ; $014580
+        tst.w   ($FFFFA008).w                   ; $014582  fade active?
+        beq.w   .done                           ; $014586  no → done
+        lea     ($FFFFA100).w,A1                ; $01458A  A1 → CRAM shadow buffer
+        moveq   #$00,D2                         ; $01458E  D2 = 0
+        move.b  ($FFFFA008).w,D2                ; $014590  D2 = fade_counter
+        cmpi.b  #$02,($FFFFA009).w              ; $014594  fade_mode == 2?
+        beq.s   .start_loop                     ; $01459A  yes → use counter directly
+        move.w  #$0008,D2                       ; $01459C  D2 = 8
+        sub.b   ($FFFFA008).w,D2                ; $0145A0  D2 = 8 - counter (invert)
+.start_loop:
+        move.w  #$00FF,D1                       ; $0145A4  D1 = 255 (loop 256 entries)
+.loop:
+        move.w  (A1),D0                         ; $0145A8  D0 = CRAM entry
+; --- scale blue channel (bits 4-0) ---
+        move.w  D0,D3                           ; $0145AA  D3 = D0
+        andi.w  #$001F,D3                       ; $0145AC  isolate blue (5 bits)
+        mulu    D2,D3                           ; $0145B0  D3 *= fade level
+        lsr.w   #3,D3                           ; $0145B2  D3 >>= 3
+        andi.w  #$001F,D3                       ; $0145B4  clamp to 5 bits
+; --- scale green channel (bits 9-5) ---
+        move.w  D0,D4                           ; $0145B8  D4 = D0
+        andi.w  #$03E0,D4                       ; $0145BA  isolate green
+        mulu    D2,D4                           ; $0145BE  D4 *= fade level
+        lsr.w   #3,D4                           ; $0145C0  D4 >>= 3
+        andi.w  #$03E0,D4                       ; $0145C2  clamp to green range
+; --- scale red channel (bits 14-10) ---
+        move.w  D0,D5                           ; $0145C6  D5 = D0
+        andi.w  #$7C00,D5                       ; $0145C8  isolate red
+        mulu    D2,D5                           ; $0145CC  D5 *= fade level
+        lsr.l   #3,D5                           ; $0145CE  D5 >>= 3 (long for overflow)
+        andi.w  #$7C00,D5                       ; $0145D0  clamp to red range
+; --- combine channels ---
+        dc.w    $8644                           ; $0145D4  OR.W D4,D3 — merge green into blue
+        dc.w    $8645                           ; $0145D6  OR.W D5,D3 — merge red into result
+        move.w  D3,(A1)+                        ; $0145D8  store faded color, advance
+        dbra    D1,.loop                        ; $0145DA  loop 256 entries
+; --- decrement fade counter ---
+        subq.b  #1,($FFFFA008).w                ; $0145DE  fade_counter--
+        bne.s   .done                           ; $0145E2  not zero → continue next frame
+        clr.w   ($FFFFA008).w                   ; $0145E4  clear fade (word = inactive)
+.done:
+        nop                                     ; $0145E8
+        nop                                     ; $0145EA
+        nop                                     ; $0145EC
+        rts                                     ; $0145EE

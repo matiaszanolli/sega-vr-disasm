@@ -1,56 +1,59 @@
 ; ============================================================================
-; Obj 033 (auto-analyzed)
+; Track Data Extract 033
 ; ROM Range: $0076A2-$007700 (94 bytes)
 ; ============================================================================
 ; Category: game
-; Purpose: Object (A1, A2): +$00, +$04 (speed_index/velocity), +$06 (speed), +$0A (param_a), +$0C, +$10
+; Purpose: Extracts signed byte pairs from 3D track data pages
+;   Reads from 3 pages ($800 apart) into work buffer fields
 ;
-; Entry: A1 = object/entity pointer
-; Entry: A2 = object/entity pointer
+; Entry: D0 = track segment index (pre-shifted)
 ; Uses: D0, D2, A1, A2
-; Object fields:
-;   +$00: [unknown]
-;   +$04: speed_index/velocity
-;   +$06: speed
-;   +$0A: param_a
-;   +$0C: [unknown]
-;   +$10: [unknown]
-;   +$12: timer_12
-;   +$16: calc_speed
-; Confidence: low
+; RAM:
+;   $C268: track_data_ptr
+;   $C02E: track_work_buf
+; Object fields (A2 → work buffer at $C02E):
+;   +$00, +$04: page 0 signed byte pair
+;   +$06, +$0A: page 1 signed byte pair
+;   +$0C, +$10: page 2 signed byte pair
+;   +$12, +$16: page 3 signed byte pair
+; Confidence: high
 ; ============================================================================
 
 fn_6200_033:
-        MOVEA.L (-15768).W,A1                   ; $0076A2
-        LEA     (-16338).W,A2                   ; $0076A6
-        LSR.W  #6,D0                            ; $0076AA
-        DC.W    $D040                           ; $0076AC
-        LEA     $00(A1,D0.W),A1                 ; $0076AE
-        MOVE.B  (A1)+,D2                        ; $0076B2
-        EXT.W   D2                              ; $0076B4
-        MOVE.W  D2,$0000(A2)                    ; $0076B6
-        MOVE.B  (A1),D2                         ; $0076BA
-        EXT.W   D2                              ; $0076BC
-        MOVE.W  D2,$0004(A2)                    ; $0076BE
-        LEA     $07FF(A1),A1                    ; $0076C2
-        MOVE.B  (A1)+,D2                        ; $0076C6
-        EXT.W   D2                              ; $0076C8
-        MOVE.W  D2,$0006(A2)                    ; $0076CA
-        MOVE.B  (A1),D2                         ; $0076CE
-        EXT.W   D2                              ; $0076D0
-        MOVE.W  D2,$000A(A2)                    ; $0076D2
-        LEA     $07FF(A1),A1                    ; $0076D6
-        MOVE.B  (A1)+,D2                        ; $0076DA
-        EXT.W   D2                              ; $0076DC
-        MOVE.W  D2,$000C(A2)                    ; $0076DE
-        MOVE.B  (A1),D2                         ; $0076E2
-        EXT.W   D2                              ; $0076E4
-        MOVE.W  D2,$0010(A2)                    ; $0076E6
-        LEA     $07FF(A1),A1                    ; $0076EA
-        MOVE.B  (A1)+,D2                        ; $0076EE
-        EXT.W   D2                              ; $0076F0
-        MOVE.W  D2,$0012(A2)                    ; $0076F2
-        MOVE.B  (A1),D2                         ; $0076F6
-        EXT.W   D2                              ; $0076F8
-        MOVE.W  D2,$0016(A2)                    ; $0076FA
-        RTS                                     ; $0076FE
+        movea.l ($FFFFC268).w,A1                ; $0076A2  A1 → track data base
+        lea     ($FFFFC02E).w,A2                ; $0076A6  A2 → work buffer
+        lsr.w   #6,D0                           ; $0076AA  D0 >>= 6 (segment stride)
+        dc.w    $D040                           ; $0076AC  ADD.W D0,D0 — D0 *= 2
+        lea     $00(A1,D0.W),A1                 ; $0076AE  A1 += offset
+; --- page 0: read signed byte pair ---
+        move.b  (A1)+,D2                        ; $0076B2  D2 = byte 0 (signed)
+        ext.w   D2                              ; $0076B4  sign-extend
+        move.w  D2,$0000(A2)                    ; $0076B6  buf+$00 = D2
+        move.b  (A1),D2                         ; $0076BA  D2 = byte 1 (signed)
+        ext.w   D2                              ; $0076BC  sign-extend
+        move.w  D2,$0004(A2)                    ; $0076BE  buf+$04 = D2
+; --- page 1: advance $7FF bytes ---
+        lea     $07FF(A1),A1                    ; $0076C2  A1 += $7FF (next page)
+        move.b  (A1)+,D2                        ; $0076C6
+        ext.w   D2                              ; $0076C8
+        move.w  D2,$0006(A2)                    ; $0076CA  buf+$06 = D2
+        move.b  (A1),D2                         ; $0076CE
+        ext.w   D2                              ; $0076D0
+        move.w  D2,$000A(A2)                    ; $0076D2  buf+$0A = D2
+; --- page 2: advance $7FF bytes ---
+        lea     $07FF(A1),A1                    ; $0076D6  A1 += $7FF (next page)
+        move.b  (A1)+,D2                        ; $0076DA
+        ext.w   D2                              ; $0076DC
+        move.w  D2,$000C(A2)                    ; $0076DE  buf+$0C = D2
+        move.b  (A1),D2                         ; $0076E2
+        ext.w   D2                              ; $0076E4
+        move.w  D2,$0010(A2)                    ; $0076E6  buf+$10 = D2
+; --- page 3: advance $7FF bytes ---
+        lea     $07FF(A1),A1                    ; $0076EA  A1 += $7FF (next page)
+        move.b  (A1)+,D2                        ; $0076EE
+        ext.w   D2                              ; $0076F0
+        move.w  D2,$0012(A2)                    ; $0076F2  buf+$12 = D2
+        move.b  (A1),D2                         ; $0076F6
+        ext.w   D2                              ; $0076F8
+        move.w  D2,$0016(A2)                    ; $0076FA  buf+$16 = D2
+        rts                                     ; $0076FE

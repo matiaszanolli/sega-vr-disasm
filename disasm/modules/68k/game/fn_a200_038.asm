@@ -1,68 +1,77 @@
 ; ============================================================================
-; Ai Scene 038 (auto-analyzed)
+; AI Scene Interpolation (6 Components)
 ; ROM Range: $00BD2A-$00BD9E (116 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: RAM: $C8AA (scene_state)
-;   Object (A0, A1): +$01, +$02 (flags/type), +$10
+; Interpolates 6 component values between two keyframes using
+; scene_state as the interpolation factor. Source keyframe is at
+; (A0)+2, target keyframe is found by scanning backwards through
+; -$10 offsets skipping entries with type byte $0C. Each component
+; is computed as: result = start + (end - start) × frame / total.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
+; Entry: A0 = keyframe data pointer (+$01 = total frames, +$02 = end values)
 ; Uses: D0, D1, D2, A0, A1, A2
 ; RAM:
-;   $C8AA: scene_state
-; Object fields:
-;   +$01: [unknown]
-;   +$02: flags/type
-;   +$10: [unknown]
-; Confidence: medium
+;   $C054: interp_result_1
+;   $C056: interp_result_2
+;   $C086: interp_result_0
+;   $C0AE: interp_result_3
+;   $C0B0: interp_result_4
+;   $C0B2: interp_result_5
+;   $C8AA: scene_state (interpolation frame counter)
 ; ============================================================================
 
 fn_a200_038:
-        MOVEQ   #$00,D2                         ; $00BD2A
-        MOVE.B  $0001(A0),D2                    ; $00BD2C
-        ADDQ.W  #1,D2                           ; $00BD30
-        MOVE.W  (-14166).W,D0                   ; $00BD32
-        LEA     $0002(A0),A2                    ; $00BD36
-        LEA     (A2),A1                         ; $00BD3A
-.loc_0012:
-        LEA     -$0010(A1),A1                   ; $00BD3C
-        CMPI.B  #$0C,-$0002(A1)                 ; $00BD40
-        BEQ.S  .loc_0012                        ; $00BD46
-        MOVE.W  (A2)+,D1                        ; $00BD48
-        SUB.W  (A1),D1                          ; $00BD4A
-        MULS    D0,D1                           ; $00BD4C
-        DIVS    D2,D1                           ; $00BD4E
-        ADD.W  (A1)+,D1                         ; $00BD50
-        MOVE.W  D1,(-16250).W                   ; $00BD52
-        MOVE.W  (A2)+,D1                        ; $00BD56
-        SUB.W  (A1),D1                          ; $00BD58
-        MULS    D0,D1                           ; $00BD5A
-        DIVS    D2,D1                           ; $00BD5C
-        ADD.W  (A1)+,D1                         ; $00BD5E
-        MOVE.W  D1,(-16300).W                   ; $00BD60
-        MOVE.W  (A2)+,D1                        ; $00BD64
-        SUB.W  (A1),D1                          ; $00BD66
-        MULS    D0,D1                           ; $00BD68
-        DIVS    D2,D1                           ; $00BD6A
-        ADD.W  (A1)+,D1                         ; $00BD6C
-        MOVE.W  D1,(-16298).W                   ; $00BD6E
-        MOVE.W  (A2)+,D1                        ; $00BD72
-        SUB.W  (A1),D1                          ; $00BD74
-        MULS    D0,D1                           ; $00BD76
-        DIVS    D2,D1                           ; $00BD78
-        ADD.W  (A1)+,D1                         ; $00BD7A
-        MOVE.W  D1,(-16210).W                   ; $00BD7C
-        MOVE.W  (A2)+,D1                        ; $00BD80
-        SUB.W  (A1),D1                          ; $00BD82
-        MULS    D0,D1                           ; $00BD84
-        DIVS    D2,D1                           ; $00BD86
-        ADD.W  (A1)+,D1                         ; $00BD88
-        MOVE.W  D1,(-16208).W                   ; $00BD8A
-        MOVE.W  (A2)+,D1                        ; $00BD8E
-        SUB.W  (A1),D1                          ; $00BD90
-        MULS    D0,D1                           ; $00BD92
-        DIVS    D2,D1                           ; $00BD94
-        ADD.W  (A1)+,D1                         ; $00BD96
-        MOVE.W  D1,(-16206).W                   ; $00BD98
-        RTS                                     ; $00BD9C
+        moveq   #$00,d2
+        move.b  $0001(a0),d2                    ; total frames for interpolation
+        addq.w  #1,d2                           ; +1 (denominator)
+        move.w  ($FFFFC8AA).w,d0                ; scene_state (current frame)
+        lea     $0002(a0),a2                    ; end values pointer
+        lea     (a2),a1                         ; copy for scan start
+; --- find start keyframe (scan backwards, skip type $0C) ---
+.scan_prev:
+        lea     -$0010(a1),a1                   ; step back $10 bytes
+        cmpi.b  #$0C,-$0002(a1)                 ; type byte = $0C?
+        beq.s   .scan_prev                       ; yes → skip, continue scan
+; --- interpolate 6 components ---
+        move.w  (a2)+,d1                        ; end value 0
+        sub.w   (a1),d1                         ; delta = end - start
+        muls    d0,d1                           ; delta × current frame
+        divs    d2,d1                           ; ÷ total frames
+        add.w   (a1)+,d1                        ; + start value
+        move.w  d1,($FFFFC086).w                ; store interp_result_0
+
+        move.w  (a2)+,d1                        ; end value 1
+        sub.w   (a1),d1
+        muls    d0,d1
+        divs    d2,d1
+        add.w   (a1)+,d1
+        move.w  d1,($FFFFC054).w                ; store interp_result_1
+
+        move.w  (a2)+,d1                        ; end value 2
+        sub.w   (a1),d1
+        muls    d0,d1
+        divs    d2,d1
+        add.w   (a1)+,d1
+        move.w  d1,($FFFFC056).w                ; store interp_result_2
+
+        move.w  (a2)+,d1                        ; end value 3
+        sub.w   (a1),d1
+        muls    d0,d1
+        divs    d2,d1
+        add.w   (a1)+,d1
+        move.w  d1,($FFFFC0AE).w                ; store interp_result_3
+
+        move.w  (a2)+,d1                        ; end value 4
+        sub.w   (a1),d1
+        muls    d0,d1
+        divs    d2,d1
+        add.w   (a1)+,d1
+        move.w  d1,($FFFFC0B0).w                ; store interp_result_4
+
+        move.w  (a2)+,d1                        ; end value 5
+        sub.w   (a1),d1
+        muls    d0,d1
+        divs    d2,d1
+        add.w   (a1)+,d1
+        move.w  d1,($FFFFC0B2).w                ; store interp_result_5
+        rts

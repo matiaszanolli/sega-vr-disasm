@@ -1,63 +1,48 @@
 ; ============================================================================
-; Ai Dispatch 041 (auto-analyzed)
+; AI State Dispatch (Offset Table + Timer)
 ; ROM Range: $00BE50-$00BEC4 (116 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: State dispatcher using jump table
-;   Object (A6): +$88
+; Reads state index from ai_state ($A0EA), dispatches via 15-entry
+; jump table. Only handler within this file (entry 0 at $BEAE)
+; increments ai_timer; when timer reaches 120, advances state index
+; by 4 and resets timer. Preceded by 12-word offset data table.
 ;
-; Entry: A6 = object/entity pointer
 ; Uses: D0, D4, D7, A0, A2, A4, A6
-; Object fields:
-;   +$88: [unknown]
-; Confidence: low
+; RAM:
+;   $A0EA: ai_state (jump table index: 0/4/8/.../56)
+;   $A0EC: ai_timer (counts to $0078 = 120)
 ; ============================================================================
 
 fn_a200_041:
-        ORI.B  #$02,D0                          ; $00BE50
-        ORI.B  #$08,D4                          ; $00BE54
-        DC.W    $000C                           ; $00BE58
-        ORI.B  #$1A,(A2)                        ; $00BE5A
-        ORI.B  #$30,-(A4)                       ; $00BE5E
-        DC.W    $003E                           ; $00BE62
-        DC.W    $004E                           ; $00BE64
-        ORI.W  #$3038,-(A0)                     ; $00BE66
-        DC.W    $A0EA                           ; $00BE6A
-        MOVEA.L $00BE72(PC,D0.W),A0             ; $00BE6C
-        JMP     (A0)                            ; $00BE70
-        DC.W    $0088                           ; $00BE72
-        CMP.L  $0088(A6),D7                     ; $00BE74
-        CMPA.W  D4,A7                           ; $00BE78
-        DC.W    $0088                           ; $00BE7A
-        EOR.B  D7,(A4)                          ; $00BE7C
-        DC.W    $0088                           ; $00BE7E
-        EOR.L  D7,(A6)+                         ; $00BE80
-        DC.W    $0088                           ; $00BE82
-        CMPA.L  (A6)+,A7                        ; $00BE84
-        DC.W    $0088                           ; $00BE86
-        EOR.B  D7,(A4)                          ; $00BE88
-        DC.W    $0088                           ; $00BE8A
-        EOR.L  D7,(A6)+                         ; $00BE8C
-        DC.W    $0088                           ; $00BE8E
-        CMPA.L  (A6)+,A7                        ; $00BE90
-        DC.W    $0088                           ; $00BE92
-        EOR.B  D7,(A4)                          ; $00BE94
-        DC.W    $0088                           ; $00BE96
-        EOR.L  D7,(A6)+                         ; $00BE98
-        DC.W    $0088                           ; $00BE9A
-        CMPA.L  (A6)+,A7                        ; $00BE9C
-        DC.W    $0088                           ; $00BE9E
-        EOR.B  D7,(A4)                          ; $00BEA0
-        DC.W    $0088                           ; $00BEA2
-        EOR.L  D7,(A6)+                         ; $00BEA4
-        DC.W    $0088                           ; $00BEA6
-        CMPA.L  (A6)+,A7                        ; $00BEA8
-        DC.W    $0088                           ; $00BEAA
-        AND.B  $5278(A0),D0                     ; $00BEAC
-        DC.W    $A0EC                           ; $00BEB0
-        CMPI.W  #$0078,(-24340).W               ; $00BEB2
-        BLT.S  .loc_0072                        ; $00BEB8
-        ADDQ.W  #4,(-24342).W                   ; $00BEBA
-        CLR.W  (-24340).W                       ; $00BEBE
-.loc_0072:
-        RTS                                     ; $00BEC2
+; --- offset data table (12 words) ---
+        dc.w    $0000,$0002,$0004,$0008
+        dc.w    $000C,$0012,$001A,$0024
+        dc.w    $0030,$003E,$004E,$0060
+; --- dispatch code ---
+        move.w  ($FFFFA0EA).w,d0                ; ai_state (table index)
+        movea.l $00BE72(pc,d0.w),a0             ; load handler address
+        jmp     (a0)                            ; dispatch
+; --- jump table (15 entries) ---
+        dc.l    $0088BEAE                        ; entry 0 → timer handler (below)
+        dc.l    $0088BEC4                        ; entry 1 → external
+        dc.l    $0088BF14                        ; entry 2 → external
+        dc.l    $0088BF9E                        ; entry 3 → external
+        dc.l    $0088BFDE                        ; entry 4 → external
+        dc.l    $0088BF14                        ; entry 5 (= entry 2)
+        dc.l    $0088BF9E                        ; entry 6 (= entry 3)
+        dc.l    $0088BFDE                        ; entry 7 (= entry 4)
+        dc.l    $0088BF14                        ; entry 8 (= entry 2)
+        dc.l    $0088BF9E                        ; entry 9 (= entry 3)
+        dc.l    $0088BFDE                        ; entry 10 (= entry 4)
+        dc.l    $0088BF14                        ; entry 11 (= entry 2)
+        dc.l    $0088BF9E                        ; entry 12 (= entry 3)
+        dc.l    $0088BFDE                        ; entry 13 (= entry 4)
+        dc.l    $0088C028                        ; entry 14 → external
+; --- entry 0 handler: timer + state advance ---
+        addq.w  #1,($FFFFA0EC).w                ; increment ai_timer
+        cmpi.w  #$0078,($FFFFA0EC).w            ; timer reached 120?
+        blt.s   .done
+        addq.w  #4,($FFFFA0EA).w                ; advance ai_state
+        clr.w   ($FFFFA0EC).w                   ; reset timer
+.done:
+        rts

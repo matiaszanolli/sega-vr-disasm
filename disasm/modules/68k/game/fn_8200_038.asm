@@ -1,73 +1,69 @@
 ; ============================================================================
-; State Dispatch 038 (auto-analyzed)
+; Suspension Steering Damping
 ; ROM Range: $009802-$00987E (124 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: State dispatcher using jump table
-;   RAM: $C8CC (race_substate)
-;   Object (A0, A2): +$4C, +$62, +$88, +$92 (param_92), +$94, +$96
+; Dispatches via 3-entry jump table indexed by race_substate_b.
+; State 0 handler: applies steering damping based on lateral velocity
+; ($004C field). If velocity and steering indicators are non-zero,
+; uses ASR-based damping. Otherwise applies decay by subtracting
+; 1/4 of current value, clamping to zero when small enough.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A2 = object/entity pointer
+; Entry: A0 = object pointer (+$4C, +$62, +$88, +$92, +$94, +$96)
 ; Uses: D0, D1, D4, A0, A1, A2
 ; RAM:
-;   $C8CC: race_substate
-; Object fields:
-;   +$4C: [unknown]
-;   +$62: [unknown]
-;   +$88: [unknown]
-;   +$92: param_92
-;   +$94: [unknown]
-;   +$96: [unknown]
-; Confidence: medium
+;   $C8CC: race_substate_b (jump table index: 0/4/8)
 ; ============================================================================
 
 fn_8200_038:
-        MOVE.W  (-14132).W,D0                   ; $009802
-        MOVEA.L $00980C(PC,D0.W),A1             ; $009806
-        JMP     (A1)                            ; $00980A
-        DC.W    $0088                           ; $00980C
-        SUB.B  (A0)+,D4                         ; $00980E
-        DC.W    $0088                           ; $009810
-        SUB.L  D4,$0088(A2)                     ; $009812
-        DC.W    $987E                           ; $009816
-        MOVE.W  $0092(A0),D0                    ; $009818
-        OR.W   $0062(A0),D0                     ; $00981C
-        BNE.S  .loc_004C                        ; $009820
-        MOVE.W  $004C(A0),D0                    ; $009822
-        BPL.S  .loc_0028                        ; $009826
-        NEG.W  D0                               ; $009828
-.loc_0028:
-        CMPI.W  #$0037,D0                       ; $00982A
-        BLE.S  .loc_004C                        ; $00982E
-        MOVE.W  $004C(A0),D0                    ; $009830
-        ASR.W  #7,D0                            ; $009834
-        MOVE.W  D0,D1                           ; $009836
-        ASR.W  #1,D0                            ; $009838
-        DC.W    $D041                           ; $00983A
-        ADD.W  D0,$0094(A0)                     ; $00983C
-        MOVE.W  $0094(A0),D0                    ; $009840
-        ASR.W  #1,D0                            ; $009844
-        MOVE.W  D0,$0096(A0)                    ; $009846
-        BRA.W  .loc_007A                        ; $00984A
-.loc_004C:
-        MOVE.W  $0094(A0),D0                    ; $00984E
-        MOVE.W  D0,D1                           ; $009852
-        ASR.W  #2,D0                            ; $009854
-        SUB.W  D0,$0094(A0)                     ; $009856
-        MOVE.W  $0094(A0),D0                    ; $00985A
-        MOVE.W  D0,$0096(A0)                    ; $00985E
-        TST.W  D1                               ; $009862
-        BGE.S  .loc_0068                        ; $009864
-        NEG.W  D0                               ; $009866
-        NEG.W  D1                               ; $009868
-.loc_0068:
-        CMP.W  D0,D1                            ; $00986A
-        BLT.S  .loc_007A                        ; $00986C
-        TST.W  D0                               ; $00986E
-        BLT.S  .loc_007A                        ; $009870
-        CMPI.W  #$000F,D0                       ; $009872
-        BGT.S  .loc_007A                        ; $009876
-        CLR.W  $0094(A0)                        ; $009878
-.loc_007A:
-        RTS                                     ; $00987C
+; --- state dispatch ---
+        move.w  ($FFFFC8CC).w,d0                ; race_substate_b (table index)
+        movea.l $00980C(pc,d0.w),a1             ; load handler address
+        jmp     (a1)                            ; dispatch
+; --- jump table (3 entries) ---
+        dc.l    $00889818                        ; state 0 → damping calc (below)
+        dc.l    $008899AA                        ; state 1 → external handler
+        dc.l    $0088987E                        ; state 2 → external handler
+; --- state 0: steering damping calculation ---
+        move.w  $0092(a0),d0                    ; steering indicator
+        or.w    $0062(a0),d0                    ; combine with lateral flag
+        bne.s   .decay                           ; both zero → skip active damping
+; --- active damping: velocity-based ---
+        move.w  $004C(a0),d0                    ; lateral velocity
+        bpl.s   .positive
+        neg.w   d0                              ; absolute value
+.positive:
+        cmpi.w  #$0037,d0                       ; threshold check
+        ble.s   .decay                           ; below threshold → use decay
+        move.w  $004C(a0),d0                    ; signed lateral velocity
+        asr.w   #7,d0                           ; ÷ 128
+        move.w  d0,d1                           ; save
+        asr.w   #1,d0                           ; ÷ 256
+        add.w   d1,d0                            ; ×1.5 of ÷128 = ×3/256
+        add.w   d0,$0094(a0)                    ; add to suspension
+        move.w  $0094(a0),d0                    ; read updated suspension
+        asr.w   #1,d0                           ; halve for display
+        move.w  d0,$0096(a0)                    ; store display value
+        bra.w   .done
+; --- decay path: reduce by 1/4 ---
+.decay:
+        move.w  $0094(a0),d0                    ; current suspension
+        move.w  d0,d1                           ; save original
+        asr.w   #2,d0                           ; ÷ 4
+        sub.w   d0,$0094(a0)                    ; subtract 1/4
+        move.w  $0094(a0),d0                    ; read updated value
+        move.w  d0,$0096(a0)                    ; store display value
+; --- check if value has crossed zero or is small enough to clamp ---
+        tst.w   d1                              ; original positive?
+        bge.s   .check_pos
+        neg.w   d0                              ; negate for comparison
+        neg.w   d1
+.check_pos:
+        cmp.w   d0,d1                           ; sign changed?
+        blt.s   .done                            ; yes → stop
+        tst.w   d0                              ; went negative?
+        blt.s   .done
+        cmpi.w  #$000F,d0                       ; small enough?
+        bgt.s   .done
+        clr.w   $0094(a0)                       ; clamp to zero
+.done:
+        rts

@@ -1,64 +1,66 @@
 ; ============================================================================
-; Sh2 Comm Dispatch 036 (auto-analyzed)
+; SH2 Handler Dispatch + Scene Init
 ; ROM Range: $005866-$0058EA (132 bytes)
 ; ============================================================================
-; Category: sh2
-; Purpose: State dispatcher using jump table
-;   RAM: $C89C (sh2_comm_state)
-;   Calls: SetDisplayParams
-;   Object (A6): +$88
+; Two code paths: (1) reads current SH2 handler address from
+; $00FF0002, matches against 4 known values, replaces with
+; corresponding new handler, then jumps to init routine.
+; (2) Scene setup — calls display digit extract, JSR to track
+; init, checks race_substate and control flags.
 ;
-; Entry: A6 = object/entity pointer
 ; Uses: D0, D1, D4, D7, A0, A1, A4, A6
 ; RAM:
-;   $C89C: sh2_comm_state
+;   $A000: scene_palette_base
+;   $C26C: display_config
+;   $C81C: control_mode_flags
+;   $C89C: race_substate
+;   $C8C5: state_counter
 ; Calls:
-;   $0049AA: SetDisplayParams
-; Object fields:
-;   +$88: [unknown]
-; Confidence: medium
+;   $002474: vint_init (JMP PC-relative)
+;   $002890: game_init (JMP PC-relative)
+;   $0049AA: SetDisplayParams (JSR PC-relative)
+;   $006B8A: track_init (JSR PC-relative)
+;   $00B4CA: display_digit_extract (JSR PC-relative)
 ; ============================================================================
 
 fn_4200_036:
-        DC.W    $4EBA,$5C62         ; JSR     $00B4CA(PC); $005866
-        MOVE.L  $00FF0002,D0                    ; $00586A
-        MOVEQ   #-$04,D1                        ; $005870
-        MOVEQ   #$03,D7                         ; $005872
-        DC.W    $43FA,$001E         ; LEA     $005894(PC),A1; $005874
-.loc_0012:
-        ADDQ.W  #4,D1                           ; $005878
-        CMP.L  (A1)+,D0                         ; $00587A
-        DBEQ    D7,.loc_0012                    ; $00587C
-        MOVE.L  $0058A4(PC,D1.W),$00FF0002      ; $005880
-        MOVE.W  #$0020,$00FF0008                ; $005888
-        DC.W    $4EFA,$CFFE         ; JMP     $002890(PC); $005890
-        DC.W    $0088                           ; $005894
-        ADDQ.B  #3,(A0)+                        ; $005896
-        DC.W    $0088                           ; $005898
-        DC.W    $5308                           ; $00589A
-        DC.W    $0088                           ; $00589C
-        ADDQ.B  #8,-(A4)                        ; $00589E
-        DC.W    $0088                           ; $0058A0
-        DC.W    $4CBC                           ; $0058A2
-        DC.W    $0089                           ; $0058A4
-        BCLR    D4,$0088(A6)                    ; $0058A6
-        DC.W    $FB98                           ; $0058AA
-        DC.W    $0088                           ; $0058AC
-        DC.W    $FB98                           ; $0058AE
-        DC.W    $0088                           ; $0058B0
-        DC.W    $FB98                           ; $0058B2
-        MOVE.B  #$00,$00FF69F0                  ; $0058B4
-        DC.W    $4EBA,$F0EC         ; JSR     $0049AA(PC); $0058BC
-        ADDQ.B  #4,(-14139).W                   ; $0058C0
-        DC.W    $4EFA,$CBAE         ; JMP     $002474(PC); $0058C4
-        DC.W    $4EBA,$12C0         ; JSR     $006B8A(PC); $0058C8
-        LEA     (-24576).W,A4                   ; $0058CC
-        MOVE.W  (-15764).W,D0                   ; $0058D0
-        BTST    #7,(-14308).W                   ; $0058D4
-        BNE.S  .loc_007C                        ; $0058DA
-        TST.W  (-14180).W                       ; $0058DC
-        DC.W    $6708               ; BEQ.S  $0058EA; $0058E0
-.loc_007C:
-        ANDI.W  #$0138,D0                       ; $0058E2
-        DC.W    $6708               ; BEQ.S  $0058F0; $0058E6
-        RTS                                     ; $0058E8
+; --- entry 1: handler replacement dispatch ---
+        dc.w    $4EBA,$5C62                      ; jsr display_digit_extract(pc) → $00B4CA
+        move.l  $00FF0002,d0                    ; current SH2 handler address
+        moveq   #-$04,d1                        ; init search index
+        moveq   #$03,d7                         ; 4 entries to check
+        dc.w    $43FA,$001E                      ; lea match_table(pc),a1 → $005894
+.search:
+        addq.w  #4,d1                           ; advance index
+        cmp.l   (a1)+,d0                        ; match current entry?
+        dbeq    d7,.search                      ; loop until match or exhausted
+        move.l  $0058A4(pc,d1.w),$00FF0002      ; replace with new handler
+        move.w  #$0020,$00FF0008                ; set SH2 command $0020
+        dc.w    $4EFA,$CFFE                      ; jmp game_init(pc) → $002890
+; --- match table: 4 handler addresses to detect ---
+        dc.l    $00885618                        ; match 0
+        dc.l    $00885308                        ; match 1
+        dc.l    $00885024                        ; match 2
+        dc.l    $00884CBC                        ; match 3
+; --- replacement table: 4 new handler addresses ---
+        dc.l    $008909AE                        ; replace 0
+        dc.l    $0088FB98                        ; replace 1
+        dc.l    $0088FB98                        ; replace 2
+        dc.l    $0088FB98                        ; replace 3
+; --- entry 2: scene setup ---
+        move.b  #$00,$00FF69F0                  ; clear scene flag
+        dc.w    $4EBA,$F0EC                      ; jsr SetDisplayParams(pc) → $0049AA
+        addq.b  #4,($FFFFC8C5).w                ; advance state_counter by 4
+        dc.w    $4EFA,$CBAE                      ; jmp vint_init(pc) → $002474
+; --- entry 3: track init + control check ---
+        dc.w    $4EBA,$12C0                      ; jsr track_init(pc) → $006B8A
+        lea     ($FFFFA000).w,a4                ; scene_palette_base
+        move.w  ($FFFFC26C).w,d0                ; display_config
+        btst    #7,($FFFFC81C).w                ; control mode bit 7?
+        bne.s   .check_mask
+        tst.w   ($FFFFC89C).w                   ; race_substate active?
+        dc.w    $6708                            ; beq.s $0058EA → external (skip mask)
+.check_mask:
+        andi.w  #$0138,d0                       ; mask relevant bits
+        dc.w    $6708                            ; beq.s $0058F0 → external (bits clear)
+        rts

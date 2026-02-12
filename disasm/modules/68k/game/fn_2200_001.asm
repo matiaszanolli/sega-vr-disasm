@@ -1,61 +1,78 @@
 ; ============================================================================
-; Vint 001 (auto-analyzed)
+; Audio Frequency Update (Dual Channel)
 ; ROM Range: $00220C-$002294 (136 bytes)
 ; ============================================================================
-; Category: vint
-; Purpose: RAM: $C8C8 (vint_state)
+; Updates audio frequency for two channels (A and B). Each channel
+; reads port data, checks source select bit, compares stored audio
+; level, and recalculates frequency via weighted shift average.
+; Channel A is processed first via BSR.S, then channel B falls
+; through to the same shared subroutine.
 ;
 ; Uses: D0, D1, A1, A2, A3
 ; RAM:
+;   $8517: ch_b_update_flag
+;   $8760: ch_a_frequency
+;   $8759: ch_a_stored_level
+;   $8790: ch_b_frequency
+;   $8789: ch_b_stored_level
+;   $9074: port_b_data
+;   $9F74: port_a_data
+;   $9FE5: port_a_control
+;   $90E5: port_b_control
+;   $C827: audio_level_raw
+;   $C828: audio_level
 ;   $C8C8: vint_state
-; Confidence: medium
 ; ============================================================================
 
 fn_2200_001:
-        MOVE.W  (-24716).W,D0                   ; $00220C
-        MOVE.B  (-24603).W,D1                   ; $002210
-        LEA     (-30887).W,A3                   ; $002214
-        LEA     (-31465).W,A2                   ; $002218
-        LEA     (-30880).W,A1                   ; $00221C
-        BSR.S  .loc_002A                        ; $002220
-        MOVE.W  (-28556).W,D0                   ; $002222
-        MOVE.B  (-28443).W,D1                   ; $002226
-        LEA     (-30839).W,A3                   ; $00222A
-        LEA     (-31466).W,A2                   ; $00222E
-        LEA     (-30832).W,A1                   ; $002232
-.loc_002A:
-        BTST    #4,D1                           ; $002236
-        BEQ.S  .loc_0040                        ; $00223A
-        MOVE.B  (-14297).W,D1                   ; $00223C
-        CMP.B  (A3),D1                          ; $002240
-        BEQ.S  .loc_004E                        ; $002242
-        MOVE.B  D1,(A3)                         ; $002244
-        MOVE.B  #$01,(A2)                       ; $002246
-        BRA.S  .loc_004E                        ; $00224A
-.loc_0040:
-        MOVE.B  (-14296).W,D1                   ; $00224C
-        CMP.B  (A3),D1                          ; $002250
-        BEQ.S  .loc_004E                        ; $002252
-        MOVE.B  D1,(A3)                         ; $002254
-        MOVE.B  #$01,(A2)                       ; $002256
-.loc_004E:
-        CMPI.W  #$0000,(-14136).W               ; $00225A
-        DC.W    $6748               ; BEQ.S  $0022AA; $002260
-        CMPI.W  #$0002,(-14136).W               ; $002262
-        DC.W    $6700,$0082         ; BEQ.W  $0022EC; $002268
-        LSR.W  #5,D0                            ; $00226C
-        MOVE.W  D0,D1                           ; $00226E
-        LSR.W  #2,D0                            ; $002270
-        DC.W    $D240                           ; $002272
-        LSR.W  #1,D0                            ; $002274
-        DC.W    $D240                           ; $002276
-        ADDI.W  #$1A5E,D1                       ; $002278
-        ADD.W  (A1),D1                          ; $00227C
-        LSR.W  #1,D1                            ; $00227E
-        CMPI.W  #$1E00,D1                       ; $002280
-        DC.W    $6E0E               ; BGT.S  $002294; $002284
-        CMPI.W  #$1A5E,D1                       ; $002286
-        DC.W    $6E0C               ; BGT.S  $002298; $00228A
-        MOVE.W  #$1A5E,D1                       ; $00228C
-        MOVE.W  D1,(A1)                         ; $002290
-        RTS                                     ; $002292
+; --- channel A setup ---
+        move.w  ($FFFF9F74).w,d0                ; port A data
+        move.b  ($FFFF9FE5).w,d1                ; port A control
+        lea     ($FFFF8759).w,a3                ; channel A stored level
+        lea     ($FFFF8517).w,a2                ; channel A update flag
+        lea     ($FFFF8760).w,a1                ; channel A frequency
+        bsr.s   .calc_freq
+; --- channel B setup ---
+        move.w  ($FFFF9074).w,d0                ; port B data
+        move.b  ($FFFF90E5).w,d1                ; port B control
+        lea     ($FFFF8789).w,a3                ; channel B stored level
+        lea     ($FFFF8516).w,a2                ; channel B update flag
+        lea     ($FFFF8790).w,a1                ; channel B frequency
+; --- shared frequency calculation subroutine ---
+.calc_freq:
+        btst    #4,d1                           ; source select bit?
+        beq.s   .alt_source
+        move.b  ($FFFFC827).w,d1                ; audio_level_raw
+        cmp.b   (a3),d1                         ; changed from stored?
+        beq.s   .check_state
+        move.b  d1,(a3)                         ; update stored level
+        move.b  #$01,(a2)                       ; set update flag
+        bra.s   .check_state
+.alt_source:
+        move.b  ($FFFFC828).w,d1                ; audio_level
+        cmp.b   (a3),d1                         ; changed from stored?
+        beq.s   .check_state
+        move.b  d1,(a3)                         ; update stored level
+        move.b  #$01,(a2)                       ; set update flag
+.check_state:
+        cmpi.w  #$0000,($FFFFC8C8).w            ; vint_state = 0?
+        dc.w    $6748                            ; beq.s $0022AA → external handler (state 0)
+        cmpi.w  #$0002,($FFFFC8C8).w            ; vint_state = 2?
+        dc.w    $6700,$0082                      ; beq.w $0022EC → external handler (state 2)
+; --- frequency calculation: weighted shift average ---
+        lsr.w   #5,d0                           ; port_data >> 5
+        move.w  d0,d1                           ; D1 = port_data >> 5
+        lsr.w   #2,d0                           ; D0 = port_data >> 7
+        add.w   d0,d1                            ; D1 += D0
+        lsr.w   #1,d0                           ; D0 = port_data >> 8
+        add.w   d0,d1                            ; D1 += D0
+        addi.w  #$1A5E,d1                       ; add base frequency
+        add.w   (a1),d1                         ; add current frequency
+        lsr.w   #1,d1                           ; average (smooth)
+        cmpi.w  #$1E00,d1                       ; above max?
+        dc.w    $6E0E                            ; bgt.s $002294 → external (clamp high)
+        cmpi.w  #$1A5E,d1                       ; below min?
+        dc.w    $6E0C                            ; bgt.s $002298 → external (above min, store)
+        move.w  #$1A5E,d1                       ; clamp to minimum
+        move.w  d1,(a1)                         ; store frequency
+        rts

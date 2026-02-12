@@ -1,38 +1,37 @@
 ; ============================================================================
-; Io Port Init 011 (auto-analyzed)
+; VDP Register Initialization
 ; ROM Range: $000FEA-$001034 (74 bytes)
 ; ============================================================================
-; Category: boot
-; Purpose: Calls: io_port_init
-;   Object (A0): +$01
+; Disables interrupts, requests Z80 bus, calls io_port_init ($0018D8),
+; releases Z80 bus, restores SR. Then loads a 19-byte register table
+; and programs all VDP registers ($00-$12). Also initializes VDP
+; register caches at $C874/$C875.
 ;
-; Entry: A0 = object/entity pointer
+; Memory:
+;   $FFFFC874 = VDP register cache 1 (byte, set to $81 = mode reg 1)
+;   $FFFFC875 = VDP register cache 2 (byte, loaded from table[1])
+; Entry: A5 = VDP control port | Exit: VDP initialized
 ; Uses: D0, D7, A0, A5
-; Calls:
-;   $0018D8: io_port_init
-; Object fields:
-;   +$01: [unknown]
-; Confidence: low
 ; ============================================================================
 
 fn_200_011:
-        MOVE    SR,-(A7)                        ; $000FEA
-        MOVE    #$2700,SR                       ; $000FEC
-        MOVE.W  #$0100,Z80_BUSREQ                ; $000FF0
-.loc_000E:
-        BTST    #0,Z80_BUSREQ                    ; $000FF8
-        BNE.S  .loc_000E                        ; $001000
-        DC.W    $4EBA,$08D4         ; JSR     $0018D8(PC); $001002
-        MOVE.W  #$0000,Z80_BUSREQ                ; $001006
-        MOVE    (A7)+,SR                        ; $00100E
-        DC.W    $41FA,$0022         ; LEA     $001034(PC),A0; $001010
-        MOVE.B  #$81,(-14220).W                 ; $001014
-        MOVE.B  $0001(A0),(-14219).W            ; $00101A
-        MOVE.W  #$8000,D0                       ; $001020
-        MOVEQ   #$12,D7                         ; $001024
-.loc_003C:
-        MOVE.B  (A0)+,D0                        ; $001026
-        MOVE.W  D0,(A5)                         ; $001028
-        ADDI.W  #$0100,D0                       ; $00102A
-        DBRA    D7,.loc_003C                    ; $00102E
-        RTS                                     ; $001032
+        move    SR,-(a7)                        ; $000FEA: $40E7 — save status register
+        move    #$2700,SR                       ; $000FEC: $46FC $2700 — disable all interrupts
+        move.w  #$0100,Z80_BUSREQ              ; $000FF0: $33FC $0100 $00A1 $1100 — request Z80 bus
+.wait_z80:
+        btst    #0,Z80_BUSREQ                  ; $000FF8: $0838 $0000 $00A1 $1100 — bus granted?
+        bne.s   .wait_z80                       ; $001000: $66F6
+        dc.w    $4EBA,$08D4                     ; JSR io_port_init(PC) ; $001002: → $0018D8
+        move.w  #$0000,Z80_BUSREQ              ; $001006: $33FC $0000 $00A1 $1100 — release Z80 bus
+        move    (a7)+,SR                        ; $00100E: $46DF — restore status register
+        dc.w    $41FA,$0022                     ; LEA vdp_reg_table(PC),A0 ; $001010: → $001034
+        move.b  #$81,($FFFFC874).w             ; $001014: $11FC $0081 $C874 — VDP mode reg 1 cache
+        move.b  $0001(a0),($FFFFC875).w        ; $00101A: $11E8 $0001 $C875 — VDP cache 2 from table
+        move.w  #$8000,d0                       ; $001020: $303C $8000 — VDP reg write base ($80xx)
+        moveq   #$12,d7                         ; $001024: $7E12 — 19 registers ($00-$12)
+.write_regs:
+        move.b  (a0)+,d0                        ; $001026: $1018 — load register value
+        move.w  d0,(A5)                         ; $001028: $3A80 — write $80xx to VDP control
+        addi.w  #$0100,d0                       ; $00102A: $0640 $0100 — advance to next register
+        dbra    d7,.write_regs                  ; $00102E: $51CF $FFF6 — loop 19 times
+        rts                                     ; $001032: $4E75

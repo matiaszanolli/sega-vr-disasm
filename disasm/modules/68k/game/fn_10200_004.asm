@@ -1,23 +1,23 @@
 ; ============================================================================
-; Sh2 Comm Game 004 (auto-analyzed)
+; SH2 Scene Reset — Set Handler $88D4A4
 ; ROM Range: $011862-$01188A (40 bytes)
 ; ============================================================================
-; Category: sh2
-; Purpose: Short helper function
-;   Accesses 32X registers: COMM0
-;   RAM: $C87E (game_state)
+; Waits for SH2 idle (COMM0 clear), then resets game state and configures
+; a new SH2 scene handler at $0088D4A4 with display mode $0020.
 ;
-; RAM:
-;   $C87E: game_state
-; Confidence: high
+; Memory:
+;   $FFFFC87E = main game state (word, cleared to 0)
+;   $00FF0002 = SH2 scene handler pointer (long, set)
+;   $00FF0008 = display mode / frame delay (word, set to $0020)
+; Entry: none | Exit: SH2 reconfigured | Uses: none
 ; ============================================================================
 
 fn_10200_004:
-.loc_0000:
-        TST.B  COMM0_HI                        ; $011862
-        BNE.S  .loc_0000                        ; $011868
-        CLR.B  COMM1_LO                        ; $01186A
-        MOVE.W  #$0000,(-14210).W               ; $011870
-        MOVE.W  #$0020,$00FF0008                ; $011876
-        MOVE.L  #$0088D4A4,$00FF0002            ; $01187E
-        RTS                                     ; $011888
+.wait_sh2:
+        tst.b   COMM0_HI                        ; $011862: $4A38 $5120 — wait for SH2 idle
+        bne.s   .wait_sh2                        ; $011868: $66F6
+        clr.b   COMM1_LO                        ; $01186A: $4238 $5123 — clear COMM1
+        move.w  #$0000,($FFFFC87E).w            ; $011870: $31FC $0000 $C87E — reset game state
+        move.w  #$0020,$00FF0008                ; $011876: $33FC $0020 $00FF $0008 — display mode
+        move.l  #$0088D4A4,$00FF0002            ; $01187E: $23FC $0088 $D4A4 $00FF $0002 — scene handler
+        rts                                     ; $011888: $4E75

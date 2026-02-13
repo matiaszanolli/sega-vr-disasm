@@ -1,12 +1,20 @@
 ; ============================================================================
-; Sh2 Comm Palette Load 038 (auto-analyzed)
+; fn_10200_038 — Records Screen Initialization
 ; ROM Range: $011D0A-$011F38 (558 bytes)
 ; ============================================================================
-; Category: sh2
-; Purpose: Orchestrator calling 4 subroutines
-;   Accesses 32X registers: adapter_ctrl
-;   RAM: $C87A (vint_dispatch_state), $C87E (game_state)
-;   Calls: sh2_graphics_cmd, sh2_load_data, sh2_palette_load, sh2_send_cmd_wait
+; Initializes the records/results display screen. Similar structure to
+; fn_10200_020 (name entry init) but simpler — no BCD score accumulation
+; or player count variants.
+;
+; Sequence:
+;   1. Configure VDP mode, adapter control, display parameters
+;   2. Clear RAM regions (score buffers, display state)
+;   3. Set up 38×26 tile graphics region via sh2_graphics_cmd
+;   4. Load palette data via sh2_palette_load
+;   5. Copy palette entries with priority bit set to CRAM buffer
+;   6. Transfer 7 tile data blocks to SH2 framebuffer regions
+;   7. Initialize record display parameters
+;   8. Set VDP display mode and enable V-INT
 ;
 ; Uses: D0, D1, D2, D3, D4, A0, A1, A5
 ; RAM:
@@ -17,7 +25,6 @@
 ;   $00E22C: sh2_graphics_cmd
 ;   $00E2F0: sh2_load_data
 ;   $00E316: sh2_send_cmd_wait
-; Confidence: high
 ; ============================================================================
 
 fn_10200_038:

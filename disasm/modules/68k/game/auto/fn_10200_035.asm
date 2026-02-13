@@ -1,22 +1,23 @@
 ; ============================================================================
-; Name Entry Check 035 (auto-analyzed)
+; fn_10200_035 — Digit Tile Blit to Framebuffer
 ; ROM Range: $01199A-$0119B8 (30 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Short helper function
-;   Calls: name_entry_check
+; Same structure as fn_10200_016/032 — computes framebuffer address for digit
+; tile D1: offset = D1 × 192, added to base $0601DF00. Sends 12×16 tile block
+; via name_entry_check ($011A98) which acts as a strided tile blit function.
 ;
+; Entry: D1 = tile/digit index
+; Exit: tile data sent to SH2 framebuffer
 ; Uses: D0, D1, A0
 ; Calls:
-;   $011A98: name_entry_check
-; Confidence: low
+;   $011A98: name_entry_check (tile blit with stride)
 ; ============================================================================
 
 fn_10200_035:
         LSL.W  #6,D1                            ; $01199A
         MOVE.W  D1,D0                           ; $01199C
         LSL.W  #1,D1                            ; $01199E
-        DC.W    $D240                           ; $0119A0
+        ADD.W   D0,D1                           ; $0119A0
         MOVEA.L #$0601DF00,A0                   ; $0119A2
         ADDA.W  D1,A0                           ; $0119A8
         MOVE.W  #$000C,D0                       ; $0119AA

@@ -1,15 +1,18 @@
 ; ============================================================================
-; Camera 006 (auto-analyzed)
+; fn_12200_006 — VDP Tile Fill with Data Table
 ; ROM Range: $012F9C-$012FE4 (72 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Object (A3): +$39
+; Data prefix ($012F9C-$012FBF) contains structured VDP parameters: repeated
+; $0401 entries with field offsets (+$38, +$39) defining tile fill regions.
 ;
-; Entry: A3 = object/entity pointer
-; Uses: D0, D1, D2, D3, D4, D5, D6, A3
-; Object fields:
-;   +$39: [unknown]
-; Confidence: low
+; Code section ($012FC0-$012FE3) fills VDP VRAM with a repeated tile value.
+; For each region: sets VDP address register via A5, then writes D3 to VDP
+; data port (A6) for D1+1 words. Advances base address D0 by D4 per region,
+; looping D2+1 times.
+;
+; Entry: D0 = VDP base address, D1 = words per row, D2 = row count,
+;        D3 = fill value, D4 = row stride, A5 = VDP control, A6 = VDP data
+; Uses: D0, D1, D2, D3, D4, D5, D6
 ; ============================================================================
 
 fn_12200_006:
@@ -40,6 +43,6 @@ fn_12200_006:
 .loc_003A:
         MOVE.W  D3,(A6)                         ; $012FD6
         DBRA    D5,.loc_003A                    ; $012FD8
-        DC.W    $D084                           ; $012FDC
+        ADD.L   D4,D0                           ; $012FDC
         DBRA    D2,.loc_0028                    ; $012FDE
         RTS                                     ; $012FE2

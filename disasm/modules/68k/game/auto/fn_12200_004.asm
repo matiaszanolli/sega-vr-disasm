@@ -1,12 +1,14 @@
 ; ============================================================================
-; Camera 004 (auto-analyzed)
+; fn_12200_004 — Camera Angle Decrement Clamp
 ; ROM Range: $012CB0-$012CC2 (18 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Short helper function
+; Subtracts a small decrement ($10) from D0 if D0 ≥ $C000 (≥ 270° in 16-bit
+; angle space). If D0 < $C000, returns unchanged. Secondary entry at $012CBC
+; subtracts a larger decrement ($40) unconditionally.
 ;
+; Entry: D0 = camera angle (16-bit, $0000-$FFFF)
+; Exit: D0 = adjusted angle
 ; Uses: D0
-; Confidence: low
 ; ============================================================================
 
 fn_12200_004:

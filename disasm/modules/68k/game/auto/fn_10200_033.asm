@@ -1,12 +1,18 @@
 ; ============================================================================
-; Name Entry 033 (auto-analyzed)
+; fn_10200_033 — Lap Time Digit Renderer C (Register-Saving)
 ; ROM Range: $011942-$01197E (60 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Function in 10200 section (60 bytes)
+; Same logic as fn_10200_014/030 but saves/restores D3/D4 on stack via MOVEM.
+; Renders BCD lap time as digit tiles to SH2 framebuffer region B ($0601DF00).
+; Reads 4 BCD bytes from (A2)+, rendering 7 digit tiles + 2 separators via
+; fn_10200_034 (nibble split) and fn_10200_035 (tile blit).
 ;
+; Entry: A1 = destination tile pointer, A2 = BCD time data pointer
+; Exit: A1 advanced past tiles, A2 advanced 4 bytes
 ; Uses: D1, D3, D4, A1, A2
-; Confidence: low
+; Calls:
+;   fn_10200_034: BCD nibble splitter C
+;   fn_10200_035: digit tile blit to framebuffer
 ; ============================================================================
 
 fn_10200_033:

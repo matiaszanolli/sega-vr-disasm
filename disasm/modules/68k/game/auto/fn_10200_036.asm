@@ -1,14 +1,16 @@
 ; ============================================================================
-; Sh2 Comm Send Cmd 036 (auto-analyzed)
+; fn_10200_036 — Name Entry UI Tile Refresh
 ; ROM Range: $011B08-$011B6A (98 bytes)
 ; ============================================================================
-; Category: sh2
-; Purpose: Calls: sh2_send_cmd
+; Refreshes 4 UI tile blocks on the name entry screen via sh2_send_cmd:
+;   1. $04004C78 → $06018000 (80×16 — header/title tiles)
+;   2. $04008090 → $0601E8C0 (88×16 — score area tiles)
+;   3. $0400A090 → $0601EE40 (88×16 — score area tiles)
+;   4. $04008048 → $06018500 (56×32 — name area tiles)
 ;
 ; Uses: D0, D1, A0, A1
 ; Calls:
 ;   $00E35A: sh2_send_cmd
-; Confidence: medium
 ; ============================================================================
 
 fn_10200_036:

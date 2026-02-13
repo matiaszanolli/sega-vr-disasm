@@ -1,18 +1,22 @@
 ; ============================================================================
-; Name Entry Dispatch 039 (auto-analyzed)
+; fn_10200_039 — Records Screen State Dispatcher
 ; ROM Range: $011F38-$012084 (332 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: State dispatcher using jump table
-;   RAM: $C87E (game_state)
-;   Calls: object_update
+; Data prefix ($011F38-$012055) contains:
+;   - 15-bit RGB color palette ($0000, $0421, $0842... grayscale ramp)
+;   - Structured parameter blocks with sentinel values ($7FFF)
+;   - ASCII identifiers ("IF", "HIDE", "FADED") for display states
 ;
+; Code section ($012056-$012083) is a state dispatcher: reads game_state from
+; RAM $C87E, indexes a PC-relative jump table (3 states), and dispatches to
+; the appropriate handler. Calls object_update to process current state.
+;
+; Entry: A0 = object/entity pointer
 ; Uses: D0, D1, D3, D4, D5, D6, A0, A1
 ; RAM:
 ;   $C87E: game_state
 ; Calls:
 ;   $00B684: object_update
-; Confidence: high
 ; ============================================================================
 
 fn_10200_039:

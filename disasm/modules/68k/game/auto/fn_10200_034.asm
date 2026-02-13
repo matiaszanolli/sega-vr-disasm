@@ -1,12 +1,16 @@
 ; ============================================================================
-; Name Entry 034 (auto-analyzed)
+; fn_10200_034 — BCD Nibble Splitter C
 ; ROM Range: $01197E-$01199A (28 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Short helper function
+; Same logic as fn_10200_015/031 — splits byte in D3 into high and low
+; nibbles, rendering each as a digit tile via fn_10200_035. Advances A1 by
+; 8 after each tile (total +16).
 ;
+; Entry: D3 = BCD byte, A1 = destination tile pointer
+; Exit: A1 advanced by 16
 ; Uses: D1, D3, A1
-; Confidence: low
+; Calls:
+;   fn_10200_035: digit tile blit to framebuffer
 ; ============================================================================
 
 fn_10200_034:

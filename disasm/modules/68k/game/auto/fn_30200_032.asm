@@ -1,21 +1,21 @@
 ; ============================================================================
-; Fm 032 (auto-analyzed)
+; PSG Channel Processor — tick handler with sequence parser
 ; ROM Range: $030E20-$030ECE (174 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Orchestrator calling 9 subroutines
-;   Object (A0, A5): +$00, +$04 (speed_index/velocity), +$08, +$0E (param_e), +$10
+; Data prefix: FM/PSG register pair table at $030E20-$030E37.
+; Code at $030E38: PSG channel tick handler. Decrements duration timer
+; (A5+$0E). On expiry: clears bit 4, parses next sequence byte from A4:
+;   $E0+: special commands (handled by $031094)
+;   $80-$DF (negative): note-on — looks up 16-bit frequency from table
+;     at $030FE0, indexed by (byte-$81 + transpose A5+$08)
+;   $00-$7F (positive): rest/duration (handled by $0301B2)
+; If timer not expired: calls channel timer check (fn_30200_001),
+; volume update ($030F0E), set volume (fn_30200_002).
+; At $030EC2: validates frequency — if $FFFF (rest), sets mute.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A5 = object/entity pointer
+; Entry: A5 = PSG channel structure pointer
 ; Uses: D1, D5, D6, A0, A3, A4, A5, A6
-; Object fields:
-;   +$00: [unknown]
-;   +$04: speed_index/velocity
-;   +$08: [unknown]
-;   +$0E: param_e
-;   +$10: [unknown]
-; Confidence: low
+; Confidence: medium
 ; ============================================================================
 
 fn_30200_032:

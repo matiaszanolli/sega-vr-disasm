@@ -1,19 +1,19 @@
 ; ============================================================================
-; Fm Write Wrapper 023 (auto-analyzed)
+; FM Sound Driver Reset — full/partial silence and state clear
 ; ROM Range: $030B90-$030BE0 (80 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Calls: fm_write_wrapper
-;   Object (A6): +$00, +$09
+; Two entry points:
+;   $030B90 (full reset): Writes DAC enable ($2B=$80), key-off all ($27=$00),
+;     clears entire driver state ($E4 longs = $390 bytes), sets command
+;     sentinel $80, calls key-off+volume zero ($030B50), branches to $030FC8.
+;   $030BBC (partial reset): Writes key-off all ($27=$00), clears $88 longs
+;     ($220 bytes, preserves priority at A6+$00), sets command sentinel $80.
 ;
-; Entry: A6 = object/entity pointer
+; Entry: A6 = sound driver state pointer
 ; Uses: D0, D1, A0, A6
 ; Calls:
 ;   $030CBA: fm_write_wrapper
-; Object fields:
-;   +$00: [unknown]
-;   +$09: [unknown]
-; Confidence: medium
+; Confidence: high
 ; ============================================================================
 
 fn_30200_023:

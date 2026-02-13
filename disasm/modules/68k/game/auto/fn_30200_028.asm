@@ -1,17 +1,16 @@
 ; ============================================================================
-; Fm 028 (auto-analyzed)
+; FM Write Conditional — write port 0 with channel offset (fm_write_conditional)
 ; ROM Range: $030CCC-$030CF4 (40 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Short helper function
-;   Object (A0, A5): +$01
+; Checks bit 2 in A5+$01 (channel flags). If set, skips write entirely.
+; Otherwise adds channel offset (A5+$01) to register number D0, then
+; writes register D0, data D1 to YM2612 port 0 at $A04000/$A04001.
+; Busy-waits on bit 7 (busy flag) between register select and data write.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A5 = object/entity pointer
-; Uses: D0, D1, A0, A5
-; Object fields:
-;   +$01: [unknown]
-; Confidence: low
+; Entry: A5 = FM channel structure pointer (+$01=channel/flags)
+; Entry: D0 = FM register number, D1 = data value
+; Uses: D0, D1, A0
+; Confidence: high
 ; ============================================================================
 
 fn_30200_028:

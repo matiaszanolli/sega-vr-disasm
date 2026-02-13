@@ -1,11 +1,11 @@
 ; ============================================================================
-; Fm Write Port0 027 (auto-analyzed)
+; FM Write Wrapper — request bus, write port 0, release (fm_write_wrapper)
 ; ROM Range: $030CBA-$030CCC (18 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Short helper function
-;   Calls: z80_bus_request, fm_write_port0
+; Convenience wrapper: requests Z80 bus, calls fm_write_port0 to write
+; register D0 with data D1 to YM2612 port 0, releases Z80 bus.
 ;
+; Entry: D0 = FM register number, D1 = data value
 ; Calls:
 ;   $030CD8: fm_write_port0
 ;   $030D1C: z80_bus_request

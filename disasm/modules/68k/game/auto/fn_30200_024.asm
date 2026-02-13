@@ -1,15 +1,20 @@
 ; ============================================================================
-; Fm 024 (auto-analyzed)
+; Z80 Sound Program Upload + FM Key-On — load driver and key-on helper
 ; ROM Range: $030BF6-$030C8A (148 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Object (A5): +$01
+; Two parts:
+;   $030BF6: Requests Z80 bus, uploads sound program from $031688 to Z80
+;     RAM ($A00000, $28D bytes), uploads DAC samples from $031915 to
+;     $A01000 ($1000 bytes). Resets Z80 (low→14 NOPs→high), releases bus,
+;     branches to silence handler ($030B90).
+;   $030C6E (fm_key_on): Checks mute (bit 1) and key-off (bit 2) flags.
+;     If neither set, writes key-on register $28 with channel number
+;     (A5+$01 OR $F0). Falls through to fm_write_wrapper.
 ;
-; Entry: A5 = object/entity pointer
+; Entry: A5 = FM channel structure pointer (for key-on entry)
+; Entry: A6 = sound driver state pointer (loaded at $FF8500 for upload)
 ; Uses: D0, D1, A0, A1, A5, A6
-; Object fields:
-;   +$01: [unknown]
-; Confidence: low
+; Confidence: high
 ; ============================================================================
 
 fn_30200_024:

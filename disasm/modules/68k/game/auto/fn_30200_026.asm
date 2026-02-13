@@ -1,12 +1,14 @@
 ; ============================================================================
-; Fm Write Conditional 026 (auto-analyzed)
+; FM Conditional Write with Bus — write FM register if not key-off
 ; ROM Range: $030CA2-$030CBA (24 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Short helper function
-;   Calls: z80_bus_request, fm_write_conditional
+; Checks bit 2 (key-off) on channel (A5). If set, skips write. Otherwise
+; requests Z80 bus, calls fm_write_conditional to write register D0 with
+; data D1 (with channel offset), releases Z80 bus.
 ;
-; Uses: A5
+; Entry: A5 = FM channel structure pointer
+; Entry: D0 = FM register number, D1 = data value
+; Uses: D0, D1, A5
 ; Calls:
 ;   $030CCC: fm_write_conditional
 ;   $030D1C: z80_bus_request

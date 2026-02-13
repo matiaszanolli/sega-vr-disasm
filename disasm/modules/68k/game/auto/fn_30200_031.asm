@@ -1,16 +1,13 @@
 ; ============================================================================
-; Fm 031 (auto-analyzed)
+; FM Fade Clear — reset fade state to off
 ; ROM Range: $030DEE-$030DF4 (6 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Small leaf function
-;   Object (A6): +$38
+; Clears fade state byte (A6+$38 = 0) to disable fade processing.
+; Called when fade operation completes or is cancelled.
 ;
-; Entry: A6 = object/entity pointer
+; Entry: A6 = sound driver state pointer
 ; Uses: A6
-; Object fields:
-;   +$38: [unknown]
-; Confidence: low
+; Confidence: high
 ; ============================================================================
 
 fn_30200_031:

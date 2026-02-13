@@ -1,25 +1,23 @@
 ; ============================================================================
-; Fm 029 (auto-analyzed)
+; FM Write Port 0/1 — channel-offset write + direct port 1 write
 ; ROM Range: $030CF4-$030D1C (40 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Short helper function
-;   Object (A0, A5): +$01, +$02 (flags/type), +$03
+; Two entry points:
+;   $030CF4 (fm_write_port0): Reads channel byte from A5+$01, clears
+;     bit 2, adds offset to register D0 via D2. Falls through to port 1.
+;   $030CFE (fm_write_port1): Writes register D0, data D1 to YM2612
+;     port 1 at $A04002/$A04003. Busy-waits on bit 7 between writes.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A5 = object/entity pointer
-; Uses: D0, D1, D2, A0, A5
-; Object fields:
-;   +$01: [unknown]
-;   +$02: flags/type
-;   +$03: [unknown]
-; Confidence: low
+; Entry: A5 = FM channel structure pointer (for port 0 entry)
+; Entry: D0 = FM register number, D1 = data value
+; Uses: D0, D1, D2, A0
+; Confidence: high
 ; ============================================================================
 
 fn_30200_029:
         MOVE.B  $0001(A5),D2                    ; $030CF4
         BCLR    #2,D2                           ; $030CF8
-        DC.W    $D002                           ; $030CFC
+        ADD.B   D2,D0                           ; $030CFC
         LEA     $00A04000,A0                    ; $030CFE
 .loc_0010:
         BTST    #7,(A0)                         ; $030D04

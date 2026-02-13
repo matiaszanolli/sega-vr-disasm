@@ -1,25 +1,19 @@
 ; ============================================================================
-; Fm Z80 Dac Write 030 (auto-analyzed)
+; FM Fade In/Out Processor — adjust all channel volumes per frame
 ; ROM Range: $030D4E-$030DEE (160 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Orchestrator calling 3 subroutines
-;   Calls: z80_dac_write
-;   Object (A5, A6): +$09, +$38, +$39, +$3A, +$3B, +$40 (heading_angle)
+; Checks fade state at A6+$38 (0=off, 2=done → skip). For active fades:
+; adjusts envelope position (A5+$09) for all channel types using per-type
+; fade rates stored at A6+$39 (DAC), $3A (FM), $3B (PSG):
+;   Fade out (negative $38): subtracts rate, calls write on underflow
+;   Fade in (positive $38): adds rate, silences on overflow
+;   DAC ($0040): calls z80_dac_write ($030DF4)
+;   FM ($0070, 6 channels): calls $03135A
+;   PSG ($0220+, 3 channels): limit $10, calls $030F60
+; After fade-in cycle completes, sets state to $02 (done).
 ;
-; Entry: A5 = object/entity pointer
-; Entry: A6 = object/entity pointer
+; Entry: A6 = sound driver state pointer
 ; Uses: D5, D6, D7, A5, A6
-; Calls:
-;   $030DF4: z80_dac_write
-; Object fields:
-;   +$09: [unknown]
-;   +$38: [unknown]
-;   +$39: [unknown]
-;   +$3A: [unknown]
-;   +$3B: [unknown]
-;   +$40: heading_angle
-;   +$70: [unknown]
 ; Confidence: medium
 ; ============================================================================
 

@@ -1,16 +1,17 @@
 ; ============================================================================
-; Fm 025 (auto-analyzed)
+; FM Init Channel — key-on with flag checks (fm_init_channel)
 ; ROM Range: $030C8A-$030CA2 (24 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Short helper function
-;   Object (A5): +$01
+; Two entry points:
+;   $030C8A: Checks bit 4 (sustain) and bit 2 (key-off). If either set,
+;     returns without action.
+;   $030C96: Checks only bit 2 (key-off). If set, returns.
+; If checks pass: writes key-on register $28 with channel number from
+; A5+$01. Falls through to fm_write_wrapper ($030CBA).
 ;
-; Entry: A5 = object/entity pointer
+; Entry: A5 = FM channel structure pointer (+$01=channel number)
 ; Uses: D0, D1, A5
-; Object fields:
-;   +$01: [unknown]
-; Confidence: low
+; Confidence: high
 ; ============================================================================
 
 fn_30200_025:

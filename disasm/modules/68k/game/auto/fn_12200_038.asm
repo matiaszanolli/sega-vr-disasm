@@ -1,27 +1,22 @@
 ; ============================================================================
-; Camera Send Cmd 038 (auto-analyzed)
+; fn_12200_038 — Race Config Main Loop
 ; ROM Range: $013CBA-$013F80 (710 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Orchestrator calling 4 subroutines
-;   RAM: $C87E (game_state)
-;   Calls: dma_transfer, sh2_send_cmd
-;   Object (A0, A3, A4): +$00, +$04 (speed_index/velocity), +$08
+; Per-frame update for the race configuration / car selection screen:
+;   1. DMA transfer, object_update, sprite_update
+;   2. Render 3 static tile blocks (header, P1 area, P2 area)
+;   3. Render dynamic car preview tiles using lookup tables ($0089AA12/2E)
+;      with indexed tile selection based on current car/driver choice
+;   4. Handle player 1 input (D-pad, buttons) via fn_12200_039
+;   5. Handle player 2 input via fn_12200_039 (if 2P config)
+;   6. State machine: browsing ($0000), confirm ($0001/$0002)
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A3 = object/entity pointer
-; Entry: A4 = object/entity pointer
 ; Uses: D0, D1, D2, D3, D4, A0, A1, A2
 ; RAM:
 ;   $C87E: game_state
 ; Calls:
 ;   $00E35A: sh2_send_cmd
 ;   $00E52C: dma_transfer
-; Object fields:
-;   +$00: [unknown]
-;   +$04: speed_index/velocity
-;   +$08: [unknown]
-; Confidence: high
 ; ============================================================================
 
 fn_12200_038:
@@ -49,8 +44,8 @@ fn_12200_038:
         LEA     $0089AA12,A0                    ; $013D1C
         CLR.W  D0                               ; $013D22
         MOVE.B  (-366).W,D0                     ; $013D24
-        DC.W    $D040                           ; $013D28
-        DC.W    $D040                           ; $013D2A
+        ADD.W   D0,D0                           ; $013D28
+        ADD.W   D0,D0                           ; $013D2A
         MOVEA.L $00(A0,D0.W),A0                 ; $013D2C
         MOVEA.L #$0400707C,A1                   ; $013D30
         MOVE.W  #$0048,D0                       ; $013D36
@@ -62,8 +57,8 @@ fn_12200_038:
         LEA     $0089AA12,A0                    ; $013D4A
         CLR.W  D0                               ; $013D50
         MOVE.B  (-365).W,D0                     ; $013D52
-        DC.W    $D040                           ; $013D56
-        DC.W    $D040                           ; $013D58
+        ADD.W   D0,D0                           ; $013D56
+        ADD.W   D0,D0                           ; $013D58
         MOVEA.L $00(A0,D0.W),A0                 ; $013D5A
         MOVEA.L #$0401307C,A1                   ; $013D5E
         MOVE.W  #$0048,D0                       ; $013D64
@@ -83,8 +78,8 @@ fn_12200_038:
         MOVEA.L $04(A3,D4.W),A4                 ; $013D94
         CLR.W  D1                               ; $013D98
         MOVE.B  (A2)+,D1                        ; $013D9A
-        DC.W    $D241                           ; $013D9C
-        DC.W    $D241                           ; $013D9E
+        ADD.W   D1,D1                           ; $013D9C
+        ADD.W   D1,D1                           ; $013D9E
         MOVEA.L $00(A4,D1.W),A1                 ; $013DA0
         BTST    #0,(-14312).W                   ; $013DA4
         BNE.S  .loc_0112                        ; $013DAA
@@ -126,8 +121,8 @@ fn_12200_038:
         MOVEA.L $04(A3,D4.W),A4                 ; $013E2A
         CLR.W  D1                               ; $013E2E
         MOVE.B  (A2)+,D1                        ; $013E30
-        DC.W    $D241                           ; $013E32
-        DC.W    $D241                           ; $013E34
+        ADD.W   D1,D1                           ; $013E32
+        ADD.W   D1,D1                           ; $013E34
         MOVEA.L $00(A4,D1.W),A1                 ; $013E36
         BTST    #1,(-14312).W                   ; $013E3A
         BNE.S  .loc_01A8                        ; $013E40

@@ -1,12 +1,17 @@
 ; ============================================================================
-; Vdp 001 (auto-analyzed)
+; fn_200_001 — VDP Register Table Load
 ; ROM Range: $000512-$0005CE (188 bytes)
 ; ============================================================================
-; Category: vdp
-; Purpose: Accesses VDP registers
+; Data prefix ($000512-$0005A5) contains the game's internal identification
+; strings: "MAIN Course...", "Security Program...", "Copyright SEGA
+; ENTERPRISES 1994" — ASCII text embedded in ROM.
 ;
-; Uses: D0, D1, D2, D3, D4, D5, D7, A0
-; Confidence: medium
+; Code section ($0005A6-$0005CD) loads all 19 VDP registers ($80xx-$92xx)
+; from a table pointed to by A0. Reads VDP status first, then writes each
+; register value as $80xx + table byte to VDP control port.
+;
+; Entry: A0 = VDP register value table (19 bytes)
+; Uses: D0, D1, D7, A0, A1
 ; ============================================================================
 
 fn_200_001:
@@ -97,7 +102,7 @@ fn_200_001:
 .loc_00AE:
         MOVE.W  D0,(A1)                         ; $0005C0
 .loc_00B0:
-        DC.W    $D041                           ; $0005C2
+        ADD.W   D1,D0                           ; $0005C2
         DBRA    D7,.loc_00AC                    ; $0005C4
         MOVEM.L (A7)+,D0/D1/A1                  ; $0005C8
         RTS                                     ; $0005CC

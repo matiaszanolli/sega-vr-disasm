@@ -1,19 +1,19 @@
 ; ============================================================================
-; Camera Dispatch 036 (auto-analyzed)
+; fn_12200_036 — Race Config State Dispatcher
 ; ROM Range: $013A88-$013C30 (424 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: State dispatcher using jump table
-;   RAM: $C87E (game_state)
-;   Object (A0): +$77
+; Data prefix ($013A88-$013BC5) contains:
+;   - 15-bit RGB color palette (grayscale ramp + game-specific colors)
+;   - Structured parameter blocks with coordinate pairs and sentinel $7FFF
+;   - Display state identifiers for car selection UI elements
 ;
-; Entry: A0 = object/entity pointer
+; Code section ($013BC6-$013C2F) is a state dispatcher: reads game_state,
+; indexes PC-relative jump table (4 states), dispatches to handler. First
+; handler configures player 1 and player 2 car selection via fn_12200_039.
+;
 ; Uses: D0, D1, D2, D3, D4, D5, D6, D7
 ; RAM:
 ;   $C87E: game_state
-; Object fields:
-;   +$77: [unknown]
-; Confidence: medium
 ; ============================================================================
 
 fn_12200_036:

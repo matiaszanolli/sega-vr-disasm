@@ -1,12 +1,14 @@
 ; ============================================================================
-; Util 037 (auto-analyzed)
+; fn_14200_037 — Scroll Position Decrement
 ; ROM Range: $014872-$014882 (16 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Short helper function
+; Decrements a scroll position by $10 (16 pixels). Compares current value
+; at (A1) with target at (A2), updates (A2) if different, then subtracts $10
+; from (A2) and writes result back to (A1).
 ;
+; Entry: A1 = current position pointer, A2 = target position pointer
+; Exit: (A1) updated with decremented value
 ; Uses: D0, A1, A2
-; Confidence: low
 ; ============================================================================
 
 fn_14200_037:

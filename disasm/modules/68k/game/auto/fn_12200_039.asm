@@ -1,15 +1,19 @@
 ; ============================================================================
-; Camera 039 (auto-analyzed)
+; fn_12200_039 — Car/Driver Selection Input Handler
 ; ROM Range: $013FE0-$01418E (430 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Object (A3): +$00
+; Processes input for car/driver selection on the race config screen.
+;   - D-pad up/down: cycle through car choices (0-4 or 0-7 depending on D0)
+;   - D-pad left/right: cycle through color/driver variants with wrap
+;   - Button A+B: confirm selection → copy choice to output buffer
+;   - Button C: toggle manual/auto transmission
+;   - Start (bit 7): signal ready for race start
+; Uses lookup tables at $0089AB8E/$0089ABBE for car graphics data.
 ;
-; Entry: A3 = object/entity pointer
+; Entry: D0 = max car count flag, D1 = button state, D2 = player index,
+;        D3 = repeat timer flag, A0 = car index ptr, A1 = saved choices,
+;        A2 = output buffer, A3 = current selection ptr, A4 = ready flag
 ; Uses: D0, D1, D2, D3, D4, A0, A1, A2
-; Object fields:
-;   +$00: [unknown]
-; Confidence: low
 ; ============================================================================
 
 fn_12200_039:
@@ -150,9 +154,9 @@ fn_12200_039:
 .loc_017C:
         CLR.W  D3                               ; $01415C
         MOVE.B  (A0),D3                         ; $01415E
-        DC.W    $D643                           ; $014160
-        DC.W    $D643                           ; $014162
-        DC.W    $D643                           ; $014164
+        ADD.W   D3,D3                           ; $014160
+        ADD.W   D3,D3                           ; $014162
+        ADD.W   D3,D3                           ; $014164
         LEA     $0089AB8E,A3                    ; $014166
         LEA     $00(A3,D3.W),A3                 ; $01416C
         MOVE.W  #$0004,D2                       ; $014170

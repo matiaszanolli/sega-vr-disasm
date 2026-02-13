@@ -1,19 +1,19 @@
 ; ============================================================================
-; Sh2 Comm Cmd 27 038 (auto-analyzed)
+; fn_14200_038 — Sprite Strip Renderer via SH2 Cmd 27
 ; ROM Range: $014200-$014262 (98 bytes)
 ; ============================================================================
-; Category: sh2
-; Purpose: Accesses 32X registers: COMM0
-;   Calls: sh2_cmd_27
-;   Object (A1): +$00
+; Data prefix: DC.W $AB6E (2 bytes, likely a constant or flags word).
 ;
-; Entry: A1 = object/entity pointer
+; Renders a multi-row sprite strip to SH2 by looping through entity table
+; entries. For each row: computes entry address via D2×4 index into (A1),
+; adds vertical offset (D1 first row, D5 subsequent), sends 80×7 tile data
+; via sh2_cmd_27. Loop count from D3 (default 6 rows).
+;
+; Entry: A0 = base data, A1 = entity table, D1 = initial Y offset,
+;        D3 = row count, D5 = per-row Y offset
 ; Uses: D0, D1, D2, D3, D4, D5, A0, A1
 ; Calls:
 ;   $00E3B4: sh2_cmd_27
-; Object fields:
-;   +$00: [unknown]
-; Confidence: high
 ; ============================================================================
 
 fn_14200_038:
@@ -22,8 +22,8 @@ fn_14200_038:
         CLR.W  D2                               ; $014206
         MOVE.B  (A0),D2                         ; $014208
         MOVE.W  D2,D4                           ; $01420A
-        DC.W    $D442                           ; $01420C
-        DC.W    $D442                           ; $01420E
+        ADD.W   D2,D2                           ; $01420C
+        ADD.W   D2,D2                           ; $01420E
         MOVEA.L $00(A1,D2.W),A0                 ; $014210
         ADDA.L  D1,A0                           ; $014214
         MOVE.W  #$0050,D0                       ; $014216
@@ -33,13 +33,13 @@ fn_14200_038:
         TST.B  COMM0_HI                        ; $014222
         BNE.S  .loc_0022                        ; $014228
         DC.W    $4EBA,$A188         ; JSR     $00E3B4(PC); $01422A
-        DC.W    $9644                           ; $01422E
+        SUB.W   D4,D3                           ; $01422E
         BCS.W  .loc_0060                        ; $014230
         ADDQ.W  #1,D4                           ; $014234
 .loc_0036:
         MOVE.B  D4,D2                           ; $014236
-        DC.W    $D442                           ; $014238
-        DC.W    $D442                           ; $01423A
+        ADD.W   D2,D2                           ; $014238
+        ADD.W   D2,D2                           ; $01423A
         MOVEA.L $00(A1,D2.W),A0                 ; $01423C
         ADDA.L  D5,A0                           ; $014240
         MOVE.W  #$0050,D0                       ; $014242

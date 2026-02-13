@@ -1,16 +1,17 @@
 ; ============================================================================
-; Vdp 002 (auto-analyzed)
+; fn_200_002 — VDP VRAM Clear via DMA
 ; ROM Range: $0005CE-$00063E (112 bytes)
 ; ============================================================================
-; Category: vdp
-; Purpose: Accesses VDP registers
-;   Object (A1): +$04 (speed_index/velocity)
+; Clears VDP VRAM using DMA fill operations. Loads DMA parameters from table
+; at $0000063E, then:
+;   1. Write 7 VDP register commands + DMA trigger from table
+;   2. Wait for DMA completion (poll VDP status bit 1)
+;   3. Write 2 more register commands from table
+;   4. Fill CRAM ($C0000000) with zeros — 16 iterations × 4 words = 64 colors
+;   5. Fill sprite table ($40000010) with zeros — 10 iterations × 4 words
 ;
-; Entry: A1 = object/entity pointer
+; Entry: D1 = initial DMA fill value
 ; Uses: D0, D1, D7, A0, A1
-; Object fields:
-;   +$04: speed_index/velocity
-; Confidence: medium
 ; ============================================================================
 
 fn_200_002:

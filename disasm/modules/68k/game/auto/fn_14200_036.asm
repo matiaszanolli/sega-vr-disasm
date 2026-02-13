@@ -1,12 +1,14 @@
 ; ============================================================================
-; Util 036 (auto-analyzed)
+; fn_14200_036 — Scroll Position Increment
 ; ROM Range: $014862-$014872 (16 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Short helper function
+; Increments a scroll position by $10 (16 pixels). Compares current value
+; at (A1) with target at (A2), updates (A2) if different, then adds $10
+; to (A2) and writes result back to (A1).
 ;
+; Entry: A1 = current position pointer, A2 = target position pointer
+; Exit: (A1) updated with incremented value
 ; Uses: D0, A1, A2
-; Confidence: low
 ; ============================================================================
 
 fn_14200_036:

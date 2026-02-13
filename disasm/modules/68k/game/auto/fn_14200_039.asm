@@ -1,16 +1,21 @@
 ; ============================================================================
-; Util Menu 039 (auto-analyzed)
+; fn_14200_039 — Game Mode Transition Init
 ; ROM Range: $014262-$0143C6 (356 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Accesses 32X registers: adapter_ctrl, COMM0
-;   RAM: $C87E (game_state), $C082 (menu_state)
+; Initializes hardware state for a game mode transition. Performs full VDP
+; reset including DMA fills to clear VRAM:
+;   1. Disable interrupts (SR = $2700), configure adapter control
+;   2. Request Z80 bus, set up VDP DMA parameters
+;   3. DMA fill: clear nametable A ($C000, 8KB) and sprite table ($4000)
+;   4. Release Z80 bus, initialize sound driver
+;   5. Set VDP display mode to 256-color (mode $03)
+;   6. Configure COMM0 for SH2 scene sync
+;   7. Set dispatch table pointer to mode-specific handler
 ;
 ; Uses: D0, D1, D4, D7, A5, A6
 ; RAM:
 ;   $C082: menu_state
 ;   $C87E: game_state
-; Confidence: high
 ; ============================================================================
 
 fn_14200_039:

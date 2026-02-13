@@ -1,12 +1,12 @@
 ; ============================================================================
-; Sh2 Comm Palette Load 035 (auto-analyzed)
+; fn_12200_035 — Race Config Screen Initialization
 ; ROM Range: $013864-$013A88 (548 bytes)
 ; ============================================================================
-; Category: sh2
-; Purpose: Orchestrator calling 4 subroutines
-;   Accesses 32X registers: adapter_ctrl
-;   RAM: $C87A (vint_dispatch_state), $C87E (game_state)
-;   Calls: sh2_graphics_cmd, sh2_load_data, sh2_palette_load, sh2_send_cmd_wait
+; Initializes the race configuration/car selection screen. Standard VDP setup
+; template with track-variant tile loading:
+;   - Loads track-specific tile sets based on bits 0-3 of $C958 (race config)
+;   - Three tile data regions at $06014000, $06017CC0, $0601DFC0
+;   - Selects between 3 tile ROM sources per player based on config flags
 ;
 ; Uses: D0, D1, D2, D3, D4, A0, A1, A5
 ; RAM:
@@ -17,7 +17,6 @@
 ;   $00E22C: sh2_graphics_cmd
 ;   $00E2F0: sh2_load_data
 ;   $00E316: sh2_send_cmd_wait
-; Confidence: high
 ; ============================================================================
 
 fn_12200_035:

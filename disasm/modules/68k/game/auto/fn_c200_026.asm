@@ -1,29 +1,15 @@
 ; ============================================================================
-; Sh2 Comm Dma Transfer 026 (auto-analyzed)
+; fn_c200_026 — Palette Data Loader and Cycle Handler
 ; ROM Range: $00D8CC-$00DA90 (452 bytes)
-; ============================================================================
-; Category: sh2
-; Purpose: Accesses 32X registers: COMM0
-;   RAM: $C87E (game_state)
-;   Calls: dma_transfer
-;   Object (A0, A1): +$00, +$02 (flags/type), +$04 (speed_index/velocity), +$06 (speed), +$08, +$0A (param_a)
+; Loads palette data from ROM tables $0088DAA8/$0088DA90 indexed by
+; current palette selection. Copies 128 words to $FF6E00 framebuffer
+; palette. Populates display object at $FF6100 with viewport and
+; animation parameters. Sends SH2 DMA command via COMM0. Handles
+; D-pad input for palette cycling: right/left advance/retreat through
+; palette entries with wrapping and sound trigger ($A9).
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
 ; Uses: D0, D1, D7, A0, A1, A2
-; RAM:
-;   $C87E: game_state
-; Calls:
-;   $00E52C: dma_transfer
-; Object fields:
-;   +$00: [unknown]
-;   +$02: flags/type
-;   +$04: speed_index/velocity
-;   +$06: speed
-;   +$08: [unknown]
-;   +$0A: param_a
-;   +$0C: [unknown]
-;   +$0E: param_e
+; Calls: $00E52C (dma_transfer)
 ; Confidence: high
 ; ============================================================================
 
@@ -36,8 +22,8 @@ fn_c200_026:
         BEQ.W  .loc_001E                        ; $00D8E2
         MOVE.B  (-24539).W,D0                   ; $00D8E6
 .loc_001E:
-        DC.W    $D040                           ; $00D8EA
-        DC.W    $D040                           ; $00D8EC
+        ADD.W   D0,D0                           ; $00D8EA
+        ADD.W   D0,D0                           ; $00D8EC
         MOVEA.L $00(A1,D0.W),A1                 ; $00D8EE
         MOVE.W  #$007F,D0                       ; $00D8F2
 .loc_002A:
@@ -60,8 +46,8 @@ fn_c200_026:
         BEQ.S  .loc_007E                        ; $00D944
         MOVE.B  (-24539).W,D1                   ; $00D946
 .loc_007E:
-        DC.W    $D241                           ; $00D94A
-        DC.W    $D241                           ; $00D94C
+        ADD.W   D1,D1                           ; $00D94A
+        ADD.W   D1,D1                           ; $00D94C
         MOVE.L  $00(A0,D1.W),$0010(A1)          ; $00D94E
         MOVE.W  #$0044,$00A15110                ; $00D954
         MOVE.B  #$04,$00A15107                  ; $00D95C

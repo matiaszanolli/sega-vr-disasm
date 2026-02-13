@@ -1,28 +1,14 @@
 ; ============================================================================
-; Scene Sprite Table Init 020 (auto-analyzed)
+; fn_c200_020 — Race Sprite Table Initialization
 ; ROM Range: $00D08A-$00D19C (274 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Orchestrator calling 3 subroutines
-;   RAM: $C8A0 (race_state), $C89C (sh2_comm_state), $C8C8 (vint_state), $C8CC (race_substate)
-;   Calls: sprite_table_init
-;   Object (A1, A3): +$00, +$01, +$04 (speed_index/velocity), +$10
+; Initializes race sprite table. Sets sound parameters ($C4 default),
+; display mode ($C200). Loads display data from ROM timing table,
+; copies palette entries via fn_a200_016 (nibble unpacker) in a 5-
+; iteration loop. Searches palette table for match, configures sprite
+; table via $006C46, and sets race viewport parameters.
 ;
-; Entry: A1 = object/entity pointer
-; Entry: A3 = object/entity pointer
 ; Uses: D0, D1, D7, A1, A2, A3
-; RAM:
-;   $C89C: sh2_comm_state
-;   $C8A0: race_state
-;   $C8C8: vint_state
-;   $C8CC: race_substate
-; Calls:
-;   $006C46: sprite_table_init
-; Object fields:
-;   +$00: [unknown]
-;   +$01: [unknown]
-;   +$04: speed_index/velocity
-;   +$10: [unknown]
+; Calls: $006C46 (sprite_table_init), $00B43C (fn_a200_016)
 ; Confidence: high
 ; ============================================================================
 
@@ -45,7 +31,7 @@ fn_c200_020:
         MOVE.W  (-14136).W,D0                   ; $00D0DA
         LSL.W  #3,D0                            ; $00D0DE
         ADD.W  (-14132).W,D0                    ; $00D0E0
-        DC.W    $D240                           ; $00D0E4
+        ADD.W   D0,D1                           ; $00D0E4
         LEA     $00(A1,D1.W),A1                 ; $00D0E6
         LEA     $00FF68E0,A2                    ; $00D0EA
         JMP     $00884280                       ; $00D0F0

@@ -1,12 +1,11 @@
 ; ============================================================================
-; Sh2 Comm 001 (auto-analyzed)
+; fn_e200_001 — Default Palette Color Data
 ; ROM Range: $00E5AC-$00E5CE (34 bytes)
-; ============================================================================
-; Category: sh2
-; Purpose: Short helper function
+; Static palette color data table. Contains 12 CRAM color entries
+; ($0EEE = white, $0000 = black) used as default/fallback palette.
+; The RTS at end allows this to be called as a no-op initializer.
 ;
-; Uses: D0
-; Confidence: low
+; Confidence: high
 ; ============================================================================
 
 fn_e200_001:

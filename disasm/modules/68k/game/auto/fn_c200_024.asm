@@ -1,19 +1,14 @@
 ; ============================================================================
-; Scene Dispatch 024 (auto-analyzed)
+; fn_c200_024 — Scene State Dispatcher with Palette Data
 ; ROM Range: $00D7B2-$00D8B8 (262 bytes)
-; ============================================================================
-; Category: game
-; Purpose: State dispatcher using jump table
-;   RAM: $C87E (game_state)
-;   Object (A4): +$88
+; Data prefix (~178 bytes) containing palette/color tables and scene
+; configuration parameters. Code section dispatches scene states via
+; two jump tables at $00D874 and $00D898. Calls $00882080 for scene
+; setup, advances state counter at $C8CE. Second entry triggers
+; sound $81 and increments state by 4.
 ;
-; Entry: A4 = object/entity pointer
 ; Uses: D0, D1, D4, D5, D6, A0, A1, A2
-; RAM:
-;   $C87E: game_state
-; Object fields:
-;   +$88: [unknown]
-; Confidence: medium
+; Confidence: high
 ; ============================================================================
 
 fn_c200_024:

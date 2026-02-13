@@ -1,22 +1,16 @@
 ; ============================================================================
-; Sh2 Comm Palette Load 023 (auto-analyzed)
+; fn_c200_023 — SH2 Display and Palette Initialization
 ; ROM Range: $00D482-$00D7B2 (816 bytes)
-; ============================================================================
-; Category: sh2
-; Purpose: Orchestrator calling 4 subroutines
-;   Accesses 32X registers: adapter_ctrl, COMM0, COMM1
-;   RAM: $C87A (vint_dispatch_state), $C87E (game_state)
-;   Calls: sh2_palette_load, sh2_send_cmd_wait, sh2_graphics_cmd, sh2_load_data
+; Major scene initialization orchestrator. Data prefix (8 bytes).
+; Configures 32X VDP mode, clears framebuffer and CRAM via DMA.
+; Loads SH2 palette data, sends graphics tile commands, transfers
+; compressed data to SH2 memory via sh2_send_cmd_wait. Configures
+; overlay graphics with split-screen support. Sets MARS interrupts,
+; VDP mode, and initializes SH2 communication via COMM0/COMM1.
 ;
 ; Uses: D0, D1, D2, D3, D4, A0, A1, A5
-; RAM:
-;   $C87A: vint_dispatch_state
-;   $C87E: game_state
-; Calls:
-;   $00E1BC: sh2_palette_load
-;   $00E22C: sh2_graphics_cmd
-;   $00E2F0: sh2_load_data
-;   $00E316: sh2_send_cmd_wait
+; Calls: $00E1BC (sh2_palette_load), $00E22C (sh2_graphics_cmd),
+;        $00E2F0 (sh2_load_data), $00E316 (sh2_send_cmd_wait)
 ; Confidence: high
 ; ============================================================================
 

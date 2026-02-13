@@ -1,27 +1,17 @@
 ; ============================================================================
-; Scene Send Cmd 027 (auto-analyzed)
+; fn_c200_027 — Scene Parameter Adjustment and DMA Upload
 ; ROM Range: $00DA90-$00DCAC (540 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Orchestrator calling 6 subroutines
-;   RAM: $C87E (game_state)
-;   Calls: dma_transfer, sh2_send_cmd
-;   Object (A0): +$00, +$02 (flags/type), +$04 (speed_index/velocity), +$06 (speed), +$08
+; Data prefix (48 bytes: 6 longword pointers + 6 word pairs). Sends
+; DMA transfer command, then loads viewport parameters from $FF2000
+; table indexed by palette selection. Handles D-pad input for multi-
+; axis camera/viewport adjustment with per-axis clamping. Writes
+; updated parameters back to $FF2000. Sends SH2 update command and
+; advances state counter.
 ;
-; Entry: A0 = object/entity pointer
 ; Uses: D0, D1, D3, D4, D5, A0, A1, A4
-; RAM:
-;   $C87E: game_state
-; Calls:
-;   $00E35A: sh2_send_cmd
-;   $00E52C: dma_transfer
-; Object fields:
-;   +$00: [unknown]
-;   +$02: flags/type
-;   +$04: speed_index/velocity
-;   +$06: speed
-;   +$08: [unknown]
-; Confidence: medium
+; Calls: $00E35A (sh2_send_cmd), $00E52C (dma_transfer),
+;        $00DCAC/$00DCBE/$00DCB8/$00DCCA (increment/decrement helpers)
+; Confidence: high
 ; ============================================================================
 
 fn_c200_027:
@@ -57,11 +47,11 @@ fn_c200_027:
         BEQ.W  .loc_0064                        ; $00DAEC
         MOVE.B  (-24539).W,D0                   ; $00DAF0
 .loc_0064:
-        DC.W    $D040                           ; $00DAF4
+        ADD.W   D0,D0                           ; $00DAF4
         MOVE.W  D0,D1                           ; $00DAF6
-        DC.W    $D040                           ; $00DAF8
-        DC.W    $D040                           ; $00DAFA
-        DC.W    $D041                           ; $00DAFC
+        ADD.W   D0,D0                           ; $00DAF8
+        ADD.W   D0,D0                           ; $00DAFA
+        ADD.W   D1,D0                           ; $00DAFC
         LEA     $00FF2000,A0                    ; $00DAFE
         MOVE.W  $00(A0,D0.W),(-24550).W         ; $00DB04
         MOVE.W  $02(A0,D0.W),(-24548).W         ; $00DB0A
@@ -175,11 +165,11 @@ fn_c200_027:
         BEQ.W  .loc_01E0                        ; $00DC68
         MOVE.B  (-24539).W,D0                   ; $00DC6C
 .loc_01E0:
-        DC.W    $D040                           ; $00DC70
+        ADD.W   D0,D0                           ; $00DC70
         MOVE.W  D0,D1                           ; $00DC72
-        DC.W    $D040                           ; $00DC74
-        DC.W    $D040                           ; $00DC76
-        DC.W    $D041                           ; $00DC78
+        ADD.W   D0,D0                           ; $00DC74
+        ADD.W   D0,D0                           ; $00DC76
+        ADD.W   D1,D0                           ; $00DC78
         LEA     $00FF2000,A0                    ; $00DC7A
         MOVE.W  (-24550).W,$00(A0,D0.W)         ; $00DC80
         MOVE.W  (-24548).W,$02(A0,D0.W)         ; $00DC86

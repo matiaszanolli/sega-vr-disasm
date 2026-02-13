@@ -1,18 +1,14 @@
 ; ============================================================================
-; Scene Sh2 Comm 021 (auto-analyzed)
+; fn_c200_021 — VDP DMA Configuration and Display Init
 ; ROM Range: $00D1D4-$00D3FC (552 bytes)
-; ============================================================================
-; Category: game
-; Purpose: RAM: $C8A0 (race_state), $C89C (sh2_comm_state)
-;   Object (A0): +$00
+; Configures VDP via multiple DMA transfers. Acquires Z80 bus, sets
+; VDP auto-increment, DMA length/source, and triggers transfers for
+; VRAM fill, pattern data, and name tables. Loads track-specific
+; data from ROM pointer tables. Handles split-screen setup with
+; additional DMA for second viewport. Sets scroll registers and
+; palette via VDP data port writes.
 ;
-; Entry: A0 = object/entity pointer
 ; Uses: D0, D1, D2, D4, D7, A0, A1, A2
-; RAM:
-;   $C89C: sh2_comm_state
-;   $C8A0: race_state
-; Object fields:
-;   +$00: [unknown]
 ; Confidence: high
 ; ============================================================================
 

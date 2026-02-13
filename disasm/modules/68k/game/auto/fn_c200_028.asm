@@ -1,28 +1,17 @@
 ; ============================================================================
-; Sh2 Comm Object Update 028 (auto-analyzed)
+; fn_c200_028 — SH2 Object and Sprite Update Orchestrator
 ; ROM Range: $00DCD0-$00DE98 (456 bytes)
-; ============================================================================
-; Category: sh2
-; Purpose: Orchestrator calling 6 subroutines
-;   Accesses 32X registers: COMM0
-;   RAM: $C87E (game_state)
-;   Calls: dma_transfer, object_update, sprite_update, sh2_send_cmd
-;   Object (A1): +$00, +$04 (speed_index/velocity)
+; Per-frame SH2 communication orchestrator. Sends DMA transfer, runs
+; object_update + sprite_update, then transfers 3D geometry and sprite
+; data via sh2_send_cmd. Computes text overlay addresses from palette
+; index with bit-shift multiplication. Renders text overlays via
+; text_render. Sends final sh2_cmd_27 for tile updates. Handles
+; exit via button detection with fade-out transition ($A8 sound).
 ;
-; Entry: A1 = object/entity pointer
 ; Uses: D0, D1, D2, D3, D4, A0, A1, A2
-; RAM:
-;   $C87E: game_state
-; Calls:
-;   $00B684: object_update
-;   $00B6DA: sprite_update
-;   $00E35A: sh2_send_cmd
-;   $00E3B4: sh2_cmd_27
-;   $00E466: text_render
-;   $00E52C: dma_transfer
-; Object fields:
-;   +$00: [unknown]
-;   +$04: speed_index/velocity
+; Calls: $00B684 (object_update), $00B6DA (sprite_update),
+;        $00E35A (sh2_send_cmd), $00E3B4 (sh2_cmd_27),
+;        $00E466 (text_render), $00E52C (dma_transfer)
 ; Confidence: high
 ; ============================================================================
 
@@ -49,8 +38,8 @@ fn_c200_028:
         BEQ.S  .loc_0066                        ; $00DD18
         LEA     $0088DEB6,A1                    ; $00DD1A
         MOVE.W  D3,D0                           ; $00DD20
-        DC.W    $D040                           ; $00DD22
-        DC.W    $D040                           ; $00DD24
+        ADD.W   D0,D0                           ; $00DD22
+        ADD.W   D0,D0                           ; $00DD24
         MOVEA.L $00(A1,D0.W),A1                 ; $00DD26
         MOVE.W  #$0010,D0                       ; $00DD2A
         MOVE.W  #$0010,D1                       ; $00DD2E
@@ -69,15 +58,15 @@ fn_c200_028:
         ADDA.L  (-24536).W,A2                   ; $00DD5E
         MOVEQ   #$00,D0                         ; $00DD62
         MOVE.B  (-24551).W,D0                   ; $00DD64
-        DC.W    $D040                           ; $00DD68
-        DC.W    $D040                           ; $00DD6A
-        DC.W    $D040                           ; $00DD6C
-        DC.W    $D040                           ; $00DD6E
+        ADD.W   D0,D0                           ; $00DD68
+        ADD.W   D0,D0                           ; $00DD6A
+        ADD.W   D0,D0                           ; $00DD6C
+        ADD.W   D0,D0                           ; $00DD6E
         MOVE.W  D0,D1                           ; $00DD70
-        DC.W    $D040                           ; $00DD72
-        DC.W    $D040                           ; $00DD74
-        DC.W    $D041                           ; $00DD76
-        DC.W    $D040                           ; $00DD78
+        ADD.W   D0,D0                           ; $00DD72
+        ADD.W   D0,D0                           ; $00DD74
+        ADD.W   D1,D0                           ; $00DD76
+        ADD.W   D0,D0                           ; $00DD78
         ADDA.L  D0,A2                           ; $00DD7A
         BTST    #7,(-600).W                     ; $00DD7C
         BEQ.W  .loc_00BC                        ; $00DD82
@@ -88,19 +77,19 @@ fn_c200_028:
         LEA     (-1464).W,A2                    ; $00DD96
         MOVEQ   #$00,D0                         ; $00DD9A
         MOVE.B  (-335).W,D0                     ; $00DD9C
-        DC.W    $D040                           ; $00DDA0
-        DC.W    $D040                           ; $00DDA2
-        DC.W    $D040                           ; $00DDA4
+        ADD.W   D0,D0                           ; $00DDA0
+        ADD.W   D0,D0                           ; $00DDA2
+        ADD.W   D0,D0                           ; $00DDA4
         MOVE.W  D0,D1                           ; $00DDA6
-        DC.W    $D040                           ; $00DDA8
-        DC.W    $D041                           ; $00DDAA
-        DC.W    $D040                           ; $00DDAC
+        ADD.W   D0,D0                           ; $00DDA8
+        ADD.W   D1,D0                           ; $00DDAA
+        ADD.W   D0,D0                           ; $00DDAC
         ADDA.L  D0,A2                           ; $00DDAE
         MOVEQ   #$00,D0                         ; $00DDB0
         MOVE.B  (-24551).W,D0                   ; $00DDB2
-        DC.W    $D040                           ; $00DDB6
-        DC.W    $D040                           ; $00DDB8
-        DC.W    $D040                           ; $00DDBA
+        ADD.W   D0,D0                           ; $00DDB6
+        ADD.W   D0,D0                           ; $00DDB8
+        ADD.W   D0,D0                           ; $00DDBA
         ADDQ.W  #4,D0                           ; $00DDBC
         ADDA.L  D0,A2                           ; $00DDBE
         BTST    #7,(-600).W                     ; $00DDC0
@@ -111,10 +100,10 @@ fn_c200_028:
         MOVEQ   #$00,D0                         ; $00DDD4
         MOVE.B  (-24551).W,D0                   ; $00DDD6
         LEA     $0088DE98,A1                    ; $00DDDA
-        DC.W    $D040                           ; $00DDE0
+        ADD.W   D0,D0                           ; $00DDE0
         MOVE.W  D0,D1                           ; $00DDE2
-        DC.W    $D040                           ; $00DDE4
-        DC.W    $D041                           ; $00DDE6
+        ADD.W   D0,D0                           ; $00DDE4
+        ADD.W   D1,D0                           ; $00DDE6
         MOVEA.L $00(A1,D0.W),A0                 ; $00DDE8
         MOVE.W  $04(A1,D0.W),D0                 ; $00DDEC
         MOVE.W  #$0030,D1                       ; $00DDF0

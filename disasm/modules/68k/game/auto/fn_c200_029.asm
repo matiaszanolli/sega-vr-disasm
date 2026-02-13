@@ -1,25 +1,16 @@
 ; ============================================================================
-; Sh2 Comm Object Update 029 (auto-analyzed)
+; fn_c200_029 — SH2 Dual-Screen Object Update Orchestrator
 ; ROM Range: $00DE98-$00DFEC (340 bytes)
-; ============================================================================
-; Category: sh2
-; Purpose: Orchestrator calling 5 subroutines
-;   Accesses 32X registers: COMM0
-;   RAM: $C87E (game_state)
-;   Calls: dma_transfer, object_update, sprite_update, sh2_send_cmd
-;   Object (A5): +$3B
+; Data prefix (54 bytes: display command tables for single/dual screen
+; configurations). Per-frame SH2 update for dual-screen mode. Sends
+; DMA transfer, runs object/sprite update, transfers geometry and
+; sprite data via multiple sh2_send_cmd calls. Includes internal
+; subroutine call at $00E118. Handles exit with dual-player button
+; detection and fade-out transition ($A8 sound).
 ;
-; Entry: A5 = object/entity pointer
 ; Uses: D0, D1, D2, D3, A0, A1, A2, A5
-; RAM:
-;   $C87E: game_state
-; Calls:
-;   $00B684: object_update
-;   $00B6DA: sprite_update
-;   $00E35A: sh2_send_cmd
-;   $00E52C: dma_transfer
-; Object fields:
-;   +$3B: [unknown]
+; Calls: $00B684 (object_update), $00B6DA (sprite_update),
+;        $00E35A (sh2_send_cmd), $00E52C (dma_transfer)
 ; Confidence: high
 ; ============================================================================
 

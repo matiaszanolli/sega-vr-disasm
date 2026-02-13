@@ -1,30 +1,25 @@
 ; ============================================================================
-; Fm Init Channel 054 (auto-analyzed)
+; FM Note-Off Handler — key-off channel and cleanup related channels
 ; ROM Range: $031418-$0314DC (196 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Orchestrator calling 4 subroutines
-;   Accesses VDP registers
-;   Calls: fm_init_channel, fm_set_volume, fm_write_wrapper
-;   Object (A0, A5, A6): +$00, +$01, +$08, +$0B, +$0E (param_e), +$0F
+; Clears active (bit 7) and sustain (bit 4) flags. Routes by channel type:
+;   FM (positive A5+$01): calls fm_init_channel, then if multi-channel
+;     mode (A6+$0E set): resolves related channel struct via $030852
+;     table, clears key-off/sets mute, writes instrument registers. For
+;     channel type 2: writes key-off-all ($27=$00) via fm_write_wrapper.
+;   PSG (negative): calls fm_set_volume for silence, resolves PSG channel
+;     struct ($0370 or from table), clears key-off/sets mute. $E0 type
+;     writes PSG silence byte.
+; Pops 2 return addresses (ADDQ.W #8,A7) — exits both caller and
+; grandparent.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A5 = object/entity pointer
-; Entry: A6 = object/entity pointer
-; Uses: D0, D1, A0, A1, A3, A5, A6
+; Entry: A5 = channel structure pointer
+; Entry: A6 = sound driver state pointer
+; Uses: D0, D1, A0, A1, A3, A5
 ; Calls:
 ;   $030C8A: fm_init_channel
 ;   $030CBA: fm_write_wrapper
 ;   $030FB2: fm_set_volume
-; Object fields:
-;   +$00: [unknown]
-;   +$01: [unknown]
-;   +$08: [unknown]
-;   +$0B: [unknown]
-;   +$0E: param_e
-;   +$0F: [unknown]
-;   +$25: [unknown]
-;   +$30: x_position
 ; Confidence: high
 ; ============================================================================
 

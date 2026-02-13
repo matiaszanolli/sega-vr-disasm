@@ -1,16 +1,13 @@
 ; ============================================================================
-; Fm 059 (auto-analyzed)
+; Set Channel Tempo — read tempo byte from sequence
 ; ROM Range: $03154E-$031554 (6 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Small leaf function
-;   Object (A5): +$02 (flags/type)
+; Reads one byte from sequence pointer (A4), stores to channel tempo
+; divider at A5+$02. Controls playback speed of the channel.
 ;
-; Entry: A5 = object/entity pointer
-; Uses: A4, A5
-; Object fields:
-;   +$02: flags/type
-; Confidence: low
+; Entry: A5 = channel structure pointer, A4 = sequence pointer
+; Uses: A4
+; Confidence: high
 ; ============================================================================
 
 fn_30200_059:

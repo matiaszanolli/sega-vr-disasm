@@ -1,11 +1,13 @@
 ; ============================================================================
-; Fm Conditional Write 060 (auto-analyzed)
+; FM SSG-EG Register Write — write 4 operator SSG-EG values
 ; ROM Range: $031574-$031590 (28 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Short helper function
-;   Calls: fm_conditional_write
+; Loads register table from $031590 (8 bytes: 4 pairs of SSG-EG register
+; + reset register numbers). For each of 4 operators: reads value from
+; sequence (A4), writes SSG-EG register via fm_conditional_write, then
+; writes reset register with $1F.
 ;
+; Entry: A5 = channel structure pointer, A4 = sequence pointer
 ; Uses: D0, D1, D3, A1, A4
 ; Calls:
 ;   $030CA2: fm_conditional_write

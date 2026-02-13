@@ -1,19 +1,19 @@
 ; ============================================================================
-; Fm Conditional Write 062 (auto-analyzed)
+; FM Channel Resume Panning — restore panning for paused channels
 ; ROM Range: $0315F4-$031650 (92 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Calls: fm_conditional_write
-;   Object (A5, A6): +$27, +$40 (heading_angle)
+; Resumes paused channels by restoring panning registers. Iterates DAC
+; ($0040) then 6 FM channels ($0070, $30 stride): if pause flag (bit 0)
+; set, clears it, sets active (bit 7), writes panning register $B4 with
+; stored value (A5+$27) via fm_conditional_write. Then 3 PSG channels:
+; same flag swap (bit 0→bit 7) but no panning write needed.
+; Restores A5 when done.
 ;
-; Entry: A5 = object/entity pointer
-; Entry: A6 = object/entity pointer
-; Uses: D0, D1, D3, D4, A3, A5, A6
+; Entry: A5 = channel structure pointer (saved/restored)
+; Entry: A6 = sound driver state pointer
+; Uses: D0, D1, D3, D4, A3, A5
 ; Calls:
 ;   $030CA2: fm_conditional_write
-; Object fields:
-;   +$27: [unknown]
-;   +$40: heading_angle
 ; Confidence: medium
 ; ============================================================================
 

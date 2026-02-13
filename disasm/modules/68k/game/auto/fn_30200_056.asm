@@ -1,16 +1,13 @@
 ; ============================================================================
-; Fm 056 (auto-analyzed)
+; Set Instrument Index — read instrument number from sequence
 ; ROM Range: $0314FC-$031502 (6 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Small leaf function
-;   Object (A5): +$0B
+; Reads one byte from sequence pointer (A4), stores to channel instrument
+; index at A5+$0B. Used to switch FM instrument for TL register writes.
 ;
-; Entry: A5 = object/entity pointer
-; Uses: A4, A5
-; Object fields:
-;   +$0B: [unknown]
-; Confidence: low
+; Entry: A5 = channel structure pointer, A4 = sequence pointer
+; Uses: A4
+; Confidence: high
 ; ============================================================================
 
 fn_30200_056:

@@ -1,16 +1,16 @@
 ; ============================================================================
-; Fm 057 (auto-analyzed)
+; Sequence Loop Counter — decrement loop and skip on exhaust
 ; ROM Range: $03150E-$031528 (26 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Short helper function
-;   Object (A5): +$2A
+; Reads loop index and initial count from sequence (A4). Manages loop
+; counter at A5+$2A+index. If counter is zero, initializes from count.
+; Decrements counter each call. If nonzero: branches to $031502 (continue
+; loop body). If exhausted (zero): skips 2 bytes in sequence (past loop
+; target address) and returns.
 ;
-; Entry: A5 = object/entity pointer
-; Uses: D0, D1, A4, A5
-; Object fields:
-;   +$2A: [unknown]
-; Confidence: low
+; Entry: A5 = channel structure pointer, A4 = sequence pointer
+; Uses: D0, D1, A4
+; Confidence: medium
 ; ============================================================================
 
 fn_30200_057:

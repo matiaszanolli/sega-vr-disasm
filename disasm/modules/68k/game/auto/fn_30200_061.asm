@@ -1,20 +1,22 @@
 ; ============================================================================
-; Fm Init Channel 061 (auto-analyzed)
+; FM Register Table + Channel Pause — data and pause all active channels
 ; ROM Range: $031590-$0315F4 (100 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Orchestrator calling 3 subroutines
-;   Calls: fm_conditional_write, fm_init_channel, fm_set_volume
-;   Object (A6): +$40 (heading_angle)
+; Data prefix ($031590-$031597): 8 FM register numbers for SSG-EG writes
+; (used by fn_30200_060). Code at $031598: Pauses all active sound
+; channels. Reads pause mode from sequence; if zero, branches to $0315F4.
+; Iterates DAC ($0040) then 6 FM channels ($0070, $30 stride): clears
+; active (bit 7), sets pause flag (bit 0), writes panning $B4=$00 (mute),
+; calls fm_init_channel. Then 3 PSG channels: same flags, calls
+; fm_set_volume for silence. Restores A5 when done.
 ;
-; Entry: A6 = object/entity pointer
-; Uses: D0, D1, D2, D3, D4, D6, A0, A3
+; Entry: A5 = channel structure pointer, A4 = sequence pointer
+; Entry: A6 = sound driver state pointer
+; Uses: D0, D1, D3, D4, A3, A5
 ; Calls:
 ;   $030C8A: fm_init_channel
 ;   $030CA2: fm_conditional_write
 ;   $030FB2: fm_set_volume
-; Object fields:
-;   +$40: heading_angle
 ; Confidence: high
 ; ============================================================================
 

@@ -1,17 +1,18 @@
 ; ============================================================================
-; Fm 058 (auto-analyzed)
+; Sequence Call/Return Stack — push/pop sequence pointer
 ; ROM Range: $031528-$03154E (38 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Short helper function
-;   Object (A5): +$00, +$0D
+; Two entry points:
+;   $031528 (call): Reads stack pointer from A5+$0D, decrements by 4,
+;     pushes current A4 to stack at A5+offset. Updates stack pointer.
+;     Branches to $031502 to continue with new sequence address.
+;   $03153A (return): Reads stack pointer, pops A4 from stack, skips
+;     2 bytes (past original call operand), increments stack pointer by 4.
+; Stack grows downward in channel structure.
 ;
-; Entry: A5 = object/entity pointer
-; Uses: D0, A4, A5
-; Object fields:
-;   +$00: [unknown]
-;   +$0D: [unknown]
-; Confidence: low
+; Entry: A5 = channel structure pointer, A4 = sequence pointer
+; Uses: D0, A4
+; Confidence: medium
 ; ============================================================================
 
 fn_30200_058:

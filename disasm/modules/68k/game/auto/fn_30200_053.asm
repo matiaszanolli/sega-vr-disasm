@@ -1,17 +1,14 @@
 ; ============================================================================
-; Fm 053 (auto-analyzed)
+; PSG Set Envelope — route by channel type and set envelope number
 ; ROM Range: $031406-$031418 (18 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Short helper function
-;   Object (A5): +$01, +$0A (param_a)
+; Reads byte from sequence. If FM channel (positive A5+$01): branches to
+; fn_30200_055 ($0314F6). If PSG: stores byte to A5+$0A (envelope number),
+; reads next sequence byte (consumed but not used here).
 ;
-; Entry: A5 = object/entity pointer
-; Uses: D0, A4, A5
-; Object fields:
-;   +$01: [unknown]
-;   +$0A: param_a
-; Confidence: low
+; Entry: A5 = channel structure pointer, A4 = sequence pointer
+; Uses: D0, A4
+; Confidence: medium
 ; ============================================================================
 
 fn_30200_053:

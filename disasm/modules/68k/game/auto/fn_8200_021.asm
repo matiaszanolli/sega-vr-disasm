@@ -1,32 +1,21 @@
 ; ============================================================================
-; State Dispatch 021 (auto-analyzed)
+; fn_8200_021 — Camera State Dispatcher + Viewport Control
 ; ROM Range: $00896E-$008B28 (442 bytes)
-; ============================================================================
-; Category: game
-; Purpose: State dispatcher using jump table
-;   RAM: $C8A0 (race_state)
-;   Object (A0, A1): +$00, +$04 (speed_index/velocity), +$06 (speed), +$08, +$0A (param_a), +$0E (param_e)
+; Multi-state camera controller with acceleration/deceleration phases,
+; button/flag checks, and a jump table dispatcher. Manages viewport
+; scrolling, camera position updates, music trigger proximity checks,
+; and render parameter writes. Jump table at $008A0E selects camera mode.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
+; Entry: A0 = camera/entity pointer
 ; Uses: D0, D1, D2, D3, D4, D5, D6, D7
-; RAM:
-;   $C8A0: race_state
-; Object fields:
-;   +$00: [unknown]
-;   +$04: speed_index/velocity
-;   +$06: speed
-;   +$08: [unknown]
-;   +$0A: param_a
-;   +$0E: param_e
-;   +$10: [unknown]
-;   +$1C: [unknown]
+; Object fields: +$04 speed, +$06 current speed, +$0E param,
+;   +$1C height, +$24 segment, +$30 x_pos, +$34 y_pos
 ; Confidence: high
 ; ============================================================================
 
 fn_8200_021:
         MOVE.W  (-14112).W,D0                   ; $00896E
-        DC.W    $D040                           ; $008972
+        ADD.W   D0,D0                           ; $008972
         CMPI.W  #$0400,D0                       ; $008974
         BLE.S  .loc_0010                        ; $008978
         MOVE.W  #$0400,D0                       ; $00897A
@@ -40,7 +29,7 @@ fn_8200_021:
         MOVE.W  D0,(-14120).W                   ; $008990
         DC.W    $6000,$FF6A         ; BRA.W  $008900; $008994
         MOVE.W  (-14112).W,D0                   ; $008998
-        DC.W    $D040                           ; $00899C
+        ADD.W   D0,D0                           ; $00899C
         CMPI.W  #$0400,D0                       ; $00899E
         BLE.S  .loc_003A                        ; $0089A2
         MOVE.W  #$0400,D0                       ; $0089A4
@@ -121,14 +110,14 @@ fn_8200_021:
         MOVE.W  $0000(A1),D2                    ; $008AA6
         MOVE.W  $0004(A1),D4                    ; $008AAA
         MOVE.W  D2,D3                           ; $008AAE
-        DC.W    $9640                           ; $008AB0
+        SUB.W   D0,D3                           ; $008AB0
         BPL.S  .loc_0148                        ; $008AB2
         NEG.W  D3                               ; $008AB4
 .loc_0148:
         CMP.W  D6,D3                            ; $008AB6
         BGT.S  .loc_0158                        ; $008AB8
         MOVE.W  D4,D3                           ; $008ABA
-        DC.W    $9641                           ; $008ABC
+        SUB.W   D1,D3                           ; $008ABC
         BPL.S  .loc_0154                        ; $008ABE
         NEG.W  D3                               ; $008AC0
 .loc_0154:
@@ -158,7 +147,7 @@ fn_8200_021:
         MOVE.L  (A1)+,(A2)+                     ; $008B0C
         MOVE.W  (A1),(A2)                       ; $008B0E
         MOVE.W  (A1),D0                         ; $008B10
-        DC.W    $D040                           ; $008B12
+        ADD.W   D0,D0                           ; $008B12
         ADD.W  D0,$00FF60CC                     ; $008B14
         MOVEA.L $008B28(PC,D2.W),A1             ; $008B1A
         JSR     (A1)                            ; $008B1E

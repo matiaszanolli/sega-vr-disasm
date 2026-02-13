@@ -1,25 +1,20 @@
 ; ============================================================================
-; State Sine Lookup 037 (auto-analyzed)
+; fn_8200_037 — Drift Physics and Camera Offset Calculation
 ; ROM Range: $009688-$009802 (378 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Calls: sine_lookup
-;   Object (A0): +$04 (speed_index/velocity), +$06 (speed), +$0C, +$1E, +$3C (heading_mirror), +$40 (heading_angle)
+; Computes lateral drift from steering velocity +$8E, applies speed-based
+; scaling with sine lookup, updates heading mirror +$3C. Calculates camera
+; follow distance from entity displacement fields +$5A/+$5C, speed +$06,
+; and applies polynomial scaling. Manages drift accumulator +$AA with
+; decay and heading snap-back toward target +$40.
 ;
-; Entry: A0 = object/entity pointer
+; Entry: A0 = entity pointer
 ; Uses: D0, D1, D2, D3, A0
-; Calls:
-;   $008F52: sine_lookup
-; Object fields:
-;   +$04: speed_index/velocity
-;   +$06: speed
-;   +$0C: [unknown]
-;   +$1E: [unknown]
-;   +$3C: heading_mirror
-;   +$40: heading_angle
-;   +$5A: [unknown]
-;   +$5C: [unknown]
-; Confidence: medium
+; Calls: $008F52 (sine_lookup)
+; Object fields: +$04 speed, +$06 display speed, +$0C slope, +$1E target
+;   heading, +$3C heading mirror, +$40 heading angle, +$5A trail X,
+;   +$5C trail Y, +$76 camera dist, +$8E steer vel, +$90 drift rate,
+;   +$92 slide, +$AA drift accum
+; Confidence: high
 ; ============================================================================
 
 fn_8200_037:
@@ -29,7 +24,7 @@ fn_8200_037:
         SUB.W  $0006(A0),D1                     ; $009692
         MULS    D0,D1                           ; $009696
         DIVS    #$0497,D1                       ; $009698
-        DC.W    $D041                           ; $00969C
+        ADD.W   D1,D0                           ; $00969C
         MOVE.W  D0,$0090(A0)                    ; $00969E
         CMPI.W  #$0080,$0004(A0)                ; $0096A2
         BGE.S  .loc_003E                        ; $0096A8
@@ -41,7 +36,7 @@ fn_8200_037:
         ADDI.W  #$0100,D0                       ; $0096BA
         MULS    $0090(A0),D0                    ; $0096BE
         ASR.L  #6,D0                            ; $0096C2
-        DC.W    $D042                           ; $0096C4
+        ADD.W   D2,D0                           ; $0096C4
 .loc_003E:
         MULS    $0004(A0),D0                    ; $0096C6
         MOVEQ   #$0A,D2                         ; $0096CA
@@ -49,8 +44,8 @@ fn_8200_037:
         MOVE.W  $0076(A0),D2                    ; $0096CE
         MOVE.W  $000C(A0),D3                    ; $0096D2
         BPL.S  .loc_0054                        ; $0096D6
-        DC.W    $D643                           ; $0096D8
-        DC.W    $9443                           ; $0096DA
+        ADD.W   D3,D3                           ; $0096D8
+        SUB.W   D3,D2                           ; $0096DA
 .loc_0054:
         MULS    D2,D0                           ; $0096DC
         ASR.L  #8,D0                            ; $0096DE
@@ -64,11 +59,11 @@ fn_8200_037:
         MOVE.W  D0,D2                           ; $0096F2
         MOVE.W  D0,D1                           ; $0096F4
         ASR.W  #1,D1                            ; $0096F6
-        DC.W    $D041                           ; $0096F8
+        ADD.W   D1,D0                           ; $0096F8
         TST.B  (-15589).W                       ; $0096FA
         BEQ.S  .loc_007C                        ; $0096FE
         ASR.W  #1,D2                            ; $009700
-        DC.W    $D042                           ; $009702
+        ADD.W   D2,D0                           ; $009702
 .loc_007C:
         ADD.W  D0,$003C(A0)                     ; $009704
         MOVE.W  $003C(A0),D0                    ; $009708
@@ -113,17 +108,17 @@ fn_8200_037:
 .loc_00EA:
         LSL.W  #4,D0                            ; $009772
         MOVE.W  D0,D2                           ; $009774
-        DC.W    $D040                           ; $009776
-        DC.W    $D040                           ; $009778
-        DC.W    $D042                           ; $00977A
+        ADD.W   D0,D0                           ; $009776
+        ADD.W   D0,D0                           ; $009778
+        ADD.W   D2,D0                           ; $00977A
         ASR.W  #8,D0                            ; $00977C
         MOVE.W  $0006(A0),D2                    ; $00977E
-        DC.W    $D442                           ; $009782
-        DC.W    $D442                           ; $009784
+        ADD.W   D2,D2                           ; $009782
+        ADD.W   D2,D2                           ; $009784
         MOVE.W  D2,D3                           ; $009786
-        DC.W    $D643                           ; $009788
-        DC.W    $D643                           ; $00978A
-        DC.W    $D443                           ; $00978C
+        ADD.W   D3,D3                           ; $009788
+        ADD.W   D3,D3                           ; $00978A
+        ADD.W   D3,D2                           ; $00978C
         MULS    D2,D2                           ; $00978E
         SWAP    D2                              ; $009790
         MULS    D1,D2                           ; $009792
@@ -132,9 +127,9 @@ fn_8200_037:
         ASR.W  #3,D2                            ; $009798
         MOVE.W  D2,D1                           ; $00979A
         ASR.W  #1,D1                            ; $00979C
-        DC.W    $D441                           ; $00979E
+        ADD.W   D1,D2                           ; $00979E
         ADDI.W  #$0188,D0                       ; $0097A0
-        DC.W    $9042                           ; $0097A4
+        SUB.W   D2,D0                           ; $0097A4
         MOVE.W  $000C(A0),D1                    ; $0097A6
         NEG.W  D1                               ; $0097AA
         LSL.W  #4,D1                            ; $0097AC
@@ -146,7 +141,7 @@ fn_8200_037:
         BGE.S  .loc_013A                        ; $0097BC
         MOVE.W  #$FFF0,D1                       ; $0097BE
 .loc_013A:
-        DC.W    $D041                           ; $0097C2
+        ADD.W   D1,D0                           ; $0097C2
         CMPI.W  #$0040,D0                       ; $0097C4
         BGE.S  .loc_0144                        ; $0097C8
         MOVEQ   #$40,D0                         ; $0097CA
@@ -162,7 +157,7 @@ fn_8200_037:
         CMPI.W  #$0050,$00AA(A0)                ; $0097E0
         BGT.S  .loc_0174                        ; $0097E6
         MOVE.W  $0076(A0),D1                    ; $0097E8
-        DC.W    $9240                           ; $0097EC
+        SUB.W   D0,D1                           ; $0097EC
         CMPI.W  #$000C,D1                       ; $0097EE
         BLE.S  .loc_0174                        ; $0097F2
         SUBI.W  #$000C,$0076(A0)                ; $0097F4

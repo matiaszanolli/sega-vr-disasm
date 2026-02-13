@@ -1,22 +1,18 @@
 ; ============================================================================
-; State Velocity 040 (auto-analyzed)
+; fn_8200_040 — Lateral Drift Velocity Processing (B)
 ; ROM Range: $0099AA-$009B12 (360 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Object (A0): +$02 (flags/type), +$04 (speed_index/velocity), +$0E (param_e), +$10, +$3C (heading_mirror), +$4C
+; Variant of fn_8200_039 with speed-dependent grip reduction and AI boost.
+; Same lateral drift physics: slip detection from +$4C, force integration
+; to +$94, spin-out trigger with sound $B2. Writes final viewport scaling
+; values to $FF617A/$FF618E.
 ;
-; Entry: A0 = object/entity pointer
+; Entry: A0 = entity pointer
 ; Uses: D0, D1, D2, D6, D7, A0
-; Object fields:
-;   +$02: flags/type
-;   +$04: speed_index/velocity
-;   +$0E: param_e
-;   +$10: [unknown]
-;   +$3C: heading_mirror
-;   +$4C: [unknown]
-;   +$62: [unknown]
-;   +$6A: [unknown]
-; Confidence: medium
+; Object fields: +$02 flags, +$04 speed, +$0E force, +$10 drag,
+;   +$3C heading, +$4C slip angle, +$62 collision, +$6A lateral collision,
+;   +$78 grip, +$80 effect timer, +$8C lateral flag, +$92 slide,
+;   +$94 lateral velocity, +$96 lateral display
+; Confidence: high
 ; ============================================================================
 
 fn_8200_040:
@@ -37,9 +33,9 @@ fn_8200_040:
         SUB.W  $000E(A0),D1                     ; $0099D4
         ASL.W  #3,D1                            ; $0099D8
 .loc_0030:
-        DC.W    $D041                           ; $0099DA
+        ADD.W   D1,D0                           ; $0099DA
         MOVE.W  $0078(A0),D1                    ; $0099DC
-        DC.W    $9240                           ; $0099E0
+        SUB.W   D0,D1                           ; $0099E0
         CMPI.W  #$00FF,D1                       ; $0099E2
         BLE.S  .loc_0042                        ; $0099E6
         MOVE.W  #$00FF,D1                       ; $0099E8
@@ -75,7 +71,7 @@ fn_8200_040:
         ADD.W  D0,$0094(A0)                     ; $009A38
         MOVE.W  $0094(A0),D0                    ; $009A3C
         MOVE.W  D0,D2                           ; $009A40
-        DC.W    $D442                           ; $009A42
+        ADD.W   D2,D2                           ; $009A42
         MOVE.W  D2,$0096(A0)                    ; $009A44
         MOVE.W  D0,D1                           ; $009A48
         BPL.S  .loc_00A4                        ; $009A4A
@@ -88,8 +84,8 @@ fn_8200_040:
         BMI.S  .loc_00B2                        ; $009A58
         NEG.W  D2                               ; $009A5A
 .loc_00B2:
-        DC.W    $DC42                           ; $009A5C
-        DC.W    $9E42                           ; $009A5E
+        ADD.W   D2,D6                           ; $009A5C
+        SUB.W   D2,D7                           ; $009A5E
         CMPI.W  #$000B,$0080(A0)                ; $009A60
         BGE.S  .loc_00C2                        ; $009A66
         ADDQ.W  #4,$0080(A0)                    ; $009A68
@@ -128,14 +124,14 @@ fn_8200_040:
         ASR.L  #8,D0                            ; $009ACA
         SUB.W  D0,$0094(A0)                     ; $009ACC
         MOVE.W  $0094(A0),D2                    ; $009AD0
-        DC.W    $B540                           ; $009AD4
+        EOR.W   D2,D0                           ; $009AD4
         BPL.S  .loc_0132                        ; $009AD6
         CLR.W  $0094(A0)                        ; $009AD8
 .loc_0132:
         MOVE.W  $0094(A0),D0                    ; $009ADC
         MOVE.W  D0,D2                           ; $009AE0
         ASR.W  #1,D2                            ; $009AE2
-        DC.W    $D440                           ; $009AE4
+        ADD.W   D0,D2                           ; $009AE4
         MOVE.W  D2,$0096(A0)                    ; $009AE6
         TST.W  D1                               ; $009AEA
         BGE.S  .loc_0148                        ; $009AEC

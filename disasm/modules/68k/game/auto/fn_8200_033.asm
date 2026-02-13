@@ -1,23 +1,18 @@
 ; ============================================================================
-; State Velocity 033 (auto-analyzed)
+; fn_8200_033 — Entity Speed Acceleration and Braking
 ; ROM Range: $009182-$009300 (382 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Object (A0, A1): +$00, +$02 (flags/type), +$04 (speed_index/velocity), +$10, +$6A, +$74
+; Manages entity longitudinal speed using acceleration/braking tables at
+; $0088A1F0 and $00939EDE. Applies multiplicative acceleration when
+; accelerating, division-based deceleration when braking. Speed index
+; +$7A controls gear/phase, speed value at +$74. Triggers sound $B4 on
+; speed threshold events. Clamps final speed delta to +/-$0400.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
+; Entry: A0 = entity pointer
 ; Uses: D0, D1, D2, A0, A1
-; Object fields:
-;   +$00: [unknown]
-;   +$02: flags/type
-;   +$04: speed_index/velocity
-;   +$10: [unknown]
-;   +$6A: [unknown]
-;   +$74: [unknown]
-;   +$7A: param_7a
-;   +$7E: [unknown]
-; Confidence: medium
+; Object fields: +$04 speed, +$6A collision, +$74 raw speed, +$7A speed
+;   index, +$7E target speed, +$82 sound timer, +$84 brake timer,
+;   +$8C lateral flag, +$AE table offset
+; Confidence: high
 ; ============================================================================
 
 fn_8200_033:
@@ -27,7 +22,7 @@ fn_8200_033:
         TST.B  (-15601).W                       ; $00918E
         BEQ.W  .loc_00D2                        ; $009192
         MOVE.W  $00AE(A0),D0                    ; $009196
-        DC.W    $D040                           ; $00919A
+        ADD.W   D0,D0                           ; $00919A
         LEA     (-16292).W,A1                   ; $00919C
         CMPI.W  #$0001,$00(A1,D0.W)             ; $0091A0
         BEQ.W  .loc_00D2                        ; $0091A6
@@ -38,7 +33,7 @@ fn_8200_033:
         BGE.W  .loc_015C                        ; $0091BA
         MOVE.W  $0074(A0),D1                    ; $0091BE
         LEA     $0088A1F0,A1                    ; $0091C2
-        DC.W    $D442                           ; $0091C8
+        ADD.W   D2,D2                           ; $0091C8
         MULS    $00(A1,D2.W),D1                 ; $0091CA
         LSR.L  #8,D1                            ; $0091CE
         MOVE.W  D1,$0074(A0)                    ; $0091D0
@@ -64,7 +59,7 @@ fn_8200_033:
         LSL.L  #8,D1                            ; $00921A
         LEA     $0088A1F0,A1                    ; $00921C
         MOVE.W  $007A(A0),D2                    ; $009222
-        DC.W    $D442                           ; $009226
+        ADD.W   D2,D2                           ; $009226
         DIVU    $00(A1,D2.W),D1                 ; $009228
         MOVE.W  D1,$0074(A0)                    ; $00922C
         CMPI.W  #$4268,D1                       ; $009230
@@ -79,7 +74,7 @@ fn_8200_033:
 .loc_00D2:
         MOVE.W  $0074(A0),D2                    ; $009254
         MOVE.W  $007A(A0),D1                    ; $009258
-        DC.W    $D241                           ; $00925C
+        ADD.W   D1,D1                           ; $00925C
         TST.W  $0004(A0)                        ; $00925E
         BEQ.W  .loc_012C                        ; $009262
         LEA     $0088A1E2,A1                    ; $009266

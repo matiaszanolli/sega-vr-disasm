@@ -1,23 +1,16 @@
 ; ============================================================================
-; Vint 036 (auto-analyzed)
+; fn_8200_036 — Steering Input Processing and Velocity Update
 ; ROM Range: $0094F4-$00961E (298 bytes)
-; ============================================================================
-; Category: vint
-; Purpose: RAM: $C8C8 (vint_state)
-;   Object (A0, A1): +$00, +$01, +$8E (velocity_y), +$94, +$AA
+; Data prefix (2 bytes) at start. Reads controller button bits for left/right
+; and up/down input, computes steering direction with acceleration and
+; deadzone. Smooths steering velocity with damping, clamps to +/-$7F range.
+; Applies integrated steering to entity field +$8E. Manages lateral drift
+; accumulator at +$AA.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
+; Entry: A0 = entity pointer
 ; Uses: D0, D1, D2, D3, A0, A1
-; RAM:
-;   $C8C8: vint_state
-; Object fields:
-;   +$00: [unknown]
-;   +$01: [unknown]
-;   +$8E: velocity_y
-;   +$94: [unknown]
-;   +$AA: [unknown]
-; Confidence: medium
+; Object fields: +$8E steering velocity, +$94 drift rate, +$AA drift accum
+; Confidence: high
 ; ============================================================================
 
 fn_8200_036:
@@ -29,7 +22,7 @@ fn_8200_036:
         MOVEQ   #$03,D3                         ; $009508
         BTST    #7,(-600).W                     ; $00950A
         BEQ.S  .loc_0020                        ; $009510
-        DC.W    $C543                           ; $009512
+        EXG     D2,D3                           ; $009512
 .loc_0020:
         LEA     (-15616).W,A1                   ; $009514
         MOVEQ   #$00,D0                         ; $009518
@@ -55,7 +48,7 @@ fn_8200_036:
         BEQ.S  .loc_0066                        ; $009540
         MOVE.W  D1,(-16378).W                   ; $009542
         MOVE.W  D1,D2                           ; $009546
-        DC.W    $D442                           ; $009548
+        ADD.W   D2,D2                           ; $009548
         MOVE.W  $00(A1,D2.W),D2                 ; $00954A
         MOVE.W  D2,(-16384).W                   ; $00954E
         LSL.W  #8,D2                            ; $009552
@@ -78,12 +71,12 @@ fn_8200_036:
 .loc_0082:
         MOVE.W  D1,(-16378).W                   ; $009576
         MOVE.W  D1,D2                           ; $00957A
-        DC.W    $D442                           ; $00957C
+        ADD.W   D2,D2                           ; $00957C
         MOVE.W  $00(A1,D2.W),D2                 ; $00957E
         TST.W  (-14136).W                       ; $009582
         BEQ.S  .loc_00A8                        ; $009586
         MOVE.W  $0094(A0),D0                    ; $009588
-        DC.W    $B540                           ; $00958C
+        EOR.W   D2,D0                           ; $00958C
         BMI.S  .loc_00A8                        ; $00958E
         ASR.W  #1,D2                            ; $009590
         MOVE.W  $0094(A0),D0                    ; $009592
@@ -114,10 +107,10 @@ fn_8200_036:
         LSL.L  #8,D2                            ; $0095D4
         MOVE.W  $008E(A0),D1                    ; $0095D6
         EXT.L   D1                              ; $0095DA
-        DC.W    $D481                           ; $0095DC
+        ADD.L   D1,D2                           ; $0095DC
         ASR.L  #1,D2                            ; $0095DE
         MOVE.L  D2,D3                           ; $0095E0
-        DC.W    $9681                           ; $0095E2
+        SUB.L   D1,D3                           ; $0095E2
         TST.W  D3                               ; $0095E4
         BPL.S  .loc_00F6                        ; $0095E6
         NEG.W  D3                               ; $0095E8

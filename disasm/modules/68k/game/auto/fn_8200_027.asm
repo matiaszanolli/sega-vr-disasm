@@ -1,22 +1,16 @@
 ; ============================================================================
-; Math Cosine Lookup 027 (auto-analyzed)
+; fn_8200_027 — Camera Angle Smoothing with Trigonometry
 ; ROM Range: $008DC0-$008EB6 (246 bytes)
-; ============================================================================
-; Category: math
-; Purpose: Orchestrator calling 4 subroutines
-;   Calls: ai_steering_calc, cosine_lookup, sine_lookup
-;   Object (A0): +$30 (x_position), +$32, +$34 (y_position)
+; Computes smoothed camera angles using ai_steering_calc for initial angle,
+; then applies cosine/sine lookups with conditional blending. Smooths both
+; horizontal and vertical camera rotation with damping. Dual-axis processing
+; with mirrored logic for each axis.
 ;
-; Entry: A0 = object/entity pointer
+; Entry: A0 = entity pointer
 ; Uses: D0, D1, D2, D3, A0
-; Calls:
-;   $008F4E: cosine_lookup
-;   $008F52: sine_lookup
-;   $00A7A0: ai_steering_calc
-; Object fields:
-;   +$30: x_position
-;   +$32: [unknown]
-;   +$34: y_position
+; Calls: $008F4E (cosine_lookup), $008F52 (sine_lookup),
+;        $00A7A0 (ai_steering_calc), $00A7A4 (steering variant)
+; Object fields: +$30 x_pos, +$32 z_pos, +$34 y_pos
 ; Confidence: high
 ; ============================================================================
 
@@ -41,7 +35,7 @@ fn_8200_027:
         CMPI.W  #$4000,D0                       ; $008DF2
         BCC.S  .loc_0044                        ; $008DF6
 .loc_0038:
-        DC.W    $D043                           ; $008DF8
+        ADD.W   D3,D0                           ; $008DF8
         ASR.W  #1,D0                            ; $008DFA
         BRA.S  .loc_004E                        ; $008DFC
 .loc_003E:
@@ -49,7 +43,7 @@ fn_8200_027:
         BPL.S  .loc_002C                        ; $008E02
 .loc_0044:
         ANDI.L  #$0000FFFF,D0                   ; $008E04
-        DC.W    $D083                           ; $008E0A
+        ADD.L   D3,D0                           ; $008E0A
         ASR.L  #1,D0                            ; $008E0C
 .loc_004E:
         MOVE.W  D0,(-16190).W                   ; $008E0E
@@ -103,7 +97,7 @@ fn_8200_027:
         CMPI.W  #$4000,D0                       ; $008E90
         BCC.S  .loc_00E2                        ; $008E94
 .loc_00D6:
-        DC.W    $D043                           ; $008E96
+        ADD.W   D3,D0                           ; $008E96
         ASR.W  #1,D0                            ; $008E98
         BRA.S  .loc_00EC                        ; $008E9A
 .loc_00DC:
@@ -111,7 +105,7 @@ fn_8200_027:
         BPL.S  .loc_00CA                        ; $008EA0
 .loc_00E2:
         ANDI.L  #$0000FFFF,D0                   ; $008EA2
-        DC.W    $D083                           ; $008EA8
+        ADD.L   D3,D0                           ; $008EA8
         ASR.L  #1,D0                            ; $008EAA
 .loc_00EC:
         MOVE.W  D0,(-16192).W                   ; $008EAC

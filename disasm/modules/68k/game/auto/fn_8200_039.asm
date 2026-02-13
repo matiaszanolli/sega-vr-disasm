@@ -1,22 +1,18 @@
 ; ============================================================================
-; State Velocity 039 (auto-analyzed)
+; fn_8200_039 — Lateral Drift Velocity Processing (A)
 ; ROM Range: $00987E-$0099AA (300 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Object (A0): +$02 (flags/type), +$10, +$3C (heading_mirror), +$4C, +$62, +$6A
+; Processes lateral drift/slide physics. Reduces grip based on steering
+; magnitude, handles slip angle detection from +$4C with threshold $0037,
+; applies force integration to +$94 (lateral velocity). Triggers spin-out
+; via flag OR on +$02 with sound $B2 when drift exceeds limit. Natural
+; damping decays velocity toward zero with sign preservation.
 ;
-; Entry: A0 = object/entity pointer
+; Entry: A0 = entity pointer
 ; Uses: D0, D1, D2, A0
-; Object fields:
-;   +$02: flags/type
-;   +$10: [unknown]
-;   +$3C: heading_mirror
-;   +$4C: [unknown]
-;   +$62: [unknown]
-;   +$6A: [unknown]
-;   +$78: [unknown]
-;   +$8C: velocity_x
-; Confidence: medium
+; Object fields: +$02 flags, +$10 drag, +$3C heading, +$4C slip angle,
+;   +$62 collision, +$6A lateral collision, +$78 grip, +$8C lateral flag,
+;   +$92 slide, +$94 lateral velocity, +$96 lateral display
+; Confidence: high
 ; ============================================================================
 
 fn_8200_039:
@@ -27,7 +23,7 @@ fn_8200_039:
         MULS    $0010(A0),D0                    ; $009886
         ASR.W  #8,D0                            ; $00988A
         MOVE.W  $0078(A0),D1                    ; $00988C
-        DC.W    $9240                           ; $009890
+        SUB.W   D0,D1                           ; $009890
         CMPI.W  #$007F,D1                       ; $009892
         BGE.S  .loc_001C                        ; $009896
         MOVEQ   #$7F,D1                         ; $009898
@@ -66,7 +62,7 @@ fn_8200_039:
         ASR.W  #2,D0                            ; $0098F8
         MOVE.W  D0,D1                           ; $0098FA
         ASR.W  #1,D1                            ; $0098FC
-        DC.W    $D041                           ; $0098FE
+        ADD.W   D1,D0                           ; $0098FE
         ADD.W  D0,$0094(A0)                     ; $009900
         MOVE.W  $0094(A0),D0                    ; $009904
         MOVE.W  D0,D1                           ; $009908
@@ -109,7 +105,7 @@ fn_8200_039:
         ASR.L  #8,D0                            ; $009974
         SUB.W  D0,$0094(A0)                     ; $009976
         MOVE.W  $0094(A0),D2                    ; $00997A
-        DC.W    $B540                           ; $00997E
+        EOR.W   D2,D0                           ; $00997E
         BPL.S  .loc_0108                        ; $009980
         CLR.W  $0094(A0)                        ; $009982
 .loc_0108:

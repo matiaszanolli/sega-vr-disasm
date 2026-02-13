@@ -1,31 +1,16 @@
 ; ============================================================================
-; Math Cosine Lookup 019 (auto-analyzed)
+; fn_8200_019 — Race Position Comparison with Sound Triggers
 ; ROM Range: $0087E2-$0088BE (220 bytes)
-; ============================================================================
-; Category: math
-; Purpose: RAM: $9F00 (obj_table_3), $C89C (sh2_comm_state), $C8C8 (vint_state)
-;   Calls: sine_lookup, cosine_lookup
-;   Object (A0, A2): +$04 (speed_index/velocity), +$1E, +$24, +$2A, +$2E, +$30 (x_position)
+; Compares race positions of two entities (A0, A2) using segment/position
+; indices. When tied, uses trig-based distance calculation with sine/cosine
+; lookups to break the tie. Updates rank fields +$2A and triggers sound
+; effects ($CC/$CF/$B3) on position changes.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A2 = object/entity pointer
+; Entry: A0 = player 1 entity, A2 = player 2/AI entity
 ; Uses: D0, D1, D2, D3, D4, A0, A2
-; RAM:
-;   $9F00: obj_table_3
-;   $C89C: sh2_comm_state
-;   $C8C8: vint_state
-; Calls:
-;   $008F4E: cosine_lookup
-;   $008F52: sine_lookup
-; Object fields:
-;   +$04: speed_index/velocity
-;   +$1E: [unknown]
-;   +$24: [unknown]
-;   +$2A: [unknown]
-;   +$2E: [unknown]
-;   +$30: x_position
-;   +$34: y_position
-;   +$E5: [unknown]
+; Calls: $008F4E (cosine_lookup), $008F52 (sine_lookup)
+; Object fields: +$04 speed, +$1E heading, +$24 segment, +$2A rank,
+;   +$2E lap segment, +$30 x_pos, +$34 y_pos, +$E5 AI flags
 ; Confidence: high
 ; ============================================================================
 
@@ -54,7 +39,7 @@ fn_8200_019:
         DC.W    $4EBA,$072E         ; JSR     $008F4E(PC); $00881E
         ASR.W  #4,D0                            ; $008822
         MULS    $0034(A0),D0                    ; $008824
-        DC.W    $D880                           ; $008828
+        ADD.L   D0,D4                           ; $008828
         MOVE.W  $001E(A2),D0                    ; $00882A
         NEG.W  D0                               ; $00882E
         MOVE.W  D0,D2                           ; $008830
@@ -66,7 +51,7 @@ fn_8200_019:
         DC.W    $4EBA,$070C         ; JSR     $008F4E(PC); $008840
         ASR.W  #4,D0                            ; $008844
         MULS    $0034(A2),D0                    ; $008846
-        DC.W    $D083                           ; $00884A
+        ADD.L   D3,D0                           ; $00884A
         MOVEQ   #$02,D2                         ; $00884C
         MOVEQ   #$01,D3                         ; $00884E
         CMP.L  D4,D0                            ; $008850
@@ -91,7 +76,7 @@ fn_8200_019:
         CMPI.W  #$0004,(-14180).W               ; $00887E
         BNE.S  .loc_00B0                        ; $008884
         MOVE.B  $00E5(A0),D1                    ; $008886
-        DC.W    $B302                           ; $00888A
+        EOR.B   D1,D2                           ; $00888A
         ANDI.B  #$06,D2                         ; $00888C
         BNE.S  .loc_00D2                        ; $008890
 .loc_00B0:

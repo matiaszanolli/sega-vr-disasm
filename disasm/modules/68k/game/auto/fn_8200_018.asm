@@ -1,16 +1,14 @@
 ; ============================================================================
-; State 018 (auto-analyzed)
+; fn_8200_018 — Object State Assignment — Not-Equal Case
 ; ROM Range: $008532-$008548 (22 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Short helper function
-;   Object (A4): +$04 (speed_index/velocity)
+; Not-equal handler paired with fn_8200_017. Entry at $008538 from BNE
+; branch. Stores D5 at (A4), D4 at +$04(A4), calls subroutine at $00B478,
+; returns D0=1/D1=$0C. First 6 bytes (CMPI.L) serve as alternate entry.
 ;
-; Entry: A4 = object/entity pointer
+; Entry: D4, D5 = values to store, A4 = object pointer
 ; Uses: D0, D1, D4, D5, A4
-; Object fields:
-;   +$04: speed_index/velocity
-; Confidence: low
+; Object fields: +$00 state, +$04 speed
+; Confidence: high
 ; ============================================================================
 
 fn_8200_018:

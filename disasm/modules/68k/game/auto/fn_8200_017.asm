@@ -1,12 +1,13 @@
 ; ============================================================================
-; State 017 (auto-analyzed)
+; fn_8200_017 — Value Equality Check with State Clear
 ; ROM Range: $008522-$008532 (16 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Short helper function
+; Compares D4 and D5. If not equal, branches past function to fn_8200_018.
+; If equal, clears (A4), returns D0=0/D1=$0E. Paired with fn_8200_018 as
+; the not-equal handler.
 ;
+; Entry: D4, D5 = values to compare, A4 = state output pointer
 ; Uses: D0, D1, D4, D5, A4
-; Confidence: low
+; Confidence: high
 ; ============================================================================
 
 fn_8200_017:

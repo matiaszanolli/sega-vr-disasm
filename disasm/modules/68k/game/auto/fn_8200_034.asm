@@ -1,31 +1,25 @@
 ; ============================================================================
-; State Velocity 034 (auto-analyzed)
+; fn_8200_034 — Entity Force Integration and Speed Calculation
 ; ROM Range: $009300-$009458 (344 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Object (A0, A1, A2): +$00, +$04 (speed_index/velocity), +$06 (speed), +$0C, +$0E (param_e), +$10
+; Integrates forces on entity: computes drag from speed tables, applies
+; directional force from param $000E, subtracts friction/air resistance,
+; handles speed overflow with sound trigger $B1/$B4. Computes final display
+; speed at +$74 from gear table lookups. Multiple entry points — first
+; 18 bytes serve as alternate entry with BRA to mid-function.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
-; Entry: A2 = object/entity pointer
+; Entry: A0 = entity pointer
 ; Uses: D0, D1, D2, D3, A0, A1, A2
-; Object fields:
-;   +$00: [unknown]
-;   +$04: speed_index/velocity
-;   +$06: speed
-;   +$0C: [unknown]
-;   +$0E: param_e
-;   +$10: [unknown]
-;   +$16: calc_speed
-;   +$74: [unknown]
-; Confidence: medium
+; Object fields: +$04 speed, +$06 display speed, +$0C slope, +$0E force,
+;   +$10 drag, +$16 calc speed, +$74 raw speed, +$78 grip, +$7A gear,
+;   +$80 sound timer, +$82 brake timer
+; Confidence: high
 ; ============================================================================
 
 fn_8200_034:
         MOVE.W  #$FFCD,$000E(A0)                ; $009300
         MOVE.W  $0074(A0),D2                    ; $009306
         MOVE.W  $007A(A0),D1                    ; $00930A
-        DC.W    $D241                           ; $00930E
+        ADD.W   D1,D1                           ; $00930E
         DC.W    $609C               ; BRA.S  $0092AE; $009310
         MOVE.W  $0074(A0),D1                    ; $009312
         BGE.S  .loc_001C                        ; $009316
@@ -42,11 +36,11 @@ fn_8200_034:
         BNE.S  .loc_003A                        ; $009332
         LEA     $00938FCE,A1                    ; $009334
 .loc_003A:
-        DC.W    $D241                           ; $00933A
+        ADD.W   D1,D1                           ; $00933A
         MOVE.W  $00(A1,D1.W),D2                 ; $00933C
         MOVEA.L (-15752).W,A2                   ; $009340
         MOVE.W  $007A(A0),D3                    ; $009344
-        DC.W    $D643                           ; $009348
+        ADD.W   D3,D3                           ; $009348
         MULU    $00(A2,D3.W),D2                 ; $00934A
         LSR.L  #5,D2                            ; $00934E
         MULS    $000E(A0),D2                    ; $009350
@@ -61,13 +55,13 @@ fn_8200_034:
         MOVE.W  $0016(A0),D1                    ; $009368
         EXT.L   D1                              ; $00936C
         LSL.L  #4,D1                            ; $00936E
-        DC.W    $9481                           ; $009370
+        SUB.L   D1,D2                           ; $009370
         MOVE.W  $0010(A0),D1                    ; $009372
         MULS    #$71C0,D1                       ; $009376
         ASR.L  #7,D1                            ; $00937A
-        DC.W    $9481                           ; $00937C
+        SUB.L   D1,D2                           ; $00937C
         BPL.S  .loc_0082                        ; $00937E
-        DC.W    $D482                           ; $009380
+        ADD.L   D2,D2                           ; $009380
 .loc_0082:
         MOVE.W  #$0100,$0078(A0)                ; $009382
         MOVE.W  (-16148).W,D0                   ; $009388
@@ -76,7 +70,7 @@ fn_8200_034:
         CMP.L  D0,D2                            ; $009390
         BGT.S  .loc_00C0                        ; $009392
         MOVE.L  D0,D1                           ; $009394
-        DC.W    $D281                           ; $009396
+        ADD.L   D1,D1                           ; $009396
         CMP.L  D1,D2                            ; $009398
         BGT.S  .loc_00BC                        ; $00939A
         MOVE.W  $0080(A0),D1                    ; $00939C
@@ -95,7 +89,7 @@ fn_8200_034:
         CMP.L  D0,D2                            ; $0093C6
         BLE.W  .loc_00FC                        ; $0093C8
         MOVE.L  D2,D1                           ; $0093CC
-        DC.W    $9280                           ; $0093CE
+        SUB.L   D0,D1                           ; $0093CE
         ASL.L  #8,D1                            ; $0093D0
         DIVS    D0,D1                           ; $0093D2
         SUB.W  D1,$0078(A0)                     ; $0093D4
@@ -124,17 +118,17 @@ fn_8200_034:
 .loc_011C:
         MOVEA.L (-15752).W,A1                   ; $00941C
         MOVE.W  $007A(A0),D1                    ; $009420
-        DC.W    $D241                           ; $009424
+        ADD.W   D1,D1                           ; $009424
         MOVE.W  $00(A1,D1.W),D3                 ; $009426
         MULS    $0006(A0),D3                    ; $00942A
         ASL.L  #2,D3                            ; $00942E
         MOVE.L  D3,D1                           ; $009430
         ASL.L  #2,D3                            ; $009432
-        DC.W    $D283                           ; $009434
+        ADD.L   D3,D1                           ; $009434
         ASL.L  #2,D3                            ; $009436
-        DC.W    $D283                           ; $009438
+        ADD.L   D3,D1                           ; $009438
         ASL.L  #3,D3                            ; $00943A
-        DC.W    $D681                           ; $00943C
+        ADD.L   D1,D3                           ; $00943C
         MOVEQ   #$0C,D1                         ; $00943E
         LSR.L  D1,D3                            ; $009440
         BGE.S  .loc_0146                        ; $009442

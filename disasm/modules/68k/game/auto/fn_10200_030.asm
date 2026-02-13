@@ -1,12 +1,18 @@
 ; ============================================================================
-; Name Entry 030 (auto-analyzed)
+; fn_10200_030 — Lap Time Digit Renderer B
 ; ROM Range: $0118D4-$011908 (52 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Function in 10200 section (52 bytes)
+; Identical logic to fn_10200_014 but renders to SH2 framebuffer region B
+; ($0601DF00) for the second display area (2-player mode). Reads 4 BCD bytes
+; from (A2)+, rendering 7 digit tiles + 2 separator tiles via fn_10200_031
+; (nibble split) and fn_10200_032 (tile DMA).
 ;
+; Entry: A1 = destination tile pointer, A2 = BCD time data pointer
+; Exit: A1 advanced past tiles, A2 advanced 4 bytes
 ; Uses: D1, D3, A1, A2
-; Confidence: low
+; Calls:
+;   fn_10200_031: BCD nibble splitter B
+;   fn_10200_032: digit tile DMA to framebuffer B
 ; ============================================================================
 
 fn_10200_030:

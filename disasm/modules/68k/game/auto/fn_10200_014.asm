@@ -1,12 +1,18 @@
 ; ============================================================================
-; Name Entry 014 (auto-analyzed)
+; fn_10200_014 — Lap Time Digit Renderer A
 ; ROM Range: $010606-$01063A (52 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Function in 10200 section (52 bytes)
+; Renders a BCD-encoded lap time as digit tiles to SH2 framebuffer region A
+; ($06023200). Reads 4 bytes from (A2)+: byte 1 → 2 digit tiles + separator
+; (tile 10), byte 2 → 2 digits + separator (tile 11), byte 3 → 1 digit (low
+; nibble only), byte 4 → 2 digits. Total: 7 digit tiles + 2 separators.
 ;
+; Entry: A1 = destination tile pointer, A2 = BCD time data pointer
+; Exit: A1 advanced past tiles, A2 advanced 4 bytes
 ; Uses: D1, D3, A1, A2
-; Confidence: low
+; Calls:
+;   fn_10200_015: BCD nibble splitter (high + low digit tiles)
+;   fn_10200_016: single digit tile DMA to framebuffer A
 ; ============================================================================
 
 fn_10200_014:

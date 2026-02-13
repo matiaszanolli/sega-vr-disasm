@@ -1,14 +1,19 @@
 ; ============================================================================
-; Sh2 Comm Send Cmd 018 (auto-analyzed)
+; fn_10200_018 — Name Entry Background Tile Transfer
 ; ROM Range: $01071C-$010796 (122 bytes)
 ; ============================================================================
-; Category: sh2
-; Purpose: Calls: sh2_send_cmd
+; Transfers 5 tile data blocks to SH2 framebuffer for the name entry screen
+; background and UI elements. Each block is a sh2_send_cmd call with specific
+; source (ROM/RAM) and destination (SH2 framebuffer) addresses:
+;   1. $24014034 → $06014000 (216×80 — main background)
+;   2. $240080A0 → $06019700 (88×16 — UI element)
+;   3. $2400A0A0 → $06019C80 (88×16 — UI element)
+;   4. $24008060 → $06019000 (56×32 — UI element)
+;   5. $24004C60 → $0601A200 (128×16 — UI element)
 ;
 ; Uses: D0, D1, A0, A1
 ; Calls:
 ;   $00E35A: sh2_send_cmd
-; Confidence: medium
 ; ============================================================================
 
 fn_10200_018:

@@ -1,12 +1,16 @@
 ; ============================================================================
-; Name Entry Dispatch 021 (auto-analyzed)
+; fn_10200_021 — Name Entry State Dispatcher
 ; ROM Range: $01103E-$0111A4 (358 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: State dispatcher using jump table
-;   RAM: $C87E (game_state)
-;   Calls: object_update
-;   Object (A0): +$0E (param_e), +$77
+; Data prefix ($01103E-$011121) contains structured parameter blocks for each
+; name entry sub-state: entity field offsets (+$0E), coordinate pairs, and
+; sentinel values ($7FFF). Multiple blocks with ASCII headers ("IF", "HIDE",
+; "FADED") define display states for name entry UI elements.
+;
+; Code section ($011122-$0111A3) is a state dispatcher: reads game_state from
+; RAM $C87E, indexes a PC-relative jump table, and dispatches to the
+; appropriate handler. Each handler updates object fields and calls
+; object_update to process the current name entry state.
 ;
 ; Entry: A0 = object/entity pointer
 ; Uses: D0, D1, D2, D3, D4, D5, D6, A0
@@ -15,9 +19,8 @@
 ; Calls:
 ;   $00B684: object_update
 ; Object fields:
-;   +$0E: param_e
-;   +$77: [unknown]
-; Confidence: high
+;   +$0E: param_e (state parameter)
+;   +$77: state flags
 ; ============================================================================
 
 fn_10200_021:

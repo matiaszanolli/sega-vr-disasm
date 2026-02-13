@@ -1,34 +1,36 @@
 ; ============================================================================
-; Sh2 Comm Palette Load 020 (auto-analyzed)
+; fn_10200_020 — Name Entry Screen Initialization
 ; ROM Range: $010974-$01103E (1738 bytes)
 ; ============================================================================
-; Category: sh2
-; Purpose: Orchestrator calling 7 subroutines
-;   Accesses 32X registers: adapter_ctrl, COMM0, COMM4
-;   RAM: $C87A (vint_dispatch_state), $C87E (game_state)
-;   Calls: sh2_graphics_cmd, sh2_load_data, sh2_palette_load, sh2_send_cmd_wait
-;   Object (A0, A1): +$00, +$01, +$02 (flags/type), +$03, +$10
+; Large orchestrator that initializes the entire name entry screen for high
+; score entry. Data prefix ($010974-$0109AB) contains the ASCII character set
+; (A-Z, a-z, 0-9, punctuation) for the on-screen keyboard grid.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
-; Uses: D0, D1, D2, D3, D4, D5, D7, A0
+; Initialization sequence:
+;   1. Configure VDP mode, adapter control, display parameters
+;   2. Clear RAM regions (name buffers, score tables)
+;   3. Set up graphics command for 38×26 tile region
+;   4. Load palette data via sh2_palette_load
+;   5. Load character tile assets to 6 SH2 framebuffer regions
+;   6. Accumulate BCD scores from RAM ($C200) using ABCD/SBCD
+;   7. Rank scores and find insertion point for new entry
+;   8. Render existing high score times via name_digit_render
+;   9. Set up COMM0/COMM4 for SH2 framebuffer page flip ($06020000)
+;  10. Handle 1P/2P/3P variants (BTST #4/#5 on flags at $C90E)
+;
+; Entry: (no register parameters — uses global RAM state)
+; Uses: D0, D1, D2, D3, D4, D5, D7, A0, A1, A2
 ; RAM:
 ;   $C87A: vint_dispatch_state
 ;   $C87E: game_state
+;   $C90E: player mode flags (bit 4 = 2P, bit 5 = 1P)
 ; Calls:
 ;   $00E1BC: sh2_palette_load
 ;   $00E22C: sh2_graphics_cmd
 ;   $00E2F0: sh2_load_data
 ;   $00E316: sh2_send_cmd_wait
-;   $011942: name_digit_render
+;   $011942: name_digit_render (fn_10200_030)
 ;   $011A98: name_entry_check
-; Object fields:
-;   +$00: [unknown]
-;   +$01: [unknown]
-;   +$02: flags/type
-;   +$03: [unknown]
-;   +$10: [unknown]
-; Confidence: high
 ; ============================================================================
 
 fn_10200_020:
@@ -172,8 +174,8 @@ fn_10200_020:
         BEQ.W  .loc_020E                        ; $010B7A
         MOVE.B  (-333).W,D0                     ; $010B7E
 .loc_020E:
-        DC.W    $D080                           ; $010B82
-        DC.W    $D080                           ; $010B84
+        ADD.L   D0,D0                           ; $010B82
+        ADD.L   D0,D0                           ; $010B84
         LEA     $0089103E,A0                    ; $010B86
         MOVEA.L $00(A0,D0.W),A0                 ; $010B8C
         MOVEA.L #$0601E8C0,A1                   ; $010B90
@@ -188,8 +190,8 @@ fn_10200_020:
         BEQ.W  .loc_0248                        ; $010BB4
         MOVE.B  (-341).W,D0                     ; $010BB8
 .loc_0248:
-        DC.W    $D080                           ; $010BBC
-        DC.W    $D080                           ; $010BBE
+        ADD.L   D0,D0                           ; $010BBC
+        ADD.L   D0,D0                           ; $010BBE
         LEA     $0089104A,A0                    ; $010BC0
         MOVEA.L $00(A0,D0.W),A0                 ; $010BC6
         MOVEA.L #$0601EE40,A1                   ; $010BCA
@@ -219,8 +221,8 @@ fn_10200_020:
         BNE.S  .loc_02E2                        ; $010C50
         MOVE.B  #$00,D0                         ; $010C52
 .loc_02E2:
-        DC.W    $D040                           ; $010C56
-        DC.W    $D040                           ; $010C58
+        ADD.W   D0,D0                           ; $010C56
+        ADD.W   D0,D0                           ; $010C58
         MOVE.L  $00(A0,D0.W),(-24534).W         ; $010C5A
         MOVE.L  $00(A0,D0.W),(-24518).W         ; $010C60
         CLR.L  (-24506).W                       ; $010C66
@@ -231,24 +233,24 @@ fn_10200_020:
         ADDI.B  #$00,D0                         ; $010C76
         MOVE.B  $0003(A0),D0                    ; $010C7A
         MOVE.B  $0003(A1),D1                    ; $010C7E
-        DC.W    $C101                           ; $010C82
+        ABCD    D1,D0                           ; $010C82
         MOVE.B  D0,$0003(A0)                    ; $010C84
         MOVE.B  $0002(A0),D0                    ; $010C88
         MOVE.B  $0002(A1),D1                    ; $010C8C
-        DC.W    $C101                           ; $010C90
+        ABCD    D1,D0                           ; $010C90
         MOVE.B  D0,D1                           ; $010C92
         ANDI.B  #$0F,D0                         ; $010C94
         MOVE.B  D0,$0002(A0)                    ; $010C98
         LSR.B  #4,D1                            ; $010C9C
         ADDI.B  #$00,D0                         ; $010C9E
         MOVE.B  $0001(A0),D0                    ; $010CA2
-        DC.W    $C101                           ; $010CA6
+        ABCD    D1,D0                           ; $010CA6
         MOVE.B  $0001(A1),D1                    ; $010CA8
-        DC.W    $C101                           ; $010CAC
+        ABCD    D1,D0                           ; $010CAC
         BCC.W  .loc_034E                        ; $010CAE
         ADDI.B  #$00,D0                         ; $010CB2
         MOVE.B  #$40,D1                         ; $010CB6
-        DC.W    $C101                           ; $010CBA
+        ABCD    D1,D0                           ; $010CBA
         MOVE.B  #$01,D1                         ; $010CBC
         BRA.S  .loc_0366                        ; $010CC0
 .loc_034E:
@@ -257,15 +259,15 @@ fn_10200_020:
         BCS.W  .loc_0366                        ; $010CC8
         ADDI.B  #$00,D0                         ; $010CCC
         MOVE.B  #$60,D1                         ; $010CD0
-        DC.W    $8101                           ; $010CD4
+        SBCD    D1,D0                           ; $010CD4
         MOVE.B  #$01,D1                         ; $010CD6
 .loc_0366:
         MOVE.B  D0,$0001(A0)                    ; $010CDA
         ADDI.B  #$00,D0                         ; $010CDE
         MOVE.B  (A0),D0                         ; $010CE2
-        DC.W    $C101                           ; $010CE4
+        ABCD    D1,D0                           ; $010CE4
         MOVE.B  (A1),D1                         ; $010CE6
-        DC.W    $C101                           ; $010CE8
+        ABCD    D1,D0                           ; $010CE8
         MOVE.B  D0,(A0)                         ; $010CEA
         ADDQ.L  #4,A1                           ; $010CEC
         DBRA    D2,.loc_0302                    ; $010CEE
@@ -362,11 +364,11 @@ fn_10200_020:
         LSL.L  #7,D3                            ; $010E2C
         MOVE.L  D3,D4                           ; $010E2E
         LSL.L  #1,D3                            ; $010E30
-        DC.W    $D883                           ; $010E32
+        ADD.L   D3,D4                           ; $010E32
         LSL.L  #2,D3                            ; $010E34
-        DC.W    $D883                           ; $010E36
+        ADD.L   D3,D4                           ; $010E36
         LSL.L  #1,D3                            ; $010E38
-        DC.W    $D684                           ; $010E3A
+        ADD.L   D4,D3                           ; $010E3A
         ADDA.L  D3,A0                           ; $010E3C
         MOVE.W  #$0078,D0                       ; $010E3E
         MOVE.W  #$0010,D1                       ; $010E42

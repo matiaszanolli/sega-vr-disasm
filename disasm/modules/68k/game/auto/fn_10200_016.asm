@@ -1,22 +1,23 @@
 ; ============================================================================
-; Sh2 Comm Send Cmd 016 (auto-analyzed)
+; fn_10200_016 — Digit Tile DMA to Framebuffer A
 ; ROM Range: $010656-$010674 (30 bytes)
 ; ============================================================================
-; Category: sh2
-; Purpose: Short helper function
-;   Calls: sh2_send_cmd
+; Computes SH2 framebuffer address for digit tile D1: offset = D1 × 192
+; (D1<<6 + D1<<7), added to base $06023200. Sends a 12×16 tile block via
+; sh2_send_cmd (D0=$0C width, D1=$10 height).
 ;
+; Entry: D1 = tile/digit index
+; Exit: tile data sent to SH2 framebuffer
 ; Uses: D0, D1, A0
 ; Calls:
 ;   $00E35A: sh2_send_cmd
-; Confidence: medium
 ; ============================================================================
 
 fn_10200_016:
         LSL.W  #6,D1                            ; $010656
         MOVE.W  D1,D0                           ; $010658
         LSL.W  #1,D1                            ; $01065A
-        DC.W    $D240                           ; $01065C
+        ADD.W   D0,D1                           ; $01065C
         MOVEA.L #$06023200,A0                   ; $01065E
         ADDA.W  D1,A0                           ; $010664
         MOVE.W  #$000C,D0                       ; $010666

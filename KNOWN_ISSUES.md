@@ -52,19 +52,14 @@ The project disassembler (`tools/m68k_disasm.py`) has these confirmed issues:
 - **Safe to translate:** Self-contained leaf functions, small (26-32 bytes), no PC-relative data
 - **For larger functions:** Use `.short` hex format with annotated comments
 
-### 15 SH2 Functions Not Yet Integrated
-Source `.asm` files exist but no `.inc` files generated:
-- func_009, func_010 (display list functions)
-- func_060-063, func_067-068, func_074 (raster/utility)
-
-Marked "translated" in SH2_3D_FUNCTION_REFERENCE.md but **NOT in the build system**.
+### All SH2 Functions Now Integrated
+All 92 SH2 3D engine functions (func_000 through func_091, with gaps for non-existent numbers)
+are integrated into the build system via `.inc` generated includes. Zero remaining.
 
 ### Translation Checklist
 1. Test immediately after each function translation
-2. Focus on leaf functions first (no BSR to external symbols)
-3. Use `.short` format for BSR when external calls are needed
-4. Verify assembled byte size matches expected before integration
-5. Keep coordinators as dc.w if size-critical
+2. Use `.short` format for functions with external BSR calls or alignment-sensitive code
+3. Verify assembled byte size matches expected before integration
 
 ---
 

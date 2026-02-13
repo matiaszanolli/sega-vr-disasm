@@ -1,31 +1,17 @@
 ; ============================================================================
-; Obj Heading Update 017 (auto-analyzed)
+; fn_c200_017 — Entity Heading and Turn Rate Calculator
 ; ROM Range: $00CEEE-$00CFD6 (232 bytes)
-; ============================================================================
-; Category: object
-; Purpose: Orchestrator calling 3 subroutines
-;   RAM: $9100 (obj_table_1), $C8CC (race_substate)
-;   Calls: obj_heading_update
-;   Object (A0, A1, A2): +$00, +$02 (flags/type), +$06 (speed), +$14 (effect_duration), +$32, +$3A
+; Data prefix (3 × 10-byte parameter blocks). Main loop iterates over
+; 15 entities, calling obj_heading_update ($007AB6) 9 times per entity.
+; Computes heading difference via sine/cosine lookup tables at
+; $0093AC2C/$0093A82C, calculates turn rate stored to +$3A and lateral
+; force stored to +$3E. Copies display scale from +$6E to +$46.
+; Second entry point loads track overlay data from $008955CC.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
-; Entry: A2 = object/entity pointer
+; Entry: A0 = entity table base
 ; Uses: D0, D7, A0, A1, A2, A6
-; RAM:
-;   $9100: obj_table_1
-;   $C8CC: race_substate
-; Calls:
-;   $007AB6: obj_heading_update
-; Object fields:
-;   +$00: [unknown]
-;   +$02: flags/type
-;   +$06: speed
-;   +$14: effect_duration
-;   +$32: [unknown]
-;   +$3A: [unknown]
-;   +$3E: [unknown]
-;   +$46: display_scale
+; Object fields: +$32 heading, +$3A turn rate, +$3E lateral force,
+;   +$46 display scale, +$6E source scale, +$C6 ref angle, +$C8 target angle
 ; Confidence: high
 ; ============================================================================
 
@@ -58,7 +44,7 @@ fn_c200_017:
         LEA     $0093AC2C,A1                    ; $00CF38
         MOVE.W  $00C8(A0),D0                    ; $00CF3E
         SUB.W  $0032(A0),D0                     ; $00CF42
-        DC.W    $D040                           ; $00CF46
+        ADD.W   D0,D0                           ; $00CF46
         BMI.S  .loc_0066                        ; $00CF48
         ANDI.W  #$03FF,D0                       ; $00CF4A
         MOVE.W  $00(A1,D0.W),D0                 ; $00CF4E
@@ -73,7 +59,7 @@ fn_c200_017:
         LEA     $0093A82C,A1                    ; $00CF64
         MOVE.W  $0032(A0),D0                    ; $00CF6A
         SUB.W  $00C6(A0),D0                     ; $00CF6E
-        DC.W    $D040                           ; $00CF72
+        ADD.W   D0,D0                           ; $00CF72
         BMI.S  .loc_0092                        ; $00CF74
         ANDI.W  #$03FF,D0                       ; $00CF76
         MOVE.W  $00(A1,D0.W),D0                 ; $00CF7A

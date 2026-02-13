@@ -1,28 +1,14 @@
 ; ============================================================================
-; Scene Race 013 (auto-analyzed)
+; fn_c200_013 — Race Track Overlay Configuration
 ; ROM Range: $00CA9A-$00CC06 (364 bytes)
-; ============================================================================
-; Category: game
-; Purpose: RAM: $C8C8 (vint_state), $C8CC (race_substate), $C8A0 (race_state)
-;   Object (A1, A2, A3, A4, A6): +$00, +$01, +$02 (flags/type), +$06 (speed), +$0E (param_e), +$10
+; Configures race track overlays and HUD elements. Loads track-specific
+; overlay data from ROM tables $00898C68/$00898C74 indexed by race mode.
+; Two entry points: first loads basic overlay + mode-specific HUD width,
+; second loads extended overlay with dual-screen support. Inline data
+; tables contain display object descriptors. Final section configures
+; $FF672C display list entry from $00895668 track pointer table.
 ;
-; Entry: A1 = object/entity pointer
-; Entry: A2 = object/entity pointer
-; Entry: A3 = object/entity pointer
-; Entry: A4 = object/entity pointer
-; Entry: A6 = object/entity pointer
 ; Uses: D0, D1, D4, D5, D7, A1, A2, A3
-; RAM:
-;   $C8A0: race_state
-;   $C8C8: vint_state
-;   $C8CC: race_substate
-; Object fields:
-;   +$00: [unknown]
-;   +$01: [unknown]
-;   +$02: flags/type
-;   +$06: speed
-;   +$0E: param_e
-;   +$10: [unknown]
 ; Confidence: high
 ; ============================================================================
 

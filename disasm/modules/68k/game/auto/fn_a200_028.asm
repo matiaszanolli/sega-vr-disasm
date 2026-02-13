@@ -1,28 +1,16 @@
 ; ============================================================================
-; Display Dispatch 028 (auto-analyzed)
+; fn_a200_028 — Camera Animation State Dispatcher
 ; ROM Range: $00B7EE-$00B964 (374 bytes)
-; ============================================================================
-; Category: display
-; Purpose: State dispatcher using jump table
-;   RAM: $C048 (camera_state)
-;   Object (A0, A1, A2): +$00, +$10, +$14 (effect_duration), +$16 (calc_speed), +$18, +$1A (direction)
+; State machine for camera animation transitions. Reads state byte
+; from $C045, dispatches via jump table at $00B864. Oscillates a
+; counter between 0-$10 for smooth animation interpolation. Computes
+; display viewport coordinates from animation data tables and writes
+; to screen position registers. Second phase loads camera parameters
+; from ROM and populates display object (A2) fields.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
-; Entry: A2 = object/entity pointer
+; Entry: A0 = player entity, A2 = display object
 ; Uses: D0, D1, D2, D4, A0, A1, A2, A4
-; RAM:
-;   $C048: camera_state
-; Object fields:
-;   +$00: [unknown]
-;   +$10: [unknown]
-;   +$14: effect_duration
-;   +$16: calc_speed
-;   +$18: [unknown]
-;   +$1A: direction
-;   +$24: [unknown]
-;   +$28: [unknown]
-; Confidence: medium
+; Confidence: high
 ; ============================================================================
 
 fn_a200_028:
@@ -56,9 +44,9 @@ fn_a200_028:
         MOVEQ   #$08,D0                         ; $00B842
 .loc_0056:
         MOVE.B  D0,(-15614).W                   ; $00B844
-        DC.W    $D442                           ; $00B848
-        DC.W    $D442                           ; $00B84A
-        DC.W    $D042                           ; $00B84C
+        ADD.W   D2,D2                           ; $00B848
+        ADD.W   D2,D2                           ; $00B84A
+        ADD.W   D2,D0                           ; $00B84C
         MOVE.B  #$01,(-16284).W                 ; $00B84E
         MOVE.B  D0,(-16283).W                   ; $00B854
         MOVE.B  #$14,(-15613).W                 ; $00B858
@@ -101,8 +89,8 @@ fn_a200_028:
         MOVEA.L $00(A1,D0.W),A1                 ; $00B8AC
         MOVEQ   #$00,D0                         ; $00B8B0
         MOVE.B  (-15613).W,D0                   ; $00B8B2
-        DC.W    $D040                           ; $00B8B6
-        DC.W    $D040                           ; $00B8B8
+        ADD.W   D0,D0                           ; $00B8B6
+        ADD.W   D0,D0                           ; $00B8B8
         MOVE.L  $00(A1,D0.W),D0                 ; $00B8BA
         MOVE.W  D0,(-16298).W                   ; $00B8BE
         SWAP    D0                              ; $00B8C2

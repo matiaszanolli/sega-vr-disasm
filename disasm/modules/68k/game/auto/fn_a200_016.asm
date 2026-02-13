@@ -1,22 +1,15 @@
 ; ============================================================================
-; Ai 016 (auto-analyzed)
+; fn_a200_016 — Word-to-Nibble Unpacker
 ; ROM Range: $00B43C-$00B478 (60 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Object (A1, A3): +$01, +$02 (flags/type), +$03, +$04 (speed_index/velocity), +$05, +$06 (speed)
+; Unpacks two words from (A1) into individual nibble bytes at (A3).
+; Reads +$02(A1) → shifts right 4 bits at a time to fill +$07,+$06,+$05.
+; Reads (A1) → shifts right to fill +$04,+$03,+$02,+$01.
+; Masks results with ANDI to keep only low nibble per byte.
+; Used by sequence/sound system for BCD-style data unpacking.
 ;
-; Entry: A1 = object/entity pointer
-; Entry: A3 = object/entity pointer
+; Entry: A1 = source word pointer, A3 = output nibble buffer
 ; Uses: D0, A1, A3
-; Object fields:
-;   +$01: [unknown]
-;   +$02: flags/type
-;   +$03: [unknown]
-;   +$04: speed_index/velocity
-;   +$05: [unknown]
-;   +$06: speed
-;   +$07: [unknown]
-; Confidence: low
+; Confidence: high
 ; ============================================================================
 
 fn_a200_016:

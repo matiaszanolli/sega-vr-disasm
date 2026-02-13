@@ -1,23 +1,15 @@
 ; ============================================================================
-; Ai Camera 033 (auto-analyzed)
+; fn_a200_033 — Scene Menu Initialization and Input Handler
 ; ROM Range: $00BA5E-$00BC1C (446 bytes)
-; ============================================================================
-; Category: game
-; Purpose: RAM: $C082 (menu_state), $C048 (camera_state), $C8A0 (race_state)
-;   Object (A0): +$00, +$10, +$2A, +$76, +$78
+; Two-phase function: initialization clears camera state, counters,
+; entity rank, and configures animation parameters, then jumps to
+; scene data loader. Input handler phase polls controller buttons,
+; detects start/A-button, triggers menu transitions with sound ($9D),
+; configures SH2 communication ($00FF0002/$00FF0008), and dispatches
+; scene commands indexed by track selection.
 ;
-; Entry: A0 = object/entity pointer
+; Entry: A0 = entity pointer (during init)
 ; Uses: D0, A0
-; RAM:
-;   $C048: camera_state
-;   $C082: menu_state
-;   $C8A0: race_state
-; Object fields:
-;   +$00: [unknown]
-;   +$10: [unknown]
-;   +$2A: [unknown]
-;   +$76: [unknown]
-;   +$78: [unknown]
 ; Confidence: high
 ; ============================================================================
 

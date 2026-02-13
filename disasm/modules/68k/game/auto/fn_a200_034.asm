@@ -1,27 +1,15 @@
 ; ============================================================================
-; Ai Dispatch 034 (auto-analyzed)
+; fn_a200_034 — Scene Command Dispatcher
 ; ROM Range: $00BC1C-$00BCCA (174 bytes)
-; ============================================================================
-; Category: game
-; Purpose: State dispatcher using jump table
-;   RAM: $C8A0 (race_state), $C082 (menu_state), $C084 (menu_substate), $C8AA (scene_state)
-;   Object (A0, A1): +$00, +$01, +$02 (flags/type), +$0E (param_e), +$10, +$88
+; Data prefix with 5 BRA.W entries forming a scene command jump table.
+; Main body initializes display object at $FF60C8, calls scene setup
+; subroutines ($00BE68, $00A050, $00BDD6), loads scene data from ROM
+; indexed by track. Dispatches per-frame commands via +$00(A0) byte.
+; Secondary dispatch via +$0E field through pointer table at $00BC30.
+; Advances scene sequence counter.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
+; Entry: A0 = scene data pointer, A1 = display object
 ; Uses: D0, D6, A0, A1, A6
-; RAM:
-;   $C082: menu_state
-;   $C084: menu_substate
-;   $C8A0: race_state
-;   $C8AA: scene_state
-; Object fields:
-;   +$00: [unknown]
-;   +$01: [unknown]
-;   +$02: flags/type
-;   +$0E: param_e
-;   +$10: [unknown]
-;   +$88: [unknown]
 ; Confidence: high
 ; ============================================================================
 
@@ -63,8 +51,8 @@ fn_a200_034:
 .loc_0080:
         MOVE.B  D0,(A1)                         ; $00BC9C
         MOVE.W  $000E(A0),D0                    ; $00BC9E
-        DC.W    $D040                           ; $00BCA2
-        DC.W    $D040                           ; $00BCA4
+        ADD.W   D0,D0                           ; $00BCA2
+        ADD.W   D0,D0                           ; $00BCA4
         MOVEA.L $00BC30(PC,D0.W),A1             ; $00BCA6
         JSR     (A1)                            ; $00BCAA
         SUBQ.W  #1,(-16252).W                   ; $00BCAC

@@ -1,24 +1,14 @@
 ; ============================================================================
-; Scene Obj Table 1 010 (auto-analyzed)
+; fn_c200_010 — Race Scene Data Loader
 ; ROM Range: $00C6B6-$00C7C2 (268 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Orchestrator calling 4 subroutines
-;   RAM: $C8A0 (race_state), $C8CC (race_substate), $9100 (obj_table_1)
-;   Object (A1, A2): +$00, +$0A (param_a), +$B6, +$100
+; Race initialization orchestrator. Loads terrain, entity, and track
+; data via 4 subroutine calls ($0048EA, $0048D2). Configures SH2
+; communication ($00FF0002/$00FF0008), sets camera viewport
+; ($00C0/$0540), race parameters (speed limits, distances), and
+; populates entity sort keys (+$0A, +$B6) from ROM table.
+; Initializes timing table pointer at $0088C7E0.
 ;
-; Entry: A1 = object/entity pointer
-; Entry: A2 = object/entity pointer
-; Uses: D0, D1, D2, D3, D4, D5, D6, D7
-; RAM:
-;   $9100: obj_table_1
-;   $C8A0: race_state
-;   $C8CC: race_substate
-; Object fields:
-;   +$00: [unknown]
-;   +$0A: param_a
-;   +$B6: [unknown]
-;   +$100: [unknown]
+; Uses: D0-D7, A0-A6 (saves/restores via MOVEM)
 ; Confidence: high
 ; ============================================================================
 

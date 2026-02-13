@@ -1,12 +1,12 @@
 ; ============================================================================
-; Ai 027 (auto-analyzed)
+; fn_a200_027 — Display State Bit 10 Guard
 ; ROM Range: $00B7E6-$00B7EE (8 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Small leaf function
+; Tests bit 10 of D0. If set, falls through to fn_a200_028 camera
+; animation state dispatcher. If clear, returns immediately.
 ;
+; Entry: D0 = flags word
 ; Uses: D0
-; Confidence: low
+; Confidence: high
 ; ============================================================================
 
 fn_a200_027:

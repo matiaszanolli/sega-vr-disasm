@@ -1,21 +1,16 @@
 ; ============================================================================
-; Scene Fastcopy16 011 (auto-analyzed)
+; fn_c200_011 — Track Graphics and Sound Loader
 ; ROM Range: $00C7C2-$00C8E6 (292 bytes)
-; ============================================================================
-; Category: game
-; Purpose: RAM: $C8CC (race_substate)
-;   Calls: FastCopy16
-;   Object (A1): +$00
+; Data prefix (animation frame table, 30 bytes). Loads track-specific
+; graphics from ROM $0089B6AC/$0089B73C, copies palette data (54 longs),
+; initializes sound/timing state variables. Second entry point loads
+; track-specific overlay graphics from $00895488/$008954F4/$00895560
+; indexed by race mode. Configures display viewport and clears
+; display list at $FF60C0-$FF60D0.
 ;
-; Entry: A1 = object/entity pointer
 ; Uses: D0, D1, D3, D4, D7, A0, A1, A2
-; RAM:
-;   $C8CC: race_substate
-; Calls:
-;   $004922: FastCopy16
-; Object fields:
-;   +$00: [unknown]
-; Confidence: medium
+; Calls: $0048EA (data_copy), $004922 (FastCopy16)
+; Confidence: high
 ; ============================================================================
 
 fn_c200_011:

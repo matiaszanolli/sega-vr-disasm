@@ -96,7 +96,7 @@ disasm/vrd.asm (entry point)
 | boot | Initialization, adapter init |
 | display | Display list, screen rendering |
 | frame | Frame management |
-| game | Game logic (55 functions in code_c200 section) |
+| game | Game logic (674 functions organized into subcategories — see below) |
 | graphics | Graphics primitives |
 | hardware-regs | Hardware register access |
 | input | Controller I/O |
@@ -110,6 +110,27 @@ disasm/vrd.asm (entry point)
 | util | Utility functions |
 | vdp | VDP register access |
 | vint | V-INT sub-handlers |
+
+### Game Subcategories
+
+Game modules in `disasm/modules/68k/game/<subcategory>/`:
+
+| Subcategory | Count | Purpose |
+|-------------|-------|---------|
+| ai | 23 | AI behavior, steering, opponent logic |
+| auto | 253 | Auto-analyzed (pending documentation) |
+| camera | 17 | Camera setup, positioning, scrolling |
+| collision | 14 | Collision detection, proximity checks |
+| data | 5 | Decompression, lookup tables |
+| entity | 23 | Entity/object management, spawning |
+| hud | 13 | HUD, score display, digit rendering |
+| menu | 91 | Menu, name entry, mode selection, UI |
+| physics | 35 | Speed, acceleration, braking, tilt |
+| race | 35 | Race state, lap tracking, sound triggers |
+| render | 41 | Visibility, depth sort, VDP, DMA, sprites |
+| scene | 42 | Scene init, SH2 communication, transitions |
+| state | 79 | State dispatchers, counters, flags, timers |
+| track | 3 | Track data, segment operations |
 
 ## Profiling Quick Start
 

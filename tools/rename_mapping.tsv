@@ -1,0 +1,675 @@
+old_path	new_path	old_label	new_label	subcategory	title
+modules/68k/game/abort_with_flag.asm	modules/68k/game/state/abort_with_flag.asm	abort_with_flag	abort_with_flag	state	Abort With Flag
+modules/68k/game/advance_clear_timer.asm	modules/68k/game/state/advance_clear_timer.asm	advance_clear_timer	advance_clear_timer	state	Advance State and Clear Timer
+modules/68k/game/ai_opponent_select.asm	modules/68k/game/ai/ai_opponent_select.asm	ai_opponent_select	ai_opponent_select	ai	AI Opponent Select
+modules/68k/game/ai_steering_calc.asm	modules/68k/game/ai/ai_steering_calc.asm	ai_steering_calc	ai_steering_calc	ai	AI Steering Calculation
+modules/68k/game/ai_target_check.asm	modules/68k/game/ai/ai_target_check.asm	ai_target_check	ai_target_check	ai	AI Target Check
+modules/68k/game/bulk_table_copy.asm	modules/68k/game/data/bulk_table_copy.asm	bulk_table_copy	bulk_table_copy	data	Bulk Table Copy (Two ROM Blocks to RAM)
+modules/68k/game/calc_state_from_flags.asm	modules/68k/game/state/calc_state_from_flags.asm	calc_state_from_flags	calc_state_from_flags	state	Calculate State from Flags
+modules/68k/game/calc_state_from_flags_2.asm	modules/68k/game/state/calc_state_from_flags_2.asm	calc_state_from_flags_2	calc_state_from_flags_2	state	Calculate State from Flags (Copy 2)
+modules/68k/game/camera_buffer_setup.asm	modules/68k/game/camera/camera_buffer_setup.asm	camera_buffer_setup	camera_buffer_setup	camera	Camera Buffer Setup
+modules/68k/game/camera_direct_setup.asm	modules/68k/game/camera/camera_direct_setup.asm	camera_direct_setup	camera_direct_setup	camera	Camera Direct Setup
+modules/68k/game/camera_offset_setup.asm	modules/68k/game/camera/camera_offset_setup.asm	camera_offset_setup	camera_offset_setup	camera	Camera Offset Setup
+modules/68k/game/camera_scroll_update.asm	modules/68k/game/camera/camera_scroll_update.asm	camera_scroll_update	camera_scroll_update	camera	Camera Scroll Update
+modules/68k/game/camera_simple_setup.asm	modules/68k/game/camera/camera_simple_setup.asm	camera_simple_setup	camera_simple_setup	camera	Camera Simple Setup
+modules/68k/game/camera_value_store.asm	modules/68k/game/camera/camera_value_store.asm	camera_value_store	camera_value_store	camera	Camera Value Store
+modules/68k/game/camera_value_store_full.asm	modules/68k/game/camera/camera_value_store_full.asm	camera_value_store_full	camera_value_store_full	camera	Camera Value Store Full
+modules/68k/game/check_timeout_60.asm	modules/68k/game/state/check_timeout_60.asm	check_timeout_60	check_timeout_60	state	Check Timeout (60 Frames)
+modules/68k/game/clear_camera_override.asm	modules/68k/game/camera/clear_camera_override.asm	clear_camera_override	clear_camera_override	camera	Clear Camera Override
+modules/68k/game/clear_heading.asm	modules/68k/game/physics/clear_heading.asm	clear_heading	clear_heading	physics	Clear Heading Register
+modules/68k/game/close_position_flags.asm	modules/68k/game/collision/close_position_flags.asm	close_position_flags	close_position_flags	collision	Close Position Flags
+modules/68k/game/counter_check_advance.asm	modules/68k/game/state/counter_check_advance.asm	counter_check_advance	counter_check_advance	state	Counter Check and Advance Secondary State
+modules/68k/game/counter_check_flag_8200.asm	modules/68k/game/state/counter_check_flag_8200.asm	counter_check_flag_8200	counter_check_flag_8200	state	Counter Check Flag — Mode Advance
+modules/68k/game/counter_init_check.asm	modules/68k/game/state/counter_init_check.asm	counter_init_check	counter_init_check	state	Counter Init Check
+modules/68k/game/counter_reset_3.asm	modules/68k/game/state/counter_reset_3.asm	counter_reset_3	counter_reset_3	state	Reset Step Counter to 3
+modules/68k/game/effect_countdown.asm	modules/68k/game/state/effect_countdown.asm	effect_countdown	effect_countdown	state	Effect Countdown
+modules/68k/game/effect_timer_mgmt.asm	modules/68k/game/state/effect_timer_mgmt.asm	effect_timer_mgmt	effect_timer_mgmt	state	Effect Timer Management
+modules/68k/game/entity_directional_push.asm	modules/68k/game/entity/entity_directional_push.asm	entity_directional_push	entity_directional_push	entity	Entity Directional Push
+modules/68k/game/entity_position_init.asm	modules/68k/game/entity/entity_position_init.asm	entity_position_init	entity_position_init	entity	Entity Position Init (Table Fill + Compare)
+modules/68k/game/entity_speed_clamp.asm	modules/68k/game/entity/entity_speed_clamp.asm	entity_speed_clamp	entity_speed_clamp	entity	Entity Speed Clamp
+modules/68k/game/entity_table_load.asm	modules/68k/game/entity/entity_table_load.asm	entity_table_load	entity_table_load	entity	Entity Table Load (Mode-Based)
+modules/68k/game/entity_table_load_mode.asm	modules/68k/game/entity/entity_table_load_mode.asm	entity_table_load_mode	entity_table_load_mode	entity	Entity Table Load (Mode+Index Combined)
+modules/68k/game/entity_target_action.asm	modules/68k/game/entity/entity_target_action.asm	entity_target_action	entity_target_action	entity	Entity Target Action
+modules/68k/game/entity_visibility_check.asm	modules/68k/game/entity/entity_visibility_check.asm	entity_visibility_check	entity_visibility_check	entity	Entity Visibility Check
+modules/68k/game/flag96_sprite_advance.asm	modules/68k/game/state/flag96_sprite_advance.asm	flag96_sprite_advance	flag96_sprite_advance	state	Flag $96, Sprite Adjust, Advance
+modules/68k/game/flag_check_advance.asm	modules/68k/game/state/flag_check_advance.asm	flag_check_advance	flag_check_advance	state	Flag Check and Advance State
+modules/68k/game/flag_check_clear_init.asm	modules/68k/game/state/flag_check_clear_init.asm	flag_check_clear_init	flag_check_clear_init	state	Flag Check, VDP Init, Clear Display Mode
+modules/68k/game/flag_sound_advance_b.asm	modules/68k/game/state/flag_sound_advance_b.asm	flag_sound_advance_b	flag_sound_advance_b	state	Flag Set, Sound Config, Advance — SH2 Gate
+modules/68k/game/fn_10200_001.asm	modules/68k/game/scene/sh2_comm_reset_mode_set.asm	fn_10200_001	sh2_comm_reset_mode_set	scene	SH2 Comm Reset and Mode Set
+modules/68k/game/fn_10200_002.asm	modules/68k/game/menu/name_entry_input_handler.asm	fn_10200_002	name_entry_input_handler	menu	Name Entry Input Handler
+modules/68k/game/fn_10200_003.asm	modules/68k/game/menu/sh2_scene_reset_name_entry_mode_disp.asm	fn_10200_003	sh2_scene_reset_name_entry_mode_disp	menu	SH2 Scene Reset — Name Entry Mode Dispatcher
+modules/68k/game/fn_10200_004.asm	modules/68k/game/scene/sh2_scene_reset_set_handler_88d4a4.asm	fn_10200_004	sh2_scene_reset_set_handler_88d4a4	scene	SH2 Scene Reset — Set Handler $88D4A4
+modules/68k/game/fn_10200_005.asm	modules/68k/game/menu/name_entry_color_palette_update.asm	fn_10200_005	name_entry_color_palette_update	menu	Name Entry Color/Palette Update
+modules/68k/game/fn_10200_006.asm	modules/68k/game/auto/fn_10200_006.asm	fn_10200_006	fn_10200_006	auto	Name Entry 006 (auto-analyzed)
+modules/68k/game/fn_10200_007.asm	modules/68k/game/scene/sh2_command_sender.asm	fn_10200_007	sh2_command_sender	scene	fn_10200_007 — SH2 Command Sender (Multi-Parameter)
+modules/68k/game/fn_10200_008.asm	modules/68k/game/menu/name_entry_bcd_score_cmp.asm	fn_10200_008	name_entry_bcd_score_cmp	menu	Name Entry BCD Score Comparison
+modules/68k/game/fn_10200_009.asm	modules/68k/game/menu/name_entry_sh2_xfer_advance.asm	fn_10200_009	name_entry_sh2_xfer_advance	menu	Name Entry SH2 Transfer + Advance
+modules/68k/game/fn_10200_010.asm	modules/68k/game/menu/name_entry_character_input_010244.asm	fn_10200_010	name_entry_character_input_010244	menu	Name Entry Character Input (Player 1)
+modules/68k/game/fn_10200_011.asm	modules/68k/game/menu/name_entry_object_update_dma.asm	fn_10200_011	name_entry_object_update_dma	menu	Name Entry Object Update + DMA
+modules/68k/game/fn_10200_012.asm	modules/68k/game/menu/name_entry_character_input_0103c4.asm	fn_10200_012	name_entry_character_input_0103c4	menu	Name Entry Character Input (Player 2)
+modules/68k/game/fn_10200_013.asm	modules/68k/game/menu/name_entry_sprite_update_anim.asm	fn_10200_013	name_entry_sprite_update_anim	menu	Name Entry Sprite Update + Animation
+modules/68k/game/fn_10200_014.asm	modules/68k/game/auto/fn_10200_014.asm	fn_10200_014	fn_10200_014	auto	Name Entry 014 (auto-analyzed)
+modules/68k/game/fn_10200_015.asm	modules/68k/game/auto/fn_10200_015.asm	fn_10200_015	fn_10200_015	auto	Name Entry 015 (auto-analyzed)
+modules/68k/game/fn_10200_016.asm	modules/68k/game/auto/fn_10200_016.asm	fn_10200_016	fn_10200_016	auto	Sh2 Comm Send Cmd 016 (auto-analyzed)
+modules/68k/game/fn_10200_017.asm	modules/68k/game/hud/ascii_character_to_tile_index_mapper_010674.asm	fn_10200_017	ascii_character_to_tile_index_mapper_010674	hud	fn_10200_017 — ASCII Character to Tile Index Mapper (SH2, Alternate)
+modules/68k/game/fn_10200_018.asm	modules/68k/game/auto/fn_10200_018.asm	fn_10200_018	fn_10200_018	auto	Sh2 Comm Send Cmd 018 (auto-analyzed)
+modules/68k/game/fn_10200_019.asm	modules/68k/game/menu/name_entry_cursor_render.asm	fn_10200_019	name_entry_cursor_render	menu	Name Entry Cursor Render
+modules/68k/game/fn_10200_020.asm	modules/68k/game/auto/fn_10200_020.asm	fn_10200_020	fn_10200_020	auto	Sh2 Comm Palette Load 020 (auto-analyzed)
+modules/68k/game/fn_10200_021.asm	modules/68k/game/auto/fn_10200_021.asm	fn_10200_021	fn_10200_021	auto	Name Entry Dispatch 021 (auto-analyzed)
+modules/68k/game/fn_10200_022.asm	modules/68k/game/menu/advance_game_state_set_frame_delay.asm	fn_10200_022	advance_game_state_set_frame_delay	menu	Advance Game State + Set Frame Delay
+modules/68k/game/fn_10200_023.asm	modules/68k/game/menu/name_entry_score_disp_xfer.asm	fn_10200_023	name_entry_score_disp_xfer	menu	Name Entry Score Display Transfer
+modules/68k/game/fn_10200_024.asm	modules/68k/game/menu/name_entry_mode_select_input_handler.asm	fn_10200_024	name_entry_mode_select_input_handler	menu	Name Entry Mode Select + Input Handler
+modules/68k/game/fn_10200_025.asm	modules/68k/game/menu/name_entry_sh2_comm_setup_dma.asm	fn_10200_025	name_entry_sh2_comm_setup_dma	menu	Name Entry SH2 COMM Setup + DMA
+modules/68k/game/fn_10200_026.asm	modules/68k/game/menu/name_entry_scroll_view_action_handler.asm	fn_10200_026	name_entry_scroll_view_action_handler	menu	Name Entry Scroll View + Action Handler
+modules/68k/game/fn_10200_027.asm	modules/68k/game/menu/name_entry_sh2_comm_scroll_dma_blink.asm	fn_10200_027	name_entry_sh2_comm_scroll_dma_blink	menu	Name Entry SH2 COMM + Scroll DMA + Blink
+modules/68k/game/fn_10200_028.asm	modules/68k/game/menu/name_entry_dual_scroll_view_action_handler.asm	fn_10200_028	name_entry_dual_scroll_view_action_handler	menu	Name Entry Dual Scroll View + Action Handler
+modules/68k/game/fn_10200_029.asm	modules/68k/game/scene/sprite_buffer_clear_sh2_scene_reset.asm	fn_10200_029	sprite_buffer_clear_sh2_scene_reset	scene	Sprite Buffer Clear + SH2 Scene Reset
+modules/68k/game/fn_10200_030.asm	modules/68k/game/auto/fn_10200_030.asm	fn_10200_030	fn_10200_030	auto	Name Entry 030 (auto-analyzed)
+modules/68k/game/fn_10200_031.asm	modules/68k/game/auto/fn_10200_031.asm	fn_10200_031	fn_10200_031	auto	Name Entry 031 (auto-analyzed)
+modules/68k/game/fn_10200_032.asm	modules/68k/game/auto/fn_10200_032.asm	fn_10200_032	fn_10200_032	auto	Sh2 Comm Send Cmd 032 (auto-analyzed)
+modules/68k/game/fn_10200_033.asm	modules/68k/game/auto/fn_10200_033.asm	fn_10200_033	fn_10200_033	auto	Name Entry 033 (auto-analyzed)
+modules/68k/game/fn_10200_034.asm	modules/68k/game/auto/fn_10200_034.asm	fn_10200_034	fn_10200_034	auto	Name Entry 034 (auto-analyzed)
+modules/68k/game/fn_10200_035.asm	modules/68k/game/auto/fn_10200_035.asm	fn_10200_035	fn_10200_035	auto	Name Entry Check 035 (auto-analyzed)
+modules/68k/game/fn_10200_036.asm	modules/68k/game/auto/fn_10200_036.asm	fn_10200_036	fn_10200_036	auto	Sh2 Comm Send Cmd 036 (auto-analyzed)
+modules/68k/game/fn_10200_037.asm	modules/68k/game/menu/name_entry_score_area_dma_xfer.asm	fn_10200_037	name_entry_score_area_dma_xfer	menu	Name Entry Score Area DMA Transfer
+modules/68k/game/fn_10200_038.asm	modules/68k/game/auto/fn_10200_038.asm	fn_10200_038	fn_10200_038	auto	Sh2 Comm Palette Load 038 (auto-analyzed)
+modules/68k/game/fn_10200_039.asm	modules/68k/game/auto/fn_10200_039.asm	fn_10200_039	fn_10200_039	auto	Name Entry Dispatch 039 (auto-analyzed)
+modules/68k/game/fn_10200_040.asm	modules/68k/game/menu/name_entry_rendering_sh2_xfer.asm	fn_10200_040	name_entry_rendering_sh2_xfer	menu	Name Entry Rendering + SH2 Transfer
+modules/68k/game/fn_12200_001.asm	modules/68k/game/scene/sh2_scene_reset_set_handler_8926d2.asm	fn_12200_001	sh2_scene_reset_set_handler_8926d2	scene	SH2 Scene Reset — Set Handler $8926D2
+modules/68k/game/fn_12200_002.asm	modules/68k/game/auto/fn_12200_002.asm	fn_12200_002	fn_12200_002	auto	Camera 002 (auto-analyzed)
+modules/68k/game/fn_12200_003.asm	modules/68k/game/auto/fn_12200_003.asm	fn_12200_003	fn_12200_003	auto	Camera 003 (auto-analyzed)
+modules/68k/game/fn_12200_004.asm	modules/68k/game/auto/fn_12200_004.asm	fn_12200_004	fn_12200_004	auto	Camera 004 (auto-analyzed)
+modules/68k/game/fn_12200_005.asm	modules/68k/game/menu/sh2_mode_disp_select_scene_by_track_mode.asm	fn_12200_005	sh2_mode_disp_select_scene_by_track_mode	menu	SH2 Mode Dispatcher — Select Scene by Track/Mode
+modules/68k/game/fn_12200_006.asm	modules/68k/game/auto/fn_12200_006.asm	fn_12200_006	fn_12200_006	auto	Camera 006 (auto-analyzed)
+modules/68k/game/fn_12200_007.asm	modules/68k/game/auto/fn_12200_007.asm	fn_12200_007	fn_12200_007	auto	Sh2 Comm 007 (auto-analyzed)
+modules/68k/game/fn_12200_008.asm	modules/68k/game/menu/camera_selection_counter_0136aa.asm	fn_12200_008	camera_selection_counter_0136aa	menu	Camera Selection Counter (Replay Angle)
+modules/68k/game/fn_12200_009.asm	modules/68k/game/menu/camera_selection_counter_0136ea.asm	fn_12200_009	camera_selection_counter_0136ea	menu	Camera Selection Counter (Music Track)
+modules/68k/game/fn_12200_010.asm	modules/68k/game/menu/camera_selection_counter_013734.asm	fn_12200_010	camera_selection_counter_013734	menu	Camera Selection Counter (Sound Effect A)
+modules/68k/game/fn_12200_011.asm	modules/68k/game/menu/camera_selection_counter_01377a.asm	fn_12200_011	camera_selection_counter_01377a	menu	Camera Selection Counter (Sound Effect B)
+modules/68k/game/fn_12200_012.asm	modules/68k/game/scene/sh2_scene_reset_cond_handler_by_player_2_flag.asm	fn_12200_012	sh2_scene_reset_cond_handler_by_player_2_flag	scene	SH2 Scene Reset — Conditional Handler by Player 2 Flag
+modules/68k/game/fn_12200_013.asm	modules/68k/game/menu/i_o_port_config_backup_sh2_scene_reset.asm	fn_12200_013	i_o_port_config_backup_sh2_scene_reset	menu	I/O Port Config Backup + SH2 Scene Reset
+modules/68k/game/fn_12200_014.asm	modules/68k/game/auto/fn_12200_014.asm	fn_12200_014	fn_12200_014	auto	Camera 014 (auto-analyzed)
+modules/68k/game/fn_12200_015.asm	modules/68k/game/auto/fn_12200_015.asm	fn_12200_015	fn_12200_015	auto	Sh2 Comm Object Update 015 (auto-analyzed)
+modules/68k/game/fn_12200_016.asm	modules/68k/game/menu/camera_tile_render.asm	fn_12200_016	camera_tile_render	menu	Camera Tile Render (3D Array Index)
+modules/68k/game/fn_12200_017.asm	modules/68k/game/auto/fn_12200_017.asm	fn_12200_017	fn_12200_017	auto	Camera 017 (auto-analyzed)
+modules/68k/game/fn_12200_018.asm	modules/68k/game/auto/fn_12200_018.asm	fn_12200_018	fn_12200_018	auto	Camera 018 (auto-analyzed)
+modules/68k/game/fn_12200_019.asm	modules/68k/game/auto/fn_12200_019.asm	fn_12200_019	fn_12200_019	auto	Sh2 Comm Send Cmd 019 (auto-analyzed)
+modules/68k/game/fn_12200_020.asm	modules/68k/game/hud/ascii_character_to_tile_index_mapper_012618.asm	fn_12200_020	ascii_character_to_tile_index_mapper_012618	hud	fn_12200_020 — ASCII Character to Tile Index Mapper (SH2)
+modules/68k/game/fn_12200_021.asm	modules/68k/game/auto/fn_12200_021.asm	fn_12200_021	fn_12200_021	auto	Sh2 Comm Send Cmd 021 (auto-analyzed)
+modules/68k/game/fn_12200_022.asm	modules/68k/game/auto/fn_12200_022.asm	fn_12200_022	fn_12200_022	auto	Sh2 Comm Palette Load 022 (auto-analyzed)
+modules/68k/game/fn_12200_023.asm	modules/68k/game/scene/scene_state_disp_track_data_tables.asm	fn_12200_023	scene_state_disp_track_data_tables	scene	Scene State Dispatcher with Track Data Tables
+modules/68k/game/fn_12200_024.asm	modules/68k/game/menu/camera_demo_palette_sh2_setup.asm	fn_12200_024	camera_demo_palette_sh2_setup	menu	Camera Demo Palette + SH2 Setup
+modules/68k/game/fn_12200_025.asm	modules/68k/game/menu/camera_dma_xfer.asm	fn_12200_025	camera_dma_xfer	menu	Camera DMA Transfer (Data Prefix)
+modules/68k/game/fn_12200_026.asm	modules/68k/game/auto/fn_12200_026.asm	fn_12200_026	fn_12200_026	auto	Sh2 Comm Object Update 026 (auto-analyzed)
+modules/68k/game/fn_12200_027.asm	modules/68k/game/menu/camera_sh2_command_27_dispatch.asm	fn_12200_027	camera_sh2_command_27_dispatch	menu	Camera SH2 Command 27 Dispatch (Data Prefix)
+modules/68k/game/fn_12200_028.asm	modules/68k/game/auto/fn_12200_028.asm	fn_12200_028	fn_12200_028	auto	Sh2 Comm Palette Load 028 (auto-analyzed)
+modules/68k/game/fn_12200_029.asm	modules/68k/game/menu/camera_state_disp.asm	fn_12200_029	camera_state_disp	menu	Camera State Dispatcher (Data Prefix + Jump Table)
+modules/68k/game/fn_12200_030.asm	modules/68k/game/menu/camera_render_dma_overlay.asm	fn_12200_030	camera_render_dma_overlay	menu	Camera Render DMA + Overlay
+modules/68k/game/fn_12200_031.asm	modules/68k/game/menu/camera_menu_orch.asm	fn_12200_031	camera_menu_orch	menu	Camera Menu Orchestrator (Data Prefix)
+modules/68k/game/fn_12200_032.asm	modules/68k/game/menu/camera_menu_input_handler.asm	fn_12200_032	camera_menu_input_handler	menu	Camera Menu Input Handler
+modules/68k/game/fn_12200_033.asm	modules/68k/game/menu/conditional_state_set_enable_flags_sh2_call_0137c0.asm	fn_12200_033	conditional_state_set_enable_flags_sh2_call_0137c0	menu	Conditional State Set + Enable Flags + SH2 Call (with ST)
+modules/68k/game/fn_12200_034.asm	modules/68k/game/menu/conditional_state_set_enable_flags_sh2_call_0137f4.asm	fn_12200_034	conditional_state_set_enable_flags_sh2_call_0137f4	menu	Conditional State Set + Enable Flags + SH2 Call
+modules/68k/game/fn_12200_035.asm	modules/68k/game/auto/fn_12200_035.asm	fn_12200_035	fn_12200_035	auto	Sh2 Comm Palette Load 035 (auto-analyzed)
+modules/68k/game/fn_12200_036.asm	modules/68k/game/auto/fn_12200_036.asm	fn_12200_036	fn_12200_036	auto	Camera Dispatch 036 (auto-analyzed)
+modules/68k/game/fn_12200_037.asm	modules/68k/game/menu/camera_sh2_scene_transition_dual_dma.asm	fn_12200_037	camera_sh2_scene_transition_dual_dma	menu	Camera SH2 Scene Transition + Dual DMA
+modules/68k/game/fn_12200_038.asm	modules/68k/game/auto/fn_12200_038.asm	fn_12200_038	fn_12200_038	auto	Camera Send Cmd 038 (auto-analyzed)
+modules/68k/game/fn_12200_039.asm	modules/68k/game/auto/fn_12200_039.asm	fn_12200_039	fn_12200_039	auto	Camera 039 (auto-analyzed)
+modules/68k/game/fn_14200_001.asm	modules/68k/game/menu/advance_game_state.asm	fn_14200_001	advance_game_state	menu	Advance Game State
+modules/68k/game/fn_14200_002.asm	modules/68k/game/menu/read_combined_start_button_state.asm	fn_14200_002	read_combined_start_button_state	menu	Read Combined Start Button State
+modules/68k/game/fn_14200_003.asm	modules/68k/game/menu/palette_fade_003.asm	fn_14200_003	palette_fade_003	menu	Palette Fade 003
+modules/68k/game/fn_14200_004.asm	modules/68k/game/menu/menu_tile_copy_to_vdp.asm	fn_14200_004	menu_tile_copy_to_vdp	menu	Menu Tile Copy to VDP (Block Transfer)
+modules/68k/game/fn_14200_005.asm	modules/68k/game/menu/menu_item_address_table_vdp_reg_clear.asm	fn_14200_005	menu_item_address_table_vdp_reg_clear	menu	Menu Item Address Table + VDP Register Clear
+modules/68k/game/fn_14200_006.asm	modules/68k/game/menu/set_control_flag_c30d.asm	fn_14200_006	set_control_flag_c30d	menu	Set Control Flag $C30D
+modules/68k/game/fn_14200_007.asm	modules/68k/game/menu/set_mode_flag_copy_state_counter.asm	fn_14200_007	set_mode_flag_copy_state_counter	menu	Set Mode Flag and Copy State Counter
+modules/68k/game/fn_14200_008.asm	modules/68k/game/menu/scroll_x_inc_by_1.asm	fn_14200_008	scroll_x_inc_by_1	menu	Scroll X: Increment by 1
+modules/68k/game/fn_14200_009.asm	modules/68k/game/menu/scroll_x_dec_by_1.asm	fn_14200_009	scroll_x_dec_by_1	menu	Scroll X: Decrement by 1
+modules/68k/game/fn_14200_010.asm	modules/68k/game/menu/scroll_y_inc_by_1.asm	fn_14200_010	scroll_y_inc_by_1	menu	Scroll Y: Increment by 1
+modules/68k/game/fn_14200_011.asm	modules/68k/game/menu/scroll_y_dec_by_1.asm	fn_14200_011	scroll_y_dec_by_1	menu	Scroll Y: Decrement by 1
+modules/68k/game/fn_14200_012.asm	modules/68k/game/menu/scroll_x_inc_by_32.asm	fn_14200_012	scroll_x_inc_by_32	menu	Scroll X: Increment by 32
+modules/68k/game/fn_14200_013.asm	modules/68k/game/menu/scroll_x_dec_by_32.asm	fn_14200_013	scroll_x_dec_by_32	menu	Scroll X: Decrement by 32
+modules/68k/game/fn_14200_014.asm	modules/68k/game/menu/scroll_y_inc_by_32.asm	fn_14200_014	scroll_y_inc_by_32	menu	Scroll Y: Increment by 32
+modules/68k/game/fn_14200_015.asm	modules/68k/game/menu/scroll_y_dec_by_32.asm	fn_14200_015	scroll_y_dec_by_32	menu	Scroll Y: Decrement by 32
+modules/68k/game/fn_14200_016.asm	modules/68k/game/menu/add_track_segment_offset.asm	fn_14200_016	add_track_segment_offset	menu	Add Track Segment Offset
+modules/68k/game/fn_14200_017.asm	modules/68k/game/menu/subtract_track_segment_offset.asm	fn_14200_017	subtract_track_segment_offset	menu	Subtract Track Segment Offset
+modules/68k/game/fn_14200_018.asm	modules/68k/game/menu/add_track_segment_1_offset.asm	fn_14200_018	add_track_segment_1_offset	menu	Add Track Segment 1 Offset
+modules/68k/game/fn_14200_019.asm	modules/68k/game/menu/subtract_track_segment_1_offset.asm	fn_14200_019	subtract_track_segment_1_offset	menu	Subtract Track Segment 1 Offset
+modules/68k/game/fn_14200_020.asm	modules/68k/game/menu/add_track_segment_2_offset.asm	fn_14200_020	add_track_segment_2_offset	menu	Add Track Segment 2 Offset
+modules/68k/game/fn_14200_021.asm	modules/68k/game/menu/subtract_track_segment_2_offset.asm	fn_14200_021	subtract_track_segment_2_offset	menu	Subtract Track Segment 2 Offset
+modules/68k/game/fn_14200_022.asm	modules/68k/game/menu/add_track_segment_3_offset.asm	fn_14200_022	add_track_segment_3_offset	menu	Add Track Segment 3 Offset
+modules/68k/game/fn_14200_023.asm	modules/68k/game/menu/subtract_track_segment_3_offset.asm	fn_14200_023	subtract_track_segment_3_offset	menu	Subtract Track Segment 3 Offset
+modules/68k/game/fn_14200_024.asm	modules/68k/game/menu/add_track_segment_4_offset.asm	fn_14200_024	add_track_segment_4_offset	menu	Add Track Segment 4 Offset
+modules/68k/game/fn_14200_025.asm	modules/68k/game/menu/subtract_track_segment_4_offset.asm	fn_14200_025	subtract_track_segment_4_offset	menu	Subtract Track Segment 4 Offset
+modules/68k/game/fn_14200_026.asm	modules/68k/game/menu/add_track_segment_5_offset.asm	fn_14200_026	add_track_segment_5_offset	menu	Add Track Segment 5 Offset
+modules/68k/game/fn_14200_027.asm	modules/68k/game/menu/subtract_track_segment_5_offset.asm	fn_14200_027	subtract_track_segment_5_offset	menu	Subtract Track Segment 5 Offset
+modules/68k/game/fn_14200_028.asm	modules/68k/game/menu/initialize_scroll_pos_regs.asm	fn_14200_028	initialize_scroll_pos_regs	menu	Initialize Scroll + Position Registers
+modules/68k/game/fn_14200_029.asm	modules/68k/game/menu/initialize_track_segment_values_to_center.asm	fn_14200_029	initialize_track_segment_values_to_center	menu	Initialize Track Segment Values to Center
+modules/68k/game/fn_14200_030.asm	modules/68k/game/menu/adjust_903c_add_0400.asm	fn_14200_030	adjust_903c_add_0400	menu	Adjust $903C: Add $0400
+modules/68k/game/fn_14200_031.asm	modules/68k/game/menu/adjust_903c_subtract_0400.asm	fn_14200_031	adjust_903c_subtract_0400	menu	Adjust $903C: Subtract $0400
+modules/68k/game/fn_14200_032.asm	modules/68k/game/menu/adjust_903c_add_1000.asm	fn_14200_032	adjust_903c_add_1000	menu	Adjust $903C: Add $1000
+modules/68k/game/fn_14200_033.asm	modules/68k/game/menu/adjust_903c_add_2000.asm	fn_14200_033	adjust_903c_add_2000	menu	Adjust $903C: Add $2000
+modules/68k/game/fn_14200_034.asm	modules/68k/game/menu/fade_level_inc.asm	fn_14200_034	fade_level_inc	menu	Fade Level Increment (Brightness Up)
+modules/68k/game/fn_14200_035.asm	modules/68k/game/menu/fade_level_dec.asm	fn_14200_035	fade_level_dec	menu	Fade Level Decrement (Brightness Down)
+modules/68k/game/fn_14200_036.asm	modules/68k/game/auto/fn_14200_036.asm	fn_14200_036	fn_14200_036	auto	Util 036 (auto-analyzed)
+modules/68k/game/fn_14200_037.asm	modules/68k/game/auto/fn_14200_037.asm	fn_14200_037	fn_14200_037	auto	Util 037 (auto-analyzed)
+modules/68k/game/fn_14200_038.asm	modules/68k/game/auto/fn_14200_038.asm	fn_14200_038	fn_14200_038	auto	Sh2 Comm Cmd 27 038 (auto-analyzed)
+modules/68k/game/fn_14200_039.asm	modules/68k/game/auto/fn_14200_039.asm	fn_14200_039	fn_14200_039	auto	Util Menu 039 (auto-analyzed)
+modules/68k/game/fn_14200_040.asm	modules/68k/game/state/state_disp_ctrl_init.asm	fn_14200_040	state_disp_ctrl_init	state	State Dispatcher + Controller Init (Jump Table)
+modules/68k/game/fn_14200_041.asm	modules/68k/game/menu/menu_state_dispatch_disp_mode_set.asm	fn_14200_041	menu_state_dispatch_disp_mode_set	menu	Menu State Dispatch and Display Mode Set
+modules/68k/game/fn_14200_042.asm	modules/68k/game/menu/menu_state_dispatch_042.asm	fn_14200_042	menu_state_dispatch_042	menu	Menu State Dispatch 042
+modules/68k/game/fn_14200_043.asm	modules/68k/game/menu/menu_item_draw_loop.asm	fn_14200_043	menu_item_draw_loop	menu	Menu Item Draw Loop (Jump Table Indexed)
+modules/68k/game/fn_14200_044.asm	modules/68k/game/menu/menu_state_check_timer_countdown_0144a8.asm	fn_14200_044	menu_state_check_timer_countdown_0144a8	menu	Menu State Check + Timer Countdown (Variant A)
+modules/68k/game/fn_14200_045.asm	modules/68k/game/menu/menu_state_check_cond_advance_0144d0.asm	fn_14200_045	menu_state_check_cond_advance_0144d0	menu	Menu State Check + Conditional Advance (Variant A)
+modules/68k/game/fn_14200_046.asm	modules/68k/game/menu/menu_state_check_cond_advance_0144f2.asm	fn_14200_046	menu_state_check_cond_advance_0144f2	menu	Menu State Check + Conditional Advance (Variant B)
+modules/68k/game/fn_14200_047.asm	modules/68k/game/menu/menu_state_check_timer_countdown_014518.asm	fn_14200_047	menu_state_check_timer_countdown_014518	menu	Menu State Check + Timer Countdown (Variant B)
+modules/68k/game/fn_14200_048.asm	modules/68k/game/scene/conditional_sh2_scene_reset.asm	fn_14200_048	conditional_sh2_scene_reset	scene	Conditional SH2 Scene Reset
+modules/68k/game/fn_14200_049.asm	modules/68k/game/scene/sh2_call_interrupt_mask.asm	fn_14200_049	sh2_call_interrupt_mask	scene	SH2 Call with Interrupt Mask
+modules/68k/game/fn_200_001.asm	modules/68k/game/auto/fn_200_001.asm	fn_200_001	fn_200_001	auto	Vdp 001 (auto-analyzed)
+modules/68k/game/fn_200_002.asm	modules/68k/game/auto/fn_200_002.asm	fn_200_002	fn_200_002	auto	Vdp 002 (auto-analyzed)
+modules/68k/game/fn_200_003.asm	modules/68k/game/auto/fn_200_003.asm	fn_200_003	fn_200_003	auto	Init 003 (auto-analyzed)
+modules/68k/game/fn_200_004.asm	modules/68k/game/auto/fn_200_004.asm	fn_200_004	fn_200_004	auto	Init 004 (auto-analyzed)
+modules/68k/game/fn_200_005.asm	modules/68k/game/auto/fn_200_005.asm	fn_200_005	fn_200_005	auto	Sh2 Comm Save All Registers 005 (auto-analyzed)
+modules/68k/game/fn_200_006.asm	modules/68k/game/auto/fn_200_006.asm	fn_200_006	fn_200_006	auto	Init 006 (auto-analyzed)
+modules/68k/game/fn_200_007.asm	modules/68k/game/auto/fn_200_007.asm	fn_200_007	fn_200_007	auto	Input Controller Port Init 007 (auto-analyzed)
+modules/68k/game/fn_200_008.asm	modules/68k/game/scene/system_init_orch.asm	fn_200_008	system_init_orch	scene	System Initialization Orchestrator
+modules/68k/game/fn_200_009.asm	modules/68k/game/state/double_cond_guard.asm	fn_200_009	double_cond_guard	state	Double-Conditional Guard
+modules/68k/game/fn_200_010.asm	modules/68k/game/auto/fn_200_010.asm	fn_200_010	fn_200_010	auto	Z80 Bus Vdp Init 010 (auto-analyzed)
+modules/68k/game/fn_200_011.asm	modules/68k/game/render/vdp_reg_init.asm	fn_200_011	vdp_reg_init	render	VDP Register Initialization
+modules/68k/game/fn_200_012.asm	modules/68k/game/render/vdp_dma_xfer_vram_clear.asm	fn_200_012	vdp_dma_xfer_vram_clear	render	VDP DMA Transfer + VRAM Clear (10-Word Data Prefix)
+modules/68k/game/fn_200_013.asm	modules/68k/game/auto/fn_200_013.asm	fn_200_013	fn_200_013	auto	Vdp 013 (auto-analyzed)
+modules/68k/game/fn_200_014.asm	modules/68k/game/data/huffman_lz_decompression_inner_loop.asm	fn_200_014	huffman_lz_decompression_inner_loop	data	fn_200_014 — Huffman/LZ Decompression Inner Loop
+modules/68k/game/fn_200_015.asm	modules/68k/game/auto/fn_200_015.asm	fn_200_015	fn_200_015	auto	Init 015 (auto-analyzed)
+modules/68k/game/fn_200_016.asm	modules/68k/game/auto/fn_200_016.asm	fn_200_016	fn_200_016	auto	Init 016 (auto-analyzed)
+modules/68k/game/fn_200_017.asm	modules/68k/game/auto/fn_200_017.asm	fn_200_017	fn_200_017	auto	Init 017 (auto-analyzed)
+modules/68k/game/fn_200_018.asm	modules/68k/game/auto/fn_200_018.asm	fn_200_018	fn_200_018	auto	Init 018 (auto-analyzed)
+modules/68k/game/fn_200_019.asm	modules/68k/game/auto/fn_200_019.asm	fn_200_019	fn_200_019	auto	Init Dispatch 019 (auto-analyzed)
+modules/68k/game/fn_200_020.asm	modules/68k/game/auto/fn_200_020.asm	fn_200_020	fn_200_020	auto	Init Dispatch 020 (auto-analyzed)
+modules/68k/game/fn_200_021.asm	modules/68k/game/auto/fn_200_021.asm	fn_200_021	fn_200_021	auto	Init Dispatch 021 (auto-analyzed)
+modules/68k/game/fn_200_022.asm	modules/68k/game/auto/fn_200_022.asm	fn_200_022	fn_200_022	auto	Tile Decompress Init 022 (auto-analyzed)
+modules/68k/game/fn_200_023.asm	modules/68k/game/auto/fn_200_023.asm	fn_200_023	fn_200_023	auto	Init Dispatch 023 (auto-analyzed)
+modules/68k/game/fn_200_024.asm	modules/68k/game/auto/fn_200_024.asm	fn_200_024	fn_200_024	auto	Init Dispatch 024 (auto-analyzed)
+modules/68k/game/fn_200_025.asm	modules/68k/game/data/descriptor_table_bit_unpacker_disp.asm	fn_200_025	descriptor_table_bit_unpacker_disp	data	fn_200_025 — Descriptor Table + Bit Unpacker Dispatcher
+modules/68k/game/fn_200_026.asm	modules/68k/game/auto/fn_200_026.asm	fn_200_026	fn_200_026	auto	Vdp Dispatch 026 (auto-analyzed)
+modules/68k/game/fn_200_027.asm	modules/68k/game/auto/fn_200_027.asm	fn_200_027	fn_200_027	auto	Init 027 (auto-analyzed)
+modules/68k/game/fn_200_028.asm	modules/68k/game/state/controller_read_button_remap.asm	fn_200_028	controller_read_button_remap	state	Controller Read + Button Remap (Port 1)
+modules/68k/game/fn_200_029.asm	modules/68k/game/state/clear_input_state_flags.asm	fn_200_029	clear_input_state_flags	state	Clear Input State Flags
+modules/68k/game/fn_200_030.asm	modules/68k/game/state/controller_input_init.asm	fn_200_030	controller_input_init	state	Controller Input Init
+modules/68k/game/fn_200_031.asm	modules/68k/game/render/vdp_dma_xfer_setup_0019ea.asm	fn_200_031	vdp_dma_xfer_setup_0019ea	render	VDP DMA Transfer Setup (Scroll Data)
+modules/68k/game/fn_200_032.asm	modules/68k/game/render/set_v_int_dispatch_state_vdp_status_read.asm	fn_200_032	set_v_int_dispatch_state_vdp_status_read	render	Set V-INT Dispatch State + VDP Status Read
+modules/68k/game/fn_200_033.asm	modules/68k/game/render/vdp_dma_xfer_setup_001a72.asm	fn_200_033	vdp_dma_xfer_setup_001a72	render	VDP DMA Transfer Setup
+modules/68k/game/fn_200_034.asm	modules/68k/game/render/vdp_dma_xfer_setup_001aca.asm	fn_200_034	vdp_dma_xfer_setup_001aca	render	VDP DMA Transfer Setup
+modules/68k/game/fn_200_035.asm	modules/68k/game/auto/fn_200_035.asm	fn_200_035	fn_200_035	auto	Init 035 (auto-analyzed)
+modules/68k/game/fn_200_036.asm	modules/68k/game/render/vdp_dma_palette_xfer_036.asm	fn_200_036	vdp_dma_palette_xfer_036	render	VDP DMA + Palette Transfer 036
+modules/68k/game/fn_200_037.asm	modules/68k/game/render/vdp_dma_frame_swap_037.asm	fn_200_037	vdp_dma_frame_swap_037	render	VDP DMA + Frame Swap 037
+modules/68k/game/fn_200_038.asm	modules/68k/game/render/vdp_reg_write_32x_adapter_control.asm	fn_200_038	vdp_reg_write_32x_adapter_control	render	VDP Register Write + 32X Adapter Control
+modules/68k/game/fn_200_039.asm	modules/68k/game/render/vdp_reg_write_frame_swap_cram_copy.asm	fn_200_039	vdp_reg_write_frame_swap_cram_copy	render	VDP Register Write, Frame Swap, and CRAM Copy
+modules/68k/game/fn_200_040.asm	modules/68k/game/render/vdp_dma_cram_xfer.asm	fn_200_040	vdp_dma_cram_xfer	render	VDP DMA + CRAM Transfer
+modules/68k/game/fn_200_041.asm	modules/68k/game/render/vdp_dma_scroll_frame_swap.asm	fn_200_041	vdp_dma_scroll_frame_swap	render	VDP DMA + Scroll + Frame Swap
+modules/68k/game/fn_200_042.asm	modules/68k/game/scene/v_int_comm1_signal_handler.asm	fn_200_042	v_int_comm1_signal_handler	scene	V-INT COMM1 Signal Handler
+modules/68k/game/fn_200_043.asm	modules/68k/game/auto/fn_200_043.asm	fn_200_043	fn_200_043	auto	Init 043 (auto-analyzed)
+modules/68k/game/fn_200_044.asm	modules/68k/game/scene/clear_communication_state_variables.asm	fn_200_044	clear_communication_state_variables	scene	Clear Communication and State Variables
+modules/68k/game/fn_200_045.asm	modules/68k/game/state/set_communication_ready_flag.asm	fn_200_045	set_communication_ready_flag	state	Set Communication Ready Flag
+modules/68k/game/fn_200_046.asm	modules/68k/game/race/sound_state_init_clear_comm_variables.asm	fn_200_046	sound_state_init_clear_comm_variables	race	Sound State Init + Clear Comm Variables
+modules/68k/game/fn_200_047.asm	modules/68k/game/race/sound_command_dispatch_sound_driver_call.asm	fn_200_047	sound_command_dispatch_sound_driver_call	race	Sound Command Dispatch + Sound Driver Call
+modules/68k/game/fn_200_048.asm	modules/68k/game/auto/fn_200_048.asm	fn_200_048	fn_200_048	auto	Init 048 (auto-analyzed)
+modules/68k/game/fn_2200_001.asm	modules/68k/game/race/audio_frequency_update.asm	fn_2200_001	audio_frequency_update	race	Audio Frequency Update (Dual Channel)
+modules/68k/game/fn_2200_002.asm	modules/68k/game/auto/fn_2200_002.asm	fn_2200_002	fn_2200_002	auto	Vint Random Number Gen 002 (auto-analyzed)
+modules/68k/game/fn_2200_003.asm	modules/68k/game/auto/fn_2200_003.asm	fn_2200_003	fn_2200_003	auto	Vint 003 (auto-analyzed)
+modules/68k/game/fn_2200_004.asm	modules/68k/game/auto/fn_2200_004.asm	fn_2200_004	fn_2200_004	auto	Vint Random Number Gen 004 (auto-analyzed)
+modules/68k/game/fn_2200_005.asm	modules/68k/game/auto/fn_2200_005.asm	fn_2200_005	fn_2200_005	auto	Vint 005 (auto-analyzed)
+modules/68k/game/fn_2200_006.asm	modules/68k/game/auto/fn_2200_006.asm	fn_2200_006	fn_2200_006	auto	Vint Random Number Gen 006 (auto-analyzed)
+modules/68k/game/fn_2200_007.asm	modules/68k/game/race/audio_trigger_frequency_calc.asm	fn_2200_007	audio_trigger_frequency_calc	race	Audio Trigger + Frequency Calc
+modules/68k/game/fn_2200_008.asm	modules/68k/game/race/randomized_sound_param_0023c2.asm	fn_2200_008	randomized_sound_param_0023c2	race	Randomized Sound Parameter (Base $1E00)
+modules/68k/game/fn_2200_009.asm	modules/68k/game/physics/weighted_average_pos_clamp_0023dc.asm	fn_2200_009	weighted_average_pos_clamp_0023dc	physics	Weighted Average Position Clamp (Variant B)
+modules/68k/game/fn_2200_010.asm	modules/68k/game/race/randomized_sound_param_00240c.asm	fn_2200_010	randomized_sound_param_00240c	race	Randomized Sound Parameter (Base $21D0)
+modules/68k/game/fn_2200_011.asm	modules/68k/game/physics/weighted_average_pos_clamp_002426.asm	fn_2200_011	weighted_average_pos_clamp_002426	physics	Weighted Average Position Clamp
+modules/68k/game/fn_2200_012.asm	modules/68k/game/race/randomized_sound_param_002452.asm	fn_2200_012	randomized_sound_param_002452	race	Randomized Sound Parameter (Base $21A0)
+modules/68k/game/fn_2200_013.asm	modules/68k/game/data/vdp_tile_unpack_0024ca.asm	fn_2200_013	vdp_tile_unpack_0024ca	data	VDP Tile Unpack (12 regions)
+modules/68k/game/fn_2200_014.asm	modules/68k/game/hud/conditional_tile_index_expand.asm	fn_2200_014	conditional_tile_index_expand	hud	Conditional Tile Index Expand
+modules/68k/game/fn_2200_015.asm	modules/68k/game/data/vdp_tile_unpack_0025b0.asm	fn_2200_015	vdp_tile_unpack_0025b0	data	VDP Tile Unpack (12× Calls to unpack_tiles_vdp)
+modules/68k/game/fn_2200_016.asm	modules/68k/game/auto/fn_2200_016.asm	fn_2200_016	fn_2200_016	auto	Vint 016 (auto-analyzed)
+modules/68k/game/fn_2200_017.asm	modules/68k/game/render/mars_adapter_state_init_framebuffer_setup.asm	fn_2200_017	mars_adapter_state_init_framebuffer_setup	render	MARS Adapter State Init + Framebuffer Setup
+modules/68k/game/fn_2200_018.asm	modules/68k/game/render/mars_framebuffer_preparation.asm	fn_2200_018	mars_framebuffer_preparation	render	MARS Framebuffer Preparation (Double-Buffered)
+modules/68k/game/fn_2200_019.asm	modules/68k/game/auto/fn_2200_019.asm	fn_2200_019	fn_2200_019	auto	Sh2 Comm Vdpprep 019 (auto-analyzed)
+modules/68k/game/fn_2200_020.asm	modules/68k/game/render/v_int_cram_xfer_gate.asm	fn_2200_020	v_int_cram_xfer_gate	render	V-INT CRAM Transfer Gate
+modules/68k/game/fn_2200_021.asm	modules/68k/game/render/mars_dma_xfer_vdp_fill.asm	fn_2200_021	mars_dma_xfer_vdp_fill	render	MARS DMA Transfer + VDP Fill
+modules/68k/game/fn_2200_022.asm	modules/68k/game/auto/fn_2200_022.asm	fn_2200_022	fn_2200_022	auto	Vint Physics 022 (auto-analyzed)
+modules/68k/game/fn_2200_023.asm	modules/68k/game/state/object_enable_fields_state_dispatch.asm	fn_2200_023	object_enable_fields_state_dispatch	state	Object Enable Fields + State Dispatch
+modules/68k/game/fn_2200_024.asm	modules/68k/game/physics/object_velocity_init_cond_clear.asm	fn_2200_024	object_velocity_init_cond_clear	physics	Object Velocity Init + Conditional Clear
+modules/68k/game/fn_2200_025.asm	modules/68k/game/auto/fn_2200_025.asm	fn_2200_025	fn_2200_025	auto	Vint Physics 025 (auto-analyzed)
+modules/68k/game/fn_2200_026.asm	modules/68k/game/auto/fn_2200_026.asm	fn_2200_026	fn_2200_026	auto	Obj Render Check 026 (auto-analyzed)
+modules/68k/game/fn_2200_027.asm	modules/68k/game/auto/fn_2200_027.asm	fn_2200_027	fn_2200_027	auto	Vint Physics 027 (auto-analyzed)
+modules/68k/game/fn_2200_028.asm	modules/68k/game/state/object_param_8a_dispatch_002dca.asm	fn_2200_028	object_param_8a_dispatch_002dca	state	Object Param 8A Dispatch (Variant A)
+modules/68k/game/fn_2200_029.asm	modules/68k/game/physics/object_velocity_init_002df4.asm	fn_2200_029	object_velocity_init_002df4	physics	Object Velocity Init (Dual Object)
+modules/68k/game/fn_2200_030.asm	modules/68k/game/physics/object_velocity_init_002e14.asm	fn_2200_030	object_velocity_init_002e14	physics	Object Velocity Init (Dual Object, Source $C710)
+modules/68k/game/fn_2200_031.asm	modules/68k/game/state/object_param_8a_dispatch_002e34.asm	fn_2200_031	object_param_8a_dispatch_002e34	state	Object Param 8A Dispatch (Variant B)
+modules/68k/game/fn_2200_032.asm	modules/68k/game/physics/object_velocity_init_002e5e.asm	fn_2200_032	object_velocity_init_002e5e	physics	Object Velocity Init (Dual Object, Alt Source)
+modules/68k/game/fn_2200_033.asm	modules/68k/game/physics/object_velocity_init_002e7e.asm	fn_2200_033	object_velocity_init_002e7e	physics	Object Velocity Init (Dual Object, Source $C754)
+modules/68k/game/fn_2200_034.asm	modules/68k/game/render/load_disp_list_pointer_002e9e.asm	fn_2200_034	load_disp_list_pointer_002e9e	render	Load Display List Pointer (Set A)
+modules/68k/game/fn_2200_035.asm	modules/68k/game/render/load_disp_list_pointer_002eb2.asm	fn_2200_035	load_disp_list_pointer_002eb2	render	Load Display List Pointer (Set B)
+modules/68k/game/fn_2200_036.asm	modules/68k/game/entity/object_field_clear.asm	fn_2200_036	object_field_clear	entity	Object Field Clear (Conditional)
+modules/68k/game/fn_2200_037.asm	modules/68k/game/auto/fn_2200_037.asm	fn_2200_037	fn_2200_037	auto	Vint Heading 037 (auto-analyzed)
+modules/68k/game/fn_2200_038.asm	modules/68k/game/auto/fn_2200_038.asm	fn_2200_038	fn_2200_038	auto	Vint Physics 038 (auto-analyzed)
+modules/68k/game/fn_2200_039.asm	modules/68k/game/auto/fn_2200_039.asm	fn_2200_039	fn_2200_039	auto	Vint Physics 039 (auto-analyzed)
+modules/68k/game/fn_2200_040.asm	modules/68k/game/camera/camera_offset_clamping.asm	fn_2200_040	camera_offset_clamping	camera	Camera Offset Clamping (Y + X Limits)
+modules/68k/game/fn_2200_041.asm	modules/68k/game/camera/vdp_buffer_xfer_camera_offset_apply.asm	fn_2200_041	vdp_buffer_xfer_camera_offset_apply	camera	VDP Buffer Transfer + Camera Offset Apply
+modules/68k/game/fn_2200_042.asm	modules/68k/game/render/vdp_config_xfer_scaled_params.asm	fn_2200_042	vdp_config_xfer_scaled_params	render	VDP Config Transfer + Scaled Parameters
+modules/68k/game/fn_2200_043.asm	modules/68k/game/state/object_state_disp_0031a6.asm	fn_2200_043	object_state_disp_0031a6	state	Object State Dispatcher (11-Entry Jump Table)
+modules/68k/game/fn_2200_044.asm	modules/68k/game/race/object_timer_tick_sfx_lookup_field_clear.asm	fn_2200_044	object_timer_tick_sfx_lookup_field_clear	race	Object Timer Tick + SFX Lookup + Field Clear
+modules/68k/game/fn_2200_045.asm	modules/68k/game/state/load_object_pointer_clear_object_state.asm	fn_2200_045	load_object_pointer_clear_object_state	state	Load Object Pointer + Clear Object State
+modules/68k/game/fn_2200_046.asm	modules/68k/game/auto/fn_2200_046.asm	fn_2200_046	fn_2200_046	auto	Objs 046 (auto-analyzed)
+modules/68k/game/fn_2200_047.asm	modules/68k/game/race/lap_check_disp.asm	fn_2200_047	lap_check_disp	race	Lap Check Dispatcher (15-Entry Jump Table + Lap Advance)
+modules/68k/game/fn_2200_048.asm	modules/68k/game/auto/fn_2200_048.asm	fn_2200_048	fn_2200_048	auto	Input 048 (auto-analyzed)
+modules/68k/game/fn_2200_049.asm	modules/68k/game/state/object_state_disp_0034e8.asm	fn_2200_049	object_state_disp_0034e8	state	Object State Dispatcher (12-Entry Jump Table)
+modules/68k/game/fn_2200_050.asm	modules/68k/game/race/object_timer_tick_sfx_lookup.asm	fn_2200_050	object_timer_tick_sfx_lookup	race	Object Timer Tick + SFX Lookup (Variant B — Extra Flag Check)
+modules/68k/game/fn_2200_051.asm	modules/68k/game/state/clear_object_state_bytes.asm	fn_2200_051	clear_object_state_bytes	state	Clear Object State Bytes
+modules/68k/game/fn_2200_052.asm	modules/68k/game/auto/fn_2200_052.asm	fn_2200_052	fn_2200_052	auto	Vint Objs 052 (auto-analyzed)
+modules/68k/game/fn_2200_053.asm	modules/68k/game/auto/fn_2200_053.asm	fn_2200_053	fn_2200_053	auto	Vint Obj Table 1 053 (auto-analyzed)
+modules/68k/game/fn_2200_054.asm	modules/68k/game/collision/object_proximity_check_jump_table_dispatch.asm	fn_2200_054	object_proximity_check_jump_table_dispatch	collision	fn_2200_054 — Object Proximity Check + Jump Table Dispatch
+modules/68k/game/fn_2200_055.asm	modules/68k/game/state/conditional_return_on_disp_flag.asm	fn_2200_055	conditional_return_on_disp_flag	state	Conditional Return on Display Flag
+modules/68k/game/fn_2200_056.asm	modules/68k/game/auto/fn_2200_056.asm	fn_2200_056	fn_2200_056	auto	Math Sine Lookup 056 (auto-analyzed)
+modules/68k/game/fn_2200_057.asm	modules/68k/game/collision/sprite_init_collision_check_003924.asm	fn_2200_057	sprite_init_collision_check_003924	collision	Sprite Init + Collision Check (56-Byte Data Prefix)
+modules/68k/game/fn_2200_058.asm	modules/68k/game/render/sprite_param_setup.asm	fn_2200_058	sprite_param_setup	render	Sprite Parameter Setup (Two Sprite Blocks)
+modules/68k/game/fn_2200_059.asm	modules/68k/game/auto/fn_2200_059.asm	fn_2200_059	fn_2200_059	auto	Vint Position 059 (auto-analyzed)
+modules/68k/game/fn_2200_060.asm	modules/68k/game/auto/fn_2200_060.asm	fn_2200_060	fn_2200_060	auto	Vint 060 (auto-analyzed)
+modules/68k/game/fn_2200_061.asm	modules/68k/game/collision/sprite_init_collision_check_003a4e.asm	fn_2200_061	sprite_init_collision_check_003a4e	collision	Sprite Init + Collision Check (92-Byte Data Prefix)
+modules/68k/game/fn_2200_062.asm	modules/68k/game/collision/proximity_check_062.asm	fn_2200_062	proximity_check_062	collision	Proximity Check 062
+modules/68k/game/fn_2200_063.asm	modules/68k/game/auto/fn_2200_063.asm	fn_2200_063	fn_2200_063	auto	Vint Obj Table 3 063 (auto-analyzed)
+modules/68k/game/fn_2200_064.asm	modules/68k/game/auto/fn_2200_064.asm	fn_2200_064	fn_2200_064	auto	Vint 064 (auto-analyzed)
+modules/68k/game/fn_2200_065.asm	modules/68k/game/hud/sprite_hud_layout_builder.asm	fn_2200_065	sprite_hud_layout_builder	hud	fn_2200_065 — Sprite/HUD Layout Builder
+modules/68k/game/fn_2200_066.asm	modules/68k/game/render/vdp_sprite_pointer_setup_cond_disp_clear.asm	fn_2200_066	vdp_sprite_pointer_setup_cond_disp_clear	render	VDP Sprite Pointer Setup + Conditional Display Clear
+modules/68k/game/fn_2200_067.asm	modules/68k/game/race/sfx_trigger_object_enable_fields.asm	fn_2200_067	sfx_trigger_object_enable_fields	race	SFX Trigger + Object Enable Fields
+modules/68k/game/fn_2200_068.asm	modules/68k/game/auto/fn_2200_068.asm	fn_2200_068	fn_2200_068	auto	Vint 068 (auto-analyzed)
+modules/68k/game/fn_2200_069.asm	modules/68k/game/menu/conditional_scene_transition_003da6.asm	fn_2200_069	conditional_scene_transition_003da6	menu	Conditional Scene Transition (State $A6)
+modules/68k/game/fn_2200_070.asm	modules/68k/game/menu/conditional_scene_transition_003dd4.asm	fn_2200_070	conditional_scene_transition_003dd4	menu	Conditional Scene Transition (State $A7)
+modules/68k/game/fn_2200_071.asm	modules/68k/game/render/scene_transition_check_vdp_clear.asm	fn_2200_071	scene_transition_check_vdp_clear	render	Scene Transition Check + VDP Clear
+modules/68k/game/fn_2200_072.asm	modules/68k/game/scene/clear_scene_state_advance_dispatch_index.asm	fn_2200_072	clear_scene_state_advance_dispatch_index	scene	Clear Scene State + Advance Dispatch Index
+modules/68k/game/fn_2200_073.asm	modules/68k/game/scene/clear_scene_state_advance_dispatch_set_mode.asm	fn_2200_073	clear_scene_state_advance_dispatch_set_mode	scene	Clear Scene State + Advance Dispatch + Set Mode
+modules/68k/game/fn_2200_074.asm	modules/68k/game/menu/conditional_scene_transition_003e7e.asm	fn_2200_074	conditional_scene_transition_003e7e	menu	Conditional Scene Transition (State $C1)
+modules/68k/game/fn_2200_075.asm	modules/68k/game/menu/conditional_scene_transition_003ea2.asm	fn_2200_075	conditional_scene_transition_003ea2	menu	Conditional Scene Transition (State $C2)
+modules/68k/game/fn_2200_076.asm	modules/68k/game/menu/conditional_scene_transition_003ec6.asm	fn_2200_076	conditional_scene_transition_003ec6	menu	Conditional Scene Transition (State $C3)
+modules/68k/game/fn_2200_077.asm	modules/68k/game/render/scene_state_timer_vdp_output.asm	fn_2200_077	scene_state_timer_vdp_output	render	Scene State Timer + VDP Output
+modules/68k/game/fn_2200_078.asm	modules/68k/game/auto/fn_2200_078.asm	fn_2200_078	fn_2200_078	auto	Vint Render 078 (auto-analyzed)
+modules/68k/game/fn_2200_079.asm	modules/68k/game/auto/fn_2200_079.asm	fn_2200_079	fn_2200_079	auto	Display Dispatch 079 (auto-analyzed)
+modules/68k/game/fn_2200_080.asm	modules/68k/game/physics/object_speed_ramp_up_state_advance.asm	fn_2200_080	object_speed_ramp_up_state_advance	physics	Object Speed Ramp-Up + State Advance
+modules/68k/game/fn_2200_081.asm	modules/68k/game/race/race_completion_check_lap_bit_tracking.asm	fn_2200_081	race_completion_check_lap_bit_tracking	race	Race Completion Check + Lap Bit Tracking
+modules/68k/game/fn_30200_001.asm	modules/68k/game/auto/fn_30200_001.asm	fn_30200_001	fn_30200_001	auto	Fm Init Channel 001 (auto-analyzed)
+modules/68k/game/fn_30200_002.asm	modules/68k/game/auto/fn_30200_002.asm	fn_30200_002	fn_30200_002	auto	Fm Set Volume 002 (auto-analyzed)
+modules/68k/game/fn_30200_003.asm	modules/68k/game/auto/fn_30200_003.asm	fn_30200_003	fn_30200_003	auto	Fm Sequence Process 003 (auto-analyzed)
+modules/68k/game/fn_30200_004.asm	modules/68k/game/auto/fn_30200_004.asm	fn_30200_004	fn_30200_004	auto	Fm 004 (auto-analyzed)
+modules/68k/game/fn_30200_005.asm	modules/68k/game/auto/fn_30200_005.asm	fn_30200_005	fn_30200_005	auto	Fm 005 (auto-analyzed)
+modules/68k/game/fn_30200_006.asm	modules/68k/game/auto/fn_30200_006.asm	fn_30200_006	fn_30200_006	auto	Fm Write Port0 006 (auto-analyzed)
+modules/68k/game/fn_30200_007.asm	modules/68k/game/auto/fn_30200_007.asm	fn_30200_007	fn_30200_007	auto	Fm Dispatch 007 (auto-analyzed)
+modules/68k/game/fn_30200_008.asm	modules/68k/game/auto/fn_30200_008.asm	fn_30200_008	fn_30200_008	auto	Fm Dispatch 008 (auto-analyzed)
+modules/68k/game/fn_30200_009.asm	modules/68k/game/auto/fn_30200_009.asm	fn_30200_009	fn_30200_009	auto	Fm Dispatch 009 (auto-analyzed)
+modules/68k/game/fn_30200_010.asm	modules/68k/game/auto/fn_30200_010.asm	fn_30200_010	fn_30200_010	auto	Fm Write Conditional 010 (auto-analyzed)
+modules/68k/game/fn_30200_011.asm	modules/68k/game/auto/fn_30200_011.asm	fn_30200_011	fn_30200_011	auto	Fm 011 (auto-analyzed)
+modules/68k/game/fn_30200_012.asm	modules/68k/game/auto/fn_30200_012.asm	fn_30200_012	fn_30200_012	auto	Fm 012 (auto-analyzed)
+modules/68k/game/fn_30200_013.asm	modules/68k/game/auto/fn_30200_013.asm	fn_30200_013	fn_30200_013	auto	Fm Dispatch 013 (auto-analyzed)
+modules/68k/game/fn_30200_014.asm	modules/68k/game/auto/fn_30200_014.asm	fn_30200_014	fn_30200_014	auto	Fm Init Channel 014 (auto-analyzed)
+modules/68k/game/fn_30200_015.asm	modules/68k/game/auto/fn_30200_015.asm	fn_30200_015	fn_30200_015	auto	Vdp Dispatch 015 (auto-analyzed)
+modules/68k/game/fn_30200_016.asm	modules/68k/game/auto/fn_30200_016.asm	fn_30200_016	fn_30200_016	auto	Vdp 016 (auto-analyzed)
+modules/68k/game/fn_30200_017.asm	modules/68k/game/auto/fn_30200_017.asm	fn_30200_017	fn_30200_017	auto	Fm Init Channel 017 (auto-analyzed)
+modules/68k/game/fn_30200_018.asm	modules/68k/game/auto/fn_30200_018.asm	fn_30200_018	fn_30200_018	auto	Vdp 018 (auto-analyzed)
+modules/68k/game/fn_30200_019.asm	modules/68k/game/auto/fn_30200_019.asm	fn_30200_019	fn_30200_019	auto	Fm 019 (auto-analyzed)
+modules/68k/game/fn_30200_020.asm	modules/68k/game/auto/fn_30200_020.asm	fn_30200_020	fn_30200_020	auto	Fm Z80 Dac Write 020 (auto-analyzed)
+modules/68k/game/fn_30200_021.asm	modules/68k/game/auto/fn_30200_021.asm	fn_30200_021	fn_30200_021	auto	Fm Write Conditional 021 (auto-analyzed)
+modules/68k/game/fn_30200_022.asm	modules/68k/game/auto/fn_30200_022.asm	fn_30200_022	fn_30200_022	auto	Fm Write Port0 022 (auto-analyzed)
+modules/68k/game/fn_30200_023.asm	modules/68k/game/auto/fn_30200_023.asm	fn_30200_023	fn_30200_023	auto	Fm Write Wrapper 023 (auto-analyzed)
+modules/68k/game/fn_30200_024.asm	modules/68k/game/auto/fn_30200_024.asm	fn_30200_024	fn_30200_024	auto	Fm 024 (auto-analyzed)
+modules/68k/game/fn_30200_025.asm	modules/68k/game/auto/fn_30200_025.asm	fn_30200_025	fn_30200_025	auto	Fm 025 (auto-analyzed)
+modules/68k/game/fn_30200_026.asm	modules/68k/game/auto/fn_30200_026.asm	fn_30200_026	fn_30200_026	auto	Fm Write Conditional 026 (auto-analyzed)
+modules/68k/game/fn_30200_027.asm	modules/68k/game/auto/fn_30200_027.asm	fn_30200_027	fn_30200_027	auto	Fm Write Port0 027 (auto-analyzed)
+modules/68k/game/fn_30200_028.asm	modules/68k/game/auto/fn_30200_028.asm	fn_30200_028	fn_30200_028	auto	Fm 028 (auto-analyzed)
+modules/68k/game/fn_30200_029.asm	modules/68k/game/auto/fn_30200_029.asm	fn_30200_029	fn_30200_029	auto	Fm 029 (auto-analyzed)
+modules/68k/game/fn_30200_030.asm	modules/68k/game/auto/fn_30200_030.asm	fn_30200_030	fn_30200_030	auto	Fm Z80 Dac Write 030 (auto-analyzed)
+modules/68k/game/fn_30200_031.asm	modules/68k/game/auto/fn_30200_031.asm	fn_30200_031	fn_30200_031	auto	Fm 031 (auto-analyzed)
+modules/68k/game/fn_30200_032.asm	modules/68k/game/auto/fn_30200_032.asm	fn_30200_032	fn_30200_032	auto	Fm 032 (auto-analyzed)
+modules/68k/game/fn_30200_033.asm	modules/68k/game/auto/fn_30200_033.asm	fn_30200_033	fn_30200_033	auto	Vdp Sequence Process 033 (auto-analyzed)
+modules/68k/game/fn_30200_034.asm	modules/68k/game/auto/fn_30200_034.asm	fn_30200_034	fn_30200_034	auto	Vdp 034 (auto-analyzed)
+modules/68k/game/fn_30200_035.asm	modules/68k/game/auto/fn_30200_035.asm	fn_30200_035	fn_30200_035	auto	Fm 035 (auto-analyzed)
+modules/68k/game/fn_30200_036.asm	modules/68k/game/auto/fn_30200_036.asm	fn_30200_036	fn_30200_036	auto	Fm 036 (auto-analyzed)
+modules/68k/game/fn_30200_037.asm	modules/68k/game/auto/fn_30200_037.asm	fn_30200_037	fn_30200_037	auto	Vdp 037 (auto-analyzed)
+modules/68k/game/fn_30200_038.asm	modules/68k/game/auto/fn_30200_038.asm	fn_30200_038	fn_30200_038	auto	Vdp 038 (auto-analyzed)
+modules/68k/game/fn_30200_039.asm	modules/68k/game/auto/fn_30200_039.asm	fn_30200_039	fn_30200_039	auto	Fm Dispatch 039 (auto-analyzed)
+modules/68k/game/fn_30200_040.asm	modules/68k/game/auto/fn_30200_040.asm	fn_30200_040	fn_30200_040	auto	Fm Z80 Bus Request 040 (auto-analyzed)
+modules/68k/game/fn_30200_041.asm	modules/68k/game/auto/fn_30200_041.asm	fn_30200_041	fn_30200_041	auto	Fm 041 (auto-analyzed)
+modules/68k/game/fn_30200_042.asm	modules/68k/game/auto/fn_30200_042.asm	fn_30200_042	fn_30200_042	auto	Fm 042 (auto-analyzed)
+modules/68k/game/fn_30200_043.asm	modules/68k/game/auto/fn_30200_043.asm	fn_30200_043	fn_30200_043	auto	Fm 043 (auto-analyzed)
+modules/68k/game/fn_30200_044.asm	modules/68k/game/auto/fn_30200_044.asm	fn_30200_044	fn_30200_044	auto	Fm 044 (auto-analyzed)
+modules/68k/game/fn_30200_045.asm	modules/68k/game/auto/fn_30200_045.asm	fn_30200_045	fn_30200_045	auto	Fm 045 (auto-analyzed)
+modules/68k/game/fn_30200_046.asm	modules/68k/game/auto/fn_30200_046.asm	fn_30200_046	fn_30200_046	auto	Fm 046 (auto-analyzed)
+modules/68k/game/fn_30200_047.asm	modules/68k/game/auto/fn_30200_047.asm	fn_30200_047	fn_30200_047	auto	Fm 047 (auto-analyzed)
+modules/68k/game/fn_30200_048.asm	modules/68k/game/auto/fn_30200_048.asm	fn_30200_048	fn_30200_048	auto	Fm Conditional Write 048 (auto-analyzed)
+modules/68k/game/fn_30200_049.asm	modules/68k/game/auto/fn_30200_049.asm	fn_30200_049	fn_30200_049	auto	Fm 049 (auto-analyzed)
+modules/68k/game/fn_30200_050.asm	modules/68k/game/auto/fn_30200_050.asm	fn_30200_050	fn_30200_050	auto	Fm Dispatch 050 (auto-analyzed)
+modules/68k/game/fn_30200_051.asm	modules/68k/game/auto/fn_30200_051.asm	fn_30200_051	fn_30200_051	auto	Fm Dispatch 051 (auto-analyzed)
+modules/68k/game/fn_30200_052.asm	modules/68k/game/auto/fn_30200_052.asm	fn_30200_052	fn_30200_052	auto	Fm 052 (auto-analyzed)
+modules/68k/game/fn_30200_053.asm	modules/68k/game/auto/fn_30200_053.asm	fn_30200_053	fn_30200_053	auto	Fm 053 (auto-analyzed)
+modules/68k/game/fn_30200_054.asm	modules/68k/game/auto/fn_30200_054.asm	fn_30200_054	fn_30200_054	auto	Fm Init Channel 054 (auto-analyzed)
+modules/68k/game/fn_30200_055.asm	modules/68k/game/auto/fn_30200_055.asm	fn_30200_055	fn_30200_055	auto	Fm 055 (auto-analyzed)
+modules/68k/game/fn_30200_056.asm	modules/68k/game/auto/fn_30200_056.asm	fn_30200_056	fn_30200_056	auto	Fm 056 (auto-analyzed)
+modules/68k/game/fn_30200_057.asm	modules/68k/game/auto/fn_30200_057.asm	fn_30200_057	fn_30200_057	auto	Fm 057 (auto-analyzed)
+modules/68k/game/fn_30200_058.asm	modules/68k/game/auto/fn_30200_058.asm	fn_30200_058	fn_30200_058	auto	Fm 058 (auto-analyzed)
+modules/68k/game/fn_30200_059.asm	modules/68k/game/auto/fn_30200_059.asm	fn_30200_059	fn_30200_059	auto	Fm 059 (auto-analyzed)
+modules/68k/game/fn_30200_060.asm	modules/68k/game/auto/fn_30200_060.asm	fn_30200_060	fn_30200_060	auto	Fm Conditional Write 060 (auto-analyzed)
+modules/68k/game/fn_30200_061.asm	modules/68k/game/auto/fn_30200_061.asm	fn_30200_061	fn_30200_061	auto	Fm Init Channel 061 (auto-analyzed)
+modules/68k/game/fn_30200_062.asm	modules/68k/game/auto/fn_30200_062.asm	fn_30200_062	fn_30200_062	auto	Fm Conditional Write 062 (auto-analyzed)
+modules/68k/game/fn_30200_063.asm	modules/68k/game/auto/fn_30200_063.asm	fn_30200_063	fn_30200_063	auto	Fm 063 (auto-analyzed)
+modules/68k/game/fn_4200_001.asm	modules/68k/game/render/sprite_config_setup_001.asm	fn_4200_001	sprite_config_setup_001	render	Sprite Config Setup 001
+modules/68k/game/fn_4200_002.asm	modules/68k/game/state/game_init_state_dispatch_002.asm	fn_4200_002	game_init_state_dispatch_002	state	Game Init + State Dispatch 002
+modules/68k/game/fn_4200_003.asm	modules/68k/game/scene/scene_state_check_cond_advance.asm	fn_4200_003	scene_state_check_cond_advance	scene	Scene State Check + Conditional Advance
+modules/68k/game/fn_4200_004.asm	modules/68k/game/state/display_state_disp.asm	fn_4200_004	display_state_disp	state	Display State Dispatcher (Two Jump Tables: 9 + 4 Entries)
+modules/68k/game/fn_4200_005.asm	modules/68k/game/race/call_sub_address_check_set_race_mode.asm	fn_4200_005	call_sub_address_check_set_race_mode	race	Call Sub + Address Check + Set Race Mode
+modules/68k/game/fn_4200_006.asm	modules/68k/game/state/advance_input_state.asm	fn_4200_006	advance_input_state	state	Advance Input State
+modules/68k/game/fn_4200_007.asm	modules/68k/game/state/input_state_disp.asm	fn_4200_007	input_state_disp	state	Input State Dispatcher (4-Entry Jump Table + Init)
+modules/68k/game/fn_4200_008.asm	modules/68k/game/state/game_logic_init_state_dispatch.asm	fn_4200_008	game_logic_init_state_dispatch	state	Game Logic Init + State Dispatch
+modules/68k/game/fn_4200_009.asm	modules/68k/game/auto/fn_4200_009.asm	fn_4200_009	fn_4200_009	auto	Logic Pre Dispatch Common 009 (auto-analyzed)
+modules/68k/game/fn_4200_010.asm	modules/68k/game/scene/set_state_pre_dispatch_init_sh2_scene.asm	fn_4200_010	set_state_pre_dispatch_init_sh2_scene	scene	Set State + Pre-Dispatch + Init SH2 Scene
+modules/68k/game/fn_4200_011.asm	modules/68k/game/state/state_disp_004cb8.asm	fn_4200_011	state_disp_004cb8	state	State Dispatcher (5-Entry Jump Table + 6 Subroutines, Data Prefix)
+modules/68k/game/fn_4200_012.asm	modules/68k/game/menu/call_subs_advance_game_state.asm	fn_4200_012	call_subs_advance_game_state	menu	Call Subs + Advance Game State
+modules/68k/game/fn_4200_013.asm	modules/68k/game/scene/game_frame_orch_013.asm	fn_4200_013	game_frame_orch_013	scene	Game Frame Orchestrator 013
+modules/68k/game/fn_4200_014.asm	modules/68k/game/auto/fn_4200_014.asm	fn_4200_014	fn_4200_014	auto	Logic Sound Flag Handler 014 (auto-analyzed)
+modules/68k/game/fn_4200_015.asm	modules/68k/game/state/state_disp_005020.asm	fn_4200_015	state_disp_005020	state	State Dispatcher (5-Entry Jump Table + 8 Subroutines, Data Prefix)
+modules/68k/game/fn_4200_016.asm	modules/68k/game/scene/frame_update_orch_005070.asm	fn_4200_016	frame_update_orch_005070	scene	Frame Update Orchestrator (8 Subroutines)
+modules/68k/game/fn_4200_017.asm	modules/68k/game/scene/frame_orch_00509e.asm	fn_4200_017	frame_orch_00509e	scene	Frame Orchestrator (12 Subroutines, 2 Entry Points)
+modules/68k/game/fn_4200_018.asm	modules/68k/game/auto/fn_4200_018.asm	fn_4200_018	fn_4200_018	auto	Logic Sound Flag Handler 018 (auto-analyzed)
+modules/68k/game/fn_4200_019.asm	modules/68k/game/state/state_disp_005308.asm	fn_4200_019	state_disp_005308	state	State Dispatcher (5-Entry Jump Table + 5 Subroutines)
+modules/68k/game/fn_4200_020.asm	modules/68k/game/menu/call_subs_advance_game_state_set_frame_delay.asm	fn_4200_020	call_subs_advance_game_state_set_frame_delay	menu	Call Subs + Advance Game State + Set Frame Delay
+modules/68k/game/fn_4200_021.asm	modules/68k/game/scene/frame_orch_00535e.asm	fn_4200_021	frame_orch_00535e	scene	Frame Orchestrator (9 Subroutines + Controller Tail-Jump)
+modules/68k/game/fn_4200_022.asm	modules/68k/game/auto/fn_4200_022.asm	fn_4200_022	fn_4200_022	auto	Logic Sound Flag Handler 022 (auto-analyzed)
+modules/68k/game/fn_4200_023.asm	modules/68k/game/state/state_disp_005586.asm	fn_4200_023	state_disp_005586	state	State Dispatcher (4-Entry Jump Table)
+modules/68k/game/fn_4200_024.asm	modules/68k/game/menu/sfx_queue_sprite_check_advance_game_state.asm	fn_4200_024	sfx_queue_sprite_check_advance_game_state	menu	SFX Queue + Sprite Check + Advance Game State
+modules/68k/game/fn_4200_025.asm	modules/68k/game/scene/frame_update_orch_0055d0.asm	fn_4200_025	frame_update_orch_0055d0	scene	Frame Update Orchestrator (7 Subroutines + Scene Tick)
+modules/68k/game/fn_4200_026.asm	modules/68k/game/race/process_sfx_poll_ctrls_advance_frame.asm	fn_4200_026	process_sfx_poll_ctrls_advance_frame	race	Process SFX + Poll Controllers + Advance Frame
+modules/68k/game/fn_4200_027.asm	modules/68k/game/state/state_disp_005618.asm	fn_4200_027	state_disp_005618	state	State Dispatcher (5-Entry Jump Table + 4 Subroutines)
+modules/68k/game/fn_4200_028.asm	modules/68k/game/menu/call_4_subs_advance_game_state.asm	fn_4200_028	call_4_subs_advance_game_state	menu	Call 4 Subs + Advance Game State
+modules/68k/game/fn_4200_029.asm	modules/68k/game/scene/frame_orch_005676.asm	fn_4200_029	frame_orch_005676	scene	Frame Orchestrator (8 Subroutines, 2 Entry Points, Controller Decode)
+modules/68k/game/fn_4200_030.asm	modules/68k/game/state/pause_menu_handler_ctrl_check.asm	fn_4200_030	pause_menu_handler_ctrl_check	state	Pause Menu Handler + Controller Check
+modules/68k/game/fn_4200_031.asm	modules/68k/game/state/state_disp_00573c.asm	fn_4200_031	state_disp_00573c	state	State Dispatcher (4-Entry Jump Table, Variant B)
+modules/68k/game/fn_4200_032.asm	modules/68k/game/state/state_disp_ctrl_poll_sprite_update.asm	fn_4200_032	state_disp_ctrl_poll_sprite_update	state	State Dispatcher + Controller Poll + Sprite Update
+modules/68k/game/fn_4200_033.asm	modules/68k/game/state/advance_sub_seq_timer.asm	fn_4200_033	advance_sub_seq_timer	state	Advance Sub-Sequence Timer
+modules/68k/game/fn_4200_034.asm	modules/68k/game/state/controller_input_check_start_button_handler.asm	fn_4200_034	controller_input_check_start_button_handler	state	Controller Input Check + Start Button Handler
+modules/68k/game/fn_4200_035.asm	modules/68k/game/race/sound_queue_enable_flags_advance_state.asm	fn_4200_035	sound_queue_enable_flags_advance_state	race	Sound Queue + Enable Flags + Advance State
+modules/68k/game/fn_4200_036.asm	modules/68k/game/scene/sh2_handler_dispatch_scene_init.asm	fn_4200_036	sh2_handler_dispatch_scene_init	scene	SH2 Handler Dispatch + Scene Init
+modules/68k/game/fn_4200_037.asm	modules/68k/game/entity/object_table_lookup_loop.asm	fn_4200_037	object_table_lookup_loop	entity	Object Table Lookup Loop (6 Iterations)
+modules/68k/game/fn_4200_038.asm	modules/68k/game/scene/sh2_comm_check_cond_guard.asm	fn_4200_038	sh2_comm_check_cond_guard	scene	SH2 Comm Check + Conditional Guard
+modules/68k/game/fn_4200_039.asm	modules/68k/game/entity/object_table_clear_loop.asm	fn_4200_039	object_table_clear_loop	entity	Object Table Clear Loop
+modules/68k/game/fn_4200_040.asm	modules/68k/game/auto/fn_4200_040.asm	fn_4200_040	fn_4200_040	auto	Logic Dispatch 040 (auto-analyzed)
+modules/68k/game/fn_4200_041.asm	modules/68k/game/auto/fn_4200_041.asm	fn_4200_041	fn_4200_041	auto	Obj Palette Update 041 (auto-analyzed)
+modules/68k/game/fn_4200_042.asm	modules/68k/game/auto/fn_4200_042.asm	fn_4200_042	fn_4200_042	auto	Logic Dispatch 042 (auto-analyzed)
+modules/68k/game/fn_4200_043.asm	modules/68k/game/auto/fn_4200_043.asm	fn_4200_043	fn_4200_043	auto	Obj Palette Update 043 (auto-analyzed)
+modules/68k/game/fn_4200_044.asm	modules/68k/game/scene/game_frame_orch.asm	fn_4200_044	game_frame_orch	scene	Game Frame Orchestrator
+modules/68k/game/fn_4200_045.asm	modules/68k/game/auto/fn_4200_045.asm	fn_4200_045	fn_4200_045	auto	Obj Reg Write 045 (auto-analyzed)
+modules/68k/game/fn_6200_001.asm	modules/68k/game/scene/object_state_disp_scene_transition.asm	fn_6200_001	object_state_disp_scene_transition	scene	Object State Dispatcher + Scene Transition
+modules/68k/game/fn_6200_002.asm	modules/68k/game/auto/fn_6200_002.asm	fn_6200_002	fn_6200_002	auto	Obj Reg Write 002 (auto-analyzed)
+modules/68k/game/fn_6200_003.asm	modules/68k/game/auto/fn_6200_003.asm	fn_6200_003	fn_6200_003	auto	Obj Memory Copy 003 (auto-analyzed)
+modules/68k/game/fn_6200_004.asm	modules/68k/game/auto/fn_6200_004.asm	fn_6200_004	fn_6200_004	auto	Obj Calc Steering 004 (auto-analyzed)
+modules/68k/game/fn_6200_005.asm	modules/68k/game/race/race_init_orch_005.asm	fn_6200_005	race_init_orch_005	race	Race Init Orchestrator 005
+modules/68k/game/fn_6200_006.asm	modules/68k/game/auto/fn_6200_006.asm	fn_6200_006	fn_6200_006	auto	Obj Dispatch 006 (auto-analyzed)
+modules/68k/game/fn_6200_007.asm	modules/68k/game/race/race_frame_update.asm	fn_6200_007	race_frame_update	race	Race Frame Update (State 7)
+modules/68k/game/fn_6200_008.asm	modules/68k/game/auto/fn_6200_008.asm	fn_6200_008	fn_6200_008	auto	Obj Dispatch 008 (auto-analyzed)
+modules/68k/game/fn_6200_009.asm	modules/68k/game/entity/object_bitmask_table_lookup.asm	fn_6200_009	object_bitmask_table_lookup	entity	Object Bitmask Table + Lookup
+modules/68k/game/fn_6200_010.asm	modules/68k/game/state/object_bitmask_table_button_flag_handler.asm	fn_6200_010	object_bitmask_table_button_flag_handler	state	Object Bitmask Table + Button Flag Handler
+modules/68k/game/fn_6200_011.asm	modules/68k/game/state/control_flag_check_cond_pos_copy.asm	fn_6200_011	control_flag_check_cond_pos_copy	state	Control Flag Check + Conditional Position Copy
+modules/68k/game/fn_6200_012.asm	modules/68k/game/state/conditional_scroll_state_init.asm	fn_6200_012	conditional_scroll_state_init	state	Conditional Scroll State Init
+modules/68k/game/fn_6200_013.asm	modules/68k/game/auto/fn_6200_013.asm	fn_6200_013	fn_6200_013	auto	Obj Fastcopy16 013 (auto-analyzed)
+modules/68k/game/fn_6200_014.asm	modules/68k/game/state/button_bit_disp.asm	fn_6200_014	button_bit_disp	state	Button Bit Dispatcher (7 Bit Tests)
+modules/68k/game/fn_6200_015.asm	modules/68k/game/auto/fn_6200_015.asm	fn_6200_015	fn_6200_015	auto	Obj 015 (auto-analyzed)
+modules/68k/game/fn_6200_016.asm	modules/68k/game/auto/fn_6200_016.asm	fn_6200_016	fn_6200_016	auto	Obj 016 (auto-analyzed)
+modules/68k/game/fn_6200_017.asm	modules/68k/game/auto/fn_6200_017.asm	fn_6200_017	fn_6200_017	auto	Obj 017 (auto-analyzed)
+modules/68k/game/fn_6200_018.asm	modules/68k/game/auto/fn_6200_018.asm	fn_6200_018	fn_6200_018	auto	Obj 018 (auto-analyzed)
+modules/68k/game/fn_6200_019.asm	modules/68k/game/entity/object_pos_table_lookup.asm	fn_6200_019	object_pos_table_lookup	entity	Object Position Table Lookup
+modules/68k/game/fn_6200_020.asm	modules/68k/game/state/position_table_lookup.asm	fn_6200_020	position_table_lookup	state	Position Table Lookup (Decrement Counter)
+modules/68k/game/fn_6200_021.asm	modules/68k/game/auto/fn_6200_021.asm	fn_6200_021	fn_6200_021	auto	Obj 021 (auto-analyzed)
+modules/68k/game/fn_6200_022.asm	modules/68k/game/auto/fn_6200_022.asm	fn_6200_022	fn_6200_022	auto	Obj Dispatch 022 (auto-analyzed)
+modules/68k/game/fn_6200_023.asm	modules/68k/game/auto/fn_6200_023.asm	fn_6200_023	fn_6200_023	auto	Math Position Update Sub 023 (auto-analyzed)
+modules/68k/game/fn_6200_024.asm	modules/68k/game/entity/object_link_copy_table_lookup.asm	fn_6200_024	object_link_copy_table_lookup	entity	Object Link Copy + Table Lookup
+modules/68k/game/fn_6200_025.asm	modules/68k/game/render/object_visibility_collector.asm	fn_6200_025	object_visibility_collector	render	fn_6200_025 — Object Visibility Collector
+modules/68k/game/fn_6200_026.asm	modules/68k/game/auto/fn_6200_026.asm	fn_6200_026	fn_6200_026	auto	Vdp 026 (auto-analyzed)
+modules/68k/game/fn_6200_027.asm	modules/68k/game/auto/fn_6200_027.asm	fn_6200_027	fn_6200_027	auto	Obj Race 027 (auto-analyzed)
+modules/68k/game/fn_6200_028.asm	modules/68k/game/render/object_geometry_visibility_collect.asm	fn_6200_028	object_geometry_visibility_collect	render	Object Geometry Visibility Collect
+modules/68k/game/fn_6200_029.asm	modules/68k/game/track/track_data_index_calc_table_lookup.asm	fn_6200_029	track_data_index_calc_table_lookup	track	Track Data Index Computation + Table Lookup
+modules/68k/game/fn_6200_030.asm	modules/68k/game/physics/conditional_object_velocity_negate.asm	fn_6200_030	conditional_object_velocity_negate	physics	Conditional Object Velocity Negate
+modules/68k/game/fn_6200_031.asm	modules/68k/game/physics/calculate_object_heading_composite.asm	fn_6200_031	calculate_object_heading_composite	physics	Calculate Object Heading Composite
+modules/68k/game/fn_6200_032.asm	modules/68k/game/auto/fn_6200_032.asm	fn_6200_032	fn_6200_032	auto	Math Cosine Lookup 032 (auto-analyzed)
+modules/68k/game/fn_6200_033.asm	modules/68k/game/track/track_data_extract_033.asm	fn_6200_033	track_data_extract_033	track	Track Data Extract 033
+modules/68k/game/fn_6200_034.asm	modules/68k/game/auto/fn_6200_034.asm	fn_6200_034	fn_6200_034	auto	Obj Frame Calc 034 (auto-analyzed)
+modules/68k/game/fn_6200_035.asm	modules/68k/game/auto/fn_6200_035.asm	fn_6200_035	fn_6200_035	auto	Obj Tile Position Calc 035 (auto-analyzed)
+modules/68k/game/fn_6200_036.asm	modules/68k/game/auto/fn_6200_036.asm	fn_6200_036	fn_6200_036	auto	Obj Dispatch 036 (auto-analyzed)
+modules/68k/game/fn_6200_037.asm	modules/68k/game/auto/fn_6200_037.asm	fn_6200_037	fn_6200_037	auto	Obj 037 (auto-analyzed)
+modules/68k/game/fn_6200_038.asm	modules/68k/game/state/increment_object_counter_return_04.asm	fn_6200_038	increment_object_counter_return_04	state	Increment Object Counter + Return $04
+modules/68k/game/fn_6200_039.asm	modules/68k/game/state/increment_object_counter_return_08.asm	fn_6200_039	increment_object_counter_return_08	state	Increment Object Counter + Return $08
+modules/68k/game/fn_6200_040.asm	modules/68k/game/state/increment_object_counter_return_10.asm	fn_6200_040	increment_object_counter_return_10	state	Increment Object Counter + Return $10
+modules/68k/game/fn_6200_041.asm	modules/68k/game/auto/fn_6200_041.asm	fn_6200_041	fn_6200_041	auto	Obj 041 (auto-analyzed)
+modules/68k/game/fn_6200_042.asm	modules/68k/game/auto/fn_6200_042.asm	fn_6200_042	fn_6200_042	auto	Obj 042 (auto-analyzed)
+modules/68k/game/fn_6200_043.asm	modules/68k/game/auto/fn_6200_043.asm	fn_6200_043	fn_6200_043	auto	Obj Render 043 (auto-analyzed)
+modules/68k/game/fn_6200_044.asm	modules/68k/game/auto/fn_6200_044.asm	fn_6200_044	fn_6200_044	auto	Obj Tile Position Calc 044 (auto-analyzed)
+modules/68k/game/fn_6200_045.asm	modules/68k/game/auto/fn_6200_045.asm	fn_6200_045	fn_6200_045	auto	Obj Dispatch 045 (auto-analyzed)
+modules/68k/game/fn_6200_046.asm	modules/68k/game/auto/fn_6200_046.asm	fn_6200_046	fn_6200_046	auto	Obj 046 (auto-analyzed)
+modules/68k/game/fn_6200_047.asm	modules/68k/game/auto/fn_6200_047.asm	fn_6200_047	fn_6200_047	auto	Obj 047 (auto-analyzed)
+modules/68k/game/fn_6200_048.asm	modules/68k/game/auto/fn_6200_048.asm	fn_6200_048	fn_6200_048	auto	Obj 048 (auto-analyzed)
+modules/68k/game/fn_6200_049.asm	modules/68k/game/auto/fn_6200_049.asm	fn_6200_049	fn_6200_049	auto	Obj 049 (auto-analyzed)
+modules/68k/game/fn_6200_050.asm	modules/68k/game/auto/fn_6200_050.asm	fn_6200_050	fn_6200_050	auto	Obj 050 (auto-analyzed)
+modules/68k/game/fn_6200_051.asm	modules/68k/game/auto/fn_6200_051.asm	fn_6200_051	fn_6200_051	auto	Obj 051 (auto-analyzed)
+modules/68k/game/fn_6200_052.asm	modules/68k/game/auto/fn_6200_052.asm	fn_6200_052	fn_6200_052	auto	Obj 052 (auto-analyzed)
+modules/68k/game/fn_6200_053.asm	modules/68k/game/physics/tire_screech_sound_trigger_053.asm	fn_6200_053	tire_screech_sound_trigger_053	physics	Tire Screech Sound Trigger 053
+modules/68k/game/fn_6200_054.asm	modules/68k/game/collision/collision_flag_check_054.asm	fn_6200_054	collision_flag_check_054	collision	Collision Flag Check 054
+modules/68k/game/fn_6200_055.asm	modules/68k/game/physics/object_drift_check_sfx_trigger.asm	fn_6200_055	object_drift_check_sfx_trigger	physics	Object Drift Check + SFX Trigger
+modules/68k/game/fn_6200_056.asm	modules/68k/game/race/race_state_read_sound_trigger.asm	fn_6200_056	race_state_read_sound_trigger	race	Race State Read + Sound Trigger
+modules/68k/game/fn_6200_057.asm	modules/68k/game/physics/drift_init_057.asm	fn_6200_057	drift_init_057	physics	Drift Init 057
+modules/68k/game/fn_6200_058.asm	modules/68k/game/physics/object_anim_timer_speed_clear.asm	fn_6200_058	object_anim_timer_speed_clear	physics	Object Animation Timer + Speed Clear
+modules/68k/game/fn_6200_059.asm	modules/68k/game/state/conditional_return_on_state_match.asm	fn_6200_059	conditional_return_on_state_match	state	Conditional Return on State Match
+modules/68k/game/fn_6200_060.asm	modules/68k/game/physics/object_movement_velocity_calc.asm	fn_6200_060	object_movement_velocity_calc	physics	Object Movement Velocity Computation
+modules/68k/game/fn_6200_061.asm	modules/68k/game/physics/object_heading_deviation_check_warning_flag.asm	fn_6200_061	object_heading_deviation_check_warning_flag	physics	Object Heading Deviation Check + Warning Flag
+modules/68k/game/fn_6200_062.asm	modules/68k/game/race/lap_complete_check_062.asm	fn_6200_062	lap_complete_check_062	race	Lap Complete Check 062
+modules/68k/game/fn_6200_063.asm	modules/68k/game/state/clear_object_flags_reset_state.asm	fn_6200_063	clear_object_flags_reset_state	state	Clear Object Flags + Reset State
+modules/68k/game/fn_6200_064.asm	modules/68k/game/state/conditional_set_state_byte_object_cmp.asm	fn_6200_064	conditional_set_state_byte_object_cmp	state	Conditional Set State Byte from Object Comparison
+modules/68k/game/fn_6200_065.asm	modules/68k/game/state/object_pos_compare_flag_set.asm	fn_6200_065	object_pos_compare_flag_set	state	Object Position Compare + Flag Set
+modules/68k/game/fn_6200_066.asm	modules/68k/game/state/input_guard_cond_dec.asm	fn_6200_066	input_guard_cond_dec	state	Input Guard + Conditional Decrement
+modules/68k/game/fn_6200_067.asm	modules/68k/game/race/object_scoring_lap_advance_check.asm	fn_6200_067	object_scoring_lap_advance_check	race	Object Scoring + Lap Advance Check
+modules/68k/game/fn_6200_068.asm	modules/68k/game/state/triple_guard_set_state_to_be.asm	fn_6200_068	triple_guard_set_state_to_be	state	Triple-Guard Set State to $BE
+modules/68k/game/fn_6200_069.asm	modules/68k/game/camera/object_camera_pos_update.asm	fn_6200_069	object_camera_pos_update	camera	Object Camera Position Update
+modules/68k/game/fn_6200_070.asm	modules/68k/game/physics/object_timer_expire_speed_param_reset.asm	fn_6200_070	object_timer_expire_speed_param_reset	physics	Object Timer Expire + Speed Parameter Reset
+modules/68k/game/fn_8200_001.asm	modules/68k/game/state/display_state_timer_flag_update.asm	fn_8200_001	display_state_timer_flag_update	state	Display State Timer + Flag Update
+modules/68k/game/fn_8200_002.asm	modules/68k/game/race/table_lookup_object_field_to_race_state_byte.asm	fn_8200_002	table_lookup_object_field_to_race_state_byte	race	Table Lookup — Object Field to Race State Byte
+modules/68k/game/fn_8200_003.asm	modules/68k/game/state/object_flag_process_cond_clear.asm	fn_8200_003	object_flag_process_cond_clear	state	Object Flag Process + Conditional Clear
+modules/68k/game/fn_8200_004.asm	modules/68k/game/state/timer_disp_update_004.asm	fn_8200_004	timer_disp_update_004	state	Timer Display Update 004
+modules/68k/game/fn_8200_005.asm	modules/68k/game/auto/fn_8200_005.asm	fn_8200_005	fn_8200_005	auto	Display Status Code 005 (auto-analyzed)
+modules/68k/game/fn_8200_006.asm	modules/68k/game/auto/fn_8200_006.asm	fn_8200_006	fn_8200_006	auto	State 006 (auto-analyzed)
+modules/68k/game/fn_8200_007.asm	modules/68k/game/render/gfx_3d_transform_setup_007.asm	fn_8200_007	gfx_3d_transform_setup_007	render	3D Transform Setup 007
+modules/68k/game/fn_8200_008.asm	modules/68k/game/auto/fn_8200_008.asm	fn_8200_008	fn_8200_008	auto	State 008 (auto-analyzed)
+modules/68k/game/fn_8200_009.asm	modules/68k/game/auto/fn_8200_009.asm	fn_8200_009	fn_8200_009	auto	State 009 (auto-analyzed)
+modules/68k/game/fn_8200_010.asm	modules/68k/game/auto/fn_8200_010.asm	fn_8200_010	fn_8200_010	auto	State 010 (auto-analyzed)
+modules/68k/game/fn_8200_011.asm	modules/68k/game/auto/fn_8200_011.asm	fn_8200_011	fn_8200_011	auto	State 011 (auto-analyzed)
+modules/68k/game/fn_8200_012.asm	modules/68k/game/state/object_spawn_counter_table_setup.asm	fn_8200_012	object_spawn_counter_table_setup	state	Object Spawn Counter + Table Setup
+modules/68k/game/fn_8200_013.asm	modules/68k/game/auto/fn_8200_013.asm	fn_8200_013	fn_8200_013	auto	Display Num To Decimal 013 (auto-analyzed)
+modules/68k/game/fn_8200_014.asm	modules/68k/game/auto/fn_8200_014.asm	fn_8200_014	fn_8200_014	auto	State 014 (auto-analyzed)
+modules/68k/game/fn_8200_015.asm	modules/68k/game/auto/fn_8200_015.asm	fn_8200_015	fn_8200_015	auto	State 015 (auto-analyzed)
+modules/68k/game/fn_8200_016.asm	modules/68k/game/auto/fn_8200_016.asm	fn_8200_016	fn_8200_016	auto	State 016 (auto-analyzed)
+modules/68k/game/fn_8200_017.asm	modules/68k/game/auto/fn_8200_017.asm	fn_8200_017	fn_8200_017	auto	State 017 (auto-analyzed)
+modules/68k/game/fn_8200_018.asm	modules/68k/game/auto/fn_8200_018.asm	fn_8200_018	fn_8200_018	auto	State 018 (auto-analyzed)
+modules/68k/game/fn_8200_019.asm	modules/68k/game/auto/fn_8200_019.asm	fn_8200_019	fn_8200_019	auto	Math Cosine Lookup 019 (auto-analyzed)
+modules/68k/game/fn_8200_020.asm	modules/68k/game/camera/camera_view_toggle_020.asm	fn_8200_020	camera_view_toggle_020	camera	Camera View Toggle 020
+modules/68k/game/fn_8200_021.asm	modules/68k/game/auto/fn_8200_021.asm	fn_8200_021	fn_8200_021	auto	State Dispatch 021 (auto-analyzed)
+modules/68k/game/fn_8200_022.asm	modules/68k/game/state/state_handler_table_init.asm	fn_8200_022	state_handler_table_init	state	State Handler Table + Init
+modules/68k/game/fn_8200_023.asm	modules/68k/game/camera/camera_param_init.asm	fn_8200_023	camera_param_init	camera	Camera Parameter Init (Two-Level Dispatch)
+modules/68k/game/fn_8200_024.asm	modules/68k/game/state/state_disp_reg_copy_handler.asm	fn_8200_024	state_disp_reg_copy_handler	state	State Dispatcher + Register Copy Handler
+modules/68k/game/fn_8200_025.asm	modules/68k/game/camera/camera_yaw_inc_mirror_to_viewports.asm	fn_8200_025	camera_yaw_inc_mirror_to_viewports	camera	Camera Yaw Increment + Mirror to Viewports
+modules/68k/game/fn_8200_026.asm	modules/68k/game/ai/ai_steering_angle_calc_026.asm	fn_8200_026	ai_steering_angle_calc_026	ai	AI Steering Angle Calc 026
+modules/68k/game/fn_8200_027.asm	modules/68k/game/auto/fn_8200_027.asm	fn_8200_027	fn_8200_027	auto	Math Cosine Lookup 027 (auto-analyzed)
+modules/68k/game/fn_8200_028.asm	modules/68k/game/ai/ai_steering_calc_negate.asm	fn_8200_028	ai_steering_calc_negate	ai	AI Steering Calculation + Negate
+modules/68k/game/fn_8200_029.asm	modules/68k/game/physics/calculate_relative_pos_negate.asm	fn_8200_029	calculate_relative_pos_negate	physics	Calculate Relative Position + Negate
+modules/68k/game/fn_8200_030.asm	modules/68k/game/ai/ai_steering_angle_distance_calc.asm	fn_8200_030	ai_steering_angle_distance_calc	ai	AI Steering Angle + Distance Computation
+modules/68k/game/fn_8200_031.asm	modules/68k/game/auto/fn_8200_031.asm	fn_8200_031	fn_8200_031	auto	State Dispatch 031 (auto-analyzed)
+modules/68k/game/fn_8200_032.asm	modules/68k/game/render/scroll_pan_calc_vdp_write.asm	fn_8200_032	scroll_pan_calc_vdp_write	render	Scroll Pan Calculation + VDP Write
+modules/68k/game/fn_8200_033.asm	modules/68k/game/auto/fn_8200_033.asm	fn_8200_033	fn_8200_033	auto	State Velocity 033 (auto-analyzed)
+modules/68k/game/fn_8200_034.asm	modules/68k/game/auto/fn_8200_034.asm	fn_8200_034	fn_8200_034	auto	State Velocity 034 (auto-analyzed)
+modules/68k/game/fn_8200_035.asm	modules/68k/game/physics/speed_calc_multiplier_chain.asm	fn_8200_035	speed_calc_multiplier_chain	physics	Speed Calculation + Multiplier Chain
+modules/68k/game/fn_8200_036.asm	modules/68k/game/auto/fn_8200_036.asm	fn_8200_036	fn_8200_036	auto	Vint 036 (auto-analyzed)
+modules/68k/game/fn_8200_037.asm	modules/68k/game/auto/fn_8200_037.asm	fn_8200_037	fn_8200_037	auto	State Sine Lookup 037 (auto-analyzed)
+modules/68k/game/fn_8200_038.asm	modules/68k/game/ai/suspension_steering_damping.asm	fn_8200_038	suspension_steering_damping	ai	Suspension Steering Damping
+modules/68k/game/fn_8200_039.asm	modules/68k/game/auto/fn_8200_039.asm	fn_8200_039	fn_8200_039	auto	State Velocity 039 (auto-analyzed)
+modules/68k/game/fn_8200_040.asm	modules/68k/game/auto/fn_8200_040.asm	fn_8200_040	fn_8200_040	auto	State Velocity 040 (auto-analyzed)
+modules/68k/game/fn_8200_041.asm	modules/68k/game/camera/set_camera_regs_to_invalid.asm	fn_8200_041	set_camera_regs_to_invalid	camera	Set Camera Registers to Invalid ($FFFF)
+modules/68k/game/fn_8200_042.asm	modules/68k/game/auto/fn_8200_042.asm	fn_8200_042	fn_8200_042	auto	State Dispatch 042 (auto-analyzed)
+modules/68k/game/fn_8200_043.asm	modules/68k/game/auto/fn_8200_043.asm	fn_8200_043	fn_8200_043	auto	State Dispatch 043 (auto-analyzed)
+modules/68k/game/fn_8200_044.asm	modules/68k/game/render/depth_sort.asm	fn_8200_044	depth_sort	render	fn_8200_044 — Depth Sort (Bubble Sort by Priority + Direction Tie-Break)
+modules/68k/game/fn_8200_045.asm	modules/68k/game/auto/fn_8200_045.asm	fn_8200_045	fn_8200_045	auto	State 045 (auto-analyzed)
+modules/68k/game/fn_8200_046.asm	modules/68k/game/auto/fn_8200_046.asm	fn_8200_046	fn_8200_046	auto	State Dispatch 046 (auto-analyzed)
+modules/68k/game/fn_8200_047.asm	modules/68k/game/race/race_param_block_load_table_pointer_setup.asm	fn_8200_047	race_param_block_load_table_pointer_setup	race	Race Parameter Block Load + Table Pointer Setup
+modules/68k/game/fn_8200_048.asm	modules/68k/game/auto/fn_8200_048.asm	fn_8200_048	fn_8200_048	auto	Vdp Timer 048 (auto-analyzed)
+modules/68k/game/fn_a200_001.asm	modules/68k/game/auto/fn_a200_001.asm	fn_a200_001	fn_a200_001	auto	Ai Player Table Setup 001 (auto-analyzed)
+modules/68k/game/fn_a200_002.asm	modules/68k/game/collision/object_collision_detection.asm	fn_a200_002	object_collision_detection	collision	Object Collision Detection
+modules/68k/game/fn_a200_003.asm	modules/68k/game/state/cascaded_frame_counter.asm	fn_a200_003	cascaded_frame_counter	state	Cascaded Frame Counter (Two Entry Points)
+modules/68k/game/fn_a200_004.asm	modules/68k/game/ai/ai_timer_inc.asm	fn_a200_004	ai_timer_inc	ai	AI Timer Increment (Dual Counter with Carry)
+modules/68k/game/fn_a200_005.asm	modules/68k/game/ai/ai_buffer_setup.asm	fn_a200_005	ai_buffer_setup	ai	AI Buffer Setup (4 Entry Points)
+modules/68k/game/fn_a200_006.asm	modules/68k/game/auto/fn_a200_006.asm	fn_a200_006	fn_a200_006	auto	Ai 006 (auto-analyzed)
+modules/68k/game/fn_a200_007.asm	modules/68k/game/ai/ai_digit_lookup_best_lap.asm	fn_a200_007	ai_digit_lookup_best_lap	ai	AI Digit Lookup + Best Lap
+modules/68k/game/fn_a200_008.asm	modules/68k/game/hud/bcd_scoring_calc.asm	fn_a200_008	bcd_scoring_calc	hud	BCD Scoring Calculation
+modules/68k/game/fn_a200_009.asm	modules/68k/game/ai/ai_table_lookup_cond_fall_through.asm	fn_a200_009	ai_table_lookup_cond_fall_through	ai	AI Table Lookup + Conditional Fall-through
+modules/68k/game/fn_a200_010.asm	modules/68k/game/hud/bcd_time_update_010.asm	fn_a200_010	bcd_time_update_010	hud	BCD Time Update 010
+modules/68k/game/fn_a200_011.asm	modules/68k/game/ai/ai_param_lookup_threshold_check_00b36e.asm	fn_a200_011	ai_param_lookup_threshold_check_00b36e	ai	AI Parameter Lookup + Threshold Check (Data Prefix)
+modules/68k/game/fn_a200_012.asm	modules/68k/game/ai/ai_param_lookup_threshold_check_00b398.asm	fn_a200_012	ai_param_lookup_threshold_check_00b398	ai	AI Parameter Lookup + Threshold Check (Data Prefix, Variant B)
+modules/68k/game/fn_a200_013.asm	modules/68k/game/auto/fn_a200_013.asm	fn_a200_013	fn_a200_013	auto	Ai 013 (auto-analyzed)
+modules/68k/game/fn_a200_014.asm	modules/68k/game/auto/fn_a200_014.asm	fn_a200_014	fn_a200_014	auto	Ai 014 (auto-analyzed)
+modules/68k/game/fn_a200_015.asm	modules/68k/game/auto/fn_a200_015.asm	fn_a200_015	fn_a200_015	auto	Ai 015 (auto-analyzed)
+modules/68k/game/fn_a200_016.asm	modules/68k/game/auto/fn_a200_016.asm	fn_a200_016	fn_a200_016	auto	Ai 016 (auto-analyzed)
+modules/68k/game/fn_a200_017.asm	modules/68k/game/auto/fn_a200_017.asm	fn_a200_017	fn_a200_017	auto	Ai 017 (auto-analyzed)
+modules/68k/game/fn_a200_018.asm	modules/68k/game/hud/display_digit_extract.asm	fn_a200_018	display_digit_extract	hud	Display Digit Extract (Multi-Entry)
+modules/68k/game/fn_a200_019.asm	modules/68k/game/state/conditional_return_on_disp_config_flag.asm	fn_a200_019	conditional_return_on_disp_config_flag	state	Conditional Return on Display Config Flag
+modules/68k/game/fn_a200_020.asm	modules/68k/game/ai/ai_data_load_cond_return_on_flag.asm	fn_a200_020	ai_data_load_cond_return_on_flag	ai	AI Data Load + Conditional Return on Flag
+modules/68k/game/fn_a200_021.asm	modules/68k/game/race/lap_disp_update_vdp_tile_write.asm	fn_a200_021	lap_disp_update_vdp_tile_write	race	Lap Display Update + VDP Tile Write
+modules/68k/game/fn_a200_022.asm	modules/68k/game/ai/ai_flag_setup_at_object_array.asm	fn_a200_022	ai_flag_setup_at_object_array	ai	AI Flag Setup at Object Array
+modules/68k/game/fn_a200_023.asm	modules/68k/game/race/sfx_dispatch_object_update_anim_seq.asm	fn_a200_023	sfx_dispatch_object_update_anim_seq	race	SFX Dispatch + Object Update + Animation Sequence
+modules/68k/game/fn_a200_024.asm	modules/68k/game/render/animated_seq_player.asm	fn_a200_024	animated_seq_player	render	Animated Sequence Player (Byte Table + Counter)
+modules/68k/game/fn_a200_025.asm	modules/68k/game/render/animation_seq_player.asm	fn_a200_025	animation_seq_player	render	Animation Sequence Player (3-Word Data Prefix + Frame Loop)
+modules/68k/game/fn_a200_026.asm	modules/68k/game/camera/camera_state_selector.asm	fn_a200_026	camera_state_selector	camera	Camera State Selector
+modules/68k/game/fn_a200_027.asm	modules/68k/game/auto/fn_a200_027.asm	fn_a200_027	fn_a200_027	auto	Ai 027 (auto-analyzed)
+modules/68k/game/fn_a200_028.asm	modules/68k/game/auto/fn_a200_028.asm	fn_a200_028	fn_a200_028	auto	Display Dispatch 028 (auto-analyzed)
+modules/68k/game/fn_a200_029.asm	modules/68k/game/ai/ai_timer_dec_cond_state_clear.asm	fn_a200_029	ai_timer_dec_cond_state_clear	ai	AI Timer Decrement + Conditional State Clear
+modules/68k/game/fn_a200_030.asm	modules/68k/game/ai/ai_timer_dec_state_clear_reactivate.asm	fn_a200_030	ai_timer_dec_state_clear_reactivate	ai	AI Timer Decrement + State Clear + Reactivate
+modules/68k/game/fn_a200_031.asm	modules/68k/game/track/track_segment_load_031.asm	fn_a200_031	track_segment_load_031	track	Track Segment Load 031
+modules/68k/game/fn_a200_032.asm	modules/68k/game/state/triple_dispatch.asm	fn_a200_032	triple_dispatch	state	Triple Dispatch (3 Jump Tables by Controller Byte)
+modules/68k/game/fn_a200_033.asm	modules/68k/game/auto/fn_a200_033.asm	fn_a200_033	fn_a200_033	auto	Ai Camera 033 (auto-analyzed)
+modules/68k/game/fn_a200_034.asm	modules/68k/game/auto/fn_a200_034.asm	fn_a200_034	fn_a200_034	auto	Ai Dispatch 034 (auto-analyzed)
+modules/68k/game/fn_a200_035.asm	modules/68k/game/menu/reset_scene_menu_state.asm	fn_a200_035	reset_scene_menu_state	menu	Reset Scene and Menu State
+modules/68k/game/fn_a200_036.asm	modules/68k/game/state/clear_state_copy_scroll_data_object.asm	fn_a200_036	clear_state_copy_scroll_data_object	state	Clear State + Copy Scroll Data from Object
+modules/68k/game/fn_a200_037.asm	modules/68k/game/entity/backward_object_scan_copy_scroll_data.asm	fn_a200_037	backward_object_scan_copy_scroll_data	entity	Backward Object Scan + Copy Scroll Data
+modules/68k/game/fn_a200_038.asm	modules/68k/game/ai/ai_scene_interpolation.asm	fn_a200_038	ai_scene_interpolation	ai	AI Scene Interpolation (6 Components)
+modules/68k/game/fn_a200_039.asm	modules/68k/game/ai/ai_object_setup_cond_flag_set.asm	fn_a200_039	ai_object_setup_cond_flag_set	ai	AI Object Setup + Conditional Flag Set
+modules/68k/game/fn_a200_040.asm	modules/68k/game/render/display_param_calc.asm	fn_a200_040	display_param_calc	render	Display Parameter Computation (Shift+Multiply, Word Table)
+modules/68k/game/fn_a200_041.asm	modules/68k/game/ai/ai_state_dispatch.asm	fn_a200_041	ai_state_dispatch	ai	AI State Dispatch (Offset Table + Timer)
+modules/68k/game/fn_a200_042.asm	modules/68k/game/ai/ai_dispatch_triple_object_setup.asm	fn_a200_042	ai_dispatch_triple_object_setup	ai	AI Dispatch + Triple Object Setup
+modules/68k/game/fn_a200_043.asm	modules/68k/game/hud/display_entry_builder.asm	fn_a200_043	display_entry_builder	hud	fn_a200_043 — Display Entry Builder (5 Racers)
+modules/68k/game/fn_a200_044.asm	modules/68k/game/render/vdp_table_entry_write_00bf9e.asm	fn_a200_044	vdp_table_entry_write_00bf9e	render	VDP Table Entry Write (Frame-Indexed)
+modules/68k/game/fn_a200_045.asm	modules/68k/game/ai/advance_ai_state_machine_00bfd4.asm	fn_a200_045	advance_ai_state_machine_00bfd4	ai	Advance AI State Machine
+modules/68k/game/fn_a200_046.asm	modules/68k/game/render/vdp_table_entry_write_00bfde.asm	fn_a200_046	vdp_table_entry_write_00bfde	render	VDP Table Entry Write (Frame-Indexed, Variant B — Negated Column)
+modules/68k/game/fn_a200_047.asm	modules/68k/game/ai/advance_ai_state_machine_00c01e.asm	fn_a200_047	advance_ai_state_machine_00c01e	ai	Advance AI State Machine (Duplicate)
+modules/68k/game/fn_a200_048.asm	modules/68k/game/hud/display_list_builder.asm	fn_a200_048	display_list_builder	hud	Display List Builder
+modules/68k/game/fn_c200_001.asm	modules/68k/game/scene/scene_init_orch.asm	fn_c200_001	scene_init_orch	scene	Scene Init Orchestrator
+modules/68k/game/fn_c200_002.asm	modules/68k/game/state/state_disp_00c30a.asm	fn_c200_002	state_disp_00c30a	state	State Dispatcher (5-Entry Jump Table + 6 Subroutines)
+modules/68k/game/fn_c200_003.asm	modules/68k/game/scene/scene_init_multiple_sh2_calls.asm	fn_c200_003	scene_init_multiple_sh2_calls	scene	Scene Init with Multiple SH2 Calls
+modules/68k/game/fn_c200_004.asm	modules/68k/game/scene/scene_orch.asm	fn_c200_004	scene_orch	scene	Scene Orchestrator (5 Subroutines + Controller Decode, 2 Entry Points)
+modules/68k/game/fn_c200_005.asm	modules/68k/game/scene/scene_dispatch.asm	fn_c200_005	scene_dispatch	scene	Scene Dispatch (Jump Table)
+modules/68k/game/fn_c200_006.asm	modules/68k/game/scene/scene_state_disp.asm	fn_c200_006	scene_state_disp	scene	Scene State Dispatcher (Data Prefix + 4-Entry Jump Table)
+modules/68k/game/fn_c200_007.asm	modules/68k/game/scene/scene_frame_update_disp_mode_set.asm	fn_c200_007	scene_frame_update_disp_mode_set	scene	Scene Frame Update + Display Mode Set
+modules/68k/game/fn_c200_008.asm	modules/68k/game/scene/scene_dispatch_input_replay.asm	fn_c200_008	scene_dispatch_input_replay	scene	Scene Dispatch + Input Replay
+modules/68k/game/fn_c200_009.asm	modules/68k/game/race/countdown_timer_update_anim_race_start.asm	fn_c200_009	countdown_timer_update_anim_race_start	race	Countdown Timer Update — Animation and Race Start Trigger
+modules/68k/game/fn_c200_010.asm	modules/68k/game/auto/fn_c200_010.asm	fn_c200_010	fn_c200_010	auto	Scene Obj Table 1 010 (auto-analyzed)
+modules/68k/game/fn_c200_011.asm	modules/68k/game/auto/fn_c200_011.asm	fn_c200_011	fn_c200_011	auto	Scene Fastcopy16 011 (auto-analyzed)
+modules/68k/game/fn_c200_012.asm	modules/68k/game/scene/scene_dispatch_track_data_setup.asm	fn_c200_012	scene_dispatch_track_data_setup	scene	Scene Dispatch + Track Data Setup
+modules/68k/game/fn_c200_013.asm	modules/68k/game/auto/fn_c200_013.asm	fn_c200_013	fn_c200_013	auto	Scene Race 013 (auto-analyzed)
+modules/68k/game/fn_c200_014.asm	modules/68k/game/camera/scene_camera_init.asm	fn_c200_014	scene_camera_init	camera	Scene Camera Init
+modules/68k/game/fn_c200_015.asm	modules/68k/game/scene/scene_init_sh2_buffer_clear_loop.asm	fn_c200_015	scene_init_sh2_buffer_clear_loop	scene	Scene Init + SH2 Buffer Clear Loop
+modules/68k/game/fn_c200_016.asm	modules/68k/game/scene/scene_init.asm	fn_c200_016	scene_init	scene	Scene Initialization (Variable Reset)
+modules/68k/game/fn_c200_017.asm	modules/68k/game/auto/fn_c200_017.asm	fn_c200_017	fn_c200_017	auto	Obj Heading Update 017 (auto-analyzed)
+modules/68k/game/fn_c200_018.asm	modules/68k/game/render/scene_init_vdp_block_setup_counter_reset.asm	fn_c200_018	scene_init_vdp_block_setup_counter_reset	render	Scene Init + VDP Block Setup + Counter Reset
+modules/68k/game/fn_c200_019.asm	modules/68k/game/race/race_scene_init_jump_table_dispatch.asm	fn_c200_019	race_scene_init_jump_table_dispatch	race	Race Scene Init + 6-Entry Jump Table Dispatch
+modules/68k/game/fn_c200_020.asm	modules/68k/game/auto/fn_c200_020.asm	fn_c200_020	fn_c200_020	auto	Scene Sprite Table Init 020 (auto-analyzed)
+modules/68k/game/fn_c200_021.asm	modules/68k/game/auto/fn_c200_021.asm	fn_c200_021	fn_c200_021	auto	Scene Sh2 Comm 021 (auto-analyzed)
+modules/68k/game/fn_c200_022.asm	modules/68k/game/render/scene_init_vdp_dma_setup_track_param_load.asm	fn_c200_022	scene_init_vdp_dma_setup_track_param_load	render	Scene Init + VDP DMA Setup + Track Parameter Load
+modules/68k/game/fn_c200_023.asm	modules/68k/game/auto/fn_c200_023.asm	fn_c200_023	fn_c200_023	auto	Sh2 Comm Palette Load 023 (auto-analyzed)
+modules/68k/game/fn_c200_024.asm	modules/68k/game/auto/fn_c200_024.asm	fn_c200_024	fn_c200_024	auto	Scene Dispatch 024 (auto-analyzed)
+modules/68k/game/fn_c200_025.asm	modules/68k/game/entity/object_update_cond_game_state_advance.asm	fn_c200_025	object_update_cond_game_state_advance	entity	Object Update + Conditional Game State Advance
+modules/68k/game/fn_c200_026.asm	modules/68k/game/auto/fn_c200_026.asm	fn_c200_026	fn_c200_026	auto	Sh2 Comm Dma Transfer 026 (auto-analyzed)
+modules/68k/game/fn_c200_027.asm	modules/68k/game/auto/fn_c200_027.asm	fn_c200_027	fn_c200_027	auto	Scene Send Cmd 027 (auto-analyzed)
+modules/68k/game/fn_c200_028.asm	modules/68k/game/auto/fn_c200_028.asm	fn_c200_028	fn_c200_028	auto	Sh2 Comm Object Update 028 (auto-analyzed)
+modules/68k/game/fn_c200_029.asm	modules/68k/game/auto/fn_c200_029.asm	fn_c200_029	fn_c200_029	auto	Sh2 Comm Object Update 029 (auto-analyzed)
+modules/68k/game/fn_c200_030.asm	modules/68k/game/render/sh2_cmd_27_sprite_render.asm	fn_c200_030	sh2_cmd_27_sprite_render	render	SH2 Cmd 27 Sprite Render
+modules/68k/game/fn_c200_031.asm	modules/68k/game/scene/scene_phase_timer_setup.asm	c200_func_001	scene_phase_timer_setup	scene	Scene Phase Timer — Setup
+modules/68k/game/fn_c200_032.asm	modules/68k/game/scene/scene_phase_timer_tick_data_tables.asm	phase_duration_table	scene_phase_timer_tick_data_tables	scene	Scene Phase Timer — Tick and Data Tables
+modules/68k/game/fn_c200_033.asm	modules/68k/game/scene/scene_phase_timer_reset.asm	c200_func_003	scene_phase_timer_reset	scene	Scene Phase Timer — Reset
+modules/68k/game/fn_c200_034.asm	modules/68k/game/race/countdown_timer_setup_race_start_init.asm	c200_func_004	countdown_timer_setup_race_start_init	race	Countdown Timer Setup — Race Start Initialization
+modules/68k/game/fn_c200_035.asm	modules/68k/game/race/scene_state_disp_race_init_phases.asm	c200_func_005	scene_state_disp_race_init_phases	race	Scene State Dispatcher — Race Initialization Phases
+modules/68k/game/fn_c200_036.asm	modules/68k/game/race/race_init_phase_1_flag_setup.asm	c200_func_006	race_init_phase_1_flag_setup	race	Race Init Phase 1 — Flag Setup
+modules/68k/game/fn_c200_037.asm	modules/68k/game/race/race_init_phase_2_vdp_scroll_mode_config.asm	c200_func_007	race_init_phase_2_vdp_scroll_mode_config	race	Race Init Phase 2 — VDP Scroll Mode Configuration
+modules/68k/game/fn_c200_038.asm	modules/68k/game/entity/object_field_store_helper.asm	c200_func_008	object_field_store_helper	entity	Object Field Store Helper
+modules/68k/game/fn_c200_039.asm	modules/68k/game/render/vdp_reg_table_copy.asm	c200_func_009_vdp	vdp_reg_table_copy	render	VDP Register Table Copy (with Shared Block Copy Subroutine)
+modules/68k/game/fn_c200_040.asm	modules/68k/game/render/vdp_reg_table_init_multi_entry_loader.asm	c200_func_010	vdp_reg_table_init_multi_entry_loader	render	VDP Register Table Init — Multi-Entry Loader
+modules/68k/game/fn_c200_041.asm	modules/68k/game/menu/vdp_slot_activation_config_a.asm	c200_func_011	vdp_slot_activation_config_a	menu	VDP Slot Activation — Configuration A
+modules/68k/game/fn_c200_042.asm	modules/68k/game/menu/vdp_slot_activation_config_b.asm	c200_func_012	vdp_slot_activation_config_b	menu	VDP Slot Activation — Configuration B
+modules/68k/game/fn_c200_043.asm	modules/68k/game/menu/vdp_slot_activation_config_c.asm	c200_func_013	vdp_slot_activation_config_c	menu	VDP Slot Activation — Configuration C
+modules/68k/game/fn_c200_044.asm	modules/68k/game/entity/object_array_init_rom_tables.asm	c200_func_014	object_array_init_rom_tables	entity	Object Array Initialization from ROM Tables
+modules/68k/game/fn_c200_045.asm	modules/68k/game/entity/object_table_init_entry_array.asm	c200_func_015	object_table_init_entry_array	entity	Object Table Init — 256-Byte Entry Array
+modules/68k/game/fn_c200_046.asm	modules/68k/game/entity/object_entry_loader_loop_table_lookup.asm	c200_func_016	object_entry_loader_loop_table_lookup	entity	Object Entry Loader — 16-Entry Loop with Table Lookup
+modules/68k/game/fn_c200_047.asm	modules/68k/game/entity/dual_object_entry_init_primary_alternate.asm	c200_func_017	dual_object_entry_init_primary_alternate	entity	Dual Object Entry Init — Primary and Alternate Entries
+modules/68k/game/fn_c200_048.asm	modules/68k/game/entity/object_entry_data_copy.asm	c200_func_018	object_entry_data_copy	entity	Object Entry Data Copy (with Shared Field Copy Subroutine)
+modules/68k/game/fn_c200_049.asm	modules/68k/game/entity/object_entries_reset_init_fixed_table.asm	c200_func_019	object_entries_reset_init_fixed_table	entity	Object Entries Reset — 16-Entry Init from Fixed Table
+modules/68k/game/fn_c200_050.asm	modules/68k/game/hud/score_stat_lookup_accum_dual.asm	c200_func_020	score_stat_lookup_accum_dual	hud	Score/Stat Lookup and Accumulate — Dual Entry Point
+modules/68k/game/fn_c200_051.asm	modules/68k/game/scene/game_mode_track_config.asm	c200_func_021	game_mode_track_config	scene	Game Mode and Track Configuration
+modules/68k/game/fn_c200_052.asm	modules/68k/game/physics/positive_velocity_step_small_inc.asm	c200_func_022	positive_velocity_step_small_inc	physics	Positive Velocity Step — Small Increment
+modules/68k/game/fn_c200_053.asm	modules/68k/game/physics/negative_velocity_step_small_dec.asm	c200_func_023	negative_velocity_step_small_dec	physics	Negative Velocity Step — Small Decrement
+modules/68k/game/fn_c200_054.asm	modules/68k/game/scene/sh2_handshake_state_advance.asm	c200_func_024	sh2_handshake_state_advance	scene	SH2 Handshake and State Advance
+modules/68k/game/fn_c200_055.asm	modules/68k/game/scene/scene_setup_game_mode_transition.asm	c200_func_025	scene_setup_game_mode_transition	scene	Scene Setup / Game Mode Transition
+modules/68k/game/fn_e200_001.asm	modules/68k/game/auto/fn_e200_001.asm	fn_e200_001	fn_e200_001	auto	Sh2 Comm 001 (auto-analyzed)
+modules/68k/game/fn_e200_002.asm	modules/68k/game/auto/fn_e200_002.asm	fn_e200_002	fn_e200_002	auto	Sh2 Comm Palette Load 002 (auto-analyzed)
+modules/68k/game/fn_e200_003.asm	modules/68k/game/auto/fn_e200_003.asm	fn_e200_003	fn_e200_003	auto	Sh2 Comm Send Cmd 003 (auto-analyzed)
+modules/68k/game/fn_e200_004.asm	modules/68k/game/auto/fn_e200_004.asm	fn_e200_004	fn_e200_004	auto	Sh2 Comm Object Update 004 (auto-analyzed)
+modules/68k/game/fn_e200_005.asm	modules/68k/game/auto/fn_e200_005.asm	fn_e200_005	fn_e200_005	auto	Sh2 Comm Palette Load 005 (auto-analyzed)
+modules/68k/game/fn_e200_006.asm	modules/68k/game/auto/fn_e200_006.asm	fn_e200_006	fn_e200_006	auto	Menu Dispatch 006 (auto-analyzed)
+modules/68k/game/fn_e200_007.asm	modules/68k/game/auto/fn_e200_007.asm	fn_e200_007	fn_e200_007	auto	Sh2 Comm Send Cmd 007 (auto-analyzed)
+modules/68k/game/fn_e200_008.asm	modules/68k/game/auto/fn_e200_008.asm	fn_e200_008	fn_e200_008	auto	Sh2 Comm Object Update 008 (auto-analyzed)
+modules/68k/game/fn_e200_009.asm	modules/68k/game/auto/fn_e200_009.asm	fn_e200_009	fn_e200_009	auto	Sh2 Comm Cmd 27 009 (auto-analyzed)
+modules/68k/game/fn_e200_010.asm	modules/68k/game/auto/fn_e200_010.asm	fn_e200_010	fn_e200_010	auto	Sh2 Comm Palette Load 010 (auto-analyzed)
+modules/68k/game/fn_e200_011.asm	modules/68k/game/auto/fn_e200_011.asm	fn_e200_011	fn_e200_011	auto	Menu Dispatch 011 (auto-analyzed)
+modules/68k/game/full_state_reset_b.asm	modules/68k/game/state/full_state_reset_b.asm	full_state_reset_b	full_state_reset_b	state	Full State Reset — Race Mode
+modules/68k/game/heading_broadcast.asm	modules/68k/game/physics/heading_broadcast.asm	heading_broadcast	heading_broadcast	physics	Heading Broadcast (Bulk Entity Fill)
+modules/68k/game/heading_from_position.asm	modules/68k/game/physics/heading_from_position.asm	heading_from_position	heading_from_position	physics	Heading from Position
+modules/68k/game/heading_with_camera.asm	modules/68k/game/physics/heading_with_camera.asm	heading_with_camera	heading_with_camera	physics	Heading with Camera Rotation
+modules/68k/game/hud_activate_check.asm	modules/68k/game/hud/hud_activate_check.asm	hud_activate_check	hud_activate_check	hud	HUD Activate Check
+modules/68k/game/hud_buffer_clear.asm	modules/68k/game/hud/hud_buffer_clear.asm	hud_buffer_clear	hud_buffer_clear	hud	HUD Buffer Clear
+modules/68k/game/hud_panel_config.asm	modules/68k/game/hud/hud_panel_config.asm	hud_panel_config	hud_panel_config	hud	HUD Panel Config
+modules/68k/game/lap_value_store_1.asm	modules/68k/game/race/lap_value_store_1.asm	lap_value_store_1	lap_value_store_1	race	Lap Value Store 1
+modules/68k/game/lap_value_store_2.asm	modules/68k/game/race/lap_value_store_2.asm	lap_value_store_2	lap_value_store_2	race	Lap Value Store 2
+modules/68k/game/obj_state_return.asm	modules/68k/game/entity/obj_state_return.asm	obj_state_return	obj_state_return	entity	Object State Return
+modules/68k/game/physics_integration.asm	modules/68k/game/physics/physics_integration.asm	physics_integration	physics_integration	physics	Physics Integration
+modules/68k/game/physics_lookup_tables.asm	modules/68k/game/physics/physics_lookup_tables.asm	physics_lookup_accessor	physics_lookup_accessor	physics	Physics Lookup Tables Module
+modules/68k/game/position_separation.asm	modules/68k/game/collision/position_separation.asm	position_separation	position_separation	collision	Position Separation
+modules/68k/game/proximity_distance_check.asm	modules/68k/game/collision/proximity_distance_check.asm	proximity_distance_check	proximity_distance_check	collision	Proximity Distance Check
+modules/68k/game/proximity_trigger.asm	modules/68k/game/collision/proximity_trigger.asm	proximity_trigger	proximity_trigger	collision	Proximity Trigger (Cooldown Timer)
+modules/68k/game/proximity_zone_loop.asm	modules/68k/game/collision/proximity_zone_loop.asm	proximity_zone_loop	proximity_zone_loop	collision	Proximity Zone Loop (Fixed Thresholds)
+modules/68k/game/proximity_zone_multi.asm	modules/68k/game/collision/proximity_zone_multi.asm	proximity_zone_multi	proximity_zone_multi	collision	Proximity Zone Multi (Entity Loop with Camera Override)
+modules/68k/game/proximity_zone_simple.asm	modules/68k/game/collision/proximity_zone_simple.asm	proximity_zone_simple	proximity_zone_simple	collision	Proximity Zone Simple (Single Entity Pair)
+modules/68k/game/race_mode_flag_set.asm	modules/68k/game/race/race_mode_flag_set.asm	race_mode_flag_set	race_mode_flag_set	race	Race Mode Flag Set
+modules/68k/game/reset_timer_advance_state.asm	modules/68k/game/state/reset_timer_advance_state.asm	reset_timer_advance_state	reset_timer_advance_state	state	Reset Timer and Advance State
+modules/68k/game/set_state_0x34.asm	modules/68k/game/state/set_state_0x34.asm	set_state_0x34	set_state_0x34	state	Set Game State $34
+modules/68k/game/set_timer_val.asm	modules/68k/game/state/set_timer_val.asm	set_timer_val	set_timer_val	state	Set Timer Value (20)
+modules/68k/game/sound_advance_check.asm	modules/68k/game/race/sound_advance_check.asm	sound_advance_check	sound_advance_check	race	Sound Queue and Advance (SH2 Gate)
+modules/68k/game/sound_sprite_advance.asm	modules/68k/game/race/sound_sprite_advance.asm	sound_sprite_advance	sound_sprite_advance	race	Sound Queue, Sprite Adjust, Advance
+modules/68k/game/speed_calculation.asm	modules/68k/game/physics/speed_calculation.asm	speed_calculation	speed_calculation	physics	Speed Calculation (Table-Based)
+modules/68k/game/speed_degrade_calc.asm	modules/68k/game/physics/speed_degrade_calc.asm	speed_degrade_calc	speed_degrade_calc	physics	Speed Degrade Calculation
+modules/68k/game/speed_interpolation.asm	modules/68k/game/physics/speed_interpolation.asm	speed_interpolation	speed_interpolation	physics	Speed Interpolation (Table-Based with Clamping)
+modules/68k/game/speed_modifier.asm	modules/68k/game/physics/speed_modifier.asm	speed_modifier	speed_modifier	physics	Speed Modifier (Conditional Scaling)
+modules/68k/game/speed_scale_calc.asm	modules/68k/game/physics/speed_scale_calc.asm	speed_scale_calc	speed_scale_calc	physics	Speed Scale Calculation
+modules/68k/game/speed_scale_conditional.asm	modules/68k/game/physics/speed_scale_conditional.asm	speed_scale_conditional	speed_scale_conditional	physics	Speed Scale Conditional
+modules/68k/game/speed_scale_simple.asm	modules/68k/game/physics/speed_scale_simple.asm	speed_scale_simple	speed_scale_simple	physics	Speed Scale Simple
+modules/68k/game/sprite_clear_alt.asm	modules/68k/game/render/sprite_clear_alt.asm	sprite_clear_alt	sprite_clear_alt	render	Sprite Clear (Alternate Path)
+modules/68k/game/sprite_position_check.asm	modules/68k/game/render/sprite_position_check.asm	sprite_position_check	sprite_position_check	render	Sprite Position Check (Player Compare)
+modules/68k/game/state_reset_multi.asm	modules/68k/game/state/state_reset_multi.asm	state_reset_multi	state_reset_multi	state	Comprehensive State Reset
+modules/68k/game/tilt_adjust.asm	modules/68k/game/physics/tilt_adjust.asm	tilt_adjust	tilt_adjust	physics	Tilt Adjust (Entity Banking)
+modules/68k/game/timer_complete_flags.asm	modules/68k/game/state/timer_complete_flags.asm	timer_complete_flags	timer_complete_flags	state	Timer Complete with Conditional Flags
+modules/68k/game/timer_decrement_multi.asm	modules/68k/game/state/timer_decrement_multi.asm	timer_decrement_multi	timer_decrement_multi	state	Timer Decrement Multi (8 Entity Timers)
+modules/68k/game/timer_flag_set.asm	modules/68k/game/state/timer_flag_set.asm	timer_flag_set	timer_flag_set	state	Timer Wait and Set Transition Flags
+modules/68k/game/timer_threshold_init.asm	modules/68k/game/state/timer_threshold_init.asm	timer_threshold_init	timer_threshold_init	state	Timer Threshold Init (Sprite Setup)
+modules/68k/game/timer_wait_clear.asm	modules/68k/game/state/timer_wait_clear.asm	timer_wait_clear	timer_wait_clear	state	Timer Wait and Clear Sprite
+modules/68k/game/zone_check_inner.asm	modules/68k/game/collision/zone_check_inner.asm	zone_check_data	zone_check_data	collision	Zone Check Inner — Angle-Based Visibility

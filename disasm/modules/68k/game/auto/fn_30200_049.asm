@@ -1,16 +1,13 @@
 ; ============================================================================
-; Fm 049 (auto-analyzed)
+; Set Instrument Number — read instrument index from sequence
 ; ROM Range: $0312A6-$0312AC (6 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Small leaf function
-;   Object (A6): +$0A (param_a)
+; Reads one byte from sequence pointer (A4), stores to sound driver
+; instrument number at A6+$0A. Used to switch instrument mid-sequence.
 ;
-; Entry: A6 = object/entity pointer
-; Uses: A4, A6
-; Object fields:
-;   +$0A: param_a
-; Confidence: low
+; Entry: A4 = sequence pointer, A6 = sound driver state pointer
+; Uses: A4
+; Confidence: high
 ; ============================================================================
 
 fn_30200_049:

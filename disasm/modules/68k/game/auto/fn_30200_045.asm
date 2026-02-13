@@ -1,21 +1,17 @@
 ; ============================================================================
-; Fm 045 (auto-analyzed)
+; TL Reset + Panning Envelope Setup — reset volumes or init envelope
 ; ROM Range: $0311E8-$03120C (36 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Short helper function
-;   Object (A5): +$20, +$21, +$22, +$23, +$24, +$28
+; Two entry points:
+;   $0311E8: Calls TL reset ($030B1C) to silence all operators, then
+;     branches to $031418 for further processing.
+;   $0311F0: Sets panning state index (A5+$28) from sequence byte. If
+;     zero, returns. Otherwise reads 4 envelope parameters from sequence:
+;     instrument ($20), position ($21), length ($22), repeat ($23=$24).
 ;
-; Entry: A5 = object/entity pointer
-; Uses: A4, A5
-; Object fields:
-;   +$20: [unknown]
-;   +$21: [unknown]
-;   +$22: [unknown]
-;   +$23: [unknown]
-;   +$24: [unknown]
-;   +$28: [unknown]
-; Confidence: low
+; Entry: A5 = channel structure pointer, A4 = sequence pointer
+; Uses: A4
+; Confidence: medium
 ; ============================================================================
 
 fn_30200_045:

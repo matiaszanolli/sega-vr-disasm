@@ -1,26 +1,22 @@
 ; ============================================================================
-; Fm Dispatch 051 (auto-analyzed)
+; FM TL Scaling Table + Volume Register Writer — update TL with volume
 ; ROM Range: $031352-$0313CA (120 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: State dispatcher using jump table
-;   Calls: z80_bus_request, fm_write_conditional
-;   Object (A5, A6): +$09, +$0B, +$0E (param_e), +$20, +$25, +$30 (x_position)
+; Data prefix: 8-byte key scaling table at $031352 (operator TL scaling
+; bits for 8 algorithm types). Code at $03135A: Updates FM Total Level
+; registers with current volume. Checks key-off (bit 2). Resolves
+; instrument data pointer, advances past 21 header bytes to TL data.
+; Reads scaling table by algorithm (A5+$25), gets volume (A5+$09).
+; For each of 4 operators: reads base TL from instrument, adds channel
+; volume if carry bit set in scaling table, writes via fm_write_conditional.
+; Releases Z80 bus when done.
 ;
-; Entry: A5 = object/entity pointer
-; Entry: A6 = object/entity pointer
-; Uses: D0, D1, D3, D4, D5, A1, A2, A5
+; Entry: A5 = channel structure pointer
+; Entry: A6 = sound driver state pointer
+; Uses: D0, D1, D3, D4, D5, A1, A2
 ; Calls:
 ;   $030CCC: fm_write_conditional
 ;   $030D1C: z80_bus_request
-; Object fields:
-;   +$09: [unknown]
-;   +$0B: [unknown]
-;   +$0E: param_e
-;   +$20: [unknown]
-;   +$25: [unknown]
-;   +$30: x_position
-;   +$34: y_position
 ; Confidence: high
 ; ============================================================================
 
@@ -62,7 +58,7 @@ fn_30200_051:
         MOVE.B  (A1)+,D1                        ; $0313AE
         LSR.B  #1,D4                            ; $0313B0
         BCC.S  .loc_006A                        ; $0313B2
-        DC.W    $D203                           ; $0313B4
+        ADD.B   D3,D1                           ; $0313B4
         BCS.S  .loc_006A                        ; $0313B6
         DC.W    $4EBA,$F912         ; JSR     $030CCC(PC); $0313B8
 .loc_006A:

@@ -1,18 +1,16 @@
 ; ============================================================================
-; Fm 046 (auto-analyzed)
+; Write Panning + PSG Volume Adjust — two sequence command handlers
 ; ROM Range: $03120C-$031228 (28 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Short helper function
-;   Object (A5): +$01, +$09, +$27
+; Two entry points:
+;   $03120C: Writes current panning value (A5+$27) to register $B4 via
+;     fm_conditional_write ($030CA2).
+;   $031218: Reads byte from sequence. If PSG (negative A5+$01): adds
+;     value to volume (A5+$09), skips next byte. If FM: returns.
 ;
-; Entry: A5 = object/entity pointer
-; Uses: D0, D1, A4, A5
-; Object fields:
-;   +$01: [unknown]
-;   +$09: [unknown]
-;   +$27: [unknown]
-; Confidence: low
+; Entry: A5 = channel structure pointer, A4 = sequence pointer
+; Uses: D0, D1, A4
+; Confidence: medium
 ; ============================================================================
 
 fn_30200_046:

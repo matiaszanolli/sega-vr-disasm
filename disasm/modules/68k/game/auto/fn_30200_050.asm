@@ -1,27 +1,23 @@
 ; ============================================================================
-; Fm Dispatch 050 (auto-analyzed)
+; FM Instrument Register Write — full operator + TL register setup
 ; ROM Range: $0312B4-$031352 (158 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: State dispatcher using jump table
-;   Calls: z80_bus_request, fm_write_conditional
-;   Object (A5, A6): +$09, +$0B, +$0E (param_e), +$20, +$25, +$27
+; Multiple entry points:
+;   $0312B4: Write register pair (D0,D1 from seq) via fm_conditional_write.
+;   $0312BC: Write register pair via fm_write_wrapper.
+;   $0312C4: Full instrument setup. Reads instrument index, resolves data
+;     pointer from A6+$30/A5+$20/A6+$34. Writes slot register $B0
+;     (feedback/algo), then 20 operator registers from table at $0313CA.
+;     Writes 4 TL registers with volume scaling: uses key scaling table
+;     at $031352, adds channel volume (A5+$09) to operators where carry
+;     bit is set. Finally writes panning register $B4.
 ;
-; Entry: A5 = object/entity pointer
-; Entry: A6 = object/entity pointer
+; Entry: A5 = channel structure pointer, A4 = sequence pointer
+; Entry: A6 = sound driver state pointer
 ; Uses: D0, D1, D3, D4, D5, A1, A2, A4
 ; Calls:
 ;   $030CCC: fm_write_conditional
 ;   $030D1C: z80_bus_request
-; Object fields:
-;   +$09: [unknown]
-;   +$0B: [unknown]
-;   +$0E: param_e
-;   +$20: [unknown]
-;   +$25: [unknown]
-;   +$27: [unknown]
-;   +$30: x_position
-;   +$34: y_position
 ; Confidence: high
 ; ============================================================================
 
@@ -73,7 +69,7 @@ fn_30200_050:
         MOVE.B  (A1)+,D1                        ; $03132C
         LSR.B  #1,D4                            ; $03132E
         BCC.S  .loc_0080                        ; $031330
-        DC.W    $D203                           ; $031332
+        ADD.B   D3,D1                           ; $031332
 .loc_0080:
         DC.W    $4EBA,$F996         ; JSR     $030CCC(PC); $031334
         DBRA    D5,.loc_0076                    ; $031338

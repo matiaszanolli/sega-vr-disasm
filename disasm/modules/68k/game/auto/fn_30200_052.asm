@@ -1,21 +1,18 @@
 ; ============================================================================
-; Fm 052 (auto-analyzed)
+; FM Register Table + Vibrato Setup — operator registers and vibrato init
 ; ROM Range: $0313CA-$031406 (60 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Object (A5): +$0A (param_a), +$14 (effect_duration), +$18, +$19, +$1A (direction), +$1B
+; Data prefix ($0313CA-$0313E1): FM operator register number table (20
+; register bytes for DT/MUL, TL, RS/AR, DR, SR, SL/RR used by
+; fn_30200_050's instrument write loop, plus 8 TL register bytes).
+; Code at $0313E2: Vibrato setup sequence command. Sets high bit of
+; A5+$0A (marks vibrato active), saves sequence pointer to A5+$14.
+; Reads 4 vibrato parameters from sequence: initial frequency ($18),
+; speed ($19), direction ($1A), depth ($1B, halved). Clears position ($1C).
 ;
-; Entry: A5 = object/entity pointer
-; Uses: D0, D2, A0, A4, A5
-; Object fields:
-;   +$0A: param_a
-;   +$14: effect_duration
-;   +$18: [unknown]
-;   +$19: [unknown]
-;   +$1A: direction
-;   +$1B: [unknown]
-;   +$1C: [unknown]
-; Confidence: low
+; Entry: A5 = channel structure pointer, A4 = sequence pointer
+; Uses: D0, A4
+; Confidence: medium
 ; ============================================================================
 
 fn_30200_052:

@@ -1,23 +1,22 @@
 ; ============================================================================
-; Fm Conditional Write 048 (auto-analyzed)
+; FM Operator Register Write — load and write 4 operator values
 ; ROM Range: $03124A-$0312A6 (92 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Calls: fm_conditional_write, fm_write_wrapper
-;   Object (A5, A6): +$01, +$02 (flags/type), +$20, +$27, +$30 (x_position)
+; Loads instrument data from A6+$30 pointer (or A5+$20 if set). Reads
+; control byte from sequence: bit 7 of each nibble selects which operators
+; to write. Iterates 4 operators using register table at $031298, writes
+; values via fm_conditional_write. Then reads feedback/algorithm byte and
+; writes register $22 via fm_write_wrapper. Finally reads panning byte,
+; merges with existing (A5+$27 AND $C0), writes register $B4.
+; Data suffix at $031298: 4 FM register bytes, then 2 data bytes at
+; $03129C (used as entry for fn_30200_049's set-tempo-and-multiplier).
 ;
-; Entry: A5 = object/entity pointer
-; Entry: A6 = object/entity pointer
+; Entry: A5 = channel structure pointer, A4 = sequence pointer
+; Entry: A6 = sound driver state pointer
 ; Uses: D0, D1, D3, D6, A0, A1, A2, A4
 ; Calls:
 ;   $030CA2: fm_conditional_write
 ;   $030CBA: fm_write_wrapper
-; Object fields:
-;   +$01: [unknown]
-;   +$02: flags/type
-;   +$20: [unknown]
-;   +$27: [unknown]
-;   +$30: x_position
 ; Confidence: high
 ; ============================================================================
 
@@ -46,7 +45,7 @@ fn_30200_048:
         MOVE.B  (A4)+,D1                        ; $031280
         MOVE.B  $0027(A5),D0                    ; $031282
         ANDI.B  #$C0,D0                         ; $031286
-        DC.W    $8200                           ; $03128A
+        OR.B    D0,D1                           ; $03128A
         MOVE.B  D1,$0027(A5)                    ; $03128C
         MOVE.B  #$B4,D0                         ; $031290
         DC.W    $6000,$FA0C         ; BRA.W  $030CA2; $031294

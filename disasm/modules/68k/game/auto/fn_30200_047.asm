@@ -1,18 +1,17 @@
 ; ============================================================================
-; Fm 047 (auto-analyzed)
+; Volume Adjust + Write — add delta and route to channel writer
 ; ROM Range: $031228-$031240 (24 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Short helper function
-;   Object (A5, A6): +$08, +$09
+; Two entry points:
+;   $031228: Reads volume delta from sequence (A4), adds to A5+$09.
+;     If DAC channel (A6+$08 negative): calls z80_dac_write ($030DF4).
+;     Otherwise calls FM register writer ($03135A).
+;   $03123A: Sets sustain flag (bit 4 on A5) and returns.
 ;
-; Entry: A5 = object/entity pointer
-; Entry: A6 = object/entity pointer
-; Uses: D0, A4, A5, A6
-; Object fields:
-;   +$08: [unknown]
-;   +$09: [unknown]
-; Confidence: low
+; Entry: A5 = channel structure pointer, A4 = sequence pointer
+; Entry: A6 = sound driver state pointer
+; Uses: D0, A4
+; Confidence: medium
 ; ============================================================================
 
 fn_30200_047:

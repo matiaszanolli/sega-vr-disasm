@@ -1,16 +1,13 @@
 ; ============================================================================
-; Fm 044 (auto-analyzed)
+; Set Channel Multiplier — read multiplier from sequence
 ; ROM Range: $0311E2-$0311E8 (6 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Small leaf function
-;   Object (A6): +$03
+; Reads one byte from sequence pointer (A4), stores to sound driver
+; channel multiplier at A6+$03. Used for pitch scaling in sequence data.
 ;
-; Entry: A6 = object/entity pointer
-; Uses: A4, A6
-; Object fields:
-;   +$03: [unknown]
-; Confidence: low
+; Entry: A4 = sequence pointer, A6 = sound driver state pointer
+; Uses: A4
+; Confidence: high
 ; ============================================================================
 
 fn_30200_044:

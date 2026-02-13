@@ -1808,90 +1808,23 @@
 ; Purpose: Copy 12 longwords (48 bytes) from R13 source to fixed dst 0xC0000740
 ; ═══════════════════════════════════════════════════════════════════════════
         include "sh2/generated/func_000.inc"
-        dc.w    $4F22        ; $023024
-        dc.w    $B0A7        ; $023026
-        dc.w    $7D02        ; $023028
-        dc.w    $A003        ; $02302A
-        dc.w    $0009        ; $02302C
-        dc.w    $4F22        ; $02302E
-        dc.w    $B05A        ; $023030
-        dc.w    $7D02        ; $023032
-        dc.w    $5AEB        ; $023034
-        dc.w    $5BE9        ; $023036
-        dc.w    $69D5        ; $023038
-        dc.w    $6098        ; $02303A
-        dc.w    $C90E        ; $02303C
-        dc.w    $880C        ; $02303E
-        dc.w    $890F        ; $023040
-        dc.w    $6103        ; $023042
-        dc.w    $C708        ; $023044
-        dc.w    $011D        ; $023046
-        dc.w    $0103        ; $023048
-        dc.w    $0009        ; $02304A
-        dc.w    $6093        ; $02304C
-        dc.w    $C801        ; $02304E
-        dc.w    $8B03        ; $023050
-        dc.w    $B0C9        ; $023052
-        dc.w    $85E1        ; $023054
-        dc.w    $AFF0        ; $023056
-        dc.w    $69D5        ; $023058
-        dc.w    $B0D4        ; $02305A
-        dc.w    $85E1        ; $02305C
-        dc.w    $AFEC        ; $02305E
-        dc.w    $69D5        ; $023060
-        dc.w    $4F26        ; $023062
-        dc.w    $000B        ; $023064
-        dc.w    $1EB9        ; $023066
-        dc.w    $0024        ; $023068
-        dc.w    $003C        ; $02306A
-        dc.w    $0048        ; $02306C
-        dc.w    $005A        ; $02306E
-        dc.w    $4F22        ; $023070
-        dc.w    $5CE8        ; $023072
-        dc.w    $60D5        ; $023074
-        dc.w    $81E1        ; $023076
-        dc.w    $66D5        ; $023078
-        dc.w    $B02B        ; $02307A
-        dc.w    $E700        ; $02307C
-        dc.w    $66D5        ; $02307E
-        dc.w    $B028        ; $023080
-        dc.w    $E710        ; $023082
-        dc.w    $A019        ; $023084
-        dc.w    $66D5        ; $023086
-        dc.w    $4F22        ; $023088
-        dc.w    $E630        ; $02308A
-        dc.w    $B027        ; $02308C
-        dc.w    $E710        ; $02308E
-        dc.w    $A00F        ; $023090
-        dc.w    $4F26        ; $023092
-        dc.w    $4F22        ; $023094
-        dc.w    $E630        ; $023096
-        dc.w    $B021        ; $023098
-        dc.w    $E700        ; $02309A
-        dc.w    $E620        ; $02309C
-        dc.w    $B01E        ; $02309E
-        dc.w    $E710        ; $0230A0
-        dc.w    $A006        ; $0230A2
-        dc.w    $4F26        ; $0230A4
-        dc.w    $4F22        ; $0230A6
-        dc.w    $E620        ; $0230A8
-        dc.w    $B018        ; $0230AA
-        dc.w    $E700        ; $0230AC
-        dc.w    $A000        ; $0230AE
-        dc.w    $4F26        ; $0230B0
-        dc.w    $4F22        ; $0230B2
-        dc.w    $60D5        ; $0230B4
-        dc.w    $81E1        ; $0230B6
-        dc.w    $66D5        ; $0230B8
-        dc.w    $B00B        ; $0230BA
-        dc.w    $E720        ; $0230BC
-        dc.w    $C801        ; $0230BE
-        dc.w    $E730        ; $0230C0
-        dc.w    $8B04        ; $0230C2
-        dc.w    $B006        ; $0230C4
-        dc.w    $66D5        ; $0230C6
-; func_002 exit paths + func_003 + func_004 (32 bytes: $0230C8-$0230E7)
-; Offset-based data copy utilities
+; ═══════════════════════════════════════════════════════════════════════════
+; func_001: Main Coordinator / Switch Dispatcher (76 bytes, $023024-$02306F)
+; Source: disasm/sh2/3d_engine/func_001_main_coordinator_short.asm
+; Purpose: Central dispatch for 3D engine, dual entry points, jump table
+; ═══════════════════════════════════════════════════════════════════════════
+        include "sh2/generated/func_001.inc"
+; ═══════════════════════════════════════════════════════════════════════════
+; func_002: Switch Case Handlers Block (88 bytes, $023070-$0230C7)
+; Source: disasm/sh2/3d_engine/func_002_case_handlers_short.asm
+; Purpose: Case handlers for func_001 jump table (cases 0/2/4/6)
+; ═══════════════════════════════════════════════════════════════════════════
+        include "sh2/generated/func_002.inc"
+; ═══════════════════════════════════════════════════════════════════════════
+; func_002 exit paths + func_003 + func_004 (32 bytes, $0230C8-$0230E7)
+; Source: disasm/sh2/3d_engine/func_003_004_offset_copy_short.asm
+; Purpose: Offset-based data copy utilities
+; ═══════════════════════════════════════════════════════════════════════════
         include "sh2/generated/func_003_004.inc"
 ; ═══════════════════════════════════════════════════════════════════════════
 ; func_005: Matrix Transform Loop (56 bytes, $0230E8-$02311F)

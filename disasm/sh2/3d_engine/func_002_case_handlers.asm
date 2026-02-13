@@ -1,7 +1,15 @@
+/* DOCUMENTATION ONLY — not used by build system.
+ * Build source: func_002_case_handlers_short.asm
+ *
+ * WARNING: This file has documentation errors — case_2 handler has a phantom
+ * EXTU.W R13,R6 ($66D5) at $023088 that doesn't exist in ROM. All addresses
+ * after that point are shifted by 2 bytes. The _short.asm file has correct
+ * values verified against the ROM section file.
+ */
 /*
  * func_002: Switch Case Handlers Block
- * ROM File Offset: 0x23070 - 0x230CA (90 bytes code)
- * SH2 Address: 0x02223070 - 0x022230CA
+ * ROM File Offset: 0x23070 - 0x230C7 (88 bytes)
+ * SH2 Address: 0x02223070 - 0x022230C7
  *
  * Purpose: Collection of case handlers called from func_001's jump table.
  *          Processes different rendering states with various R7 parameter

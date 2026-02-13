@@ -42,22 +42,18 @@ The project disassembler (`tools/m68k_disasm.py`) has these confirmed issues:
 
 ### Assembler Padding Causes Size Mismatches
 `sh-elf-as` adds implicit alignment padding not present in the original ROM.
-- **func_001:** 76 bytes assembled (expected 75) — +1 byte
-- **func_002:** 96 bytes assembled (expected 87) — +9 bytes
-- Even 1-byte mismatch causes section overlap errors in the fixed ROM layout:
-  ```
-  sections <org0019:22200>:22200-2420e and <org0020:24206>:24206-26200 must not overlap
-  ```
+- Even 1-byte mismatch causes section overlap errors in the fixed ROM layout
+- **Workaround:** Use `.short` raw hex opcodes instead of mnemonics (bypasses padding entirely)
+- func_001 and func_002 were blocked by this but now integrated using `_short.asm` format
 
 ### When to Keep SH2 as dc.w
-- Complex coordinators with jump tables (func_001, func_002)
 - Functions with external BSR calls requiring symbol resolution
 - Any function where byte-perfect size matching is required
 - **Safe to translate:** Self-contained leaf functions, small (26-32 bytes), no PC-relative data
+- **For larger functions:** Use `.short` hex format with annotated comments
 
-### 17 SH2 Functions Not Yet Integrated
-Source `.asm` files exist in `disasm/sh2/src/` but no `.inc` files generated:
-- func_001, func_002 (coordinators — blocked by padding)
+### 15 SH2 Functions Not Yet Integrated
+Source `.asm` files exist but no `.inc` files generated:
 - func_009, func_010 (display list functions)
 - func_060-063, func_067-068, func_074 (raster/utility)
 

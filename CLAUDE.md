@@ -49,7 +49,7 @@ disasm/vrd.asm (entry point)
 ### Key Stats
 
 - **693 68K functions** modularized (571 translated to mnemonics, 122 still dc.w)
-- **75 SH2 functions** integrated (17 blocked by assembler padding — see [KNOWN_ISSUES.md](KNOWN_ISSUES.md))
+- **77 SH2 functions** integrated (15 blocked by assembler padding — see [KNOWN_ISSUES.md](KNOWN_ISSUES.md))
 - **68K is THE bottleneck** — 100% utilization, ~60% wasted polling COMM registers
 - **Master SH2**: 0-36% util. **Slave SH2**: 78% util. **Baseline FPS**: ~20-24
 

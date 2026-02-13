@@ -1,7 +1,10 @@
+/* DOCUMENTATION ONLY — not used by build system.
+ * Build source: func_001_main_coordinator_short.asm
+ */
 /*
  * func_001: Main Coordinator / Switch Dispatcher
- * ROM File Offset: 0x23024 - 0x2306E (74 bytes including jump table)
- * SH2 Address: 0x02223024 - 0x0222306E
+ * ROM File Offset: 0x23024 - 0x2306F (76 bytes including jump table)
+ * SH2 Address: 0x02223024 - 0x0222306F
  *
  * Purpose: Central dispatch function for 3D engine operations.
  *          Uses a jump table to route processing based on state flags.

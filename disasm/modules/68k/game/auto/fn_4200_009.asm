@@ -1,33 +1,16 @@
 ; ============================================================================
-; Logic Pre Dispatch Common 009 (auto-analyzed)
+; fn_4200_009 — Race Scene Initialization (1-Player)
 ; ROM Range: $004A32-$004C8A (600 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Orchestrator calling 19 subroutines
-;   Accesses 32X registers: adapter_ctrl, COMM1, COMM0
-;   RAM: $C8A0 (race_state), $C8CC (race_substate), $C8AA (scene_state), $C89C (sh2_comm_state)
-;   Calls: SetDisplayParams, scene_transition, game_state_handler, race_state_read
-;   Object (A0, A1): +$00
+; Initializes a 1-player race scene. Disables interrupts, configures MARS
+; adapter control and VDP mode, loads track/car data, sets up rendering
+; pipelines, object tables, and SH2 communication. Waits for SH2 handshake
+; via COMM1 bit 0, then sets main loop entry at $004CBC.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
+; Entry: Called as scene init orchestrator
 ; Uses: D0, D1, A0, A1, A2, A5
-; RAM:
-;   $C87E: game_state
-;   $C89C: sh2_comm_state
-;   $C8A0: race_state
-;   $C8AA: scene_state
-;   $C8C8: vint_state
-;   $C8CC: race_substate
-; Calls:
-;   $002080: pre_dispatch_common
-;   $0020C6: sound_flag_handler
-;   $004998: WaitForVBlank
-;   $0049AA: SetDisplayParams
-;   $0058C8: sprite_input_check
-;   $005908: sprite_update_check
-; Object fields:
-;   +$00: [unknown]
+; MARS: adapter_ctrl, COMM0, COMM1, VDP_MODE, SYS_INTCTL
+; RAM: $C87E game_state, $C89C sh2_comm_state, $C8A0 race_state,
+;      $C8AA scene_state, $C8C8 vint_state, $C8CC race_substate
 ; Confidence: high
 ; ============================================================================
 

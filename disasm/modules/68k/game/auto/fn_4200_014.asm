@@ -1,32 +1,16 @@
 ; ============================================================================
-; Logic Sound Flag Handler 014 (auto-analyzed)
+; fn_4200_014 — Race Scene Initialization (2-Player)
 ; ROM Range: $004D98-$005020 (648 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Orchestrator calling 21 subroutines
-;   Accesses 32X registers: adapter_ctrl, COMM1, COMM0
-;   RAM: $C8A0 (race_state), $C8CC (race_substate), $C8AA (scene_state), $9F00 (obj_table_3)
-;   Calls: SetDisplayParams, scene_transition, game_state_handler, race_state_read
-;   Object (A0, A1): +$00
+; Initializes a 2-player split-screen race scene. Similar to 1-player init
+; but sets COMM1_HI=$04 (2-player mode flag), sets bit 4 of race options,
+; clears bit 7 of flags(-600), and copies 32x32-byte blocks between object
+; tables for the second player viewport. Sets main loop entry at $005024.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
-; Uses: D0, D1, D2, D3, D4, D5, D6, D7
-; RAM:
-;   $9F00: obj_table_3
-;   $C87E: game_state
-;   $C8A0: race_state
-;   $C8AA: scene_state
-;   $C8C8: vint_state
-;   $C8CC: race_substate
-; Calls:
-;   $0020C6: sound_flag_handler
-;   $0049AA: SetDisplayParams
-;   $00A144: game_state_handler
-;   $00A1FC: race_state_read
-;   $00C870: scene_transition
-; Object fields:
-;   +$00: [unknown]
+; Entry: Called as scene init orchestrator
+; Uses: D0-D7, A0, A1, A2, A5
+; MARS: adapter_ctrl, COMM0, COMM1, VDP_MODE, SYS_INTCTL
+; RAM: $9F00 obj_table_3, $C87E game_state, $C8A0 race_state,
+;      $C8AA scene_state, $C8C8 vint_state, $C8CC race_substate
 ; Confidence: high
 ; ============================================================================
 

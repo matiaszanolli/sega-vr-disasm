@@ -1,31 +1,15 @@
 ; ============================================================================
-; Logic Sound Flag Handler 018 (auto-analyzed)
+; fn_4200_018 — Race Scene Initialization (Grand Prix)
 ; ROM Range: $005100-$005308 (520 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Orchestrator calling 21 subroutines
-;   Accesses 32X registers: adapter_ctrl, COMM1, COMM0
-;   RAM: $C8A0 (race_state), $C8CC (race_substate), $C8AA (scene_state), $C87E (game_state)
-;   Calls: SetDisplayParams, scene_transition, game_state_handler, race_state_read
-;   Object (A0, A1): +$00
+; Initializes a Grand Prix race scene. Sets bit 5 ($20) of race options for
+; GP mode, uses track index from (-345), configures extended object tables,
+; and additional subsystem initialization. Sets main loop entry at $005308.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
+; Entry: Called as scene init orchestrator
 ; Uses: D0, D1, A0, A1, A2, A5
-; RAM:
-;   $C87E: game_state
-;   $C8A0: race_state
-;   $C8AA: scene_state
-;   $C8C8: vint_state
-;   $C8CC: race_substate
-; Calls:
-;   $0020C6: sound_flag_handler
-;   $0049AA: SetDisplayParams
-;   $00A144: game_state_handler
-;   $00A1FC: race_state_read
-;   $00C870: scene_transition
-; Object fields:
-;   +$00: [unknown]
+; MARS: adapter_ctrl, COMM0, COMM1, VDP_MODE, SYS_INTCTL
+; RAM: $C87E game_state, $C8A0 race_state, $C8AA scene_state,
+;      $C8C8 vint_state, $C8CC race_substate
 ; Confidence: high
 ; ============================================================================
 

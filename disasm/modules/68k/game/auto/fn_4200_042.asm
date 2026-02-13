@@ -1,31 +1,16 @@
 ; ============================================================================
-; Logic Dispatch 042 (auto-analyzed)
+; fn_4200_042 — Player Entity Frame Update
 ; ROM Range: $005D08-$005DC8 (192 bytes)
-; ============================================================================
-; Category: game
-; Purpose: State dispatcher using jump table
-;   RAM: $C8A0 (race_state), $C8AA (scene_state), $C8AC (state_dispatch_idx), $C89C (sh2_comm_state)
-;   Calls: load_object_params, timer_countdown, game_update, obj_velocity_y
-;   Object (A0): +$44 (display_offset), +$46 (display_scale), +$4A
+; Per-frame player entity update. Sets player-active flag, clears display
+; offsets, runs steering/physics/rendering pipeline (20 subroutines), then
+; dispatches to mode-specific handler via jump table indexed by race state.
+; Transitions to race start when frame counter reaches $0014.
 ;
-; Entry: A0 = object/entity pointer
+; Entry: A0 = player entity pointer
 ; Uses: D0, A0, A1
-; RAM:
-;   $C89C: sh2_comm_state
-;   $C8A0: race_state
-;   $C8AA: scene_state
-;   $C8AC: state_dispatch_idx
-; Calls:
-;   $002984: palette_update
-;   $0031A6: display_mode_dispatch
-;   $0036DE: clear_buffer
-;   $0037B6: memory_copy
-;   $003F86: clear_display_vars
-;   $006F98: calc_steering
-; Object fields:
-;   +$44: display_offset
-;   +$46: display_scale
-;   +$4A: [unknown]
+; RAM: $C89C sh2_comm_state, $C8A0 race_state, $C8AA scene_state,
+;      $C8AC state_dispatch_idx
+; Object fields: +$44 display_offset, +$46 display_scale, +$4A display_aux
 ; Confidence: high
 ; ============================================================================
 

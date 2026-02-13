@@ -1,30 +1,17 @@
 ; ============================================================================
-; Obj Palette Update 041 (auto-analyzed)
+; fn_4200_041 — Entity Render Pipeline
 ; ROM Range: $005AB6-$005D08 (594 bytes)
-; ============================================================================
-; Category: object
-; Purpose: Orchestrator calling 46 subroutines
-;   RAM: $C89C (sh2_comm_state)
-;   Calls: sprite_buffer_alt, effect_timer_mgmt, object_frame_timer, load_object_params
-;   Object (A0): +$06 (speed), +$44 (display_offset), +$46 (display_scale), +$4A, +$74
+; Multi-variant entity render pipeline with 4 entry points. Each variant
+; clears display offsets (+$44/+$46/+$4A), then calls 20-46 subroutines
+; covering physics, movement, rendering, palette, display mode, memory
+; copy, and buffer clear. Variant A (full, 46 calls), Variant B (reduced),
+; Variant C (extended with speed=0 init), Variant D (minimal display).
 ;
-; Entry: A0 = object/entity pointer
+; Entry: A0 = entity base pointer
 ; Uses: D0, A0
-; RAM:
-;   $C89C: sh2_comm_state
-; Calls:
-;   $002984: palette_update
-;   $0031A6: display_mode_dispatch
-;   $0036DE: clear_buffer
-;   $0037B6: memory_copy
-;   $003CC4: player_table_load
-;   $003F86: clear_display_vars
-; Object fields:
-;   +$06: speed
-;   +$44: display_offset
-;   +$46: display_scale
-;   +$4A: [unknown]
-;   +$74: [unknown]
+; RAM: $C89C sh2_comm_state
+; Object fields: +$06 speed, +$44 display_offset, +$46 display_scale,
+;   +$4A display_aux, +$74 render_state
 ; Confidence: high
 ; ============================================================================
 

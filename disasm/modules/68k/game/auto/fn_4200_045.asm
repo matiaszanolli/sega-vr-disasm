@@ -1,30 +1,17 @@
 ; ============================================================================
-; Obj Reg Write 045 (auto-analyzed)
+; fn_4200_045 — Entity Render Pipeline with VDP DMA
 ; ROM Range: $005EEA-$00617A (656 bytes)
-; ============================================================================
-; Category: object
-; Purpose: Orchestrator calling 44 subroutines
-;   RAM: $C89C (sh2_comm_state)
-;   Calls: effect_timer_mgmt, object_frame_timer, load_object_params, timer_countdown
-;   Object (A0): +$06 (speed), +$44 (display_offset), +$46 (display_scale), +$4A, +$74
+; Extended entity render pipeline with VDP register writes and DMA transfers.
+; Contains 4 entry point variants. Each clears display offsets, runs
+; physics/movement/rendering subroutines, then performs VDP register writes
+; ($003126) and DMA setup ($003160) before buffer/memory operations.
+; Variant C includes countdown timer for state transitions.
 ;
-; Entry: A0 = object/entity pointer
+; Entry: A0 = entity base pointer
 ; Uses: D0, A0
-; RAM:
-;   $C89C: sh2_comm_state
-; Calls:
-;   $003126: vdp_reg_write
-;   $003160: vdp_dma_setup
-;   $0036DE: clear_buffer
-;   $0037B6: memory_copy
-;   $003CC4: player_table_load
-;   $003F86: clear_display_vars
-; Object fields:
-;   +$06: speed
-;   +$44: display_offset
-;   +$46: display_scale
-;   +$4A: [unknown]
-;   +$74: [unknown]
+; RAM: $C89C sh2_comm_state
+; Object fields: +$06 speed, +$44 display_offset, +$46 display_scale,
+;   +$4A display_aux, +$74 render_state
 ; Confidence: high
 ; ============================================================================
 

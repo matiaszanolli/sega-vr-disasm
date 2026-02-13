@@ -1,18 +1,17 @@
 ; ============================================================================
-; Fm 063 (auto-analyzed)
+; fn_30200_063 — Sequence Fade Rate Set
 ; ROM Range: $031666-$031680 (26 bytes)
-; ============================================================================
-; Category: sound
-; Purpose: Short helper function
-;   Object (A6): +$38, +$3A, +$3B
+; Sets fade rate parameters from sequence data. If channel is not already
+; in fade state $02, writes state $01 to A6+$38 and reads two bytes from
+; sequence pointer (A4)+ into A6+$3A (fade target) and A6+$3B (fade rate).
 ;
-; Entry: A6 = object/entity pointer
+; Entry: A4 = sequence data pointer, A6 = channel struct pointer
 ; Uses: A4, A6
-; Object fields:
-;   +$38: [unknown]
-;   +$3A: [unknown]
-;   +$3B: [unknown]
-; Confidence: low
+; Channel fields:
+;   +$38: fade state (0=idle, 1=fade active, 2=fade complete)
+;   +$3A: fade target level
+;   +$3B: fade rate
+; Confidence: high
 ; ============================================================================
 
 fn_30200_063:

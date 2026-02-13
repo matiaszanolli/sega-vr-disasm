@@ -1,38 +1,17 @@
 ; ============================================================================
-; Logic Dispatch 040 (auto-analyzed)
+; fn_4200_040 — Race Entity Update Loop
 ; ROM Range: $00593C-$005AB6 (378 bytes)
-; ============================================================================
-; Category: game
-; Purpose: State dispatcher using jump table
-;   RAM: $C89C (sh2_comm_state), $9F00 (obj_table_3)
-;   Calls: table_lookup, movement_calc, speed_calculation, collision_avoidance
-;   Object (A0, A1, A2, A4, A6): +$00, +$02 (flags/type), +$04 (speed_index/velocity), +$18, +$24, +$26
+; Per-frame update for race entities. Selects from two 8-entry jump tables
+; (normal vs special mode, selected by bit 3 of race options). Executes
+; movement calculation, speed, collision avoidance, heading update, and
+; lateral/longitudinal force computation using sine lookup tables.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
-; Entry: A2 = object/entity pointer
-; Entry: A4 = object/entity pointer
-; Entry: A6 = object/entity pointer
+; Entry: A0 = entity base pointer
 ; Uses: D0, D1, D7, A0, A1, A2, A4, A6
-; RAM:
-;   $9F00: obj_table_3
-;   $C89C: sh2_comm_state
-; Calls:
-;   $0059EC: table_lookup
-;   $007AB6: obj_heading_update
-;   $009B12: movement_calc
-;   $00A350: effect_timer_mgmt
-;   $00A3BA: speed_calculation
-;   $00A470: collision_avoidance
-; Object fields:
-;   +$00: [unknown]
-;   +$02: flags/type
-;   +$04: speed_index/velocity
-;   +$18: [unknown]
-;   +$24: [unknown]
-;   +$26: [unknown]
-;   +$2C: [unknown]
-;   +$32: [unknown]
+; RAM: $9F00 obj_table_3, $C89C sh2_comm_state
+; Object fields: +$02 flags, +$04 speed, +$18 position, +$24/+$26 heading,
+;   +$2C lap counter, +$32 angle, +$3A/+$3E lateral/longitudinal force,
+;   +$46 tilt, +$54 collision flags, +$6A lock, +$C6/+$C8 angles
 ; Confidence: high
 ; ============================================================================
 
@@ -134,7 +113,7 @@ fn_4200_040:
         LEA     $0093AC2C,A1                    ; $005A36
         MOVE.W  $00C8(A0),D0                    ; $005A3C
         SUB.W  $0032(A0),D0                     ; $005A40
-        DC.W    $D040                           ; $005A44
+        ADD.W   D0,D0                           ; $005A44
         BMI.S  .loc_0116                        ; $005A46
         ANDI.W  #$03FF,D0                       ; $005A48
         MOVE.W  $00(A1,D0.W),D0                 ; $005A4C
@@ -149,7 +128,7 @@ fn_4200_040:
         LEA     $0093A82C,A1                    ; $005A62
         MOVE.W  $0032(A0),D0                    ; $005A68
         SUB.W  $00C6(A0),D0                     ; $005A6C
-        DC.W    $D040                           ; $005A70
+        ADD.W   D0,D0                           ; $005A70
         BMI.S  .loc_0142                        ; $005A72
         ANDI.W  #$03FF,D0                       ; $005A74
         MOVE.W  $00(A1,D0.W),D0                 ; $005A78

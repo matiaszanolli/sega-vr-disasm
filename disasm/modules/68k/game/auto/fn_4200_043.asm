@@ -1,27 +1,15 @@
 ; ============================================================================
-; Obj Palette Update 043 (auto-analyzed)
+; fn_4200_043 — Entity Data Table + Render Pipeline Variant
 ; ROM Range: $005DC8-$005E38 (112 bytes)
-; ============================================================================
-; Category: object
-; Purpose: Orchestrator calling 17 subroutines
-;   Calls: sprite_buffer_alt, angle_to_sine, obj_velocity_x, math_routine
-;   Object (A0, A6): +$44 (display_offset), +$46 (display_scale), +$4A, +$88
+; ROM address lookup table (3 longword entries) followed by a render pipeline
+; variant. The pipeline clears display offsets (+$44/+$46/+$4A) and calls
+; 17 subroutines for angle computation, screen coordinate mapping, palette
+; update, display mode, buffer operations, and overlay rendering.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A6 = object/entity pointer
+; Entry: A0 = entity base pointer
 ; Uses: D0, A0, A2, A6
-; Calls:
-;   $002984: palette_update
-;   $0031A6: display_mode_dispatch
-;   $0036DE: clear_buffer
-;   $0037B6: memory_copy
-;   $0070AA: angle_to_sine
-;   $0071A6: obj_screen_coord
-; Object fields:
-;   +$44: display_offset
-;   +$46: display_scale
-;   +$4A: [unknown]
-;   +$88: [unknown]
+; Object fields: +$44 display_offset, +$46 display_scale, +$4A display_aux,
+;   +$88 animation data
 ; Confidence: high
 ; ============================================================================
 

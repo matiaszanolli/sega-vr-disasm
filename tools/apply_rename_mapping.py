@@ -180,10 +180,16 @@ def main():
     n_dirs = create_subdirectories(entries, dry_run)
     print(f"Directories to create: {n_dirs}")
 
-    # Step 2: Update ALL label references across ALL .asm files under disasm/
+    # Step 2: Update section file includes (must run BEFORE label rename
+    # since label rename would change label substrings inside include paths)
+    print(f"\n--- Step 2: Update section includes ---")
+    n_sections = update_section_includes(entries, dry_run)
+    print(f"Section files updated: {n_sections}")
+
+    # Step 3: Update ALL label references across ALL .asm files under disasm/
     # This handles: label definitions, self-references, cross-file references, comments
     # Must happen BEFORE moving files
-    print(f"\n--- Step 2: Update label references ---")
+    print(f"\n--- Step 3: Update label references ---")
     updated = 0
     # Scan ALL .asm files recursively under disasm/ (game subdirs, sections, sound, etc.)
     all_asm = sorted(DISASM_DIR.rglob("*.asm"))
@@ -194,12 +200,7 @@ def main():
             updated += 1
     print(f"Files with label updates: {updated}")
 
-    # Step 3: Update section file includes
-    print(f"\n--- Step 3: Update section includes ---")
-    n_sections = update_section_includes(entries, dry_run)
-    print(f"Section files updated: {n_sections}")
-
-    # Step 4: Move files
+    # Step 4: Move files (must happen AFTER label + include updates)
     print(f"\n--- Step 4: Move files (git mv) ---")
     n_moves, errors = move_files(entries, dry_run)
     print(f"Files to move: {n_moves}")

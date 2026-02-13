@@ -25,7 +25,7 @@
 ;   $006F98: calc_steering
 ;   $007CD8: obj_position_x
 ;   $0070AA: angle_to_sine
-;   $00714A: fn_6200_015
+;   $00714A: conditional_pos_add
 ;   $00764E: track_data_index_calc_table_lookup
 ;   $008032: race_position_check
 ;   $009B54: fn_8200_065

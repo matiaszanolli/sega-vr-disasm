@@ -50,7 +50,7 @@ SUBCATEGORY_RULES = [
      "volume adjust", "volume writer", "volume envelope",
      "set volume", "set position + silence",
      "conditional write", "write wrapper", "write port",
-     "init channel"], "sound"),
+     "init channel", "sound buffer", "fade rate"], "sound"),
 
     # AI
     (["ai ", "ai_", "opponent", "steering calc"], "ai"),
@@ -59,11 +59,12 @@ SUBCATEGORY_RULES = [
     (["camera "], "camera"),
 
     # Collision / proximity
-    (["collision", "proximity", "close position", "sine billboard"], "collision"),
+    (["collision", "proximity", "close position", "sine billboard",
+     "rotational offset"], "collision"),
 
     # HUD / digit / BCD
-    (["hud", "digit renderer", "digit tile", "bcd ",
-     "nibble splitter", "ascii character",
+    (["hud", "digit renderer", "digit tile", "digit extraction",
+     "bcd ", "nibble splitter", "ascii character",
      "tile blit", "tile dma", "display entry",
      "display element"], "hud"),
 
@@ -84,7 +85,9 @@ SUBCATEGORY_RULES = [
     # Physics
     (["speed", "acceleration", "braking", "tilt", "physics",
      "velocity", "heading", "drift", "momentum",
-     "friction", "wind resistance"], "physics"),
+     "friction", "wind resistance",
+     "sine/cosine", "quadrant lookup",
+     "conditional position"], "physics"),
 
     # Race
     (["race ", "race_", "lap ", "countdown",
@@ -108,7 +111,8 @@ SUBCATEGORY_RULES = [
      "game mode"], "scene"),
 
     # Entity / object
-    (["entity", "object table", "obj table", "spawn"], "entity"),
+    (["entity", "object table", "obj table", "spawn",
+     "object type return"], "entity"),
 
     # State / dispatch / timer / flags
     (["state dispatch", "dispatch", "counter",
@@ -116,7 +120,9 @@ SUBCATEGORY_RULES = [
      "conditional return", "conditional guard",
      "system boot", "system init",
      "register restore", "hardware init",
-     "warm boot"], "state"),
+     "warm boot", "status code", "object state",
+     "comparison router", "value comparison", "value equality",
+     "time array", "threshold state"], "state"),
 
     # Track
     (["track", "segment"], "track"),

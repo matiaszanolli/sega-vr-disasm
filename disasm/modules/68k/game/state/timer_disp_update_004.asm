@@ -17,7 +17,7 @@
 ;   $C8AA: scene_state (cleared)
 ; Calls:
 ;   $00839A: num_to_decimal
-;   Jump table at fn_8200_006
+;   Jump table at digit_extraction_via_division
 ; Object fields (A0):
 ;   +$02: flags
 ; Confidence: medium
@@ -36,7 +36,7 @@ timer_disp_update_004:
         move.b  D1,(A1)+                        ; $0082A0  buf[0] = D1, A1++
         dc.w    $4EBA,$00F6         ; JSR     $00839A(PC); $0082A2  num_to_decimal
         move.w  ($FFFFC04E).w,D0                ; $0082A6  D0 = timer_countdown
-        dc.w    $673A               ; BEQ.S   $0082E6    ; $0082AA  zero → exit (RTS in fn_8200_005)
+        dc.w    $673A               ; BEQ.S   $0082E6    ; $0082AA  zero → exit (RTS in write_status_code_to_ram)
         moveq   #$00,D7                         ; $0082AC  D7 = 0
         subq.w  #1,($FFFFC04E).w                ; $0082AE  timer_countdown--
         dc.w    $672C               ; BEQ.S   $0082E0    ; $0082B2  now zero → store D7 status

@@ -90,7 +90,7 @@
         include "modules/68k/game/sound/fm_reg_table_channel_pause.asm"
         include "modules/68k/game/sound/fm_channel_resume_panning.asm"
         include "modules/68k/sound/sound_set_all_channels.asm"
-        include "modules/68k/game/auto/fn_30200_063.asm"
+        include "modules/68k/game/sound/sequence_fade_rate_set.asm"
         include "modules/68k/sound/sound_master_flag.asm"
         dc.w    $F3F3        ; $031688
         dc.w    $0E00        ; $03168A

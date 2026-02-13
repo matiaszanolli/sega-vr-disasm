@@ -572,8 +572,8 @@ VDPRegManipulate:
 .store_value:
         move.w  d1,($FFFFA012).w                ; $00E5A6 - Store updated value
         rts                                     ; $00E5AA
-        include "modules/68k/game/auto/fn_e200_001.asm"
-        include "modules/68k/game/auto/fn_e200_002.asm"
+        include "modules/68k/game/render/default_palette_color_data.asm"
+        include "modules/68k/game/render/sh2_split_screen_display_init.asm"
         dc.w    $4400        ; $00E88C
         dc.w    $44A3        ; $00E88E
         dc.w    $4946        ; $00E890
@@ -682,7 +682,7 @@ post_dispatch_callback:
         addq.w  #4,($FFFFC87E).w                ; $00E934 - Advance jump table index
 .skip_advance:
         rts                                     ; $00E938
-        include "modules/68k/game/auto/fn_e200_003.asm"
+        include "modules/68k/game/render/sh2_geometry_transfer_and_palette_cycle_handler.asm"
         dc.w    $0088        ; $00EAC2
         dc.w    $EFC2        ; $00EAC4
         dc.w    $0088        ; $00EAC6
@@ -858,7 +858,7 @@ post_dispatch_callback:
         dc.w    $A945        ; $00EC74
 ; Padding: 72 bytes (36 words) of zeros from $EC76-$ECBC
         dcb.w   36, $0000
-        include "modules/68k/game/auto/fn_e200_004.asm"
+        include "modules/68k/game/scene/sh2_scene_object_update_with_lookup_tables.asm"
 
 ; ============================================================================
 ; Function: SH2 Status Check and ROM Vector Setup ($00EEF2-$00EF30)
@@ -998,10 +998,10 @@ table_dual_dispatch:
         dc.w    $2228        ; $00F0BA
         dc.w    $512E        ; $00F0BC
         include "modules/68k/sh2/comm_transfer_setup_c.asm"
-        include "modules/68k/game/auto/fn_e200_005.asm"
-        include "modules/68k/game/auto/fn_e200_006.asm"
-        include "modules/68k/game/auto/fn_e200_007.asm"
-        include "modules/68k/game/auto/fn_e200_008.asm"
+        include "modules/68k/game/render/sh2_three_panel_display_init.asm"
+        include "modules/68k/game/scene/scene_state_disp_with_color_tables.asm"
+        include "modules/68k/game/render/multi_screen_palette_navigation_handler.asm"
+        include "modules/68k/game/scene/sh2_multi_panel_object_update_orch.asm"
         dc.w    $0603        ; $00F838
         dc.w    $D780        ; $00F83A
         dc.w    $0400        ; $00F83C
@@ -1022,7 +1022,7 @@ table_dual_dispatch:
         dc.w    $0010        ; $00F85A
         include "modules/68k/sh2/sync_wait_reset.asm"
         include "modules/68k/display/palette_table_init.asm"
-        include "modules/68k/game/auto/fn_e200_009.asm"
+        include "modules/68k/game/render/sh2_multi_panel_tile_renderer.asm"
         dc.w    $0400        ; $00FB24
         dc.w    $7010        ; $00FB26
         dc.w    $0060        ; $00FB28
@@ -1033,8 +1033,8 @@ table_dual_dispatch:
         dc.w    $70CF        ; $00FB32
         dc.w    $0061        ; $00FB34
         include "modules/68k/sh2/comm_transfer_block.asm"
-        include "modules/68k/game/auto/fn_e200_010.asm"
-        include "modules/68k/game/auto/fn_e200_011.asm"
+        include "modules/68k/game/menu/time_trial_records_display_init.asm"
+        include "modules/68k/game/menu/records_scene_state_disp.asm"
         dc.w    $4240        ; $01017A
         dc.w    $6100        ; $01017C
         dc.w    $E3AE        ; $01017E

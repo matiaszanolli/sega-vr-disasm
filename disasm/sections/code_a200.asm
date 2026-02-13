@@ -478,7 +478,7 @@
 ; ============================================================================
         include "modules/68k/game/entity/obj_state_return.asm"
 
-        include "modules/68k/game/auto/fn_a200_001.asm"
+        include "modules/68k/game/ai/ai_entity_main_update_orch.asm"
 ; ============================================================================
 ; Effect Countdown ($00AC3E-$00ACBE)
 ; Translated from dc.w format - see disasm/modules/68k/game/effect_countdown.asm
@@ -548,18 +548,18 @@
         include "modules/68k/game/state/cascaded_frame_counter.asm"
         include "modules/68k/game/ai/ai_timer_inc.asm"
         include "modules/68k/game/ai/ai_buffer_setup.asm"
-        include "modules/68k/game/auto/fn_a200_006.asm"
+        include "modules/68k/game/sound/sequence_data_byte_decoder.asm"
         include "modules/68k/game/ai/ai_digit_lookup_best_lap.asm"
         include "modules/68k/game/hud/bcd_scoring_calc.asm"
         include "modules/68k/game/ai/ai_table_lookup_cond_fall_through.asm"
         include "modules/68k/game/hud/bcd_time_update_010.asm"
         include "modules/68k/game/ai/ai_param_lookup_threshold_check_00b36e.asm"
         include "modules/68k/game/ai/ai_param_lookup_threshold_check_00b398.asm"
-        include "modules/68k/game/auto/fn_a200_013.asm"
-        include "modules/68k/game/auto/fn_a200_014.asm"
-        include "modules/68k/game/auto/fn_a200_015.asm"
-        include "modules/68k/game/auto/fn_a200_016.asm"
-        include "modules/68k/game/auto/fn_a200_017.asm"
+        include "modules/68k/game/sound/sequence_data_word_decoder.asm"
+        include "modules/68k/game/sound/sound_buffer_copy_with_decode.asm"
+        include "modules/68k/game/sound/sound_buffer_copy_with_offset.asm"
+        include "modules/68k/game/data/word_to_nibble_unpacker.asm"
+        include "modules/68k/game/hud/bcd_nibble_subtractor.asm"
         include "modules/68k/game/hud/display_digit_extract.asm"
 ; ============================================================================
 ; HUD Panel Config ($00B55A-$00B58E)
@@ -585,15 +585,15 @@
         include "modules/68k/game/render/animated_seq_player.asm"
         include "modules/68k/game/render/animation_seq_player.asm"
         include "modules/68k/game/camera/camera_state_selector.asm"
-        include "modules/68k/game/auto/fn_a200_027.asm"
-        include "modules/68k/game/auto/fn_a200_028.asm"
+        include "modules/68k/game/render/display_state_bit_10_guard.asm"
+        include "modules/68k/game/camera/camera_animation_state_disp.asm"
         include "modules/68k/game/ai/ai_timer_dec_cond_state_clear.asm"
         include "modules/68k/game/ai/ai_timer_dec_state_clear_reactivate.asm"
         include "modules/68k/game/track/track_segment_load_031.asm"
         dc.w    $4E75        ; $00BA18
         include "modules/68k/game/state/triple_dispatch.asm"
-        include "modules/68k/game/auto/fn_a200_033.asm"
-        include "modules/68k/game/auto/fn_a200_034.asm"
+        include "modules/68k/game/scene/scene_menu_init_and_input_handler.asm"
+        include "modules/68k/game/scene/scene_command_disp.asm"
         include "modules/68k/game/menu/reset_scene_menu_state.asm"
         include "modules/68k/game/state/clear_state_copy_scroll_data_object.asm"
         include "modules/68k/game/entity/backward_object_scan_copy_scroll_data.asm"

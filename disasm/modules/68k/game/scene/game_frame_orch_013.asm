@@ -20,7 +20,7 @@
 ;   $00212E: vdp_display_init (pre-frame)
 ;   $00179E: poll_controllers
 ;   $00B09E: animation_update
-;   $00B144: fn_a200_014
+;   $00B144: sound_buffer_copy_with_decode
 ;   $00B504: display_param_calc
 ;   $00B4DC: ai_object_setup_cond_flag_set
 ;   $00B522: ai_state_dispatch
@@ -36,7 +36,7 @@ game_frame_orch_013:
         dc.w    $4EBA,$D412         ; JSR     $00212E(PC); $004D1A  pre-frame
         dc.w    $4EBA,$CA7E         ; JSR     $00179E(PC); $004D1E  poll_controllers
         dc.w    $4EBA,$637A         ; JSR     $00B09E(PC); $004D22  animation_update
-        dc.w    $4EBA,$641C         ; JSR     $00B144(PC); $004D26  fn_a200_014
+        dc.w    $4EBA,$641C         ; JSR     $00B144(PC); $004D26  sound_buffer_copy_with_decode
         dc.w    $4EBA,$67D8         ; JSR     $00B504(PC); $004D2A  display_param_calc
         dc.w    $4EBA,$67AC         ; JSR     $00B4DC(PC); $004D2E  ai_object_setup_cond_flag_set
         dc.w    $4EBA,$67EE         ; JSR     $00B522(PC); $004D32  ai_state_dispatch
@@ -63,7 +63,7 @@ game_frame_orch_013:
         dc.w    $4EBA,$D3B2         ; JSR     $00212E(PC); $004D7A  pre-frame
         dc.w    $4EBA,$CA1E         ; JSR     $00179E(PC); $004D7E  poll_controllers
         dc.w    $4EBA,$631A         ; JSR     $00B09E(PC); $004D82  animation_update
-        dc.w    $4EBA,$63BC         ; JSR     $00B144(PC); $004D86  fn_a200_014
+        dc.w    $4EBA,$63BC         ; JSR     $00B144(PC); $004D86  sound_buffer_copy_with_decode
         addq.b  #1,($FFFFC886).w                ; $004D8A  vint_counter++
         move.w  #$0054,$00FF0008                ; $004D8E  display list cmd = $54
         rts                                     ; $004D96

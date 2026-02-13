@@ -15,9 +15,9 @@
 ;   - Track index: ($C8CC × 2) + $C8CA = track × 10
 ;   Combined: index = 2 × sign_ext(byte) + track × 10
 ;
-; The data table is located at the start of fn_c200_017 ($CEEE), accessed
+; The data table is located at the start of entity_heading_and_turn_rate_calculator ($CEEE), accessed
 ; via PC-relative indexed read. The table words are interleaved with the
-; code of fn_c200_017 (a common compiled-code optimization).
+; code of entity_heading_and_turn_rate_calculator (a common compiled-code optimization).
 ;
 ; ENTRY POINTS
 ; ------------
@@ -58,6 +58,6 @@ score_stat_lookup_accum_dual:
         add.w   d1,d0                           ; $00CEE2: $D041 — index = byte×2 + track×10
 
 ; --- Look up modifier and accumulate ---
-        move.w  fn_c200_017(pc,d0.w),d0         ; $00CEE4: $303B $0008 — read from data table at $CEEE
+        move.w  entity_heading_and_turn_rate_calculator(pc,d0.w),d0         ; $00CEE4: $303B $0008 — read from data table at $CEEE
         add.w   d0,($FFFFC0E8).w                ; $00CEE8: $D178 $C0E8 — add to accumulator
         rts                                     ; $00CEEC: $4E75

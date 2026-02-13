@@ -5,8 +5,8 @@
 
         org     $014200
 
-        include "modules/68k/game/auto/fn_14200_038.asm"
-        include "modules/68k/game/auto/fn_14200_039.asm"
+        include "modules/68k/game/menu/sprite_strip_renderer_via_sh2_cmd_27.asm"
+        include "modules/68k/game/menu/game_mode_transition_init.asm"
         include "modules/68k/game/state/state_disp_ctrl_init.asm"
         include "modules/68k/game/menu/advance_game_state.asm"
         include "modules/68k/game/menu/menu_state_dispatch_disp_mode_set.asm"
@@ -52,8 +52,8 @@
         include "modules/68k/game/menu/adjust_903c_add_2000.asm"
         include "modules/68k/game/menu/fade_level_inc.asm"
         include "modules/68k/game/menu/fade_level_dec.asm"
-        include "modules/68k/game/auto/fn_14200_036.asm"
-        include "modules/68k/game/auto/fn_14200_037.asm"
+        include "modules/68k/game/menu/scroll_pos_increment.asm"
+        include "modules/68k/game/menu/scroll_pos_decrement.asm"
         dc.w    $4E75        ; $014882
         dc.w    $4E75        ; $014884
         dc.w    $4E75        ; $014886

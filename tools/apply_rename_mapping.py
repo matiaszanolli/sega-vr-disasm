@@ -41,11 +41,7 @@ def load_mapping():
 
 
 def build_label_map(entries):
-    """Build old_label → new_label for all labels that change.
-
-    Includes both primary labels AND secondary labels (sub-labels)
-    defined in files that get renamed.
-    """
+    """Build old_label → new_label for all labels that change."""
     label_map = {}
     for e in entries:
         if e['old_label'] != e['new_label']:
@@ -53,37 +49,17 @@ def build_label_map(entries):
     return label_map
 
 
-def collect_all_secondary_labels(entries):
-    """Scan files for secondary labels that should NOT be renamed.
-
-    Secondary labels like 'copy_16b_blocks', 'phase_duration_table' etc.
-    are defined inside files but are NOT the primary label. These are
-    referenced cross-file and must NOT be renamed (they don't change).
-    We just need to make sure we don't accidentally match them.
-    """
-    # This is handled by the regex approach — we only rename labels
-    # that are in the label_map, so secondary labels won't be affected.
-    pass
-
-
 def update_all_labels_in_file(filepath, label_map, dry_run=True):
-    """Update all label references (definitions + operands + comments) in a file.
-
-    Uses word-boundary matching to replace old labels with new ones.
-    """
+    """Update all label references in a file using word-boundary matching."""
     with open(filepath, 'r') as f:
         content = f.read()
 
     original = content
 
-    # Replace each old_label → new_label
     # Sort by length descending to avoid partial matches
-    # e.g., "fn_c200_012" must be replaced before "fn_c200_01"
     for old_label, new_label in sorted(label_map.items(), key=lambda x: -len(x[0])):
         if old_label not in content:
             continue
-        # Word-boundary replacement: label followed by non-identifier char
-        # This handles: label:, label(, label+, label\n, label space, ; label, etc.
         content = re.sub(
             r'\b' + re.escape(old_label) + r'\b',
             new_label,
@@ -125,29 +101,27 @@ def update_section_includes(entries, dry_run=True):
 
         if content != original:
             changes += 1
+            n_lines = sum(1 for o, n in zip(original.split('\n'), content.split('\n')) if o != n)
+            print(f"  {sf.name}: {n_lines} include(s) updated")
             if not dry_run:
                 with open(sf, 'w') as f:
                     f.write(content)
-            else:
-                n_changes = sum(1 for o, n in zip(original.split('\n'), content.split('\n')) if o != n)
-                print(f"  {sf.name}: {n_changes} include(s) updated")
 
     return changes
 
 
 def create_subdirectories(entries, dry_run=True):
-    """Create subcategory subdirectories."""
+    """Create subcategory subdirectories if needed."""
     subdirs = set()
     for e in entries:
-        new_path = Path(DISASM_DIR) / e['new_path']
+        new_path = DISASM_DIR / e['new_path']
         parent = new_path.parent
         if not parent.exists():
             subdirs.add(parent)
 
     for d in sorted(subdirs):
-        if dry_run:
-            print(f"  mkdir -p {d}")
-        else:
+        print(f"  mkdir -p {d}")
+        if not dry_run:
             d.mkdir(parents=True, exist_ok=True)
 
     return len(subdirs)
@@ -159,11 +133,11 @@ def move_files(entries, dry_run=True):
     errors = []
 
     for e in entries:
+        if e['old_path'] == e['new_path']:
+            continue
+
         old_path = DISASM_DIR / e['old_path']
         new_path = DISASM_DIR / e['new_path']
-
-        if old_path == new_path:
-            continue
 
         if not old_path.exists():
             errors.append(f"  MISSING: {old_path}")
@@ -176,7 +150,7 @@ def move_files(entries, dry_run=True):
                 capture_output=True, text=True
             )
             if result.returncode != 0:
-                errors.append(f"  git mv FAILED: {old_path} -> {new_path}: {result.stderr.strip()}")
+                errors.append(f"  git mv FAILED: {old_path} → {new_path}: {result.stderr.strip()}")
 
     return moves, errors
 
@@ -196,28 +170,31 @@ def main():
 
     entries = load_mapping()
     label_map = build_label_map(entries)
+    to_move = sum(1 for e in entries if e['old_path'] != e['new_path'])
     print(f"Loaded {len(entries)} entries from {MAPPING_TSV}")
     print(f"Labels to rename: {len(label_map)}")
-    print(f"Files to move: {sum(1 for e in entries if e['old_path'] != e['new_path'])}")
+    print(f"Files to move: {to_move}")
 
     # Step 1: Create subdirectories
     print(f"\n--- Step 1: Create subdirectories ---")
     n_dirs = create_subdirectories(entries, dry_run)
     print(f"Directories to create: {n_dirs}")
 
-    # Step 2: Update ALL label references across ALL game files
+    # Step 2: Update ALL label references across ALL .asm files under disasm/
     # This handles: label definitions, self-references, cross-file references, comments
     # Must happen BEFORE moving files
-    print(f"\n--- Step 2: Update label references across all game files ---")
+    print(f"\n--- Step 2: Update label references ---")
     updated = 0
-    all_game_files = sorted(GAME_DIR.glob("*.asm"))
-    for filepath in all_game_files:
+    # Scan ALL .asm files recursively under disasm/ (game subdirs, sections, sound, etc.)
+    all_asm = sorted(DISASM_DIR.rglob("*.asm"))
+    print(f"Scanning {len(all_asm)} .asm files for label references...")
+    for filepath in all_asm:
         n = update_all_labels_in_file(filepath, label_map, dry_run)
-        updated += n
-    print(f"Game files updated: {updated}")
+        if n:
+            updated += 1
+    print(f"Files with label updates: {updated}")
 
     # Step 3: Update section file includes
-    # Must happen BEFORE moving files
     print(f"\n--- Step 3: Update section includes ---")
     n_sections = update_section_includes(entries, dry_run)
     print(f"Section files updated: {n_sections}")
@@ -225,7 +202,7 @@ def main():
     # Step 4: Move files
     print(f"\n--- Step 4: Move files (git mv) ---")
     n_moves, errors = move_files(entries, dry_run)
-    print(f"Files moved: {n_moves}")
+    print(f"Files to move: {n_moves}")
     if errors:
         print("ERRORS:")
         for err in errors:
@@ -233,9 +210,9 @@ def main():
 
     # Summary
     print(f"\n=== Summary ===")
-    print(f"Subdirectories: {n_dirs}")
-    print(f"Game files with label updates: {updated}")
-    print(f"Section files updated: {n_sections}")
+    print(f"Subdirectories created: {n_dirs}")
+    print(f"Files with label updates: {updated}")
+    print(f"Section files with include updates: {n_sections}")
     print(f"Files moved: {n_moves}")
     if errors:
         print(f"Errors: {len(errors)}")

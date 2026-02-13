@@ -30,7 +30,7 @@
 ; Jump table targets:
 ;   State 0:  camera_demo_palette_sh2_setup
 ;   State 4:  fn_12200_025_exec (mid-function DMA entry)
-;   State 8:  fn_12200_026
+;   State 8:  camera_selection_main_loop
 ;   State 12: sh2_mode_disp_select_scene_by_track_mode
 ; Uses: D0, A1
 ; ============================================================================
@@ -98,7 +98,7 @@ fn_12200_023_dispatch:
 .jump_table:
         dc.l    camera_demo_palette_sh2_setup+$00880000          ; $012A50: state 0
         dc.l    fn_12200_025_exec+$00880000     ; $012A54: state 4
-        dc.l    fn_12200_026+$00880000          ; $012A58: state 8
+        dc.l    camera_selection_main_loop+$00880000          ; $012A58: state 8
         dc.l    sh2_mode_disp_select_scene_by_track_mode+$00880000          ; $012A5C: state 12
 
 ; --- Post-dispatch completion check ---

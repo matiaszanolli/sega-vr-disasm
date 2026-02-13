@@ -17,7 +17,7 @@
 ;   $C87E: game_state
 ;   $C886: vint_counter
 ; Calls:
-;   $00212E: fn_200_010 (pre-frame)
+;   $00212E: vdp_display_init (pre-frame)
 ;   $00179E: poll_controllers
 ;   $00B09E: animation_update
 ;   $00B144: fn_a200_014

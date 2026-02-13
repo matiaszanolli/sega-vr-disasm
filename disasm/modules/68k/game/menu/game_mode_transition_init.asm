@@ -1,0 +1,96 @@
+; ============================================================================
+; game_mode_transition_init — Game Mode Transition Init
+; ROM Range: $014262-$0143C6 (356 bytes)
+; ============================================================================
+; Initializes hardware state for a game mode transition. Performs full VDP
+; reset including DMA fills to clear VRAM:
+;   1. Disable interrupts (SR = $2700), configure adapter control
+;   2. Request Z80 bus, set up VDP DMA parameters
+;   3. DMA fill: clear nametable A ($C000, 8KB) and sprite table ($4000)
+;   4. Release Z80 bus, initialize sound driver
+;   5. Set VDP display mode to 256-color (mode $03)
+;   6. Configure COMM0 for SH2 scene sync
+;   7. Set dispatch table pointer to mode-specific handler
+;
+; Uses: D0, D1, D4, D7, A5, A6
+; RAM:
+;   $C082: menu_state
+;   $C87E: game_state
+; ============================================================================
+
+game_mode_transition_init:
+        MOVE    #$2700,SR                       ; $014262
+        BCLR    #6,(-14219).W                   ; $014266
+        MOVE.W  (-14220).W,(A5)                 ; $01426C
+        MOVE.W  #$0083,MARS_SYS_INTCTL                ; $014270
+        ANDI.B  #$FC,MARS_VDP_MODE+1                  ; $014278
+        JSR     $0088268C                       ; $014280
+        MOVE.W  #$0100,Z80_BUSREQ                ; $014286
+.loc_002C:
+        BTST    #0,Z80_BUSREQ                    ; $01428E
+        BNE.S  .loc_002C                        ; $014296
+        MOVE.W  (-14220).W,D4                   ; $014298
+        BSET    #4,D4                           ; $01429C
+        MOVE.W  D4,(A5)                         ; $0142A0
+        MOVE.L  #$93409400,(A5)                 ; $0142A2
+        MOVE.L  #$954096C2,(A5)                 ; $0142A8
+        MOVE.W  #$977F,(A5)                     ; $0142AE
+        MOVE.W  #$C000,(A5)                     ; $0142B2
+        MOVE.W  #$0080,(-14218).W               ; $0142B6
+        MOVE.W  (-14218).W,(A5)                 ; $0142BC
+        MOVE.W  (-14220).W,(A5)                 ; $0142C0
+        MOVE.W  (-14220).W,D4                   ; $0142C4
+        BSET    #4,D4                           ; $0142C8
+        MOVE.W  D4,(A5)                         ; $0142CC
+        MOVE.W  #$8F01,(A5)                     ; $0142CE
+        MOVE.L  #$93FF941F,(A5)                 ; $0142D2
+        MOVE.W  #$9780,(A5)                     ; $0142D8
+        MOVE.L  #$60000082,(A5)                 ; $0142DC
+        MOVE.W  #$0000,(A6)                     ; $0142E2
+.loc_0084:
+        MOVE.W  (A5),D7                         ; $0142E6
+        ANDI.W  #$0002,D7                       ; $0142E8
+        BNE.S  .loc_0084                        ; $0142EC
+        MOVE.W  #$8F02,(A5)                     ; $0142EE
+        MOVE.W  (-14220).W,(A5)                 ; $0142F2
+        MOVE.W  (-14220).W,D4                   ; $0142F6
+        BSET    #4,D4                           ; $0142FA
+        MOVE.W  D4,(A5)                         ; $0142FE
+        MOVE.W  #$8F01,(A5)                     ; $014300
+        MOVE.L  #$93FF941F,(A5)                 ; $014304
+        MOVE.W  #$9780,(A5)                     ; $01430A
+        MOVE.L  #$40000083,(A5)                 ; $01430E
+        MOVE.W  #$0000,(A6)                     ; $014314
+.loc_00B6:
+        MOVE.W  (A5),D7                         ; $014318
+        ANDI.W  #$0002,D7                       ; $01431A
+        BNE.S  .loc_00B6                        ; $01431E
+        MOVE.W  #$8F02,(A5)                     ; $014320
+        MOVE.W  (-14220).W,(A5)                 ; $014324
+        MOVE.W  #$0000,Z80_BUSREQ                ; $014328
+        JSR     $0088204A                       ; $014330
+        JSR     $008849AA                       ; $014336
+        MOVE.L  #$00FF9000,(-14200).W           ; $01433C
+        DC.W    $4EBA,$90E6         ; JSR     $00D42C(PC); $014344
+        MOVEQ   #$00,D0                         ; $014348
+        MOVEQ   #$00,D1                         ; $01434A
+        DC.W    $4EBA,$908C         ; JSR     $00D3DA(PC); $01434C
+        MOVE.W  #$0010,$00FF0008                ; $014350
+        MOVE.B  #$01,(-14323).W                 ; $014358
+        MOVE.W  #$0000,(-14210).W               ; $01435E
+        MOVE.W  #$0000,(-16254).W               ; $014364
+        MOVE.B  #$00,(-16256).W                 ; $01436A
+        CLR.W  (-24574).W                       ; $014370
+        CLR.W  (-24572).W                       ; $014374
+        MOVE.B  #$2D,(-16255).W                 ; $014378
+        MOVE.B  #$00,(-14322).W                 ; $01437E
+        ANDI.B  #$FC,MARS_VDP_MODE+1                  ; $014384
+        ORI.B  #$03,MARS_VDP_MODE+1                   ; $01438C
+        BSET    #6,(-14219).W                   ; $014394
+        MOVE.W  (-14220).W,(A5)                 ; $01439A
+        JSR     $00884998                       ; $01439E
+        MOVE.W  #$0106,(-14168).W               ; $0143A4
+        MOVE.B  (-14167).W,COMM0_LO            ; $0143AA
+        MOVE.B  (-14168).W,COMM0_HI            ; $0143B2
+        MOVE.L  #$008943C6,$00FF0002            ; $0143BA
+        RTS                                     ; $0143C4

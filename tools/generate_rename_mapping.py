@@ -1,8 +1,16 @@
 #!/usr/bin/env python3
-"""Generate rename mapping for 68K game function files.
+"""Generate rename mapping for 68K game function files in auto/.
 
-Reads all .asm files in disasm/modules/68k/game/, extracts headers,
+Reads all .asm files in disasm/modules/68k/game/auto/, extracts headers,
 proposes mnemonic names + subcategories, and outputs a TSV mapping file.
+
+Auto-analyzed files (stub headers) stay in auto/ with original names.
+Documented files get snake_case names and move to subcategory directories.
+
+Usage:
+    cd /path/to/project
+    python3 tools/generate_rename_mapping.py
+    # Review tools/rename_mapping.tsv
 """
 
 import os
@@ -11,117 +19,108 @@ import sys
 from pathlib import Path
 from collections import defaultdict
 
-GAME_DIR = Path("disasm/modules/68k/game")
-OUTPUT_TSV = Path("tools/rename_mapping.tsv")
+PROJECT_ROOT = Path(__file__).parent.parent
+GAME_DIR = PROJECT_ROOT / "disasm" / "modules" / "68k" / "game"
+AUTO_DIR = GAME_DIR / "auto"
+OUTPUT_TSV = PROJECT_ROOT / "tools" / "rename_mapping.tsv"
 
 # Keyword-to-subcategory mapping (order matters — first match wins)
-# More specific rules MUST come before generic ones
 SUBCATEGORY_RULES = [
-    # AI (specific)
-    (["ai ", "ai_", "opponent", "steering"], "ai"),
-    # Name entry / menu (specific — must precede generic "score", "bcd")
-    (["name entry", "cursor render", "menu item", "menu state",
-     "menu tile", "mode select", "mode dispatch",
-     "camera selection counter", "camera demo", "camera menu",
-     "camera dma transfer", "camera render", "camera tile render",
-     "camera sh2", "camera state disp",
-     "i/o port config", "palette fade", "scroll x:", "scroll y:",
-     "read combined start", "advance game state",
-     "set control flag", "set mode flag",
-     "add track segment", "subtract track segment",
-     "adjust $903c", "initialize scroll", "initialize track segment",
-     "fade level", "vdp slot activ",
-     "conditional state set", "conditional scene transition"], "menu"),
-    # Camera (general)
-    (["camera", "viewport", "view toggle", "view select", "camera_"], "camera"),
-    # Collision / proximity
-    (["collision", "proximity", "separation", "distance check"], "collision"),
-    # HUD / display UI
-    (["hud", "digit", "score display", "sprite layout", "display entry",
-     "display list build", "ascii", "tile index", "tile mapper",
-     "digit lookup", "panel config", "score/stat",
-     "bcd time", "bcd score", "bcd scoring"], "hud"),
-    # Data / decompression
-    (["decompress", "unpack", "descriptor table", "huffman", "lzss",
-     "bit unpack", "lookup table"], "data"),
-    # Physics / speed
-    (["speed", "acceleration", "braking", "tilt", "physics", "velocity",
-     "heading", "drift", "tire", "wind resistance", "boost",
-     "weighted average", "interpolat", "relative position",
-     "position clamp"], "physics"),
-    # Race / sound (game-level sound is race-related)
-    (["race ", "race_", "lap ", "lap_", "race state", "race init", "race mode",
-     "lap check", "lap value", "countdown timer",
-     "sound", "sfx", "tire squeal", "tire screech", "audio",
-     "fm ", "frequency"], "race"),
-    # Render / visibility / VDP / sprites / 3D
-    (["visib", "depth sort", "vdp", "dma transfer", "dma setup",
-     "framebuffer", "palette", "render", "geometry",
-     "display list pointer", "display size", "cram",
-     "sprite param", "sprite config", "sprite init",
-     "3d transform", "anim", "display param"], "render"),
-    # Scene / orchestrator / SH2 communication
-    (["scene", "orchestrat", "frame orch", "game frame",
-     "sh2 comm", "sh2 command", "sh2 send", "sh2 cmd", "comm reset",
-     "sh2 scene reset", "comm transfer", "comm setup", "mars comm",
-     "sh2 transfer", "sh2 mode", "sprite buffer clear + sh2",
-     "comm signal", "v-int comm", "sh2 call", "sh2 handshake",
-     "game mode", "communication and state"], "scene"),
-    # State / dispatch / counter / timer / flags
-    (["state dispatch", "jump table", "dispatch", "counter",
-     "flag", "timer", "state reset", "state check",
-     "abort", "reset step", "advance state",
-     "clear state", "advance dispatch", "conditional advance",
-     "set state", "input state", "object state", "input guard",
-     "conditional return", "conditional scroll", "conditional guard",
-     "double conditional", "system init",
-     "controller", "input check", "input init",
-     "state handler"], "state"),
-    # Track
-    (["track data", "track segment", "segment offset", "road"], "track"),
-    # Entity / object
-    (["entity", "object", "spawn", "table load", "table setup",
-     "table fill", "field store", "field clear", "field check",
-     "link copy", "entries reset", "bitmask table",
-     "button flag", "obj_"], "entity"),
-]
+    # Sound / FM / PSG (must be early — many fn_30200 files)
+    (["fm ", "fm_", "psg ", "psg_", "z80 ", "dac ",
+     "sound driver", "sound program", "sound priority", "sound command",
+     "system command dispatcher",
+     "key-on", "key-off", "key off",
+     "instrument setup", "instrument register", "instrument loader",
+     "instrument index", "instrument number",
+     "envelope tick", "envelope number", "envelope command",
+     "total level", "tl reset", "tl scaling",
+     "panning envelope", "panning init", "set panning", "write panning",
+     "channel pause", "channel resume", "channel cleanup",
+     "channel tempo", "channel timer", "channel multiplier",
+     "channel register", "channel pointer", "channel stop",
+     "fade in", "fade out", "fade clear", "full silence", "all silence",
+     "vibrato setup", "vibrato check",
+     "pitch bend", "base frequency", "frequency table",
+     "ssg-eg", "operator register",
+     "sequence process", "sequence data", "sequence command",
+     "sequence tick", "sequence loop", "sequence call",
+     "stack pop return", "set envelope", "set instrument",
+     "note-off", "note off",
+     "volume adjust", "volume writer", "volume envelope",
+     "set volume", "set position + silence",
+     "conditional write", "write wrapper", "write port",
+     "init channel"], "sound"),
 
-# Prefixes on mnemonic-named files → subcategory
-MNEMONIC_PREFIX_MAP = {
-    "ai_": "ai",
-    "camera_": "camera",
-    "close_position": "collision",
-    "proximity_": "collision",
-    "position_separation": "collision",
-    "entity_": "entity",
-    "obj_": "entity",
-    "hud_": "hud",
-    "speed_": "physics",
-    "physics_": "physics",
-    "tilt_": "physics",
-    "heading_": "physics",
-    "race_": "race",
-    "lap_": "race",
-    "timer_": "state",
-    "counter_": "state",
-    "flag": "state",
-    "state_": "state",
-    "abort_": "state",
-    "set_state": "state",
-    "set_timer": "state",
-    "reset_timer": "state",
-    "advance_": "state",
-    "full_state": "state",
-    "clear_heading": "physics",
-    "clear_camera": "camera",
-    "check_timeout": "state",
-    "calc_state": "state",
-    "sound_": "race",  # game-level sound triggers are race-related
-    "sprite_": "render",
-    "effect_": "state",
-    "bulk_table": "data",
-    "zone_": "collision",
-}
+    # AI
+    (["ai ", "ai_", "opponent", "steering calc"], "ai"),
+
+    # Camera
+    (["camera "], "camera"),
+
+    # Collision / proximity
+    (["collision", "proximity", "close position", "sine billboard"], "collision"),
+
+    # HUD / digit / BCD
+    (["hud", "digit renderer", "digit tile", "bcd ",
+     "nibble splitter", "ascii character",
+     "tile blit", "tile dma", "display entry",
+     "display element"], "hud"),
+
+    # Menu / name entry / records / selection
+    (["name entry", "cursor position", "car/driver selection",
+     "race config", "records ", "standings",
+     "camera selection", "camera/replay", "camera angle",
+     "tile block send", "tile fill", "byte iterator",
+     "table entry swap", "sh2 multi-parameter",
+     "scroll position", "sprite strip renderer",
+     "game mode transition"], "menu"),
+
+    # Data / decompression
+    (["decompress", "unpack", "huffman", "lzss", "lz ",
+     "descriptor table", "bulk table", "bit unpack",
+     "tile data stream", "bit-stream refill"], "data"),
+
+    # Physics
+    (["speed", "acceleration", "braking", "tilt", "physics",
+     "velocity", "heading", "drift", "momentum",
+     "friction", "wind resistance"], "physics"),
+
+    # Race
+    (["race ", "race_", "lap ", "countdown",
+     "audio frequency", "audio trigger"], "race"),
+
+    # Render / display / VDP / sprites
+    (["render", "visib", "depth sort", "dma ",
+     "vdp ", "vdp_", "vram clear", "vram ",
+     "framebuffer", "palette", "cram fill",
+     "sprite param", "sprite config",
+     "display state", "display list", "display init",
+     "nametable", "row copy",
+     "animation", "billboard",
+     "object table 3 proximity"], "render"),
+
+    # Scene / SH2
+    (["scene", "orchestrat", "frame orch",
+     "sh2 comm", "sh2 command", "sh2 send", "sh2 cmd",
+     "sh2 frame", "frame sync",
+     "clear communication",
+     "game mode"], "scene"),
+
+    # Entity / object
+    (["entity", "object table", "obj table", "spawn"], "entity"),
+
+    # State / dispatch / timer / flags
+    (["state dispatch", "dispatch", "counter",
+     "flag", "timer", "abort",
+     "conditional return", "conditional guard",
+     "system boot", "system init",
+     "register restore", "hardware init",
+     "warm boot"], "state"),
+
+    # Track
+    (["track", "segment"], "track"),
+]
 
 
 def parse_file_header(filepath):
@@ -133,258 +132,196 @@ def parse_file_header(filepath):
     rom_start = ""
     is_auto = False
     label = ""
-    category_tag = ""
 
     for i, line in enumerate(lines):
         line = line.rstrip()
 
-        # Title line: second line after ===, typically line index 1 or 2
-        if i < 5 and line.startswith("; ") and not line.startswith("; ==") and not line.startswith("; ROM"):
-            if "ROM Range:" in line:
-                # Extract ROM start address
-                m = re.search(r'ROM Range: \$([0-9A-Fa-f]+)', line)
-                if m:
-                    rom_start = m.group(1).lower()
-            elif not title:
-                title = line[2:].strip()
+        # Title: second line (index 1), after "==="
+        if i == 1 and line.startswith("; "):
+            raw = line[2:].strip()
+            # Remove "fn_XXXX_NNN — " prefix
+            m = re.match(r'^fn_\w+\s*[—–-]\s*(.*)', raw)
+            if m:
+                title = m.group(1).strip()
+            else:
+                title = raw
 
-        if "ROM Range:" in line and not rom_start:
-            m = re.search(r'ROM Range: \$([0-9A-Fa-f]+)', line)
+        # ROM range
+        if "ROM Range:" in line:
+            m = re.search(r'ROM Range:\s*\$([0-9A-Fa-f]+)', line)
             if m:
                 rom_start = m.group(1).lower()
 
-        if "(auto-analyzed)" in line:
+        # Auto-analyzed check
+        if "(auto-analyzed)" in line.lower():
             is_auto = True
 
-        if "; Category:" in line:
-            m = re.search(r'Category:\s*(\w+)', line)
-            if m:
-                category_tag = m.group(1)
-
-        # Find the primary label (first non-comment, non-empty line with a colon)
-        if not label and not line.startswith(";") and not line.startswith(" ") and ":" in line and line.strip():
-            label = line.split(":")[0].strip()
-
-    # Also scan for label if we didn't find it in header area
-    if not label:
-        for line in lines:
-            line = line.rstrip()
-            if not line.startswith(";") and not line.startswith(" ") and ":" in line and line.strip():
-                label = line.split(":")[0].strip()
-                break
+        # Primary label (first non-comment, non-whitespace line with colon)
+        if not label and not line.startswith(";") and line.strip() and ":" in line:
+            candidate = line.split(":")[0].strip()
+            if candidate and not candidate.startswith(".") and not candidate.startswith(" "):
+                label = candidate
 
     return {
         "title": title,
         "rom_start": rom_start,
         "is_auto": is_auto,
         "label": label,
-        "category_tag": category_tag,
     }
 
 
 def title_to_filename(title):
     """Convert a descriptive title to a snake_case filename."""
-    # Remove "fn_XXXX_NNN — " prefix (em-dash variant)
-    title = re.sub(r'^fn_[a-fA-F0-9]+_\d+\s*[—–-]\s*', '', title)
-    # Remove "(auto-analyzed)" tag
-    title = re.sub(r'\s*\([^)]*auto-analyzed[^)]*\)', '', title)
-    # Strip parenthetical content (variant info, implementation details)
-    title = re.sub(r'\s*\([^)]*\)', '', title)
+    t = title
 
-    name = title.lower()
+    # Remove everything after em-dash description
+    t = re.sub(r'\s*[—–]\s*.*$', '', t)
+    # Remove parenthetical content
+    t = re.sub(r'\s*\([^)]*\)', '', t)
+    # Remove brackets
+    t = re.sub(r'\[.*?\]', '', t)
+
+    name = t.lower().strip()
     # Replace non-alphanumeric with underscore
     name = re.sub(r'[^a-z0-9]+', '_', name)
     name = name.strip('_')
 
-    # Remove verbose suffixes that don't add meaning
-    verbose = [
-        '_data_prefix', '_word_data_prefix', '_byte_data_prefix',
-        '_jump_table', '_entry_jump_table',
-        '_entry_point', '_dual_entry_point',
-        '_subroutines', '_subroutine',
-        '_with_data_prefix', '_with_timer',
+    # Shorten verbose patterns
+    replacements = [
+        ('_orchestrator', '_orch'),
+        ('_dispatcher', '_disp'),
+        ('_conditional', '_cond'),
+        ('_initialization', '_init'),
+        ('_calculation', '_calc'),
+        ('_configuration', '_config'),
+        ('_parameter', '_param'),
+        ('_register', '_reg'),
+        ('_position', '_pos'),
+        ('_frequency', '_freq'),
+        ('_processor', '_proc'),
+        ('_handler', '_handler'),  # keep this one readable
     ]
-    for v in verbose:
-        if name.endswith(v):
-            name = name[:-len(v)]
+    for old, new in replacements:
+        name = name.replace(old, new)
 
-    # Remove numeric entry counts like "_5_entry_" or "_4_entry_"
-    name = re.sub(r'_\d+_entry_', '_', name)
-    name = re.sub(r'_\d+_word_', '_', name)
-    name = re.sub(r'_\d+_byte_', '_', name)
+    # Collapse underscores
+    name = re.sub(r'_+', '_', name).strip('_')
 
-    # Shorten common verbose patterns
-    name = name.replace('_and_', '_')
-    name = name.replace('_with_', '_')
-    name = name.replace('_from_', '_')
-    name = name.replace('_orchestrator', '_orch')
-    name = name.replace('_dispatcher', '_disp')
-    name = name.replace('_conditional', '_cond')
-    name = name.replace('_initialization', '_init')
-    name = name.replace('_calculation', '_calc')
-    name = name.replace('_configuration', '_config')
-    name = name.replace('_computation', '_calc')
-    name = name.replace('_parameter', '_param')
-    name = name.replace('_animation', '_anim')
-    name = name.replace('_sequence', '_seq')
-    name = name.replace('_register', '_reg')
-    name = name.replace('_transfer', '_xfer')
-    name = name.replace('_accumulate', '_accum')
-    name = name.replace('_decrement', '_dec')
-    name = name.replace('_increment', '_inc')
-    name = name.replace('_controller', '_ctrl')
-    name = name.replace('_position', '_pos')
-    name = name.replace('_display', '_disp')
-    name = name.replace('_comparison', '_cmp')
-
-    # Collapse multiple underscores
-    name = re.sub(r'_+', '_', name)
-    name = name.strip('_')
-
-    # Labels can't start with a digit in vasm — prefix with underscore-free word
+    # Labels can't start with digit in vasm
     if name and name[0].isdigit():
-        name = "gfx_" + name  # e.g., "3d_transform" → "gfx_3d_transform"
+        name = "gfx_" + name
 
-    # Truncate to 45 chars
-    if len(name) > 45:
-        # Try to truncate at word boundary
-        truncated = name[:45]
-        last_underscore = truncated.rfind('_')
-        if last_underscore > 30:
-            name = truncated[:last_underscore]
+    # Truncate to 50 chars at word boundary
+    if len(name) > 50:
+        truncated = name[:50]
+        last_us = truncated.rfind('_')
+        if last_us > 30:
+            name = truncated[:last_us]
         else:
             name = truncated.rstrip('_')
 
     return name
 
 
-def classify_subcategory(title, filename, is_mnemonic):
-    """Determine subcategory from title keywords or filename prefix."""
+def classify_subcategory(title):
+    """Determine subcategory from title keywords."""
     title_lower = title.lower()
-
-    # For mnemonic-named files, use prefix mapping
-    if is_mnemonic:
-        for prefix, subcat in MNEMONIC_PREFIX_MAP.items():
-            if filename.startswith(prefix):
-                return subcat
-        # Fall through to keyword matching
-
-    # Keyword matching on title
     for keywords, subcat in SUBCATEGORY_RULES:
         for kw in keywords:
             if kw in title_lower:
                 return subcat
-
-    return ""  # uncategorized — stays in game/ root
+    return "auto"  # fallback
 
 
 def main():
-    if not GAME_DIR.exists():
-        print(f"ERROR: {GAME_DIR} not found. Run from project root.", file=sys.stderr)
+    if not AUTO_DIR.exists():
+        print(f"ERROR: {AUTO_DIR} not found.", file=sys.stderr)
         sys.exit(1)
 
-    # Collect all .asm files
-    files = sorted(GAME_DIR.glob("*.asm"))
-    print(f"Found {len(files)} .asm files in {GAME_DIR}")
+    # Collect all auto/ .asm files
+    asm_files = sorted(AUTO_DIR.glob("fn_*.asm"))
+    print(f"Found {len(asm_files)} files in {AUTO_DIR.relative_to(PROJECT_ROOT)}", file=sys.stderr)
 
     entries = []
-    for filepath in files:
-        filename = filepath.name
-        if not filename.endswith(".asm"):
-            continue
-
+    for filepath in asm_files:
         info = parse_file_header(filepath)
-        is_mnemonic = not filename.startswith("fn_")
-        is_fn = filename.startswith("fn_")
+        filename = filepath.name
+        old_path = str(filepath.relative_to(PROJECT_ROOT / "disasm"))
 
         if info["is_auto"]:
-            # Auto-analyzed: move to auto/, keep label
+            # Auto-analyzed: stay in auto/ with current name
+            new_path = old_path  # no change
             new_label = info["label"]
-            new_filename = filename
             subcategory = "auto"
-        elif is_mnemonic:
-            # Already has mnemonic name: just assign subcategory
-            new_label = info["label"]
-            new_filename = filename
-            subcategory = classify_subcategory(info["title"], filename, True)
         else:
-            # Documented fn_ file: derive new name
+            # Documented: derive new name and subcategory
             if info["title"]:
-                new_filename_base = title_to_filename(info["title"])
+                new_name = title_to_filename(info["title"])
             else:
-                # Fallback: keep original name
-                new_filename_base = filename[:-4]  # strip .asm
+                new_name = filename[:-4]  # fallback
 
-            if not new_filename_base or new_filename_base == filename[:-4]:
-                new_filename_base = filename[:-4]
-
-            new_label = new_filename_base
-            new_filename = new_filename_base + ".asm"
-            subcategory = classify_subcategory(info["title"], new_filename_base, False)
-
-        # Build paths
-        old_path = f"modules/68k/game/{filename}"
-        if subcategory:
-            new_path = f"modules/68k/game/{subcategory}/{new_filename}"
-        else:
-            new_path = f"modules/68k/game/{new_filename}"
+            subcategory = classify_subcategory(info["title"] or "")
+            new_label = new_name
+            new_path = f"modules/68k/game/{subcategory}/{new_name}.asm"
 
         entries.append({
             "old_path": old_path,
             "new_path": new_path,
             "old_label": info["label"],
             "new_label": new_label,
-            "subcategory": subcategory or "(root)",
-            "title": info["title"],
+            "subcategory": subcategory,
+            "title": info["title"] or "(no title)",
             "is_auto": info["is_auto"],
             "rom_start": info["rom_start"],
         })
 
     # Detect and resolve duplicate new_paths
-    path_counts = defaultdict(list)
+    path_groups = defaultdict(list)
     for e in entries:
-        path_counts[e["new_path"]].append(e)
+        path_groups[e["new_path"]].append(e)
 
-    for path, dupes in path_counts.items():
+    for path, dupes in path_groups.items():
         if len(dupes) > 1:
             for e in dupes:
-                # Append ROM address to disambiguate
+                # Append ROM start address to disambiguate
+                suffix = f"_{e['rom_start']}" if e['rom_start'] else ""
                 base = e["new_path"][:-4]  # strip .asm
-                suffix = f"_{e['rom_start']}" if e['rom_start'] else f"_{id(e)}"
-                e["new_path"] = base + suffix + ".asm"
+                e["new_path"] = f"{base}{suffix}.asm"
                 if not e["is_auto"]:
-                    e["new_label"] = e["new_label"] + suffix
+                    e["new_label"] = f"{e['new_label']}{suffix}"
 
     # Verify no remaining duplicates
-    final_paths = [e["new_path"] for e in entries]
-    if len(final_paths) != len(set(final_paths)):
-        dupes = [p for p in final_paths if final_paths.count(p) > 1]
-        print(f"ERROR: Still have duplicate paths: {set(dupes)}", file=sys.stderr)
+    all_paths = [e["new_path"] for e in entries]
+    dups = [p for p in all_paths if all_paths.count(p) > 1]
+    if dups:
+        print(f"ERROR: Duplicate paths remain: {set(dups)}", file=sys.stderr)
         sys.exit(1)
 
     # Write TSV
-    OUTPUT_TSV.parent.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_TSV, 'w') as f:
         f.write("old_path\tnew_path\told_label\tnew_label\tsubcategory\ttitle\n")
         for e in entries:
-            f.write(f"{e['old_path']}\t{e['new_path']}\t{e['old_label']}\t{e['new_label']}\t{e['subcategory']}\t{e['title']}\n")
+            f.write('\t'.join([
+                e["old_path"], e["new_path"],
+                e["old_label"], e["new_label"],
+                e["subcategory"], e["title"],
+            ]) + '\n')
 
-    # Print summary
+    # Summary
     subcats = defaultdict(int)
     for e in entries:
         subcats[e["subcategory"]] += 1
 
-    print(f"\nMapping written to {OUTPUT_TSV}")
-    print(f"\nSubcategory distribution:")
-    for subcat, count in sorted(subcats.items(), key=lambda x: -x[1]):
-        print(f"  {subcat:15s} {count:4d}")
-
-    # Count changes
     renames = sum(1 for e in entries if e["old_path"] != e["new_path"])
     label_changes = sum(1 for e in entries if e["old_label"] != e["new_label"])
-    print(f"\nTotal files: {len(entries)}")
-    print(f"Files to move/rename: {renames}")
-    print(f"Labels to change: {label_changes}")
+
+    print(f"\nMapping: {OUTPUT_TSV.relative_to(PROJECT_ROOT)}", file=sys.stderr)
+    print(f"\nSubcategory distribution:", file=sys.stderr)
+    for subcat, count in sorted(subcats.items(), key=lambda x: -x[1]):
+        print(f"  {subcat:15s} {count:4d}", file=sys.stderr)
+    print(f"\nTotal: {len(entries)}", file=sys.stderr)
+    print(f"To rename/move: {renames}", file=sys.stderr)
+    print(f"Labels to change: {label_changes}", file=sys.stderr)
 
 
 if __name__ == "__main__":

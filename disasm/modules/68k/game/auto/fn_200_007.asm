@@ -1,17 +1,27 @@
 ; ============================================================================
-; Input Controller Port Init 007 (auto-analyzed)
+; fn_200_007 — Hardware Initialization
 ; ROM Range: $000C70-$000D68 (248 bytes)
 ; ============================================================================
-; Category: input
-; Purpose: Accesses VDP registers
-;   Reads controller input
-;   Calls: io_port_init, controller_port_init
+; Data prefix ($000C70-$000C7F): Register initialization values read by
+; fn_200_006 via MOVEM.L (decoded as ORI.B #$00,D0 no-ops by disassembler).
 ;
+; Code entry at $000C80: Performs hardware initialization sequence:
+;   1. Resets Z80 (loads halt program: $F3 $F3 $C3 $00 $00)
+;   2. Silences PSG (4 channels: $FF, $DF, $BF, $9F)
+;   3. Clears work RAM ($C9A0-$FF00 range, $0D57+1 longwords)
+;   4. Reads hardware version from $A10001
+;   5. Detects expansion port and NTSC/PAL via version register bits 6-7
+;   6. Initializes I/O ports and controller drivers
+;
+; Entry: Called from system_boot_init at $000C80
 ; Uses: D0, D1, D7, A1
 ; Calls:
-;   $00170C: controller_port_init
-;   $0018D8: io_port_init
-; Confidence: high
+;   $0018D8: io_port_init (JSR PC-relative)
+;   $00170C: controller_port_init (JSR PC-relative)
+; Hardware:
+;   Z80_BUSREQ/Z80_RESET/Z80_RAM: Z80 management
+;   PSG ($C00011): Sound chip silence
+;   $A10001: Hardware version register
 ; ============================================================================
 
 fn_200_007:

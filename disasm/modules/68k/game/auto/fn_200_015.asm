@@ -1,16 +1,17 @@
 ; ============================================================================
-; Init 015 (auto-analyzed)
+; fn_200_015 — Tile Decompressor Inner Loop A
 ; ROM Range: $0011C2-$0011CE (12 bytes)
 ; ============================================================================
-; Category: boot
-; Purpose: Small leaf function
+; Decompression variant A: XOR-combine and store without post-increment.
+; EORs D4 into D2, writes D2 to (A4), decrements counter A5, loops
+; back to main decompressor body at $001182 if not done.
 ;
+; Entry: D2 = accumulated data, D4 = XOR mask, A4 = VDP_DATA, A5 = counter
 ; Uses: D2, D4, A4, A5
-; Confidence: low
 ; ============================================================================
 
 fn_200_015:
-        DC.W    $B982                           ; $0011C2
+        EOR.L   D4,D2                           ; $0011C2
         MOVE.L  D2,(A4)                         ; $0011C4
         SUBQ.W  #1,A5                           ; $0011C6
         MOVE.W  A5,D4                           ; $0011C8

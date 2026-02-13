@@ -1,18 +1,27 @@
 ; ============================================================================
-; Z80 Bus Vdp Init 010 (auto-analyzed)
+; fn_200_010 — VDP Display Initialization
 ; ROM Range: $000DD2-$000FEA (536 bytes)
 ; ============================================================================
-; Category: vdp
-; Purpose: Accesses VDP registers
-;   RAM: $C87A (vint_dispatch_state)
-;   Calls: z80_bus_vdp_init
+; VDP display initialization and main dispatch loop setup:
+;   1. Requests Z80 bus, configures display mode ($8C00) and scroll ($9010)
+;   2. DMA fill sprite attribute table: 128 entries at VRAM $0000
+;      (regs $9380/$9403/$9500/$9688/$977F, cmd $4000/$0083)
+;   3. DMA fill scroll/nametable: 64x14 entries at VRAM $C000
+;      (regs $9340/$9400/$9540/$96C2/$977F, cmd $C000/$0080)
+;   4. Configures rendering flags and palette transfer
+;   5. Polls completion via subroutine loop
+;   6. Resets Z80 with halt program, silences PSG (4 channels)
+;   7. Calls z80_bus_vdp_init for final VDP/sound setup
+;   8. Fills CRAM with initial palette (64 entries of color $0E)
+;   9. Copies one of two dispatch loop variants to RAM ($FF0000):
+;      - $000F92: Normal dispatch (game_tick + frame wait loop)
+;      - $000FAA: Alternate dispatch (alternate_tick + flag sync)
 ;
 ; Uses: D0, D1, D4, D6, D7, A0, A1, A5
 ; RAM:
 ;   $C87A: vint_dispatch_state
 ; Calls:
 ;   $000FEA: z80_bus_vdp_init
-; Confidence: medium
 ; ============================================================================
 
 fn_200_010:

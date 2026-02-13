@@ -1,35 +1,35 @@
 ; ============================================================================
-; Sh2 Comm Save All Registers 005 (auto-analyzed)
+; fn_200_005 — System Boot Initialization
 ; ROM Range: $0006BC-$000C5A (1438 bytes)
 ; ============================================================================
-; Category: sh2
-; Purpose: Orchestrator calling 8 subroutines
-;   Accesses 32X registers: adapter_ctrl, COMM0, COMM4, COMM6, bank_set
-;   Accesses VDP registers
-;   Reads controller input
-;   Calls: save_all_registers, sh2_frame_sync, warm_boot_init, sound_update_check
-;   Object (A0, A1, A4, A5): +$01, +$02 (flags/type), +$04 (speed_index/velocity), +$06 (speed), +$08, +$0C
+; Main system boot orchestrator. Performs full hardware initialization:
+;   1. Clears 64KB work RAM ($FF0000-$FFFFFF) — 2048 iterations x 32 bytes
+;   2. Initializes 32X adapter registers and clears all COMM channels
+;   3. Waits for framebuffer access, clears framebuffer and CRAM
+;   4. Checks COMM4 for warm boot magic ("SQER"/$53514552 or "SDER"/$53444552)
+;   5. Cold boot: validates ROM checksum, restores registers from table
+;   6. Waits for SH2 "M_OK"/"S_OK" handshake on COMM0/COMM4
+;   7. Resets Z80 three times (loads halt program: $F3 $F3 $C3 $00 $00)
+;   8. Silences PSG three times (4 channels: $FF, $DF, $BF, $9F)
+;   9. Initializes sound driver via SRAM bank access
+;   10. Sets up VDP, waits for DMA idle, launches main game loop
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
-; Entry: A4 = object/entity pointer
-; Entry: A5 = object/entity pointer
-; Uses: D0, D1, D2, D3, D4, D5, D6, D7
+; Uses: D0, D1, D2, D3, D4, D5, D6, D7, A0, A1, A4, A5, A6, A7
 ; Calls:
-;   $000C5A: save_all_registers
-;   $000D68: warm_boot_init
-;   $000DC4: sound_update_check
-;   $00203A: sh2_frame_sync
-; Object fields:
-;   +$01: [unknown]
-;   +$02: flags/type
-;   +$04: speed_index/velocity
-;   +$06: speed
-;   +$08: [unknown]
-;   +$0C: [unknown]
-;   +$10: [unknown]
-;   +$20: [unknown]
-; Confidence: high
+;   $000654: framebuffer_auto_fill_clear (BSR)
+;   $000694: cram_fill (BSR)
+;   $000C5A: register_restore_from_table (JSR PC-relative)
+;   $000C80: hardware_init (JSR PC-relative)
+;   $000D68: warm_boot_init (JSR PC-relative)
+;   $000DC4: sound_update_check (JSR PC-relative)
+;   $00203A: sh2_frame_sync (JSR PC-relative)
+;   $00263E: adapter_init (JSR PC-relative)
+; Hardware:
+;   MARS_SYS_BASE ($A15100): 32X adapter control
+;   COMM0-COMM6: SH2 handshake registers
+;   Z80_BUSREQ/Z80_RESET/Z80_RAM: Z80 management
+;   PSG ($C00011): Sound chip silence
+;   VDP_CTRL/VDP_DATA: Video display processor
 ; ============================================================================
 
 fn_200_005:
@@ -95,7 +95,7 @@ fn_200_005:
         MOVE.B  $0001(A5),D1                    ; $00078C
         MOVE.B  $0080(A1),D2                    ; $000790
         LSL.W  #8,D2                            ; $000794
-        DC.W    $8242                           ; $000796
+        OR.W    D2,D1                           ; $000796
         BTST    #15,D1                          ; $000798
         BNE.S  .loc_00EC                        ; $00079C
         BTST    #6,D1                           ; $00079E

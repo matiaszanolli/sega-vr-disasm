@@ -1,19 +1,19 @@
 ; ============================================================================
-; Init 003 (auto-analyzed)
+; fn_200_003 — Framebuffer Auto-Fill Clear
 ; ROM Range: $00063E-$000694 (86 bytes)
 ; ============================================================================
-; Category: boot
-; Purpose: Object (A1): +$04 (speed_index/velocity), +$06 (speed), +$08, +$0B, +$80
+; Data prefix ($00063E-$000653): VDP register values for DMA fill setup
+; ($8114, $8F01, $93FF, $94FF, $9500, $9600, $9780, $4000, $0080, $8104, $8F02).
 ;
-; Entry: A1 = object/entity pointer
-; Uses: D0, D1, D7, A1, A4
-; Object fields:
-;   +$04: speed_index/velocity
-;   +$06: speed
-;   +$08: [unknown]
-;   +$0B: [unknown]
-;   +$80: [unknown]
-; Confidence: low
+; Code entry at $000654: Clears 32X framebuffer using auto-fill registers.
+; Waits for framebuffer access (BCLR #7 on adapter control), sets auto-fill
+; length to 255, then iterates 256 times filling with zero via auto-increment
+; ($0100 per iteration).
+;
+; Entry: Called from system_boot_init at $000654 (NOT at fn_200_003 label)
+; Uses: D0, D1, D7, A1
+; Hardware:
+;   MARS_VDP_MODE ($A15180): Auto-fill length (+$04), address (+$06), data (+$08)
 ; ============================================================================
 
 fn_200_003:

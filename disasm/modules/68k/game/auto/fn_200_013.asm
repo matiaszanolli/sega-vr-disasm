@@ -1,12 +1,20 @@
 ; ============================================================================
-; Vdp 013 (auto-analyzed)
+; fn_200_013 — Tile Decompressor Setup
 ; ROM Range: $0010F4-$001140 (76 bytes)
 ; ============================================================================
-; Category: vdp
-; Purpose: Accesses VDP registers
+; Entry point for tile decompression. Two entry points with different
+; lookup table bases:
+;   $0010F4: Uses table at $008811B8 (primary tiles)
+;   $001106: Uses table at $008811CE (alternate tiles)
 ;
-; Uses: D0, D1, D2, D3, D4, D5, D6, D7
-; Confidence: medium
+; Reads compressed tile header from (A0)+: bit 15 selects table offset
+; (+$0A if set), remaining bits shifted left 2 become tile index in A5.
+; Calls inner decompression loop at $0011E4 via BSR.W, then reads
+; output parameters (D5 = dimensions, D6 = tile count $10).
+;
+; Entry: A0 = pointer to compressed tile data
+; Exit: Tiles decompressed to VDP via A4 (VDP_DATA)
+; Uses: D0-D7, A0, A1, A3, A4, A5
 ; ============================================================================
 
 fn_200_013:

@@ -1,16 +1,15 @@
 ; ============================================================================
-; Init 004 (auto-analyzed)
+; fn_200_004 — 32X CRAM Fill
 ; ROM Range: $000694-$0006BC (40 bytes)
 ; ============================================================================
-; Category: boot
-; Purpose: Short helper function
-;   Object (A0): +$100
+; Fills all 256 entries (512 bytes) of 32X CRAM with the color value in D0.
+; Waits for framebuffer access via adapter control register (BCLR #7 at
+; MARS_CRAM-$0100), then writes 32 iterations x 16 bytes = 512 bytes.
 ;
-; Entry: A0 = object/entity pointer
+; Entry: D0 = 32-bit color value to fill (typically 0 for black/clear)
 ; Uses: D0, D7, A0
-; Object fields:
-;   +$100: [unknown]
-; Confidence: low
+; Hardware:
+;   MARS_CRAM ($A15200): 32X color RAM (256 x 16-bit entries)
 ; ============================================================================
 
 fn_200_004:

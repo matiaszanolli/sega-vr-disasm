@@ -1,12 +1,13 @@
 ; ============================================================================
-; Init 016 (auto-analyzed)
+; fn_200_016 — Tile Decompressor Inner Loop B
 ; ROM Range: $0011CE-$0011D8 (10 bytes)
 ; ============================================================================
-; Category: boot
-; Purpose: Small leaf function
+; Decompression variant B: Store with post-increment, no XOR.
+; Writes D4 to (A4)+, decrements counter A5, loops back to main
+; decompressor body at $001182 if not done.
 ;
+; Entry: D4 = tile data, A4 = VDP_DATA, A5 = counter
 ; Uses: D4, A4, A5
-; Confidence: low
 ; ============================================================================
 
 fn_200_016:

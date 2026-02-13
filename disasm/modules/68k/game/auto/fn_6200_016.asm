@@ -1,12 +1,13 @@
 ; ============================================================================
-; Obj 016 (auto-analyzed)
+; fn_6200_016 — Conditional Position Subtract
 ; ROM Range: $006CE4-$006CEC (8 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Small leaf function
+; Calls condition check at $006D00, then subtracts D0 from (A1) if
+; condition is met (Z flag clear). Used for conditional entity position
+; adjustment.
 ;
+; Entry: D0 = adjustment value, A1 = target address
 ; Uses: D0, A1
-; Confidence: low
+; Confidence: high
 ; ============================================================================
 
 fn_6200_016:

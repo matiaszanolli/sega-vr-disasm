@@ -1,30 +1,18 @@
 ; ============================================================================
-; Obj Dispatch 006 (auto-analyzed)
+; fn_6200_006 — Entity Render Pipeline with 2-Player Dispatch
 ; ROM Range: $00677A-$006A3A (704 bytes)
-; ============================================================================
-; Category: object
-; Purpose: State dispatcher using jump table
-;   Calls: select_sprite_buffer, effect_timer_mgmt, object_frame_timer, load_object_params
-;   Object (A0): +$06 (speed), +$18, +$44 (display_offset), +$46 (display_scale), +$4A, +$74
+; Large multi-entry entity render pipeline with 2-player dispatch.
+; Contains 6 variants: full pipeline (43 calls + VDP), reduced (17 calls),
+; 2-player dispatch with 8-entry jump table, full with countdown timer,
+; display-only, and minimal render. Includes MOVEM-based object table
+; copying and entity position/heading updates per viewport.
 ;
-; Entry: A0 = object/entity pointer
+; Entry: A0 = entity base pointer
 ; Uses: D0, D1, A0, A1, A4
-; Calls:
-;   $002984: palette_update
-;   $0037B6: memory_copy
-;   $003CC4: player_table_load
-;   $003F86: clear_display_vars
-;   $006F98: calc_steering
-;   $007084: obj_position_update
-; Object fields:
-;   +$06: speed
-;   +$18: [unknown]
-;   +$44: display_offset
-;   +$46: display_scale
-;   +$4A: [unknown]
-;   +$74: [unknown]
-;   +$92: param_92
-;   +$AC: [unknown]
+; RAM: $9F00 obj_table_3
+; Object fields: +$06 speed, +$18 position, +$44 display_offset,
+;   +$46 display_scale, +$4A display_aux, +$74 render_state,
+;   +$92 render_mode, +$AC param
 ; Confidence: high
 ; ============================================================================
 

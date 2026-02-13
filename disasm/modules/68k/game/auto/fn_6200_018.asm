@@ -1,16 +1,13 @@
 ; ============================================================================
-; Obj 018 (auto-analyzed)
+; fn_6200_018 — Conditional Speed Subtract
 ; ROM Range: $006CF6-$006D00 (10 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Small leaf function
-;   Object (A1): +$04 (speed_index/velocity)
+; Calls condition check at $006D00, then subtracts D0 from A1+$04 (speed
+; field) if condition is met (Z flag clear).
 ;
-; Entry: A1 = object/entity pointer
+; Entry: D0 = adjustment value, A1 = entity pointer
 ; Uses: D0, A1
-; Object fields:
-;   +$04: speed_index/velocity
-; Confidence: low
+; Object fields: +$04 speed
+; Confidence: high
 ; ============================================================================
 
 fn_6200_018:

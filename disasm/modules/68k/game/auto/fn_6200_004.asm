@@ -1,27 +1,15 @@
 ; ============================================================================
-; Obj Calc Steering 004 (auto-analyzed)
+; fn_6200_004 — Entity Render Pipeline Jump Table
 ; ROM Range: $00659C-$00671A (382 bytes)
-; ============================================================================
-; Category: object
-; Purpose: Orchestrator calling 27 subroutines
-;   Calls: select_sprite_buffer, effect_timer_mgmt, object_frame_timer, load_object_params
-;   Object (A0): +$06 (speed), +$44 (display_offset), +$46 (display_scale), +$4A, +$74
+; Jump table (8 longword ROM addresses) followed by 4 render pipeline
+; variants. Variant A: full pipeline with sprite buffer, physics, steering
+; (27 calls). Variant B: extended with speed=0 init + countdown timer.
+; Variant C: reduced display-only. Variant D: minimal with state check.
 ;
-; Entry: A0 = object/entity pointer
+; Entry: A0 = entity base pointer
 ; Uses: D0, A0
-; Calls:
-;   $006F98: calc_steering
-;   $007084: obj_position_update
-;   $0070AA: angle_to_sine
-;   $007816: obj_collision_test
-;   $007C4E: obj_position_y
-;   $007CD8: obj_position_x
-; Object fields:
-;   +$06: speed
-;   +$44: display_offset
-;   +$46: display_scale
-;   +$4A: [unknown]
-;   +$74: [unknown]
+; Object fields: +$06 speed, +$44 display_offset, +$46 display_scale,
+;   +$4A display_aux, +$74 render_state
 ; Confidence: high
 ; ============================================================================
 

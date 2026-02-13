@@ -1,12 +1,12 @@
 ; ============================================================================
-; Obj 015 (auto-analyzed)
+; fn_6200_015 — Conditional Position Add
 ; ROM Range: $006CDC-$006CE4 (8 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Small leaf function
+; Calls condition check at $006D00, then adds D0 to (A1) if condition
+; is met (Z flag clear). Used for conditional entity position adjustment.
 ;
+; Entry: D0 = adjustment value, A1 = target address
 ; Uses: D0, A1
-; Confidence: low
+; Confidence: high
 ; ============================================================================
 
 fn_6200_015:

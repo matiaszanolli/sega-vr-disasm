@@ -1,28 +1,15 @@
 ; ============================================================================
-; Obj Dispatch 008 (auto-analyzed)
+; fn_6200_008 — Entity Data Table + Full Render Pipeline
 ; ROM Range: $006AB4-$006B96 (226 bytes)
-; ============================================================================
-; Category: object
-; Purpose: State dispatcher using jump table
-;   Calls: effect_timer_mgmt, object_frame_timer, load_object_params, timer_countdown
-;   Object (A0, A6): +$44 (display_offset), +$46 (display_scale), +$4A, +$88, +$92 (param_92)
+; ROM address lookup table (3 longword entries) followed by a reduced render
+; pipeline and a full render pipeline variant. The reduced variant handles
+; movement, collision, and display (15 calls). The full variant adds
+; physics, sorting, and palette (30 calls).
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A6 = object/entity pointer
+; Entry: A0 = entity base pointer
 ; Uses: D0, A0, A2, A6
-; Calls:
-;   $006F98: calc_steering
-;   $0070AA: angle_to_sine
-;   $007816: obj_collision_test
-;   $007C4E: obj_position_y
-;   $007CD8: obj_position_x
-;   $007E7A: obj_velocity_y
-; Object fields:
-;   +$44: display_offset
-;   +$46: display_scale
-;   +$4A: [unknown]
-;   +$88: [unknown]
-;   +$92: param_92
+; Object fields: +$44 display_offset, +$46 display_scale, +$4A display_aux,
+;   +$88 animation, +$92 render_mode
 ; Confidence: high
 ; ============================================================================
 

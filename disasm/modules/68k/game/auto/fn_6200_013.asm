@@ -1,14 +1,14 @@
 ; ============================================================================
-; Obj Fastcopy16 013 (auto-analyzed)
+; fn_6200_013 — Tile Block DMA Setup
 ; ROM Range: $006C46-$006C88 (66 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Calls: FastCopy16
+; Sets up tile block data for DMA transfers. Initializes 6 groups of tile
+; block entries, reading source sizes from ROM table at $89B844, writing
+; destination pointers to $FF3000 region, and calling FastCopy16 for each
+; tile row. Used during scene setup for background tile loading.
 ;
+; Entry: Called during scene initialization
 ; Uses: D5, D6, D7, A1, A2, A3, A4
-; Calls:
-;   $004922: FastCopy16
-; Confidence: low
+; Confidence: high
 ; ============================================================================
 
 fn_6200_013:

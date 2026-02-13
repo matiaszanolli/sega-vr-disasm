@@ -1,28 +1,23 @@
 ; ============================================================================
-; Vint Obj Table 1 053 (auto-analyzed)
+; fn_2200_053 — Object Table Sprite Parameter Update
 ; ROM Range: $0036DE-$0037B6 (216 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: RAM: $9100 (obj_table_1), $C8CC (race_substate)
-;   Object (A0, A1, A3): +$00, +$02 (flags/type), +$04 (speed_index/velocity), +$06 (speed), +$08, +$0A (param_a)
+; Iterates through 15 objects (D7=$0E), reading sprite type from entity
+; +$C1 and computing render parameters for the SH2 3D pipeline.
+; For each object with non-zero type:
+;   1. Checks visibility (ghost mode, flag bit 3 at +$E5)
+;   2. Looks up sprite definition from ROM table ($008958E4 + car_index)
+;   3. Doubles type ID and adds +$C2 as sub-index
+;   4. Stores sprite def pointer to output +$10
+;   5. Computes scaled positions: lateral (div8), height with roll (+$6E),
+;      depth (div8), and rotation (div8) to output slots
+;   6. Copies speed (+$30) and heading (+$34) as-is
+;   7. Sets visibility flags D5/D6 (type 1 = both visible)
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
-; Entry: A3 = object/entity pointer
+; Entity stride: $100 bytes. Output stride: $3C bytes.
+;
+; Entry: Fixed addresses A0=$FF9100, A1=$FF6218
 ; Uses: D0, D5, D6, D7, A0, A1, A3
-; RAM:
-;   $9100: obj_table_1
-;   $C8CC: race_substate
-; Object fields:
-;   +$00: [unknown]
-;   +$02: flags/type
-;   +$04: speed_index/velocity
-;   +$06: speed
-;   +$08: [unknown]
-;   +$0A: param_a
-;   +$0C: [unknown]
-;   +$10: [unknown]
-; Confidence: high
 ; ============================================================================
 
 fn_2200_053:
@@ -61,8 +56,8 @@ fn_2200_053:
         BEQ.S  .loc_005E                        ; $003738
         MOVEQ   #$00,D6                         ; $00373A
 .loc_005E:
-        DC.W    $D040                           ; $00373C
-        DC.W    $D040                           ; $00373E
+        ADD.W   D0,D0                           ; $00373C
+        ADD.W   D0,D0                           ; $00373E
         ADD.W  $00C2(A0),D0                     ; $003740
         MOVE.L  $00(A3,D0.W),$0010(A1)          ; $003744
         MOVE.W  (-16156).W,D0                   ; $00374A

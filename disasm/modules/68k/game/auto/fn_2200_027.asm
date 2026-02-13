@@ -1,23 +1,15 @@
 ; ============================================================================
-; Vint Physics 027 (auto-analyzed)
+; fn_2200_027 — Camera Parameter Calculation C (Dual Output)
 ; ROM Range: $002CDC-$002DCA (238 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Object (A0, A1): +$04 (speed_index/velocity), +$06 (speed), +$08, +$0A (param_a), +$0C, +$16 (calc_speed)
+; Computes camera view parameters from entity A0, stores to both camera
+; buffer A1 and secondary buffer A2. Same position/velocity scaling as
+; fn_2200_022/025 (ASR #3 ÷8) but writes duplicated results to A2 offsets
+; +$011A through +$015C for the second viewport. Includes additional
+; reference offsets from RAM ($C034-$C042 area) for stereo camera.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
+; Entry: A0 = entity, A1 = primary camera buffer, A2 = secondary buffer
 ; Uses: D0, D1, A0, A1, A2
-; Object fields:
-;   +$04: speed_index/velocity
-;   +$06: speed
-;   +$08: [unknown]
-;   +$0A: param_a
-;   +$0C: [unknown]
-;   +$16: calc_speed
-;   +$18: [unknown]
-;   +$1A: direction
-; Confidence: medium
 ; ============================================================================
 
 fn_2200_027:
@@ -46,7 +38,7 @@ fn_2200_027:
         MOVE.W  D0,$0008(A1)                    ; $002D2C
         MOVE.W  $0044(A0),D0                    ; $002D30
         ASR.W  #3,D0                            ; $002D34
-        DC.W    $D041                           ; $002D36
+        ADD.W   D1,D0                           ; $002D36
         NEG.W  D0                               ; $002D38
         MOVE.W  D0,$001C(A1)                    ; $002D3A
         MOVE.W  D0,$0120(A2)                    ; $002D3E
@@ -60,7 +52,7 @@ fn_2200_027:
         MOVE.W  D0,$000A(A1)                    ; $002D58
         MOVE.W  $0046(A0),D0                    ; $002D5C
         ASR.W  #3,D0                            ; $002D60
-        DC.W    $9240                           ; $002D62
+        SUB.W   D0,D1                           ; $002D62
         MOVE.W  D1,$001E(A1)                    ; $002D64
         MOVE.W  D1,$0122(A2)                    ; $002D68
         MOVE.W  $003E(A0),D0                    ; $002D6C
@@ -72,7 +64,7 @@ fn_2200_027:
         MOVE.W  $004A(A0),D0                    ; $002D80
         ADD.W  $004C(A0),D0                     ; $002D84
         ASR.W  #5,D0                            ; $002D88
-        DC.W    $9041                           ; $002D8A
+        SUB.W   D1,D0                           ; $002D8A
         MOVE.W  D0,$0020(A1)                    ; $002D8C
         MOVE.W  D0,$0124(A2)                    ; $002D90
         MOVE.W  $0090(A0),D0                    ; $002D94

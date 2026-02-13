@@ -1,24 +1,15 @@
 ; ============================================================================
-; Input 048 (auto-analyzed)
+; fn_2200_048 — Race Result Recording (2-Player)
 ; ROM Range: $003404-$0034D2 (206 bytes)
 ; ============================================================================
-; Category: input
-; Purpose: RAM: $C07C (input_state)
-;   Object (A0, A1, A3): +$00, +$01, +$02 (flags/type), +$08, +$2C
+; Records race completion result for 2-player mode. Selects player's timing
+; data source based on entity address (A0=$9000 → player 1 at $C876,
+; else → player 2 at $C883). Same timing lookup/compression as fn_2200_046.
+; After recording, compares with best time and updates leaderboard slot.
+; Also handles replay counter advance if in demo mode ($C3B9 set).
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
-; Entry: A3 = object/entity pointer
+; Entry: A0 = entity pointer (car), selects player by address
 ; Uses: D0, A0, A1, A2, A3
-; RAM:
-;   $C07C: input_state
-; Object fields:
-;   +$00: [unknown]
-;   +$01: [unknown]
-;   +$02: flags/type
-;   +$08: [unknown]
-;   +$2C: [unknown]
-; Confidence: medium
 ; ============================================================================
 
 fn_2200_048:
@@ -31,7 +22,7 @@ fn_2200_048:
         MOVEQ   #$00,D0                         ; $003416
         MOVE.B  (A1),D0                         ; $003418
         MOVE.B  #$00,(A1)                       ; $00341A
-        DC.W    $D040                           ; $00341E
+        ADD.W   D0,D0                           ; $00341E
         LEA     $00899884,A3                    ; $003420
         MOVE.W  $00(A3,D0.W),D0                 ; $003426
         MOVE.B  D0,(A2)+                        ; $00342A
@@ -39,7 +30,7 @@ fn_2200_048:
         MOVE.B  $0001(A1),D0                    ; $00342E
         MOVE.B  #$C4,$0001(A1)                  ; $003432
         SUBI.B  #$C4,D0                         ; $003438
-        DC.W    $D040                           ; $00343C
+        ADD.W   D0,D0                           ; $00343C
         LEA     $00899884,A3                    ; $00343E
         MOVE.W  $00(A3,D0.W),D0                 ; $003444
         MOVE.B  D0,(A2)+                        ; $003448
@@ -47,7 +38,7 @@ fn_2200_048:
         MOVE.B  $0002(A1),D0                    ; $00344C
         MOVE.B  #$C4,$0002(A1)                  ; $003450
         SUBI.B  #$C4,D0                         ; $003456
-        DC.W    $D040                           ; $00345A
+        ADD.W   D0,D0                           ; $00345A
         LEA     $0089980C,A3                    ; $00345C
         MOVE.W  $00(A3,D0.W),D0                 ; $003462
         MOVE.W  D0,(A2)+                        ; $003466

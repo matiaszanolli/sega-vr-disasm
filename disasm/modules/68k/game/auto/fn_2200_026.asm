@@ -1,33 +1,27 @@
 ; ============================================================================
-; Obj Render Check 026 (auto-analyzed)
+; fn_2200_026 — Object Render Dispatcher
 ; ROM Range: $002BB0-$002C9A (234 bytes)
 ; ============================================================================
-; Category: object
-; Purpose: Orchestrator calling 8 subroutines
-;   RAM: $9F00 (obj_table_3)
-;   Calls: obj_transform_copy, obj_texture_select, obj_position_copy, obj_render_flags_set
-;   Object (A0, A1): +$14 (effect_duration), +$28, +$3C (heading_mirror), +$50, +$C0 (render_flags), +$E4
+; Dispatches object rendering pipeline for both players. Two entry points:
+;   $002BB0: Player 1 (A0=$FF9000, A1=$FF6100, A2=$FF6330)
+;   $002C04: Player 2 (A0=$FF9F00, A1=$FF6330, A2=$FF6100)
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
+; For each player, checks if rendering is paused ($C3AE bit 5), then:
+;   - Normal path: obj_render_check → camera_calc → texture_select → finish
+;   - Alt path (no camera): position_copy → finish
+;   - Paused path: sets visibility=2, obj_flags_set → render_flags → texture
+;
+; Also includes render visibility subroutine ($002C58) that checks entity
+; +$C0 (render state), ghost mode (-$600C/-$B4FC), and flag bit 3 at +$E5.
+;
 ; Uses: D0, A0, A1, A2
-; RAM:
-;   $9F00: obj_table_3
 ; Calls:
-;   $002C9A: obj_render_check
-;   $002CDC: obj_transform_copy
-;   $002DCA: obj_texture_select
-;   $002F04: obj_position_copy
-;   $003010: obj_render_flags_set
-; Object fields:
-;   +$14: effect_duration
-;   +$28: [unknown]
-;   +$3C: heading_mirror
-;   +$50: [unknown]
-;   +$C0: render_flags
-;   +$E4: [unknown]
-;   +$E5: [unknown]
-; Confidence: high
+;   $002C58: render_visibility_check (internal)
+;   $002CDC: camera_param_calc_c (JSR PC-relative)
+;   $002DCA/$002E34: texture_select (JSR PC-relative)
+;   $002F04: position_copy (JSR PC-relative)
+;   $003010: render_flags_set (JSR PC-relative)
+;   $003130: obj_flags_set (JSR PC-relative)
 ; ============================================================================
 
 fn_2200_026:

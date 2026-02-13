@@ -1,23 +1,14 @@
 ; ============================================================================
-; Vint Physics 038 (auto-analyzed)
+; fn_2200_038 — Camera Parameter Calculation D (Dual Output)
 ; ROM Range: $002F04-$003010 (268 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Object (A0, A1): +$04 (speed_index/velocity), +$06 (speed), +$08, +$0A (param_a), +$0C, +$16 (calc_speed)
+; Computes camera view parameters with dual output (A1 + A2), plus angular
+; velocity smoothing. Similar to fn_2200_027 but uses different velocity
+; subtraction order and includes the rotation averaging calculation from
+; fn_2200_025 (ASR #7 + ASR #6 + ADD + ASL #1 → non-linear smoothing).
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
+; Entry: A0 = entity, A1 = primary camera buffer, A2 = secondary buffer
 ; Uses: D0, D1, A0, A1, A2
-; Object fields:
-;   +$04: speed_index/velocity
-;   +$06: speed
-;   +$08: [unknown]
-;   +$0A: param_a
-;   +$0C: [unknown]
-;   +$16: calc_speed
-;   +$18: [unknown]
-;   +$1A: direction
-; Confidence: medium
 ; ============================================================================
 
 fn_2200_038:
@@ -56,7 +47,7 @@ fn_2200_038:
         MOVE.W  D1,$001E(A1)                    ; $002F7A
         MOVE.W  $0046(A0),D0                    ; $002F7E
         ASR.W  #3,D0                            ; $002F82
-        DC.W    $9240                           ; $002F84
+        SUB.W   D0,D1                           ; $002F84
         MOVE.W  D1,$0122(A2)                    ; $002F86
         MOVE.W  $003E(A0),D0                    ; $002F8A
         ASR.W  #3,D0                            ; $002F8E
@@ -66,12 +57,12 @@ fn_2200_038:
         MOVE.W  D0,$000C(A1)                    ; $002F9A
         MOVE.W  $004C(A0),D0                    ; $002F9E
         ASR.W  #4,D0                            ; $002FA2
-        DC.W    $9041                           ; $002FA4
+        SUB.W   D1,D0                           ; $002FA4
         MOVE.W  D0,$0020(A1)                    ; $002FA6
         MOVE.W  $004A(A0),D0                    ; $002FAA
         ADD.W  $004C(A0),D0                     ; $002FAE
         ASR.W  #5,D0                            ; $002FB2
-        DC.W    $9041                           ; $002FB4
+        SUB.W   D1,D0                           ; $002FB4
         MOVE.W  D0,$0124(A2)                    ; $002FB6
         MOVE.W  $0090(A0),D0                    ; $002FBA
         ASR.W  #3,D0                            ; $002FBE
@@ -90,14 +81,14 @@ fn_2200_038:
         MOVE.W  $008E(A0),D0                    ; $002FEE
         EXT.L   D1                              ; $002FF2
         EXT.L   D0                              ; $002FF4
-        DC.W    $D081                           ; $002FF6
+        ADD.L   D1,D0                           ; $002FF6
         ASR.L  #1,D0                            ; $002FF8
         MOVE.W  D0,(-16248).W                   ; $002FFA
         NEG.W  D0                               ; $002FFE
         MOVE.W  D0,D1                           ; $003000
         ASR.W  #7,D1                            ; $003002
         ASR.W  #6,D0                            ; $003004
-        DC.W    $D041                           ; $003006
+        ADD.W   D1,D0                           ; $003006
         ASL.W  #1,D0                            ; $003008
         MOVE.W  D0,$0070(A1)                    ; $00300A
         RTS                                     ; $00300E

@@ -1,19 +1,13 @@
 ; ============================================================================
-; Vint Heading 037 (auto-analyzed)
+; fn_2200_037 — Object Visibility Enable
 ; ROM Range: $002EEE-$002F04 (22 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Short helper function
-;   Object (A1): +$14 (effect_duration), +$28, +$3C (heading_mirror), +$50
+; Sets visibility flag to 1 for all 5 render slots in the camera buffer:
+; (A1)+$00, +$14, +$28, +$3C, +$50. Each slot is a 20-byte ($14) render
+; parameter block. Value 1 = visible, 0 = hidden, 2 = special.
 ;
-; Entry: A1 = object/entity pointer
+; Entry: A1 = camera/render buffer pointer
 ; Uses: D0, A1
-; Object fields:
-;   +$14: effect_duration
-;   +$28: [unknown]
-;   +$3C: heading_mirror
-;   +$50: [unknown]
-; Confidence: low
 ; ============================================================================
 
 fn_2200_037:

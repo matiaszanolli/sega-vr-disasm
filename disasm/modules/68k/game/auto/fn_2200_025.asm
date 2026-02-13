@@ -1,23 +1,16 @@
 ; ============================================================================
-; Vint Physics 025 (auto-analyzed)
+; fn_2200_025 — Camera Parameter Calculation B
 ; ROM Range: $002ADE-$002BB0 (210 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Object (A0, A1): +$04 (speed_index/velocity), +$06 (speed), +$08, +$0A (param_a), +$0C, +$16 (calc_speed)
+; Computes camera view parameters from entity A0 ($FF9000), stores to
+; camera buffer A1 ($FF6100). Reads positions/velocities, scales by
+; ASR #3 (÷8), computes lateral/height/roll components relative to
+; world reference points (RAM $C034-$C03E area). Includes angular
+; velocity smoothing at end: averages $008E(A0) with stored value,
+; applies non-linear scaling (ASR #7 + ASR #6 + shift).
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
+; Entry: A0 = entity ($FF9000), A1 = camera buffer ($FF6100)
 ; Uses: D0, D1, A0, A1
-; Object fields:
-;   +$04: speed_index/velocity
-;   +$06: speed
-;   +$08: [unknown]
-;   +$0A: param_a
-;   +$0C: [unknown]
-;   +$16: calc_speed
-;   +$18: [unknown]
-;   +$1A: direction
-; Confidence: medium
 ; ============================================================================
 
 fn_2200_025:
@@ -60,7 +53,7 @@ fn_2200_025:
         MOVE.W  D0,$000C(A1)                    ; $002B5E
         MOVE.W  $004C(A0),D0                    ; $002B62
         ASR.W  #4,D0                            ; $002B66
-        DC.W    $9041                           ; $002B68
+        SUB.W   D1,D0                           ; $002B68
         MOVE.W  D0,$0020(A1)                    ; $002B6A
         MOVE.W  $0090(A0),D0                    ; $002B6E
         ASR.W  #3,D0                            ; $002B72
@@ -74,14 +67,14 @@ fn_2200_025:
         MOVE.W  $008E(A0),D0                    ; $002B8E
         EXT.L   D1                              ; $002B92
         EXT.L   D0                              ; $002B94
-        DC.W    $D081                           ; $002B96
+        ADD.L   D1,D0                           ; $002B96
         ASR.L  #1,D0                            ; $002B98
         MOVE.W  D0,(-16248).W                   ; $002B9A
         NEG.W  D0                               ; $002B9E
         MOVE.W  D0,D1                           ; $002BA0
         ASR.W  #7,D1                            ; $002BA2
         ASR.W  #6,D0                            ; $002BA4
-        DC.W    $D041                           ; $002BA6
+        ADD.W   D1,D0                           ; $002BA6
         ASL.W  #1,D0                            ; $002BA8
         MOVE.W  D0,$0070(A1)                    ; $002BAA
         RTS                                     ; $002BAE

@@ -1,23 +1,17 @@
 ; ============================================================================
-; Vint Physics 039 (auto-analyzed)
+; fn_2200_039 — Object Position Copy with Render Flags
 ; ROM Range: $003010-$0030C6 (182 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Object (A0, A1): +$30 (x_position), +$32, +$34 (y_position), +$3A, +$3C (heading_mirror), +$3E
+; Copies entity positions to render buffer (A2) and sets render visibility
+; flags. Checks entity +$C0 for render state (0=hidden, 1=visible).
+; Computes 3D position derivatives from entity offsets:
+;   +$120: height velocity (from +$3A/+$44 scaled)
+;   +$122: roll velocity (from +$3C/+$96/+$46 scaled)
+;   +$124: depth acceleration (from +$3E/+$4A/+$4C scaled)
+; Also copies rotation (+$90, +$BC) and speed (+$30, +$34) to output.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
+; Entry: A0 = entity, A1 = camera buffer, A2 = render output buffer
 ; Uses: D0, D1, D2, D3, A0, A1, A2
-; Object fields:
-;   +$30: x_position
-;   +$32: [unknown]
-;   +$34: y_position
-;   +$3A: [unknown]
-;   +$3C: heading_mirror
-;   +$3E: [unknown]
-;   +$44: display_offset
-;   +$46: display_scale
-; Confidence: medium
 ; ============================================================================
 
 fn_2200_039:
@@ -43,7 +37,7 @@ fn_2200_039:
         ASR.W  #3,D1                            ; $003050
         MOVE.W  $0044(A0),D0                    ; $003052
         ASR.W  #3,D0                            ; $003056
-        DC.W    $D041                           ; $003058
+        ADD.W   D1,D0                           ; $003058
         NEG.W  D0                               ; $00305A
         MOVE.W  D0,$0120(A2)                    ; $00305C
         MOVE.W  $003C(A0),D2                    ; $003060
@@ -52,14 +46,14 @@ fn_2200_039:
         MOVE.W  $0046(A0),D0                    ; $00306A
         ASR.W  #3,D0                            ; $00306E
         NEG.W  D0                               ; $003070
-        DC.W    $D042                           ; $003072
+        ADD.W   D2,D0                           ; $003072
         MOVE.W  D0,$0122(A2)                    ; $003074
         MOVE.W  $003E(A0),D3                    ; $003078
         ASR.W  #3,D3                            ; $00307C
         MOVE.W  $004A(A0),D0                    ; $00307E
         ADD.W  $004C(A0),D0                     ; $003082
         ASR.W  #5,D0                            ; $003086
-        DC.W    $D043                           ; $003088
+        ADD.W   D3,D0                           ; $003088
         NEG.W  D0                               ; $00308A
         MOVE.W  D0,$0124(A2)                    ; $00308C
         MOVE.W  $0090(A0),D0                    ; $003090

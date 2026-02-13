@@ -1,25 +1,20 @@
 ; ============================================================================
-; Vint Objs 052 (auto-analyzed)
+; fn_2200_052 — Race Result with Leaderboard Update
 ; ROM Range: $0035B4-$0036C8 (276 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: RAM: $6950 (obj_flags), $C89C (sh2_comm_state), $C8A0 (race_state), $C8C8 (vint_state)
-;   Object (A0, A1, A3): +$00, +$2C
+; Extended race result recording with leaderboard/records comparison.
+; Similar to fn_2200_046 but additionally:
+;   1. Checks if this is the final car finishing (compares +$2C with count)
+;   2. Reads lap timing, looks up compressed values, appends to buffer
+;   3. Calls score calculation ($00B2E4) and score display ($00B40E)
+;   4. Compares with personal best ($C298) — updates if new record
+;   5. Computes track/car-specific leaderboard slot using:
+;      track_index x 32 + car_index x 8 + position (from RAM $C87C/$C880)
+;   6. Compares with leaderboard entry, copies timing data if beaten
+;   7. Sets race complete flag and result display code
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
-; Entry: A3 = object/entity pointer
+; Entry: A0 = entity pointer (car)
 ; Uses: D0, D1, D2, A0, A1, A2, A3
-; RAM:
-;   $6950: obj_flags
-;   $C89C: sh2_comm_state
-;   $C8A0: race_state
-;   $C8C8: vint_state
-;   $C8CC: race_substate
-; Object fields:
-;   +$00: [unknown]
-;   +$2C: [unknown]
-; Confidence: high
 ; ============================================================================
 
 fn_2200_052:
@@ -35,7 +30,7 @@ fn_2200_052:
         MOVEQ   #$00,D0                         ; $0035D8
         MOVE.B  (-14330).W,D0                   ; $0035DA
         MOVE.B  #$00,(-14330).W                 ; $0035DE
-        DC.W    $D040                           ; $0035E4
+        ADD.W   D0,D0                           ; $0035E4
         LEA     $00899884,A3                    ; $0035E6
         MOVE.W  $00(A3,D0.W),D0                 ; $0035EC
         MOVE.B  D0,(A2)+                        ; $0035F0
@@ -43,7 +38,7 @@ fn_2200_052:
         MOVE.B  (-14329).W,D0                   ; $0035F4
         MOVE.B  #$C4,(-14329).W                 ; $0035F8
         SUBI.B  #$C4,D0                         ; $0035FE
-        DC.W    $D040                           ; $003602
+        ADD.W   D0,D0                           ; $003602
         LEA     $00899884,A3                    ; $003604
         MOVE.W  $00(A3,D0.W),D0                 ; $00360A
         MOVE.B  D0,(A2)+                        ; $00360E
@@ -51,7 +46,7 @@ fn_2200_052:
         MOVE.B  (-14328).W,D0                   ; $003612
         MOVE.B  #$C4,(-14328).W                 ; $003616
         SUBI.B  #$C4,D0                         ; $00361C
-        DC.W    $D040                           ; $003620
+        ADD.W   D0,D0                           ; $003620
         LEA     $0089980C,A3                    ; $003622
         MOVE.W  $00(A3,D0.W),D0                 ; $003628
         MOVE.W  D0,(A2)+                        ; $00362C
@@ -77,7 +72,7 @@ fn_2200_052:
         MOVE.W  (-14136).W,D2                   ; $003678
         LSL.W  #3,D2                            ; $00367C
         ADD.W  (-14132).W,D2                    ; $00367E
-        DC.W    $D242                           ; $003682
+        ADD.W   D2,D1                           ; $003682
         LEA     $00(A1,D1.W),A1                 ; $003684
         CMP.L  (A1),D0                          ; $003688
         BGE.S  .loc_00FC                        ; $00368A

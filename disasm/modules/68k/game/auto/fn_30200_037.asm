@@ -1,19 +1,16 @@
 ; ============================================================================
-; Vdp 037 (auto-analyzed)
+; PSG Set Position + Silence — envelope position set and PSG mute
 ; ROM Range: $030FA2-$030FC8 (38 bytes)
 ; ============================================================================
-; Category: vdp
-; Purpose: Short helper function
-;   Accesses VDP registers
-;   Object (A0, A5): +$01, +$0C
+; Multiple entry points:
+;   $030FA2: Set envelope position from next data byte, resume reading.
+;   $030FAA: Clear envelope position to 0, resume reading.
+;   $030FB2 (fm_set_volume / PSG silence): Checks key-off (bit 2). If
+;     not set, writes PSG max attenuation (channel | $1F) to $C00011.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A5 = object/entity pointer
-; Uses: D0, A0, A5
-; Object fields:
-;   +$01: [unknown]
-;   +$0C: [unknown]
-; Confidence: medium
+; Entry: A5 = PSG channel structure pointer
+; Uses: D0, A0
+; Confidence: high
 ; ============================================================================
 
 fn_30200_037:

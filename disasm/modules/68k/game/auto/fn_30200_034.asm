@@ -1,20 +1,17 @@
 ; ============================================================================
-; Vdp 034 (auto-analyzed)
+; PSG Volume Envelope Processor — step through volume envelope data
 ; ROM Range: $030F0E-$030F82 (116 bytes)
 ; ============================================================================
-; Category: vdp
-; Purpose: Accesses VDP registers
-;   Object (A0, A5): +$00, +$01, +$09, +$0B, +$0C
+; Reads envelope position (A5+$09) as base volume D6. If envelope table
+; active (A5+$0B != 0): looks up envelope data from ROM table at $0329FA,
+; advances position counter (A5+$0C). Special bytes:
+;   $80=loop end, $81=rewind 2, $82=set position, $83=reinit+mute.
+; Adds envelope delta to D6, clamps to $0F max. At $030F60: writes PSG
+; volume register — combines channel (A5+$01) with volume + $10 offset.
+; Checks mute (bit 1), key-off (bit 2), sustain (bit 4) before writing.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A5 = object/entity pointer
+; Entry: A5 = PSG channel structure pointer
 ; Uses: D0, D6, A0, A5
-; Object fields:
-;   +$00: [unknown]
-;   +$01: [unknown]
-;   +$09: [unknown]
-;   +$0B: [unknown]
-;   +$0C: [unknown]
 ; Confidence: medium
 ; ============================================================================
 
@@ -43,7 +40,7 @@ fn_30200_034:
         CMPI.B  #$80,D0                         ; $030F50
         DC.W    $6754               ; BEQ.S  $030FAA; $030F54
 .loc_0048:
-        DC.W    $DC40                           ; $030F56
+        ADD.W   D0,D6                           ; $030F56
         CMPI.B  #$10,D6                         ; $030F58
         BCS.S  .loc_0052                        ; $030F5C
         MOVEQ   #$0F,D6                         ; $030F5E

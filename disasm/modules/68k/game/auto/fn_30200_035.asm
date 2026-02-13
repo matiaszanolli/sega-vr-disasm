@@ -1,17 +1,14 @@
 ; ============================================================================
-; Fm 035 (auto-analyzed)
+; PSG Vibrato Check — conditional PSG write based on vibrato state
 ; ROM Range: $030F82-$030F90 (14 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Short helper function
-;   Object (A5): +$12 (timer_12), +$13
+; Checks vibrato enable (A5+$13). If zero, branches to PSG volume write
+; at $030F72. If enabled, checks vibrato timer (A5+$12): if nonzero,
+; also branches to write. Otherwise returns without update.
 ;
-; Entry: A5 = object/entity pointer
+; Entry: A5 = PSG channel structure pointer
 ; Uses: A5
-; Object fields:
-;   +$12: timer_12
-;   +$13: [unknown]
-; Confidence: low
+; Confidence: medium
 ; ============================================================================
 
 fn_30200_035:

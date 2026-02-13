@@ -1,13 +1,13 @@
 ; ============================================================================
-; Vdp 038 (auto-analyzed)
+; PSG All Silence — mute all 4 PSG channels
 ; ROM Range: $030FC8-$030FE0 (24 bytes)
 ; ============================================================================
-; Category: vdp
-; Purpose: Short helper function
-;   Accesses VDP registers
+; Writes maximum attenuation to all 4 PSG channels via $C00011:
+;   $9F (ch0 vol=F), $BF (ch1 vol=F), $DF (ch2 vol=F), $FF (ch3 vol=F).
+; Standard PSG silence pattern used during sound driver reset.
 ;
 ; Uses: A0
-; Confidence: medium
+; Confidence: high
 ; ============================================================================
 
 fn_30200_038:

@@ -1,15 +1,16 @@
 ; ============================================================================
-; Fm Z80 Bus Request 040 (auto-analyzed)
+; Z80 DAC Byte Write — write sequence byte to Z80 DAC register
 ; ROM Range: $031166-$03117C (22 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Short helper function
-;   Calls: z80_bus_request
+; Reads one byte from sequence pointer (A4), requests Z80 bus, writes
+; byte to Z80 DAC register at $A00FFE, releases Z80 bus. Used as a
+; sequence command sub-handler for direct DAC sample control.
 ;
+; Entry: A4 = sequence data pointer (advanced by 1)
 ; Uses: D0, A4
 ; Calls:
 ;   $030D1C: z80_bus_request
-; Confidence: medium
+; Confidence: high
 ; ============================================================================
 
 fn_30200_040:

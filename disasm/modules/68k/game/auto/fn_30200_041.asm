@@ -1,16 +1,15 @@
 ; ============================================================================
-; Fm 041 (auto-analyzed)
+; Set Base Frequency — read 16-bit frequency from sequence
 ; ROM Range: $03117C-$031188 (12 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Small leaf function
-;   Object (A5): +$1E
+; Reads 2 bytes from sequence pointer (A4) as big-endian 16-bit value
+; (high byte first via LSL #8). Stores result to channel base frequency
+; at A5+$1E. Used as a sequence command for direct frequency override.
 ;
-; Entry: A5 = object/entity pointer
-; Uses: D0, A4, A5
-; Object fields:
-;   +$1E: [unknown]
-; Confidence: low
+; Entry: A4 = sequence data pointer (advanced by 2)
+; Entry: A5 = channel structure pointer
+; Uses: D0, A4
+; Confidence: high
 ; ============================================================================
 
 fn_30200_041:

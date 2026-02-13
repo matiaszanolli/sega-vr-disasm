@@ -1,24 +1,23 @@
 ; ============================================================================
-; Fm Dispatch 039 (auto-analyzed)
+; PSG Frequency Table + Special Command Dispatcher — data and $E0+ handler
 ; ROM Range: $030FE0-$031166 (390 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: State dispatcher using jump table
-;   Object (A1, A4, A5, A6): +$09, +$16 (calc_speed), +$18, +$28, +$65, +$69
+; Data prefix ($030FE0-$031093): 128-entry PSG frequency lookup table
+; (16-bit big-endian values, note $00-$7F). Used by PSG channel processor
+; for note-on frequency lookup.
+; Code at $031094: Special command dispatcher for sequence bytes $E0-$FF.
+; Subtracts $E0, dispatches via 32-entry jump table to handlers for:
+;   tempo change, transpose, vibrato, portamento, volume adjust, etc.
+; Secondary dispatcher at $03111A: sub-command router (8 entries) for
+;   Z80 DAC writes, base frequency set, pitch bend.
+; At $031144: Pitch bend processor — reads channel index from sequence,
+; looks up bend amount/direction from A6+$16/$18 state, applies to
+; envelope position (A5+$09), calls $03135A to write.
 ;
-; Entry: A1 = object/entity pointer
-; Entry: A4 = object/entity pointer
-; Entry: A5 = object/entity pointer
-; Entry: A6 = object/entity pointer
-; Uses: D0, D1, D3, D4, D5, D7, A0, A1
-; Object fields:
-;   +$09: [unknown]
-;   +$16: calc_speed
-;   +$18: [unknown]
-;   +$28: [unknown]
-;   +$65: [unknown]
-;   +$69: [unknown]
-; Confidence: low
+; Entry: A5 = channel structure pointer, A4 = sequence pointer
+; Entry: A6 = sound driver state pointer
+; Uses: D0, D1, D3, D4, D5, D7, A0, A1, A4, A5, A6
+; Confidence: medium
 ; ============================================================================
 
 fn_30200_039:

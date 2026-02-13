@@ -1,19 +1,17 @@
 ; ============================================================================
-; Vdp Sequence Process 033 (auto-analyzed)
+; PSG Sequence Tick — read frequency and write PSG tone registers
 ; ROM Range: $030ECE-$030F0E (64 bytes)
 ; ============================================================================
-; Category: vdp
-; Purpose: Accesses VDP registers
-;   Calls: fm_sequence_process
-;   Object (A5): +$01, +$0A (param_a)
+; Checks channel active (A5+$0A), mute (bit 1), key-off (bit 2). Calls
+; fm_sequence_process to get frequency value in D6. Handles $E0 channel
+; type (maps to $C0). Splits D6: low nibble → PSG latch byte (OR with
+; channel command D0), bits 4-9 → PSG data byte (6 bits). Writes both
+; bytes to PSG port ($C00011).
 ;
-; Entry: A5 = object/entity pointer
+; Entry: A5 = PSG channel structure pointer
 ; Uses: D0, D1, D6, A5
 ; Calls:
 ;   $0302EE: fm_sequence_process
-; Object fields:
-;   +$01: [unknown]
-;   +$0A: param_a
 ; Confidence: medium
 ; ============================================================================
 
@@ -32,7 +30,7 @@ fn_30200_033:
 .loc_0024:
         MOVE.W  D6,D1                           ; $030EF2
         ANDI.B  #$0F,D1                         ; $030EF4
-        DC.W    $8001                           ; $030EF8
+        OR.B    D1,D0                           ; $030EF8
         LSR.W  #4,D6                            ; $030EFA
         ANDI.B  #$3F,D6                         ; $030EFC
         MOVE.B  D0,PSG                    ; $030F00

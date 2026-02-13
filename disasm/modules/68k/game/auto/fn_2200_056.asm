@@ -1,26 +1,19 @@
 ; ============================================================================
-; Math Sine Lookup 056 (auto-analyzed)
+; Proximity Check with Sine Billboard — 3D proximity + sine-animated sprite
 ; ROM Range: $003866-$003924 (190 bytes)
 ; ============================================================================
-; Category: math
-; Purpose: Calls: sine_lookup
-;   Object (A0, A1, A2): +$00, +$02 (flags/type), +$04 (speed_index/velocity), +$06 (speed), +$0A (param_a), +$0E (param_e)
+; Checks object position against sprite table entries in 3D space.
+; First pass: static position check against thresholds (X/Z=$0C80, Y=$1400).
+; If within range, copies sprite parameters (type=2) with both static and
+; animated data. Second pass uses sine_lookup to compute oscillating offset
+; for billboard animation. Increments animation counter by 3 per call.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
-; Entry: A2 = object/entity pointer
-; Uses: D0, D1, D2, D3, D4, D5, A0, A1
+; Entry: A0 = player entity pointer (+$30=X, +$32=Y, +$34=Z)
+; Entry: A1 (loaded internally from $00883924 sprite table)
+; Entry: A2 (loaded internally to $00FF65B0 output buffer)
+; Uses: D0, D1, D2, D3, D4, D5, A0, A1, A2
 ; Calls:
 ;   $008F52: sine_lookup
-; Object fields:
-;   +$00: [unknown]
-;   +$02: flags/type
-;   +$04: speed_index/velocity
-;   +$06: speed
-;   +$0A: param_a
-;   +$0E: param_e
-;   +$10: [unknown]
-;   +$14: effect_duration
 ; Confidence: medium
 ; ============================================================================
 

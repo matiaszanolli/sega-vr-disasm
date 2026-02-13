@@ -1,28 +1,20 @@
 ; ============================================================================
-; Vint Obj Table 3 063 (auto-analyzed)
+; Object Table 3 Proximity with Animation — trackside object visibility
 ; ROM Range: $003B28-$003C1A (242 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: RAM: $9F00 (obj_table_3), $C8A0 (race_state), $C89C (sh2_comm_state)
-;   Object (A0, A1, A2): +$00, +$02 (flags/type), +$04 (speed_index/velocity), +$06 (speed), +$0A (param_a), +$0E (param_e)
+; Loads player position from object table 3 ($9F00), gets sprite table via
+; indexed ROM lookup at $00895A64. Checks 2D proximity (X/Z threshold $0C80)
+; for 3 objects (D7=2). On match, copies sprite data and cycles animation
+; frame counter (12 frames at $C008, D0 doubled twice for 4-byte stride).
+; Second pass (if race_state $C89C = mode 1): checks 4 objects from table
+; $00883A4E with 3D proximity (Y threshold $0300), static textures.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
-; Entry: A2 = object/entity pointer
-; Uses: D0, D1, D2, D3, D4, D5, D7, A0
+; Entry: A0 (loaded internally from $9F00 obj_table_3)
+; Uses: D0, D1, D2, D3, D4, D5, D7, A0, A1, A2
 ; RAM:
 ;   $9F00: obj_table_3
-;   $C89C: sh2_comm_state
-;   $C8A0: race_state
-; Object fields:
-;   +$00: [unknown]
-;   +$02: flags/type
-;   +$04: speed_index/velocity
-;   +$06: speed
-;   +$0A: param_a
-;   +$0E: param_e
-;   +$10: [unknown]
-;   +$30: x_position
+;   $C008: animation frame counter (0-11, wraps)
+;   $C89C: race_state (selects second proximity pass)
 ; Confidence: medium
 ; ============================================================================
 
@@ -63,8 +55,8 @@ fn_2200_063:
 .loc_0064:
         MOVE.W  D0,(-16376).W                   ; $003B8C
         LSR.W  #1,D0                            ; $003B90
-        DC.W    $D040                           ; $003B92
-        DC.W    $D040                           ; $003B94
+        ADD.W   D0,D0                           ; $003B92
+        ADD.W   D0,D0                           ; $003B94
         MOVE.L  $00(A1,D0.W),$0010(A2)          ; $003B96
         BRA.S  .loc_0084                        ; $003B9C
 .loc_0076:

@@ -1,16 +1,16 @@
 ; ============================================================================
-; Vint 068 (auto-analyzed)
+; HUD Element Initialization — configure 3 HUD display slots
 ; ROM Range: $003D5A-$003D9A (64 bytes)
 ; ============================================================================
-; Category: vint
-; Purpose: Object (A1): +$04 (speed_index/velocity), +$08
+; Initializes 3 HUD element slots with type $09 and ROM data pointers:
+;   Slot 1 ($FF6980): type=$09, data=$040268F8, aux=$222F0FBE
+;   Slot 2 ($FF69C0): type=$09 (data inherited/zero)
+;   Slot 3 ($FF6990): type=$09, data=$0402C8EC, aux=$222F22A2
+; Each slot is a 64-byte structure with type at +$00, data pointer at +$04,
+; auxiliary pointer at +$08.
 ;
-; Entry: A1 = object/entity pointer
 ; Uses: A1
-; Object fields:
-;   +$04: speed_index/velocity
-;   +$08: [unknown]
-; Confidence: low
+; Confidence: medium
 ; ============================================================================
 
 fn_2200_068:

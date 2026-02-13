@@ -1,19 +1,17 @@
 ; ============================================================================
-; Fm Init Channel 001 (auto-analyzed)
+; FM Channel Timer Check — decrement timer and reinit on expiry
 ; ROM Range: $03021A-$03023A (32 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Short helper function
-;   Calls: fm_init_channel
-;   Object (A5): +$01, +$12 (timer_12)
+; Checks FM sound channel timer at A5+$12. If zero, returns (branches to
+; caller's RTS). Decrements timer; if not yet zero, returns. On expiry
+; (timer reaches 0): sets bit 1 flag at (A5), checks channel sign at
+; A5+$01. If positive, calls fm_init_channel to restart the channel and
+; pops return address (skips caller's remaining code).
 ;
-; Entry: A5 = object/entity pointer
-; Uses: A5
+; Entry: A5 = FM channel structure pointer (+$01=sign, +$12=timer)
+; Uses: A5, A7 (stack pop)
 ; Calls:
 ;   $030C8A: fm_init_channel
-; Object fields:
-;   +$01: [unknown]
-;   +$12: timer_12
 ; Confidence: medium
 ; ============================================================================
 

@@ -1,26 +1,18 @@
 ; ============================================================================
-; Display Dispatch 079 (auto-analyzed)
+; Display State Dispatcher — 13-state game display controller
 ; ROM Range: $004084-$00413A (182 bytes)
 ; ============================================================================
-; Category: display
-; Purpose: State dispatcher using jump table
-;   RAM: $C048 (camera_state), $C07C (input_state), $C050 (scroll_state), $6960 (display_state_flag)
-;   Object (A2): +$00, +$04 (speed_index/velocity), +$06 (speed), +$08, +$10
+; Dispatches to one of 13 display states via jump table indexed by RAM $C07C.
+; State 0 ($0040C8): Initializes display system — sets adapter flag,
+;   clears display/race mode flags ($FF6960/$FF6930/$FF6970), configures
+;   HUD geometry (A2=$FF6754: offset=$FFE0, size=$0040, Y=$F600),
+;   sets camera texture pointer, advances state counter.
+; State 1 ($00412E): Sets sound command byte $96, advances state.
+; Remaining states dispatch to handlers outside this function.
 ;
-; Entry: A2 = object/entity pointer
 ; Uses: D0, A0, A1, A2
 ; RAM:
-;   $6960: display_state_flag
-;   $6970: race_mode_flag
-;   $C048: camera_state
-;   $C050: scroll_state
-;   $C07C: input_state
-; Object fields:
-;   +$00: [unknown]
-;   +$04: speed_index/velocity
-;   +$06: speed
-;   +$08: [unknown]
-;   +$10: [unknown]
+;   $C07C: display state index (advanced by 4 per transition)
 ; Confidence: high
 ; ============================================================================
 

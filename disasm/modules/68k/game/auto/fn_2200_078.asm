@@ -1,19 +1,19 @@
 ; ============================================================================
-; Vint Render 078 (auto-analyzed)
+; Render Slot Setup — configure 7 trackside object render slots
 ; ROM Range: $003F2E-$004084 (342 bytes)
 ; ============================================================================
-; Category: vint
-; Purpose: Object (A0, A1, A2): +$00, +$10, +$C0 (render_flags)
+; Four entry points for different viewport configurations:
+;   Entry 1 ($003F2E): 1P mode — viewport A ($FF64AC) then viewport B ($FF6178)
+;   Entry 2 ($003F5A): 1P alt — viewport C ($FF627C) then viewport D ($FF63A8)
+;   Entry 3 ($003F86): 2P mode — viewport B ($FF6178) only
+;   Common ($003F90): Iterates 7 render slots with $14-byte stride. For each:
+;     reads trackside object index from RAM, doubles it for table lookup,
+;     loads 4-byte sprite definition pointer from ROM tables, sets visibility.
+; ROM tables: $008959B0, $008959D0, $008959FC, $00895A24, $00895A44
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
-; Entry: A2 = object/entity pointer
+; Entry: A0 = player entity pointer (+$C0=render_flags)
 ; Uses: D0, D1, D2, D3, D4, A0, A1, A2
-; Object fields:
-;   +$00: [unknown]
-;   +$10: [unknown]
-;   +$C0: render_flags
-; Confidence: low
+; Confidence: medium
 ; ============================================================================
 
 fn_2200_078:
@@ -57,8 +57,8 @@ fn_2200_078:
         MOVE.W  D1,$00(A1,D2.W)                 ; $003F98
         MOVE.W  (-16372).W,D0                   ; $003F9C
         BMI.S  .loc_0092                        ; $003FA0
-        DC.W    $D040                           ; $003FA2
-        DC.W    $D040                           ; $003FA4
+        ADD.W   D0,D0                           ; $003FA2
+        ADD.W   D0,D0                           ; $003FA4
         LEA     $008959B0,A2                    ; $003FA6
         MOVE.L  $00(A2,D0.W),$0010(A1)          ; $003FAC
         MOVE.W  D4,$0000(A1)                    ; $003FB2
@@ -70,8 +70,8 @@ fn_2200_078:
         MOVE.W  D1,$0000(A1)                    ; $003FC4
         MOVE.W  (-16366).W,D0                   ; $003FC8
         BMI.S  .loc_00B4                        ; $003FCC
-        DC.W    $D040                           ; $003FCE
-        DC.W    $D040                           ; $003FD0
+        ADD.W   D0,D0                           ; $003FCE
+        ADD.W   D0,D0                           ; $003FD0
         LEA     $008959D0,A2                    ; $003FD2
         MOVE.L  $00(A2,D0.W),$0010(A1)          ; $003FD8
         MOVE.W  D3,$0000(A1)                    ; $003FDE
@@ -80,8 +80,8 @@ fn_2200_078:
         MOVE.W  D1,$0000(A1)                    ; $003FE4
         MOVE.W  (-16360).W,D0                   ; $003FE8
         BMI.S  .loc_00D4                        ; $003FEC
-        DC.W    $D040                           ; $003FEE
-        DC.W    $D040                           ; $003FF0
+        ADD.W   D0,D0                           ; $003FEE
+        ADD.W   D0,D0                           ; $003FF0
         LEA     $008959FC,A2                    ; $003FF2
         MOVE.L  $00(A2,D0.W),$0010(A1)          ; $003FF8
         MOVE.W  D3,$0000(A1)                    ; $003FFE
@@ -90,8 +90,8 @@ fn_2200_078:
         MOVE.W  D1,$0000(A1)                    ; $004004
         MOVE.W  (-16354).W,D0                   ; $004008
         BMI.S  .loc_00F4                        ; $00400C
-        DC.W    $D040                           ; $00400E
-        DC.W    $D040                           ; $004010
+        ADD.W   D0,D0                           ; $00400E
+        ADD.W   D0,D0                           ; $004010
         LEA     $00895A24,A2                    ; $004012
         MOVE.L  $00(A2,D0.W),$0010(A1)          ; $004018
         MOVE.W  D4,$0000(A1)                    ; $00401E
@@ -100,8 +100,8 @@ fn_2200_078:
         MOVE.W  D1,$0000(A1)                    ; $004024
         MOVE.W  (-16348).W,D0                   ; $004028
         BMI.S  .loc_0114                        ; $00402C
-        DC.W    $D040                           ; $00402E
-        DC.W    $D040                           ; $004030
+        ADD.W   D0,D0                           ; $00402E
+        ADD.W   D0,D0                           ; $004030
         LEA     $00895A24,A2                    ; $004032
         MOVE.L  $00(A2,D0.W),$0010(A1)          ; $004038
         MOVE.W  D3,$0000(A1)                    ; $00403E
@@ -110,8 +110,8 @@ fn_2200_078:
         MOVE.W  D1,$0000(A1)                    ; $004044
         MOVE.W  (-16370).W,D0                   ; $004048
         BMI.S  .loc_0134                        ; $00404C
-        DC.W    $D040                           ; $00404E
-        DC.W    $D040                           ; $004050
+        ADD.W   D0,D0                           ; $00404E
+        ADD.W   D0,D0                           ; $004050
         LEA     $00895A44,A2                    ; $004052
         MOVE.L  $00(A2,D0.W),$0010(A1)          ; $004058
         MOVE.W  D4,$0000(A1)                    ; $00405E
@@ -120,8 +120,8 @@ fn_2200_078:
         MOVE.W  D1,$0000(A1)                    ; $004064
         MOVE.W  (-16368).W,D0                   ; $004068
         BMI.S  .loc_0154                        ; $00406C
-        DC.W    $D040                           ; $00406E
-        DC.W    $D040                           ; $004070
+        ADD.W   D0,D0                           ; $00406E
+        ADD.W   D0,D0                           ; $004070
         LEA     $00895A44,A2                    ; $004072
         MOVE.L  $00(A2,D0.W),$0010(A1)          ; $004078
         MOVE.W  D3,$0000(A1)                    ; $00407E

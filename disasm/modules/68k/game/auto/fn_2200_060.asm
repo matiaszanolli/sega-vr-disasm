@@ -1,18 +1,16 @@
 ; ============================================================================
-; Vint 060 (auto-analyzed)
+; Proximity Loop Iterator A — advance and repeat proximity check
 ; ROM Range: $003A3E-$003A4E (16 bytes)
 ; ============================================================================
-; Category: vint
-; Purpose: Short helper function
-;   Object (A1, A2): +$00, +$0A (param_a)
+; Advances A1 by 10 bytes to next object entry, loops back to fn_2200_059
+; body via DBRA D7. If loop exhausted without match, clears output buffer
+; visibility flag at (A2)+$00.
 ;
-; Entry: A1 = object/entity pointer
-; Entry: A2 = object/entity pointer
-; Uses: D7, A1, A2
-; Object fields:
-;   +$00: [unknown]
-;   +$0A: param_a
-; Confidence: low
+; Entry: A1 = current object pointer (advanced by $0A per iteration)
+; Entry: A2 = output buffer pointer
+; Entry: D7 = loop counter
+; Uses: D7, A1
+; Confidence: medium
 ; ============================================================================
 
 fn_2200_060:

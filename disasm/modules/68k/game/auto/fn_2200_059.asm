@@ -1,24 +1,17 @@
 ; ============================================================================
-; Vint Position 059 (auto-analyzed)
+; Proximity Check Simple — 3D range test with sprite data copy
 ; ROM Range: $0039EC-$003A3E (82 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Object (A0, A1, A2): +$00, +$02 (flags/type), +$04 (speed_index/velocity), +$06 (speed), +$0A (param_a), +$0E (param_e)
+; Tests entity position (A0 +$30/+$32/+$34) against reference object (A1)
+; in 3 axes: X/Z threshold $0C80, Y threshold $0300. If all within range,
+; copies sprite data from A1 to output buffer A2 (type=1, 4 words + D0).
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
-; Entry: A2 = object/entity pointer
-; Uses: D0, D1, D2, D3, D4, D5, A0, A1
-; Object fields:
-;   +$00: [unknown]
-;   +$02: flags/type
-;   +$04: speed_index/velocity
-;   +$06: speed
-;   +$0A: param_a
-;   +$0E: param_e
-;   +$10: [unknown]
-;   +$30: x_position
-; Confidence: low
+; Entry: A0 = player entity pointer (+$30=X, +$32=Y, +$34=Z)
+; Entry: A1 = reference object pointer (+$00=X, +$02=Y, +$04=Z)
+; Entry: A2 = output buffer pointer
+; Entry: D0.L = sprite texture/animation ID
+; Uses: D0, D1, D2, D3, D4, D5
+; Confidence: medium
 ; ============================================================================
 
 fn_2200_059:

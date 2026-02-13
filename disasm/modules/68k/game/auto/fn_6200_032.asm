@@ -1,24 +1,16 @@
 ; ============================================================================
-; Math Cosine Lookup 032 (auto-analyzed)
+; fn_6200_032 — Rotational Offset Calculation
 ; ROM Range: $00764E-$0076A2 (84 bytes)
-; ============================================================================
-; Category: math
-; Purpose: Calls: cosine_lookup, sine_lookup
-;   Object (A0): +$1E, +$20, +$22, +$30 (x_position), +$34 (y_position), +$72
+; Computes rotational offsets for billboard rendering. Takes entity heading
+; angle (+$1E), computes cos/sin via lookup tables, multiplies by position
+; deltas (+$20 - +$30 and +$22 - +$34), and stores results as lateral
+; offset (+$72) and longitudinal offset (+$E2). Uses cross-product style
+; rotation.
 ;
-; Entry: A0 = object/entity pointer
+; Entry: A0 = entity base pointer
 ; Uses: D0, D2, D3, D4, D5, A0
-; Calls:
-;   $008F4E: cosine_lookup
-;   $008F52: sine_lookup
-; Object fields:
-;   +$1E: [unknown]
-;   +$20: [unknown]
-;   +$22: [unknown]
-;   +$30: x_position
-;   +$34: y_position
-;   +$72: [unknown]
-;   +$E2: [unknown]
+; Object fields: +$1E heading_angle, +$20 target_x, +$22 target_y,
+;   +$30 x_position, +$34 y_position, +$72 lateral_offset, +$E2 long_offset
 ; Confidence: high
 ; ============================================================================
 
@@ -35,7 +27,7 @@ fn_6200_032:
         MOVE.W  $0022(A0),D3                    ; $00766C
         SUB.W  $0034(A0),D3                     ; $007670
         MULS    D0,D3                           ; $007674
-        DC.W    $D682                           ; $007676
+        ADD.L   D2,D3                           ; $007676
         ASR.L  #8,D3                            ; $007678
         NEG.W  D3                               ; $00767A
         MOVE.W  D3,$0072(A0)                    ; $00767C
@@ -47,7 +39,7 @@ fn_6200_032:
         MOVE.W  $0022(A0),D3                    ; $00768E
         SUB.W  $0034(A0),D3                     ; $007692
         MULS    D0,D3                           ; $007696
-        DC.W    $9483                           ; $007698
+        SUB.L   D3,D2                           ; $007698
         ASR.L  #8,D2                            ; $00769A
         MOVE.W  D2,$00E2(A0)                    ; $00769C
         RTS                                     ; $0076A0

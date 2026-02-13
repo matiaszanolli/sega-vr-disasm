@@ -1,25 +1,19 @@
 ; ============================================================================
-; Obj Frame Calc 034 (auto-analyzed)
+; fn_6200_034 — Collision Response + Surface Tracking
 ; ROM Range: $007700-$00789C (412 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Calls: obj_frame_calc
-;   Object (A0): +$30 (x_position), +$32, +$34 (y_position), +$36, +$38, +$40 (heading_angle)
+; Iterative collision response with surface tracking. Calls obj_frame_calc
+; ($00789C), then iteratively adjusts heading (+$40), scale (+$46), X (+$30),
+; and Y (+$34) in 1/4 steps up to 4 iterations, checking collision flag
+; (+$55 bit 0) each time. On collision, reverses last step. Second half
+; performs surface-relative calculations on 4 neighboring probe points
+; using tile lookup data from entity fields +$CE/+$D2/+$D6/+$DA.
 ;
-; Entry: A0 = object/entity pointer
+; Entry: A0 = entity base pointer
 ; Uses: D0, D1, D2, D3, D4, D5, D6, D7
-; Calls:
-;   $00789C: obj_frame_calc
-; Object fields:
-;   +$30: x_position
-;   +$32: [unknown]
-;   +$34: y_position
-;   +$36: [unknown]
-;   +$38: [unknown]
-;   +$40: heading_angle
-;   +$42: [unknown]
-;   +$46: display_scale
-; Confidence: medium
+; Object fields: +$30 x_pos, +$32 y_sub, +$34 y_pos, +$36/+$38 prev_pos,
+;   +$40 heading, +$42 prev_heading, +$46 scale, +$48 prev_scale,
+;   +$55 collision_flag, +$5A/+$5C/+$5E/+$32 surface_offsets
+; Confidence: high
 ; ============================================================================
 
 fn_6200_034:
@@ -100,7 +94,7 @@ fn_6200_034:
         BLE.S  .loc_013A                        ; $00782A
         MOVE.W  $005A(A0),D2                    ; $00782C
         EXT.L   D2                              ; $007830
-        DC.W    $D282                           ; $007832
+        ADD.L   D2,D1; $007832
         ASR.L  #1,D1                            ; $007834
         MOVE.W  D1,$005A(A0)                    ; $007836
 .loc_013A:
@@ -111,7 +105,7 @@ fn_6200_034:
         BLE.S  .loc_015A                        ; $00784A
         MOVE.W  $005C(A0),D2                    ; $00784C
         EXT.L   D2                              ; $007850
-        DC.W    $D282                           ; $007852
+        ADD.L   D2,D1; $007852
         ASR.L  #1,D1                            ; $007854
         MOVE.W  D1,$005C(A0)                    ; $007856
 .loc_015A:
@@ -122,7 +116,7 @@ fn_6200_034:
         BLE.S  .loc_017A                        ; $00786A
         MOVE.W  $005E(A0),D2                    ; $00786C
         EXT.L   D2                              ; $007870
-        DC.W    $D282                           ; $007872
+        ADD.L   D2,D1; $007872
         ASR.L  #1,D1                            ; $007874
         MOVE.W  D1,$005E(A0)                    ; $007876
 .loc_017A:
@@ -133,7 +127,7 @@ fn_6200_034:
         BLE.S  .loc_019A                        ; $00788A
         MOVE.W  $0032(A0),D2                    ; $00788C
         EXT.L   D2                              ; $007890
-        DC.W    $D282                           ; $007892
+        ADD.L   D2,D1; $007892
         ASR.L  #1,D1                            ; $007894
         MOVE.W  D1,$0032(A0)                    ; $007896
 .loc_019A:

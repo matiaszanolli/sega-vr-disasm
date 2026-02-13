@@ -1,27 +1,16 @@
 ; ============================================================================
-; Math Position Update Sub 023 (auto-analyzed)
+; fn_6200_023 — Entity Position Update — Heading-Based Movement
 ; ROM Range: $006F98-$006FFA (98 bytes)
-; ============================================================================
-; Category: math
-; Purpose: Orchestrator calling 5 subroutines
-;   Calls: position_update_sub, sine_lookup, cosine_lookup
-;   Object (A0): +$06 (speed), +$30 (x_position), +$34 (y_position), +$3C (heading_mirror), +$40 (heading_angle), +$62
+; Computes entity X/Y position delta from heading angle and speed using
+; sine/cosine lookups. Contains sub at $006FDE that multiplies speed by
+; sin/cos and accumulates into D3 (X) and D4 (Y). Three dispatch paths:
+; normal (heading_mirror), special (+$92 > 0), and alternate (+$62 != 0).
 ;
-; Entry: A0 = object/entity pointer
+; Entry: A0 = entity base pointer
 ; Uses: D0, D2, D3, D4, D5, D6, A0
-; Calls:
-;   $006FDE: position_update_sub
-;   $008F4E: cosine_lookup
-;   $008F52: sine_lookup
-; Object fields:
-;   +$06: speed
-;   +$30: x_position
-;   +$34: y_position
-;   +$3C: heading_mirror
-;   +$40: heading_angle
-;   +$62: [unknown]
-;   +$92: param_92
-;   +$96: [unknown]
+; Object fields: +$06 speed, +$30 x_position, +$34 y_position,
+;   +$3C heading_mirror, +$40 heading_angle, +$62 mode, +$92 param,
+;   +$96 heading_offset
 ; Confidence: high
 ; ============================================================================
 
@@ -52,10 +41,10 @@ fn_6200_023:
         DC.W    $4EBA,$1F6E         ; JSR     $008F52(PC); $006FE2
         MULS    D2,D0                           ; $006FE6
         ASR.L  D6,D0                            ; $006FE8
-        DC.W    $D640                           ; $006FEA
+        ADD.W   D0,D3                           ; $006FEA
         MOVE.W  D5,D0                           ; $006FEC
         DC.W    $4EBA,$1F5E         ; JSR     $008F4E(PC); $006FEE
         MULS    D2,D0                           ; $006FF2
         ASR.L  D6,D0                            ; $006FF4
-        DC.W    $D840                           ; $006FF6
+        ADD.W   D0,D4                           ; $006FF6
         RTS                                     ; $006FF8

@@ -1,35 +1,18 @@
 ; ============================================================================
-; Obj Dispatch 022 (auto-analyzed)
+; fn_6200_022 — Race Frame Main Dispatch + Entity Updates
 ; ROM Range: $006D9C-$006F98 (508 bytes)
-; ============================================================================
-; Category: object
-; Purpose: State dispatcher using jump table
-;   RAM: $9100 (obj_table_1), $9700 (obj_table_2), $9F00 (obj_table_3)
-;   Calls: table_lookup, effect_timer_mgmt, object_frame_timer, load_object_params
-;   Object (A0): +$06 (speed), +$18, +$44 (display_offset), +$46 (display_scale), +$4A, +$74
+; Main race frame dispatch. First updates state index, then calls
+; table_lookup for 6-8 entities in obj_table_3/obj_table_2. Main section
+; dispatches through 10-entry jump table indexed by state, running full
+; render pipeline (30+ subs) with countdown timer variant. Ends with
+; tile block copy setup (2 entries via FastCopy16).
 ;
-; Entry: A0 = object/entity pointer
+; Entry: A0 = entity base pointer
 ; Uses: D0, D1, D6, D7, A0, A1, A2, A3
-; RAM:
-;   $9100: obj_table_1
-;   $9700: obj_table_2
-;   $9F00: obj_table_3
-; Calls:
-;   $004922: FastCopy16
-;   $0049EE: reset_scroll_vars
-;   $0059EC: table_lookup
-;   $006F98: calc_steering
-;   $007084: obj_position_update
-;   $0070AA: angle_to_sine
-; Object fields:
-;   +$06: speed
-;   +$18: [unknown]
-;   +$44: display_offset
-;   +$46: display_scale
-;   +$4A: [unknown]
-;   +$74: [unknown]
-;   +$B2: [unknown]
-;   +$E5: [unknown]
+; RAM: $9100 obj_table_1, $9700 obj_table_2, $9F00 obj_table_3
+; Object fields: +$06 speed, +$18 position, +$44 display_offset,
+;   +$46 display_scale, +$4A display_aux, +$74 render_state,
+;   +$B2 stored_pos, +$E5 flags
 ; Confidence: high
 ; ============================================================================
 

@@ -1,12 +1,12 @@
 ; ============================================================================
-; Obj 037 (auto-analyzed)
+; fn_6200_037 — Object Type Return — Type 2
 ; ROM Range: $007A8E-$007A92 (4 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Small leaf function
+; Returns constant 2 in D0. Target of fn_6200_036 jump table, indicating
+; object type classification 2 (e.g., scenery/non-collidable).
 ;
+; Entry: (from jump table dispatch)
 ; Uses: D0
-; Confidence: low
+; Confidence: high
 ; ============================================================================
 
 fn_6200_037:

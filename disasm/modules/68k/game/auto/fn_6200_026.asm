@@ -1,13 +1,14 @@
 ; ============================================================================
-; Vdp 026 (auto-analyzed)
+; fn_6200_026 — VDP Nametable Setup + Display List Build
 ; ROM Range: $007248-$007270 (40 bytes)
-; ============================================================================
-; Category: vdp
-; Purpose: Short helper function
-;   Accesses VDP registers
+; Configures VDP nametable addresses (scroll A at $C000, scroll B at $E000)
+; and scroll mode via register writes through A5/A6, then loads display
+; buffer at $FF6000 and calls display list builder. Stores object count
+; in $FF610E.
 ;
+; Entry: A5/A6 = VDP register write ports
 ; Uses: D0, D4, A2, A5, A6
-; Confidence: medium
+; Confidence: high
 ; ============================================================================
 
 fn_6200_026:

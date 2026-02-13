@@ -1,23 +1,15 @@
 ; ============================================================================
-; Obj Race 027 (auto-analyzed)
+; fn_6200_027 — Track Tile Object Display List Builder
 ; ROM Range: $007280-$00734E (206 bytes)
-; ============================================================================
-; Category: game
-; Purpose: RAM: $C8A0 (race_state)
-;   Object (A0, A1, A3): +$00, +$30 (x_position), +$34 (y_position), +$CA, +$CC
+; Builds display list of visible track objects. Converts entity X/Y position
+; to tile grid coordinates, looks up road segment data from ROM tables at
+; $89A932, iterates 12 neighboring tiles checking for visible objects,
+; and writes their addresses to the display list buffer (A2). Returns
+; object count in D4.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
-; Entry: A3 = object/entity pointer
-; Uses: D0, D1, D2, D3, D4, D6, D7, A0
-; RAM:
-;   $C8A0: race_state
-; Object fields:
-;   +$00: [unknown]
-;   +$30: x_position
-;   +$34: y_position
-;   +$CA: [unknown]
-;   +$CC: [unknown]
+; Entry: A0 = entity pointer, A2 = display list write pointer
+; Uses: D0, D1, D2, D3, D4, D6, D7, A0, A1, A3, A4
+; Object fields: +$30 x_position, +$34 y_position, +$CA tile_x, +$CC tile_y
 ; Confidence: high
 ; ============================================================================
 
@@ -26,7 +18,7 @@ fn_6200_027:
         MOVE.W  #$0400,D1                       ; $007282
         MOVE.W  $0030(A0),D2                    ; $007286
         ASR.W  #4,D2                            ; $00728A
-        DC.W    $D441                           ; $00728C
+        ADD.W   D1,D2                           ; $00728C
         MOVE.W  D2,D3                           ; $00728E
         MOVEQ   #$00,D6                         ; $007290
         ANDI.W  #$0020,D3                       ; $007292
@@ -36,7 +28,7 @@ fn_6200_027:
         ASR.W  #6,D2                            ; $00729A
         MOVE.W  $0034(A0),D3                    ; $00729C
         ASR.W  #4,D3                            ; $0072A0
-        DC.W    $9243                           ; $0072A2
+        SUB.W   D3,D1                           ; $0072A2
         MOVE.W  D1,D3                           ; $0072A4
         ANDI.W  #$0020,D3                       ; $0072A6
         BEQ.S  .loc_002E                        ; $0072AA
@@ -44,9 +36,9 @@ fn_6200_027:
 .loc_002E:
         ANDI.W  #$FFC0,D1                       ; $0072AE
         ASR.W  #1,D1                            ; $0072B2
-        DC.W    $D242                           ; $0072B4
-        DC.W    $D241                           ; $0072B6
-        DC.W    $D241                           ; $0072B8
+        ADD.W   D2,D1                           ; $0072B4
+        ADD.W   D1,D1                           ; $0072B6
+        ADD.W   D1,D1                           ; $0072B8
         MOVE.W  D1,$00CA(A0)                    ; $0072BA
         MOVEQ   #$00,D0                         ; $0072BE
         MOVE.W  $00CC(A0),D0                    ; $0072C0

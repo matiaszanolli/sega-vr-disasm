@@ -1,18 +1,16 @@
 ; ============================================================================
-; Fm 011 (auto-analyzed)
+; FM Sound Priority Check — compare and accept higher-priority commands
 ; ROM Range: $030536-$03056A (52 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Object (A0, A6): +$00, +$09, +$0A (param_a)
+; Reads new sound command from A6+$0A, looks up its priority in table at
+; $032B30 (128 entries, indexed by command-$81). Compares with current
+; priority level (A6+$00). If new command has equal or higher priority,
+; accepts it: updates priority, stores command byte to A6+$09. Otherwise
+; discards the new command and keeps current state.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A6 = object/entity pointer
+; Entry: A6 = sound channel state (+$00=priority, +$09=cmd, +$0A=new_cmd)
 ; Uses: D0, D1, D2, D3, A0, A1, A6
-; Object fields:
-;   +$00: [unknown]
-;   +$09: [unknown]
-;   +$0A: param_a
-; Confidence: low
+; Confidence: medium
 ; ============================================================================
 
 fn_30200_011:

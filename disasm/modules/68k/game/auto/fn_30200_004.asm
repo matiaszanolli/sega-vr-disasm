@@ -1,22 +1,18 @@
 ; ============================================================================
-; Fm 004 (auto-analyzed)
+; FM Sequence Data Reader — read note/frequency from sequence table
 ; ROM Range: $0302EE-$030354 (102 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Object (A0, A5): +$00, +$03, +$0A (param_a), +$10, +$1C, +$1E
+; Reads FM sequence data from ROM tables. Looks up sequence pointer from
+; table at $032936 using channel instrument (A5+$0A), advances position
+; counter (A5+$26). Positive bytes are multiplied by channel multiplier
+; (A5+$03) for pitch scaling. Special command bytes:
+;   $80=restart, $81=rewind 2, $82=set position, $83=reinit channel,
+;   $84=add to multiplier. Output frequency in D6, combined from
+; sequence value + base frequency (A5+$1E) + transpose offset (A5+$10).
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A5 = object/entity pointer
+; Entry: A5 = FM channel structure pointer
 ; Uses: D0, D6, A0, A5
-; Object fields:
-;   +$00: [unknown]
-;   +$03: [unknown]
-;   +$0A: param_a
-;   +$10: [unknown]
-;   +$1C: [unknown]
-;   +$1E: [unknown]
-;   +$26: [unknown]
-; Confidence: low
+; Confidence: medium
 ; ============================================================================
 
 fn_30200_004:
@@ -50,7 +46,7 @@ fn_30200_004:
         MULU    D0,D6                           ; $03033C
 .loc_0050:
         MOVE.W  $001E(A5),D0                    ; $03033E
-        DC.W    $DC40                           ; $030342
+        ADD.W   D0,D6                           ; $030342
         ADD.W  $0010(A5),D6                     ; $030344
         TST.B  $000A(A5)                        ; $030348
         BPL.S  .loc_0064                        ; $03034C

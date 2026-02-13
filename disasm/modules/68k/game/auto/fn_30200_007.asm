@@ -1,16 +1,15 @@
 ; ============================================================================
-; Fm Dispatch 007 (auto-analyzed)
+; FM Register Table + State Dispatcher — panning register data and dispatch
 ; ROM Range: $0303CC-$0303E8 (28 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: State dispatcher using jump table
-;   Object (A5): +$28
+; Data prefix: 8 FM register bytes used by fn_30200_006's operator write
+; loop ($AD,$A9,$AC,$A8,$AE,$AA,$A6,$A2 — frequency/operator registers).
+; Code: Checks bit 1 (mute flag) on channel (A5). If not muted,
+; dispatches to state handler via indexed JMP using state index A5+$28.
 ;
-; Entry: A5 = object/entity pointer
+; Entry: A5 = FM channel structure pointer
 ; Uses: D0, A5
-; Object fields:
-;   +$28: [unknown]
-; Confidence: low
+; Confidence: medium
 ; ============================================================================
 
 fn_30200_007:

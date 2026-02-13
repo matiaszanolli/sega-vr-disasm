@@ -1,11 +1,12 @@
 ; ============================================================================
-; Fm 005 (auto-analyzed)
+; Stack Pop Return — skip caller's remaining code
 ; ROM Range: $030354-$030358 (4 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Small leaf function
+; Pops return address from stack (ADDQ.W #4,A7), then returns. This causes
+; execution to skip the caller's remaining code and return to the
+; grandparent. Used by the sound driver as a tail-call abort.
 ;
-; Confidence: low
+; Confidence: high
 ; ============================================================================
 
 fn_30200_005:

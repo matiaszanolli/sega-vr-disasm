@@ -1,26 +1,18 @@
 ; ============================================================================
-; Fm Dispatch 009 (auto-analyzed)
+; FM Panning Envelope Processor — step through panning envelope data
 ; ROM Range: $030404-$03046C (104 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: State dispatcher using jump table
-;   Calls: fm_conditional_write
-;   Object (A0, A5): +$00, +$20, +$21, +$22, +$23, +$24
+; Processes FM panning envelope: reads envelope position (A5+$21) against
+; envelope length (A5+$22), advances through repeat cycles (A5+$23/$24).
+; Looks up envelope data table via ROM pointer at fn_30200_010's table,
+; indexed by instrument number (A5+$20). Combines envelope value with
+; channel flags (A5+$27 AND $37) using OR, writes to panning register
+; $B4 via fm_conditional_write.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A5 = object/entity pointer
+; Entry: A5 = FM channel structure pointer
 ; Uses: D0, D1, D3, A0, A5
 ; Calls:
 ;   $030CA2: fm_conditional_write
-; Object fields:
-;   +$00: [unknown]
-;   +$20: [unknown]
-;   +$21: [unknown]
-;   +$22: [unknown]
-;   +$23: [unknown]
-;   +$24: [unknown]
-;   +$27: [unknown]
-;   +$28: [unknown]
 ; Confidence: medium
 ; ============================================================================
 
@@ -54,7 +46,7 @@ fn_30200_009:
         MOVE.B  $00(A0,D0.W),D1                 ; $030450
         MOVE.B  $0027(A5),D0                    ; $030454
         ANDI.B  #$37,D0                         ; $030458
-        DC.W    $8200                           ; $03045C
+        OR.B    D0,D1                           ; $03045C
         MOVE.B  #$B4,D0                         ; $03045E
         DC.W    $4EBA,$083E         ; JSR     $030CA2(PC); $030462
         ADDQ.B  #1,$0024(A5)                    ; $030466

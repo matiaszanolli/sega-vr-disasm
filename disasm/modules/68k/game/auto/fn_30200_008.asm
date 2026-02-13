@@ -1,16 +1,14 @@
 ; ============================================================================
-; Fm Dispatch 008 (auto-analyzed)
+; FM State Dispatcher B — 3-state indexed jump for panning
 ; ROM Range: $0303E8-$030402 (26 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: State dispatcher using jump table
-;   Object (A5): +$28
+; Jump table prefix: 3 BRA.S instructions dispatching to fn_30200_009
+; entry points ($030412, $030408, $030408). Code: Checks bit 1 mute flag
+; on channel (A5). If not muted, dispatches via indexed JMP using A5+$28.
 ;
-; Entry: A5 = object/entity pointer
+; Entry: A5 = FM channel structure pointer
 ; Uses: D0, A5
-; Object fields:
-;   +$28: [unknown]
-; Confidence: low
+; Confidence: medium
 ; ============================================================================
 
 fn_30200_008:

@@ -1,15 +1,20 @@
 ; ============================================================================
-; Fm 012 (auto-analyzed)
+; FM Sound Command Dispatcher — route command byte to handler
 ; ROM Range: $03056A-$0305BA (80 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Object (A6): +$09
+; Reads sound command byte from A6+$09, dispatches to appropriate handler
+; based on value range. Clears command after reading ($80 = sentinel).
+; Command ranges:
+;   $80      = stop/silence -> $030BF6
+;   $81-$9F  = note-on -> $030B90
+;   $A0-$D2  = instrument select -> $03061C
+;   $D6-$D7  = special effect -> $030892
+;   $F0-$FE  = system commands -> $030604
+;   Others   = ignored (RTS)
 ;
-; Entry: A6 = object/entity pointer
+; Entry: A6 = sound channel state (+$09=command byte)
 ; Uses: D2, D6, D7, A0, A6
-; Object fields:
-;   +$09: [unknown]
-; Confidence: low
+; Confidence: medium
 ; ============================================================================
 
 fn_30200_012:

@@ -1,24 +1,24 @@
 ; ============================================================================
-; Fm Write Conditional 010 (auto-analyzed)
+; FM Panning Init + Channel Stereo Setup — initialize panning for all channels
 ; ROM Range: $03046C-$030536 (202 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Orchestrator calling 4 subroutines
-;   Calls: z80_bus_request, fm_write_port0, fm_write_conditional
-;   Object (A5, A6): +$07, +$27, +$40 (heading_angle)
+; Data prefix: 4 longword pointers to panning envelope tables (used by
+; fn_30200_009). Code begins at $030480 with two paths:
+;   Positive: Writes panning register $B4 with D1=0 (center) for 3 FM
+;     channels via fm_write_port0, then writes key-on register $28 for
+;     each, branches to $030FC8.
+;   Negative: Iterates all sound channels in A6 structure ($0040 stride
+;     for 7 channels, $0220 offset for 3 more, $0340 for 1), reads each
+;     channel's panning value (A5+$27), writes to register $B4 via
+;     fm_write_conditional. Releases Z80 bus when done.
 ;
-; Entry: A5 = object/entity pointer
-; Entry: A6 = object/entity pointer
+; Entry: A6 = sound driver state pointer
 ; Uses: D0, D1, D2, D3, D4, A5, A6
 ; Calls:
 ;   $030CCC: fm_write_conditional
 ;   $030CD8: fm_write_port0
 ;   $030D1C: z80_bus_request
-; Object fields:
-;   +$07: [unknown]
-;   +$27: [unknown]
-;   +$40: heading_angle
-; Confidence: high
+; Confidence: medium
 ; ============================================================================
 
 fn_30200_010:

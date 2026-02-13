@@ -1,25 +1,23 @@
 ; ============================================================================
-; Fm Write Port0 006 (auto-analyzed)
+; FM Sequence Command Handler — process special sequence bytes
 ; ROM Range: $030358-$0303CC (116 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Calls: z80_bus_request, fm_write_port0
-;   Object (A0, A5, A6): +$01, +$03, +$0E (param_e), +$20, +$26, +$28
+; Multiple entry points for FM sequence special commands, jumped to from
+; fm_sequence_data_reader (fn_30200_004):
+;   $030358: Reset sequence position (CLR.B A5+$26), resume reading
+;   $03035E: Rewind 2 positions (SUBQ.B #2 A5+$26), resume reading
+;   $030364: Reinit channel — calls fm_init_channel or fm_set_volume
+;   $030376: Set position from next data byte
+;   $03037E: Add next data byte to channel multiplier (A5+$03)
+;   $03038E: Operator/panning write — iterates 4 register pairs from
+;            table $0303CC, writes D6 frequency values via fm_write_port0
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A5 = object/entity pointer
-; Entry: A6 = object/entity pointer
+; Entry: A5 = FM channel structure pointer
+; Entry: A6 = sound driver state pointer
 ; Uses: D0, D1, D3, D5, D6, A0, A1, A2
 ; Calls:
 ;   $030CD8: fm_write_port0
 ;   $030D1C: z80_bus_request
-; Object fields:
-;   +$01: [unknown]
-;   +$03: [unknown]
-;   +$0E: param_e
-;   +$20: [unknown]
-;   +$26: [unknown]
-;   +$28: [unknown]
 ; Confidence: high
 ; ============================================================================
 
@@ -51,7 +49,7 @@ fn_30200_006:
 .loc_004E:
         MOVE.W  D6,D1                           ; $0303A6
         MOVE.W  (A2)+,D0                        ; $0303A8
-        DC.W    $D240                           ; $0303AA
+        ADD.W   D0,D1                           ; $0303AA
         MOVE.W  D1,D3                           ; $0303AC
         LSR.W  #8,D1                            ; $0303AE
         MOVE.B  (A1)+,D0                        ; $0303B0

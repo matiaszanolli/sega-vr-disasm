@@ -1,20 +1,17 @@
 ; ============================================================================
-; Tile Decompress Init 022 (auto-analyzed)
+; fn_200_022 — Tile Decompression Dispatcher A
 ; ROM Range: $0014BE-$0014E0 (34 bytes)
 ; ============================================================================
-; Category: boot
-; Purpose: Short helper function
-;   Calls: tile_decompress_init
-;   Object (A0): +$04 (speed_index/velocity), +$08
+; Dispatches up to 4 tile decompression jobs packed in D0 (one byte per job).
+; Iterates 4 times (D2=3), extracting each byte via ROR.L #8. For each
+; non-zero byte: multiplies by 8 as index into parameter table at $0014E0,
+; loads VDP command word to (A5) and source pointer to A0, then calls
+; tile decompressor setup at $0010F4.
 ;
-; Entry: A0 = object/entity pointer
+; Entry: D0 = 4 packed job IDs (one per byte), A5 = VDP_CTRL
 ; Uses: D0, D1, D2, A0, A5
 ; Calls:
-;   $0010F4: tile_decompress_init
-; Object fields:
-;   +$04: speed_index/velocity
-;   +$08: [unknown]
-; Confidence: low
+;   $0010F4: tile_decompressor_setup (JSR PC-relative)
 ; ============================================================================
 
 fn_200_022:

@@ -1,12 +1,21 @@
 ; ============================================================================
-; Init 027 (auto-analyzed)
+; fn_200_027 — Input Dispatch Table and Controller Port Init
 ; ROM Range: $0016B2-$00178E (220 bytes)
 ; ============================================================================
-; Category: boot
-; Purpose: Function in 200 section (220 bytes)
+; Data prefix ($0016B2-$00170B): Input handler dispatch table containing
+; ROM subroutine addresses ($008819FE, $00881A6E, etc.) for various
+; input processing routines. Final entry is RTE at $00170A.
 ;
+; Code entry at $00170C (controller_port_init): Initializes controller
+; port configuration for both player ports:
+;   1. Clears port detection flags
+;   2. Writes 16-byte controller config per port (TH/TR/TL pin modes)
+;   3. Selects appropriate 8-byte port profile based on hardware version
+;      register bit 0 (domestic/overseas) and bit 1 (NTSC/PAL)
+;   4. Copies selected profile to RAM at $FE94 (port config area)
+;
+; Entry: Called from hardware_init
 ; Uses: D0, D7, A0, A1, A3, A4, A5
-; Confidence: low
 ; ============================================================================
 
 fn_200_027:

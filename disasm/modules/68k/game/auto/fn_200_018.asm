@@ -1,12 +1,14 @@
 ; ============================================================================
-; Init 018 (auto-analyzed)
+; fn_200_018 — Tile Data Stream Byte Read
 ; ROM Range: $0011E4-$0011EE (10 bytes)
 ; ============================================================================
-; Category: boot
-; Purpose: Small leaf function
+; Reads next byte from tile data stream (A0)+. If byte is $FF (end marker),
+; returns to caller. Otherwise falls through to tile decompressor engine
+; at $0011EE (fn_200_019).
 ;
+; Entry: A0 = pointer to compressed tile data stream
+; Exit: D0 = byte read; falls through if not $FF
 ; Uses: D0, A0
-; Confidence: low
 ; ============================================================================
 
 fn_200_018:

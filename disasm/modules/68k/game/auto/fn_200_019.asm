@@ -1,16 +1,26 @@
 ; ============================================================================
-; Init Dispatch 019 (auto-analyzed)
+; fn_200_019 — Tile Decompressor Engine
 ; ROM Range: $0011EE-$0012F4 (262 bytes)
 ; ============================================================================
-; Category: boot
-; Purpose: State dispatcher using jump table
-;   Object (A1): +$00
+; Main tile decompression engine. Reads compressed tile commands from (A0)+
+; and decompresses to output buffer via (A1)+. Uses 8-way jump table at
+; $0012CC for different decompression modes:
+;   0-1: Sequential copy from base A2 (incrementing tile IDs)
+;   2-3: Fill from base A4 (constant tile)
+;   4: Literal tile (from bit-stream)
+;   5: Incrementing tile sequence (from bit-stream)
+;   6: Decrementing tile sequence (from bit-stream)
+;   7: Individual tiles (each from bit-stream), $0F = end sentinel
 ;
-; Entry: A1 = object/entity pointer
-; Uses: D0, D1, D2, D3, D4, D5, D6, D7
-; Object fields:
-;   +$00: [unknown]
-; Confidence: low
+; Second entry at $001236: Nametable decompressor variant — saves all regs,
+; reads compressed nametable format with tile dimensions and bit-stream.
+;
+; Entry: A0 = compressed data, A1 = output buffer, D0 = initial value
+; Entry (alt $001236): A0 = compressed nametable data, D0 = base offset
+; Uses: D0-D7, A0-A5
+; Calls:
+;   $0012F4: tile_bit_stream_unpacker (BSR PC-relative)
+;   $0013A4: bit_stream_refill (BSR PC-relative)
 ; ============================================================================
 
 fn_200_019:
@@ -22,22 +32,22 @@ fn_200_019:
         MOVE.B  D0,D1                           ; $0011F8
         ANDI.W  #$000F,D7                       ; $0011FA
         ANDI.W  #$0070,D1                       ; $0011FE
-        DC.W    $8E41                           ; $001202
+        OR.W    D1,D7                           ; $001202
         ANDI.W  #$000F,D0                       ; $001204
         MOVE.B  D0,D1                           ; $001208
         LSL.W  #8,D1                            ; $00120A
-        DC.W    $8E41                           ; $00120C
+        OR.W    D1,D7                           ; $00120C
         MOVEQ   #$08,D1                         ; $00120E
-        DC.W    $9240                           ; $001210
+        SUB.W   D0,D1                           ; $001210
         BNE.S  .loc_0030                        ; $001212
         MOVE.B  (A0)+,D0                        ; $001214
-        DC.W    $D040                           ; $001216
+        ADD.W   D0,D0                           ; $001216
         MOVE.W  D7,$00(A1,D0.W)                 ; $001218
         BRA.S  .loc_0002                        ; $00121C
 .loc_0030:
         MOVE.B  (A0)+,D0                        ; $00121E
         LSL.W  D1,D0                            ; $001220
-        DC.W    $D040                           ; $001222
+        ADD.W   D0,D0                           ; $001222
         MOVEQ   #$01,D5                         ; $001224
         LSL.W  D1,D5                            ; $001226
         SUBQ.W  #1,D5                           ; $001228
@@ -64,7 +74,7 @@ fn_200_019:
 .loc_0068:
         MOVEQ   #$07,D0                         ; $001256
         MOVE.W  D6,D7                           ; $001258
-        DC.W    $9E40                           ; $00125A
+        SUB.W   D0,D7                           ; $00125A
         MOVE.W  D5,D1                           ; $00125C
         LSR.W  D7,D1                            ; $00125E
         ANDI.W  #$007F,D1                       ; $001260
@@ -77,7 +87,7 @@ fn_200_019:
         DC.W    $6100,$0132         ; BSR.W  $0013A4; $001270
         ANDI.W  #$000F,D2                       ; $001274
         LSR.W  #4,D1                            ; $001278
-        DC.W    $D241                           ; $00127A
+        ADD.W   D1,D1                           ; $00127A
         JMP     $0012CC(PC,D1.W)                ; $00127C
 .loc_0092:
         MOVE.W  A2,(A1)+                        ; $001280

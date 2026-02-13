@@ -1,12 +1,27 @@
 ; ============================================================================
-; Init 035 (auto-analyzed)
+; fn_200_035 — VDP DMA Transfer Setup
 ; ROM Range: $001B14-$001C66 (338 bytes)
 ; ============================================================================
-; Category: boot
-; Purpose: Function in 200 section (338 bytes)
+; Sets up VDP DMA transfers for display tables. Two entry points:
+;
+; Entry A ($001B14): Requests Z80 bus, then:
+;   1. Writes window plane data from RAM $8000/$8002 to VRAM $6C00
+;   2. Writes scroll data from RAM $C880/$C882 to VRAM $4000
+;   3. DMA fill sprite attribute table at VRAM $6000 (128 entries)
+;   4. DMA fill nametable at VRAM $C000 (64×14 entries)
+;   5. Releases Z80 bus, jumps to $00179E
+;
+; Entry B ($001BA8): Requests Z80 bus, then:
+;   1. DMA fill sprite table at VRAM $6000 (same as entry A)
+;   2. DMA copy from ROM $08B at VRAM $6000 (sprite data source)
+;   3. DMA fill nametable at VRAM $4000 + $C000
+;   4. Releases Z80 bus, writes window + scroll data, returns
 ;
 ; Uses: D0, D4, A5, A6
-; Confidence: low
+; Hardware:
+;   Z80_BUSREQ: Z80 bus arbitration
+;   VDP_CTRL (A5): VDP command/register port
+;   VDP_DATA (A6): VDP data port
 ; ============================================================================
 
 fn_200_035:

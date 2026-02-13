@@ -1,15 +1,21 @@
 ; ============================================================================
-; Vdp Dispatch 026 (auto-analyzed)
+; fn_200_026 — VDP Row Copy Dispatcher
 ; ROM Range: $001610-$00166C (92 bytes)
 ; ============================================================================
-; Category: vdp
-; Purpose: State dispatcher using jump table
-;   Calls: vdp_copy_rows
+; Data prefix ($001610-$001637): VDP row copy parameter table. Each 12-byte
+; entry contains: source ROM address (long), dest VRAM address (long),
+; column count (word), row count (word).
 ;
+; Code entry at $001638: Dispatches up to 4 VDP row copy operations
+; packed in D0 (one byte per job). Iterates 4 times (D2=3), extracting
+; each byte via ROR.L #8. For each non-zero byte: multiplies by 12
+; ($000C) as index into parameter table at $00166C, loads parameters,
+; then calls vdp_copy_rows at $0010C4.
+;
+; Entry: D0 = 4 packed job IDs (one per byte)
 ; Uses: D0, D1, D2, A0
 ; Calls:
-;   $0010C4: vdp_copy_rows
-; Confidence: medium
+;   $0010C4: vdp_copy_rows (JSR PC-relative)
 ; ============================================================================
 
 fn_200_026:

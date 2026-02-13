@@ -1,12 +1,20 @@
 ; ============================================================================
-; Init Dispatch 024 (auto-analyzed)
+; fn_200_024 — Nametable Copy Dispatcher
 ; ROM Range: $00154E-$001586 (56 bytes)
 ; ============================================================================
-; Category: boot
-; Purpose: State dispatcher using jump table
+; Data prefix ($00154E-$00155D): 16 bytes of initialization data (decoded
+; as ORI.B #$00,D0 no-ops by disassembler).
 ;
+; Code entry at $00155E: Dispatches up to 4 nametable copy operations
+; packed in D1 (one byte per job). Iterates 4 times (D2=3), extracting
+; each byte via ROR.L #8. For each non-zero byte: multiplies by 10
+; ($000A) as index into parameter table at $001586, loads source address,
+; dest address, and row count, then calls nametable copy at $001236.
+;
+; Entry: D1 = 4 packed job IDs (one per byte)
 ; Uses: D0, D1, D2, D3, A0, A1
-; Confidence: low
+; Calls:
+;   $001236: nametable_decompressor (JSR PC-relative)
 ; ============================================================================
 
 fn_200_024:

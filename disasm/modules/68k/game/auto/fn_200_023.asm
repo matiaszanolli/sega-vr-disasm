@@ -1,16 +1,20 @@
 ; ============================================================================
-; Init Dispatch 023 (auto-analyzed)
+; fn_200_023 — Tile Decompression Dispatcher B
 ; ROM Range: $0014E0-$00154E (110 bytes)
 ; ============================================================================
-; Category: boot
-; Purpose: State dispatcher using jump table
-;   Object (A5): +$00
+; Data prefix ($0014E0-$00152F): Tile decompression parameter table.
+; Each 8-byte entry contains: VDP command word (long) + source ROM address
+; (long). Entries correspond to tile set IDs used by fn_200_022.
 ;
-; Entry: A5 = object/entity pointer
+; Code entry at $001530: Alternate tile decompression dispatcher.
+; Same 4-iteration pattern as fn_200_022 but calls the alternate
+; decompressor entry at $001106 (which uses table base $008811CE).
+; Loads parameters via PC-relative indexed access into the table.
+;
+; Entry: D0 = 4 packed job IDs (one per byte)
 ; Uses: D0, D1, D2, D6, A0, A2, A4, A5
-; Object fields:
-;   +$00: [unknown]
-; Confidence: low
+; Calls:
+;   $001106: tile_decompressor_setup_alt (JSR PC-relative)
 ; ============================================================================
 
 fn_200_023:

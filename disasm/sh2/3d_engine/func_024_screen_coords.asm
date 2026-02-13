@@ -1,3 +1,6 @@
+/* DOCUMENTATION ONLY — not used by build system.
+ * Build source: func_024_screen_coords_short.asm
+ */
 /*
  * func_024: Screen Coordinate Calculator
  * ROM File Offset: 0x235F6 - 0x23632 (60 bytes)

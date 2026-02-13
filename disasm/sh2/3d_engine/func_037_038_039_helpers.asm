@@ -1,3 +1,6 @@
+/* DOCUMENTATION ONLY — not used by build system.
+ * Build source: func_037_038_039_helpers_short.asm
+ */
 /*
  * func_037, func_038, func_039: Visibility Helper Functions
  * ROM File Offset: 0x2381E - 0x2385A (~60 bytes)

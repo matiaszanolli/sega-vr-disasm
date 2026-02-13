@@ -1,3 +1,6 @@
+/* DOCUMENTATION ONLY — not used by build system.
+ * Build sources: individual func_040..059_*_short.asm files
+ */
 /*
  * func_040 - func_059: Display Engine Functions
  * ROM File Offset: 0x2385A - 0x23DD6 (~1404 bytes, ~20 functions)
@@ -164,9 +167,9 @@ func_041:
 
 .align 2
 .hw_init:
-    .long   0x02223A2C              /* Hardware init routine address */
+    .long   0x060045CC              /* Hardware init routine address (SDRAM) */
 .status_mask:
-    .long   0x????????              /* TBD from ROM */
+    .long   0x20000000              /* Bit 29 status mask */
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * func_042: VDP Data Copy Helper
@@ -292,7 +295,7 @@ func_043:
 
 .align 2
 .init_val:
-    .long   0x????????              /* Initialization constant */
+    .long   0x40000000              /* Initialization constant (bit 30) */
 .recip_table:
     .long   0x060048D0              /* Reciprocal lookup table */
 

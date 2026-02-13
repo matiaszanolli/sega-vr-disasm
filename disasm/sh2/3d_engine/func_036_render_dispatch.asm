@@ -1,3 +1,6 @@
+/* DOCUMENTATION ONLY — not used by build system.
+ * Build source: func_036_render_dispatch_short.asm
+ */
 /*
  * func_036: Render Dispatch D / Display List Processor
  * ROM File Offset: 0x237D6 - 0x2381C (~70 bytes)

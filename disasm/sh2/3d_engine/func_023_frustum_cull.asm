@@ -1,3 +1,6 @@
+/* DOCUMENTATION ONLY — not used by build system.
+ * Build source: func_023_frustum_cull_short.asm
+ */
 /*
  * func_023: Frustum Culling / Visibility Dispatcher
  * ROM File Offset: 0x23508 - 0x235F2 (234 bytes)

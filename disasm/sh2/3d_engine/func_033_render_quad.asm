@@ -1,3 +1,6 @@
+/* DOCUMENTATION ONLY — not used by build system.
+ * Build source: func_033_render_quad_short.asm
+ */
 /*
  * func_033: Quad Rendering / Edge Walking
  * ROM File Offset: 0x236F8 - 0x2375A (98 bytes)

@@ -1,3 +1,6 @@
+/* DOCUMENTATION ONLY — not used by build system.
+ * Build source: func_021_original_short.asm
+ */
 /*
  * func_021: Vertex Transform Entry Point (ORIGINAL)
  * ROM File Offset: 0x234C8 - 0x234EC (36 bytes)

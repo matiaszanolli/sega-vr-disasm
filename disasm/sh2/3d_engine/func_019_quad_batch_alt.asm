@@ -1,3 +1,6 @@
+/* DOCUMENTATION ONLY — not used by build system.
+ * Build source: func_019_quad_batch_alt_short.asm
+ */
 /*
  * func_019: Quad Batch Processor (Alternate)
  * ROM File Offset: 0x2340C - 0x23466 (92 bytes)

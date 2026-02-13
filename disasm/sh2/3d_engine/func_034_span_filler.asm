@@ -1,3 +1,6 @@
+/* DOCUMENTATION ONLY — not used by build system.
+ * Build source: func_034_span_filler_short.asm
+ */
 /*
  * func_034: Span Filler / Edge Interpolation
  * ROM File Offset: 0x2375C - 0x237D0 (~116 bytes)
@@ -112,13 +115,16 @@ func_034:
 
     extu.w  r3,r3                   /* R3 = edge B (zero ext) */
     swap.w  r1,r4                   /* R4 = Y1 */
-    /* Function continues with more interpolation... */
-
-    /* Note: Partial translation - full function extends further */
+    exts.w  r4,r4                   /* R4 = Y1 (sign ext) */
+    mov.l   @(28,r13),r7            /* R7 = load from output area */
+    add     r4,r7                   /* R7 += Y1 */
+    shll16  r7                      /* R7 <<= 16 */
+    rts
+    mov.l   r7,@r3                  /* [delay] Store result */
 
 .align 2
 .output_ptr:
-    .word   0x????                  /* TODO: Extract from ROM */
+    .word   0xFF00                  /* Literal for MOV.W @(12,PC),R13 — sign-extends to 0xFFFFFF00 */
 
 /*
  * Analysis Notes:
@@ -127,13 +133,17 @@ func_034:
  * polygon rasterizer. It calculates X coordinates along an edge
  * as Y advances, using fixed-point arithmetic.
  *
+ * Two paths:
+ * - Large delta: reciprocal table lookup at 0x060048D0 for fast division
+ * - Small delta: direct multiplication
+ *
+ * Both paths end with storing the interpolated Y:X packed result via
+ * MOV.L R7,@R3 in the RTS delay slot.
+ *
  * Key operations:
  * - Reciprocal table lookup for fast division (0x060048D0)
  * - MULS.W for 16-bit signed multiplication
  * - SHLL16/SHLL2 for fixed-point scaling
  *
- * The reciprocal table allows division by delta-X to be replaced
- * with multiplication, which is faster on SH2.
- *
- * End of func_034 (partial)
+ * End of func_034 (122 bytes)
  */

@@ -1,3 +1,6 @@
+/* DOCUMENTATION ONLY — not used by build system.
+ * Build source: func_018_quad_batch_short.asm
+ */
 /*
  * func_018: Quad Batch Processor
  * ROM File Offset: 0x233A2 - 0x2340A (106 bytes)

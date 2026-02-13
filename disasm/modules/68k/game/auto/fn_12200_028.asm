@@ -1,12 +1,19 @@
 ; ============================================================================
-; Sh2 Comm Palette Load 028 (auto-analyzed)
+; fn_12200_028 — Standings Screen Initialization
 ; ROM Range: $013054-$013292 (574 bytes)
 ; ============================================================================
-; Category: sh2
-; Purpose: Orchestrator calling 4 subroutines
-;   Accesses 32X registers: adapter_ctrl
-;   RAM: $C87A (vint_dispatch_state), $C87E (game_state)
-;   Calls: sh2_graphics_cmd, sh2_load_data, sh2_palette_load, sh2_send_cmd_wait
+; Initializes the championship standings/results screen. Two entry points:
+;   - $013054: sets camera mode 0 (default)
+;   - $01305E: sets camera mode 4 (alternate view)
+;
+; Sequence:
+;   1. Configure VDP mode, adapter control, display parameters
+;   2. Clear RAM regions and VRAM
+;   3. Set up 38×26 tile graphics region via sh2_graphics_cmd
+;   4. Load palette data, copy palette with priority bits to CRAM
+;   5. Transfer 7 tile data blocks to SH2 framebuffer regions
+;   6. Initialize standings display parameters (race count, positions)
+;   7. Set VDP display mode, enable V-INT, send SH2 init commands
 ;
 ; Uses: D0, D1, D2, D3, D4, A0, A1, A5
 ; RAM:
@@ -17,7 +24,6 @@
 ;   $00E22C: sh2_graphics_cmd
 ;   $00E2F0: sh2_load_data
 ;   $00E316: sh2_send_cmd_wait
-; Confidence: high
 ; ============================================================================
 
 fn_12200_028:

@@ -1,16 +1,17 @@
 ; ============================================================================
-; Camera 014 (auto-analyzed)
+; fn_12200_014 — Table Entry Swap by Index
 ; ROM Range: $01418E-$0141DC (78 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Object (A0, A1): +$00
+; Swaps two entries in array (A1) based on lookup indices. Reads index from
+; (A3), looks up value in table A0 (selected by D0: $008941DC or $008941E2),
+; searches (A1) for matching entry, saves position. Repeats for second index
+; from (A4). Then swaps the two found entries in (A1).
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
+; Used for reordering standings/rankings by swapping positions.
+;
+; Entry: A1 = sortable array, A3 = pointer to index 1, A4 = pointer to index 2,
+;        D0 = table selector (0 = table A, nonzero = table B)
 ; Uses: D0, D1, D3, D4, D5, D6, A0, A1
-; Object fields:
-;   +$00: [unknown]
-; Confidence: low
 ; ============================================================================
 
 fn_12200_014:

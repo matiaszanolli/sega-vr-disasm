@@ -1,12 +1,15 @@
 ; ============================================================================
-; Sh2 Comm Object Update 026 (auto-analyzed)
+; fn_12200_026 — Camera Selection Main Loop
 ; ROM Range: $012CC2-$012F0A (584 bytes)
 ; ============================================================================
-; Category: sh2
-; Purpose: Orchestrator calling 5 subroutines
-;   Accesses 32X registers: COMM0
-;   RAM: $C87E (game_state)
-;   Calls: dma_transfer, object_update, sprite_update, sh2_send_cmd
+; Per-frame update for the camera selection screen. Handles:
+;   1. DMA transfer, object_update, sprite_update
+;   2. Render main camera view ($06038000) and overlay ($0603DE80)
+;   3. Camera selection via D-pad up/down (cycles through 6 cameras,
+;      with skip logic for locked camera positions via bit 3 of $C958)
+;   4. Optional replay mode toggle via left/right (with smooth scrolling)
+;   5. Confirm selection (A button → state $0002), cancel (Start → exit)
+;   6. State machine: browsing ($0000), confirming ($0001/$0002)
 ;
 ; Uses: D0, D1, D2, A0, A1
 ; RAM:
@@ -16,7 +19,6 @@
 ;   $00B6DA: sprite_update
 ;   $00E35A: sh2_send_cmd
 ;   $00E52C: dma_transfer
-; Confidence: high
 ; ============================================================================
 
 fn_12200_026:

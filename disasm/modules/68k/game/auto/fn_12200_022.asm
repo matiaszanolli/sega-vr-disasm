@@ -1,12 +1,21 @@
 ; ============================================================================
-; Sh2 Comm Palette Load 022 (auto-analyzed)
+; fn_12200_022 — Camera/Replay Screen Initialization
 ; ROM Range: $0126D2-$0129E0 (782 bytes)
 ; ============================================================================
-; Category: sh2
-; Purpose: Orchestrator calling 5 subroutines
-;   Accesses 32X registers: adapter_ctrl, COMM0, COMM1
-;   RAM: $C87A (vint_dispatch_state), $C87E (game_state)
-;   Calls: sh2_graphics_cmd, sh2_load_data, sh2_palette_load, sh2_send_cmd_wait
+; Initializes the camera selection/replay viewing screen. Similar structure to
+; fn_10200_020 (name entry init) but with camera-specific setup:
+;
+; Sequence:
+;   1. Configure VDP mode, adapter control, display parameters
+;   2. Clear RAM regions (score tables, display state, VRAM)
+;   3. Set up scroll offsets and camera parameters
+;   4. Set up 38×26 tile graphics region via sh2_graphics_cmd
+;   5. Load palette data, copy palette with priority bits to CRAM
+;   6. Transfer tile data to SH2 framebuffer ($06038000)
+;   7. Handle replay mode variant (split viewport for replays)
+;   8. Transfer camera overlay tiles to $0603DE80
+;   9. Initialize camera selection state machine
+;  10. Send SH2 command $03 (scene init) via COMM registers
 ;
 ; Uses: D0, D1, D2, D3, D4, A0, A1, A5
 ; RAM:
@@ -17,7 +26,6 @@
 ;   $00E22C: sh2_graphics_cmd
 ;   $00E2F0: sh2_load_data
 ;   $00E316: sh2_send_cmd_wait
-; Confidence: high
 ; ============================================================================
 
 fn_12200_022:

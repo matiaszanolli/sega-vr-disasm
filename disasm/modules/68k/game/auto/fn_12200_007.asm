@@ -1,12 +1,17 @@
 ; ============================================================================
-; Sh2 Comm 007 (auto-analyzed)
+; fn_12200_007 — SH2 Multi-Parameter Command Send
 ; ROM Range: $012FE4-$013054 (112 bytes)
 ; ============================================================================
-; Category: sh2
-; Purpose: Accesses 32X registers: COMM0, COMM4, COMM6, COMM5
+; Sends command $21 to SH2 with 4 parameters via COMM register handshake:
+;   1. Wait COMM0_HI clear, send A1 via COMM4, cmd $21 via COMM0
+;   2. Wait COMM6 clear, send D0/D1 via COMM4/COMM5
+;   3. Wait COMM6 clear, send D2 via COMM4
+;   4. Wait COMM6 clear, send A0 via COMM4
+; Each parameter is acknowledged by SH2 clearing COMM6.
 ;
+; Entry: A0 = param 4, A1 = param 1, D0 = param 2 hi, D1 = param 2 lo,
+;        D2 = param 3
 ; Uses: D0, D1, D2, A0, A1
-; Confidence: high
 ; ============================================================================
 
 fn_12200_007:

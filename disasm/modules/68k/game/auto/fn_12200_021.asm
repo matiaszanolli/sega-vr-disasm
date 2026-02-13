@@ -1,14 +1,16 @@
 ; ============================================================================
-; Sh2 Comm Send Cmd 021 (auto-analyzed)
+; fn_12200_021 — Camera Tile Block Send
 ; ROM Range: $0126A6-$0126D2 (44 bytes)
 ; ============================================================================
-; Category: sh2
-; Purpose: Calls: sh2_send_cmd
+; Sends a 56×16 tile block from SH2 framebuffer to display. Computes source
+; address: $0601F9C0 + (D5 & 3) × $380. Used to update individual camera
+; view tiles in the camera selection screen.
 ;
+; Entry: D5 = camera index (0-3)
+; Exit: tile data sent to SH2 framebuffer
 ; Uses: D0, D1, D5, A0
 ; Calls:
 ;   $00E35A: sh2_send_cmd
-; Confidence: medium
 ; ============================================================================
 
 fn_12200_021:

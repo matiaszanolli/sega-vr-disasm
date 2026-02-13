@@ -1,15 +1,20 @@
 ; ============================================================================
-; Sh2 Comm Object Update 015 (auto-analyzed)
+; fn_12200_015 — Records Viewer Main Loop
 ; ROM Range: $012200-$01250C (780 bytes)
 ; ============================================================================
-; Category: sh2
-; Purpose: Orchestrator calling 8 subroutines
-;   Accesses 32X registers: COMM0, COMM6, COMM4
-;   RAM: $C87E (game_state)
-;   Calls: dma_transfer, object_update, sprite_update, sh2_send_cmd
-;   Object (A5): +$3B
+; Data prefix ($012200-$012223) contains VDP/entity parameter blocks ($0401
+; entries with field offsets +$3A, +$3B for display state).
 ;
-; Entry: A5 = object/entity pointer
+; Per-frame update loop for the records/replay browsing screen:
+;   1. DMA transfer, object_update, sprite_update
+;   2. Send camera/display data to SH2 via COMM registers (cmd $2C)
+;   3. Render lap time digits via fn_12200_002 and related digit renderers
+;   4. Handle scrolling acceleration for record list navigation
+;   5. Process D-pad input (up/down = scroll records, left/right = page)
+;   6. Handle button input (A = confirm → state $0002, Start = exit)
+;   7. Manage repeat delay for held buttons
+;   8. State machine: idle ($0000), confirming ($0001), transitioning ($0002)
+;
 ; Uses: D0, D1, D2, D5, A0, A1, A2, A5
 ; RAM:
 ;   $C87E: game_state
@@ -18,9 +23,6 @@
 ;   $00B6DA: sprite_update
 ;   $00E35A: sh2_send_cmd
 ;   $00E52C: dma_transfer
-; Object fields:
-;   +$3B: [unknown]
-; Confidence: high
 ; ============================================================================
 
 fn_12200_015:
@@ -73,18 +75,18 @@ fn_12200_015:
         LEA     $04035060,A1                    ; $0122B8
         LEA     (-1464).W,A2                    ; $0122BE
         MOVE.L  (-24546).W,D0                   ; $0122C2
-        DC.W    $D040                           ; $0122C6
-        DC.W    $D040                           ; $0122C8
-        DC.W    $D040                           ; $0122CA
+        ADD.W   D0,D0                           ; $0122C6
+        ADD.W   D0,D0                           ; $0122C8
+        ADD.W   D0,D0                           ; $0122CA
         MOVE.W  D0,D1                           ; $0122CC
-        DC.W    $D040                           ; $0122CE
-        DC.W    $D041                           ; $0122D0
-        DC.W    $D040                           ; $0122D2
+        ADD.W   D0,D0                           ; $0122CE
+        ADD.W   D1,D0                           ; $0122D0
+        ADD.W   D0,D0                           ; $0122D2
         ADDA.L  D0,A2                           ; $0122D4
         MOVE.L  (-24542).W,D0                   ; $0122D6
-        DC.W    $D040                           ; $0122DA
-        DC.W    $D040                           ; $0122DC
-        DC.W    $D040                           ; $0122DE
+        ADD.W   D0,D0                           ; $0122DA
+        ADD.W   D0,D0                           ; $0122DC
+        ADD.W   D0,D0                           ; $0122DE
         ADDA.L  D0,A2                           ; $0122E0
         DC.W    $6100,$0326         ; BSR.W  $01260A; $0122E2
         ADDA.L  #$00000010,A1                   ; $0122E6
@@ -101,10 +103,10 @@ fn_12200_015:
         BEQ.W  .loc_015A                        ; $012318
         MOVE.L  (-24528).W,D1                   ; $01231C
         MOVE.L  (-24538).W,D2                   ; $012320
-        DC.W    $D282                           ; $012324
+        ADD.L   D2,D1                           ; $012324
         MOVE.L  D1,(-24528).W                   ; $012326
         MOVE.L  (-24524).W,D1                   ; $01232A
-        DC.W    $D282                           ; $01232E
+        ADD.L   D2,D1                           ; $01232E
         MOVE.L  D1,(-24524).W                   ; $012330
         SUBQ.W  #1,(-24534).W                   ; $012334
         BCC.W  .loc_02FE                        ; $012338

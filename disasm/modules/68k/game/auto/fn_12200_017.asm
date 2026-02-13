@@ -1,12 +1,18 @@
 ; ============================================================================
-; Camera 017 (auto-analyzed)
+; fn_12200_017 — Lap Time Digit Renderer (Records Screen)
 ; ROM Range: $01259C-$0125D0 (52 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Function in 12200 section (52 bytes)
+; Same pattern as fn_10200_014 — renders BCD lap time as digit tiles to SH2
+; framebuffer at $0601F000. Reads 4 BCD bytes from (A2)+, rendering 7 digit
+; tiles + 2 separators via fn_12200_018 (nibble split) and fn_12200_019
+; (tile DMA).
 ;
+; Entry: A1 = destination tile pointer, A2 = BCD time data pointer
+; Exit: A1 advanced past tiles, A2 advanced 4 bytes
 ; Uses: D1, D3, A1, A2
-; Confidence: low
+; Calls:
+;   fn_12200_018: BCD nibble splitter
+;   fn_12200_019: digit tile DMA to $0601F000
 ; ============================================================================
 
 fn_12200_017:

@@ -1,12 +1,10 @@
 ; ============================================================================
-; Obj 046 (auto-analyzed)
+; fn_6200_046 — Object Type Return — Type 2 (D)
 ; ROM Range: $007C32-$007C36 (4 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Small leaf function
+; Returns constant 2 in D0. Jump table target for object type dispatch.
 ;
 ; Uses: D0
-; Confidence: low
+; Confidence: high
 ; ============================================================================
 
 fn_6200_046:

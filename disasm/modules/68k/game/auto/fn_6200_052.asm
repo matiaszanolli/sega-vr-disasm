@@ -1,16 +1,14 @@
 ; ============================================================================
-; Obj 052 (auto-analyzed)
+; fn_6200_052 — Entity Speed Guard
 ; ROM Range: $007C4A-$007C56 (12 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Small leaf function
-;   Object (A0): +$04 (speed_index/velocity)
+; Guard function with data prefix (4 bytes). Tests if entity speed (+$04)
+; is zero; if so, returns immediately. Otherwise falls through to continue
+; processing. Prevents updates on stationary entities.
 ;
-; Entry: A0 = object/entity pointer
+; Entry: A0 = entity base pointer
 ; Uses: D0, A0
-; Object fields:
-;   +$04: speed_index/velocity
-; Confidence: low
+; Object fields: +$04 speed
+; Confidence: high
 ; ============================================================================
 
 fn_6200_052:

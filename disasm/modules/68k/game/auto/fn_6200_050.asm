@@ -1,12 +1,10 @@
 ; ============================================================================
-; Obj 050 (auto-analyzed)
+; fn_6200_050 — Object Type Return — Type 2 (E)
 ; ROM Range: $007C42-$007C46 (4 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Small leaf function
+; Returns constant 2 in D0. Jump table target for object type dispatch.
 ;
 ; Uses: D0
-; Confidence: low
+; Confidence: high
 ; ============================================================================
 
 fn_6200_050:

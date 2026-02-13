@@ -1,12 +1,10 @@
 ; ============================================================================
-; Obj 048 (auto-analyzed)
+; fn_6200_048 — Object Type Return — Type 8
 ; ROM Range: $007C3A-$007C3E (4 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Small leaf function
+; Returns constant 8 in D0. Jump table target for object type dispatch.
 ;
 ; Uses: D0
-; Confidence: low
+; Confidence: high
 ; ============================================================================
 
 fn_6200_048:

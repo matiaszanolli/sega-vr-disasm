@@ -1,23 +1,21 @@
 ; ============================================================================
-; Obj Dispatch 045 (auto-analyzed)
+; fn_6200_045 — Object Type Dispatch B
 ; ROM Range: $007BE4-$007C32 (78 bytes)
-; ============================================================================
-; Category: game
-; Purpose: State dispatcher using jump table
-;   Object (A2): +$18
+; Reads object type from A2+$18 (low 4 bits), multiplies by 4 for longword
+; index, dispatches through 14-entry jump table. Each target returns a
+; type classification code in D0. Same structure as fn_6200_036.
 ;
-; Entry: A2 = object/entity pointer
+; Entry: A2 = object pointer (tile data)
 ; Uses: D0, D6, A1, A2
-; Object fields:
-;   +$18: [unknown]
-; Confidence: low
+; Object fields: +$18 type/flags
+; Confidence: high
 ; ============================================================================
 
 fn_6200_045:
         MOVE.B  $0018(A2),D0                    ; $007BE4
         ANDI.W  #$000F,D0                       ; $007BE8
-        DC.W    $D040                           ; $007BEC
-        DC.W    $D040                           ; $007BEE
+        ADD.W   D0,D0; $007BEC
+        ADD.W   D0,D0; $007BEE
         MOVEA.L $007BF6(PC,D0.W),A1             ; $007BF0
         JMP     (A1)                            ; $007BF4
         DC.W    $0088                           ; $007BF6

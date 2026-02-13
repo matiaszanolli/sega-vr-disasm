@@ -1,19 +1,16 @@
 ; ============================================================================
-; Obj Render 043 (auto-analyzed)
+; fn_6200_043 — Entity Heading Initialization
 ; ROM Range: $007AB2-$007AD6 (36 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Short helper function
-;   Object (A0): +$32, +$C0 (render_flags), +$C6, +$C8
+; Initializes entity heading angles. Has data prefix (4 bytes), then checks
+; render flag bit 7 (+$C0); if clear, calls heading calculation at $007BAC,
+; copies heading value (+$32) to both +$C6 and +$C8 (prev/current heading),
+; and increments global object counter at $FF5FFE.
 ;
-; Entry: A0 = object/entity pointer
+; Entry: A0 = entity base pointer
 ; Uses: D0, D1, A0
-; Object fields:
-;   +$32: [unknown]
-;   +$C0: render_flags
-;   +$C6: [unknown]
-;   +$C8: [unknown]
-; Confidence: low
+; Object fields: +$32 heading, +$C0 render_flags, +$C6 prev_heading,
+;   +$C8 current_heading
+; Confidence: high
 ; ============================================================================
 
 fn_6200_043:

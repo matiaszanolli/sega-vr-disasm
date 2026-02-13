@@ -1,31 +1,16 @@
 ; ============================================================================
-; Obj Tile Position Calc 044 (auto-analyzed)
+; fn_6200_044 — Directional Collision Probe
 ; ROM Range: $007AD6-$007BAC (214 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Orchestrator calling 5 subroutines
-;   Calls: tile_position_calc, angle_normalize, vector_dot_product, velocity_apply
-;   Object (A0, A3, A4): +$00, +$04 (speed_index/velocity), +$30 (x_position), +$34 (y_position), +$40 (heading_angle), +$46 (display_scale)
+; Probes for collisions in the entity's heading direction. Computes offset
+; from heading angle via ROM table at $0093661E, performs tile lookup at
+; offset position, checks for track boundary collision via angle_normalize
+; and velocity_apply. Probes two points (forward and adjacent) and stores
+; surface tracking data in +$C6/+$C8. Falls through to center probe check.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A3 = object/entity pointer
-; Entry: A4 = object/entity pointer
+; Entry: A0 = entity base pointer, A4 = scratch buffer pointer
 ; Uses: D0, D1, D2, A0, A1, A2, A3, A4
-; Calls:
-;   $0073E8: tile_position_calc
-;   $00748C: angle_normalize
-;   $0074A4: sprite_list_process
-;   $007534: velocity_apply
-;   $0075C8: vector_dot_product
-; Object fields:
-;   +$00: [unknown]
-;   +$04: speed_index/velocity
-;   +$30: x_position
-;   +$34: y_position
-;   +$40: heading_angle
-;   +$46: display_scale
-;   +$55: [unknown]
-;   +$C6: [unknown]
+; Object fields: +$30 x_position, +$34 y_position, +$40 heading,
+;   +$46 scale, +$55 collision_flag, +$C6/+$C8 surface_offsets
 ; Confidence: high
 ; ============================================================================
 
@@ -34,7 +19,7 @@ fn_6200_044:
         ADD.W  $0046(A0),D0                     ; $007ADA
         LEA     $0093661E,A3                    ; $007ADE
         LSR.W  #6,D0                            ; $007AE4
-        DC.W    $D040                           ; $007AE6
+        ADD.W   D0,D0                           ; $007AE6
         LEA     $00(A3,D0.W),A3                 ; $007AE8
         MOVE.B  (A3)+,D1                        ; $007AEC
         EXT.W   D1                              ; $007AEE
@@ -55,7 +40,7 @@ fn_6200_044:
         BLE.S  .loc_005A                        ; $007B20
         MOVE.W  $00C6(A0),D2                    ; $007B22
         EXT.L   D2                              ; $007B26
-        DC.W    $D282                           ; $007B28
+        ADD.L   D2,D1; $007B28
         ASR.L  #1,D1                            ; $007B2A
         MOVE.W  D1,$00C6(A0)                    ; $007B2C
 .loc_005A:
@@ -85,7 +70,7 @@ fn_6200_044:
         BLE.S  .loc_00A6                        ; $007B6C
         MOVE.W  $00C8(A0),D2                    ; $007B6E
         EXT.L   D2                              ; $007B72
-        DC.W    $D282                           ; $007B74
+        ADD.L   D2,D1; $007B74
         ASR.L  #1,D1                            ; $007B76
         MOVE.W  D1,$00C8(A0)                    ; $007B78
 .loc_00A6:

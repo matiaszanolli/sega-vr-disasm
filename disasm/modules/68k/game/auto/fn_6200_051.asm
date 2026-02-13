@@ -1,12 +1,10 @@
 ; ============================================================================
-; Obj 051 (auto-analyzed)
+; fn_6200_051 — Object Type Return — Type 2 (F)
 ; ROM Range: $007C46-$007C4A (4 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Small leaf function
+; Returns constant 2 in D0. Jump table target for object type dispatch.
 ;
 ; Uses: D0
-; Confidence: low
+; Confidence: high
 ; ============================================================================
 
 fn_6200_051:

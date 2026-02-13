@@ -1,20 +1,16 @@
 ; ============================================================================
-; Sh2 Comm Cmd 27 009 (auto-analyzed)
+; fn_e200_009 — SH2 Multi-Panel Tile Renderer
 ; ROM Range: $00F8F6-$00FB24 (558 bytes)
-; ============================================================================
-; Category: sh2
-; Purpose: Accesses 32X registers: COMM0
-;   Calls: sh2_cmd_27
-;   Object (A0, A1): +$00, +$04 (speed_index/velocity)
+; Data prefix (32 bytes: default palette color data, same as
+; fn_e200_001). Renders tile overlays to SH2 framebuffer via
+; sh2_cmd_27 for up to 3 screen panels. Computes tile addresses
+; from palette index with bit-shift multiplication. Panel 1 renders
+; main view, panel 2 renders comparison view (optional), panel 3
+; renders stats overlay. Two identical rendering blocks handle
+; P1 and P2 viewports.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
 ; Uses: D0, D1, D2, A0, A1
-; Calls:
-;   $00E3B4: sh2_cmd_27
-; Object fields:
-;   +$00: [unknown]
-;   +$04: speed_index/velocity
+; Calls: $00E3B4 (sh2_cmd_27)
 ; Confidence: high
 ; ============================================================================
 
@@ -40,10 +36,10 @@ fn_e200_009:
         MOVE.B  (-24545).W,D0                   ; $00F924
 .loc_0032:
         LEA     $0088FB24,A1                    ; $00F928
-        DC.W    $D040                           ; $00F92E
+        ADD.W  D0,D0                           ; $00F92E
         MOVE.W  D0,D1                           ; $00F930
-        DC.W    $D040                           ; $00F932
-        DC.W    $D041                           ; $00F934
+        ADD.W  D0,D0                           ; $00F932
+        ADD.W  D1,D0                           ; $00F934
         MOVEA.L $00(A1,D0.W),A0                 ; $00F936
         MOVE.W  $04(A1,D0.W),D0                 ; $00F93A
         MOVE.W  #$0030,D1                       ; $00F93E
@@ -106,12 +102,12 @@ fn_e200_009:
 .loc_0104:
         MOVE.B  D0,D2                           ; $00F9FA
         MOVEA.L #$0401B018,A0                   ; $00F9FC
-        DC.W    $D040                           ; $00FA02
-        DC.W    $D040                           ; $00FA04
-        DC.W    $D040                           ; $00FA06
+        ADD.W  D0,D0                           ; $00FA02
+        ADD.W  D0,D0                           ; $00FA04
+        ADD.W  D0,D0                           ; $00FA06
         MOVE.W  D0,D1                           ; $00FA08
-        DC.W    $D040                           ; $00FA0A
-        DC.W    $D041                           ; $00FA0C
+        ADD.W  D0,D0                           ; $00FA0A
+        ADD.W  D1,D0                           ; $00FA0C
         LEA     $00(A0,D0.W),A0                 ; $00FA0E
         MOVE.W  #$0018,D0                       ; $00FA12
         TST.B  D2                               ; $00FA16
@@ -182,12 +178,12 @@ fn_e200_009:
 .loc_01F0:
         MOVE.B  D0,D2                           ; $00FAE6
         MOVEA.L #$0401B0B0,A0                   ; $00FAE8
-        DC.W    $D040                           ; $00FAEE
-        DC.W    $D040                           ; $00FAF0
-        DC.W    $D040                           ; $00FAF2
+        ADD.W  D0,D0                           ; $00FAEE
+        ADD.W  D0,D0                           ; $00FAF0
+        ADD.W  D0,D0                           ; $00FAF2
         MOVE.W  D0,D1                           ; $00FAF4
-        DC.W    $D040                           ; $00FAF6
-        DC.W    $D041                           ; $00FAF8
+        ADD.W  D0,D0                           ; $00FAF6
+        ADD.W  D1,D0                           ; $00FAF8
         LEA     $00(A0,D0.W),A0                 ; $00FAFA
         MOVE.W  #$0018,D0                       ; $00FAFE
         TST.B  D2                               ; $00FB02

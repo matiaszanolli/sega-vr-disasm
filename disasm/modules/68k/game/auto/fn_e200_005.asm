@@ -1,22 +1,16 @@
 ; ============================================================================
-; Sh2 Comm Palette Load 005 (auto-analyzed)
+; fn_e200_005 — SH2 Three-Panel Display Initialization
 ; ROM Range: $00F130-$00F39C (620 bytes)
-; ============================================================================
-; Category: sh2
-; Purpose: Orchestrator calling 4 subroutines
-;   Accesses 32X registers: adapter_ctrl
-;   RAM: $C87A (vint_dispatch_state), $C87E (game_state)
-;   Calls: sh2_graphics_cmd, sh2_load_data, sh2_palette_load, sh2_send_cmd_wait
+; Data prefix (12 bytes: 3 longword entry point pointers). Scene
+; initialization for three-panel display mode. Configures 32X VDP,
+; clears framebuffer/CRAM, loads palette and tile graphics via
+; sh2_graphics_cmd (3 tile regions). Transfers 8 compressed data
+; blocks to SH2 memory via sh2_send_cmd_wait. Initializes palette
+; selection and panel configuration parameters.
 ;
 ; Uses: D0, D1, D2, D3, D4, A0, A1, A5
-; RAM:
-;   $C87A: vint_dispatch_state
-;   $C87E: game_state
-; Calls:
-;   $00E1BC: sh2_palette_load
-;   $00E22C: sh2_graphics_cmd
-;   $00E2F0: sh2_load_data
-;   $00E316: sh2_send_cmd_wait
+; Calls: $00E1BC (sh2_palette_load), $00E22C (sh2_graphics_cmd),
+;        $00E2F0 (sh2_load_data), $00E316 (sh2_send_cmd_wait)
 ; Confidence: high
 ; ============================================================================
 

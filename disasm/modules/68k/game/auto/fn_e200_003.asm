@@ -1,23 +1,16 @@
 ; ============================================================================
-; Sh2 Comm Send Cmd 003 (auto-analyzed)
+; fn_e200_003 — SH2 Geometry Transfer and Palette Cycle Handler
 ; ROM Range: $00E93A-$00EAC2 (392 bytes)
-; ============================================================================
-; Category: sh2
-; Purpose: RAM: $C87E (game_state)
-;   Calls: sh2_send_cmd, dma_transfer
-;   Object (A0, A1): +$00
+; Sends SH2 geometry and sprite data via sh2_send_cmd. Loads palette
+; data from ROM table $0088EACE indexed by selection, copies 128
+; words to framebuffer palette. Transfers display object data via
+; DREQ FIFO (68 words). Handles D-pad palette cycling with wrapping
+; and sound trigger ($A9). Supports dual-palette switching via
+; secondary selection register.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
 ; Uses: D0, D1, D7, A0, A1, A2
-; RAM:
-;   $C87E: game_state
-; Calls:
-;   $00E35A: sh2_send_cmd
-;   $00E52C: dma_transfer
-; Object fields:
-;   +$00: [unknown]
-; Confidence: medium
+; Calls: $00E35A (sh2_send_cmd), $00E52C (dma_transfer)
+; Confidence: high
 ; ============================================================================
 
 fn_e200_003:
@@ -40,8 +33,8 @@ fn_e200_003:
         MOVE.B  (-24546).W,D0                   ; $00E978
 .loc_0042:
         MOVE.W  D0,D1                           ; $00E97C
-        DC.W    $D241                           ; $00E97E
-        DC.W    $D241                           ; $00E980
+        ADD.W  D1,D1                           ; $00E97E
+        ADD.W  D1,D1                           ; $00E980
         LEA     $00FF6E00,A0                    ; $00E982
         LEA     $0088EACE,A1                    ; $00E988
         MOVEA.L $00(A1,D1.W),A1                 ; $00E98E
@@ -50,8 +43,8 @@ fn_e200_003:
         MOVE.W  (A1)+,(A0)+                     ; $00E996
         DBRA    D1,.loc_005C                    ; $00E998
         LEA     $0088EAC2,A0                    ; $00E99C
-        DC.W    $D040                           ; $00E9A2
-        DC.W    $D040                           ; $00E9A4
+        ADD.W  D0,D0                           ; $00E9A2
+        ADD.W  D0,D0                           ; $00E9A4
         MOVEA.L $00(A0,D0.W),A0                 ; $00E9A6
         MOVE.L  (-24556).W,D0                   ; $00E9AA
         JSR     (A0)                            ; $00E9AE

@@ -1,33 +1,17 @@
 ; ============================================================================
-; Sh2 Comm Palette Load 010 (auto-analyzed)
+; fn_e200_010 — Time Trial Records Display Initialization
 ; ROM Range: $00FB98-$010084 (1260 bytes)
-; ============================================================================
-; Category: sh2
-; Purpose: Orchestrator calling 4 subroutines
-;   Accesses 32X registers: adapter_ctrl
-;   RAM: $C87A (vint_dispatch_state), $C0A2 (gfx_mode), $C87E (game_state)
-;   Calls: sh2_graphics_cmd, sh2_load_data, sh2_palette_load, sh2_send_cmd_wait
-;   Object (A0, A1): +$00, +$01, +$02 (flags/type), +$03, +$04 (speed_index/velocity), +$9C
+; Major scene initialization for time trial records display. Searches
+; timing records to find player's position, sorts entries using
+; insertion sort with BCD time comparison via ABCD/SBCD instructions.
+; Computes record table addresses from player/track indices. Loads
+; SH2 palette, tile graphics, and 8 compressed data blocks. Configures
+; 32X VDP for records overlay. Marks insertion points in record table
+; with $20 padding bytes.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
 ; Uses: D0, D1, D2, D3, D4, D5, A0, A1
-; RAM:
-;   $C0A2: gfx_mode
-;   $C87A: vint_dispatch_state
-;   $C87E: game_state
-; Calls:
-;   $00E1BC: sh2_palette_load
-;   $00E22C: sh2_graphics_cmd
-;   $00E2F0: sh2_load_data
-;   $00E316: sh2_send_cmd_wait
-; Object fields:
-;   +$00: [unknown]
-;   +$01: [unknown]
-;   +$02: flags/type
-;   +$03: [unknown]
-;   +$04: speed_index/velocity
-;   +$9C: [unknown]
+; Calls: $00E1BC (sh2_palette_load), $00E22C (sh2_graphics_cmd),
+;        $00E2F0 (sh2_load_data), $00E316 (sh2_send_cmd_wait)
 ; Confidence: high
 ; ============================================================================
 
@@ -84,15 +68,15 @@ fn_e200_010:
         ADDA.L  D1,A0                           ; $00FC62
         MOVEQ   #$00,D0                         ; $00FC64
         MOVE.B  (-347).W,D0                     ; $00FC66
-        DC.W    $D040                           ; $00FC6A
-        DC.W    $D040                           ; $00FC6C
-        DC.W    $D040                           ; $00FC6E
-        DC.W    $D040                           ; $00FC70
+        ADD.W  D0,D0                           ; $00FC6A
+        ADD.W  D0,D0                           ; $00FC6C
+        ADD.W  D0,D0                           ; $00FC6E
+        ADD.W  D0,D0                           ; $00FC70
         MOVE.W  D0,D1                           ; $00FC72
-        DC.W    $D040                           ; $00FC74
-        DC.W    $D040                           ; $00FC76
-        DC.W    $D041                           ; $00FC78
-        DC.W    $D040                           ; $00FC7A
+        ADD.W  D0,D0                           ; $00FC74
+        ADD.W  D0,D0                           ; $00FC76
+        ADD.W  D1,D0                           ; $00FC78
+        ADD.W  D0,D0                           ; $00FC7A
         ADDA.L  D0,A0                           ; $00FC7C
         MOVE.L  (-15776).W,D0                   ; $00FC7E
         CMP.L  $009C(A0),D0                     ; $00FC82
@@ -109,7 +93,7 @@ fn_e200_010:
 .loc_010E:
         MOVE.B  #$01,(-24556).W                 ; $00FCA6
         MOVE.W  #$0013,D3                       ; $00FCAC
-        DC.W    $9642                           ; $00FCB0
+        SUB.W  D2,D3                           ; $00FCB0
         MOVE.W  D3,(-24542).W                   ; $00FCB2
         MOVE.L  A0,(-24552).W                   ; $00FCB6
         ANDI.L  #$0000FFFF,D1                   ; $00FCBA
@@ -140,19 +124,19 @@ fn_e200_010:
         LEA     (-1464).W,A0                    ; $00FD02
         MOVEQ   #$00,D0                         ; $00FD06
         MOVE.B  (-335).W,D0                     ; $00FD08
-        DC.W    $D040                           ; $00FD0C
-        DC.W    $D040                           ; $00FD0E
-        DC.W    $D040                           ; $00FD10
+        ADD.W  D0,D0                           ; $00FD0C
+        ADD.W  D0,D0                           ; $00FD0E
+        ADD.W  D0,D0                           ; $00FD10
         MOVE.W  D0,D1                           ; $00FD12
-        DC.W    $D040                           ; $00FD14
-        DC.W    $D041                           ; $00FD16
-        DC.W    $D040                           ; $00FD18
+        ADD.W  D0,D0                           ; $00FD14
+        ADD.W  D1,D0                           ; $00FD16
+        ADD.W  D0,D0                           ; $00FD18
         ADDA.L  D0,A0                           ; $00FD1A
         MOVEQ   #$00,D0                         ; $00FD1C
         MOVE.B  (-347).W,D0                     ; $00FD1E
-        DC.W    $D040                           ; $00FD22
-        DC.W    $D040                           ; $00FD24
-        DC.W    $D040                           ; $00FD26
+        ADD.W  D0,D0                           ; $00FD22
+        ADD.W  D0,D0                           ; $00FD24
+        ADD.W  D0,D0                           ; $00FD26
         ADDQ.W  #4,D0                           ; $00FD28
         CMP.L  $00(A0,D0.W),D2                  ; $00FD2A
         BHI.W  .loc_01B4                        ; $00FD2E
@@ -185,24 +169,24 @@ fn_e200_010:
         ADDI.B  #$00,D0                         ; $00FD88
         MOVE.B  $0003(A0),D0                    ; $00FD8C
         MOVE.B  $0003(A1),D1                    ; $00FD90
-        DC.W    $C101                           ; $00FD94
+        ABCD   D1,D0                           ; $00FD94
         MOVE.B  D0,$0003(A0)                    ; $00FD96
         MOVE.B  $0002(A0),D0                    ; $00FD9A
         MOVE.B  $0002(A1),D1                    ; $00FD9E
-        DC.W    $C101                           ; $00FDA2
+        ABCD   D1,D0                           ; $00FDA2
         MOVE.B  D0,D1                           ; $00FDA4
         ANDI.B  #$0F,D0                         ; $00FDA6
         MOVE.B  D0,$0002(A0)                    ; $00FDAA
         LSR.B  #4,D1                            ; $00FDAE
         ADDI.B  #$00,D0                         ; $00FDB0
         MOVE.B  $0001(A0),D0                    ; $00FDB4
-        DC.W    $C101                           ; $00FDB8
+        ABCD   D1,D0                           ; $00FDB8
         MOVE.B  $0001(A1),D1                    ; $00FDBA
-        DC.W    $C101                           ; $00FDBE
+        ABCD   D1,D0                           ; $00FDBE
         BCC.W  .loc_023C                        ; $00FDC0
         ADDI.B  #$00,D0                         ; $00FDC4
         MOVE.B  #$40,D1                         ; $00FDC8
-        DC.W    $C101                           ; $00FDCC
+        ABCD   D1,D0                           ; $00FDCC
         MOVE.B  #$01,D1                         ; $00FDCE
         BRA.S  .loc_0254                        ; $00FDD2
 .loc_023C:
@@ -211,15 +195,15 @@ fn_e200_010:
         BCS.W  .loc_0254                        ; $00FDDA
         ADDI.B  #$00,D0                         ; $00FDDE
         MOVE.B  #$60,D1                         ; $00FDE2
-        DC.W    $8101                           ; $00FDE6
+        SBCD   D1,D0                           ; $00FDE6
         MOVE.B  #$01,D1                         ; $00FDE8
 .loc_0254:
         MOVE.B  D0,$0001(A0)                    ; $00FDEC
         ADDI.B  #$00,D0                         ; $00FDF0
         MOVE.B  (A0),D0                         ; $00FDF4
-        DC.W    $C101                           ; $00FDF6
+        ABCD   D1,D0                           ; $00FDF6
         MOVE.B  (A1),D1                         ; $00FDF8
-        DC.W    $C101                           ; $00FDFA
+        ABCD   D1,D0                           ; $00FDFA
         MOVE.B  D0,(A0)                         ; $00FDFC
         ADDQ.L  #4,A1                           ; $00FDFE
         DBRA    D2,.loc_01F0                    ; $00FE00
@@ -294,16 +278,16 @@ fn_e200_010:
         DC.W    $4EBA,$E3F2         ; JSR     $00E316(PC); $00FF22
         MOVEQ   #$00,D0                         ; $00FF26
         MOVE.B  (-335).W,D0                     ; $00FF28
-        DC.W    $D080                           ; $00FF2C
-        DC.W    $D080                           ; $00FF2E
+        ADD.L  D0,D0                           ; $00FF2C
+        ADD.L  D0,D0                           ; $00FF2E
         LEA     $00890084,A0                    ; $00FF30
         MOVEA.L $00(A0,D0.W),A0                 ; $00FF36
         MOVEA.L #$06019700,A1                   ; $00FF3A
         DC.W    $4EBA,$E3D4         ; JSR     $00E316(PC); $00FF40
         MOVEQ   #$00,D0                         ; $00FF44
         MOVE.B  (-347).W,D0                     ; $00FF46
-        DC.W    $D080                           ; $00FF4A
-        DC.W    $D080                           ; $00FF4C
+        ADD.L  D0,D0                           ; $00FF4A
+        ADD.L  D0,D0                           ; $00FF4C
         LEA     $00890090,A0                    ; $00FF4E
         MOVEA.L $00(A0,D0.W),A0                 ; $00FF54
         MOVEA.L #$06019C80,A1                   ; $00FF58

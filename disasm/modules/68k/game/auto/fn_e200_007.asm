@@ -1,17 +1,15 @@
 ; ============================================================================
-; Sh2 Comm Send Cmd 007 (auto-analyzed)
+; fn_e200_007 — Multi-Screen Palette Navigation Handler
 ; ROM Range: $00F44C-$00F682 (566 bytes)
-; ============================================================================
-; Category: sh2
-; Purpose: RAM: $C87E (game_state)
-;   Calls: sh2_send_cmd
+; Handles palette navigation for multi-screen (up to 3-panel) display
+; modes. D-pad left/right cycles through palette entries with per-
+; panel limits based on screen count. D-pad up/down switches active
+; panel. Sends SH2 geometry data via sh2_send_cmd loop (8 command
+; table entries at $0088F682). Advances state counter.
 ;
 ; Uses: D0, D1, D2, A0, A1, A2
-; RAM:
-;   $C87E: game_state
-; Calls:
-;   $00E35A: sh2_send_cmd
-; Confidence: medium
+; Calls: $00E35A (sh2_send_cmd), $00F88C (palette_switch)
+; Confidence: high
 ; ============================================================================
 
 fn_e200_007:

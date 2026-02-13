@@ -1,21 +1,14 @@
 ; ============================================================================
-; Menu Dispatch 011 (auto-analyzed)
+; fn_e200_011 — Records Scene State Dispatcher
 ; ROM Range: $010084-$01017A (246 bytes)
-; ============================================================================
-; Category: game
-; Purpose: State dispatcher using jump table
-;   RAM: $C87E (game_state)
-;   Calls: object_update
-;   Object (A0): +$0E (param_e)
+; Data prefix (~164 bytes: scene configuration tables with display
+; parameters, palette/color data). Two scene dispatchers: first uses
+; jump table at $010138 (3 states), second uses jump table at $010158
+; (3 states). Calls object_update and advances state counter when
+; fade-in completes (bit 6 of $C8B2 clear).
 ;
-; Entry: A0 = object/entity pointer
 ; Uses: D0, D1, D2, D3, D4, D5, D6, A0
-; RAM:
-;   $C87E: game_state
-; Calls:
-;   $00B684: object_update
-; Object fields:
-;   +$0E: param_e
+; Calls: $00B684 (object_update)
 ; Confidence: high
 ; ============================================================================
 

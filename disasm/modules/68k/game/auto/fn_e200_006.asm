@@ -1,17 +1,14 @@
 ; ============================================================================
-; Menu Dispatch 006 (auto-analyzed)
+; fn_e200_006 — Scene State Dispatcher with Color Tables
 ; ROM Range: $00F39C-$00F44C (176 bytes)
-; ============================================================================
-; Category: game
-; Purpose: State dispatcher using jump table
-;   RAM: $C87E (game_state)
-;   Calls: object_update
+; Data prefix (~128 bytes: palette/color tables and scene configuration
+; parameters). Scene state dispatcher via jump table at $00F42C.
+; Calls $00882080 for scene setup, dispatches to 3 scene states.
+; Calls object_update and advances state counter when fade-in
+; completes (bit 6 of $C8B2 clear).
 ;
 ; Uses: D0, D1, D5, D6, A1, A2, A3, A4
-; RAM:
-;   $C87E: game_state
-; Calls:
-;   $00B684: object_update
+; Calls: $00B684 (object_update)
 ; Confidence: high
 ; ============================================================================
 

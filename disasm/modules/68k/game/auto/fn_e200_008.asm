@@ -1,26 +1,16 @@
 ; ============================================================================
-; Sh2 Comm Object Update 008 (auto-analyzed)
+; fn_e200_008 — SH2 Multi-Panel Object Update Orchestrator
 ; ROM Range: $00F682-$00F838 (438 bytes)
-; ============================================================================
-; Category: sh2
-; Purpose: Orchestrator calling 6 subroutines
-;   Accesses 32X registers: COMM0
-;   RAM: $C87E (game_state)
-;   Calls: sh2_send_cmd, object_update, sprite_update
-;   Object (A0, A4): +$78, +$80
+; Data prefix (~96 bytes: SH2 command tables for single/dual-screen
+; tile transfer configurations). Per-frame update: sends SH2 commands
+; from table, calls internal renderer at $00F916, sends additional
+; tile blocks, performs palette switch via $00F88C. Calls object/
+; sprite update. Handles dual-player exit with palette save per-panel
+; and fade-out transition. Calls $00FB36 during fade states.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A4 = object/entity pointer
 ; Uses: D0, D1, D2, D3, D6, A0, A1, A2
-; RAM:
-;   $C87E: game_state
-; Calls:
-;   $00B684: object_update
-;   $00B6DA: sprite_update
-;   $00E35A: sh2_send_cmd
-; Object fields:
-;   +$78: [unknown]
-;   +$80: [unknown]
+; Calls: $00B684 (object_update), $00B6DA (sprite_update),
+;        $00E35A (sh2_send_cmd), $00F88C (palette_switch)
 ; Confidence: high
 ; ============================================================================
 

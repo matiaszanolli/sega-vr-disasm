@@ -1,23 +1,24 @@
 ; ============================================================================
-; Vint Physics 022 (auto-analyzed)
+; fn_2200_022 — Camera Parameter Calculation
 ; ROM Range: $002984-$002A72 (238 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: Object (A0, A1): +$04 (speed_index/velocity), +$06 (speed), +$08, +$0A (param_a), +$0C, +$14 (effect_duration)
+; Computes camera/view parameters from entity state. Reads positions and
+; velocities from entity A0 (at $FF9000), computes scaled derivatives
+; (ASR #3 = divide by 8), and stores results to camera parameter buffer
+; A1 (at $FF6100). Parameters computed:
+;   +$04: Lateral offset (from $009C, scaled, minus reference)
+;   +$06: Vertical reference (from RAM $C034)
+;   +$08/$0C: Height components (from $003A/$003C, with velocity $0044/$0046)
+;   +$0A: Roll component (from $003C + $0096)
+;   +$16: Speed indicator (from $0030)
+;   +$18-$20: Position derivatives and acceleration
+;   +$30/$32/$44/$46/$58: Rotation parameters (from $0090/$00BC)
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
+; If entity has flag bit 3 at +$E5 and $C3AC is set, clears all primary
+; parameters (zero-fill slots $00/$14/$28/$3C/$50/$64).
+;
+; Entry: Uses fixed addresses A0=$FF9000, A1=$FF6100
 ; Uses: D0, D1, A0, A1
-; Object fields:
-;   +$04: speed_index/velocity
-;   +$06: speed
-;   +$08: [unknown]
-;   +$0A: param_a
-;   +$0C: [unknown]
-;   +$14: effect_duration
-;   +$16: calc_speed
-;   +$18: [unknown]
-; Confidence: medium
 ; ============================================================================
 
 fn_2200_022:
@@ -46,7 +47,7 @@ fn_2200_022:
         MOVE.W  D0,$0008(A1)                    ; $0029D6
         MOVE.W  $0044(A0),D0                    ; $0029DA
         ASR.W  #3,D0                            ; $0029DE
-        DC.W    $D041                           ; $0029E0
+        ADD.W   D1,D0                           ; $0029E0
         NEG.W  D0                               ; $0029E2
         MOVE.W  D0,$001C(A1)                    ; $0029E4
         MOVE.W  $003C(A0),D0                    ; $0029E8
@@ -58,7 +59,7 @@ fn_2200_022:
         MOVE.W  D0,$000A(A1)                    ; $0029FA
         MOVE.W  $0046(A0),D0                    ; $0029FE
         ASR.W  #3,D0                            ; $002A02
-        DC.W    $9240                           ; $002A04
+        SUB.W   D0,D1                           ; $002A04
         MOVE.W  D1,$001E(A1)                    ; $002A06
         MOVE.W  $003E(A0),D0                    ; $002A0A
         ASR.W  #3,D0                            ; $002A0E
@@ -68,7 +69,7 @@ fn_2200_022:
         MOVE.W  $004A(A0),D0                    ; $002A1A
         ADD.W  $004C(A0),D0                     ; $002A1E
         ASR.W  #5,D0                            ; $002A22
-        DC.W    $9041                           ; $002A24
+        SUB.W   D1,D0                           ; $002A24
         MOVE.W  D0,$0020(A1)                    ; $002A26
         MOVE.W  $0090(A0),D0                    ; $002A2A
         ASR.W  #3,D0                            ; $002A2E

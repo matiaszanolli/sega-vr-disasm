@@ -1,12 +1,17 @@
 ; ============================================================================
-; Vint 016 (auto-analyzed)
+; fn_2200_016 — 32X VDP Mode Register Setup
 ; ROM Range: $002652-$002680 (46 bytes)
 ; ============================================================================
-; Category: vint
-; Purpose: Function in 2200 section (46 bytes)
+; Data prefix ($002652-$00266B): 32X VDP mode register initialization values
+; (12 bytes: 6 words for bitmap mode, screen shift, auto-fill, etc.).
+;
+; Code at $00266C: Loads A1 = PC-relative pointer to data at $002680
+; (immediately after this function), loads A2 = MARS_VDP_MODE ($A15180),
+; copies 6 words from table to VDP mode registers.
 ;
 ; Uses: D0, D3, D7, A1, A2
-; Confidence: low
+; Hardware:
+;   MARS_VDP_MODE ($A15180): 32X VDP control registers (6 words)
 ; ============================================================================
 
 fn_2200_016:

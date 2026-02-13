@@ -1,12 +1,24 @@
 ; ============================================================================
-; Init 048 (auto-analyzed)
+; fn_200_048 — Sound Update Dispatcher
 ; ROM Range: $0020D6-$0021EE (280 bytes)
 ; ============================================================================
-; Category: boot
-; Purpose: Function in 200 section (280 bytes)
+; Sound command update dispatcher with 7 entry points (one per game state
+; variant). Each entry:
+;   1. Checks if sound command is pending in RAM ($C874 area)
+;   2. Copies command to active slot, clears pending flag
+;   3. Saves A5/A6, calls sound driver at $008B0000, restores
+;   4. Jumps to next handler (via JMP PC-relative) or returns
+;
+; Three variants handle different sound command sources:
+;   - Type A ($0020D6, $002154): Copies $C874 → $C876, checks pending flag
+;   - Type B ($00210A, $002180): Copies $C875, simpler pending check
+;   - Type C ($00212E, $0021A4, $0021CA): Reads command from $C862, clears all
 ;
 ; Uses: D0, A5, A6
-; Confidence: low
+; Calls:
+;   $008B0000: sound_driver_update
+;   $00232E: next handler (JMP PC-relative) — entries 1-6
+;   $00220C: next handler (JMP PC-relative) — entries 4-6
 ; ============================================================================
 
 fn_200_048:

@@ -1,23 +1,26 @@
 ; ============================================================================
-; Vint 003 (auto-analyzed)
+; fn_2200_003 — Weighted Timer Average A
 ; ROM Range: $0022AA-$0022D6 (44 bytes)
 ; ============================================================================
-; Category: vint
-; Purpose: Function in 2200 section (44 bytes)
+; Computes weighted average for frame timing smoothing:
+;   D1 = (D0/16) * ~1.8 + $1A5E, then average with (A1): D1 = (D1 + (A1))/2
+; Clamps result to range [$1A5E, $21D0]. Stores result to (A1).
+; Used for adaptive V-INT timing (wider range variant).
 ;
+; Entry: D0 = raw timing input, A1 = timer storage pointer
+; Exit: D1 = smoothed timing value, (A1) = updated
 ; Uses: D0, D1, A1
-; Confidence: low
 ; ============================================================================
 
 fn_2200_003:
         LSR.W  #4,D0                            ; $0022AA
         MOVE.W  D0,D1                           ; $0022AC
         LSR.W  #1,D0                            ; $0022AE
-        DC.W    $D240                           ; $0022B0
+        ADD.W   D0,D1                           ; $0022B0
         LSR.W  #1,D0                            ; $0022B2
-        DC.W    $D240                           ; $0022B4
+        ADD.W   D0,D1                           ; $0022B4
         LSR.W  #2,D0                            ; $0022B6
-        DC.W    $D240                           ; $0022B8
+        ADD.W   D0,D1                           ; $0022B8
         ADDI.W  #$1A5E,D1                       ; $0022BA
         ADD.W  (A1),D1                          ; $0022BE
         LSR.W  #1,D1                            ; $0022C0

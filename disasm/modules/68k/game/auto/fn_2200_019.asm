@@ -1,20 +1,23 @@
 ; ============================================================================
-; Sh2 Comm Vdpprep 019 (auto-analyzed)
+; fn_2200_019 — 32X Framebuffer Palette Fill
 ; ROM Range: $0027DA-$00281E (68 bytes)
 ; ============================================================================
-; Category: sh2
-; Purpose: Accesses 32X registers: adapter_ctrl
-;   Calls: VDPPrep
-;   Object (A4): +$84, +$8B
+; Fills 32X framebuffer palette entries using auto-fill registers.
+; First calls VDPPrep at $00281E, then fills two 16-entry ranges:
+;   Range 1: Starting address $2000, auto-fill with $0101, increment $0100
+;   Range 2: Starting address $F000, same fill pattern
 ;
-; Entry: A4 = object/entity pointer
+; For each entry: writes start address to $A15186 (palette addr),
+; writes fill value to $A15188 (palette data), waits for fill complete
+; (BTST #1 on status register $008B), then increments fill value.
+;
+; Entry: None (calls VDPPrep internally)
 ; Uses: D0, D1, D2, D7, A2, A3, A4
+; Hardware:
+;   MARS_SYS_BASE ($A15100): Adapter control
+;   $A15186/$A15188: Palette address/data auto-fill registers
 ; Calls:
-;   $00281E: VDPPrep
-; Object fields:
-;   +$84: [unknown]
-;   +$8B: [unknown]
-; Confidence: high
+;   $00281E: VDPPrep (BSR)
 ; ============================================================================
 
 fn_2200_019:
@@ -36,6 +39,6 @@ fn_2200_019:
 .loc_0034:
         BTST    #1,$008B(A4)                    ; $00280E
         BNE.S  .loc_0034                        ; $002814
-        DC.W    $D242                           ; $002816
+        ADD.W   D2,D1                           ; $002816
         DBRA    D7,.loc_0030                    ; $002818
         RTS                                     ; $00281C

@@ -1,15 +1,16 @@
 ; ============================================================================
-; Vint Random Number Gen 004 (auto-analyzed)
+; fn_2200_004 — Randomized Timer Decrement B
 ; ROM Range: $0022D6-$0022EC (22 bytes)
 ; ============================================================================
-; Category: vint
-; Purpose: Short helper function
-;   Calls: random_number_gen
+; If (A1) equals target value $21D0, generates a random number (0-15)
+; and subtracts it from D1. Stores result to (A1).
+; Paired with fn_2200_003 (wider range variant, target = upper bound).
 ;
+; Entry: D1 = timer value, A1 = timer storage pointer
+; Exit: D1 = adjusted timer, (A1) = updated
 ; Uses: D0, D1, A1
 ; Calls:
-;   $00496E: random_number_gen
-; Confidence: low
+;   $00496E: random_number_gen (JSR PC-relative)
 ; ============================================================================
 
 fn_2200_004:
@@ -18,7 +19,7 @@ fn_2200_004:
         BNE.S  .loc_0012                        ; $0022DC
         DC.W    $4EBA,$268E         ; JSR     $00496E(PC); $0022DE
         ANDI.W  #$000F,D0                       ; $0022E2
-        DC.W    $9240                           ; $0022E6
+        SUB.W   D0,D1                           ; $0022E6
 .loc_0012:
         MOVE.W  D1,(A1)                         ; $0022E8
         RTS                                     ; $0022EA

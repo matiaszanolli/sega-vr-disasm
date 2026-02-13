@@ -41,7 +41,7 @@ $300000-$3FFFFF  1.0 MB  SH2 expansion space (~1KB used, 99.9% free)
 ```
 disasm/vrd.asm (entry point)
   → disasm/sections/*.asm (header + vectors + 12 code sections + data + SH2 + expansion)
-    → disasm/modules/68k/*/*.asm (693 functions across 17 categories)
+    → disasm/modules/68k/*/*.asm (693 functions across 17 categories + 15 game subcategories)
     → disasm/sh2/generated/*.inc (78 SH2 function includes)
   → build/vr_rebuild.32x (4MB ROM)
 ```
@@ -118,18 +118,19 @@ Game modules in `disasm/modules/68k/game/<subcategory>/`:
 | Subcategory | Count | Purpose |
 |-------------|-------|---------|
 | ai | 23 | AI behavior, steering, opponent logic |
-| auto | 253 | Auto-analyzed (pending documentation) |
-| camera | 17 | Camera setup, positioning, scrolling |
-| collision | 14 | Collision detection, proximity checks |
-| data | 5 | Decompression, lookup tables |
+| auto | 103 | Auto-analyzed (pending documentation) |
+| camera | 25 | Camera setup, positioning, scrolling |
+| collision | 19 | Collision detection, proximity checks |
+| data | 15 | Decompression, lookup tables |
 | entity | 23 | Entity/object management, spawning |
-| hud | 13 | HUD, score display, digit rendering |
-| menu | 91 | Menu, name entry, mode selection, UI |
+| hud | 26 | HUD, score display, digit rendering |
+| menu | 113 | Menu, name entry, mode selection, UI |
 | physics | 35 | Speed, acceleration, braking, tilt |
-| race | 35 | Race state, lap tracking, sound triggers |
-| render | 41 | Visibility, depth sort, VDP, DMA, sprites |
-| scene | 42 | Scene init, SH2 communication, transitions |
-| state | 79 | State dispatchers, counters, flags, timers |
+| race | 38 | Race state, lap tracking, sound triggers |
+| render | 57 | Visibility, depth sort, VDP, DMA, sprites |
+| scene | 43 | Scene init, SH2 communication, transitions |
+| sound | 62 | FM/PSG sound driver functions |
+| state | 89 | State dispatchers, counters, flags, timers |
 | track | 3 | Track data, segment operations |
 
 ## Profiling Quick Start

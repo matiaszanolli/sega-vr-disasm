@@ -1,17 +1,14 @@
 ; ============================================================================
-; Fm 019 (auto-analyzed)
+; FM Full Silence — stop all channels and reset tempo
 ; ROM Range: $030A5C-$030A72 (22 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Short helper function
-;   Object (A6): +$04 (speed_index/velocity), +$06 (speed)
+; Calls channel stop ($03094E) to silence all FM/PSG channels, then calls
+; special channel cleanup ($0309F2) for DAC/noise channels. Resets sound
+; driver tempo: A6+$06=1 (tick rate), A6+$04=5 (frame divider).
 ;
-; Entry: A6 = object/entity pointer
+; Entry: A6 = sound driver state pointer
 ; Uses: A6
-; Object fields:
-;   +$04: speed_index/velocity
-;   +$06: speed
-; Confidence: low
+; Confidence: high
 ; ============================================================================
 
 fn_30200_019:

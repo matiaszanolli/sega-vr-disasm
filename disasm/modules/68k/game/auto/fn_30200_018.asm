@@ -1,21 +1,17 @@
 ; ============================================================================
-; Vdp 018 (auto-analyzed)
+; FM Special Channel Cleanup — stop DAC and noise effect channels
 ; ROM Range: $0309F2-$030A5C (106 bytes)
 ; ============================================================================
-; Category: vdp
-; Purpose: Orchestrator calling 3 subroutines
-;   Accesses VDP registers
-;   Object (A5, A6): +$01, +$0B, +$25, +$30 (x_position), +$100
+; Handles cleanup of two special sound channels:
+;   Channel $0340 (DAC/PCM): clears active flag, checks key-off, calls
+;     $030C96 cleanup, maps to struct at $0100, clears/mutes, calls
+;     $0312E8 with instrument data from A6+$0030 pointer.
+;   Channel $0370 (noise): clears active flag, checks key-off, calls
+;     $030FB8 cleanup, maps to struct at $01F0, clears/mutes. If type
+;     is $E0, writes PSG silence byte from channel +$25.
 ;
-; Entry: A5 = object/entity pointer
-; Entry: A6 = object/entity pointer
+; Entry: A6 = sound driver state pointer
 ; Uses: D0, A1, A5, A6
-; Object fields:
-;   +$01: [unknown]
-;   +$0B: [unknown]
-;   +$25: [unknown]
-;   +$30: x_position
-;   +$100: [unknown]
 ; Confidence: medium
 ; ============================================================================
 

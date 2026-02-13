@@ -1,33 +1,24 @@
 ; ============================================================================
-; Fm Init Channel 014 (auto-analyzed)
+; FM Instrument Setup — load instrument data and configure channels
 ; ROM Range: $03061C-$03078C (368 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Orchestrator calling 6 subroutines
-;   Accesses VDP registers
-;   Calls: fm_write_wrapper, z80_bus_request, fm_init_channel, fm_set_volume
-;   Object (A0, A1, A3, A4, A6): +$00, +$01, +$02 (flags/type), +$03, +$04 (speed_index/velocity), +$05
+; Loads instrument definition from ROM table at $032AB8 (indexed by D7-$81).
+; Instrument header: +$00=seq offset, +$02=FM count, +$03=PSG count,
+; +$04=tempo, +$05=multiplier. Sets up FM channels ($0040+N*$30 in A6)
+; with sequence pointers, register assignments from table at $03078C,
+; panning ($C0), and initial frequency. Then sets up PSG channels ($0190+).
+; Iterates existing effect channels ($0220, 6 entries) to set key-off flags.
+; Finally calls fm_init_channel for FM and fm_set_volume for PSG channels
+; not marked key-off. Silences unused PSG noise channel. Pops return addr.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
-; Entry: A3 = object/entity pointer
-; Entry: A4 = object/entity pointer
-; Entry: A6 = object/entity pointer
-; Uses: D0, D1, D4, D5, D6, D7, A0, A1
+; Entry: A6 = sound driver state pointer
+; Entry: D7 = sound command byte ($81-$9F)
+; Uses: D0, D1, D4, D5, D6, D7, A0, A1, A2, A3, A4, A5
 ; Calls:
 ;   $030C8A: fm_init_channel
 ;   $030CBA: fm_write_wrapper
 ;   $030D1C: z80_bus_request
 ;   $030FB2: fm_set_volume
-; Object fields:
-;   +$00: [unknown]
-;   +$01: [unknown]
-;   +$02: flags/type
-;   +$03: [unknown]
-;   +$04: speed_index/velocity
-;   +$05: [unknown]
-;   +$08: [unknown]
-;   +$0A: param_a
 ; Confidence: high
 ; ============================================================================
 

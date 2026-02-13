@@ -1,15 +1,18 @@
 ; ============================================================================
-; Fm Dispatch 013 (auto-analyzed)
+; FM System Command Dispatcher — route $F0-$FE system commands
 ; ROM Range: $0305BA-$03061C (98 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: State dispatcher using jump table
-;   Calls: z80_bus_request
+; Dispatches system commands ($F0-$FE) via 16-entry jump table. First 3
+; entries route to specific handlers ($030A5C, $03094E, $0309F2); remaining
+; 13 entries all route to silence handler ($030B90). At $030604: special
+; effect handler subtracts $D7, requests Z80 bus, writes raw byte to Z80
+; RAM ($A00FFE), releases bus.
 ;
+; Entry: D7 = command byte ($F0-$FE range)
 ; Uses: D7
 ; Calls:
 ;   $030D1C: z80_bus_request
-; Confidence: medium
+; Confidence: high
 ; ============================================================================
 
 fn_30200_013:

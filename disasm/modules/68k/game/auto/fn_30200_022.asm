@@ -1,10 +1,11 @@
 ; ============================================================================
-; Fm Write Port0 022 (auto-analyzed)
+; FM Key-Off + Volume Zero — key-off all channels and zero volumes
 ; ROM Range: $030B50-$030B90 (64 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Orchestrator calling 3 subroutines
-;   Calls: z80_bus_request, fm_write_port0
+; Requests Z80 bus, writes key-off (register $28) for all 6 FM channels
+; (0-2 and 4-6). Then writes Total Level = $7F (silence) to all TL
+; registers ($40-$53) using fm_write_port0 with $030CFE helper for
+; register auto-increment. 3 groups of 4 operators each. Releases bus.
 ;
 ; Uses: D0, D1, D2, D3
 ; Calls:

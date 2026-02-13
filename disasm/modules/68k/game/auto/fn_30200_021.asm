@@ -1,9 +1,11 @@
 ; ============================================================================
-; Fm Write Conditional 021 (auto-analyzed)
+; FM Total Level Reset — set all operator volumes to maximum attenuation
 ; ROM Range: $030B1C-$030B50 (52 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Calls: z80_bus_request, fm_write_conditional
+; Requests Z80 bus, then writes all FM Total Level registers ($40-$53)
+; with $7F (maximum attenuation = silence) via fm_write_conditional.
+; Then writes all Sustain/Release registers ($80-$93) with $0F (fastest
+; release rate). Covers 4 operators across all FM channels. Releases bus.
 ;
 ; Uses: D0, D1, D3, D4
 ; Calls:

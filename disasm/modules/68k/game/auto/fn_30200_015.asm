@@ -1,25 +1,19 @@
 ; ============================================================================
-; Vdp Dispatch 015 (auto-analyzed)
+; FM Channel Register Map + Instrument Loader B — $A0-$D2 commands
 ; ROM Range: $03078C-$030852 (198 bytes)
 ; ============================================================================
-; Category: vdp
-; Purpose: State dispatcher using jump table
-;   Accesses VDP registers
-;   Object (A0, A1, A5): +$00, +$01, +$02 (flags/type), +$04 (speed_index/velocity), +$08, +$0D
+; Data prefix: FM/PSG register assignment bytes used by fn_30200_014.
+; Code at $030798: Loads instrument from ROM table $008B9150 (indexed by
+; D7-$A0). Iterates channels, clears $30-byte channel structs, copies
+; instrument data (type, sequence pointer, initial freq, panning).
+; PSG channels ($C0 type) get special handling: writes PSG silence via
+; $C00011 with noise register toggle (bit 5). Each channel's struct
+; pointer is resolved via table at $030852. Sets key-off flags for
+; special channel pairs ($0250→$0340, $0310→$0370).
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
-; Entry: A5 = object/entity pointer
-; Uses: D0, D1, D2, D3, D4, D5, D6, D7
-; Object fields:
-;   +$00: [unknown]
-;   +$01: [unknown]
-;   +$02: flags/type
-;   +$04: speed_index/velocity
-;   +$08: [unknown]
-;   +$0D: [unknown]
-;   +$0E: param_e
-;   +$20: [unknown]
+; Entry: A6 = sound driver state pointer
+; Entry: D7 = sound command byte ($A0-$D2)
+; Uses: D0, D1, D2, D3, D4, D5, D6, D7, A0, A1, A2, A3, A5
 ; Confidence: medium
 ; ============================================================================
 

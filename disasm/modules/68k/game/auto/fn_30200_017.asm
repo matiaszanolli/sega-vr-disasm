@@ -1,28 +1,22 @@
 ; ============================================================================
-; Fm Init Channel 017 (auto-analyzed)
+; FM Channel Stop Register Map + Stop All — silence all active channels
 ; ROM Range: $030936-$0309F2 (188 bytes)
 ; ============================================================================
-; Category: sound
-; Purpose: Orchestrator calling 4 subroutines
-;   Accesses VDP registers
-;   Calls: fm_write_wrapper, fm_init_channel, fm_set_volume
-;   Object (A0, A5, A6): +$00, +$01, +$0B, +$25, +$30 (x_position), +$34 (y_position)
+; Data prefix: channel struct pointer table (used alongside $030852 table).
+; Code at $03094E: Clears sound priority (A6+$00), writes key-off all
+; (reg $27, data $00) via fm_write_wrapper. Iterates 6 effect channels
+; at A6+$0220 ($30-byte stride). For each active channel:
+;   FM (positive type): calls fm_init_channel, resolves channel struct
+;     via $030852 table, clears key-off and sets mute flag, calls $0312E8.
+;   PSG (negative type): calls fm_set_volume, resolves channel struct,
+;     clears/mutes. $E0 type writes PSG silence byte from +$25.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A5 = object/entity pointer
-; Entry: A6 = object/entity pointer
-; Uses: D0, D1, D3, D4, D6, A0, A1, A3
+; Entry: A6 = sound driver state pointer
+; Uses: D0, D1, D3, D4, D6, A0, A1, A3, A5
 ; Calls:
 ;   $030C8A: fm_init_channel
 ;   $030CBA: fm_write_wrapper
 ;   $030FB2: fm_set_volume
-; Object fields:
-;   +$00: [unknown]
-;   +$01: [unknown]
-;   +$0B: [unknown]
-;   +$25: [unknown]
-;   +$30: x_position
-;   +$34: y_position
 ; Confidence: high
 ; ============================================================================
 

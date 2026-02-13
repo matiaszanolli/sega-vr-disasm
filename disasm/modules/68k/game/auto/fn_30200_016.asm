@@ -1,25 +1,18 @@
 ; ============================================================================
-; Vdp 016 (auto-analyzed)
+; FM Channel Pointer Table + SFX Loader — $D6-$D7 sound effects
 ; ROM Range: $030852-$030936 (228 bytes)
 ; ============================================================================
-; Category: vdp
-; Purpose: Accesses VDP registers
-;   Object (A0, A1, A5, A6): +$00, +$01, +$02 (flags/type), +$04 (speed_index/velocity), +$08, +$0D
+; Data prefix: 16 longword pointers to channel structs within A6 sound
+; driver state (used by fn_30200_014, fn_30200_015, fn_30200_017).
+; Code at $030892: Loads SFX instrument from ROM table $008B921C (indexed
+; by D7-$D6). Sets up channels similarly to fn_30200_015 but targets
+; special effect channels ($0340/$0370). Handles PSG noise channels with
+; direct PSG register writes ($C00011). Sets key-off flags for paired
+; channels ($0250→$0340, $0310→$0370).
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
-; Entry: A5 = object/entity pointer
-; Entry: A6 = object/entity pointer
-; Uses: D0, D2, D3, D4, D5, D6, D7, A0
-; Object fields:
-;   +$00: [unknown]
-;   +$01: [unknown]
-;   +$02: flags/type
-;   +$04: speed_index/velocity
-;   +$08: [unknown]
-;   +$0D: [unknown]
-;   +$0E: param_e
-;   +$27: [unknown]
+; Entry: A6 = sound driver state pointer
+; Entry: D7 = sound command byte ($D6-$D7)
+; Uses: D0, D2, D3, D4, D5, D6, D7, A0, A1, A2, A3, A5
 ; Confidence: medium
 ; ============================================================================
 

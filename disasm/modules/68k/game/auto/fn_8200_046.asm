@@ -1,26 +1,13 @@
 ; ============================================================================
-; State Dispatch 046 (auto-analyzed)
+; fn_8200_046 — Race Start Countdown Sequence
 ; ROM Range: $009EC0-$00A050 (400 bytes)
-; ============================================================================
-; Category: game
-; Purpose: State dispatcher using jump table
-;   RAM: $C8AC (state_dispatch_idx), $C8AA (scene_state)
-;   Object (A1, A2, A4, A6): +$14 (effect_duration), +$28, +$3C (heading_mirror), +$78, +$88
+; Multi-phase race start countdown dispatcher. Jump table at $009ECA
+; selects phase: initial delay, "3-2-1" countdown with sound triggers
+; ($C0-$C3), green light, and random tire screech. Manages SH2
+; communication flags, display list entries, and race state transitions.
+; PRNG at end generates random crowd noise timing.
 ;
-; Entry: A1 = object/entity pointer
-; Entry: A2 = object/entity pointer
-; Entry: A4 = object/entity pointer
-; Entry: A6 = object/entity pointer
-; Uses: D0, D6, D7, A0, A1, A2, A4, A6
-; RAM:
-;   $C8AA: scene_state
-;   $C8AC: state_dispatch_idx
-; Object fields:
-;   +$14: effect_duration
-;   +$28: [unknown]
-;   +$3C: heading_mirror
-;   +$78: [unknown]
-;   +$88: [unknown]
+; Uses: D0, D6, D7, A0, A1
 ; Confidence: high
 ; ============================================================================
 

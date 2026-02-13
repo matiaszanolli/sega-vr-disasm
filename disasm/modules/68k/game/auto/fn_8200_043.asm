@@ -1,29 +1,17 @@
 ; ============================================================================
-; State Dispatch 043 (auto-analyzed)
+; fn_8200_043 — Race Position Sorting and Rank Assignment
 ; ROM Range: $009C9C-$009DD6 (314 bytes)
-; ============================================================================
-; Category: game
-; Purpose: State dispatcher using jump table
-;   RAM: $C89C (sh2_comm_state), $C8CC (race_substate)
-;   Object (A0, A1, A2, A3): +$00, +$02 (flags/type), +$04 (speed_index/velocity), +$06 (speed), +$24, +$2A
+; Data tables (50 bytes) at start, then race position sorting logic.
+; Builds sorted entity lists by segment position and lap distance across
+; all 16 race entities. Assigns rank (+$2A) to each entity. Detects
+; position changes and triggers appropriate sound effects based on race
+; mode ($CC series). Saves/restores A0 via stack.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
-; Entry: A2 = object/entity pointer
-; Entry: A3 = object/entity pointer
-; Uses: D0, D1, D2, D3, D4, D5, D6, D7
-; RAM:
-;   $C89C: sh2_comm_state
-;   $C8CC: race_substate
-; Object fields:
-;   +$00: [unknown]
-;   +$02: flags/type
-;   +$04: speed_index/velocity
-;   +$06: speed
-;   +$24: [unknown]
-;   +$2A: [unknown]
-;   +$2B: [unknown]
-;   +$2C: [unknown]
+; Entry: A0 = player entity pointer
+; Uses: D0, D1, D2, D3, D4, D5, D6, D7, A0-A3
+; Object fields: +$04 speed, +$24 segment, +$2A rank, +$2B prev rank,
+;   +$2C lap, +$2E lap segment, +$A4 sort key A, +$A6 sort key B,
+;   +$C2 sound trigger, +$E5 AI flags
 ; Confidence: high
 ; ============================================================================
 
@@ -119,7 +107,7 @@ fn_8200_043:
         CMPI.W  #$0004,(-14180).W               ; $009DAE
         BNE.S  .loc_0126                        ; $009DB4
         MOVE.B  $00E5(A0),D1                    ; $009DB6
-        DC.W    $B302                           ; $009DBA
+        EOR.B   D1,D2                           ; $009DBA
         ANDI.B  #$06,D2                         ; $009DBC
         BNE.S  .loc_0136                        ; $009DC0
 .loc_0126:

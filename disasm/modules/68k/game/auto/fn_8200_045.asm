@@ -1,17 +1,14 @@
 ; ============================================================================
-; State 045 (auto-analyzed)
+; fn_8200_045 — Timer Decrement and Rank Check Guard
 ; ROM Range: $009E5A-$009E6E (20 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Short helper function
-;   Object (A0): +$2A, +$A8
+; Decrements timer +$A8 if nonzero. Then checks if entity rank +$2A
+; equals 2; if so, falls through past RTS to continue processing.
+; Otherwise returns. Guards subsequent code for 2nd-place entities.
 ;
-; Entry: A0 = object/entity pointer
+; Entry: A0 = entity pointer
 ; Uses: A0
-; Object fields:
-;   +$2A: [unknown]
-;   +$A8: [unknown]
-; Confidence: low
+; Object fields: +$2A rank, +$A8 countdown timer
+; Confidence: high
 ; ============================================================================
 
 fn_8200_045:

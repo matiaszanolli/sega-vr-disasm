@@ -1,12 +1,11 @@
 ; ============================================================================
-; Ai 014 (auto-analyzed)
+; fn_a200_014 — Sound Buffer Copy with Decode
 ; ROM Range: $00B40E-$00B422 (20 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Short helper function
+; Loads decode buffer A3 from $FF68D8, calls shared decoder at $00B43C,
+; then copies 8 bytes from decode buffer to sound output at $FF6958.
 ;
 ; Uses: A1, A3
-; Confidence: low
+; Confidence: high
 ; ============================================================================
 
 fn_a200_014:

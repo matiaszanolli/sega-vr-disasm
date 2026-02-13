@@ -1,16 +1,13 @@
 ; ============================================================================
-; Ai 015 (auto-analyzed)
+; fn_a200_015 — Sound Buffer Copy with Offset
 ; ROM Range: $00B422-$00B43C (26 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Short helper function
-;   Object (A3): +$00
+; Variant of fn_a200_014 with D3-based offset into decode buffer $FF68D8.
+; Scales D3 by 4 to select entry, calls shared decoder at $00B43C, copies
+; 8 bytes to sound output at $FF6958.
 ;
-; Entry: A3 = object/entity pointer
+; Entry: D3 = buffer entry index
 ; Uses: D3, A1, A3
-; Object fields:
-;   +$00: [unknown]
-; Confidence: low
+; Confidence: high
 ; ============================================================================
 
 fn_a200_015:

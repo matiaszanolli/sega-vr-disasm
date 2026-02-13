@@ -1,26 +1,14 @@
 ; ============================================================================
-; Vdp Timer 048 (auto-analyzed)
+; fn_8200_048 — Track Physics Parameter Table Loader
 ; ROM Range: $00A0B4-$00A1CA (278 bytes)
-; ============================================================================
-; Category: vdp
-; Purpose: Accesses VDP registers
-;   RAM: $C8CC (race_substate), $C0FA (timer_state), $C8C8 (vint_state), $C89C (sh2_comm_state)
-;   Object (A0, A1): +$00, +$50, +$70, +$88
+; Data prefix (144 bytes of track configuration data) followed by parameter
+; loader. Reads physics parameter table from ROM $00898818 indexed by
+; track/mode. Populates steering, grip, friction, and acceleration
+; parameters into RAM. Also sets up timing table pointer based on
+; race mode and controller config.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
 ; Uses: D0, D1, A0, A1
-; RAM:
-;   $C0FA: timer_state
-;   $C89C: sh2_comm_state
-;   $C8C8: vint_state
-;   $C8CC: race_substate
-; Object fields:
-;   +$00: [unknown]
-;   +$50: [unknown]
-;   +$70: [unknown]
-;   +$88: [unknown]
-; Confidence: medium
+; Confidence: high
 ; ============================================================================
 
 fn_8200_048:
@@ -71,7 +59,7 @@ fn_8200_048:
         MOVE.W  (A1)+,(-16136).W                ; $00A186
         MOVE.W  (A1)+,(-16134).W                ; $00A18A
         DC.W    $43FA,$003A         ; LEA     $00A1CA(PC),A1; $00A18E
-        DC.W    $D040                           ; $00A192
+        ADD.W   D0,D0                           ; $00A192
         TST.B  (-15601).W                       ; $00A194
         BEQ.S  .loc_00E8                        ; $00A198
         ADDQ.W  #4,D0                           ; $00A19A

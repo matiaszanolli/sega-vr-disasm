@@ -1,23 +1,17 @@
 ; ============================================================================
-; State Dispatch 042 (auto-analyzed)
+; fn_8200_042 — Tire Animation and Smoke Effect Counters
 ; ROM Range: $009B82-$009C9C (282 bytes)
-; ============================================================================
-; Category: game
-; Purpose: State dispatcher using jump table
-;   Object (A0): +$04 (speed_index/velocity), +$80, +$82, +$84, +$86, +$98
+; Updates tire/wheel animation and smoke effect counters. Reads entity
+; speed +$04 and multiple effect timers (+$80, +$82, +$84, +$86, +$98,
+; +$9A, +$E6, +$E8) to control animation frame rates. Speed-dependent
+; frequency modulation for tire smoke. Jump table at end selects
+; direction-dependent wheel animation data.
 ;
-; Entry: A0 = object/entity pointer
+; Entry: A0 = entity pointer
 ; Uses: D0, D1, A0
-; Object fields:
-;   +$04: speed_index/velocity
-;   +$80: [unknown]
-;   +$82: [unknown]
-;   +$84: [unknown]
-;   +$86: [unknown]
-;   +$98: [unknown]
-;   +$9A: [unknown]
-;   +$BE: [unknown]
-; Confidence: low
+; Object fields: +$04 speed, +$80-$86 tire timers, +$98-$9A smoke timers,
+;   +$BE direction index, +$E6-$E8 wheel timers
+; Confidence: high
 ; ============================================================================
 
 fn_8200_042:
@@ -29,7 +23,7 @@ fn_8200_042:
         BLE.S  .loc_001C                        ; $009B94
 .loc_0014:
         MOVEQ   #$0F,D0                         ; $009B96
-        DC.W    $9041                           ; $009B98
+        SUB.W   D1,D0                           ; $009B98
         MOVE.W  D0,(-16372).W                   ; $009B9A
 .loc_001C:
         MOVE.W  $0084(A0),D0                    ; $009B9E
@@ -37,7 +31,7 @@ fn_8200_042:
         CMPI.W  #$000A,D0                       ; $009BA4
         BGT.S  .loc_0030                        ; $009BA8
         MOVEQ   #$0A,D1                         ; $009BAA
-        DC.W    $9240                           ; $009BAC
+        SUB.W   D0,D1                           ; $009BAC
         MOVE.W  D1,(-16360).W                   ; $009BAE
 .loc_0030:
         CMPI.W  #$0014,$0004(A0)                ; $009BB2
@@ -93,7 +87,7 @@ fn_8200_042:
         MOVE.W  #$FFFF,(-16368).W               ; $009C58
 .loc_00DC:
         MOVE.W  $00BE(A0),D0                    ; $009C5E
-        DC.W    $D040                           ; $009C62
+        ADD.W   D0,D0                           ; $009C62
         JMP     $009C68(PC,D0.W)                ; $009C64
         BRA.S  .loc_00EA                        ; $009C68
         BRA.S  .loc_0102                        ; $009C6A
@@ -102,7 +96,7 @@ fn_8200_042:
         BLE.S  .loc_0118                        ; $009C72
         MOVEQ   #$0F,D1                         ; $009C74
         SUB.W  $0086(A0),D1                     ; $009C76
-        DC.W    $D241                           ; $009C7A
+        ADD.W   D1,D1                           ; $009C7A
         MOVE.W  $009C9C(PC,D1.W),(-16366).W     ; $009C7C
         BRA.S  .loc_0118                        ; $009C82
 .loc_0102:
@@ -110,7 +104,7 @@ fn_8200_042:
         BLE.S  .loc_0118                        ; $009C8A
         MOVEQ   #$0F,D1                         ; $009C8C
         SUB.W  $0086(A0),D1                     ; $009C8E
-        DC.W    $D241                           ; $009C92
+        ADD.W   D1,D1                           ; $009C92
         MOVE.W  $009CAE(PC,D1.W),(-16366).W     ; $009C94
 .loc_0118:
         RTS                                     ; $009C9A

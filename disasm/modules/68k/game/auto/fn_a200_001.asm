@@ -1,37 +1,22 @@
 ; ============================================================================
-; Ai Player Table Setup 001 (auto-analyzed)
+; fn_a200_001 — AI Entity Main Update Orchestrator
 ; ROM Range: $00A972-$00AC3E (716 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Orchestrator calling 6 subroutines
-;   RAM: $C89E (sh2_comm_sub), $C8A0 (race_state), $6970 (race_mode_flag), $C8AE (effect_timer)
-;   Calls: race_mode_flag_set, player_table_setup, ai_steering_calc, movement_calc
-;   Object (A0, A1): +$00, +$02 (flags/type), +$04 (speed_index/velocity), +$06 (speed), +$14 (effect_duration), +$30 (x_position)
+; Main per-frame update for AI entities. Handles spawn positioning with
+; distance-based approach ramp, heading calculation via ai_steering_calc,
+; speed convergence toward target, movement integration via position_update.
+; Multiple entry points for different AI states: initial spawn, approach,
+; active racing, and finish/retirement. Manages race table slots and
+; mode flags.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
+; Entry: A0 = AI entity pointer
 ; Uses: D0, D1, D2, D3, D4, D5, A0, A1
-; RAM:
-;   $6970: race_mode_flag
-;   $C89E: sh2_comm_sub
-;   $C8A0: race_state
-;   $C8AE: effect_timer
-; Calls:
-;   $003C7E: player_table_setup
-;   $006FDE: position_update_sub
-;   $009B12: movement_calc
-;   $00A1FC: race_state_read
-;   $00A7A0: ai_steering_calc
-;   $00ACC0: race_mode_flag_set
-; Object fields:
-;   +$00: [unknown]
-;   +$02: flags/type
-;   +$04: speed_index/velocity
-;   +$06: speed
-;   +$14: effect_duration
-;   +$30: x_position
-;   +$34: y_position
-;   +$3C: heading_mirror
+; Calls: $003C7E (player_table_setup), $006FDE (position_update),
+;        $009B12 (movement_calc), $00A1FC (race_state_read),
+;        $00A7A0 (ai_steering_calc), $00ACC0 (race_mode_flag_set)
+; Object fields: +$02 flags, +$04 speed, +$06 display speed, +$14 timer,
+;   +$30 x_pos, +$34 y_pos, +$3C heading, +$40 target heading,
+;   +$46 turn rate, +$7A gear, +$8E steer vel, +$90 drift,
+;   +$AE slot index, +$B0 spawn timer, +$B8 trail, +$BC decel
 ; Confidence: high
 ; ============================================================================
 
@@ -49,12 +34,12 @@ fn_a200_001:
         MOVE.W  $00(A1,D0.W),D5                 ; $00A994
         DC.W    $43FA,$FECE         ; LEA     $00A868(PC),A1; $00A998
         MOVE.W  (-14176).W,D1                   ; $00A99C
-        DC.W    $D241                           ; $00A9A0
-        DC.W    $D241                           ; $00A9A2
+        ADD.W   D1,D1                           ; $00A9A0
+        ADD.W   D1,D1                           ; $00A9A2
         MOVE.W  $00AE(A0),D0                    ; $00A9A4
-        DC.W    $D040                           ; $00A9A8
-        DC.W    $D040                           ; $00A9AA
-        DC.W    $D041                           ; $00A9AC
+        ADD.W   D0,D0                           ; $00A9A8
+        ADD.W   D0,D0                           ; $00A9AA
+        ADD.W   D1,D0                           ; $00A9AC
         MOVE.W  $00(A1,D0.W),D1                 ; $00A9AE
         MOVE.W  $02(A1,D0.W),D2                 ; $00A9B2
         MOVE.W  D2,D4                           ; $00A9B6
@@ -78,7 +63,7 @@ fn_a200_001:
         CLR.W  (-16340).W                       ; $00A9F8
         LEA     (-16292).W,A1                   ; $00A9FC
         MOVE.W  $00AE(A0),D0                    ; $00AA00
-        DC.W    $D040                           ; $00AA04
+        ADD.W   D0,D0                           ; $00AA04
         MOVE.W  #$0002,$00(A1,D0.W)             ; $00AA06
         MOVE.W  #$0078,$00B0(A0)                ; $00AA0C
         CLR.W  (-16306).W                       ; $00AA12
@@ -99,8 +84,8 @@ fn_a200_001:
         MOVE.W  D4,D0                           ; $00AA46
         ASR.W  #4,D0                            ; $00AA48
         MOVE.W  D0,D3                           ; $00AA4A
-        DC.W    $D040                           ; $00AA4C
-        DC.W    $D043                           ; $00AA4E
+        ADD.W   D0,D0                           ; $00AA4C
+        ADD.W   D3,D0                           ; $00AA4E
         ADDQ.W  #8,D0                           ; $00AA50
         MOVE.W  D0,(-24570).W                   ; $00AA52
         BRA.S  .loc_0136                        ; $00AA56
@@ -113,7 +98,7 @@ fn_a200_001:
         SUBI.W  #$0080,(-24572).W               ; $00AA6A
         MOVE.W  D4,D0                           ; $00AA70
         ASR.W  #4,D0                            ; $00AA72
-        DC.W    $D040                           ; $00AA74
+        ADD.W   D0,D0                           ; $00AA74
         ADDI.W  #$0020,D0                       ; $00AA76
         MOVE.W  D0,(-24570).W                   ; $00AA7A
         BRA.S  .loc_0136                        ; $00AA7E
@@ -159,7 +144,7 @@ fn_a200_001:
 .loc_0180:
         MOVE.W  D0,$008E(A0)                    ; $00AAF2
         MOVE.W  D0,$0090(A0)                    ; $00AAF6
-        DC.W    $D040                           ; $00AAFA
+        ADD.W   D0,D0                           ; $00AAFA
         NEG.W  D0                               ; $00AAFC
         MOVE.W  D0,$0046(A0)                    ; $00AAFE
         MOVE.W  (-24568).W,D0                   ; $00AB02
@@ -220,14 +205,14 @@ fn_a200_001:
         CLR.B  $00FF6970                        ; $00ABB4
         LEA     (-16292).W,A1                   ; $00ABBA
         MOVE.W  $00AE(A0),D0                    ; $00ABBE
-        DC.W    $D040                           ; $00ABC2
+        ADD.W   D0,D0                           ; $00ABC2
         MOVE.W  #$0003,$00(A1,D0.W)             ; $00ABC4
 .loc_0258:
         DC.W    $4EFA,$FD2C         ; JMP     $00A8F8(PC); $00ABCA
         LEA     (-16292).W,A1                   ; $00ABCE
         MOVEQ   #$00,D0                         ; $00ABD2
         MOVE.W  $00AE(A0),D1                    ; $00ABD4
-        DC.W    $D241                           ; $00ABD8
+        ADD.W   D1,D1                           ; $00ABD8
 .loc_0268:
         CMP.W  D1,D0                            ; $00ABDA
         BGE.S  .loc_027A                        ; $00ABDC
@@ -238,7 +223,7 @@ fn_a200_001:
 .loc_027A:
         MOVE.W  $00AE(A0),D0                    ; $00ABEC
         ADDQ.W  #1,D0                           ; $00ABF0
-        DC.W    $D040                           ; $00ABF2
+        ADD.W   D0,D0                           ; $00ABF2
 .loc_0282:
         CMPI.W  #$0008,D0                       ; $00ABF4
         BGE.S  .loc_0296                        ; $00ABF8
@@ -251,7 +236,7 @@ fn_a200_001:
         MOVE.W  #$0050,(-16306).W               ; $00AC0E
         LEA     (-16292).W,A1                   ; $00AC14
         MOVE.W  $00AE(A0),D0                    ; $00AC18
-        DC.W    $D040                           ; $00AC1C
+        ADD.W   D0,D0                           ; $00AC1C
         MOVE.W  #$0000,$00(A1,D0.W)             ; $00AC1E
         MOVE.W  #$003C,(-14162).W               ; $00AC24
         MOVE.W  (-16244).W,(-16262).W           ; $00AC2A

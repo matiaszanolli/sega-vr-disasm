@@ -1,12 +1,13 @@
 ; ============================================================================
-; State 016 (auto-analyzed)
+; fn_8200_016 — Fixed-Point Threshold State Marker
 ; ROM Range: $00850E-$008522 (20 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Short helper function
+; Compares D5 against fixed-point threshold $60000000. If below, falls
+; through (no action). If at or above, writes sentinel $DDDD0DDD to (A4)
+; and returns D0=1/D1=0. Marks object as exceeding the threshold.
 ;
+; Entry: D5 = fixed-point value, A4 = object pointer
 ; Uses: D0, D1, D5, A4
-; Confidence: low
+; Confidence: high
 ; ============================================================================
 
 fn_8200_016:

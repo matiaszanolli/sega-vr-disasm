@@ -1,17 +1,14 @@
 ; ============================================================================
-; State 014 (auto-analyzed)
+; fn_8200_014 — Time Array Entry Comparison
 ; ROM Range: $0084F4-$00850A (22 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Short helper function
-;   Object (A2, A3): +$00
+; Compares indexed longword entries from two arrays (A2, A3). Decrements
+; and scales index D1 to access entries. Returns D0=0 if A3 entry is
+; nonzero and A2 entry >= A3 entry. Falls through to fn_8200_015 (D0=1)
+; otherwise. Used by the time display orchestrator (fn_8200_013).
 ;
-; Entry: A2 = object/entity pointer
-; Entry: A3 = object/entity pointer
+; Entry: D1 = entry count, A2 = array 1 base, A3 = array 2 base
 ; Uses: D0, D1, D4, D5, A2, A3
-; Object fields:
-;   +$00: [unknown]
-; Confidence: low
+; Confidence: high
 ; ============================================================================
 
 fn_8200_014:

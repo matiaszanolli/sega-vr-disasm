@@ -1,16 +1,14 @@
 ; ============================================================================
-; State 011 (auto-analyzed)
+; fn_8200_011 — Entity Flag Bit Test Guard
 ; ROM Range: $0083BC-$0083C6 (10 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Small leaf function
-;   Object (A0): +$02 (flags/type)
+; Tests bit 6 of entity flags field +$02(A0). If set, falls through past
+; RTS to continue processing. If clear, returns immediately. Guards
+; subsequent code from executing on inactive entities.
 ;
-; Entry: A0 = object/entity pointer
+; Entry: A0 = entity pointer
 ; Uses: A0
-; Object fields:
-;   +$02: flags/type
-; Confidence: low
+; Object fields: +$02 flags (bit 6 = processing gate)
+; Confidence: high
 ; ============================================================================
 
 fn_8200_011:

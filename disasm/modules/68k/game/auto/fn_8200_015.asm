@@ -1,12 +1,11 @@
 ; ============================================================================
-; State 015 (auto-analyzed)
+; fn_8200_015 — Return Success Flag
 ; ROM Range: $00850A-$00850E (4 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Small leaf function
+; Returns D0=1 (success/true). Fallthrough target from fn_8200_014 when
+; the array comparison condition is not met.
 ;
 ; Uses: D0
-; Confidence: low
+; Confidence: high
 ; ============================================================================
 
 fn_8200_015:

@@ -1,29 +1,18 @@
 ; ============================================================================
-; Display Num To Decimal 013 (auto-analyzed)
+; fn_8200_013 — Dual Time Display Orchestrator
 ; ROM Range: $0083E4-$0084F4 (272 bytes)
-; ============================================================================
-; Category: display
-; Purpose: Orchestrator calling 4 subroutines
-;   RAM: $C8AA (scene_state), $68F8 (time_display_buf), $9F00 (obj_table_3), $68F0 (status_code)
-;   Calls: num_to_decimal
-;   Object (A0, A1, A2): +$00, +$02 (flags/type), +$04 (speed_index/velocity), +$07
+; Main time display handler for 1P and 2P modes. Manages lap/race time
+; display for both players. Reads scene state index, extracts timing data
+; from object tables, calls num_to_decimal for digit rendering, and writes
+; status codes for HUD updates. Two parallel processing blocks handle
+; player 1 (A0) and player 2 (A1) independently.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
-; Entry: A2 = object/entity pointer
+; Entry: A0 = player 1 entity, A1 = player 2 entity
 ; Uses: D0, D1, D7, A0, A1, A2, A3
-; RAM:
-;   $68F0: status_code
-;   $68F8: time_display_buf
-;   $9F00: obj_table_3
-;   $C8AA: scene_state
-; Calls:
-;   $00839A: num_to_decimal
-; Object fields:
-;   +$00: [unknown]
-;   +$02: flags/type
-;   +$04: speed_index/velocity
-;   +$07: [unknown]
+; RAM: $68F0 (status_code), $68F8 (time_display_buf), $9F00 (obj_table_3)
+; Calls: $00839A (num_to_decimal), $00B3CE, $00B3BC, $0084F4 (fn_8200_014),
+;        $00850E (fn_8200_016)
+; Object fields: +$02 flags (bit 6 = update trigger), +$07 display param
 ; Confidence: high
 ; ============================================================================
 
@@ -43,7 +32,7 @@ fn_8200_013:
         ANDI.W  #$00C0,D0                       ; $00840A
         LSR.W  #6,D0                            ; $00840E
         SUBQ.W  #1,D0                           ; $008410
-        DC.W    $D040                           ; $008412
+        ADD.W   D0,D0                           ; $008412
         DC.W    $4EFA,$2FA6         ; JMP     $00B3BC(PC); $008414
         BTST    #6,$0002(A0)                    ; $008418
         BEQ.S  .loc_0088                        ; $00841E

@@ -1,12 +1,14 @@
 ; ============================================================================
-; State 008 (auto-analyzed)
+; fn_8200_008 — Three-Way Value Comparison Router
 ; ROM Range: $008368-$00837A (18 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Short helper function
+; Compares D5 with longword at (A3). If equal: clears (A4), returns
+; D0=0/D1=$0E. If less: falls through to fn_8200_009. If greater:
+; branches to fn_8200_010. Routes to different state handlers based on
+; comparison result.
 ;
+; Entry: D5 = value to compare, A3 = reference pointer, A4 = state output
 ; Uses: D0, D1, D5, A3, A4
-; Confidence: low
+; Confidence: high
 ; ============================================================================
 
 fn_8200_008:

@@ -1,12 +1,13 @@
 ; ============================================================================
-; State 006 (auto-analyzed)
+; fn_8200_006 — Digit Extraction via Division
 ; ROM Range: $0082E8-$0082FA (18 bytes)
-; ============================================================================
-; Category: game
-; Purpose: Short helper function
+; Data prefix (2 bytes) followed by a division chain. Performs three
+; successive DIVU operations to extract digits from D1, writing each
+; remainder byte to the output buffer via OR.B D1,(A0)+.
 ;
+; Entry: D1 = value to extract digits from, A0 = output buffer pointer
 ; Uses: D1, A0
-; Confidence: low
+; Confidence: medium
 ; ============================================================================
 
 fn_8200_006:

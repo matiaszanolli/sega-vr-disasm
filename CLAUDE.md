@@ -96,7 +96,7 @@ disasm/vrd.asm (entry point)
 | boot | Initialization, adapter init |
 | display | Display list, screen rendering |
 | frame | Frame management |
-| game | Game logic (674 functions organized into subcategories — see below) |
+| game | Game logic (674 functions, all documented and organized into subcategories) |
 | graphics | Graphics primitives |
 | hardware-regs | Hardware register access |
 | input | Controller I/O |
@@ -117,21 +117,20 @@ Game modules in `disasm/modules/68k/game/<subcategory>/`:
 
 | Subcategory | Count | Purpose |
 |-------------|-------|---------|
-| ai | 23 | AI behavior, steering, opponent logic |
-| auto | 103 | Auto-analyzed (pending documentation) |
-| camera | 25 | Camera setup, positioning, scrolling |
-| collision | 19 | Collision detection, proximity checks |
-| data | 15 | Decompression, lookup tables |
-| entity | 23 | Entity/object management, spawning |
-| hud | 26 | HUD, score display, digit rendering |
-| menu | 113 | Menu, name entry, mode selection, UI |
-| physics | 35 | Speed, acceleration, braking, tilt |
-| race | 38 | Race state, lap tracking, sound triggers |
-| render | 57 | Visibility, depth sort, VDP, DMA, sprites |
-| scene | 43 | Scene init, SH2 communication, transitions |
-| sound | 62 | FM/PSG sound driver functions |
-| state | 89 | State dispatchers, counters, flags, timers |
-| track | 3 | Track data, segment operations |
+| ai | 25 | AI behavior, steering, opponent logic |
+| camera | 29 | Camera setup, positioning, scrolling |
+| collision | 23 | Collision detection, proximity checks |
+| data | 16 | Decompression, lookup tables |
+| entity | 34 | Entity/object management, spawning |
+| hud | 28 | HUD, score display, digit rendering |
+| menu | 115 | Menu, name entry, mode selection, UI |
+| physics | 50 | Speed, acceleration, braking, tilt |
+| race | 50 | Race state, lap tracking, sound triggers |
+| render | 80 | Visibility, depth sort, VDP, DMA, sprites |
+| scene | 52 | Scene init, SH2 communication, transitions |
+| sound | 67 | FM/PSG sound driver functions |
+| state | 101 | State dispatchers, counters, flags, timers |
+| track | 4 | Track data, segment operations |
 
 ## Profiling Quick Start
 

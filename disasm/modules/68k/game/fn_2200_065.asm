@@ -1,91 +1,67 @@
 ; ============================================================================
-; Vint Dispatch 065 (auto-analyzed)
+; fn_2200_065 — Sprite/HUD Layout Builder
 ; ROM Range: $003C2A-$003CCE (164 bytes)
 ; ============================================================================
-; Category: vint
-; Purpose: State dispatcher using jump table
-;   RAM: $C8C8 (vint_state), $C8A0 (race_state), $C89E (sh2_comm_sub)
-;   Object (A0, A1, A4): +$00, +$02 (flags/type), +$04 (speed_index/velocity), +$06 (speed), +$14 (effect_duration), +$31
+; Builds 4 sprite entries at $FF66DC from two PC-relative data tables:
+;   - Animation table at fn_2200_065 (18 words): indexed by race_state + comm_sub
+;   - Position table at .pos_table (24 words = 3 groups × 8 words):
+;     indexed by vint_state × 16
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
-; Entry: A4 = object/entity pointer
-; Uses: D0, D1, D2, D5, A0, A1, A2, A3
-; RAM:
-;   $C89E: sh2_comm_sub
-;   $C8A0: race_state
-;   $C8C8: vint_state
-; Object fields:
-;   +$00: [unknown]
-;   +$02: flags/type
-;   +$04: speed_index/velocity
-;   +$06: speed
-;   +$14: effect_duration
-;   +$31: [unknown]
-;   +$35: [unknown]
-; Confidence: medium
+; Each sprite entry (20 bytes at $14 stride) gets:
+;   +$00: visibility flag ($0001)
+;   +$02: anim_word + pos_offset (added)
+;   +$04: anim_word (direct copy)
+;   +$06: anim_word - pos_offset (subtracted)
+;
+; Alternate exit at $3CC4: loads RAM $C026, returns if negative.
+;
+; Uses: D0, D1, D2, A1, A2, A3
+; RAM: $C89E (sh2_comm_sub), $C8A0 (race_state),
+;      $C8C8 (vint_state), $C026
 ; ============================================================================
 
 fn_2200_065:
-        DC.W    $F190                           ; $003C2A
-        DC.W    $09FA                           ; $003C2C
-        DC.W    $F1F0                           ; $003C2E
-        DC.W    $F190                           ; $003C30
-        EORI.W  #$F1F0,D0                       ; $003C32
-        ROXR.W  D5,D0                           ; $003C36
-        DC.W    $03B3                           ; $003C38
-        DC.W    $FB50                           ; $003C3A
-        ASL.B  #4,D0                            ; $003C3C
-        DC.W    $0AF0                           ; $003C3E
-        DC.W    $0800                           ; $003C40
-        ROXR.W  D5,D0                           ; $003C42
-        DC.W    $03B3                           ; $003C44
-        DC.W    $FB50                           ; $003C46
-        DC.W    $F190                           ; $003C48
-        DC.W    $09FA                           ; $003C4A
-        DC.W    $F1F0                           ; $003C4C
-        ORI.B  #$2B,$31(A0,D0.W)                ; $003C4E
-        DC.W    $FFFD                           ; $003C54
-        DC.W    $FFD7                           ; $003C56
-        DC.W    $002B                           ; $003C58
-        DC.W    $FFCE                           ; $003C5A
-        DC.W    $FFFD                           ; $003C5C
-        ORI.B  #$21,$35(A4,D0.W)                ; $003C5E
-        DC.W    $FFF3                           ; $003C64
-        DC.W    $FFD3                           ; $003C66
-        DC.W    $0021                           ; $003C68
-        DC.W    $FFCA                           ; $003C6A
-        DC.W    $FFF3                           ; $003C6C
-        ORI.B  #$17,$35(A4,D0.W)                ; $003C6E
-        DC.W    $FFEE                           ; $003C74
-        DC.W    $FFD3                           ; $003C76
-        DC.W    $0017                           ; $003C78
-        DC.W    $FFCA                           ; $003C7A
-        DC.W    $FFEE                           ; $003C7C
-        MOVE.W  (-14136).W,D0                   ; $003C7E
-        LSL.W  #4,D0                            ; $003C82
-        LEA     $003C4E(PC,D0.W),A2             ; $003C84
-        MOVE.W  (-14176).W,D0                   ; $003C88
-        ADD.W  (-14178).W,D0                    ; $003C8C
-        LEA     $003C2A(PC,D0.W),A3             ; $003C90
-        LEA     $00FF66DC,A1                    ; $003C94
-        MOVEQ   #$01,D1                         ; $003C9A
-        MOVEQ   #$03,D2                         ; $003C9C
-.loc_0074:
-        MOVE.W  D1,$0000(A1)                    ; $003C9E
-        MOVE.W  (A3)+,D0                        ; $003CA2
-        ADD.W  (A2)+,D0                         ; $003CA4
-        MOVE.W  D0,$0002(A1)                    ; $003CA6
-        MOVE.W  (A3)+,$0004(A1)                 ; $003CAA
-        MOVE.W  (A3)+,D0                        ; $003CAE
-        SUB.W  (A2)+,D0                         ; $003CB0
-        MOVE.W  D0,$0006(A1)                    ; $003CB2
-        LEA     $0014(A1),A1                    ; $003CB6
-        SUBQ.W  #6,A3                           ; $003CBA
-        DBRA    D2,.loc_0074                    ; $003CBC
-        MOVEQ   #$00,D0                         ; $003CC0
-        DC.W    $600A               ; BRA.S  $003CCE; $003CC2
-        MOVEQ   #$00,D0                         ; $003CC4
-        MOVE.W  (-16346).W,D0                   ; $003CC6
-        DC.W    $6A02               ; BPL.S  $003CCE; $003CCA
-        RTS                                     ; $003CCC
+; --- animation frame table (18 words) -----------------------------------------
+        dc.w    $F190,$09FA,$F1F0               ; $003C2A  frame set 0
+        dc.w    $F190,$0A40,$F1F0               ; $003C30  frame set 1
+        dc.w    $EA70,$03B3,$FB50               ; $003C36  frame set 2
+        dc.w    $E900,$0AF0,$0800               ; $003C3C  frame set 3
+        dc.w    $EA70,$03B3,$FB50               ; $003C42  frame set 4
+        dc.w    $F190,$09FA,$F1F0               ; $003C48  frame set 5
+; --- position coordinate table (3 groups × 8 words) --------------------------
+.pos_table:
+        dc.w    $0030,$002B,$0031,$FFFD         ; $003C4E  group 0
+        dc.w    $FFD7,$002B,$FFCE,$FFFD         ; $003C56
+        dc.w    $0034,$0021,$0035,$FFF3         ; $003C5E  group 1
+        dc.w    $FFD3,$0021,$FFCA,$FFF3         ; $003C66
+        dc.w    $0034,$0017,$0035,$FFEE         ; $003C6E  group 2
+        dc.w    $FFD3,$0017,$FFCA,$FFEE         ; $003C76
+; --- code starts here ---------------------------------------------------------
+        move.w  ($FFFFC8C8).w,D0                ; $003C7E  vint_state
+        lsl.w   #4,D0                           ; $003C82  × 16
+        lea     .pos_table(PC,D0.W),A2          ; $003C84  position table entry
+        move.w  ($FFFFC8A0).w,D0                ; $003C88  race_state
+        add.w   ($FFFFC89E).w,D0                ; $003C8C  + sh2_comm_sub
+        lea     fn_2200_065(PC,D0.W),A3         ; $003C90  animation table entry
+        lea     $00FF66DC,A1                    ; $003C94  sprite buffer
+        moveq   #$01,D1                         ; $003C9A  visibility flag
+        moveq   #$03,D2                         ; $003C9C  4 sprites
+.build_sprite:
+        move.w  D1,$0000(A1)                    ; $003C9E  sprite visible
+        move.w  (A3)+,D0                        ; $003CA2  anim word
+        add.w   (A2)+,D0                        ; $003CA4  + position offset
+        move.w  D0,$0002(A1)                    ; $003CA6  sprite X/Y
+        move.w  (A3)+,$0004(A1)                 ; $003CAA  sprite attribute
+        move.w  (A3)+,D0                        ; $003CAE  anim word
+        sub.w   (A2)+,D0                        ; $003CB0  - position offset
+        move.w  D0,$0006(A1)                    ; $003CB2  sprite size
+        lea     $0014(A1),A1                    ; $003CB6  next sprite slot
+        subq.w  #6,A3                           ; $003CBA  rewind A3 (re-read same 3 words)
+        dbra    D2,.build_sprite                ; $003CBC
+        moveq   #$00,D0                         ; $003CC0
+        dc.w    $600A               ; bra.s   fn_2200_065_end  ; skip alternate exit
+; --- alternate entry: conditional return --------------------------------------
+        moveq   #$00,D0                         ; $003CC4
+        move.w  ($FFFFC026).w,D0                ; $003CC6
+        dc.w    $6A02               ; bpl.s   fn_2200_065_end  ; positive → fall through
+        rts                                     ; $003CCC

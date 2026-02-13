@@ -1,88 +1,77 @@
 ; ============================================================================
-; Vint Dispatch 054 (auto-analyzed)
+; fn_2200_054 — Object Proximity Check + Jump Table Dispatch
 ; ROM Range: $0037B6-$00385E (168 bytes)
 ; ============================================================================
-; Category: game
-; Purpose: State dispatcher using jump table
-;   RAM: $C8A0 (race_state)
-;   Object (A0, A1, A2, A4): +$00, +$02 (flags/type), +$04 (speed_index/velocity), +$06 (speed), +$0A (param_a), +$0E (param_e)
+; Checks distance between an object at ($FFFF9000) and up to 3 target objects.
+; If any target is within $0C80 range in both X and Y, copies its data into
+; the proximity buffer at $FF659C and dispatches via jump table at end.
 ;
-; Entry: A0 = object/entity pointer
-; Entry: A1 = object/entity pointer
-; Entry: A2 = object/entity pointer
-; Entry: A4 = object/entity pointer
+; Jump table (6 longword entries) selects the next handler based on race_state.
+;
+; Entry: (implicit — uses RAM addresses directly)
 ; Uses: D0, D1, D2, D4, D7, A0, A1, A2
-; RAM:
-;   $C8A0: race_state
-; Object fields:
-;   +$00: [unknown]
-;   +$02: flags/type
-;   +$04: speed_index/velocity
-;   +$06: speed
-;   +$0A: param_a
-;   +$0E: param_e
-;   +$10: [unknown]
+; RAM: $9000 (object_base), $C008 (proximity_counter),
+;      $C8A0 (race_state)
+; Object fields (via A0 at $9000):
 ;   +$30: x_position
-; Confidence: high
+;   +$34: y_position
 ; ============================================================================
 
 fn_2200_054:
-        LEA     (-28672).W,A0                   ; $0037B6
-        MOVE.W  (-14176).W,D1                   ; $0037BA
-        LEA     $00895A64,A1                    ; $0037BE
-        MOVEA.L $00(A1,D1.W),A1                 ; $0037C4
-        LEA     $00FF659C,A2                    ; $0037C8
-        MOVE.W  #$0C80,D1                       ; $0037CE
-        MOVEQ   #$02,D7                         ; $0037D2
-.loc_001E:
-        MOVE.W  $0030(A0),D2                    ; $0037D4
-        MOVE.W  $0034(A0),D4                    ; $0037D8
-        SUB.W  (A1),D2                          ; $0037DC
-        BPL.S  .loc_002C                        ; $0037DE
-        NEG.W  D2                               ; $0037E0
-.loc_002C:
-        CMP.W  D1,D2                            ; $0037E2
-        BGT.S  .loc_0076                        ; $0037E4
-        SUB.W  $0004(A1),D4                     ; $0037E6
-        BPL.S  .loc_0038                        ; $0037EA
-        NEG.W  D4                               ; $0037EC
-.loc_0038:
-        CMP.W  D1,D4                            ; $0037EE
-        BGT.S  .loc_0076                        ; $0037F0
-        MOVE.W  #$0001,$0000(A2)                ; $0037F2
-        MOVE.L  (A1)+,$0002(A2)                 ; $0037F8
-        MOVE.W  (A1)+,$0006(A2)                 ; $0037FC
-        MOVE.W  (A1)+,$000A(A2)                 ; $003800
-        MOVE.W  (A1)+,$000E(A2)                 ; $003804
-        MOVEA.L (A1),A1                         ; $003808
-        MOVE.W  (-16376).W,D0                   ; $00380A
-        ADDQ.W  #1,D0                           ; $00380E
-        CMPI.W  #$000C,D0                       ; $003810
-        BNE.S  .loc_0064                        ; $003814
-        MOVE.W  #$0000,D0                       ; $003816
-.loc_0064:
-        MOVE.W  D0,(-16376).W                   ; $00381A
-        LSR.W  #1,D0                            ; $00381E
-        DC.W    $D040                           ; $003820
-        DC.W    $D040                           ; $003822
-        MOVE.L  $00(A1,D0.W),$0010(A2)          ; $003824
-        BRA.S  .loc_0084                        ; $00382A
-.loc_0076:
-        LEA     $000E(A1),A1                    ; $00382C
-        DBRA    D7,.loc_001E                    ; $003830
-        MOVE.W  #$0000,$0000(A2)                ; $003834
-.loc_0084:
-        MOVE.W  (-14176).W,D0                   ; $00383A
-        MOVEA.L $003844(PC,D0.W),A1             ; $00383E
-        JMP     (A1)                            ; $003842
-        DC.W    $0088                           ; $003844
-        MOVEA.W (A6)+,A4                        ; $003846
-        DC.W    $0088                           ; $003848
-        MOVE.W  (A4)+,$0088(A4)                 ; $00384A
-        MOVEA.W (A4)+,A4                        ; $00384E
-        DC.W    $0088                           ; $003850
-        MOVE.W  $0088(A2),(A5)                  ; $003852
-        MOVEA.W (A4)+,A4                        ; $003856
-        DC.W    $0088                           ; $003858
-        MOVEA.W (A4)+,A4                        ; $00385A
-        RTS                                     ; $00385C
+        lea     ($FFFF9000).w,A0                ; $0037B6  object base
+        move.w  ($FFFFC8A0).w,D1                ; $0037BA  race_state
+        lea     $00895A64,A1                    ; $0037BE  target object table (ROM)
+        movea.l $00(A1,D1.W),A1                 ; $0037C4  table[race_state]
+        lea     $00FF659C,A2                    ; $0037C8  proximity buffer
+        move.w  #$0C80,D1                       ; $0037CE  proximity threshold
+        moveq   #$02,D7                         ; $0037D2  check 3 targets
+.check_target:
+        move.w  $0030(A0),D2                    ; $0037D4  player X
+        move.w  $0034(A0),D4                    ; $0037D8  player Y
+        sub.w   (A1),D2                         ; $0037DC  delta X
+        bpl.s   .x_positive                     ; $0037DE
+        neg.w   D2                              ; $0037E0  abs(delta X)
+.x_positive:
+        cmp.w   D1,D2                           ; $0037E2  within threshold?
+        bgt.s   .next_target                    ; $0037E4  no → skip
+        sub.w   $0004(A1),D4                    ; $0037E6  delta Y
+        bpl.s   .y_positive                     ; $0037EA
+        neg.w   D4                              ; $0037EC  abs(delta Y)
+.y_positive:
+        cmp.w   D1,D4                           ; $0037EE  within threshold?
+        bgt.s   .next_target                    ; $0037F0  no → skip
+        move.w  #$0001,$0000(A2)                ; $0037F2  proximity flag = 1
+        move.l  (A1)+,$0002(A2)                 ; $0037F8  copy target X/Y
+        move.w  (A1)+,$0006(A2)                 ; $0037FC  copy target data
+        move.w  (A1)+,$000A(A2)                 ; $003800
+        move.w  (A1)+,$000E(A2)                 ; $003804
+        movea.l (A1),A1                         ; $003808  follow linked list pointer
+        move.w  ($FFFFC008).w,D0                ; $00380A  proximity counter
+        addq.w  #1,D0                           ; $00380E
+        cmpi.w  #$000C,D0                       ; $003810  wrap at 12
+        bne.s   .store_counter                  ; $003814
+        move.w  #$0000,D0                       ; $003816  reset to 0
+.store_counter:
+        move.w  D0,($FFFFC008).w                ; $00381A
+        lsr.w   #1,D0                           ; $00381E  D0 /= 2
+        dc.w    $D040                ; add.w   D0,D0  ; D0 *= 2
+        dc.w    $D040                ; add.w   D0,D0  ; D0 *= 4 (longword index)
+        move.l  $00(A1,D0.W),$0010(A2)          ; $003824  target animation frame
+        bra.s   .dispatch                       ; $00382A
+.next_target:
+        lea     $000E(A1),A1                    ; $00382C  skip to next target entry
+        dbra    D7,.check_target                ; $003830
+        move.w  #$0000,$0000(A2)                ; $003834  proximity flag = 0
+.dispatch:
+        move.w  ($FFFFC8A0).w,D0                ; $00383A  race_state
+        movea.l .jump_table(PC,D0.W),A1         ; $00383E  handler address
+        jmp     (A1)                            ; $003842
+; --- jump table (6 longword entries) ------------------------------------------
+.jump_table:
+        dc.l    $0088385E                       ; $003844  state 0 → $385E
+        dc.l    $0088395C                       ; $003848  state 1 → $395C
+        dc.l    $0088385C                       ; $00384C  state 2 → $385C
+        dc.l    $00883AAA                       ; $003850  state 3 → $3AAA
+        dc.l    $0088385C                       ; $003854  state 4 → $385C
+        dc.l    $0088385C                       ; $003858  state 5 → $385C
+        rts                                     ; $00385C

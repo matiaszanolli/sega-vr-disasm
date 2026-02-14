@@ -2,15 +2,17 @@
  * slave_comm7_idle_check - COMM7 Doorbell Handler for Slave Idle Loop
  * ===================================================================
  * Location: Expansion ROM at $300700 (SH2 address: 0x02300700)
- * Size: 40 bytes (14 words code + 6 words literals)
+ * Size: ~56 bytes (18 words code + 8 words literals)
  *
  * PURPOSE
  * -------
  * Replaces the Slave SH2's 64-NOP delay loop. Instead of burning idle
  * cycles, checks COMM7 for doorbell signals and dispatches accordingly.
  *
- * When COMM7 = $0027: clears COMM7, calls cmd27_queue_drain at $300600,
- * then returns to the Slave's command_loop at $06000592.
+ * When COMM7 != 0: clears COMM7, drains BOTH queues:
+ *   1. cmd27_queue_drain at $300600 (pixel work for cmd $27)
+ *   2. general_queue_drain at $301000 (COMM protocol replay for $22/$25/$2F/$21)
+ * Then returns to the Slave's command_loop at $06000592.
  *
  * When COMM7 = 0: returns directly to command_loop (no delay needed
  * since the JMP overhead provides sufficient bus spacing).
@@ -23,15 +25,14 @@
  *
  * RACE SAFETY
  * -----------
- * COMM7 is cleared BEFORE calling cmd27_queue_drain. This allows the
- * 68K to ring the doorbell again while the Slave is draining. The drain
- * loop re-reads write_idx each iteration, so new entries added during
- * drain are processed. cmd27_queue_drain also clears COMM7 on exit
- * (redundant but harmless).
+ * COMM7 is cleared BEFORE calling drain functions. This allows the
+ * 68K to ring the doorbell again while the Slave is draining. Both
+ * drain loops re-read write_idx each iteration, so new entries added
+ * during drain are processed.
  *
  * REGISTER USAGE
  * --------------
- * Destroyed: R0, R1, R3 (plus whatever cmd27_queue_drain uses)
+ * Destroyed: R0-R12 (via general_queue_drain), R3
  * Preserved: R15 (stack), PR (via stack if JSR path taken)
  *
  * NOTE: No registers need preservation for the return to command_loop,
@@ -58,6 +59,9 @@ slave_comm7_idle_check:
         mov.l   .L_drain_addr,r3        /* R3 = cmd27_queue_drain (0x02300600) */
         jsr     @r3                     /* Drain all queued cmd $27 entries */
         nop                             /* Delay slot */
+        mov.l   .L_gen_drain_addr,r3    /* R3 = general_queue_drain (0x02301000) */
+        jsr     @r3                     /* Drain general command queue */
+        nop                             /* Delay slot */
         lds.l   @r15+,pr               /* Restore PR */
 
 .L_idle:
@@ -74,6 +78,9 @@ slave_comm7_idle_check:
 
 .L_drain_addr:
         .long   0x02300600              /* cmd27_queue_drain in expansion ROM */
+
+.L_gen_drain_addr:
+        .long   0x02301000              /* general_queue_drain in expansion ROM */
 
 .L_cmdloop_addr:
         .long   0x06000592              /* Slave command_loop in SDRAM */

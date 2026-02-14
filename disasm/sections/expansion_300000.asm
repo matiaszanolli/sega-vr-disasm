@@ -42,11 +42,13 @@
 ;   0x300400-0x300450  shadow_path_wrapper (~80 bytes, added per-call barrier)
 ;   0x300500-0x300537  batch_copy_handler (~56 bytes)
 ;   0x300600-0x30067F  cmd27_queue_drain (128 bytes)
-;   0x300700-0x300727  slave_comm7_idle_check (40 bytes, COMM7 doorbell handler)
+;   0x300700-0x30073F  slave_comm7_idle_check (64 bytes, COMM7 doorbell + dual drain)
 ;   --- Phase 1 allocations (reserved) ---
 ;   0x300800-0x300BFF  cmdint_handler (Master SH2 CMDINT ISR, 1KB reserved)
 ;   0x300C00-0x300FFF  queue_processor (ring buffer drain loop, 1KB reserved)
-;   0x301000-0x3FFFFF  Free space (remaining ~1020KB)
+;   --- Track 1 Phase 3: General command async ---
+;   0x301000-0x3010EF  general_queue_drain (240 bytes, COMM protocol replay)
+;   0x3010F0-0x3FFFFF  Free space (remaining ~1019KB)
 ;
 ; Shared Data Structures (cache-through SDRAM, NOT in expansion ROM):
 ;   0x2203E000-0x2203E00F  Parameter block (16 bytes: R14, R7, R8, R5)
@@ -308,9 +310,25 @@ queue_processor:
         include "sh2/generated/queue_processor.inc"
 
 ; ============================================================================
-; REMAINING EXPANSION ROM SPACE (from 0x301000)
+; GENERAL QUEUE DRAIN: 0x301000 (SH2 address: 0x02301000)
+; ============================================================================
+; Async queue processor for general SH2 commands ($22, $25, $2F, $21).
+; Replays the COMM register protocol for each queued entry, moving the
+; blocking waits from the 68K to the Slave SH2.
+;
+; Called by slave_comm7_idle_check after draining the cmd_27 queue.
+; Queue at $FFFC00 (68K) / $02FFFC00 (SH2), 32 entries x 16 bytes.
+;
+; See: disasm/sh2/expansion/general_queue_drain.asm for full source
+;
+        dcb.b   ($301000 - *), $FF      ; Pad to 0x301000
+general_queue_drain:
+        include "sh2/generated/general_queue_drain.inc"
+
+; ============================================================================
+; REMAINING EXPANSION ROM SPACE (from ~0x3010F0)
 ; ============================================================================
 ; Pad to $3F0000 (960KB) instead of $400000 (1MB) to avoid PicoDrive
 ; emulator bug triggered by ROM files > ~0x3F1F40 bytes.
 ; Still provides ~960KB expansion space (99.7% free).
-        dcb.b   ($F0000 - $1000), $FF
+        dcb.b   ($3F0000 - *), $FF

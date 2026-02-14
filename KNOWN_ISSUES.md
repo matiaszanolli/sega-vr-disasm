@@ -302,3 +302,4 @@ ROM $300000-$3FFFFF (~1MB, 99.9% free) is accessible to the 68K via banking or p
 | func_017-019 optimization in isolation | Tightly coupled: shared code paths, cross-function branching |
 | COMM7 broadcast of game commands via dispatch hook | Game cmd bytes (0x01, 0x27) collide with expansion signal values → Slave processes uninitialized queue → crash. See §COMM7 Signal Namespace Collision above. |
 | Placing Patch #2 literal at $020480 | Shared by D011@$020438 (init code). Silently redirects init JSR to hook address. Always scan for $Dnxx refs before overwriting. |
+| Fully async general commands ($22/$25/$2F/$21) | Buffer aliasing: 68K overwrites shared data buffers before Slave replays COMM protocol. Menu graphics corrupt, race timer runs at wrong speed. COMM replay mechanism confirmed working (race 3D scene rendered). Infrastructure kept dormant at $301000. Needs per-call-site data dependency analysis before selective async activation. |

@@ -21,7 +21,7 @@
 camera_sh2_scene_transition_dual_dma:
         jsr     $0088205E                       ; $013C30  SH2 scene transition
         clr.w   D0                              ; $013C36  mode = 0
-        dc.w    $4EBA,$A8F2                     ; $013C38  bsr.w dma_transfer ($00E52C)
+        jsr     MemoryInit(pc)          ; $4EBA $A8F2
 .wait_comm0:
         tst.b   COMM0_HI                        ; $013C3C  COMM0 busy?
         bne.s   .wait_comm0                     ; $013C42  yes → wait

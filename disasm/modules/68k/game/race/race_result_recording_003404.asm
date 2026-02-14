@@ -43,7 +43,7 @@ race_result_recording_003404:
         MOVE.W  $00(A3,D0.W),D0                 ; $003462
         MOVE.W  D0,(A2)+                        ; $003466
         MOVE.W  A2,(-16266).W                   ; $003468
-        DC.W    $4EBA,$7E76         ; JSR     $00B2E4(PC); $00346C
+        jsr     ai_table_lookup_cond_fall_through+12(pc); $4EBA $7E76
         SUBQ.L  #4,A2                           ; $003470
         MOVE.L  (A2),D0                         ; $003472
         CMP.L  (-15788).W,D0                    ; $003474

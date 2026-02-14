@@ -24,14 +24,14 @@
 ; ============================================================================
 
 frame_update_orch_005070:
-        dc.w    $4EBA,$D10E                     ; $005070  bsr.w $002180 (frame init)
-        dc.w    $4EBA,$C728                     ; $005074  bsr.w $00179E (controller_poll)
-        dc.w    $4EBA,$6024                     ; $005078  bsr.w $00B09E (animation_update)
-        dc.w    $4EBA,$6016                     ; $00507C  bsr.w $00B094 (animation sub B)
-        dc.w    $4EBA,$605C                     ; $005080  bsr.w $00B0DE (animation sub C)
-        dc.w    $4EBA,$60A2                     ; $005084  bsr.w $00B128 (animation sub D)
-        dc.w    $4EBA,$60AC                     ; $005088  bsr.w $00B136 (animation sub E)
-        dc.w    $4EBA,$1380                     ; $00508C  bsr.w $00640E (object handler)
+        jsr     sound_update_disp+170(pc); $4EBA $D10E
+        jsr     controller_read_button_remap+16(pc); $4EBA $C728
+        jsr     cascaded_frame_counter+10(pc); $4EBA $6024
+        jsr     cascaded_frame_counter(pc); $4EBA $6016
+        jsr     ai_timer_inc(pc)        ; $4EBA $605C
+        jsr     ai_buffer_setup+14(pc)  ; $4EBA $60A2
+        jsr     ai_buffer_setup+28(pc)  ; $4EBA $60AC
+        jsr     entity_render_pipeline_with_vdp_dma_2p_copy+462(pc); $4EBA $1380
         addq.w  #4,($FFFFC87E).w               ; $005090  advance game_state
         move.w  #$001C,$00FF0008               ; $005094  display mode = $001C
         rts                                     ; $00509C

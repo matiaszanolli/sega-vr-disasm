@@ -70,7 +70,7 @@ speed_calc_multiplier_chain:
 ; --- store + wind + boost ---
 .store_speed:
         move.w  D0,$0016(A0)                    ; $0094BC
-        dc.w    $4EBA,$0670         ; jsr     $009B32(pc)         ; $0094C0  wind_resistance_calc
+        jsr     speed_modifier(pc)      ; $4EBA $0670
         add.w   D0,$0016(A0)                    ; $0094C4  add wind correction
 ; --- wind active: ×1.5 extra ---
         tst.b   ($FFFFC31B).w                       ; $0094C8  wind_active?

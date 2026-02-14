@@ -36,27 +36,27 @@ name_entry_cursor_render:
         cmpi.b  #$20,D0                         ; $0107C0  is space?
         beq.w   .slot1                          ; $0107C4  skip first slot
         movea.l #$24034060,A1                   ; $0107C8  A1 = sprite slot 0
-        dc.w    $6100,$FEA4                     ; $0107CE  bsr.w sprite_slot_render ($010674)
+        bsr.w   ascii_character_to_tile_index_mapper_010674; $6100 $FEA4
 .slot1:
         move.w  (A4),D0                         ; $0107D2  D0 = word at buffer
         andi.w  #$00FF,D0                       ; $0107D4  mask low byte = buffer[1]
         cmpi.b  #$20,D0                         ; $0107D8  is space?
         beq.w   .slot2                          ; $0107DC  skip second slot
         movea.l #$24034090,A1                   ; $0107E0  A1 = sprite slot 1
-        dc.w    $6100,$FE8C                     ; $0107E6  bsr.w sprite_slot_render ($010674)
+        bsr.w   ascii_character_to_tile_index_mapper_010674; $6100 $FE8C
 .slot2:
         tst.b   ($FFFFA02C).w                   ; $0107EA  blink active?
         beq.w   .done                           ; $0107EE  no → skip cursor
         move.w  ($FFFFA024).w,D0                ; $0107F2  D0 = current char index
         movea.l #$240340C0,A1                   ; $0107F6  A1 = sprite slot 2
-        dc.w    $6100,$FE76                     ; $0107FC  bsr.w sprite_slot_render ($010674)
+        bsr.w   ascii_character_to_tile_index_mapper_010674; $6100 $FE76
         bra.w   .done                           ; $010800
 .pos_zero:
         tst.b   ($FFFFA02C).w                   ; $010804  blink active?
         beq.w   .done                           ; $010808  no → skip
         move.w  ($FFFFA024).w,D0                ; $01080C  D0 = current char index
         movea.l #$24034060,A1                   ; $010810  A1 = sprite slot 0
-        dc.w    $6100,$FE5C                     ; $010816  bsr.w sprite_slot_render ($010674)
+        bsr.w   ascii_character_to_tile_index_mapper_010674; $6100 $FE5C
         bra.w   .done                           ; $01081A
 .pos_one:
         clr.w   D0                              ; $01081E
@@ -64,12 +64,12 @@ name_entry_cursor_render:
         cmpi.b  #$20,D0                         ; $010822  is space?
         beq.w   .pos_one_cursor                 ; $010826  skip first → show cursor
         movea.l #$24034060,A1                   ; $01082A  A1 = sprite slot 0
-        dc.w    $6100,$FE42                     ; $010830  bsr.w sprite_slot_render ($010674)
+        bsr.w   ascii_character_to_tile_index_mapper_010674; $6100 $FE42
 .pos_one_cursor:
         tst.b   ($FFFFA02C).w                   ; $010834  blink active?
         beq.w   .done                           ; $010838  no → skip cursor
         move.w  ($FFFFA024).w,D0                ; $01083C  D0 = current char index
         movea.l #$24034090,A1                   ; $010840  A1 = sprite slot 1
-        dc.w    $6100,$FE2C                     ; $010846  bsr.w sprite_slot_render ($010674)
+        bsr.w   ascii_character_to_tile_index_mapper_010674; $6100 $FE2C
 .done:
         rts                                     ; $01084A

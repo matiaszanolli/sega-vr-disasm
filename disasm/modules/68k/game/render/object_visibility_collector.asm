@@ -23,16 +23,16 @@ object_visibility_collector:
         move.w  #$0400,D1                       ; $0071A8  direction key base
         move.w  $0030(A0),D2                    ; $0071AC  D2 = x_position
         asr.w   #4,D2                           ; $0071B0
-        dc.w    $D441                ; add.w   D1,D2  ; D2 += base
+        add.w   d1,d2                   ; $D441
         asr.w   #6,D2                           ; $0071B4
         move.w  $0034(A0),D3                    ; $0071B6  D3 = y_position
         asr.w   #4,D3                           ; $0071BA
-        dc.w    $9243                ; sub.w   D3,D1  ; D1 -= D3
+        sub.w   d3,d1                   ; $9243
         andi.w  #$FFC0,D1                       ; $0071BE  align to 64-byte boundary
         asr.w   #1,D1                           ; $0071C2
-        dc.w    $D242                ; add.w   D2,D1  ; merge x component
-        dc.w    $D241                ; add.w   D1,D1  ; D1 *= 2
-        dc.w    $D241                ; add.w   D1,D1  ; D1 *= 4 (longword index)
+        add.w   d2,d1                   ; $D242
+        add.w   d1,d1                   ; $D241
+        add.w   d1,d1                   ; $D241
         move.w  D1,$00CA(A0)                    ; $0071CA  store camera direction key
         moveq   #$00,D0                         ; $0071CE
         move.w  $00CC(A0),D0                    ; $0071D0  geometry table selector

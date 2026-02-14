@@ -16,6 +16,6 @@ scroll_limit_update:
         cmpi.w  #$00E6,$0002(a2)      ; Check if Y <= 230
         bgt.s   .done                 ; If > 230, skip
         move.w  #$00E6,$0002(a2)      ; Clamp Y to 230
-        dc.w    $5878,$C07C           ; ADDQ.W #4,($C07C).W
+        addq.w  #4,($FFFFC07C).w        ; $5878 $C07C
 .done:
         rts

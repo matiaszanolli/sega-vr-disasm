@@ -37,12 +37,12 @@ state_disp_004cb8:
         dc.l    $00884D7A                       ; $004CD2  [0C] → $004D7A (past fn)
         dc.l    $0088573C                       ; $004CD6  [10] → $00573C (past fn)
 ; --- state 0 handler ---
-        dc.w    $4EBA,$DBE6                     ; $004CDA  jsr $0028C2(pc) — VDPSyncSH2
-        dc.w    $4EBA,$D3F6                     ; $004CDE  jsr $0020D6(pc) — init handler
-        dc.w    $4EBA,$63BA                     ; $004CE2  jsr $00B09E(pc) — animation_update
-        dc.w    $4EBA,$6344                     ; $004CE6  jsr $00B02C(pc) — frame_update
-        dc.w    $4EBA,$6946                     ; $004CEA  jsr $00B632(pc) — sprite_setup
-        dc.w    $4EBA,$0BD8                     ; $004CEE  jsr $0058C8(pc) — sprite_input_check
+        jsr     mars_dma_xfer_vdp_fill(pc); $4EBA $DBE6
+        jsr     sound_update_disp(pc)   ; $4EBA $D3F6
+        jsr     cascaded_frame_counter+10(pc); $4EBA $63BA
+        jsr     speed_scale_simple(pc)  ; $4EBA $6344
+        jsr     lap_value_store_1(pc)   ; $4EBA $6946
+        jsr     sh2_handler_dispatch_scene_init+98(pc); $4EBA $0BD8
         addq.w  #4,($FFFFC87E).w               ; $004CF2  advance state
         move.w  #$0010,$00FF0008               ; $004CF6  SH2 COMM = $10
         rts                                     ; $004CFE

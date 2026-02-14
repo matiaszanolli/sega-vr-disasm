@@ -15,7 +15,7 @@
 ; ============================================================================
 
 tl_reset_panning_envelope_setup:
-        DC.W    $4EBA,$F932         ; JSR     $030B1C(PC); $0311E8
+        jsr     fm_total_level_reset(pc); $4EBA $F932
         DC.W    $6000,$022A         ; BRA.W  $031418; $0311EC
         MOVE.B  (A4)+,$0028(A5)                 ; $0311F0
         DC.W    $6716               ; BEQ.S  $03120C; $0311F4

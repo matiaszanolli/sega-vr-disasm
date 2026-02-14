@@ -23,7 +23,7 @@
 ; ============================================================================
 
 fm_instrument_setup:
-        DC.W    $4EBA,$05C2         ; JSR     $030BE0(PC); $03061C
+        jsr     sound_buffer_clear(pc)  ; $4EBA $05C2
         DC.W    $49FA,$2496         ; LEA     $032AB8(PC),A4; $030620
         SUBI.B  #$81,D7                         ; $030624
         LSL.W  #2,D7                            ; $030628
@@ -46,7 +46,7 @@ fm_instrument_setup:
         MOVEQ   #$30,D6                         ; $03065C
         MOVE.B  #$01,D5                         ; $03065E
         LEA     $0040(A6),A1                    ; $030662
-        DC.W    $45FA,$0124         ; LEA     $03078C(PC),A2; $030666
+        lea     fm_channel_reg_map_instrument_loader_b(pc),a2; $45FA $0124
 .loc_004E:
         BSET    #7,(A1)                         ; $03066A
         MOVE.B  (A2)+,$0001(A1)                 ; $03066E
@@ -65,16 +65,16 @@ fm_instrument_setup:
         BNE.S  .loc_008C                        ; $03069C
         MOVEQ   #$2B,D0                         ; $03069E
         MOVEQ   #$00,D1                         ; $0306A0
-        DC.W    $4EBA,$0616         ; JSR     $030CBA(PC); $0306A2
+        jsr     fm_write_wrapper(pc)    ; $4EBA $0616
         BRA.S  .loc_00AC                        ; $0306A6
 .loc_008C:
         MOVEQ   #$28,D0                         ; $0306A8
         MOVEQ   #$06,D1                         ; $0306AA
-        DC.W    $4EBA,$060C         ; JSR     $030CBA(PC); $0306AC
+        jsr     fm_write_wrapper(pc)    ; $4EBA $060C
         MOVE.B  #$B6,D0                         ; $0306B0
         MOVE.B  #$C0,D1                         ; $0306B4
-        DC.W    $4EBA,$0662         ; JSR     $030D1C(PC); $0306B8
-        DC.W    $4EBA,$0640         ; JSR     $030CFE(PC); $0306BC
+        jsr     z80_bus_wait(pc)        ; $4EBA $0662
+        jsr     fm_write_port_0_1+10(pc); $4EBA $0640
         MOVE.W  #$0000,Z80_BUSREQ                ; $0306C0
 .loc_00AC:
         MOVEQ   #$00,D7                         ; $0306C8
@@ -82,7 +82,7 @@ fm_instrument_setup:
         BEQ.S  .loc_00EE                        ; $0306CE
         SUBQ.B  #1,D7                           ; $0306D0
         LEA     $0190(A6),A1                    ; $0306D2
-        DC.W    $45FA,$00BC         ; LEA     $030794(PC),A2; $0306D6
+        lea     fm_channel_reg_map_instrument_loader_b+8(pc),a2; $45FA $00BC
 .loc_00BE:
         BSET    #7,(A1)                         ; $0306DA
         MOVE.B  (A2)+,$0001(A1)                 ; $0306DE
@@ -113,7 +113,7 @@ fm_instrument_setup:
 .loc_0108:
         LSR.B  #3,D0                            ; $030724
 .loc_010A:
-        DC.W    $41FA,$012A         ; LEA     $030852(PC),A0; $030726
+        lea     fm_channel_pointer_table_sfx_loader(pc),a0; $41FA $012A
         MOVEA.L $00(A0,D0.W),A0                 ; $03072A
         BSET    #2,(A0)                         ; $03072E
 .loc_0116:
@@ -132,7 +132,7 @@ fm_instrument_setup:
 .loc_013A:
         BTST    #2,(A5)                         ; $030756
         BNE.S  .loc_0144                        ; $03075A
-        DC.W    $4EBA,$052C         ; JSR     $030C8A(PC); $03075C
+        jsr     fm_init_channel(pc)     ; $4EBA $052C
 .loc_0144:
         ADDA.W  D6,A5                           ; $030760
         DBRA    D4,.loc_013A                    ; $030762
@@ -140,7 +140,7 @@ fm_instrument_setup:
 .loc_014C:
         BTST    #2,(A5)                         ; $030768
         BNE.S  .loc_0156                        ; $03076C
-        DC.W    $4EBA,$0842         ; JSR     $030FB2(PC); $03076E
+        jsr     psg_set_pos_silence+16(pc); $4EBA $0842
 .loc_0156:
         ADDA.W  D6,A5                           ; $030772
         DBRA    D4,.loc_014C                    ; $030774

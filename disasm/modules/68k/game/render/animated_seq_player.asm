@@ -44,7 +44,7 @@ animated_seq_player:
         bne.s   .done                           ; $00B708  no → done
         moveq   #$00,D1                         ; $00B70A  D1 = 0
         lea     ($FFFF8480).w,A1               ; $00B70C  A1 → work buffer
-        dc.w    $4EBA,$9134                     ; $00B710  jsr $004846(pc) — completion handler
+        jsr     quad_memory_fill+16(pc) ; $4EBA $9134
         move.b  #$00,($FFFFC825).w             ; $00B714  reset index
         bclr    #7,($FFFFC80E).w               ; $00B71A  clear sequence active flag
 .done:

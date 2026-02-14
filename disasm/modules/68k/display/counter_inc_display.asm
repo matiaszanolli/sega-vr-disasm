@@ -9,6 +9,6 @@
 ; ============================================================================
 
 counter_inc_display:
-        dc.w    $5838,$C8C4           ; ADDQ.B #4,($C8C4).W
+        addq.b  #4,($FFFFC8C4).w        ; $5838 $C8C4
         move.w  #$0020,$00FF0008      ; Set display size = $20
         rts

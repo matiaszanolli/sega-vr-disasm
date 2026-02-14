@@ -19,16 +19,16 @@
 ; ============================================================================
 
 ai_opponent_select:
-        dc.w    $0C78,$0001,$C8C8       ; CMPI.W #$0001,($C8C8).W - check mode
+        cmpi.w  #$0001,($FFFFC8C8).w    ; $0C78 $0001 $C8C8 — check mode
         beq.s   .return                 ; If mode == 1, skip AI targeting
         cmpi.w  #$0059,$4(a0)           ; Speed index >= 89?
         blt.s   .return                 ; If below threshold, skip
-        dc.w    $0C38,$0004,$C319       ; CMPI.B #$04,($C319).W - check game state
+        cmpi.b  #$04,($FFFFC319).w      ; $0C38 $0004 $C319 — check game state
         bne.s   .return                 ; If state != 4, skip
         tst.w   $86(a0)                 ; Cooldown timer active?
         bne.s   .return                 ; If nonzero, still cooling down
         move.w  #$000F,$86(a0)          ; Set cooldown = 15 frames
-        dc.w    $11FC,$00B7,$C8A4       ; MOVE.B #$B7,($C8A4).W - trigger AI behavior
+        move.b  #$B7,($FFFFC8A4).w      ; $11FC $00B7 $C8A4 — trigger AI behavior
         moveq   #0,d0                   ; Default: normal category
         cmpi.w  #$00C8,$4(a0)           ; Speed index >= 200?
         blt.s   .store_category         ; If below, keep normal

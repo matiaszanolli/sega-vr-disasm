@@ -12,8 +12,8 @@
 ; ============================================================================
 
 fm_full_silence:
-        DC.W    $4EBA,$FEF0         ; JSR     $03094E(PC); $030A5C
-        DC.W    $4EBA,$FF90         ; JSR     $0309F2(PC); $030A60
+        jsr     fm_channel_stop_reg_map_stop_all+24(pc); $4EBA $FEF0
+        jsr     fm_special_channel_cleanup(pc); $4EBA $FF90
         MOVE.B  #$01,$0006(A6)                  ; $030A64
         MOVE.B  #$05,$0004(A6)                  ; $030A6A
         RTS                                     ; $030A70

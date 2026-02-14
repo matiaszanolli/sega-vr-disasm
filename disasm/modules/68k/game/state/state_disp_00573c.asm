@@ -18,7 +18,7 @@
 ; ============================================================================
 
 state_disp_00573c:
-        dc.w    $4EBA,$CA8C                     ; $00573C  jsr $0021CA(pc) — sfx_queue_process
+        jsr     sound_update_disp+244(pc); $4EBA $CA8C
         addq.b  #1,($FFFFA510).w               ; $005740  tick counter++
         moveq   #$00,D0                         ; $005744  clear high bits
         move.b  ($FFFFC8C4).w,D0               ; $005746  D0 = sub_state
@@ -30,7 +30,7 @@ state_disp_00573c:
         dc.l    $00885780                       ; $005758  [8] → $005780 (past fn)
         dc.l    $008857BC                       ; $00575C  [C] → $0057BC (past fn)
 ; --- state 0 handler ---
-        dc.w    $4EBA,$D160                     ; $005760  jsr $0028C2(pc) — VDPSyncSH2
+        jsr     mars_dma_xfer_vdp_fill(pc); $4EBA $D160
         addq.b  #4,($FFFFC8C4).w               ; $005764  advance sub_state
         move.w  #$0020,$00FF0008               ; $005768  SH2 COMM = $20
         rts                                     ; $005770

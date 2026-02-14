@@ -14,6 +14,6 @@
 
 table_lookup_object_field_to_race_state_byte:
         move.w  $002C(a0),d0                    ; $008246: $3028 $002C — load index from object+$2C
-        dc.w    $43FA,$000A                     ; LEA $008256(PC),A1 ; $00824A: — table base
+        lea     object_flag_process_cond_clear(pc),a1; $43FA $000A
         move.b  $00(a1,d0.w),($FFFFC8A5).w    ; $00824E: $11F1 $0000 $C8A5 — table[index] → $C8A5
         rts                                     ; $008254: $4E75

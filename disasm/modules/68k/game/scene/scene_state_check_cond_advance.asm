@@ -22,7 +22,7 @@
 scene_state_check_cond_advance:
         cmpi.w  #$0001,($FFFFC8AA).w            ; $004460  scene_state == 1?
         bne.s   .check_60                       ; $004466  no → check for 60
-        dc.w    $4EBA,$DBFC                     ; $004468  bsr.w $002066 (scene init)
+        jsr     sound_state_init_clear_comm_variables(pc); $4EBA $DBFC
 .check_60:
         cmpi.w  #$003C,($FFFFC8AA).w            ; $00446C  scene_state == 60?
         bne.s   .done                           ; $004472  no → return

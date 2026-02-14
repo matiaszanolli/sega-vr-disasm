@@ -17,12 +17,12 @@
 fm_key_off_volume_zero:
         MOVEQ   #$02,D2                         ; $030B50
         MOVEQ   #$28,D0                         ; $030B52
-        DC.W    $4EBA,$01C6         ; JSR     $030D1C(PC); $030B54
+        jsr     z80_bus_wait(pc)        ; $4EBA $01C6
 .loc_0008:
         MOVE.B  D2,D1                           ; $030B58
-        DC.W    $4EBA,$017C         ; JSR     $030CD8(PC); $030B5A
+        jsr     fm_write_cond+12(pc)    ; $4EBA $017C
         ADDQ.B  #4,D1                           ; $030B5E
-        DC.W    $4EBA,$0176         ; JSR     $030CD8(PC); $030B60
+        jsr     fm_write_cond+12(pc)    ; $4EBA $0176
         DBRA    D2,.loc_0008                    ; $030B64
         MOVEQ   #$40,D0                         ; $030B68
         MOVEQ   #$7F,D1                         ; $030B6A
@@ -30,8 +30,8 @@ fm_key_off_volume_zero:
 .loc_001E:
         MOVEQ   #$03,D2                         ; $030B6E
 .loc_0020:
-        DC.W    $4EBA,$0166         ; JSR     $030CD8(PC); $030B70
-        DC.W    $4EBA,$0188         ; JSR     $030CFE(PC); $030B74
+        jsr     fm_write_cond+12(pc)    ; $4EBA $0166
+        jsr     fm_write_port_0_1+10(pc); $4EBA $0188
         ADDQ.W  #4,D0                           ; $030B78
         DBRA    D2,.loc_0020                    ; $030B7A
         SUBI.B  #$0F,D0                         ; $030B7E

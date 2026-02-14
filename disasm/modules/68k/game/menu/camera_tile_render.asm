@@ -29,19 +29,19 @@ camera_tile_render:
         dbra    D0,.section_loop                ; $012546
 .calc_row:
         adda.l  D3,A2                           ; $01254A  A2 += section offset
-        dc.w    $D241                           ; $01254C  add.w d1,d1 — D1 × 2
-        dc.w    $D241                           ; $01254E  add.w d1,d1 — D1 × 4
-        dc.w    $D241                           ; $012550  add.w d1,d1 — D1 × 8
-        dc.w    $D241                           ; $012552  add.w d1,d1 — D1 × 16
+        add.w   d1,d1                   ; $D241
+        add.w   d1,d1                   ; $D241
+        add.w   d1,d1                   ; $D241
+        add.w   d1,d1                   ; $D241
         move.w  D1,D3                           ; $012554  D3 = D1 × 16
-        dc.w    $D241                           ; $012556  add.w d1,d1 — D1 × 32
-        dc.w    $D241                           ; $012558  add.w d1,d1 — D1 × 64
-        dc.w    $D243                           ; $01255A  add.w d3,d1 — D1 × 80
-        dc.w    $D241                           ; $01255C  add.w d1,d1 — D1 × 160
+        add.w   d1,d1                   ; $D241
+        add.w   d1,d1                   ; $D241
+        add.w   d3,d1                   ; $D243
+        add.w   d1,d1                   ; $D241
         adda.l  D1,A2                           ; $01255E  A2 += row × 160
-        dc.w    $D442                           ; $012560  add.w d2,d2 — D2 × 2
-        dc.w    $D442                           ; $012562  add.w d2,d2 — D2 × 4
-        dc.w    $D442                           ; $012564  add.w d2,d2 — D2 × 8
+        add.w   d2,d2                   ; $D442
+        add.w   d2,d2                   ; $D442
+        add.w   d2,d2                   ; $D442
         adda.l  D2,A2                           ; $012566  A2 += column × 8
         move.w  #$0005,D4                       ; $012568  render 6 strips
         movea.l A1,A3                           ; $01256C  A3 = dest base (save)
@@ -49,12 +49,12 @@ camera_tile_render:
 .render_strip:
         movea.l A3,A1                           ; $012570  A1 = current dest
         movea.l A4,A2                           ; $012572  A2 = current source
-        dc.w    $6100,$0094                     ; $012574  bsr.w tile_render_sub_B ($01260A)
+        bsr.w   byte_iterator           ; $6100 $0094
         adda.l  #$00000010,A1                   ; $012578  dest += $10
         move.b  (A2)+,D5                        ; $01257E  D5 = source byte
-        dc.w    $6100,$001A                     ; $012580  bsr.w tile_render_sub_A ($01259C)
+        bsr.w   lap_time_digit_renderer ; $6100 $001A
         adda.l  #$00000020,A1                   ; $012584  dest += $20
-        dc.w    $6100,$011A                     ; $01258A  bsr.w tile_render_sub_C ($0126A6)
+        bsr.w   camera_tile_block_send  ; $6100 $011A
         adda.l  #$00002000,A3                   ; $01258E  dest base += $2000 (next strip)
         addq.l  #8,A4                           ; $012594  source base += 8
         dbra    D4,.render_strip                ; $012596

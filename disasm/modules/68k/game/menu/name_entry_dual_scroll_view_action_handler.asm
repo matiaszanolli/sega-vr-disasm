@@ -42,9 +42,9 @@
 
 name_entry_dual_scroll_view_action_handler:
         clr.w   D0                              ; $011630  mode = 0
-        dc.w    $4EBA,$CEF8                     ; $011632  bsr.w dma_transfer ($00E52C)
-        dc.w    $4EBA,$A04C                     ; $011636  bsr.w object_update ($00B684)
-        dc.w    $4EBA,$A09E                     ; $01163A  bsr.w sprite_update ($00B6DA)
+        jsr     MemoryInit(pc)          ; $4EBA $CEF8
+        jsr     object_update(pc)       ; $4EBA $A04C
+        jsr     animated_seq_player+10(pc); $4EBA $A09E
 ; --- SH2 DMA: scroll view ---
         movea.l #$26032000,A0                   ; $01163E  source base
         move.l  ($FFFFA032).w,D0                ; $011644  D0 = P2 scroll offset
@@ -58,7 +58,7 @@ name_entry_dual_scroll_view_action_handler:
         beq.w   .check_action_state             ; $011660  no → check input
         move.l  ($FFFFA022).w,D0                ; $011664  D0 = P1 scroll position
         move.l  ($FFFFA026).w,D1                ; $011668  D1 = P1 velocity
-        dc.w    $D081                           ; $01166C  add.l d1,d0 — apply velocity
+        add.l   d1,d0                   ; $D081
         move.l  D0,($FFFFA022).w                ; $01166E  store new position
         subq.b  #1,($FFFFA02E).w                ; $011672  decrement P1 step counter
         bcc.w   .p2_scroll                      ; $011676  still stepping → P2
@@ -108,7 +108,7 @@ name_entry_dual_scroll_view_action_handler:
         beq.w   .p2_input                       ; $011718  no → check P2 input
         move.l  ($FFFFA032).w,D0                ; $01171C  D0 = P2 scroll position
         move.l  ($FFFFA036).w,D1                ; $011720  D1 = P2 velocity
-        dc.w    $D081                           ; $011724  add.l d1,d0 — apply velocity
+        add.l   d1,d0                   ; $D081
         move.l  D0,($FFFFA032).w                ; $011726  store new position
         subq.b  #1,($FFFFA03E).w                ; $01172A  decrement P2 step counter
         bcc.w   .revert_state                   ; $01172E  still stepping → revert

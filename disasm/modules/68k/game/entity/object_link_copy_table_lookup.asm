@@ -35,8 +35,8 @@ object_link_copy_table_lookup:
         move.b  $00(A2,D0.W),D1                 ; $007162  D1 = table_A[type]
         move.b  D1,$0025(A0)                    ; $007166  store table value
         movea.l ($FFFFC700).w,A2                ; $00716A  A2 → word-pair table
-        dc.w    $D040                           ; $00716E  add.w d0,d0 — D0 × 2
-        dc.w    $D040                           ; $007170  add.w d0,d0 — D0 × 4
+        add.w   d0,d0                   ; $D040
+        add.w   d0,d0                   ; $D040
         move.w  $00(A2,D0.W),$0020(A0)          ; $007172  position X = table[D0]
         move.w  $02(A2,D0.W),$0022(A0)          ; $007178  position Y = table[D0+2]
         move.w  $001A(A1),D1                    ; $00717E  D1 = direction word

@@ -18,7 +18,7 @@
 menu_state_check_timer_countdown_0144a8:
         lea     $009286AE,a1                    ; $0144A8: $43F9 $0092 $86AE — table address
         move.l  #$00009A00,d1                   ; $0144AE: $223C $0000 $9A00 — parameter
-        dc.w    $4EBA,$013A                     ; BSR.W $0145F0 ; $0144B4: — call menu_state_check
+        jsr     menu_tile_copy_to_vdp(pc); $4EBA $013A
         subq.w  #1,($FFFFA006).w               ; $0144B8: $5378 $A006 — decrement timer
         bgt.s   .done                           ; $0144BC: $6E10 — not expired → return
         addq.w  #4,($FFFFC082).w               ; $0144BE: $5878 $C082 — advance menu dispatch

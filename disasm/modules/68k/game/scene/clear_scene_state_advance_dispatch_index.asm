@@ -15,8 +15,8 @@
 clear_scene_state_advance_dispatch_index:
 ; --- Data prefix (6 bytes) ---
         dc.w    $8383                           ; $003E52: data
-        dc.w    $8499                           ; $003E54: data (decodes as OR.L (A1)+,D2)
-        dc.w    $9E99                           ; $003E56: data (decodes as SUB.L (A1)+,D7)
+        or.l    (a1)+,d2                ; $8499
+        sub.l   (a1)+,d7                ; $9E99
 ; --- Code ---
         move.w  #$0000,($FFFFC8AA).w           ; $003E58: $31FC $0000 $C8AA — clear scene state
         addq.w  #4,($FFFFC8AC).w               ; $003E5E: $5878 $C8AC — advance dispatch index

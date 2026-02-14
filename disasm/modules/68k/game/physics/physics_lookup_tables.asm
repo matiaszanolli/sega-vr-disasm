@@ -15,7 +15,7 @@
 ; Returns: Writes indexed value to A0+$6
 ; ============================================================================
 physics_lookup_accessor:
-        dc.w    $1238,$C30F             ; MOVE.B ($C30F).w,D1 - Read game state byte
+        move.b  ($FFFFC30F).w,d1        ; $1238 $C30F — Read game state byte
         add.b   d1,d0                   ; Add to base index
         asl.w   #5,d0                   ; Multiply by 32 (shift left 5)
         move.w  $8A(a0),d1              ; Read multiplier from context
@@ -24,7 +24,7 @@ physics_lookup_accessor:
         dc.w    $317B                   ; MOVE.W opcode (PC-relative indexed)
         dc.w    $0006                   ; Destination: $6(a0)
         dc.w    $000A                   ; Source: PC-relative offset to lookup_table_base
-        dc.w    $4E75                   ; RTS
+        rts                             ; $4E75
 
 ; ============================================================================
 ; Acceleration/Speed Lookup Tables

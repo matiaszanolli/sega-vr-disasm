@@ -16,7 +16,7 @@ randomized_sound_param_00240c:
         move.w  #$21D0,d1                       ; $00240C: $323C $21D0 — base value
         cmp.w   (a1),d1                         ; $002410: $B251 — compare with current
         bne.s   .store                          ; $002412: $660A — different → just store
-        dc.w    $4EBA,$2558                     ; BSR.W $00496E ; $002414: — call random_number_gen
+        jsr     random_number_gen(pc)   ; $4EBA $2558
         andi.w  #$000F,d0                       ; $002418: $0240 $000F — mask to 0-15
         sub.w   d0,d1                           ; $00241C: $9240 — D1 = D1 - D0 (add jitter)
 .store:

@@ -23,7 +23,7 @@ ai_timer_inc:
 ; --- entry 1: timer A ---
         lea     ($FFFFA9E7).w,A0               ; $00B0DE  A0 → timer block A
         move.b  ($FFFFB4EE).w,D0               ; $00B0E2  D0 = input flags A
-        dc.w    $4EBA,$000A                     ; $00B0E6  bsr.w .shared ($00B0F2)
+        jsr     ai_timer_inc+20(pc)     ; $4EBA $000A
 ; --- entry 2: timer B (also reached via fall-through from entry 1) ---
         lea     ($FFFFA9E3).w,A0               ; $00B0EA  A0 → timer block B
         move.b  ($FFFFC30E).w,D0               ; $00B0EE  D0 = input flags B

@@ -34,7 +34,7 @@ bcd_time_update_010:
         blt.s   .clamp_ok                       ; $00B31A  yes → keep
         moveq   #$32,D0                         ; $00B31C  clamp to 50
 .clamp_ok:
-        dc.w    $D040                           ; $00B31E  ADD.W D0,D0 — D0 *= 2
+        add.w   d0,d0                   ; $D040
         lea     $00899884,A3                    ; $00B320  A3 → BCD delta table (ROM)
         dc.w    $023C,$00EF                     ; $00B326  ANDI #$EF,CCR — clear X flag
         move.w  $00(A3,D0.W),D0                 ; $00B32A  D0 = BCD delta[index]

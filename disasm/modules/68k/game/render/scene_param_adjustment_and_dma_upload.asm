@@ -35,7 +35,7 @@ scene_param_adjustment_and_dma_upload:
         CMP.W  (A4)+,D3                         ; $00DABE
         CLR.W  D0                               ; $00DAC0
         MOVE.B  (-24537).W,D0                   ; $00DAC2
-        DC.W    $4EBA,$0A64         ; JSR     $00E52C(PC); $00DAC6
+        jsr     MemoryInit(pc)          ; $4EBA $0A64
         MOVEA.L #$0603D100,A0                   ; $00DACA
         MOVEA.L #$24004C58,A1                   ; $00DAD0
         MOVE.W  #$0090,D0                       ; $00DAD6
@@ -67,7 +67,7 @@ scene_param_adjustment_and_dma_upload:
         BTST    #0,D1                           ; $00DB38
         BEQ.S  .loc_00CA                        ; $00DB3C
         MOVE.W  (-24548).W,D0                   ; $00DB3E
-        DC.W    $6100,$0168         ; BSR.W  $00DCAC; $00DB42
+        bsr.w   positive_velocity_step_small_inc; $6100 $0168
         CMPI.W  #$02F0,D0                       ; $00DB46
         BLT.W  .loc_00C2                        ; $00DB4A
         MOVE.W  #$02F0,D0                       ; $00DB4E
@@ -78,7 +78,7 @@ scene_param_adjustment_and_dma_upload:
         BTST    #1,D1                           ; $00DB5A
         BEQ.S  .loc_00EC                        ; $00DB5E
         MOVE.W  (-24548).W,D0                   ; $00DB60
-        DC.W    $6100,$0158         ; BSR.W  $00DCBE; $00DB64
+        bsr.w   negative_velocity_step_small_dec; $6100 $0158
         CMPI.W  #$FBFE,D0                       ; $00DB68
         BGT.W  .loc_00E4                        ; $00DB6C
         MOVE.W  #$FBFE,D0                       ; $00DB70
@@ -89,7 +89,7 @@ scene_param_adjustment_and_dma_upload:
         BTST    #3,D1                           ; $00DB7C
         BEQ.S  .loc_010E                        ; $00DB80
         MOVE.W  (-24550).W,D0                   ; $00DB82
-        DC.W    $6100,$0124         ; BSR.W  $00DCAC; $00DB86
+        bsr.w   positive_velocity_step_small_inc; $6100 $0124
         CMPI.W  #$0120,D0                       ; $00DB8A
         BLT.W  .loc_0106                        ; $00DB8E
         MOVE.W  #$0120,D0                       ; $00DB92
@@ -100,7 +100,7 @@ scene_param_adjustment_and_dma_upload:
         BTST    #2,D1                           ; $00DB9E
         BEQ.S  .loc_0130                        ; $00DBA2
         MOVE.W  (-24550).W,D0                   ; $00DBA4
-        DC.W    $6100,$0114         ; BSR.W  $00DCBE; $00DBA8
+        bsr.w   negative_velocity_step_small_dec; $6100 $0114
         CMPI.W  #$FEE0,D0                       ; $00DBAC
         BGT.W  .loc_0128                        ; $00DBB0
         MOVE.W  #$FEE0,D0                       ; $00DBB4
@@ -111,7 +111,7 @@ scene_param_adjustment_and_dma_upload:
         BTST    #6,D1                           ; $00DBC0
         BEQ.S  .loc_0152                        ; $00DBC4
         MOVE.W  (-24546).W,D0                   ; $00DBC6
-        DC.W    $6100,$00E0         ; BSR.W  $00DCAC; $00DBCA
+        bsr.w   positive_velocity_step_small_inc; $6100 $00E0
         CMPI.W  #$0460,D0                       ; $00DBCE
         BLT.W  .loc_014A                        ; $00DBD2
         MOVE.W  #$0460,D0                       ; $00DBD6
@@ -122,7 +122,7 @@ scene_param_adjustment_and_dma_upload:
         BTST    #4,D1                           ; $00DBE2
         BEQ.S  .loc_01CE                        ; $00DBE6
         MOVE.W  (-24546).W,D0                   ; $00DBE8
-        DC.W    $6100,$00D0         ; BSR.W  $00DCBE; $00DBEC
+        bsr.w   negative_velocity_step_small_dec; $6100 $00D0
         CMPI.W  #$0050,D0                       ; $00DBF0
         BGT.W  .loc_016C                        ; $00DBF4
         MOVE.W  #$0050,D0                       ; $00DBF8
@@ -133,28 +133,28 @@ scene_param_adjustment_and_dma_upload:
         BTST    #0,D1                           ; $00DC04
         BEQ.S  .loc_018A                        ; $00DC08
         MOVE.W  (-24544).W,D0                   ; $00DC0A
-        DC.W    $6100,$00A8         ; BSR.W  $00DCB8; $00DC0E
+        bsr.w   positive_velocity_step_small_inc+12; $6100 $00A8
         MOVE.W  D0,(-24544).W                   ; $00DC12
         BRA.W  .loc_01CE                        ; $00DC16
 .loc_018A:
         BTST    #1,D1                           ; $00DC1A
         BEQ.S  .loc_01A0                        ; $00DC1E
         MOVE.W  (-24544).W,D0                   ; $00DC20
-        DC.W    $6100,$00A4         ; BSR.W  $00DCCA; $00DC24
+        bsr.w   negative_velocity_step_small_dec+12; $6100 $00A4
         MOVE.W  D0,(-24544).W                   ; $00DC28
         BRA.W  .loc_01CE                        ; $00DC2C
 .loc_01A0:
         BTST    #3,D1                           ; $00DC30
         BEQ.S  .loc_01B6                        ; $00DC34
         MOVE.W  (-24542).W,D0                   ; $00DC36
-        DC.W    $6100,$007C         ; BSR.W  $00DCB8; $00DC3A
+        bsr.w   positive_velocity_step_small_inc+12; $6100 $007C
         MOVE.W  D0,(-24542).W                   ; $00DC3E
         BRA.W  .loc_01CE                        ; $00DC42
 .loc_01B6:
         BTST    #2,D1                           ; $00DC46
         BEQ.S  .loc_01CE                        ; $00DC4A
         MOVE.W  (-24542).W,D0                   ; $00DC4C
-        DC.W    $6100,$0078         ; BSR.W  $00DCCA; $00DC50
+        bsr.w   negative_velocity_step_small_dec+12; $6100 $0078
         MOVE.W  D0,(-24542).W                   ; $00DC54
         BRA.W  .loc_01CE                        ; $00DC58
         NOP                                     ; $00DC5C

@@ -12,7 +12,7 @@
 
 random_number_gen:
         move.l  d1,-(a7)              ; Save D1
-        dc.w    $2238,$EF00           ; MOVE.L ($EF00).W,D1 - load state
+        move.l  ($FFFFEF00).w,d1        ; $2238 $EF00 — load state
         bne.s   .have_state           ; If non-zero, use it
         move.l  #$2A6D365A,d1         ; Seed value
 .have_state:
@@ -26,6 +26,6 @@ random_number_gen:
         add.w   d1,d0                 ; D0 += high word
         move.w  d0,d1                 ; D1.w = result
         swap    d1                    ; Restore word order
-        dc.w    $21C1,$EF00           ; MOVE.L D1,($EF00).W - store state
+        move.l  d1,($FFFFEF00).w        ; $21C1 $EF00 — store state
         move.l  (a7)+,d1              ; Restore D1
         rts

@@ -26,7 +26,7 @@ tile_block_dma_setup:
         MOVE.W  (A1),D7                         ; $006C6E
         MOVE.W  (A1)+,(A2)+                     ; $006C70
 .loc_002C:
-        DC.W    $4EBA,$DCAE         ; JSR     $004922(PC); $006C72
+        jsr     triple_memory_copy+88(pc); $4EBA $DCAE
         DBRA    D7,.loc_002C                    ; $006C76
         DBRA    D6,.loc_0026                    ; $006C7A
         MOVE.L  A2,(A4)+                        ; $006C7E

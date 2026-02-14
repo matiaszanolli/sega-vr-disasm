@@ -47,18 +47,18 @@ fm_instrument_reg_write:
         ADDA.W  D1,A1                           ; $0312F0
         DBRA    D0,.loc_003C                    ; $0312F2
 .loc_0042:
-        DC.W    $4EBA,$FA24         ; JSR     $030D1C(PC); $0312F6
+        jsr     z80_bus_wait(pc)        ; $4EBA $FA24
         MOVE.B  (A1)+,D1                        ; $0312FA
         MOVE.B  D1,$0025(A5)                    ; $0312FC
         MOVE.B  D1,D4                           ; $031300
         MOVE.B  #$B0,D0                         ; $031302
-        DC.W    $4EBA,$F9C4         ; JSR     $030CCC(PC); $031306
-        DC.W    $45FA,$00BE         ; LEA     $0313CA(PC),A2; $03130A
+        jsr     fm_write_cond(pc)       ; $4EBA $F9C4
+        lea     fm_reg_table_vibrato_setup(pc),a2; $45FA $00BE
         MOVEQ   #$13,D3                         ; $03130E
 .loc_005C:
         MOVE.B  (A2)+,D0                        ; $031310
         MOVE.B  (A1)+,D1                        ; $031312
-        DC.W    $4EBA,$F9B6         ; JSR     $030CCC(PC); $031314
+        jsr     fm_write_cond(pc)       ; $4EBA $F9B6
         DBRA    D3,.loc_005C                    ; $031318
         MOVEQ   #$03,D5                         ; $03131C
         ANDI.W  #$0007,D4                       ; $03131E
@@ -71,11 +71,11 @@ fm_instrument_reg_write:
         BCC.S  .loc_0080                        ; $031330
         ADD.B   D3,D1                           ; $031332
 .loc_0080:
-        DC.W    $4EBA,$F996         ; JSR     $030CCC(PC); $031334
+        jsr     fm_write_cond(pc)       ; $4EBA $F996
         DBRA    D5,.loc_0076                    ; $031338
         MOVE.B  #$B4,D0                         ; $03133C
         MOVE.B  $0027(A5),D1                    ; $031340
-        DC.W    $4EBA,$F986         ; JSR     $030CCC(PC); $031344
+        jsr     fm_write_cond(pc)       ; $4EBA $F986
         MOVE.W  #$0000,Z80_BUSREQ                ; $031348
 .loc_009C:
         RTS                                     ; $031350

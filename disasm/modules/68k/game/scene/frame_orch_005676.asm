@@ -29,10 +29,10 @@
 
 frame_orch_005676:
 ; --- entry 1: full orchestrator ---
-        dc.w    $4EBA,$CB52                     ; $005676  jsr $0021CA(pc) — sfx_queue_process
-        dc.w    $4EBA,$C122                     ; $00567A  jsr $00179E(pc) — poll_controllers
-        dc.w    $4EBA,$5E84                     ; $00567E  jsr $00B504(pc) — sprite handler A
-        dc.w    $4EBA,$5E9E                     ; $005682  jsr $00B522(pc) — sprite handler B
+        jsr     sound_update_disp+244(pc); $4EBA $CB52
+        jsr     controller_read_button_remap+16(pc); $4EBA $C122
+        jsr     display_digit_extract+58(pc); $4EBA $5E84
+        jsr     display_digit_extract+88(pc); $4EBA $5E9E
         addq.w  #1,($FFFFC8AA).w                ; $005686  scene_state++
         move.l  #$FFFF0000,($FFFFC970).w        ; $00568A  clear work param
         movea.w ($FFFFC8C0).w,A0                ; $005692  A0 = controller_ptr
@@ -43,16 +43,16 @@ frame_orch_005676:
         andi.b  #$03,D1                         ; $0056A2  extract bits 0-1
         move.b  D1,($FFFFC973).w                ; $0056A6  ai_direction_flags
         move.w  A0,($FFFFC8C0).w                ; $0056AA  advance controller_ptr
-        dc.w    $4EBA,$5F1A                     ; $0056AE  jsr $00B5CA(pc) — sprite handler C
-        dc.w    $4EBA,$0288                     ; $0056B2  jsr $00593C(pc) — sprite_state_process
-        dc.w    $4EBA,$6022                     ; $0056B6  jsr $00B6DA(pc) — sprite_update
-        dc.w    $4EBA,$5FC8                     ; $0056BA  jsr $00B684(pc) — object_update
+        jsr     lap_disp_update_vdp_tile_write+28(pc); $4EBA $5F1A
+        jsr     race_entity_update_loop(pc); $4EBA $0288
+        jsr     animated_seq_player+10(pc); $4EBA $6022
+        jsr     object_update(pc)       ; $4EBA $5FC8
         addq.w  #4,($FFFFC87E).w                ; $0056BE  advance state
         move.w  #$0054,$00FF0008                ; $0056C2  SH2 COMM = $54
-        dc.w    $4EFA,$002C                     ; $0056CA  jmp $0056F8(pc) — controller handler
+        jmp     pause_menu_handler_ctrl_check+20(pc); $4EFA $002C
 ; --- entry 2: reduced orchestrator ---
-        dc.w    $4EBA,$CAFA                     ; $0056CE  jsr $0021CA(pc) — sfx_queue_process
-        dc.w    $4EBA,$C0CA                     ; $0056D2  jsr $00179E(pc) — poll_controllers
+        jsr     sound_update_disp+244(pc); $4EBA $CAFA
+        jsr     controller_read_button_remap+16(pc); $4EBA $C0CA
         addq.b  #1,($FFFFC886).w                ; $0056D6  scene_counter++
         move.w  #$0054,$00FF0008                ; $0056DA  SH2 COMM = $54
         rts                                     ; $0056E2

@@ -52,8 +52,8 @@ camera_menu_input_handler:
         lea     $008936AA,A0                    ; $01362A  A0 = handler table
         clr.w   D2                              ; $013630
         move.b  ($FFFFA019).w,D2                ; $013632  D2 = mode index
-        dc.w    $D442                           ; $013636  add.w d2,d2 — D2 × 2
-        dc.w    $D442                           ; $013638  add.w d2,d2 — D2 × 4
+        add.w   d2,d2                   ; $D442
+        add.w   d2,d2                   ; $D442
         movea.l $00(A0,D2.W),A0                 ; $01363A  A0 = handler[mode]
         clr.w   D2                              ; $01363E  D2 = 0
         jsr     (A0)                            ; $013640  call handler
@@ -66,8 +66,8 @@ camera_menu_input_handler:
         lea     $008936AA,A0                    ; $013656  A0 = handler table
         clr.w   D2                              ; $01365C
         move.b  ($FFFFA019).w,D2                ; $01365E  D2 = mode index
-        dc.w    $D442                           ; $013662  add.w d2,d2 — D2 × 2
-        dc.w    $D442                           ; $013664  add.w d2,d2 — D2 × 4
+        add.w   d2,d2                   ; $D442
+        add.w   d2,d2                   ; $D442
         movea.l $00(A0,D2.W),A0                 ; $013666  A0 = handler[mode]
         clr.w   D2                              ; $01366A  D2 = 0
         jsr     (A0)                            ; $01366C  call handler

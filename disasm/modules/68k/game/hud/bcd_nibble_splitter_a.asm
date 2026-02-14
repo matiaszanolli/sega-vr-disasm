@@ -17,10 +17,10 @@ bcd_nibble_splitter_a:
         MOVE.B  D3,D1                           ; $01063A
         LSR.B  #4,D1                            ; $01063C
         ANDI.W  #$000F,D1                       ; $01063E
-        DC.W    $6100,$0012         ; BSR.W  $010656; $010642
+        bsr.w   digit_tile_dma_to_framebuffer_a; $6100 $0012
         ADDQ.L  #8,A1                           ; $010646
         MOVE.W  D3,D1                           ; $010648
         ANDI.W  #$000F,D1                       ; $01064A
-        DC.W    $6100,$0006         ; BSR.W  $010656; $01064E
+        bsr.w   digit_tile_dma_to_framebuffer_a; $6100 $0006
         ADDQ.L  #8,A1                           ; $010652
         RTS                                     ; $010654

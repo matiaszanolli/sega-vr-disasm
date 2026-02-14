@@ -36,13 +36,13 @@ camera_sh2_command_27_dispatch:
         moveq   #$00,D0                         ; $012F72  clear D0
         move.b  ($FFFFA019).w,D0                ; $012F74  D0 = camera mode index
         lea     $00892F9C,A1                    ; $012F78  A1 = command table base
-        dc.w    $D040                           ; $012F7E  add.w d0,d0 — D0 × 2
+        add.w   d0,d0                   ; $D040
         move.w  D0,D1                           ; $012F80  D1 = D0 × 2 (save)
-        dc.w    $D040                           ; $012F82  add.w d0,d0 — D0 × 4
-        dc.w    $D041                           ; $012F84  add.w d1,d0 — D0 × 6
+        add.w   d0,d0                   ; $D040
+        add.w   d1,d0                   ; $D041
         movea.l $00(A1,D0.W),A0                 ; $012F86  A0 = table[mode].source
         move.w  $04(A1,D0.W),D0                 ; $012F8A  D0 = table[mode].size
         move.w  #$0048,D1                       ; $012F8E  D1 = $48 (height)
         move.w  #$0010,D2                       ; $012F92  D2 = $10 (width)
-        dc.w    $4EBA,$B41C                     ; $012F96  bsr.w sh2_cmd_27 ($00E3B4)
+        jsr     sh2_cmd_27(pc)          ; $4EBA $B41C
         rts                                     ; $012F9A

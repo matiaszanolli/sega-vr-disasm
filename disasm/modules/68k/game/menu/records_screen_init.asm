@@ -79,9 +79,9 @@ records_screen_init:
         MOVE.W  #$0026,D3                       ; $011DDC
         MOVE.W  #$001A,D4                       ; $011DE0
         LEA     $00FF1000,A0                    ; $011DE4
-        DC.W    $4EBA,$C440         ; JSR     $00E22C(PC); $011DEA
+        jsr     sh2_graphics_cmd(pc)    ; $4EBA $C440
         LEA     $00FF1000,A0                    ; $011DEE
-        DC.W    $4EBA,$C4FA         ; JSR     $00E2F0(PC); $011DF4
+        jsr     sh2_load_data(pc)       ; $4EBA $C4FA
         DC.W    $4EBA,$C3C2         ; JSR     $00E1BC(PC); $011DF8
         BCLR    #7,MARS_VDP_MODE+1                    ; $011DFC
         LEA     $00FF6E00,A0                    ; $011E04

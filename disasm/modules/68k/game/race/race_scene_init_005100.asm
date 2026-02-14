@@ -19,7 +19,7 @@ race_scene_init_005100:
         MOVE.W  (-14220).W,(A5)                 ; $00510A
         MOVE.W  #$0083,MARS_SYS_INTCTL                ; $00510E
         ANDI.B  #$FC,MARS_VDP_MODE+1                  ; $005116
-        DC.W    $4EBA,$D5EA         ; JSR     $00270A(PC); $00511E
+        jsr     mars_framebuffer_preparation(pc); $4EBA $D5EA
         MOVE.B  #$01,(-14323).W                 ; $005122
         MOVE.B  #$00,(-14322).W                 ; $005128
         ORI.B  #$20,(-14322).W                  ; $00512E
@@ -42,57 +42,57 @@ race_scene_init_005100:
         LEA     $008BA220,A0                    ; $005186
         MOVE.W  (-14176).W,D0                   ; $00518C
         MOVEA.L $00(A0,D0.W),A2                 ; $005190
-        DC.W    $4EBA,$D6B6         ; JSR     $00284C(PC); $005194
+        jsr     palette_copy_full(pc)   ; $4EBA $D6B6
         LEA     $008BAE38,A0                    ; $005198
         MOVE.W  (-14132).W,D0                   ; $00519E
         MOVEA.L $00(A0,D0.W),A2                 ; $0051A2
-        DC.W    $4EBA,$D6BA         ; JSR     $002862(PC); $0051A6
+        jsr     palette_copy_partial(pc); $4EBA $D6BA
         MOVE.W  #$0010,$00FF0008                ; $0051AA
         MOVE.W  #$0000,(-14166).W               ; $0051B2
-        DC.W    $4EBA,$F7F0         ; JSR     $0049AA(PC); $0051B8
-        DC.W    $4EBA,$7BD4         ; JSR     $00CD92(PC); $0051BC
+        jsr     input_clear_both(pc)    ; $4EBA $F7F0
+        jsr     scene_init_sh2_buffer_clear_loop(pc); $4EBA $7BD4
         MOVE.B  #$00,(-15596).W                 ; $0051C0
         BTST    #0,(-14312).W                   ; $0051C6
         BEQ.S  .loc_00D4                        ; $0051CC
         MOVE.B  #$01,(-15596).W                 ; $0051CE
 .loc_00D4:
         MOVEQ   #$10,D0                         ; $0051D4
-        DC.W    $4EBA,$7A9C         ; JSR     $00CC74(PC); $0051D6
-        DC.W    $4EBA,$7694         ; JSR     $00C870(PC); $0051DA
-        DC.W    $4EBA,$7820         ; JSR     $00CA00(PC); $0051DE
-        DC.W    $4EBA,$7EE8         ; JSR     $00D0CC(PC); $0051E2
+        jsr     scene_camera_init(pc)   ; $4EBA $7A9C
+        jsr     track_graphics_and_sound_loader+174(pc); $4EBA $7694
+        jsr     vdp_load_table_c(pc)    ; $4EBA $7820
+        jsr     race_sprite_table_init+66(pc); $4EBA $7EE8
         TST.B  (-342).W                         ; $0051E6
         BEQ.S  .loc_00F0                        ; $0051EA
-        DC.W    $4EBA,$785E         ; JSR     $00CA4C(PC); $0051EC
+        jsr     vdp_slot_activation_config_a(pc); $4EBA $785E
 .loc_00F0:
         JSR     $0088D450                       ; $0051F0
         JSR     $0088D054                       ; $0051F6
-        DC.W    $4EBA,$78A2         ; JSR     $00CAA0(PC); $0051FC
+        jsr     race_track_overlay_config+6(pc); $4EBA $78A2
         MOVE.B  (-14310).W,(-15600).W           ; $005200
-        DC.W    $4EBA,$7A80         ; JSR     $00CC88(PC); $005206
+        jsr     scene_camera_init+20(pc); $4EBA $7A80
         MOVEQ   #$18,D0                         ; $00520A
         MOVEQ   #$00,D1                         ; $00520C
-        DC.W    $4EBA,$7C12         ; JSR     $00CE22(PC); $00520E
+        jsr     object_entry_data_copy(pc); $4EBA $7C12
         MOVE.B  (-342).W,(-15601).W             ; $005212
-        DC.W    $4EBA,$4F2A         ; JSR     $00A144(PC); $005218
+        jsr     track_physics_param_table_loader+144(pc); $4EBA $4F2A
         LEA     (-28672).W,A0                   ; $00521C
         DC.W    $4EBA,$4FDA         ; JSR     $00A1FC(PC); $005220
-        DC.W    $4EBA,$774E         ; JSR     $00C974(PC); $005224
-        DC.W    $4EBA,$7D84         ; JSR     $00CFAE(PC); $005228
+        jsr     scene_dispatch_track_data_setup+142(pc); $4EBA $774E
+        jsr     entity_heading_and_turn_rate_calculator+192(pc); $4EBA $7D84
         MOVE.B  #$00,(-14311).W                 ; $00522C
         MOVE.W  #$0000,(-14146).W               ; $005232
         MOVE.W  #$0000,(-14210).W               ; $005238
-        DC.W    $4EBA,$1600         ; JSR     $006840(PC); $00523E
+        jsr     entity_render_pipeline_with_2_player_dispatch+198(pc); $4EBA $1600
         ANDI.B  #$FC,MARS_VDP_MODE+1                  ; $005242
         ORI.B  #$01,MARS_VDP_MODE+1                   ; $00524A
         MOVE.W  #$8083,MARS_SYS_INTCTL                ; $005252
-        DC.W    $4EBA,$CDEE         ; JSR     $00204A(PC); $00525A
-        DC.W    $4EBA,$CE66         ; JSR     $0020C6(PC); $00525E
+        jsr     clear_communication_state_variables(pc); $4EBA $CDEE
+        jsr     sound_command_dispatch_sound_driver_call+70(pc); $4EBA $CE66
         BSET    #6,(-14219).W                   ; $005262
         MOVE.W  (-14220).W,(A5)                 ; $005268
         JSR     $00884998                       ; $00526C
         MOVE.W  (-14136).W,D0                   ; $005272
-        DC.W    $43FA,$FA40         ; LEA     $004CB8(PC),A1; $005276
+        lea     state_disp_004cb8(pc),a1; $43FA $FA40
         BTST    #0,(-14325).W                   ; $00527A
         BNE.S  .loc_0188                        ; $005280
         MOVE.B  $00(A1,D0.W),(-14171).W         ; $005282

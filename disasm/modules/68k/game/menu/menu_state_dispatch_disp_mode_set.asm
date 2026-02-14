@@ -11,6 +11,6 @@
 ; ============================================================================
 
 menu_state_dispatch_disp_mode_set:
-        DC.W    $4EBA,$017A         ; JSR     $01457C(PC); $014400 — menu state dispatcher
+        jsr     palette_fade_003(pc)    ; $4EBA $017A
         move.w  #$0024,$00FF0008                ; $014404: set display mode $0024
         rts                                     ; $01440C: $4E75

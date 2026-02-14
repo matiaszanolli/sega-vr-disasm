@@ -28,9 +28,9 @@
 object_movement_velocity_calc:
         move.w  ($FFFFC090).w,($FFFFC07A).w     ; $007EB2  copy source → index
         move.w  D1,($FFFFC02C).w                ; $007EB8  store frame count
-        dc.w    $D040                           ; $007EBC  add.w d0,d0 — D0 × 2
+        add.w   d0,d0                   ; $D040
         move.w  D0,D2                           ; $007EBE  D2 = D0
-        dc.w    $D442                           ; $007EC0  add.w d2,d2 — D2 × 4 (D0 × 4)
+        add.w   d2,d2                   ; $D442
         movea.l ($FFFFC700).w,A1                ; $007EC2  A1 → position table
         move.w  $00(A1,D2.W),D3                 ; $007EC6  D3 = target X
         sub.w   $0030(A0),D3                    ; $007ECA  D3 -= current X

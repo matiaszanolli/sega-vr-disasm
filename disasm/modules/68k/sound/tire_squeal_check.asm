@@ -10,11 +10,11 @@
 ; ============================================================================
 
 tire_squeal_check:
-        dc.w    $4A38,$C8A2           ; TST.B ($C8A2).W - cooldown timer
+        tst.b    ($FFFFC8A2).w          ; $4A38 $C8A2 — cooldown timer
         beq.s   .check_speed          ; If zero, check speed
-        dc.w    $5338,$C8A2           ; SUBQ.B #1,($C8A2).W - decrement
+        subq.b  #1,($FFFFC8A2).w        ; $5338 $C8A2 — decrement
         bne.s   .check_speed          ; If still nonzero, check speed
-        dc.w    $11FC,$0000,$C8A6     ; MOVE.B #$00,($C8A6).W - clear sound ID
+        move.b  #$00,($FFFFC8A6).w      ; $11FC $0000 $C8A6 — clear sound ID
 .check_speed:
         move.w  $0094(a0),d0          ; Read lateral speed
         bpl.s   .pos
@@ -24,14 +24,14 @@ tire_squeal_check:
         ble.s   .restore_sound        ; Too slow: restore sound
         cmpi.w  #$0020,d0             ; High threshold
         ble.s   .done                 ; Medium: just exit
-        dc.w    $0C38,$00BD,$C8A6     ; CMPI.B #$BD,($C8A6).W
+        cmpi.b  #$BD,($FFFFC8A6).w      ; $0C38 $00BD $C8A6
         beq.s   .done                 ; Already squealing: exit
-        dc.w    $11FC,$00BD,$C8A4     ; MOVE.B #$BD,($C8A4).W - squeal sound
-        dc.w    $11FC,$0020,$C8A2     ; MOVE.B #$20,($C8A2).W - 32 frame cooldown
+        move.b  #$BD,($FFFFC8A4).w      ; $11FC $00BD $C8A4 — squeal sound
+        move.b  #$20,($FFFFC8A2).w      ; $11FC $0020 $C8A2 — 32 frame cooldown
         rts
 .restore_sound:
-        dc.w    $0C38,$00BD,$C8A6     ; CMPI.B #$BD,($C8A6).W
+        cmpi.b  #$BD,($FFFFC8A6).w      ; $0C38 $00BD $C8A6
         bne.s   .done
-        dc.w    $11FC,$00C8,$C8A4     ; MOVE.B #$C8,($C8A4).W - restore sound
+        move.b  #$C8,($FFFFC8A4).w      ; $11FC $00C8 $C8A4 — restore sound
 .done:
         rts

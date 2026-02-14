@@ -28,10 +28,10 @@ obj_state_return:
 
         ; --- Path 1: Speed-based calculation ---
         move.w  $6(a0),d0               ; Load speed
-        dc.w    $2278,$C278             ; MOVEA.L ($C278).W,A1 - lookup table pointer
+        movea.l ($FFFFC278).w,a1        ; $2278 $C278 — lookup table pointer
         move.w  $7A(a0),d1              ; Load table index
         add.w   d1,d1                   ; Word offset (index * 2)
-        dc.w    $C1F1,$1000             ; MULS.W 0(A1,D1.W),D0 - speed * table value
+        muls.w  (a1,d1.w),d0            ; $C1F1 $1000 — speed * table value
         muls.w  #$0254,d0               ; Multiply by 596
         lsr.w   #8,d0                   ; >> 8
         lsr.w   #4,d0                   ; >> 4 (total >> 12 = divide by 4096)

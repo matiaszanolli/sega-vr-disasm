@@ -125,7 +125,7 @@ vdp_display_init:
         BTST    #0,Z80_BUSREQ                    ; $000F52
         BNE.S  .loc_0180                        ; $000F5A
         MOVE.L  D1,-(A7)                        ; $000F5C
-        DC.W    $4EBA,$008A         ; JSR     $000FEA(PC); $000F5E
+        jsr     vdp_reg_init(pc)        ; $4EBA $008A
         MOVE.L  (A7)+,D1                        ; $000F62
         MOVE.L  #$C0000000,(A5)                 ; $000F64
         MOVEQ   #$3F,D7                         ; $000F6A
@@ -158,11 +158,11 @@ vdp_display_init:
         BNE.S  .loc_01E4                        ; $000FBA
         BRA.S  .loc_01D8                        ; $000FBC
         MOVEQ   #$0B,D7                         ; $000FBE
-        DC.W    $41FA,$FFD0         ; LEA     $000F92(PC),A0; $000FC0
+        lea     vdp_display_init+448(pc),a0; $41FA $FFD0
         LEA     $00FF0000,A1                    ; $000FC4
-        DC.W    $4EFA,$000E         ; JMP     $000FDA(PC); $000FCA
+        jmp     vdp_display_init+520(pc); $4EFA $000E
         MOVEQ   #$09,D7                         ; $000FCE
-        DC.W    $41FA,$FFD8         ; LEA     $000FAA(PC),A0; $000FD0
+        lea     vdp_display_init+472(pc),a0; $41FA $FFD8
         LEA     $00FF0000,A1                    ; $000FD4
         MOVE    #$2700,SR                       ; $000FDA
 .loc_020C:

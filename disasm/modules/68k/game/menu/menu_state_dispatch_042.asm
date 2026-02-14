@@ -43,7 +43,7 @@ menu_state_dispatch_042:
         move.w  #$0801,($FFFFA008).w            ; $01444A  fade_counter = $0801
         lea     $0090E732,A1                    ; $014450  A1 → DMA source
         move.l  #$00009A00,D1                   ; $014456  D1 = DMA length/dest
-        dc.w    $4EBA,$0192         ; JSR     $0145F0(PC); $01445C  menu_state_check
+        jsr     menu_tile_copy_to_vdp(pc); $4EBA $0192
 ; --- state 2: countdown ---
         subq.w  #1,($FFFFA006).w                ; $014460  menu_timer--
         bgt.s   .done                           ; $014464  > 0 → wait

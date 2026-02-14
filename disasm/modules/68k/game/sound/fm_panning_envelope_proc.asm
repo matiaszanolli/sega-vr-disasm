@@ -48,7 +48,7 @@ fm_panning_envelope_proc:
         ANDI.B  #$37,D0                         ; $030458
         OR.B    D0,D1                           ; $03045C
         MOVE.B  #$B4,D0                         ; $03045E
-        DC.W    $4EBA,$083E         ; JSR     $030CA2(PC); $030462
+        jsr     fm_cond_write_with_bus(pc); $4EBA $083E
         ADDQ.B  #1,$0024(A5)                    ; $030466
 .loc_0066:
         RTS                                     ; $03046A

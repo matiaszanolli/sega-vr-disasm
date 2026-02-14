@@ -18,7 +18,7 @@ conditional_tile_index_expand:
         bne.s   .done                           ; $002598: $6614 — non-zero → skip
         lea     ($FFFFC886).w,a0                ; $00259A: $41F8 $C886 — frame counter address
         move.l  #$622A0002,(a5)                 ; $00259E: $2ABC $622A $0002 — VDP command
-        dc.w    $4EBA,$FF08                     ; BSR.W $0024AE ; $0025A4: — call tile_index_expand
+        jsr     pixel_unpack_1pair(pc)  ; $4EBA $FF08
         move.b  #$00,($FFFFC886).w              ; $0025A8: $11FC $0000 $C886 — clear frame counter
 .done:
         rts                                     ; $0025AE: $4E75

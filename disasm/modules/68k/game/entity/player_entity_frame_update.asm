@@ -20,29 +20,29 @@ player_entity_frame_update:
         MOVE.W  D0,$0044(A0)                    ; $005D10
         MOVE.W  D0,$0046(A0)                    ; $005D14
         MOVE.W  D0,$004A(A0)                    ; $005D18
-        DC.W    $4EBA,$23AE         ; JSR     $0080CC(PC); $005D1C
-        DC.W    $4EBA,$2826         ; JSR     $008548(PC); $005D20
-        DC.W    $4EBA,$3ADC         ; JSR     $009802(PC); $005D24
-        DC.W    $4EBA,$2150         ; JSR     $007E7A(PC); $005D28
-        DC.W    $4EBA,$126A         ; JSR     $006F98(PC); $005D2C
-        DC.W    $4EBA,$1FA6         ; JSR     $007CD8(PC); $005D30
-        DC.W    $4EBA,$1374         ; JSR     $0070AA(PC); $005D34
-        DC.W    $4EBA,$1410         ; JSR     $00714A(PC); $005D38
-        DC.W    $4EBA,$1910         ; JSR     $00764E(PC); $005D3C
-        DC.W    $4EBA,$220E         ; JSR     $007F50(PC); $005D40
-        DC.W    $4EBA,$3F88         ; JSR     $009CCE(PC); $005D44
-        DC.W    $4EBA,$4EF4         ; JSR     $00AC3E(PC); $005D48
-        DC.W    $4EBA,$3E06         ; JSR     $009B54(PC); $005D4C
-        DC.W    $4EBA,$29AC         ; JSR     $0086FE(PC); $005D50
-        DC.W    $4EBA,$32EA         ; JSR     $009040(PC); $005D54
+        jsr     field_check_guard(pc)   ; $4EBA $23AE
+        jsr     timer_decrement_multi(pc); $4EBA $2826
+        jsr     suspension_steering_damping(pc); $4EBA $3ADC
+        jsr     object_anim_timer_speed_clear+6(pc); $4EBA $2150
+        jsr     entity_pos_update(pc)   ; $4EBA $126A
+        jsr     multi_flag_test(pc)     ; $4EBA $1FA6
+        jsr     angle_to_sine(pc)       ; $4EBA $1374
+        jsr     object_link_copy_table_lookup(pc); $4EBA $1410
+        jsr     rotational_offset_calc(pc); $4EBA $1910
+        jsr     position_threshold_check(pc); $4EBA $220E
+        jsr     race_pos_sorting_and_rank_assignment+50(pc); $4EBA $3F88
+        jsr     effect_countdown(pc)    ; $4EBA $4EF4
+        jsr     set_camera_regs_to_invalid(pc); $4EBA $3E06
+        jsr     proximity_zone_multi+54(pc); $4EBA $29AC
+        jsr     heading_from_position(pc); $4EBA $32EA
         DC.W    $4EBA,$247E         ; JSR     $0081D8(PC); $005D58
-        DC.W    $4EBA,$18A0         ; JSR     $0075FE(PC); $005D5C
-        DC.W    $4EBA,$1444         ; JSR     $0071A6(PC); $005D60
-        DC.W    $4EBA,$CC1E         ; JSR     $002984(PC); $005D64
-        DC.W    $4EBA,$D43C         ; JSR     $0031A6(PC); $005D68
-        DC.W    $4EBA,$D970         ; JSR     $0036DE(PC); $005D6C
-        DC.W    $4EBA,$DA44         ; JSR     $0037B6(PC); $005D70
-        DC.W    $4EBA,$E210         ; JSR     $003F86(PC); $005D74
+        jsr     obj_distance_calc(pc)   ; $4EBA $18A0
+        jsr     object_visibility_collector(pc); $4EBA $1444
+        jsr     camera_param_calc(pc)   ; $4EBA $CC1E
+        jsr     object_state_disp_0031a6(pc); $4EBA $D43C
+        jsr     object_table_sprite_param_update(pc); $4EBA $D970
+        jsr     object_proximity_check_jump_table_dispatch(pc); $4EBA $DA44
+        jsr     render_slot_setup+88(pc); $4EBA $E210
         MOVE.B  (-15612).W,(-15604).W           ; $005D78
         MOVE.W  (-14176).W,D0                   ; $005D7E
         BTST    #7,(-14308).W                   ; $005D82

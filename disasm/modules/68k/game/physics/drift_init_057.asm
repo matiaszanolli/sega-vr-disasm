@@ -44,7 +44,7 @@ drift_init_057:
         ble.s   .init_drift                      ; $007E2E  yes → init drift
 .abort_to_response:
         move.w  $001C(A0),D0                     ; $007E30  D0 = collision_param
-        dc.w    $4EFA,$006E         ; JMP     $007EA4(PC); $007E34  → obj_collision_response
+        jmp     conditional_return_on_state_match(pc); $4EFA $006E
 .init_drift:
         tst.w   $0092(A0)                        ; $007E38  drift_cooldown > 0?
         bgt.s   .done                            ; $007E3C  yes → skip

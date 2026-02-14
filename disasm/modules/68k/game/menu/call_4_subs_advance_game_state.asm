@@ -13,10 +13,10 @@
 ; ============================================================================
 
 call_4_subs_advance_game_state:
-        dc.w    $4EBA,$CB70                     ; BSR.W $0021CA ; $005658: — call SFX queue process
-        dc.w    $4EBA,$59CE                     ; BSR.W $00B02C ; $00565C: — call game sub 1
-        dc.w    $4EBA,$5FD0                     ; BSR.W $00B632 ; $005660: — call game sub 2
-        dc.w    $4EBA,$02A2                     ; BSR.W $005908 ; $005664: — call sprite_update_check
+        jsr     sound_update_disp+244(pc); $4EBA $CB70
+        jsr     speed_scale_simple(pc)  ; $4EBA $59CE
+        jsr     lap_value_store_1(pc)   ; $4EBA $5FD0
+        jsr     sh2_comm_check_cond_guard(pc); $4EBA $02A2
         addq.w  #4,($FFFFC87E).w               ; $005668: $5878 $C87E — advance game state
         move.w  #$0010,$00FF0008                ; $00566C: $33FC $0010 $00FF $0008 — set display mode
         rts                                     ; $005674: $4E75

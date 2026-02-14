@@ -29,10 +29,10 @@ close_position_flags:
         bne.s   .alt_bits               ; If bit 2 set, use alternate
         ori.w   #$2000,$02(a0)          ; Set bit 13 in A0 flags
         ori.w   #$1000,$02(a1)          ; Set bit 12 in A1 flags
-        dc.w    $11FC,$00B2,$C8A4       ; MOVE.B #$B2,($C8A4).W - set AI mode
+        move.b  #$B2,($FFFFC8A4).w      ; $11FC $00B2 $C8A4 — set AI mode
         rts
 .alt_bits:
         ori.w   #$1000,$02(a0)          ; Set bit 12 in A0 flags
         ori.w   #$2000,$02(a1)          ; Set bit 13 in A1 flags
-        dc.w    $11FC,$00B2,$C8A4       ; MOVE.B #$B2,($C8A4).W - set AI mode
+        move.b  #$B2,($FFFFC8A4).w      ; $11FC $00B2 $C8A4 — set AI mode
         rts

@@ -51,7 +51,7 @@ entity_force_integration_and_speed_calc:
         BLT.S  .loc_0064                        ; $009360
         MOVE.L  D0,D2                           ; $009362
 .loc_0064:
-        DC.W    $4EBA,$00F2         ; JSR     $009458(PC); $009364
+        jsr     speed_calc_multiplier_chain(pc); $4EBA $00F2
         MOVE.W  $0016(A0),D1                    ; $009368
         EXT.L   D1                              ; $00936C
         LSL.L  #4,D1                            ; $00936E

@@ -13,7 +13,7 @@
 speed_modifier:
         move.l  d1,-(a7)              ; Save D1
         moveq   #0,d0
-        dc.w    $1238,$C31A           ; MOVE.B ($C31A).W,D1
+        move.b  ($FFFFC31A).w,d1        ; $1238 $C31A
         beq.s   .zero                 ; If flag=0, clear and return
         move.w  $0004(a0),d0          ; Read speed
         muls.w  d0,d0                 ; Square speed

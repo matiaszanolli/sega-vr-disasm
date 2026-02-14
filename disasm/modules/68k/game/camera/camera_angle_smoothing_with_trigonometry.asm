@@ -19,7 +19,7 @@ camera_angle_smoothing_with_trigonometry:
         MOVE.W  (-16194).W,D1                   ; $008DC4
         MOVE.W  $0030(A0),D2                    ; $008DC8
         MOVE.W  $0034(A0),D3                    ; $008DCC
-        DC.W    $4EBA,$19CE         ; JSR     $00A7A0(PC); $008DD0
+        jsr     ai_steering_calc(pc)    ; $4EBA $19CE
         SUBI.W  #$4000,D0                       ; $008DD4
         NEG.W  D0                               ; $008DD8
         TST.W  (-16126).W                       ; $008DDA
@@ -57,7 +57,7 @@ camera_angle_smoothing_with_trigonometry:
         CMPI.W  #$7000,D0                       ; $008E28
         BCS.S  .loc_0088                        ; $008E2C
 .loc_006E:
-        DC.W    $4EBA,$011E         ; JSR     $008F4E(PC); $008E2E
+        jsr     sine_cosine_quadrant_lookup(pc); $4EBA $011E
         MOVE.W  $0030(A0),D2                    ; $008E32
         SUB.W  (-16198).W,D2                    ; $008E36
         TST.W  D0                               ; $008E3A
@@ -66,7 +66,7 @@ camera_angle_smoothing_with_trigonometry:
         SUB.W  (-16194).W,D2                    ; $008E42
         BRA.S  .loc_00A0                        ; $008E46
 .loc_0088:
-        DC.W    $4EBA,$0108         ; JSR     $008F52(PC); $008E48
+        jsr     sine_cosine_quadrant_lookup+4(pc); $4EBA $0108
         MOVE.W  $0034(A0),D2                    ; $008E4C
         SUB.W  (-16194).W,D2                    ; $008E50
         TST.W  D0                               ; $008E54
@@ -82,7 +82,7 @@ camera_angle_smoothing_with_trigonometry:
         SUB.W  (-16196).W,D3                    ; $008E6A
         ASR.W  #4,D3                            ; $008E6E
         MOVE.W  D2,D2                           ; $008E70
-        DC.W    $4EBA,$1930         ; JSR     $00A7A4(PC); $008E72
+        jsr     ai_steering_calc+4(pc)  ; $4EBA $1930
         NEG.W  D0                               ; $008E76
         TST.W  (-16128).W                       ; $008E78
         BEQ.S  .loc_00EC                        ; $008E7C

@@ -25,7 +25,7 @@ sprite_init_collision_check_003a4e:
         dc.w    $0000, $0000, $FA6A, $0000       ; $003A8E
         dc.w    $0000, $222A, $2272, $F2E1       ; $003A96
         dc.w    $0633, $2A89, $0000, $0100       ; $003A9E
-        dc.w    $222A, $2508                     ; $003AA6
+        move.l  $2508(a2),d1            ; $222A $2508
 ; --- code: collision check + conditional fall-through ---
         tst.b   ($FFFFC80F).w                   ; $003AAA  collision detected?
         beq.s   .fall_through                   ; $003AAE  no → fall through

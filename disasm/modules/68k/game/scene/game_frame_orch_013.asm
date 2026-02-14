@@ -33,13 +33,13 @@
 
 game_frame_orch_013:
 ; --- path A: full frame update ---
-        dc.w    $4EBA,$D412         ; JSR     $00212E(PC); $004D1A  pre-frame
-        dc.w    $4EBA,$CA7E         ; JSR     $00179E(PC); $004D1E  poll_controllers
-        dc.w    $4EBA,$637A         ; JSR     $00B09E(PC); $004D22  animation_update
-        dc.w    $4EBA,$641C         ; JSR     $00B144(PC); $004D26  sound_buffer_copy_with_decode
-        dc.w    $4EBA,$67D8         ; JSR     $00B504(PC); $004D2A  display_param_calc
-        dc.w    $4EBA,$67AC         ; JSR     $00B4DC(PC); $004D2E  ai_object_setup_cond_flag_set
-        dc.w    $4EBA,$67EE         ; JSR     $00B522(PC); $004D32  ai_state_dispatch
+        jsr     sound_update_disp+88(pc); $4EBA $D412
+        jsr     controller_read_button_remap+16(pc); $4EBA $CA7E
+        jsr     cascaded_frame_counter+10(pc); $4EBA $637A
+        jsr     ai_buffer_setup+42(pc)  ; $4EBA $641C
+        jsr     display_digit_extract+58(pc); $4EBA $67D8
+        jsr     display_digit_extract+18(pc); $4EBA $67AC
+        jsr     display_digit_extract+88(pc); $4EBA $67EE
         addq.w  #1,($FFFFC8AA).w                ; $004D36  frame_counter++
 ; --- record controller input to replay buffer ---
         movea.w ($FFFFC8C0).w,A0                ; $004D3A  A0 = controller_ptr
@@ -49,21 +49,21 @@ game_frame_orch_013:
         andi.b  #$5C,D0                         ; $004D4A  isolate d-pad + buttons
         move.b  ($FFFFC973).w,D1                ; $004D4E  D1 = input_buttons
         andi.b  #$03,D1                         ; $004D52  isolate A/B buttons
-        dc.w    $8001                           ; $004D56  OR.B D1,D0 — merge buttons
+        or.b    d1,d0                   ; $8001
         move.b  D0,(A0)+                        ; $004D58  store to buffer, advance
         move.w  A0,($FFFFC8C0).w                ; $004D5A  update controller_ptr
 .skip_record:
-        dc.w    $4EBA,$0BDC         ; JSR     $00593C(PC); $004D5E  sprite_state_process
-        dc.w    $4EBA,$6976         ; JSR     $00B6DA(PC); $004D62  sprite_update
-        dc.w    $4EBA,$691C         ; JSR     $00B684(PC); $004D66  object_update
+        jsr     race_entity_update_loop(pc); $4EBA $0BDC
+        jsr     animated_seq_player+10(pc); $4EBA $6976
+        jsr     object_update(pc)       ; $4EBA $691C
         addq.w  #4,($FFFFC87E).w                ; $004D6A  game_state += 4
         move.w  #$0054,$00FF0008                ; $004D6E  display list cmd = $54
-        dc.w    $4EFA,$0980         ; JMP     $0056F8(PC); $004D76  → state_disp_00573c
+        jmp     pause_menu_handler_ctrl_check+20(pc); $4EFA $0980
 ; --- path B: minimal update ---
-        dc.w    $4EBA,$D3B2         ; JSR     $00212E(PC); $004D7A  pre-frame
-        dc.w    $4EBA,$CA1E         ; JSR     $00179E(PC); $004D7E  poll_controllers
-        dc.w    $4EBA,$631A         ; JSR     $00B09E(PC); $004D82  animation_update
-        dc.w    $4EBA,$63BC         ; JSR     $00B144(PC); $004D86  sound_buffer_copy_with_decode
+        jsr     sound_update_disp+88(pc); $4EBA $D3B2
+        jsr     controller_read_button_remap+16(pc); $4EBA $CA1E
+        jsr     cascaded_frame_counter+10(pc); $4EBA $631A
+        jsr     ai_buffer_setup+42(pc)  ; $4EBA $63BC
         addq.b  #1,($FFFFC886).w                ; $004D8A  vint_counter++
         move.w  #$0054,$00FF0008                ; $004D8E  display list cmd = $54
         rts                                     ; $004D96

@@ -18,8 +18,8 @@
 fm_cond_write_with_bus:
         BTST    #2,(A5)                         ; $030CA2
         BNE.S  .loc_0016                        ; $030CA6
-        DC.W    $4EBA,$0072         ; JSR     $030D1C(PC); $030CA8
-        DC.W    $4EBA,$001E         ; JSR     $030CCC(PC); $030CAC
+        jsr     z80_bus_wait(pc)        ; $4EBA $0072
+        jsr     fm_write_cond(pc)       ; $4EBA $001E
         MOVE.W  #$0000,Z80_BUSREQ                ; $030CB0
 .loc_0016:
         RTS                                     ; $030CB8

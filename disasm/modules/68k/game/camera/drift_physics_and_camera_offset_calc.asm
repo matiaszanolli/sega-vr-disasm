@@ -32,7 +32,7 @@ drift_physics_and_camera_offset_calc:
         MOVE.W  $0004(A0),D0                    ; $0096AC
         LSL.W  #7,D0                            ; $0096B0
         ADDI.W  #$8000,D0                       ; $0096B2
-        DC.W    $4EBA,$F89A         ; JSR     $008F52(PC); $0096B6
+        jsr     sine_cosine_quadrant_lookup+4(pc); $4EBA $F89A
         ADDI.W  #$0100,D0                       ; $0096BA
         MULS    $0090(A0),D0                    ; $0096BE
         ASR.L  #6,D0                            ; $0096C2

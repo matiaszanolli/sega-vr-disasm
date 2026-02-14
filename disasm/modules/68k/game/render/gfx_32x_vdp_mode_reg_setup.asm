@@ -21,7 +21,7 @@ gfx_32x_vdp_mode_reg_setup:
         ORI.B  #$00,D0                          ; $002660
         ORI.B  #$00,D0                          ; $002664
         ORI.B  #$00,D0                          ; $002668
-        DC.W    $43FA,$0012         ; LEA     $002680(PC),A1; $00266C
+        lea     mars_adapter_state_init_framebuffer_setup(pc),a1; $43FA $0012
         LEA     MARS_VDP_MODE,A2                    ; $002670
         MOVEQ   #$05,D7                         ; $002676
 .loc_0026:

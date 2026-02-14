@@ -44,7 +44,7 @@ sh2_multi_panel_tile_renderer:
         MOVE.W  $04(A1,D0.W),D0                 ; $00F93A
         MOVE.W  #$0030,D1                       ; $00F93E
         MOVE.W  #$0010,D2                       ; $00F942
-        DC.W    $4EBA,$EA6C         ; JSR     $00E3B4(PC); $00F946
+        jsr     sh2_cmd_27(pc)          ; $4EBA $EA6C
         MOVEQ   #$00,D0                         ; $00F94A
         CMPI.B  #$01,(-24549).W                 ; $00F94C
         BNE.S  .loc_0082                        ; $00F952
@@ -55,7 +55,7 @@ sh2_multi_panel_tile_renderer:
 .loc_0070:
         TST.B  COMM0_HI                        ; $00F966
         BNE.S  .loc_0070                        ; $00F96C
-        DC.W    $4EBA,$EA44         ; JSR     $00E3B4(PC); $00F96E
+        jsr     sh2_cmd_27(pc)          ; $4EBA $EA44
         MOVE.B  (-24551).W,D0                   ; $00F972
         BRA.S  .loc_0086                        ; $00F976
 .loc_0082:
@@ -75,7 +75,7 @@ sh2_multi_panel_tile_renderer:
 .loc_00A8:
         TST.B  COMM0_HI                        ; $00F99E
         BNE.S  .loc_00A8                        ; $00F9A4
-        DC.W    $4EBA,$EA0C         ; JSR     $00E3B4(PC); $00F9A6
+        jsr     sh2_cmd_27(pc)          ; $4EBA $EA0C
         MOVEQ   #$00,D0                         ; $00F9AA
         CMPI.B  #$02,(-24549).W                 ; $00F9AC
         BNE.S  .loc_0100                        ; $00F9B2
@@ -86,7 +86,7 @@ sh2_multi_panel_tile_renderer:
 .loc_00D0:
         TST.B  COMM0_HI                        ; $00F9C6
         BNE.S  .loc_00D0                        ; $00F9CC
-        DC.W    $4EBA,$E9E4         ; JSR     $00E3B4(PC); $00F9CE
+        jsr     sh2_cmd_27(pc)          ; $4EBA $E9E4
         MOVEA.L #$04019018,A0                   ; $00F9D2
         MOVE.W  #$0078,D0                       ; $00F9D8
         MOVE.W  #$0010,D1                       ; $00F9DC
@@ -94,7 +94,7 @@ sh2_multi_panel_tile_renderer:
 .loc_00EE:
         TST.B  COMM0_HI                        ; $00F9E4
         BNE.S  .loc_00EE                        ; $00F9EA
-        DC.W    $4EBA,$E9C6         ; JSR     $00E3B4(PC); $00F9EC
+        jsr     sh2_cmd_27(pc)          ; $4EBA $E9C6
         MOVE.B  (-24551).W,D0                   ; $00F9F0
         BRA.S  .loc_0104                        ; $00F9F4
 .loc_0100:
@@ -120,7 +120,7 @@ sh2_multi_panel_tile_renderer:
 .loc_0134:
         TST.B  COMM0_HI                        ; $00FA2A
         BNE.S  .loc_0134                        ; $00FA30
-        DC.W    $4EBA,$E980         ; JSR     $00E3B4(PC); $00FA32
+        jsr     sh2_cmd_27(pc)          ; $4EBA $E980
         MOVEQ   #$00,D0                         ; $00FA36
         CMPI.B  #$01,(-24548).W                 ; $00FA38
         BNE.S  .loc_016E                        ; $00FA3E
@@ -131,7 +131,7 @@ sh2_multi_panel_tile_renderer:
 .loc_015C:
         TST.B  COMM0_HI                        ; $00FA52
         BNE.S  .loc_015C                        ; $00FA58
-        DC.W    $4EBA,$E958         ; JSR     $00E3B4(PC); $00FA5A
+        jsr     sh2_cmd_27(pc)          ; $4EBA $E958
         MOVE.B  (-24550).W,D0                   ; $00FA5E
         BRA.S  .loc_0172                        ; $00FA62
 .loc_016E:
@@ -151,7 +151,7 @@ sh2_multi_panel_tile_renderer:
 .loc_0194:
         TST.B  COMM0_HI                        ; $00FA8A
         BNE.S  .loc_0194                        ; $00FA90
-        DC.W    $4EBA,$E920         ; JSR     $00E3B4(PC); $00FA92
+        jsr     sh2_cmd_27(pc)          ; $4EBA $E920
         MOVEQ   #$00,D0                         ; $00FA96
         CMPI.B  #$02,(-24548).W                 ; $00FA98
         BNE.S  .loc_01EC                        ; $00FA9E
@@ -162,7 +162,7 @@ sh2_multi_panel_tile_renderer:
 .loc_01BC:
         TST.B  COMM0_HI                        ; $00FAB2
         BNE.S  .loc_01BC                        ; $00FAB8
-        DC.W    $4EBA,$E8F8         ; JSR     $00E3B4(PC); $00FABA
+        jsr     sh2_cmd_27(pc)          ; $4EBA $E8F8
         MOVEA.L #$040190B0,A0                   ; $00FABE
         MOVE.W  #$0078,D0                       ; $00FAC4
         MOVE.W  #$0010,D1                       ; $00FAC8
@@ -170,7 +170,7 @@ sh2_multi_panel_tile_renderer:
 .loc_01DA:
         TST.B  COMM0_HI                        ; $00FAD0
         BNE.S  .loc_01DA                        ; $00FAD6
-        DC.W    $4EBA,$E8DA         ; JSR     $00E3B4(PC); $00FAD8
+        jsr     sh2_cmd_27(pc)          ; $4EBA $E8DA
         MOVE.B  (-24550).W,D0                   ; $00FADC
         BRA.S  .loc_01F0                        ; $00FAE0
 .loc_01EC:
@@ -196,5 +196,5 @@ sh2_multi_panel_tile_renderer:
 .loc_0220:
         TST.B  COMM0_HI                        ; $00FB16
         BNE.S  .loc_0220                        ; $00FB1C
-        DC.W    $4EBA,$E894         ; JSR     $00E3B4(PC); $00FB1E
+        jsr     sh2_cmd_27(pc)          ; $4EBA $E894
         RTS                                     ; $00FB22

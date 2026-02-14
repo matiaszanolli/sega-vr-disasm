@@ -38,14 +38,14 @@ fm_sequence_command_handler:
         ADD.B  D0,$0003(A5)                     ; $030382
         ADDQ.B  #1,$0026(A5)                    ; $030386
         DC.W    $6000,$FF7A         ; BRA.W  $030306; $03038A
-        DC.W    $43FA,$003C         ; LEA     $0303CC(PC),A1; $03038E
+        lea     fm_reg_table_state_disp(pc),a1; $43FA $003C
         LEA     $0020(A6),A2                    ; $030392
         TST.B  $000E(A6)                        ; $030396
         BEQ.S  .loc_0048                        ; $03039A
         LEA     $0028(A6),A2                    ; $03039C
 .loc_0048:
         MOVEQ   #$03,D5                         ; $0303A0
-        DC.W    $4EBA,$0978         ; JSR     $030D1C(PC); $0303A2
+        jsr     z80_bus_wait(pc)        ; $4EBA $0978
 .loc_004E:
         MOVE.W  D6,D1                           ; $0303A6
         MOVE.W  (A2)+,D0                        ; $0303A8
@@ -53,10 +53,10 @@ fm_sequence_command_handler:
         MOVE.W  D1,D3                           ; $0303AC
         LSR.W  #8,D1                            ; $0303AE
         MOVE.B  (A1)+,D0                        ; $0303B0
-        DC.W    $4EBA,$0924         ; JSR     $030CD8(PC); $0303B2
+        jsr     fm_write_cond+12(pc)    ; $4EBA $0924
         MOVE.B  D3,D1                           ; $0303B6
         MOVE.B  (A1)+,D0                        ; $0303B8
-        DC.W    $4EBA,$091C         ; JSR     $030CD8(PC); $0303BA
+        jsr     fm_write_cond+12(pc)    ; $4EBA $091C
         DBRA    D5,.loc_004E                    ; $0303BE
         MOVE.W  #$0000,Z80_BUSREQ                ; $0303C2
         RTS                                     ; $0303CA

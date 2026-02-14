@@ -14,9 +14,9 @@ entity_visibility_check:
         tst.w   $00C0(a0)             ; Check entity active flag
         beq.s   .write_slots          ; If inactive, write 0
         moveq   #1,d0                 ; Set visible
-        dc.w    $4A38,$90E4           ; TST.B ($90E4).W - P1 race mode
+        tst.b    ($FFFF90E4).w          ; $4A38 $90E4 — P1 race mode
         bne.s   .check_entity_flag    ; If P1 racing, check entity
-        dc.w    $4A38,$B0FC           ; TST.B ($B0FC).W - P2 race mode
+        tst.b    ($FFFFB0FC).w          ; $4A38 $B0FC — P2 race mode
         beq.s   .alt_check            ; Neither racing, alternate path
 .check_entity_flag:
         btst    #3,$00E5(a0)          ; Check entity flag bit 3
@@ -25,7 +25,7 @@ entity_visibility_check:
         moveq   #0,d0                 ; Set invisible
         bra.s   .write_slots
 .alt_check:
-        dc.w    $0838,$0003,$90E5     ; BTST #3,($90E5).W - global flag
+        btst    #3,($FFFF90E5).w        ; $0838 $0003 $90E5 — global flag
         beq.s   .write_slots          ; If not set, keep visible
         tst.b   $00E4(a0)             ; Check entity subtype
         bne.s   .set_invisible        ; If nonzero, hide

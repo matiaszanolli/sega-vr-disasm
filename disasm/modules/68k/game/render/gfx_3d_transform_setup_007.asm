@@ -28,20 +28,20 @@ gfx_3d_transform_setup_007:
 ; --- path A: transform using vector_buf_a ---
         lea     ($FFFFC806).w,A1                ; $0082FA  A1 → transform_src
         lea     ($FFFFC270).w,A2                ; $0082FE  A2 → vector_buf_a
-        dc.w    $4EBA,$30CA         ; JSR     $00B3CE(PC); $008302  matrix_multiply
+        jsr     sequence_data_word_decoder(pc); $4EBA $30CA
         moveq   #$00,D0                         ; $008306  D0 = 0 (transform mode A)
         lea     ($FFFFC270).w,A1                ; $008308  A1 → vector_buf_a
-        dc.w    $4EBA,$3078         ; JSR     $00B386(PC); $00830C  vector_transform
+        jsr     ai_param_lookup_threshold_check_00b36e+24(pc); $4EBA $3078
         move.l  ($FFFFC270).w,D5                ; $008310  D5 = transform result A
         moveq   #$04,D6                         ; $008314  D6 = 4 (offset A)
         bra.s   .compute_index                  ; $008316
 ; --- path B: transform using vector_buf_b ---
         lea     ($FFFFC806).w,A1                ; $008318  A1 → transform_src
         lea     ($FFFFC274).w,A2                ; $00831C  A2 → vector_buf_b
-        dc.w    $4EBA,$30AC         ; JSR     $00B3CE(PC); $008320  matrix_multiply
+        jsr     sequence_data_word_decoder(pc); $4EBA $30AC
         moveq   #$02,D0                         ; $008324  D0 = 2 (transform mode B)
         lea     ($FFFFC274).w,A1                ; $008326  A1 → vector_buf_b
-        dc.w    $4EBA,$305A         ; JSR     $00B386(PC); $00832A  vector_transform
+        jsr     ai_param_lookup_threshold_check_00b36e+24(pc); $4EBA $305A
         move.l  ($FFFFC274).w,D5                ; $00832E  D5 = transform result B
         moveq   #$08,D6                         ; $008332  D6 = 8 (offset B)
 .compute_index:
@@ -52,8 +52,8 @@ gfx_3d_transform_setup_007:
         move.w  ($FFFFC8C8).w,D2                ; $008342  D2 = vint_state
         lsl.w   #3,D2                           ; $008346  D2 *= 8
         add.w   ($FFFFC8CC).w,D2                ; $008348  D2 += race_substate_b
-        dc.w    $D242                           ; $00834C  ADD.W D2,D1
-        dc.w    $D246                           ; $00834E  ADD.W D6,D1
+        add.w   d2,d1                   ; $D242
+        add.w   d6,d1                   ; $D246
         lea     $00(A3,D1.W),A3                 ; $008350  A3 += composite index
         cmpi.l  #$60000000,D5                   ; $008354  depth < $60000000?
         dc.w    $6D0C               ; BLT.S   $008368    ; $00835A  yes → skip (next fn)

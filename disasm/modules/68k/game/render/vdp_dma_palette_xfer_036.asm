@@ -55,7 +55,7 @@ vdp_dma_palette_xfer_036:
 .wait_ack:
         btst    #7,$00A1518A                    ; $001CDA  CMD INT acknowledged?
         beq.s   .wait_ack                       ; $001CE2  no → wait
-        dc.w    $4EBA,$0B92         ; JSR     $002878(PC); $001CE4  PaletteRAMCopy
+        jsr     v_int_cram_xfer_gate(pc); $4EBA $0B92
 ; --- toggle frame buffer ---
         bchg    #0,($FFFFC80C).w                ; $001CE8  flip frame_toggle
         bne.s   .set_buf_1                      ; $001CEE  was 1 → set buf 1

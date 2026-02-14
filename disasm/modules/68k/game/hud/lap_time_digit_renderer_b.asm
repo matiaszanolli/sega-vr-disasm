@@ -17,19 +17,19 @@
 
 lap_time_digit_renderer_b:
         MOVE.B  (A2)+,D3                        ; $0118D4
-        DC.W    $6100,$0030         ; BSR.W  $011908; $0118D6
+        bsr.w   bcd_nibble_splitter_b   ; $6100 $0030
         MOVE.W  #$000A,D1                       ; $0118DA
-        DC.W    $6100,$0044         ; BSR.W  $011924; $0118DE
+        bsr.w   digit_tile_dma_to_framebuffer_b; $6100 $0044
         ADDQ.L  #8,A1                           ; $0118E2
         MOVE.B  (A2)+,D3                        ; $0118E4
-        DC.W    $6100,$0020         ; BSR.W  $011908; $0118E6
+        bsr.w   bcd_nibble_splitter_b   ; $6100 $0020
         MOVE.W  #$000B,D1                       ; $0118EA
-        DC.W    $6100,$0034         ; BSR.W  $011924; $0118EE
+        bsr.w   digit_tile_dma_to_framebuffer_b; $6100 $0034
         ADDQ.L  #8,A1                           ; $0118F2
         MOVE.B  (A2)+,D1                        ; $0118F4
         ANDI.W  #$000F,D1                       ; $0118F6
-        DC.W    $6100,$0028         ; BSR.W  $011924; $0118FA
+        bsr.w   digit_tile_dma_to_framebuffer_b; $6100 $0028
         ADDQ.L  #8,A1                           ; $0118FE
         MOVE.B  (A2)+,D3                        ; $011900
-        DC.W    $6100,$0004         ; BSR.W  $011908; $011902
+        bsr.w   bcd_nibble_splitter_b   ; $6100 $0004
         RTS                                     ; $011906

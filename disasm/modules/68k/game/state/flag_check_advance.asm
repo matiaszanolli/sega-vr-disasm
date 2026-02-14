@@ -10,8 +10,8 @@
 ; ============================================================================
 
 flag_check_advance:
-        dc.w    $0838,$0007,$C80E     ; BTST #7,($C80E).W
+        btst    #7,($FFFFC80E).w        ; $0838 $0007 $C80E
         bne.s   .done                 ; If SH2 busy, skip
-        dc.w    $5878,$C07C           ; ADDQ.W #4,($C07C).W
+        addq.w  #4,($FFFFC07C).w        ; $5878 $C07C
 .done:
         rts

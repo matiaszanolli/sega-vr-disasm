@@ -37,7 +37,7 @@ scene_menu_init_and_input_handler:
         MOVE.W  (-14176).W,D0                   ; $00BAC4
         MOVEA.L $00(A0,D0.W),A0                 ; $00BAC8
         LEA     $0010(A0),A0                    ; $00BACC
-        DC.W    $4EFA,$0208         ; JMP     $00BCDA(PC); $00BAD0
+        jmp     clear_state_copy_scroll_data_object(pc); $4EFA $0208
         BTST    #6,(-14322).W                   ; $00BAD4
         BNE.W  .loc_01BC                        ; $00BADA
         TST.W  (-16256).W                       ; $00BADE

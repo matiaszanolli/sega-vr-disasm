@@ -51,8 +51,8 @@ race_result_with_leaderboard_update:
         MOVE.W  $00(A3,D0.W),D0                 ; $003628
         MOVE.W  D0,(A2)+                        ; $00362C
         MOVE.W  A2,(-16266).W                   ; $00362E
-        DC.W    $4EBA,$7CB0         ; JSR     $00B2E4(PC); $003632
-        DC.W    $4EBA,$7DD6         ; JSR     $00B40E(PC); $003636
+        jsr     ai_table_lookup_cond_fall_through+12(pc); $4EBA $7CB0
+        jsr     sound_buffer_copy_with_decode(pc); $4EBA $7DD6
         SUBQ.L  #4,A2                           ; $00363A
         MOVE.L  (A2),D0                         ; $00363C
         MOVE.L  #$222E070C,$00FF6948            ; $00363E

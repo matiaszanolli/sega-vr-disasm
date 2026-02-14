@@ -24,14 +24,14 @@
 scene_state_disp:
 ; --- data prefix: 9-word parameter table ---
         dc.w    $0089                           ; $00C44C  offset[0] = $0089
-        dc.w    $0117                           ; $00C44E  offset[1] = $0117
+        btst    d0,(a7)                 ; $0117
         dc.w    $016A                           ; $00C450  offset[2] = $016A
-        dc.w    $01E0                           ; $00C452  offset[3] = $01E0
+        bset    d0,-(a0)                ; $01E0
         dc.w    $025E                           ; $00C454  offset[4] = $025E
         dc.w    $02E2                           ; $00C456  offset[5] = $02E2
         dc.w    $034D                           ; $00C458  offset[6] = $034D
-        dc.w    $1000                           ; $00C45A  scale = $1000
-        dc.w    $1000                           ; $00C45C  scale = $1000
+        move.b  d0,d0                   ; $1000
+        move.b  d0,d0                   ; $1000
 ; --- code ---
         jsr     $008821CA                       ; $00C45E  sfx_queue_process
         moveq   #$00,D0                         ; $00C464  clear high bits

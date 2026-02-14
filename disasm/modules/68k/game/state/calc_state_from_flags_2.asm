@@ -9,10 +9,10 @@
 ; ============================================================================
 
 calc_state_from_flags_2:
-        dc.w    $1038,$C8AB           ; MOVE.B ($C8AB).W,D0
+        move.b  ($FFFFC8AB).w,d0        ; $1038 $C8AB
         andi.b  #$03,d0               ; Mask to 2 bits
         add.b   d0,d0                 ; x2
         add.b   d0,d0                 ; x4
         addi.b  #$0C,d0               ; Add base offset
-        dc.w    $11C0,$C305           ; MOVE.B D0,($C305).W
+        move.b  d0,($FFFFC305).w        ; $11C0 $C305
         rts

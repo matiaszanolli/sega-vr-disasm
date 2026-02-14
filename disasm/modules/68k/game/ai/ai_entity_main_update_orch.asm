@@ -21,14 +21,14 @@
 ; ============================================================================
 
 ai_entity_main_update_orch:
-        DC.W    $4EBA,$034C         ; JSR     $00ACC0(PC); $00A972
+        jsr     race_mode_flag_set(pc)  ; $4EBA $034C
         TST.W  (-16306).W                       ; $00A976
         BNE.S  .loc_000E                        ; $00A97A
         SUBQ.W  #1,(-16306).W                   ; $00A97C
 .loc_000E:
         CLR.W  (-16346).W                       ; $00A980
         CLR.B  (-15610).W                       ; $00A984
-        DC.W    $4EBA,$92F4         ; JSR     $003C7E(PC); $00A988
+        jsr     sprite_hud_layout_builder+84(pc); $4EBA $92F4
         DC.W    $43FA,$FF3A         ; LEA     $00A8C8(PC),A1; $00A98C
         MOVE.W  (-14178).W,D0                   ; $00A990
         MOVE.W  $00(A1,D0.W),D5                 ; $00A994
@@ -67,7 +67,7 @@ ai_entity_main_update_orch:
         MOVE.W  #$0002,$00(A1,D0.W)             ; $00AA06
         MOVE.W  #$0078,$00B0(A0)                ; $00AA0C
         CLR.W  (-16306).W                       ; $00AA12
-        DC.W    $4EFA,$E8FA         ; JMP     $009312(PC); $00AA16
+        jmp     entity_force_integration_and_speed_calc+18(pc); $4EFA $E8FA
 .loc_00A8:
         CMPI.W  #$0080,D4                       ; $00AA1A
         BGT.S  .loc_00C0                        ; $00AA1E
@@ -122,7 +122,7 @@ ai_entity_main_update_orch:
         MOVE.W  (-24572).W,D2                   ; $00AAB2
         MOVE.W  (-24574).W,D3                   ; $00AAB6
         NEG.W  D3                               ; $00AABA
-        DC.W    $4EBA,$FCE2         ; JSR     $00A7A0(PC); $00AABC
+        jsr     ai_steering_calc(pc)    ; $4EBA $FCE2
         MOVE.W  D0,(-24568).W                   ; $00AAC0
         SUB.W  $003C(A0),D0                     ; $00AAC4
         CMPI.W  #$0140,D0                       ; $00AAC8
@@ -168,7 +168,7 @@ ai_entity_main_update_orch:
         MOVE.W  #$FFB0,D0                       ; $00AB3C
 .loc_01CE:
         ADD.W  D0,$0006(A0)                     ; $00AB40
-        DC.W    $4EBA,$EFCC         ; JSR     $009B12(PC); $00AB44
+        jsr     entity_speed_clamp(pc)  ; $4EBA $EFCC
         MOVE.W  $0004(A0),D0                    ; $00AB48
         ASL.W  #5,D0                            ; $00AB4C
         CMPI.W  #$11F8,D0                       ; $00AB4E
@@ -185,11 +185,11 @@ ai_entity_main_update_orch:
         MOVE.W  $0006(A0),D2                    ; $00AB6C
         MOVE.W  $0030(A0),D3                    ; $00AB70
         MOVE.W  $0034(A0),D4                    ; $00AB74
-        DC.W    $4EBA,$C464         ; JSR     $006FDE(PC); $00AB78
+        jsr     entity_pos_update+70(pc); $4EBA $C464
         MOVE.W  D3,$0030(A0)                    ; $00AB7C
         MOVE.W  D4,$0034(A0)                    ; $00AB80
-        DC.W    $4EFA,$E78C         ; JMP     $009312(PC); $00AB84
-        DC.W    $4EBA,$0136         ; JSR     $00ACC0(PC); $00AB88
+        jmp     entity_force_integration_and_speed_calc+18(pc); $4EFA $E78C
+        jsr     race_mode_flag_set(pc)  ; $4EBA $0136
         MOVEQ   #$78,D0                         ; $00AB8C
         SUB.W  $00B0(A0),D0                     ; $00AB8E
         MULU    #$3BBB,D0                       ; $00AB92
@@ -208,7 +208,7 @@ ai_entity_main_update_orch:
         ADD.W   D0,D0                           ; $00ABC2
         MOVE.W  #$0003,$00(A1,D0.W)             ; $00ABC4
 .loc_0258:
-        DC.W    $4EFA,$FD2C         ; JMP     $00A8F8(PC); $00ABCA
+        jmp     obj_state_return(pc)    ; $4EFA $FD2C
         LEA     (-16292).W,A1                   ; $00ABCE
         MOVEQ   #$00,D0                         ; $00ABD2
         MOVE.W  $00AE(A0),D1                    ; $00ABD4

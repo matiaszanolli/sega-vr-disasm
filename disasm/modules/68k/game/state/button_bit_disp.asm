@@ -27,7 +27,7 @@
 button_bit_disp:
         tst.w   $00FF3000                      ; $006C88  SH2 buffer active?
         bne.s   .skip_init                      ; $006C8E  yes → skip
-        dc.w    $4EBA,$FFB4                     ; $006C90  jsr $006C46(pc) — sprite_table_init
+        jsr     tile_block_dma_setup(pc); $4EBA $FFB4
 .skip_init:
         move.b  ($FFFFC86E).w,D1               ; $006C94  D1 = P2 controller byte A
         moveq   #$30,D0                         ; $006C98  D0 = $30 (default)

@@ -26,24 +26,24 @@ entity_pos_update:
         MOVE.W  $0006(A0),D2                    ; $006FB2
         MOVE.W  $0030(A0),D3                    ; $006FB6
         MOVE.W  $0034(A0),D4                    ; $006FBA
-        DC.W    $4EBA,$001E         ; JSR     $006FDE(PC); $006FBE
+        jsr     entity_pos_update+70(pc); $4EBA $001E
         MOVE.W  D3,$0030(A0)                    ; $006FC2
         MOVE.W  D4,$0034(A0)                    ; $006FC6
-        DC.W    $4EFA,$0734         ; JMP     $007700(PC); $006FCA
+        jmp     collision_response_surface_tracking(pc); $4EFA $0734
 .loc_0036:
-        DC.W    $4EBA,$002A         ; JSR     $006FFA(PC); $006FCE
-        DC.W    $4EFA,$0842         ; JMP     $007816(PC); $006FD2
+        jsr     counter_guard(pc)       ; $4EBA $002A
+        jmp     collision_response_surface_tracking+278(pc); $4EFA $0842
 .loc_003E:
-        DC.W    $4EBA,$0030         ; JSR     $007008(PC); $006FD6
-        DC.W    $4EFA,$083A         ; JMP     $007816(PC); $006FDA
+        jsr     camera_position_smooth(pc); $4EBA $0030
+        jmp     collision_response_surface_tracking+278(pc); $4EFA $083A
         MOVEQ   #$0C,D6                         ; $006FDE
         MOVE.W  D0,D5                           ; $006FE0
-        DC.W    $4EBA,$1F6E         ; JSR     $008F52(PC); $006FE2
+        jsr     sine_cosine_quadrant_lookup+4(pc); $4EBA $1F6E
         MULS    D2,D0                           ; $006FE6
         ASR.L  D6,D0                            ; $006FE8
         ADD.W   D0,D3                           ; $006FEA
         MOVE.W  D5,D0                           ; $006FEC
-        DC.W    $4EBA,$1F5E         ; JSR     $008F4E(PC); $006FEE
+        jsr     sine_cosine_quadrant_lookup(pc); $4EBA $1F5E
         MULS    D2,D0                           ; $006FF2
         ASR.L  D6,D0                            ; $006FF4
         ADD.W   D0,D4                           ; $006FF6

@@ -25,7 +25,7 @@
 
 sh2_handler_dispatch_scene_init:
 ; --- entry 1: handler replacement dispatch ---
-        dc.w    $4EBA,$5C62                      ; jsr display_digit_extract(pc) → $00B4CA
+        jsr     display_digit_extract(pc); $4EBA $5C62
         move.l  $00FF0002,d0                    ; current SH2 handler address
         moveq   #-$04,d1                        ; init search index
         moveq   #$03,d7                         ; 4 entries to check

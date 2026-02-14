@@ -19,7 +19,7 @@ object_table_lookup_loop:
         lea     ($FFFF9100).w,a0                ; $0058F8: $41F8 $9100 — object table base
         moveq   #$05,d7                         ; $0058FC: $7E05 — loop count = 6
 .loop:
-        dc.w    $4EBA,$00EC                     ; BSR.W $0059EC ; $0058FE: — call table_lookup
+        jsr     race_entity_update_loop+176(pc); $4EBA $00EC
         dbra    d7,.loop                        ; $005902: $51CF $FFFA — loop 6 times
         rts                                     ; $005906: $4E75
 

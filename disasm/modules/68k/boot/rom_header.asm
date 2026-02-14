@@ -24,7 +24,7 @@
         org     $000000
 
 header:
-        dc.w    $0100        ; $0000: Initial SSP (high)
+        btst    d0,d0                   ; $0100
         dc.w    $0000        ; $0002: Initial SSP (low)
         dc.w    $0000        ; $0004: Initial PC (high)
         dc.w    $03F0        ; $0006: Initial PC (low) - Reset vector
@@ -85,7 +85,7 @@ header:
         dc.w    $0088        ; $0074
         dc.w    $0832        ; $0076
         dc.w    $0088        ; $0078: IRQ6/VBlank vector (high)
-        dc.w    $1684        ; $007A: IRQ6/VBlank vector (low)
+        move.b  d4,(a3)                 ; $1684
         dc.w    $0088        ; $007C
         dc.w    $0832        ; $007E
         dc.w    $0088        ; $0080
@@ -152,72 +152,72 @@ header:
         dc.w    $0000        ; $00FA
         dc.w    $0000        ; $00FC
         dc.w    $0000        ; $00FE
-        dc.w    $5345        ; $0100
+        subq.w  #1,d5                   ; $5345
         dc.w    $4741        ; $0102
         dc.w    $2033        ; $0104
-        dc.w    $3258        ; $0106
-        dc.w    $2055        ; $0108
-        dc.w    $2020        ; $010A
-        dc.w    $2020        ; $010C
-        dc.w    $2020        ; $010E
-        dc.w    $2843        ; $0110
+        movea.w (a0)+,a1                ; $3258
+        movea.l (a5),a0                 ; $2055
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        movea.l d3,a4                   ; $2843
         dc.w    $2953        ; $0112
         dc.w    $4547        ; $0114
         dc.w    $4120        ; $0116
         dc.w    $3139        ; $0118
         dc.w    $3934        ; $011A
-        dc.w    $2E53        ; $011C
+        movea.l (a3),a7                 ; $2E53
         dc.w    $4550        ; $011E
         dc.w    $562E        ; $0120
         dc.w    $522E        ; $0122
-        dc.w    $4458        ; $0124
-        dc.w    $2020        ; $0126
-        dc.w    $2020        ; $0128
-        dc.w    $2020        ; $012A
-        dc.w    $2020        ; $012C
-        dc.w    $2020        ; $012E
-        dc.w    $2020        ; $0130
-        dc.w    $2020        ; $0132
-        dc.w    $2020        ; $0134
-        dc.w    $2020        ; $0136
-        dc.w    $2020        ; $0138
-        dc.w    $2020        ; $013A
-        dc.w    $2020        ; $013C
-        dc.w    $2020        ; $013E
-        dc.w    $2020        ; $0140
-        dc.w    $2020        ; $0142
-        dc.w    $2020        ; $0144
-        dc.w    $2020        ; $0146
-        dc.w    $2020        ; $0148
-        dc.w    $2020        ; $014A
-        dc.w    $2020        ; $014C
-        dc.w    $2020        ; $014E
+        neg.w    (a0)+                  ; $4458
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
         dc.w    $562E        ; $0150
         dc.w    $522E        ; $0152
-        dc.w    $4458        ; $0154
-        dc.w    $2020        ; $0156
-        dc.w    $2020        ; $0158
-        dc.w    $2020        ; $015A
-        dc.w    $2020        ; $015C
-        dc.w    $2020        ; $015E
-        dc.w    $2020        ; $0160
-        dc.w    $2020        ; $0162
-        dc.w    $2020        ; $0164
-        dc.w    $2020        ; $0166
-        dc.w    $2020        ; $0168
-        dc.w    $2020        ; $016A
-        dc.w    $2020        ; $016C
-        dc.w    $2020        ; $016E
-        dc.w    $2020        ; $0170
-        dc.w    $2020        ; $0172
-        dc.w    $2020        ; $0174
-        dc.w    $2020        ; $0176
-        dc.w    $2020        ; $0178
-        dc.w    $2020        ; $017A
-        dc.w    $2020        ; $017C
-        dc.w    $2020        ; $017E
+        neg.w    (a0)+                  ; $4458
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
         dc.w    $474D        ; $0180
-        dc.w    $204D        ; $0182
+        movea.l a5,a0                   ; $204D
         dc.w    $4B2D        ; $0184
         dc.w    $3834        ; $0186
         dc.w    $3630        ; $0188
@@ -225,13 +225,13 @@ header:
         dc.w    $3030        ; $018C
         dc.w    $1E4D        ; $018E
         dc.w    $4A36        ; $0190
-        dc.w    $2020        ; $0192
-        dc.w    $2020        ; $0194
-        dc.w    $2020        ; $0196
-        dc.w    $2020        ; $0198
-        dc.w    $2020        ; $019A
-        dc.w    $2020        ; $019C
-        dc.w    $2020        ; $019E
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
         dc.w    $0000        ; $01A0
         dc.w    $0000        ; $01A2
         dc.w    $002F        ; $01A4
@@ -240,43 +240,43 @@ header:
         dc.w    $0000        ; $01AA
         dc.w    $00FF        ; $01AC
         dc.w    $FFFF        ; $01AE
-        dc.w    $2020        ; $01B0
-        dc.w    $2020        ; $01B2
-        dc.w    $2020        ; $01B4
-        dc.w    $2020        ; $01B6
-        dc.w    $2020        ; $01B8
-        dc.w    $2020        ; $01BA
-        dc.w    $2020        ; $01BC
-        dc.w    $2020        ; $01BE
-        dc.w    $2020        ; $01C0
-        dc.w    $2020        ; $01C2
-        dc.w    $2020        ; $01C4
-        dc.w    $2020        ; $01C6
-        dc.w    $2020        ; $01C8
-        dc.w    $2020        ; $01CA
-        dc.w    $2020        ; $01CC
-        dc.w    $2020        ; $01CE
-        dc.w    $2020        ; $01D0
-        dc.w    $2020        ; $01D2
-        dc.w    $2020        ; $01D4
-        dc.w    $2020        ; $01D6
-        dc.w    $2020        ; $01D8
-        dc.w    $2020        ; $01DA
-        dc.w    $2020        ; $01DC
-        dc.w    $2020        ; $01DE
-        dc.w    $2020        ; $01E0
-        dc.w    $2020        ; $01E2
-        dc.w    $2020        ; $01E4
-        dc.w    $2020        ; $01E6
-        dc.w    $2020        ; $01E8
-        dc.w    $2020        ; $01EA
-        dc.w    $2020        ; $01EC
-        dc.w    $2020        ; $01EE
-        dc.w    $5520        ; $01F0
-        dc.w    $2020        ; $01F2
-        dc.w    $2020        ; $01F4
-        dc.w    $2020        ; $01F6
-        dc.w    $2020        ; $01F8
-        dc.w    $2020        ; $01FA
-        dc.w    $2020        ; $01FC
-        dc.w    $2020        ; $01FE
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        subq.b  #2,-(a0)                ; $5520
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020
+        move.l  -(a0),d0                ; $2020

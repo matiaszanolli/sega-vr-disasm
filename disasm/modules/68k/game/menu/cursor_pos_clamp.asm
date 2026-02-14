@@ -11,7 +11,7 @@
 ; ============================================================================
 
 cursor_pos_clamp:
-        dc.w    $DA41                           ; $011A5C  ADD.W D1,D5
+        add.w   d1,d5                   ; $DA41
         cmpi.w  #$001F,d5                       ; $011A5E
         ble.s   .check_lower                    ; $011A62
         move.w  #$001F,d5                       ; $011A64  clamp to max 31

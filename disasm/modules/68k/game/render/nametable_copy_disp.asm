@@ -33,7 +33,7 @@ nametable_copy_disp:
         MOVEA.L -(A0),A1                        ; $001570
         MOVE.L  -(A0),D3                        ; $001572
         MOVEA.L D3,A0                           ; $001574
-        DC.W    $4EBA,$FCBE         ; JSR     $001236(PC); $001576
+        jsr     tile_decompressor_engine+72(pc); $4EBA $FCBE
 .loc_002C:
         ROR.L  #8,D1                            ; $00157A
         DBRA    D2,.loc_0012                    ; $00157C

@@ -37,23 +37,23 @@
 ; ============================================================================
 
 race_init_orch_005:
-        dc.w    $4EBA,$5054         ; JSR     $00B770(PC); $00671A  camera init
+        jsr     camera_state_selector(pc); $4EBA $5054
         move.b  #$01,($FFFFC800).w              ; $00671E  race_init_flag = 1
         moveq   #$00,D0                         ; $006724  D0 = 0
         move.w  D0,$0044(A0)                    ; $006726  obj.display_offset = 0
         move.w  D0,$0046(A0)                    ; $00672A  obj.display_scale = 0
         move.w  D0,$004A(A0)                    ; $00672E  obj.param_4a = 0
-        dc.w    $4EBA,$1998         ; JSR     $0080CC(PC); $006732  load_object_params
-        dc.w    $4EBA,$1E10         ; JSR     $008548(PC); $006736
-        dc.w    $4EBA,$30C6         ; JSR     $009802(PC); $00673A  state dispatch
-        dc.w    $4EBA,$173A         ; JSR     $007E7A(PC); $00673E  obj_velocity_y
-        dc.w    $4EBA,$0854         ; JSR     $006F98(PC); $006742  calc_steering
-        dc.w    $4EBA,$1590         ; JSR     $007CD8(PC); $006746  obj_position_x
-        dc.w    $4EBA,$095E         ; JSR     $0070AA(PC); $00674A  angle_to_sine
-        dc.w    $4EBA,$09FA         ; JSR     $00714A(PC); $00674E
-        dc.w    $4EBA,$0EFA         ; JSR     $00764E(PC); $006752
-        dc.w    $4EBA,$18DA         ; JSR     $008032(PC); $006756  race_position_check
-        dc.w    $4EBA,$33F8         ; JSR     $009B54(PC); $00675A
+        jsr     field_check_guard(pc)   ; $4EBA $1998
+        jsr     timer_decrement_multi(pc); $4EBA $1E10
+        jsr     suspension_steering_damping(pc); $4EBA $30C6
+        jsr     object_anim_timer_speed_clear+6(pc); $4EBA $173A
+        jsr     entity_pos_update(pc)   ; $4EBA $0854
+        jsr     multi_flag_test(pc)     ; $4EBA $1590
+        jsr     angle_to_sine(pc)       ; $4EBA $095E
+        jsr     object_link_copy_table_lookup(pc); $4EBA $09FA
+        jsr     rotational_offset_calc(pc); $4EBA $0EFA
+        jsr     input_guard_cond_dec(pc); $4EBA $18DA
+        jsr     set_camera_regs_to_invalid(pc); $4EBA $33F8
 ; --- check if init complete (frame 20) ---
         cmpi.w  #$0014,($FFFFC8AA).w            ; $00675E  frame_counter == 20?
         bne.s   .done                           ; $006764  no → done

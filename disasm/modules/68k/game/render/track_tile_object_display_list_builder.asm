@@ -75,7 +75,7 @@ track_tile_object_display_list_builder:
 .loc_0094:
         MOVE.L  #$2207FFFE,D3                   ; $007314
         MOVE.W  (-14176).W,D0                   ; $00731A
-        DC.W    $43FA,$FF28         ; LEA     $007248(PC),A1; $00731E
+        lea     vdp_nametable_setup_display_list_build(pc),a1; $43FA $FF28
         MOVEA.L $00(A1,D0.W),A1                 ; $007322
         MOVEQ   #$00,D4                         ; $007326
         MOVEA.L $00(A1,D1.W),A4                 ; $007328

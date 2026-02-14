@@ -36,7 +36,7 @@ fm_system_command_disp:
         DC.W    $6000,$0592         ; BRA.W  $030B90; $0305FC
         DC.W    $6000,$058E         ; BRA.W  $030B90; $030600
         SUBI.B  #$D7,D7                         ; $030604
-        DC.W    $4EBA,$0712         ; JSR     $030D1C(PC); $030608
+        jsr     z80_bus_wait(pc)        ; $4EBA $0712
         MOVE.B  D7,$00A00FFE                    ; $03060C
         MOVE.W  #$0000,Z80_BUSREQ                ; $030612
         RTS                                     ; $03061A

@@ -14,7 +14,7 @@
 ; ============================================================================
 
 call_sub_address_check_set_race_mode:
-        dc.w    $4EBA,$6D24                     ; BSR.W $00B25E ; $004538: — call sub
+        jsr     bcd_scoring_calc(pc)    ; $4EBA $6D24
         addq.w  #4,($FFFFC07C).w                ; $00453C: $5878 $C07C — advance input state
         cmpa.w  #$9000,a0                       ; $004540: $B0FC $9000 — check address
         dc.w    $6610                           ; BNE.S fn_4200_005_end ; $004544: — mismatch → fall through

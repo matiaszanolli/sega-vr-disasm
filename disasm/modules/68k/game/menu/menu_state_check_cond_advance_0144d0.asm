@@ -15,7 +15,7 @@
 menu_state_check_cond_advance_0144d0:
         lea     $009286AE,a1                    ; $0144D0: $43F9 $0092 $86AE — table address
         move.l  #$00009A00,d1                   ; $0144D6: $223C $0000 $9A00 — parameter
-        dc.w    $4EBA,$0112                     ; BSR.W $0145F0 ; $0144DC: — call menu_state_check
+        jsr     menu_tile_copy_to_vdp(pc); $4EBA $0112
         tst.w   ($FFFFA008).w                   ; $0144E0: $4A78 $A008 — test player data
         bne.s   .done                           ; $0144E4: $660A — non-zero → return
         addq.w  #4,($FFFFC082).w               ; $0144E6: $5878 $C082 — advance menu dispatch

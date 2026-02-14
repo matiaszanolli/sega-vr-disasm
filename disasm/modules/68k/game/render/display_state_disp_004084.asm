@@ -64,7 +64,7 @@ display_state_disp_004084:
         MOVE.W  #$0001,$0000(A2)                ; $00411A
         MOVE.W  #$0040,(-15780).W               ; $004120
         ADDQ.W  #4,(-16260).W                   ; $004126
-        DC.W    $4EFA,$708C         ; JMP     $00B1B8(PC); $00412A
+        jmp     ai_digit_lookup_best_lap(pc); $4EFA $708C
         MOVE.B  #$96,(-14171).W                 ; $00412E
         ADDQ.W  #4,(-16260).W                   ; $004134
         RTS                                     ; $004138

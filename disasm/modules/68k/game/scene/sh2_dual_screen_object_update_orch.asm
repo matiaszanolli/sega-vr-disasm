@@ -22,7 +22,7 @@ sh2_dual_screen_object_update_orch:
         DC.W    $8049                           ; $00DEA0
         DC.W    $003B                           ; $00DEA2
         MOVE.L  D1,D2                           ; $00DEA4
-        DC.W    $8083                           ; $00DEA6
+        or.l    d3,d0                   ; $8083
         DC.W    $003A                           ; $00DEA8
         MOVE.L  D1,D2                           ; $00DEAA
         OR.L   #$003A2401,D0                    ; $00DEAC
@@ -32,7 +32,7 @@ sh2_dual_screen_object_update_orch:
         MOVE.L  D3,D2                           ; $00DEBA
         DC.W    $844C                           ; $00DEBC
         MOVE.L  D3,D2                           ; $00DEBE
-        DC.W    $8486                           ; $00DEC0
+        or.l    d6,d2                   ; $8486
         MOVE.L  D3,D2                           ; $00DEC2
         DC.W    $84BE                           ; $00DEC4
         MOVE.L  D3,D2                           ; $00DEC6
@@ -40,9 +40,9 @@ sh2_dual_screen_object_update_orch:
         DC.W    $0CCC                           ; $00DECC
         CLR.W  D0                               ; $00DECE
         MOVE.B  (-24537).W,D0                   ; $00DED0
-        DC.W    $4EBA,$0656         ; JSR     $00E52C(PC); $00DED4
-        DC.W    $4EBA,$D7AA         ; JSR     $00B684(PC); $00DED8
-        DC.W    $4EBA,$D7FC         ; JSR     $00B6DA(PC); $00DEDC
+        jsr     MemoryInit(pc)          ; $4EBA $0656
+        jsr     object_update(pc)       ; $4EBA $D7AA
+        jsr     animated_seq_player+10(pc); $4EBA $D7FC
 .loc_0048:
         TST.B  COMM0_HI                        ; $00DEE0
         BNE.S  .loc_0048                        ; $00DEE6
@@ -59,7 +59,7 @@ sh2_dual_screen_object_update_orch:
 .loc_0080:
         TST.B  COMM0_HI                        ; $00DF18
         BNE.S  .loc_0080                        ; $00DF1E
-        DC.W    $6100,$01F6         ; BSR.W  $00E118; $00DF20
+        bsr.w   sh2_cmd_27_sprite_render; $6100 $01F6
         MOVEA.L #$0603DA00,A0                   ; $00DF24
         MOVEA.L #$2401AC88,A1                   ; $00DF2A
         MOVE.W  #$0038,D0                       ; $00DF30

@@ -17,9 +17,9 @@
 
 animation_seq_player:
 ; --- data prefix: bit test masks (3 words) ---
-        dc.w    $0102                           ; $00B722  mask A
-        dc.w    $0304                           ; $00B724  mask B
-        dc.w    $0506                           ; $00B726  mask C
+        btst    d0,d2                   ; $0102
+        btst    d1,d4                   ; $0304
+        btst    d2,d6                   ; $0506
 ; --- code: animation frame loop ---
         dc.w    $0708                           ; $00B728  dc.w $0708 (data or padding)
         dc.w    $0800                           ; $00B72A  dc.w $0800 (data or padding)
@@ -33,7 +33,7 @@ animation_seq_player:
         movea.l A2,A3                           ; $00B73C  A3 = sequence table base
         adda.w  $00(A2,D0.W),A3                 ; $00B73E  A3 += table[D0] (sequence offset)
         move.b  $00(A1,D0.W),D2                 ; $00B742  D2 = sequence index
-        dc.w    $D442                           ; $00B746  add.w d2,d2 — D2 × 2
+        add.w   d2,d2                   ; $D442
         move.b  (A3),D1                         ; $00B748  D1 = byte offset (for A0)
         move.b  $0001(A3),$01(A1,D0.W)          ; $00B74A  reload tick counter
         move.w  $00(A3,D2.W),D3                 ; $00B750  D3 = sequence value

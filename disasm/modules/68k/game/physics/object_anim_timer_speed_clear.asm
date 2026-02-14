@@ -31,7 +31,7 @@ object_anim_timer_speed_clear:
         clr.w   ($FFFFC02A).w                  ; $007E8E  reset counter
         clr.w   $0006(A0)                       ; $007E92  clear speed
         move.w  $001C(A0),D0                    ; $007E96  D0 = next state param
-        dc.w    $4EFA,$0008                     ; $007E9A  jmp $007EA4(pc) → external handler
+        jmp     conditional_return_on_state_match(pc); $4EFA $0008
 .clear_counter:
         clr.w   ($FFFFC02A).w                  ; $007E9E  clear counter
 .done:

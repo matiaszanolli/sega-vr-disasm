@@ -22,7 +22,7 @@ psg_sequence_tick:
         BNE.S  .loc_003E                        ; $030ED8
         BTST    #2,(A5)                         ; $030EDA
         BNE.S  .loc_003E                        ; $030EDE
-        DC.W    $4EBA,$F40C         ; JSR     $0302EE(PC); $030EE0
+        jsr     fm_sequence_data_reader(pc); $4EBA $F40C
         MOVE.B  $0001(A5),D0                    ; $030EE4
         CMPI.B  #$E0,D0                         ; $030EE8
         BNE.S  .loc_0024                        ; $030EEC

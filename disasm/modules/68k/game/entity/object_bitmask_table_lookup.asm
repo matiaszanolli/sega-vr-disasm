@@ -16,13 +16,13 @@
 
 object_bitmask_table_lookup:
 ; --- data: 10 bitmask pairs (referenced externally) ---
-        dc.w    $0001,$0001                     ; $006B96  pair 0: bit 0
-        dc.w    $0002,$0002                     ; $006B9A  pair 1: bit 1
-        dc.w    $0004,$0004                     ; $006B9E  pair 2: bit 2
+        ori.b  #$01,d1                  ; $0001 $0001
+        ori.b  #$02,d2                  ; $0002 $0002
+        ori.b  #$04,d4                  ; $0004 $0004
         dc.w    $0008,$0008                     ; $006BA2  pair 3: bit 3
-        dc.w    $0010,$0010                     ; $006BA6  pair 4: bit 4
-        dc.w    $0020,$0020                     ; $006BAA  pair 5: bit 5
-        dc.w    $0040,$0040                     ; $006BAE  pair 6: bit 6
+        ori.b  #$10,(a0)                ; $0010 $0010
+        ori.b  #$20,-(a0)               ; $0020 $0020
+        ori.w  #$0040,d0                ; $0040 $0040
         dc.w    $0080,$0080                     ; $006BB2  pair 7: bit 7
         dc.w    $0100,$0100                     ; $006BB6  pair 8: bit 8
         dc.w    $0200,$0200                     ; $006BBA  pair 9: bit 9

@@ -21,9 +21,9 @@ framebuffer_auto_fill_clear:
         DC.W    $8F01                           ; $000640
         DC.W    $93FF                           ; $000642
         DC.W    $94FF                           ; $000644
-        DC.W    $9500                           ; $000646
-        DC.W    $9600                           ; $000648
-        DC.W    $9780                           ; $00064A
+        subx.b  d0,d2                   ; $9500
+        sub.b   d0,d3                   ; $9600
+        subx.l  d0,d3                   ; $9780
         NEGX.B D0                               ; $00064C
         ORI.L  #$81048F02,D0                    ; $00064E
         MOVEM.L D0/D1/D7/A1,-(A7)               ; $000654

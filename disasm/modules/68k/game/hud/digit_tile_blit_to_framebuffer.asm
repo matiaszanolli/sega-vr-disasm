@@ -22,5 +22,5 @@ digit_tile_blit_to_framebuffer:
         ADDA.W  D1,A0                           ; $0119A8
         MOVE.W  #$000C,D0                       ; $0119AA
         MOVE.W  #$0010,D1                       ; $0119AE
-        DC.W    $4EBA,$00E4         ; JSR     $011A98(PC); $0119B2
+        jsr     sh2_command_sender+40(pc); $4EBA $00E4
         RTS                                     ; $0119B6

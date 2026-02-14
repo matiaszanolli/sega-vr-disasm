@@ -18,6 +18,6 @@ object_table_clear_loop:
         lea     ($FFFF9700).w,a0               ; $00592C: $41F8 $9700 — object table base
         moveq   #$07,d7                         ; $005930: $7E07 — 8 iterations
 .loop:
-        dc.w    $4EBA,$00B8                     ; JSR table_lookup(PC) ; $005932: → $0059EC
+        jsr     race_entity_update_loop+176(pc); $4EBA $00B8
         dbra    d7,.loop                        ; $005936: $51CF $FFF8
         rts                                     ; $00593A: $4E75

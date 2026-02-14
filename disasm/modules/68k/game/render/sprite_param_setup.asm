@@ -28,7 +28,7 @@ sprite_param_setup:
         move.w  ($FFFFC8E2).w,D0                ; $0039A2  D0 = sprite_counter
         andi.w  #$1FFF,D0                       ; $0039A6  mask to 13 bits
         move.w  D0,$0020(A2)                    ; $0039AA  set rotation angle
-        dc.w    $4EBA,$FF10                     ; $0039AE  jsr $0038C0(pc) — sprite_param_calc
+        jsr     proximity_check_with_sine_billboard+90(pc); $4EBA $FF10
 ; --- sprite block B at $FF65C4 ---
         lea     $00FF65C4,A2                    ; $0039B2  A2 → sprite block B
         move.w  #$0000,$0000(A2)                ; $0039B8  clear enable flag

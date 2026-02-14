@@ -10,12 +10,12 @@
 ; ============================================================================
 
 timer_threshold_init:
-        dc.w    $0C78,$0014,$C8AA     ; CMPI.W #$0014,($C8AA).W
+        cmpi.w  #$0014,($FFFFC8AA).w    ; $0C78 $0014 $C8AA
         ble.s   .done                 ; If <= 20, skip
-        dc.w    $11FC,$0095,$C8A5     ; MOVE.B #$95,($C8A5).W - sound effect
-        dc.w    $31FC,$0000,$C084     ; MOVE.W #$0000,($C084).W - clear fade
-        dc.w    $5878,$C07C           ; ADDQ.W #4,($C07C).W - advance state
-        dc.w    $31FC,$0000,$C8AA     ; MOVE.W #$0000,($C8AA).W - reset timer
+        move.b  #$95,($FFFFC8A5).w      ; $11FC $0095 $C8A5 — sound effect
+        move.w  #$0000,($FFFFC084).w    ; $31FC $0000 $C084 — clear fade
+        addq.w  #4,($FFFFC07C).w        ; $5878 $C07C — advance state
+        move.w  #$0000,($FFFFC8AA).w    ; $31FC $0000 $C8AA — reset timer
         lea     $00FF6754,a2          ; Sprite structure address
         move.w  #$FFE0,$0004(a2)      ; Set Y position = -32
         move.w  #$0040,$0006(a2)      ; Set X position = 64

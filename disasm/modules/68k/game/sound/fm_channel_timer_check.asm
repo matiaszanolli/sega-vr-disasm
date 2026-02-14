@@ -23,6 +23,6 @@ fm_channel_timer_check:
         BSET    #1,(A5)                         ; $030226
         TST.B  $0001(A5)                        ; $03022A
         DC.W    $6B00,$000A         ; BMI.W  $03023A; $03022E
-        DC.W    $4EBA,$0A56         ; JSR     $030C8A(PC); $030232
+        jsr     fm_init_channel(pc)     ; $4EBA $0A56
         ADDQ.W  #4,A7                           ; $030236
         RTS                                     ; $030238

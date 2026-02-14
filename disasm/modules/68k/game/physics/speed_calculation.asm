@@ -19,8 +19,8 @@ speed_calculation:
         lea     $0093925E,a1            ; Speed table base address
         move.w  $4(a0),d0               ; Load speed index
         add.w   d0,d0                   ; Word offset (index * 2)
-        dc.w    $3031,$0000             ; MOVE.W 0(A1,D0.W),D0 - read speed from table
-        dc.w    $0C78,$0002,$C8C8       ; CMPI.W #$0002,($C8C8).W - check mode flag
+        move.w  (a1,d0.w),d0            ; $3031 $0000 — read speed from table
+        cmpi.w  #$0002,($FFFFC8C8).w    ; $0C78 $0002 $C8C8 — check mode flag
         bne.s   .store_speed            ; If mode != 2, skip division
         asr.w   #2,d0                   ; Divide speed by 4
 .store_speed:

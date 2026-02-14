@@ -30,10 +30,10 @@ fm_note_off_handler:
         BMI.S  .loc_001C                        ; $031424
         TST.B  $0008(A6)                        ; $031426
         BMI.W  .loc_00C0                        ; $03142A
-        DC.W    $4EBA,$F85A         ; JSR     $030C8A(PC); $03142E
+        jsr     fm_init_channel(pc)     ; $4EBA $F85A
         BRA.S  .loc_0020                        ; $031432
 .loc_001C:
-        DC.W    $4EBA,$FB7C         ; JSR     $030FB2(PC); $031434
+        jsr     psg_set_pos_silence+16(pc); $4EBA $FB7C
 .loc_0020:
         TST.B  $000E(A6)                        ; $031438
         BPL.W  .loc_00C0                        ; $03143C
@@ -41,7 +41,7 @@ fm_note_off_handler:
         MOVEQ   #$00,D0                         ; $031444
         MOVE.B  $0001(A5),D0                    ; $031446
         BMI.S  .loc_008A                        ; $03144A
-        DC.W    $41FA,$F404         ; LEA     $030852(PC),A0; $03144C
+        lea     fm_channel_pointer_table_sfx_loader(pc),a0; $41FA $F404
         MOVEA.L A5,A3                           ; $031450
         CMPI.B  #$04,D0                         ; $031452
         BNE.S  .loc_0050                        ; $031456
@@ -61,7 +61,7 @@ fm_note_off_handler:
         BCLR    #2,(A5)                         ; $031478
         BSET    #1,(A5)                         ; $03147C
         MOVE.B  $000B(A5),D0                    ; $031480
-        DC.W    $4EBA,$FE62         ; JSR     $0312E8(PC); $031484
+        jsr     fm_instrument_reg_write+52(pc); $4EBA $FE62
 .loc_0070:
         MOVEA.L A3,A5                           ; $031488
         CMPI.B  #$02,$0001(A5)                  ; $03148A
@@ -70,7 +70,7 @@ fm_note_off_handler:
         BNE.S  .loc_00C0                        ; $031496
         MOVEQ   #$00,D1                         ; $031498
         MOVEQ   #$27,D0                         ; $03149A
-        DC.W    $4EBA,$F81C         ; JSR     $030CBA(PC); $03149C
+        jsr     fm_write_wrapper(pc)    ; $4EBA $F81C
         BRA.S  .loc_00C0                        ; $0314A0
 .loc_008A:
         LEA     $0370(A6),A0                    ; $0314A2
@@ -81,7 +81,7 @@ fm_note_off_handler:
         CMPI.B  #$C0,D0                         ; $0314B0
         BEQ.S  .loc_00A8                        ; $0314B4
 .loc_009E:
-        DC.W    $41FA,$F39A         ; LEA     $030852(PC),A0; $0314B6
+        lea     fm_channel_pointer_table_sfx_loader(pc),a0; $41FA $F39A
         LSR.B  #3,D0                            ; $0314BA
         MOVEA.L $00(A0,D0.W),A0                 ; $0314BC
 .loc_00A8:

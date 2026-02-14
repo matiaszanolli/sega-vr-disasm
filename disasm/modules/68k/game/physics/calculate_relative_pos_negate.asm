@@ -20,7 +20,7 @@ calculate_relative_pos_negate:
         asr.w   #4,d3                           ; $008EDE: $E843 — divide by 16
         move.w  $0034(a0),d2                    ; $008EE0: $3428 $0034 — load object Y
         sub.w   ($FFFFC0BE).w,d2                ; $008EE4: $9478 $C0BE — subtract viewport Y
-        dc.w    $4EBA,$18BA                     ; BSR.W $00A7A4 ; $008EE8: — call position sub
+        jsr     ai_steering_calc+4(pc)  ; $4EBA $18BA
         neg.w   d0                              ; $008EEC: $4440 — negate result
         move.w  d0,($FFFFC0C0).w                ; $008EEE: $31C0 $C0C0 — store result
         rts                                     ; $008EF2: $4E75

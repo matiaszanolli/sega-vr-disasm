@@ -25,13 +25,13 @@ sh2_multi_panel_object_update_orch:
         DC.W    $0401                           ; $00F692
         NEGX.B (A4)                             ; $00F694
         ORI.L  #$00100603,D0                    ; $00F696
-        DC.W    $C400                           ; $00F69C
+        and.b   d0,d2                   ; $C400
         DC.W    $0401                           ; $00F69E
         MOVEQ   #$30,D0                         ; $00F6A0
         DC.W    $0048                           ; $00F6A2
         DC.W    $0010                           ; $00F6A4
         DC.W    $0603                           ; $00F6A6
-        DC.W    $C880                           ; $00F6A8
+        and.l   d0,d4                   ; $C880
         DC.W    $0401                           ; $00F6AA
         SUB.B  (A0)+,D0                         ; $00F6AC
         ORI.W  #$0020,($0603).W                 ; $00F6AE
@@ -44,20 +44,20 @@ sh2_multi_panel_object_update_orch:
         NEGX.L $0080(A4)                        ; $00F6C4
         DC.W    $0010                           ; $00F6C8
         DC.W    $0603                           ; $00F6CA
-        DC.W    $C400                           ; $00F6CC
+        and.b   d0,d2                   ; $C400
         DC.W    $0401                           ; $00F6CE
         MOVEQ   #-$38,D0                        ; $00F6D0
         DC.W    $0048                           ; $00F6D2
         DC.W    $0010                           ; $00F6D4
         DC.W    $0603                           ; $00F6D6
-        DC.W    $C880                           ; $00F6D8
+        and.l   d0,d4                   ; $C880
         DC.W    $0401                           ; $00F6DA
         SUB.L  $78(A0,D0.W),D0                  ; $00F6DC
         DC.W    $0020                           ; $00F6E0
 .loc_0060:
         TST.B  COMM0_HI                        ; $00F6E2
         BNE.S  .loc_0060                        ; $00F6E8
-        DC.W    $6100,$022A         ; BSR.W  $00F916; $00F6EA
+        bsr.w   sh2_multi_panel_tile_renderer+32; $6100 $022A
         LEA     $0088F838,A2                    ; $00F6EE
         MOVE.W  #$0002,D2                       ; $00F6F4
 .loc_0076:
@@ -69,9 +69,9 @@ sh2_multi_panel_object_update_orch:
         DBRA    D2,.loc_0076                    ; $00F704
         CLR.W  D0                               ; $00F708
         MOVE.B  (-24549).W,D0                   ; $00F70A
-        DC.W    $6100,$017C         ; BSR.W  $00F88C; $00F70E
-        DC.W    $4EBA,$BF70         ; JSR     $00B684(PC); $00F712
-        DC.W    $4EBA,$BFC2         ; JSR     $00B6DA(PC); $00F716
+        bsr.w   palette_table_init      ; $6100 $017C
+        jsr     object_update(pc)       ; $4EBA $BF70
+        jsr     animated_seq_player+10(pc); $4EBA $BFC2
         CMPI.W  #$0001,(-24540).W               ; $00F71A
         BEQ.W  .loc_0176                        ; $00F720
         CMPI.W  #$0002,(-24540).W               ; $00F724
@@ -129,13 +129,13 @@ sh2_multi_panel_object_update_orch:
         MOVE.W  #$0002,(-24540).W               ; $00F7EE
         BRA.W  .loc_01A2                        ; $00F7F4
 .loc_0176:
-        DC.W    $6100,$033C         ; BSR.W  $00FB36; $00F7F8
+        bsr.w   comm_transfer_block     ; $6100 $033C
         BTST    #6,(-14322).W                   ; $00F7FC
         BNE.S  .loc_01A2                        ; $00F802
         CLR.W  (-24540).W                       ; $00F804
         BRA.W  .loc_01A2                        ; $00F808
 .loc_018A:
-        DC.W    $6100,$0328         ; BSR.W  $00FB36; $00F80C
+        bsr.w   comm_transfer_block     ; $6100 $0328
         BTST    #7,(-14322).W                   ; $00F810
         BNE.S  .loc_01A2                        ; $00F816
         CLR.W  (-24540).W                       ; $00F818

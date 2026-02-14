@@ -94,7 +94,7 @@ camera_state_disp:
         move.w  -$77(A0,D0.W),(A2)+             ; $013328  target[1] (raw: $34F0 → $008934F0)
         move.w  -(A4),D4                        ; $01332C  target[2] (raw: $3824 → [$00893824])
 ; --- post-dispatch code (reached by jump targets) ---
-        dc.w    $4EBA,$8354                     ; $01332E  bsr.w object_update ($00B684)
+        jsr     object_update(pc)       ; $4EBA $8354
         btst    #6,($FFFFC80E).w                ; $013332  display bit 6 set?
         bne.s   .done                           ; $013338  yes → done (no advance)
         addq.w  #4,($FFFFC87E).w                ; $01333A  advance game_state

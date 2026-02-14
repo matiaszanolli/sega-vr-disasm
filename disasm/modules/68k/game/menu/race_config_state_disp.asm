@@ -187,7 +187,7 @@ race_config_state_disp:
         LEA     (-366).W,A0                     ; $013BF8
         LEA     (-382).W,A1                     ; $013BFC
         LEA     (-364).W,A2                     ; $013C00
-        DC.W    $6100,$03DA         ; BSR.W  $013FE0; $013C04
+        bsr.w   car_driver_selection_input_handler; $6100 $03DA
         CLR.W  D0                               ; $013C08
         BTST    #1,(-14312).W                   ; $013C0A
         BEQ.S  .loc_018E                        ; $013C10
@@ -197,6 +197,6 @@ race_config_state_disp:
         LEA     (-365).W,A0                     ; $013C1A
         LEA     (-374).W,A1                     ; $013C1E
         LEA     (-356).W,A2                     ; $013C22
-        DC.W    $6100,$03B8         ; BSR.W  $013FE0; $013C26
+        bsr.w   car_driver_selection_input_handler; $6100 $03B8
         ADDQ.W  #4,(-14210).W                   ; $013C2A
         RTS                                     ; $013C2E

@@ -18,7 +18,7 @@ vdp_table_entry_write_00bfde:
         addq.w  #1,($FFFFA0EC).w               ; $00BFDE  counter++
         moveq   #$00,D0                         ; $00BFE2  clear high word
         move.w  ($FFFFA0EC).w,D0               ; $00BFE4  D0 = counter
-        dc.w    $D040                           ; $00BFE8  add.w d0,d0 — D0 × 2
+        add.w   d0,d0                   ; $D040
         divu    #$001C,D0                       ; $00BFEA  D0.L / 28 → quot:rem
         cmpi.w  #$0005,D0                       ; $00BFEE  row >= 5?
         dc.w    $6C2A                           ; $00BFF2  bge.s $00C01E → exit (past fn)
@@ -30,12 +30,12 @@ vdp_table_entry_write_00bfde:
         bne.s   .compute_offset                 ; $00C000  no → compute offset
         moveq   #$00,D0                         ; $00C002  column = 0 (wrap)
 .compute_offset:
-        dc.w    $D241                           ; $00C004  add.w d1,d1 — D1 × 2
-        dc.w    $D241                           ; $00C006  add.w d1,d1 — D1 × 4
+        add.w   d1,d1                   ; $D241
+        add.w   d1,d1                   ; $D241
         move.w  D1,D2                           ; $00C008  D2 = D1 × 4
-        dc.w    $D241                           ; $00C00A  add.w d1,d1 — D1 × 8
-        dc.w    $D241                           ; $00C00C  add.w d1,d1 — D1 × 16
-        dc.w    $D242                           ; $00C00E  add.w d2,d1 — D1 = row × 20
+        add.w   d1,d1                   ; $D241
+        add.w   d1,d1                   ; $D241
+        add.w   d2,d1                   ; $D242
         lea     $00FF6900,A1                    ; $00C010  A1 → VDP table base
         lea     $00(A1,D1.W),A1                ; $00C016  A1 += row offset
         move.w  D0,(A1)                         ; $00C01A  write column value

@@ -33,7 +33,7 @@
 
 camera_demo_palette_sh2_setup:
         clr.w   D0                              ; $012A72  mode = 0
-        dc.w    $6100,$BAB6                     ; $012A74  bsr.w dma_transfer ($00E52C)
+        bsr.w   MemoryInit              ; $6100 $BAB6
         subq.w  #1,($FFFFA036).w                ; $012A78  decrement rotation counter
         bcc.w   .load_palette                   ; $012A7C  no underflow → continue
         move.w  #$0001,($FFFFA036).w            ; $012A80  reset counter
@@ -44,8 +44,8 @@ camera_demo_palette_sh2_setup:
         lea     $00892C72,A1                    ; $012A98  A1 = palette pointer table
         clr.w   D0                              ; $012A9E
         move.b  ($FFFFA019).w,D0                ; $012AA0  D0 = palette index
-        dc.w    $D040                           ; $012AA4  add.w d0,d0 — D0 × 2
-        dc.w    $D040                           ; $012AA6  add.w d0,d0 — D0 × 4
+        add.w   d0,d0                   ; $D040
+        add.w   d0,d0                   ; $D040
         movea.l $00(A1,D0.W),A1                 ; $012AA8  A1 = palette data pointer
         move.w  #$007F,D0                       ; $012AAC  copy 128 entries
 .copy_palette:
@@ -79,8 +79,8 @@ camera_demo_palette_sh2_setup:
         bne.s   .set_handler                    ; $012B24  no → normal
         move.b  #$01,$00FF60D4                  ; $012B26  enable special flag
 .set_handler:
-        dc.w    $D241                           ; $012B2E  add.w d1,d1 — D1 × 2
-        dc.w    $D241                           ; $012B30  add.w d1,d1 — D1 × 4
+        add.w   d1,d1                   ; $D241
+        add.w   d1,d1                   ; $D241
         move.l  $00(A0,D1.W),$0010(A1)          ; $012B32  handler = table[mode]
         adda.l  #$00000014,A1                   ; $012B38  A1 += $14 (next object)
         move.w  #$0000,$0000(A1)                ; $012B3E  disable second object

@@ -22,7 +22,7 @@ fm_special_channel_cleanup:
         BCLR    #7,(A5)                         ; $0309FA
         BTST    #2,(A5)                         ; $0309FE
         BNE.S  .loc_0032                        ; $030A02
-        DC.W    $4EBA,$0290         ; JSR     $030C96(PC); $030A04
+        jsr     fm_init_channel+12(pc)  ; $4EBA $0290
         LEA     $0100(A6),A5                    ; $030A08
         BCLR    #2,(A5)                         ; $030A0C
         BSET    #1,(A5)                         ; $030A10
@@ -30,7 +30,7 @@ fm_special_channel_cleanup:
         BPL.S  .loc_0032                        ; $030A16
         MOVEA.L $0030(A6),A1                    ; $030A18
         MOVE.B  $000B(A5),D0                    ; $030A1C
-        DC.W    $4EBA,$08C6         ; JSR     $0312E8(PC); $030A20
+        jsr     fm_instrument_reg_write+52(pc); $4EBA $08C6
 .loc_0032:
         LEA     $0370(A6),A5                    ; $030A24
         TST.B  (A5)                             ; $030A28
@@ -38,7 +38,7 @@ fm_special_channel_cleanup:
         BCLR    #7,(A5)                         ; $030A2C
         BTST    #2,(A5)                         ; $030A30
         BNE.S  .loc_0068                        ; $030A34
-        DC.W    $4EBA,$0580         ; JSR     $030FB8(PC); $030A36
+        jsr     psg_set_pos_silence+22(pc); $4EBA $0580
         LEA     $01F0(A6),A5                    ; $030A3A
         BCLR    #2,(A5)                         ; $030A3E
         BSET    #1,(A5)                         ; $030A42

@@ -39,9 +39,9 @@ display_entry_builder:
         add.w   ($FFFFC8CC).w,D0                ; $00BF3A  + race_substate
         lsl.w   #5,D0                           ; $00BF3E  × 32
         move.w  D0,D2                           ; $00BF40
-        dc.w    $D442                ; add.w   D2,D2  ; × 64
-        dc.w    $D442                ; add.w   D2,D2  ; × 128
-        dc.w    $D042                ; add.w   D2,D0  ; × 160 (32 + 128)
+        add.w   d2,d2                   ; $D442
+        add.w   d2,d2                   ; $D442
+        add.w   d2,d0                   ; $D042
         adda.w  D0,A2                           ; $00BF48  offset into racer table
         moveq   #$04,D0                         ; $00BF4A  5 entries
 .build_entry:

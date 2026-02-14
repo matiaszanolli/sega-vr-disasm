@@ -104,15 +104,15 @@ camera_replay_screen_init:
         MOVE.W  #$0026,D3                       ; $0127F4
         MOVE.W  #$001A,D4                       ; $0127F8
         LEA     $00FF1000,A0                    ; $0127FC
-        DC.W    $4EBA,$BA28         ; JSR     $00E22C(PC); $012802
+        jsr     sh2_graphics_cmd(pc)    ; $4EBA $BA28
         LEA     $00FF1000,A0                    ; $012806
-        DC.W    $4EBA,$BAE2         ; JSR     $00E2F0(PC); $01280C
+        jsr     sh2_load_data(pc)       ; $4EBA $BAE2
         DC.W    $4EBA,$B9AA         ; JSR     $00E1BC(PC); $012810
         MOVE.L  #$0000D006,D0                   ; $012814
         MOVE.W  #$0022,D1                       ; $01281A
         MOVE.W  #$0008,D2                       ; $01281E
         MOVE.W  #$0000,D3                       ; $012822
-        DC.W    $6100,$0798         ; BSR.W  $012FC0; $012826
+        bsr.w   vdp_tile_fill_with_data_table+36; $6100 $0798
         BCLR    #7,MARS_VDP_MODE+1                    ; $01282A
         LEA     $00FF6E00,A0                    ; $012832
         ADDA.L  #$00000120,A0                   ; $012838

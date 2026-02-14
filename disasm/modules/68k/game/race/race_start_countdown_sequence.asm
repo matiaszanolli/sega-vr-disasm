@@ -21,10 +21,10 @@ race_start_countdown_sequence:
         SUB.B  D7,(A6)                          ; $009ED0
         DC.W    $0088                           ; $009ED2
         SUB.B  D7,$0088(A2)                     ; $009ED4
-        DC.W    $9F4A                           ; $009ED8
+        subx.w  -(a2),-(a7)             ; $9F4A
         DC.W    $0088                           ; $009EDA
         SUB.W  D7,$0088(A4)                     ; $009EDC
-        DC.W    $9F8E                           ; $009EE0
+        subx.l  -(a6),-(a7)             ; $9F8E
         DC.W    $0088                           ; $009EE2
         DC.W    $9FBC                           ; $009EE4
         DC.W    $0088                           ; $009EE6

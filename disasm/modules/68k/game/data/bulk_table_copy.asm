@@ -11,13 +11,13 @@
 
 bulk_table_copy:
         lea     $00937E7E,a1            ; First ROM data block (288 bytes)
-        dc.w    $45F8,$FAD8             ; LEA ($FAD8).W,A2 - RAM destination ($FFFAD8)
+        lea     ($FFFFFAD8).w,a2        ; $45F8 $FAD8 — RAM destination ($FFFAD8)
         move.w  #$0047,d0               ; 72 longwords (288 bytes)
 .loop1:
         move.l  (a1)+,(a2)+             ; Copy 4 bytes
         dbf     d0,.loop1
         lea     $00937F9E,a1            ; Second ROM data block (432 bytes)
-        dc.w    $45F8,$FBF8             ; LEA ($FBF8).W,A2 - RAM destination ($FFFBF8)
+        lea     ($FFFFFBF8).w,a2        ; $45F8 $FBF8 — RAM destination ($FFFBF8)
         move.w  #$006B,d0               ; 108 longwords (432 bytes)
 .loop2:
         move.l  (a1)+,(a2)+             ; Copy 4 bytes

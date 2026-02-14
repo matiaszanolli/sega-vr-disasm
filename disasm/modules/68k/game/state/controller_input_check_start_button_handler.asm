@@ -25,7 +25,7 @@
 controller_input_check_start_button_handler:
 ; --- entry 1: quick advance + tail jump ---
         addq.b  #4,($FFFFC8C5).w               ; $0057D0  sub-counter += 4
-        dc.w    $4EFA,$CC96                     ; $0057D4  jmp $00246C(pc) — tail call
+        jmp     set_flag_8507_01(pc)    ; $4EFA $CC96
 ; --- entry 2: controller input check ---
         moveq   #$00,D0                         ; $0057D8  D0 = 0
         btst    #5,($FFFFA510).w               ; $0057DA  mode bit 5 set?

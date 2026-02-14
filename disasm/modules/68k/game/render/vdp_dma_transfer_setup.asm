@@ -57,7 +57,7 @@ vdp_dma_transfer_setup:
         MOVE.W  (-14218).W,(A5)                 ; $001B94
         MOVE.W  (-14220).W,(A5)                 ; $001B98
         MOVE.W  #$0000,Z80_BUSREQ                ; $001B9C
-        DC.W    $4EFA,$FBF8         ; JMP     $00179E(PC); $001BA4
+        jmp     controller_read_button_remap+16(pc); $4EFA $FBF8
         MOVE.W  (A5),D0                         ; $001BA8
         MOVE.W  #$0100,Z80_BUSREQ                ; $001BAA
 .loc_009E:

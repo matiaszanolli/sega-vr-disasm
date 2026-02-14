@@ -21,13 +21,13 @@
 ; ============================================================================
 
 entity_target_action:
-        dc.w    $11FC,$00B8,$C8A4       ; MOVE.B #$B8,($C8A4).W - set AI mode
+        move.b  #$B8,($FFFFC8A4).w      ; $11FC $00B8 $C8A4 — set AI mode
         move.w  $04(a0),d0              ; Load speed_a
         sub.w   $04(a1),d0              ; speed_a - speed_b
         bpl.s   .abs_speed              ; If positive, skip negate
         neg.w   d0                      ; |speed difference|
 .abs_speed:
-        dc.w    $B078,$C8CE             ; CMP.W ($C8CE).W,D0 - vs threshold
+        cmp.w   ($FFFFC8CE).w,d0        ; $B078 $C8CE — vs threshold
         ble.w   .too_close              ; If within threshold, jump to proximity check
         move.w  $06(a0),d0              ; Load param_a
         add.w   $06(a1),d0              ; param_a + param_b
@@ -54,7 +54,7 @@ entity_target_action:
         move.w  d2,$06(a1)              ; Store D2 as new param_b
         move.w  $04(a0),d3              ; Load speed_a
         sub.w   $04(a1),d3              ; D3 = speed_a - speed_b
-        dc.w    $B678,$C8D0             ; CMP.W ($C8D0).W,D3 - vs position threshold
+        cmp.w   ($FFFFC8D0).w,d3        ; $B678 $C8D0 — vs position threshold
         ble.s   .close_position         ; If within threshold, set speed
         ori.w   #$1000,$02(a1)          ; Set bit 12 in A1 flags
         ori.w   #$0800,$02(a0)          ; Set bit 11 in A0 flags
@@ -70,12 +70,12 @@ entity_target_action:
         bne.s   .alt_bits               ; If bit 2 set, use alternate
         ori.w   #$2000,$02(a0)          ; Set bit 13 in A0 flags
         ori.w   #$1000,$02(a1)          ; Set bit 12 in A1 flags
-        dc.w    $11FC,$00B2,$C8A4       ; MOVE.B #$B2,($C8A4).W - set AI mode
+        move.b  #$B2,($FFFFC8A4).w      ; $11FC $00B2 $C8A4 — set AI mode
         rts
 .alt_bits:
         ori.w   #$1000,$02(a0)          ; Set bit 12 in A0 flags
         ori.w   #$2000,$02(a1)          ; Set bit 13 in A1 flags
-        dc.w    $11FC,$00B2,$C8A4       ; MOVE.B #$B2,($C8A4).W - set AI mode
+        move.b  #$B2,($FFFFC8A4).w      ; $11FC $00B2 $C8A4 — set AI mode
         rts
 .too_close:
         dc.w    $4EFA,$0116             ; JMP $AED8(PC) - chain to entity_directional_push

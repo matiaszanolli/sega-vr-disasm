@@ -256,9 +256,9 @@ time_trial_records_display_init:
         MOVE.W  #$0026,D3                       ; $00FEBC
         MOVE.W  #$001A,D4                       ; $00FEC0
         LEA     $00FF1000,A0                    ; $00FEC4
-        DC.W    $4EBA,$E360         ; JSR     $00E22C(PC); $00FECA
+        jsr     sh2_graphics_cmd(pc)    ; $4EBA $E360
         LEA     $00FF1000,A0                    ; $00FECE
-        DC.W    $4EBA,$E41A         ; JSR     $00E2F0(PC); $00FED4
+        jsr     sh2_load_data(pc)       ; $4EBA $E41A
         DC.W    $4EBA,$E2E2         ; JSR     $00E1BC(PC); $00FED8
         BCLR    #7,MARS_VDP_MODE+1                    ; $00FEDC
         LEA     $00FF6E00,A0                    ; $00FEE4

@@ -71,9 +71,9 @@ race_config_screen_init:
         MOVE.W  #$0026,D3                       ; $013936
         MOVE.W  #$001A,D4                       ; $01393A
         LEA     $00FF1000,A0                    ; $01393E
-        DC.W    $4EBA,$A8E6         ; JSR     $00E22C(PC); $013944
+        jsr     sh2_graphics_cmd(pc)    ; $4EBA $A8E6
         LEA     $00FF1000,A0                    ; $013948
-        DC.W    $4EBA,$A9A0         ; JSR     $00E2F0(PC); $01394E
+        jsr     sh2_load_data(pc)       ; $4EBA $A9A0
         DC.W    $4EBA,$A868         ; JSR     $00E1BC(PC); $013952
         BCLR    #7,MARS_VDP_MODE+1                    ; $013956
         LEA     $00FF6E00,A0                    ; $01395E

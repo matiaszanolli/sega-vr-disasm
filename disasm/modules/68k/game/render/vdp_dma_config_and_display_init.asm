@@ -50,7 +50,7 @@ vdp_dma_config_and_display_init:
         MOVE.W  (-14220).W,(A5)                 ; $00D262
         MOVE.W  #$0000,Z80_BUSREQ                ; $00D266
         MOVE.W  (-14176).W,D0                   ; $00D26E
-        DC.W    $41FA,$0188         ; LEA     $00D3FC(PC),A0; $00D272
+        lea     scene_init_vdp_dma_setup_track_param_load(pc),a0; $41FA $0188
         MOVE.L  $00(A0,D0.W),D0                 ; $00D276
         JSR     $008815EA                       ; $00D27A
         MOVE.W  #$0100,Z80_BUSREQ                ; $00D280
@@ -70,7 +70,7 @@ vdp_dma_config_and_display_init:
         MOVE.W  #$0000,Z80_BUSREQ                ; $00D2BE
         MOVE.W  (-14180).W,D1                   ; $00D2C6
         LSL.W  #2,D1                            ; $00D2CA
-        DC.W    $41FA,$0146         ; LEA     $00D414(PC),A0; $00D2CC
+        lea     scene_init_vdp_dma_setup_track_param_load+24(pc),a0; $41FA $0146
         MOVE.L  $00(A0,D1.W),D1                 ; $00D2D0
         JSR     $0088155E                       ; $00D2D4
         MOVE.W  #$8B00,(A5)                     ; $00D2DA
@@ -90,7 +90,7 @@ vdp_dma_config_and_display_init:
         JSR     $008848CE                       ; $00D316
         JSR     $008848D2                       ; $00D31C
         MOVE.W  #$8B03,(A5)                     ; $00D322
-        DC.W    $6100,$0112         ; BSR.W  $00D43A; $00D326
+        bsr.w   scene_init_vdp_dma_setup_track_param_load+62; $6100 $0112
 .loc_0156:
         MOVE.W  #$0100,Z80_BUSREQ                ; $00D32A
 .loc_015E:

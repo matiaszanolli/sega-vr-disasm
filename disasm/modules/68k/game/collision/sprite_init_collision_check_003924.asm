@@ -31,7 +31,7 @@ sprite_init_collision_check_003924:
         lea     $00FF65B0,A2                    ; $003962  A2 → sprite buffer
         move.l  #$22295A24,D0                   ; $003968  D0 = sprite pattern
         moveq   #$03,D7                         ; $00396E  D7 = loop count (4 sprites)
-        dc.w    $4EBA,$007A                     ; $003970  jsr $0039EC(pc) — collision_distance_calc
+        jsr     proximity_check_simple(pc); $4EBA $007A
         tst.b   ($FFFFC80F).w                   ; $003974  collision detected?
         dc.w    $6702                           ; $003978  beq.s $00397C — no → fall through
         rts                                     ; $00397A

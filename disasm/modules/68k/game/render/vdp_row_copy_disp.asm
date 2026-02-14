@@ -42,7 +42,7 @@ vdp_row_copy_disp:
         MOVE.W  -(A0),D1                        ; $001652
         MOVE.L  -(A0),D0                        ; $001654
         MOVEA.L -(A0),A0                        ; $001656
-        DC.W    $4EBA,$FA6A         ; JSR     $0010C4(PC); $001658
+        jsr     vdp_data_fill(pc)       ; $4EBA $FA6A
         MOVEM.L (A7)+,D0/D1/D2                  ; $00165C
 .loc_0050:
         ROR.L  #8,D0                            ; $001660

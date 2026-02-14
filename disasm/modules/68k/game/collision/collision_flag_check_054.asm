@@ -59,7 +59,7 @@ collision_flag_check_054:
         andi.b  #$01,D1                          ; $007D3E  bit 0 set?
         beq.s   .done                            ; $007D42  no → done
         move.w  $001C(A0),D0                     ; $007D44  D0 = collision_param
-        dc.w    $4EFA,$015A         ; JMP     $007EA4(PC); $007D48  → obj_collision_response
+        jmp     conditional_return_on_state_match(pc); $4EFA $015A
 .check_mask:
         btst    #0,$0055(A0)                     ; $007D4C  collision_mask bit 0?
         dc.w    $6602               ; BNE.S   $007D56    ; $007D52  yes → next fn

@@ -117,9 +117,9 @@ name_entry_screen_init:
         MOVE.W  #$0026,D3                       ; $010A80
         MOVE.W  #$001A,D4                       ; $010A84
         LEA     $00FF1000,A0                    ; $010A88
-        DC.W    $4EBA,$D79C         ; JSR     $00E22C(PC); $010A8E
+        jsr     sh2_graphics_cmd(pc)    ; $4EBA $D79C
         LEA     $00FF1000,A0                    ; $010A92
-        DC.W    $4EBA,$D856         ; JSR     $00E2F0(PC); $010A98
+        jsr     sh2_load_data(pc)       ; $4EBA $D856
         DC.W    $4EBA,$D71E         ; JSR     $00E1BC(PC); $010A9C
         BCLR    #7,MARS_VDP_MODE+1                    ; $010AA0
         LEA     $00FF6E00,A0                    ; $010AA8
@@ -324,7 +324,7 @@ name_entry_screen_init:
         MOVE.W  #$0028,D0                       ; $010DA8
         MOVE.W  #$0140,D1                       ; $010DAC
         MOVE.W  #$00D8,D2                       ; $010DB0
-        DC.W    $4EBA,$0CE2         ; JSR     $011A98(PC); $010DB4
+        jsr     sh2_command_sender+40(pc); $4EBA $0CE2
         MOVEQ   #$00,D3                         ; $010DB8
         MOVEQ   #$00,D4                         ; $010DBA
         MOVE.W  #$0013,D5                       ; $010DBC
@@ -336,7 +336,7 @@ name_entry_screen_init:
         ADDA.L  D4,A2                           ; $010DD2
         ADDQ.L  #4,D4                           ; $010DD4
         MOVE.W  #$00D8,D2                       ; $010DD6
-        DC.W    $4EBA,$0B66         ; JSR     $011942(PC); $010DDA
+        jsr     lap_time_digit_renderer_c(pc); $4EBA $0B66
         DBRA    D5,.loc_044C                    ; $010DDE
         CMPI.L  #$61000000,(-15788).W           ; $010DE2
         BEQ.W  .loc_0506                        ; $010DEA
@@ -383,7 +383,7 @@ name_entry_screen_init:
         MOVE.W  #$0010,D1                       ; $010E68
         MOVE.W  #$00D8,D2                       ; $010E6C
         ADDI.L  #$00000D80,D3                   ; $010E70
-        DC.W    $4EBA,$0C20         ; JSR     $011A98(PC); $010E76
+        jsr     sh2_command_sender+40(pc); $4EBA $0C20
 .loc_0506:
         BRA.W  .loc_0654                        ; $010E7A
 .loc_050A:
@@ -392,7 +392,7 @@ name_entry_screen_init:
         MOVE.W  #$0028,D0                       ; $010E8A
         MOVE.W  #$0140,D1                       ; $010E8E
         MOVE.W  #$0080,D2                       ; $010E92
-        DC.W    $4EBA,$0C00         ; JSR     $011A98(PC); $010E96
+        jsr     sh2_command_sender+40(pc); $4EBA $0C00
         MOVEQ   #$00,D3                         ; $010E9A
         MOVEQ   #$00,D4                         ; $010E9C
         MOVE.W  #$0013,D5                       ; $010E9E
@@ -404,7 +404,7 @@ name_entry_screen_init:
         ADDA.L  D4,A2                           ; $010EB4
         ADDQ.L  #4,D4                           ; $010EB6
         MOVE.W  #$0080,D2                       ; $010EB8
-        DC.W    $4EBA,$0A84         ; JSR     $011942(PC); $010EBC
+        jsr     lap_time_digit_renderer_c(pc); $4EBA $0A84
         DBRA    D5,.loc_052E                    ; $010EC0
         LEA     (-15872).W,A2                   ; $010EC4
         MOVE.L  #$60000000,D1                   ; $010EC8
@@ -436,13 +436,13 @@ name_entry_screen_init:
         MOVE.W  #$0080,D3                       ; $010F14
         JSR     $0088E406                       ; $010F18
 .loc_05AA:
-        DC.W    $6100,$0C4A         ; BSR.W  $011B6A; $010F1E
+        bsr.w   name_entry_bcd_score_cmp; $6100 $0C4A
         MOVEA.L #$2601AD00,A0                   ; $010F22
         MOVEA.L #$26032000,A1                   ; $010F28
         MOVE.W  #$0028,D0                       ; $010F2E
         MOVE.W  #$0140,D1                       ; $010F32
         MOVE.W  #$0080,D2                       ; $010F36
-        DC.W    $4EBA,$0B5C         ; JSR     $011A98(PC); $010F3A
+        jsr     sh2_command_sender+40(pc); $4EBA $0B5C
         MOVEQ   #$00,D3                         ; $010F3E
         MOVEQ   #$00,D4                         ; $010F40
         MOVE.W  #$0013,D5                       ; $010F42
@@ -454,7 +454,7 @@ name_entry_screen_init:
         ADDA.L  D4,A2                           ; $010F58
         ADDQ.L  #4,D4                           ; $010F5A
         MOVE.W  #$0080,D2                       ; $010F5C
-        DC.W    $4EBA,$09E0         ; JSR     $011942(PC); $010F60
+        jsr     lap_time_digit_renderer_c(pc); $4EBA $09E0
         DBRA    D5,.loc_05D2                    ; $010F64
         LEA     (-15872).W,A2                   ; $010F68
         MOVE.L  #$60000000,D1                   ; $010F6C

@@ -15,7 +15,7 @@
 multi_screen_palette_navigation_handler:
         CLR.W  D0                               ; $00F44C
         MOVE.B  (-24549).W,D0                   ; $00F44E
-        DC.W    $6100,$0438         ; BSR.W  $00F88C; $00F452
+        bsr.w   palette_table_init      ; $6100 $0438
         JSR     $0088179E                       ; $00F456
         TST.W  (-24540).W                       ; $00F45C
         BNE.W  .loc_01F6                        ; $00F460

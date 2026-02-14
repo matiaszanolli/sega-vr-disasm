@@ -53,10 +53,10 @@
 scene_init_orch:
         lea     ($FFFF9000).w,A0                    ; $00C200  object_base
         dc.w    $4EBA,$DFF6         ; jsr     $00A1FC(pc)         ; $00C204  race_state_read
-        dc.w    $4EBA,$076A         ; jsr     $00C974(pc)         ; $00C208  track_segment_init
-        dc.w    $4EBA,$0CFE         ; jsr     $00CF0C(pc)         ; $00C20C  scene_param_setup
-        dc.w    $4EBA,$09F4         ; jsr     $00CC06(pc)         ; $00C210  object_array_init
-        dc.w    $4EBA,$0D98         ; jsr     $00CFAE(pc)         ; $00C214  scene_display_init
+        jsr     scene_dispatch_track_data_setup+142(pc); $4EBA $076A
+        jsr     entity_heading_and_turn_rate_calculator+30(pc); $4EBA $0CFE
+        jsr     object_array_init_rom_tables(pc); $4EBA $09F4
+        jsr     entity_heading_and_turn_rate_calculator+192(pc); $4EBA $0D98
 ; --- clear scene state ---
         move.w  #$0000,($FFFFC87E).w                ; $00C218  game_state = 0
         move.w  #$0000,($FFFFC8F4).w                ; $00C21E  scene_param_2 = 0
@@ -65,10 +65,10 @@ scene_init_orch:
         move.w  #$C9A0,($FFFFC8C0).w                ; $00C230  scene_addr_table = $C9A0
         move.b  #$02,($FFFFC80A).w                  ; $00C236  frame_counter_mode = 2
 ; --- more init subroutines ---
-        dc.w    $4EBA,$049C         ; jsr     $00C6DA(pc)         ; $00C23C  palette_scene_setup
-        dc.w    $4EBA,$9686         ; jsr     $0058C8(pc)         ; $00C240  sprite_input_check
-        dc.w    $4EBA,$96C2         ; jsr     $005908(pc)         ; $00C244  sprite_update_check
-        dc.w    $4EBA,$96F2         ; jsr     $00593C(pc)         ; $00C248  sprite_state_process
+        jsr     race_scene_data_loader+36(pc); $4EBA $049C
+        jsr     sh2_handler_dispatch_scene_init+98(pc); $4EBA $9686
+        jsr     sh2_comm_check_cond_guard(pc); $4EBA $96C2
+        jsr     race_entity_update_loop(pc); $4EBA $96F2
 ; --- configure MARS VDP: 240-line bitmap mode ---
         andi.b  #$FC,MARS_VDP_MODE+1            ; $00C24C  clear mode bits 1:0
         ori.b   #$01,MARS_VDP_MODE+1            ; $00C254  set bit 0 (240-line)

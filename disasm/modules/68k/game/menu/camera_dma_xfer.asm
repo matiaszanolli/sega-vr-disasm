@@ -73,7 +73,7 @@ camera_dma_xfer:
 ; --- executable code ---
 fn_12200_025_exec:
         clr.w   D0                              ; $012C8A  mode = 0
-        dc.w    $6100,$B89E                     ; $012C8C  bsr.w dma_transfer ($00E52C)
+        bsr.w   MemoryInit              ; $6100 $B89E
         move.w  #$0020,$00FF0008                ; $012C90  display mode = $0020
         addq.w  #4,($FFFFC87E).w                ; $012C98  advance game_state
         rts                                     ; $012C9C

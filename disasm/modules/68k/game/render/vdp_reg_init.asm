@@ -21,10 +21,10 @@ vdp_reg_init:
 .wait_z80:
         btst    #0,Z80_BUSREQ                  ; $000FF8: $0838 $0000 $00A1 $1100 — bus granted?
         bne.s   .wait_z80                       ; $001000: $66F6
-        dc.w    $4EBA,$08D4                     ; JSR io_port_init(PC) ; $001002: → $0018D8
+        jsr     controller_input_init(pc); $4EBA $08D4
         move.w  #$0000,Z80_BUSREQ              ; $001006: $33FC $0000 $00A1 $1100 — release Z80 bus
         move    (a7)+,SR                        ; $00100E: $46DF — restore status register
-        dc.w    $41FA,$0022                     ; LEA vdp_reg_table(PC),A0 ; $001010: → $001034
+        lea     vdp_dma_xfer_vram_clear(pc),a0; $41FA $0022
         move.b  #$81,($FFFFC874).w             ; $001014: $11FC $0081 $C874 — VDP mode reg 1 cache
         move.b  $0001(a0),($FFFFC875).w        ; $00101A: $11E8 $0001 $C875 — VDP cache 2 from table
         move.w  #$8000,d0                       ; $001020: $303C $8000 — VDP reg write base ($80xx)

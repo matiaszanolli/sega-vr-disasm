@@ -12,7 +12,7 @@
 ; ============================================================================
 
 advance_game_state_set_frame_delay:
-        dc.w    $4EBA,$0962                     ; JSR $011B08(PC) ; $0111A4: — call sub-routine
+        jsr     name_entry_ui_tile_refresh(pc); $4EBA $0962
         addq.w  #4,($FFFFC87E).w               ; $0111A8: $5878 $C87E — advance game state
         move.w  #$0018,$00FF0008                ; $0111AC: $33FC $0018 $00FF $0008 — 24 frame delay
         rts                                     ; $0111B4: $4E75

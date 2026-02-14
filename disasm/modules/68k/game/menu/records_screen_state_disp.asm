@@ -169,7 +169,7 @@ records_screen_state_disp:
         MOVE.L  -(A4),D1                        ; $01206C
         DC.W    $0089                           ; $01206E
         MOVE.L  A4,-(A2)                        ; $012070
-        DC.W    $4EBA,$9610         ; JSR     $00B684(PC); $012072
+        jsr     object_update(pc)       ; $4EBA $9610
         BTST    #6,(-14322).W                   ; $012076
 .loc_0144:
         BNE.S  .loc_014A                        ; $01207C

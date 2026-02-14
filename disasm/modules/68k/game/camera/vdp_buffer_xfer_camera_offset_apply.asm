@@ -24,7 +24,7 @@ vdp_buffer_xfer_camera_offset_apply:
         lea     ($FFFF9000).w,A0                ; $003126  A0 → work buffer base
         lea     $00FF6100,A1                    ; $00312A  A1 → VDP buffer
         move.w  ($FFFFC086).w,$0002(A1)         ; $003130  buffer+$02 = camera param
-        dc.w    $4EBA,$F85E                     ; $003136  jsr $002996(pc) — buffer init
+        jsr     camera_param_calc+18(pc); $4EBA $F85E
         move.w  ($FFFFC0AE).w,D0               ; $00313A  D0 = camera offset X
         add.w   D0,$0008(A1)                    ; $00313E  buffer+$08 += offset X
         move.w  ($FFFFC0B0).w,D0               ; $003142  D0 = camera offset Y

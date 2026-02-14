@@ -9,8 +9,8 @@
 ; ============================================================================
 
 camera_offset_check:
-        dc.w    $0838,$0005,$C30E     ; BTST #5,($C30E).W - 2P mode flag
+        btst    #5,($FFFFC30E).w        ; $0838 $0005 $C30E — 2P mode flag
         beq.s   .done                 ; If not 2P, skip
-        dc.w    $0678,$0040,$C0B0     ; ADDI.W #$0040,($C0B0).W - camera Y
+        addi.w  #$0040,($FFFFC0B0).w    ; $0678 $0040 $C0B0 — camera Y
 .done:
         rts

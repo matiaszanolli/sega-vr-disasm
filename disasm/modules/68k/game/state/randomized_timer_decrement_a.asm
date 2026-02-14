@@ -17,7 +17,7 @@ randomized_timer_decrement_a:
         MOVE.W  #$1E00,D1                       ; $002294
         CMP.W  (A1),D1                          ; $002298
         BNE.S  .loc_0012                        ; $00229A
-        DC.W    $4EBA,$26D0         ; JSR     $00496E(PC); $00229C
+        jsr     random_number_gen(pc)   ; $4EBA $26D0
         ANDI.W  #$000F,D0                       ; $0022A0
         SUB.W   D0,D1                           ; $0022A4
 .loc_0012:

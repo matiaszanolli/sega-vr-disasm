@@ -32,7 +32,7 @@ fm_envelope_tick_update:
         BCLR    #7,(A5)                         ; $030AA2
         BRA.S  .loc_0026                        ; $030AA6
 .loc_0022:
-        DC.W    $4EBA,$034A         ; JSR     $030DF4(PC); $030AA8
+        jsr     z80_sound_write(pc)     ; $4EBA $034A
 .loc_0026:
         LEA     $0070(A6),A5                    ; $030AAC
         MOVEQ   #$05,D7                         ; $030AB0
@@ -44,7 +44,7 @@ fm_envelope_tick_update:
         BCLR    #7,(A5)                         ; $030ABC
         BRA.S  .loc_0040                        ; $030AC0
 .loc_003C:
-        DC.W    $4EBA,$0896         ; JSR     $03135A(PC); $030AC2
+        jsr     fm_tl_scaling_table_volume_reg_writer+8(pc); $4EBA $0896
 .loc_0040:
         ADDA.W  #$0030,A5                       ; $030AC6
         DBRA    D7,.loc_002C                    ; $030ACA
@@ -59,7 +59,7 @@ fm_envelope_tick_update:
         BRA.S  .loc_0068                        ; $030AE4
 .loc_0060:
         MOVE.B  $0009(A5),D6                    ; $030AE6
-        DC.W    $4EBA,$0474         ; JSR     $030F60(PC); $030AEA
+        jsr     psg_volume_envelope_proc+82(pc); $4EBA $0474
 .loc_0068:
         ADDA.W  #$0030,A5                       ; $030AEE
         DBRA    D7,.loc_004A                    ; $030AF2

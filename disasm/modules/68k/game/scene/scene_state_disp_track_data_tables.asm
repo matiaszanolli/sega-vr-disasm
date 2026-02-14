@@ -37,14 +37,14 @@
 
 ; --- Track data table 1 ---
 scene_state_disp_track_data_tables:
-        dc.w    $5AD4                           ; $0129E0
-        dc.w    $5AD6                           ; $0129E2
+        spl      (a4)                   ; $5AD4
+        spl      (a6)                   ; $5AD6
         dc.w    $7FFF                           ; $0129E4: sentinel
         dc.w    $7FFF                           ; $0129E6: sentinel
         dc.w    $52B0                           ; $0129E8
         dc.w    $52B1                           ; $0129EA
-        dc.w    $56D2                           ; $0129EC
-        dc.w    $5AD3                           ; $0129EE
+        sne      (a2)                   ; $56D2
+        spl      (a3)                   ; $5AD3
         dc.w    $5EF4                           ; $0129F0
         dc.w    $2964                           ; $0129F2
         dc.w    $7FFF                           ; $0129F4: sentinel
@@ -58,8 +58,8 @@ scene_state_disp_track_data_tables:
         dc.w    $6737                           ; $012A02
         dc.w    $7FFF                           ; $012A04: sentinel
         dc.w    $7FFF                           ; $012A06: sentinel
-        dc.w    $5A92                           ; $012A08
-        dc.w    $5ED4                           ; $012A0A
+        addq.l  #5,(a2)                 ; $5A92
+        sgt      (a4)                   ; $5ED4
         dc.w    $6716                           ; $012A0C
         dc.w    $6B58                           ; $012A0E
         dc.w    $739A                           ; $012A10
@@ -75,12 +75,12 @@ scene_state_disp_track_data_tables:
         dc.w    $FF7A                           ; $012A22
         dc.w    $FFFF                           ; $012A24: sentinel
         dc.w    $FFFF                           ; $012A26: sentinel
-        dc.w    $C445                           ; $012A28
+        and.w   d5,d2                   ; $C445
         dc.w    $D12B                           ; $012A2A
-        dc.w    $E212                           ; $012A2C
+        roxr.b   #1,d2                  ; $E212
         dc.w    $EEF8                           ; $012A2E
         dc.w    $FFFF                           ; $012A30: sentinel
-        dc.w    $831F                           ; $012A32
+        or.b    d1,(a7)+                ; $831F
         dc.w    $FFFF                           ; $012A34: sentinel
         dc.w    $FFFF                           ; $012A36: sentinel
         dc.w    $FFFF                           ; $012A38: sentinel

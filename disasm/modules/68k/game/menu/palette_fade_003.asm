@@ -51,8 +51,8 @@ palette_fade_003:
         lsr.l   #3,D5                           ; $0145CE  D5 >>= 3 (long for overflow)
         andi.w  #$7C00,D5                       ; $0145D0  clamp to red range
 ; --- combine channels ---
-        dc.w    $8644                           ; $0145D4  OR.W D4,D3 — merge green into blue
-        dc.w    $8645                           ; $0145D6  OR.W D5,D3 — merge red into result
+        or.w    d4,d3                   ; $8644
+        or.w    d5,d3                   ; $8645
         move.w  D3,(A1)+                        ; $0145D8  store faded color, advance
         dbra    D1,.loop                        ; $0145DA  loop 256 entries
 ; --- decrement fade counter ---

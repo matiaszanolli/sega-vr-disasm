@@ -23,14 +23,14 @@
 ; ============================================================================
 
 frame_update_orch_0055d0:
-        dc.w    $4EBA,$CBF8                     ; $0055D0  bsr.w $0021CA (sfx_queue_process)
-        dc.w    $4EBA,$C1C8                     ; $0055D4  bsr.w $00179E (controller_poll)
+        jsr     sound_update_disp+244(pc); $4EBA $CBF8
+        jsr     controller_read_button_remap+16(pc); $4EBA $C1C8
         addq.w  #1,($FFFFC8AA).w               ; $0055D8  scene_state++
-        dc.w    $4EBA,$035E                     ; $0055DC  bsr.w $00593C (sprite_state_process)
-        dc.w    $4EBA,$665E                     ; $0055E0  bsr.w $00BC40 (sub D)
-        dc.w    $4EBA,$64EE                     ; $0055E4  bsr.w $00BAD4 (sub E)
-        dc.w    $4EBA,$60F0                     ; $0055E8  bsr.w $00B6DA (sprite_update)
-        dc.w    $4EBA,$6096                     ; $0055EC  bsr.w $00B684 (object_update)
+        jsr     race_entity_update_loop(pc); $4EBA $035E
+        jsr     scene_command_disp+36(pc); $4EBA $665E
+        jsr     scene_menu_init_and_input_handler+118(pc); $4EBA $64EE
+        jsr     animated_seq_player+10(pc); $4EBA $60F0
+        jsr     object_update(pc)       ; $4EBA $6096
         addq.w  #4,($FFFFC87E).w               ; $0055F0  advance game_state
         move.w  #$0054,$00FF0008               ; $0055F4  display mode = $0054
         rts                                     ; $0055FC

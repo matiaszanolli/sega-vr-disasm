@@ -34,7 +34,7 @@ fm_fade_in_out_proc:
         ADD.B  D6,$0009(A5)                     ; $030D78
         BMI.S  .loc_0034                        ; $030D7C
 .loc_0030:
-        DC.W    $4EBA,$0074         ; JSR     $030DF4(PC); $030D7E
+        jsr     z80_sound_write(pc)     ; $4EBA $0074
 .loc_0034:
         MOVE.B  $003A(A6),D6                    ; $030D82
         LEA     $0070(A6),A5                    ; $030D86
@@ -50,7 +50,7 @@ fm_fade_in_out_proc:
         ADD.B  D6,$0009(A5)                     ; $030D9C
         BMI.S  .loc_0058                        ; $030DA0
 .loc_0054:
-        DC.W    $4EBA,$05B6         ; JSR     $03135A(PC); $030DA2
+        jsr     fm_tl_scaling_table_volume_reg_writer+8(pc); $4EBA $05B6
 .loc_0058:
         ADDA.W  #$0030,A5                       ; $030DA6
         DBRA    D7,.loc_003E                    ; $030DAA
@@ -69,7 +69,7 @@ fm_fade_in_out_proc:
         BCC.S  .loc_008A                        ; $030DCE
 .loc_0082:
         MOVE.B  $0009(A5),D6                    ; $030DD0
-        DC.W    $4EBA,$018A         ; JSR     $030F60(PC); $030DD4
+        jsr     psg_volume_envelope_proc+82(pc); $4EBA $018A
 .loc_008A:
         ADDA.W  #$0030,A5                       ; $030DD8
         DBRA    D7,.loc_0066                    ; $030DDC

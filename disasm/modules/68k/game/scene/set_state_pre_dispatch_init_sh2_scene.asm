@@ -16,8 +16,8 @@
 
 set_state_pre_dispatch_init_sh2_scene:
         move.b  #$9A,($FFFFC8A5).w              ; $004C8A: $11FC $009A $C8A5 — set race/mode state
-        dc.w    $4EBA,$D3EE                     ; BSR.W $002080 ; $004C90: — call pre_dispatch_common
-        dc.w    $4EBA,$FD02                     ; BSR.W $004998 ; $004C94: — call WaitForVBlank
+        jsr     sound_command_dispatch_sound_driver_call(pc); $4EBA $D3EE
+        jsr     wait_for_vblank(pc)     ; $4EBA $FD02
         move.l  #$00885618,$00FF0002            ; $004C98: $23FC $0088 $5618 $00FF $0002 — SH2 handler
         move.l  #$00000000,$00FF5FF8            ; $004CA2: $23FC $0000 $0000 $00FF $5FF8 — clear shared 1
         move.l  #$00000000,$00FF5FFC            ; $004CAC: $23FC $0000 $0000 $00FF $5FFC — clear shared 2

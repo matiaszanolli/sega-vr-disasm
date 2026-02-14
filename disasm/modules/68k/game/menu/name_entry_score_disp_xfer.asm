@@ -31,10 +31,10 @@ name_entry_score_disp_xfer:
         dc.w    $4EBA,$D176                     ; $0111E2  bsr.w sh2_send_cmd ($00E35A)
         lea     $0403B048,A1                    ; $0111E6  A1 = time digit dest 1
         lea     ($FFFFA046).w,A2                ; $0111EC  A2 = BCD buffer 1
-        dc.w    $4EBA,$06E2                     ; $0111F0  bsr.w time_digit_render ($0118D4)
+        jsr     lap_time_digit_renderer_b(pc); $4EBA $06E2
         lea     $0403B0D0,A1                    ; $0111F4  A1 = time digit dest 2
         lea     ($FFFFA04A).w,A2                ; $0111FA  A2 = BCD buffer 2
-        dc.w    $4EBA,$06D4                     ; $0111FE  bsr.w time_digit_render ($0118D4)
+        jsr     lap_time_digit_renderer_b(pc); $4EBA $06D4
         movea.l #$06018C00,A0                   ; $011202  A0 = UI element source
         movea.l #$0401B010,A1                   ; $011208  A1 = UI dest 1
         move.w  #$0038,D0                       ; $01120E  size = $38

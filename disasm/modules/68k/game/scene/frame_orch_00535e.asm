@@ -32,23 +32,23 @@
 
 frame_orch_00535e:
 ; --- entry 1: full frame orchestrator ---
-        dc.w    $4EBA,$CDCE                     ; $00535E  jsr $00212E(pc) — frame init
-        dc.w    $4EBA,$C43A                     ; $005362  jsr $00179E(pc) — poll_controllers
-        dc.w    $4EBA,$5D36                     ; $005366  jsr $00B09E(pc) — animation_update
-        dc.w    $4EBA,$5DAE                     ; $00536A  jsr $00B11A(pc) — update_A
-        dc.w    $4EBA,$6194                     ; $00536E  jsr $00B504(pc) — setup_A
-        dc.w    $4EBA,$6230                     ; $005372  jsr $00B5A4(pc) — setup_B
+        jsr     sound_update_disp+88(pc); $4EBA $CDCE
+        jsr     controller_read_button_remap+16(pc); $4EBA $C43A
+        jsr     cascaded_frame_counter+10(pc); $4EBA $5D36
+        jsr     ai_buffer_setup(pc)     ; $4EBA $5DAE
+        jsr     display_digit_extract+58(pc); $4EBA $6194
+        jsr     ai_data_load_cond_return_on_flag+12(pc); $4EBA $6230
         addq.w  #1,($FFFFC8AA).w               ; $005376  scene_state++
-        dc.w    $4EBA,$14C4                     ; $00537A  jsr $006840(pc) — sprite_handler
-        dc.w    $4EBA,$635A                     ; $00537E  jsr $00B6DA(pc) — sprite_update
-        dc.w    $4EBA,$6300                     ; $005382  jsr $00B684(pc) — object_update
+        jsr     entity_render_pipeline_with_2_player_dispatch+198(pc); $4EBA $14C4
+        jsr     animated_seq_player+10(pc); $4EBA $635A
+        jsr     object_update(pc)       ; $4EBA $6300
         addq.w  #4,($FFFFC87E).w               ; $005386  advance state_dispatch
         move.w  #$0054,$00FF0008               ; $00538A  SH2 COMM = $54
-        dc.w    $4EFA,$0364                     ; $005392  jmp $0056F8(pc) — controller check (tail)
+        jmp     pause_menu_handler_ctrl_check+20(pc); $4EFA $0364
 ; --- entry 2: reduced frame ---
-        dc.w    $4EBA,$CD96                     ; $005396  jsr $00212E(pc) — frame init
-        dc.w    $4EBA,$C402                     ; $00539A  jsr $00179E(pc) — poll_controllers
-        dc.w    $4EBA,$5CFE                     ; $00539E  jsr $00B09E(pc) — animation_update
+        jsr     sound_update_disp+88(pc); $4EBA $CD96
+        jsr     controller_read_button_remap+16(pc); $4EBA $C402
+        jsr     cascaded_frame_counter+10(pc); $4EBA $5CFE
         addq.b  #1,($FFFFC886).w               ; $0053A2  scene counter++
         move.w  #$0054,$00FF0008               ; $0053A6  SH2 COMM = $54
         rts                                     ; $0053AE

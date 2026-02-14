@@ -25,15 +25,15 @@
 ; ============================================================================
 
 system_init_orch:
-        DC.W    $4EBA,$0046         ; JSR     $000DB0(PC); $000D68 — clear work RAM
-        DC.W    $4EBA,$027C         ; JSR     $000FEA(PC); $000D6C — init Z80 bus + VDP
+        jsr     fn_200_008_clear_ram(pc); $4EBA $0046
+        jsr     vdp_reg_init(pc)        ; $4EBA $027C
         move.b  ($FFFFFEA4).w,d0                ; $000D70: load cached controller config
         cmp.b   ($FFFFC818).w,d0                ; $000D74: compare with current
         beq.s   .skip_ctrl_init                 ; $000D78: same: skip reinit
-        DC.W    $4EBA,$0990         ; JSR     $00170C(PC); $000D7A — init controller ports
+        jsr     input_dispatch_table_and_controller_port_init+90(pc); $4EBA $0990
         move.b  ($FFFFC818).w,($FFFFFEA4).w     ; $000D7E: cache new config
 .skip_ctrl_init:
-        DC.W    $4EBA,$02C2         ; JSR     $001048(PC); $000D84 — fourth init sub
+        jsr     vdp_dma_xfer_vram_clear+20(pc); $4EBA $02C2
         move.w  #$0083,MARS_SYS_INTCTL          ; $000D88: enable MARS interrupts
         andi.b  #$FC,MARS_VDP_MODE+1            ; $000D90: clear VDP mode bits 0-1
         jsr     $0088266C                       ; $000D98: game init chain A

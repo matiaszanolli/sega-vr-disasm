@@ -16,14 +16,14 @@
 
 entity_table_load_mode:
         moveq   #0,d1
-        dc.w    $1238,$FDA9             ; MOVE.B ($FDA9).W,D1 - secondary index
-        dc.w    $43F8,$FAD8             ; LEA ($FAD8).W,A1 - RAM lookup table base
-        dc.w    $3038,$C8C8             ; MOVE.W ($C8C8).W,D0 - mode flag
+        move.b  ($FFFFFDA9).w,d1        ; $1238 $FDA9 — secondary index
+        lea     ($FFFFFAD8).w,a1        ; $43F8 $FAD8 — RAM lookup table base
+        move.w  ($FFFFC8C8).w,d0        ; $3038 $C8C8 — mode flag
         muls.w  #$0060,d0               ; Mode offset = mode * 96
         muls.w  #$0020,d1               ; Index offset = index * 32
         add.w   d1,d0                   ; Combined offset
-        dc.w    $43F1,$0000             ; LEA 0(A1,D0.W),A1 - point to selected entry
-        dc.w    $45F8,$9100             ; LEA ($9100).W,A2 - entity table base ($FF9100)
+        lea     (a1,d0.w),a1            ; $43F1 $0000 — point to selected entry
+        lea     ($FFFF9100).w,a2        ; $45F8 $9100 — entity table base ($FF9100)
         moveq   #14,d0                  ; Loop 15 times
 .loop:
         move.w  (a1),$B6(a2)            ; Copy word to entity field +$B6

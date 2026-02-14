@@ -26,7 +26,7 @@ name_entry_sh2_xfer_advance:
         lsl.w   #7,D0                           ; $010218  D0 × 128
         move.w  D0,D1                           ; $01021A  D1 = × 128
         lsl.w   #2,D0                           ; $01021C  D0 × 512
-        dc.w    $D041                           ; $01021E  add.w d1,d0 — D0 = × 640
+        add.w   d1,d0                   ; $D041
         lea     $00(A0,D0.W),A0                 ; $010220  A0 += row offset
         movea.l #$240310CC,A1                   ; $010224  A1 = VRAM destination
         move.w  #$0028,D0                       ; $01022A  transfer size = $28

@@ -30,13 +30,13 @@ psg_channel_proc:
         SUBQ.B  #1,$000E(A5)                    ; $030E38
         BNE.S  .loc_002E                        ; $030E3C
         BCLR    #4,(A5)                         ; $030E3E
-        DC.W    $4EBA,$001A         ; JSR     $030E5E(PC); $030E42
-        DC.W    $4EBA,$007A         ; JSR     $030EC2(PC); $030E46
+        jsr     psg_channel_proc+62(pc) ; $4EBA $001A
+        jsr     psg_channel_proc+162(pc); $4EBA $007A
         DC.W    $6000,$00CA         ; BRA.W  $030F16; $030E4A
 .loc_002E:
-        DC.W    $4EBA,$F3CA         ; JSR     $03021A(PC); $030E4E
-        DC.W    $4EBA,$00BA         ; JSR     $030F0E(PC); $030E52
-        DC.W    $4EBA,$F3EA         ; JSR     $030242(PC); $030E56
+        jsr     fm_channel_timer_check(pc); $4EBA $F3CA
+        jsr     psg_volume_envelope_proc(pc); $4EBA $00BA
+        jsr     sound_timer_check(pc)   ; $4EBA $F3EA
         DC.W    $6000,$0072         ; BRA.W  $030ECE; $030E5A
         BCLR    #1,(A5)                         ; $030E5E
         MOVEA.L $0004(A5),A4                    ; $030E62
@@ -45,12 +45,12 @@ psg_channel_proc:
         MOVE.B  (A4)+,D5                        ; $030E68
         CMPI.B  #$E0,D5                         ; $030E6A
         BCS.S  .loc_0056                        ; $030E6E
-        DC.W    $4EBA,$0222         ; JSR     $031094(PC); $030E70
+        jsr     psg_freq_table_special_command_disp+180(pc); $4EBA $0222
         BRA.S  .loc_0046                        ; $030E74
 .loc_0056:
         TST.B  D5                               ; $030E76
         BPL.S  .loc_006A                        ; $030E78
-        DC.W    $4EBA,$0016         ; JSR     $030E92(PC); $030E7A
+        jsr     psg_channel_proc+114(pc); $4EBA $0016
         MOVE.B  (A4)+,D5                        ; $030E7E
         TST.B  D5                               ; $030E80
         BPL.S  .loc_006A                        ; $030E82
@@ -64,7 +64,7 @@ psg_channel_proc:
         ADD.B  $0008(A5),D5                     ; $030E98
         ANDI.W  #$007F,D5                       ; $030E9C
         LSL.W  #1,D5                            ; $030EA0
-        DC.W    $41FA,$013C         ; LEA     $030FE0(PC),A0; $030EA2
+        lea     psg_freq_table_special_command_disp(pc),a0; $41FA $013C
         MOVE.W  $00(A0,D5.W),$0010(A5)          ; $030EA6
         DC.W    $6000,$F324         ; BRA.W  $0301D2; $030EAC
 .loc_0090:

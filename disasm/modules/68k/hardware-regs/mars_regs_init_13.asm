@@ -10,7 +10,7 @@
 ; ============================================================================
 
 mars_regs_init_13:
-        dc.w    $43FA,$0012           ; LEA data_table(PC),A1
+        lea     gfx_32x_vdp_mode_reg_setup(pc),a1; $43FA $0012
         lea     MARS_SYS_BASE,a2          ; MARS system registers
         moveq   #12,d7               ; 13 words (0-12)
 .copy:

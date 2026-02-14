@@ -35,19 +35,19 @@ fm_panning_init_channel_stereo_setup:
         MOVEQ   #$02,D2                         ; $030484
         MOVE.B  #$B4,D0                         ; $030486
         MOVEQ   #$00,D1                         ; $03048A
-        DC.W    $4EBA,$088E         ; JSR     $030D1C(PC); $03048C
+        jsr     z80_bus_wait(pc)        ; $4EBA $088E
 .loc_0024:
-        DC.W    $4EBA,$0846         ; JSR     $030CD8(PC); $030490
-        DC.W    $4EBA,$0868         ; JSR     $030CFE(PC); $030494
+        jsr     fm_write_cond+12(pc)    ; $4EBA $0846
+        jsr     fm_write_port_0_1+10(pc); $4EBA $0868
         ADDQ.B  #1,D0                           ; $030498
         DBRA    D2,.loc_0024                    ; $03049A
         MOVEQ   #$02,D2                         ; $03049E
         MOVEQ   #$28,D0                         ; $0304A0
 .loc_0036:
         MOVE.B  D2,D1                           ; $0304A2
-        DC.W    $4EBA,$0832         ; JSR     $030CD8(PC); $0304A4
+        jsr     fm_write_cond+12(pc)    ; $4EBA $0832
         ADDQ.B  #4,D1                           ; $0304A8
-        DC.W    $4EBA,$082C         ; JSR     $030CD8(PC); $0304AA
+        jsr     fm_write_cond+12(pc)    ; $4EBA $082C
         DBRA    D2,.loc_0036                    ; $0304AE
         MOVE.W  #$0000,Z80_BUSREQ                ; $0304B2
         DC.W    $6000,$0B0C         ; BRA.W  $030FC8; $0304BA
@@ -56,7 +56,7 @@ fm_panning_init_channel_stereo_setup:
         MOVEQ   #$30,D3                         ; $0304C2
         LEA     $0040(A6),A5                    ; $0304C4
         MOVEQ   #$06,D4                         ; $0304C8
-        DC.W    $4EBA,$0850         ; JSR     $030D1C(PC); $0304CA
+        jsr     z80_bus_wait(pc)        ; $4EBA $0850
 .loc_0062:
         BTST    #7,(A5)                         ; $0304CE
         BEQ.S  .loc_007A                        ; $0304D2
@@ -64,7 +64,7 @@ fm_panning_init_channel_stereo_setup:
         BNE.S  .loc_007A                        ; $0304D8
         MOVE.B  #$B4,D0                         ; $0304DA
         MOVE.B  $0027(A5),D1                    ; $0304DE
-        DC.W    $4EBA,$07E8         ; JSR     $030CCC(PC); $0304E2
+        jsr     fm_write_cond(pc)       ; $4EBA $07E8
 .loc_007A:
         ADDA.W  D3,A5                           ; $0304E6
         DBRA    D4,.loc_0062                    ; $0304E8
@@ -77,7 +77,7 @@ fm_panning_init_channel_stereo_setup:
         BNE.S  .loc_009E                        ; $0304FC
         MOVE.B  #$B4,D0                         ; $0304FE
         MOVE.B  $0027(A5),D1                    ; $030502
-        DC.W    $4EBA,$07C4         ; JSR     $030CCC(PC); $030506
+        jsr     fm_write_cond(pc)       ; $4EBA $07C4
 .loc_009E:
         ADDA.W  D3,A5                           ; $03050A
         DBRA    D4,.loc_0086                    ; $03050C
@@ -88,7 +88,7 @@ fm_panning_init_channel_stereo_setup:
         BNE.S  .loc_00C0                        ; $03051E
         MOVE.B  #$B4,D0                         ; $030520
         MOVE.B  $0027(A5),D1                    ; $030524
-        DC.W    $4EBA,$07A2         ; JSR     $030CCC(PC); $030528
+        jsr     fm_write_cond(pc)       ; $4EBA $07A2
 .loc_00C0:
         MOVE.W  #$0000,Z80_BUSREQ                ; $03052C
         RTS                                     ; $030534

@@ -21,7 +21,7 @@ fm_channel_pointer_table_sfx_loader:
         DIVS    (A0),D2                         ; $030854
         ORI.B  #$00,D0                          ; $030856
         DC.W    $00FF                           ; $03085A
-        DC.W    $8600                           ; $03085C
+        or.b    d0,d3                   ; $8600
         DC.W    $00FF                           ; $03085E
         OR.B   -$01(A0,D0.W),D3                 ; $030860
         DC.W    $8540                           ; $030864

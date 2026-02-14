@@ -13,9 +13,9 @@
 ; ============================================================================
 
 call_subs_advance_game_state:
-        dc.w    $4EBA,$D408                     ; BSR.W $00210A ; $004D00: — call sub
-        dc.w    $4EBA,$6398                     ; BSR.W $00B09E ; $004D04: — call animation_update
-        dc.w    $4EBA,$0BFE                     ; BSR.W $005908 ; $004D08: — call sprite_update_check
+        jsr     sound_update_disp+52(pc); $4EBA $D408
+        jsr     cascaded_frame_counter+10(pc); $4EBA $6398
+        jsr     sh2_comm_check_cond_guard(pc); $4EBA $0BFE
         addq.w  #4,($FFFFC87E).w               ; $004D0C: $5878 $C87E — advance game state
         move.w  #$0010,$00FF0008                ; $004D10: $33FC $0010 $00FF $0008 — set display mode
         rts                                     ; $004D18: $4E75

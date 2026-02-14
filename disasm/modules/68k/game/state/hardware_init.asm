@@ -87,8 +87,8 @@ hardware_init:
         BTST    #6,D0                           ; $000D44
         SNE     (-4346).W                       ; $000D48
         JSR     $0088C7E8                       ; $000D4C
-        DC.W    $4EBA,$0B84         ; JSR     $0018D8(PC); $000D52
-        DC.W    $4EBA,$09B4         ; JSR     $00170C(PC); $000D56
+        jsr     controller_input_init(pc); $4EBA $0B84
+        jsr     input_dispatch_table_and_controller_port_init+90(pc); $4EBA $09B4
         MOVE.B  #$01,(-599).W                   ; $000D5A
         MOVE.B  (-14312).W,(-348).W             ; $000D60
         RTS                                     ; $000D66

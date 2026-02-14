@@ -12,6 +12,6 @@
 sound_lookup_play:
         move.w  $002C(a0),d0          ; Get sound index from entity
         lea     $008989EE,a1          ; Sound effect lookup table
-        dc.w    $11F1,$0000,$C8A5     ; MOVE.B 0(A1,D0.W),($C8A5).W
-        dc.w    $11FC,$0000,$C305     ; MOVE.B #$00,($C305).W
+        move.b  (a1,d0.w),($FFFFC8A5).w ; $11F1 $0000 $C8A5
+        move.b  #$00,($FFFFC305).w      ; $11FC $0000 $C305
         rts

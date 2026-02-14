@@ -13,7 +13,7 @@
 ; ============================================================================
 
 fm_write_wrapper:
-        DC.W    $4EBA,$0060         ; JSR     $030D1C(PC); $030CBA
-        DC.W    $4EBA,$0018         ; JSR     $030CD8(PC); $030CBE
+        jsr     z80_bus_wait(pc)        ; $4EBA $0060
+        jsr     fm_write_cond+12(pc)    ; $4EBA $0018
         MOVE.W  #$0000,Z80_BUSREQ                ; $030CC2
         RTS                                     ; $030CCA

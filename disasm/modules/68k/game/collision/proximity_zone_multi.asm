@@ -13,15 +13,15 @@
 proximity_zone_multi:
         move.w  $0030(a0),d0          ; Entity X
         move.w  $0034(a0),d1          ; Entity Z
-        dc.w    $4A78,$C0BA           ; TST.W ($C0BA).W - camera override
+        tst.w    ($FFFFC0BA).w          ; $4A78 $C0BA — camera override
         beq.s   .no_override
-        dc.w    $3038,$C0BA           ; MOVE.W ($C0BA).W,D0 - override X
-        dc.w    $3238,$C0BE           ; MOVE.W ($C0BE).W,D1 - override Z
+        move.w  ($FFFFC0BA).w,d0        ; $3038 $C0BA — override X
+        move.w  ($FFFFC0BE).w,d1        ; $3238 $C0BE — override Z
 .no_override:
         move.l  #$014001C0,d4         ; D4.H=$0140 D4.L=$01C0 (zone thresholds)
         move.w  #$0400,d5             ; Near threshold
         move.w  #$0800,d6             ; Approach threshold
-        dc.w    $0838,$0000,$C313     ; BTST #0,($C313).W - mode flag
+        btst    #0,($FFFFC313).w        ; $0838 $0000 $C313 — mode flag
         bne.s   .start_loop
         move.w  #$0800,d5             ; Wide: near = $0800
         move.w  #$0FA0,d6             ; Wide: approach = $0FA0
@@ -34,7 +34,7 @@ proximity_zone_multi:
         move.w  #$1000,d6
 .start_loop:
         moveq   #14,d7               ; 15 entities
-        dc.w    $43F8,$9100           ; LEA ($9100).W,A1
+        lea     ($FFFF9100).w,a1        ; $43F8 $9100
 .loop:
         move.w  #$0000,$00C0(a1)      ; Default zone 0
         move.w  $0030(a1),d2          ; Entity X

@@ -23,7 +23,7 @@ fm_channel_reg_map_instrument_loader_b:
         DC.W    $0405                           ; $030790
         DC.W    $0600                           ; $030792
         OR.L   -(A0),D0                         ; $030794
-        DC.W    $C000                           ; $030796
+        and.b   d0,d0                   ; $C000
         LEA     $008B9150,A0                    ; $030798
         SUBI.B  #$A0,D7                         ; $03079E
         LSL.W  #2,D7                            ; $0307A2
@@ -43,7 +43,7 @@ fm_channel_reg_map_instrument_loader_b:
         BMI.S  .loc_0048                        ; $0307C0
         SUBQ.W  #2,D3                           ; $0307C2
         LSL.W  #2,D3                            ; $0307C4
-        DC.W    $4BFA,$008A         ; LEA     $030852(PC),A5; $0307C6
+        lea     fm_channel_pointer_table_sfx_loader(pc),a5; $4BFA $008A
         MOVEA.L $00(A5,D3.W),A5                 ; $0307CA
         BSET    #2,(A5)                         ; $0307CE
         BRA.S  .loc_006E                        ; $0307D2

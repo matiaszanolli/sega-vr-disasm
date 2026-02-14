@@ -17,7 +17,7 @@ gfx_2_player_entity_frame_orch:
         LEA     (-24576).W,A4                   ; $006496
         LEA     (-24832).W,A0                   ; $00649A
         MOVE.B  (-336).W,(-15601).W             ; $00649E
-        DC.W    $4EBA,$0718         ; JSR     $006BBE(PC); $0064A4
+        jsr     object_bitmask_table_lookup+40(pc); $4EBA $0718
         MOVE.L  $00B2(A0),$0018(A0)             ; $0064A8
         MOVE.B  $00E5(A0),D1                    ; $0064AE
         ANDI.B  #$06,D1                         ; $0064B2
@@ -25,32 +25,32 @@ gfx_2_player_entity_frame_orch:
         MOVE.L  (-14580).W,$0018(A0)            ; $0064B8
 .loc_0028:
         MOVE.W  (-16262).W,D0                   ; $0064BE
-        DC.W    $43FA,$00D8         ; LEA     $00659C(PC),A1; $0064C2
+        lea     entity_render_pipeline_jump_table(pc),a1; $43FA $00D8
         MOVEA.L $00(A1,D0.W),A1                 ; $0064C6
         JSR     (A1)                            ; $0064CA
-        DC.W    $4EBA,$398C         ; JSR     $009E5A(PC); $0064CC
-        DC.W    $4EBA,$1A2A         ; JSR     $007EFC(PC); $0064D0
-        DC.W    $4EBA,$1F04         ; JSR     $0083DA(PC); $0064D4
-        DC.W    $4EBA,$2308         ; JSR     $0087E2(PC); $0064D8
+        jsr     timer_decrement_and_rank_check_guard(pc); $4EBA $398C
+        jsr     object_heading_deviation_check_warning_flag(pc); $4EBA $1A2A
+        jsr     object_spawn_counter_table_setup+20(pc); $4EBA $1F04
+        jsr     race_pos_comparison_with_sound_triggers(pc); $4EBA $2308
         LEA     (-24832).W,A0                   ; $0064DC
         LEA     (-28672).W,A1                   ; $0064E0
-        DC.W    $4EBA,$218C         ; JSR     $008672(PC); $0064E4
+        jsr     proximity_zone_simple(pc); $4EBA $218C
         LEA     (-31972).W,A1                   ; $0064E8
-        DC.W    $4EBA,$2BE0         ; JSR     $0090CE(PC); $0064EC
+        jsr     heading_broadcast(pc)   ; $4EBA $2BE0
         LEA     (-28672).W,A0                   ; $0064F0
-        DC.W    $4EBA,$3964         ; JSR     $009E5A(PC); $0064F4
-        DC.W    $4EBA,$4A1E         ; JSR     $00AF18(PC); $0064F8
+        jsr     timer_decrement_and_rank_check_guard(pc); $4EBA $3964
+        jsr     object_collision_detection(pc); $4EBA $4A1E
         LEA     (-24832).W,A0                   ; $0064FC
         MOVE.W  #$0000,$008A(A0)                ; $006500
         DC.W    $4EBA,$3CF4         ; JSR     $00A1FC(PC); $006506
-        DC.W    $4EBA,$10F2         ; JSR     $0075FE(PC); $00650A
-        DC.W    $4EBA,$0D60         ; JSR     $007270(PC); $00650E
-        DC.W    $4EBA,$C6F0         ; JSR     $002C04(PC); $006512
-        DC.W    $4EBA,$CE62         ; JSR     $00337A(PC); $006516
-        DC.W    $4EBA,$D60C         ; JSR     $003B28(PC); $00651A
-        DC.W    $4EBA,$DA3A         ; JSR     $003F5A(PC); $00651E
+        jsr     obj_distance_calc(pc)   ; $4EBA $10F2
+        jsr     framebuffer_setup(pc)   ; $4EBA $0D60
+        jsr     object_render_disp+84(pc); $4EBA $C6F0
+        jsr     lap_check_disp(pc)      ; $4EBA $CE62
+        jsr     object_table_3_proximity_with_animation(pc); $4EBA $D60C
+        jsr     render_slot_setup+44(pc); $4EBA $DA3A
         MOVE.B  (-15612).W,(-15604).W           ; $006522
-        DC.W    $4EBA,$06C0         ; JSR     $006BEA(PC); $006528
+        jsr     object_bitmask_table_button_flag_handler+32(pc); $4EBA $06C0
         LEA     (-16384).W,A2                   ; $00652C
         LEA     (-18432).W,A1                   ; $006530
         MOVEQ   #$1F,D7                         ; $006534
@@ -68,16 +68,16 @@ gfx_2_player_entity_frame_orch:
         DBRA    D7,.loc_00BC                    ; $00655A
         LEA     (-28672).W,A0                   ; $00655E
         LEA     (-24832).W,A1                   ; $006562
-        DC.W    $4EBA,$1EB0         ; JSR     $008418(PC); $006566
-        DC.W    $4EBA,$3954         ; JSR     $009EC0(PC); $00656A
+        jsr     dual_time_display_orch+52(pc); $4EBA $1EB0
+        jsr     race_start_countdown_sequence(pc); $4EBA $3954
         MOVE.W  #$0000,$008A(A0)                ; $00656E
         DC.W    $4EBA,$3C86         ; JSR     $00A1FC(PC); $006574
-        DC.W    $4EBA,$1084         ; JSR     $0075FE(PC); $006578
-        DC.W    $4EBA,$0CE2         ; JSR     $007260(PC); $00657C
-        DC.W    $4EBA,$C62E         ; JSR     $002BB0(PC); $006580
-        DC.W    $4EBA,$CDF4         ; JSR     $00337A(PC); $006584
-        DC.W    $4EBA,$D22C         ; JSR     $0037B6(PC); $006588
-        DC.W    $4EBA,$D9A0         ; JSR     $003F2E(PC); $00658C
+        jsr     obj_distance_calc(pc)   ; $4EBA $1084
+        jsr     vdp_nametable_setup_display_list_build+24(pc); $4EBA $0CE2
+        jsr     object_render_disp(pc)  ; $4EBA $C62E
+        jsr     lap_check_disp(pc)      ; $4EBA $CDF4
+        jsr     object_proximity_check_jump_table_dispatch(pc); $4EBA $D22C
+        jsr     render_slot_setup(pc)   ; $4EBA $D9A0
         MOVE.B  (-15612).W,(-15604).W           ; $006590
-        DC.W    $4EBA,$0652         ; JSR     $006BEA(PC); $006596
+        jsr     object_bitmask_table_button_flag_handler+32(pc); $4EBA $0652
         RTS                                     ; $00659A

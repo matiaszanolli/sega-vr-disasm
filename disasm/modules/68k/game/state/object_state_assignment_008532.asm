@@ -15,7 +15,7 @@ object_state_assignment_008532:
         CMPI.L  #$003C0000,D0                   ; $008532
         MOVE.L  D5,(A4)                         ; $008538
         MOVE.L  D4,$0004(A4)                    ; $00853A
-        DC.W    $4EBA,$2F38         ; JSR     $00B478(PC); $00853E
+        jsr     bcd_nibble_subtractor(pc); $4EBA $2F38
         MOVEQ   #$01,D0                         ; $008542
         MOVEQ   #$0C,D1                         ; $008544
         RTS                                     ; $008546

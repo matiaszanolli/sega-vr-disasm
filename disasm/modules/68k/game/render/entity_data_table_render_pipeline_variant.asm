@@ -23,25 +23,25 @@ entity_data_table_render_pipeline_variant:
         MOVE.W  (A2)+,$0088(A6)                 ; $005DDA
         MOVE.W  (A2)+,$4EBA(A6)                 ; $005DDE
         DC.W    $EBC8                           ; $005DE2
-        DC.W    $4EBA,$5996         ; JSR     $00B77C(PC); $005DE4
+        jsr     camera_state_selector+12(pc); $4EBA $5996
         MOVEQ   #$00,D0                         ; $005DE8
         MOVE.W  D0,$0044(A0)                    ; $005DEA
         MOVE.W  D0,$0046(A0)                    ; $005DEE
         MOVE.W  D0,$004A(A0)                    ; $005DF2
-        DC.W    $4EBA,$12B2         ; JSR     $0070AA(PC); $005DF6
-        DC.W    $4EBA,$134E         ; JSR     $00714A(PC); $005DFA
-        DC.W    $4EBA,$184E         ; JSR     $00764E(PC); $005DFE
-        DC.W    $4EBA,$214C         ; JSR     $007F50(PC); $005E02
-        DC.W    $4EBA,$3EC6         ; JSR     $009CCE(PC); $005E06
-        DC.W    $4EBA,$28F2         ; JSR     $0086FE(PC); $005E0A
-        DC.W    $4EBA,$3230         ; JSR     $009040(PC); $005E0E
+        jsr     angle_to_sine(pc)       ; $4EBA $12B2
+        jsr     object_link_copy_table_lookup(pc); $4EBA $134E
+        jsr     rotational_offset_calc(pc); $4EBA $184E
+        jsr     position_threshold_check(pc); $4EBA $214C
+        jsr     race_pos_sorting_and_rank_assignment+50(pc); $4EBA $3EC6
+        jsr     proximity_zone_multi+54(pc); $4EBA $28F2
+        jsr     heading_from_position(pc); $4EBA $3230
         DC.W    $4EBA,$23C4         ; JSR     $0081D8(PC); $005E12
-        DC.W    $4EBA,$E26C         ; JSR     $004084(PC); $005E16
-        DC.W    $4EBA,$17E2         ; JSR     $0075FE(PC); $005E1A
-        DC.W    $4EBA,$1386         ; JSR     $0071A6(PC); $005E1E
-        DC.W    $4EBA,$CB60         ; JSR     $002984(PC); $005E22
-        DC.W    $4EBA,$D37E         ; JSR     $0031A6(PC); $005E26
-        DC.W    $4EBA,$D8B2         ; JSR     $0036DE(PC); $005E2A
-        DC.W    $4EBA,$D986         ; JSR     $0037B6(PC); $005E2E
-        DC.W    $4EBA,$D292         ; JSR     $0030C6(PC); $005E32
+        jsr     display_state_disp_004084(pc); $4EBA $E26C
+        jsr     obj_distance_calc(pc)   ; $4EBA $17E2
+        jsr     object_visibility_collector(pc); $4EBA $1386
+        jsr     camera_param_calc(pc)   ; $4EBA $CB60
+        jsr     object_state_disp_0031a6(pc); $4EBA $D37E
+        jsr     object_table_sprite_param_update(pc); $4EBA $D8B2
+        jsr     object_proximity_check_jump_table_dispatch(pc); $4EBA $D986
+        jsr     camera_offset_clamping(pc); $4EBA $D292
         RTS                                     ; $005E36

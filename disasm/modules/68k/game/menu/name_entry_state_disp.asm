@@ -27,7 +27,7 @@ name_entry_state_disp:
         DC.W    $000E                           ; $01103E
         ADD.B  D1,(A0)                          ; $011040
         DC.W    $000E                           ; $011042
-        DC.W    $D440                           ; $011044
+        add.w   d0,d2                   ; $D440
         DC.W    $000E                           ; $011046
         ADD.B  D2,$0E(A0,D0.W)                  ; $011048
         ADD.W  $0E(A0,D0.W),D3                  ; $01104C
@@ -115,7 +115,7 @@ name_entry_state_disp:
         DC.W    $0000                           ; $01110A
         DC.W    $8700                           ; $01110C
         DC.W    $0000                           ; $01110E
-        DC.W    $CA80                           ; $011110
+        and.l   d0,d5                   ; $CA80
         ORI.B  #$00,D0                          ; $011112
         DC.W    $0000                           ; $011116
         MOVE.L  D0,D4                           ; $011118
@@ -160,7 +160,7 @@ name_entry_state_disp:
         DC.W    $0089                           ; $01118A
         MOVE.B  -$77(A0,D0.W),D3                ; $01118C
         DC.W    $188A                           ; $011190
-        DC.W    $4EBA,$A4F0         ; JSR     $00B684(PC); $011192
+        jsr     object_update(pc)       ; $4EBA $A4F0
         BTST    #6,(-14322).W                   ; $011196
         BNE.S  .loc_0164                        ; $01119C
         ADDQ.W  #4,(-14210).W                   ; $01119E

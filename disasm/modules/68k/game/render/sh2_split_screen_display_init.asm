@@ -82,16 +82,16 @@ sh2_split_screen_display_init:
         MOVE.W  #$0026,D3                       ; $00E6E8
         MOVE.W  #$0014,D4                       ; $00E6EC
         LEA     $00FF1000,A0                    ; $00E6F0
-        DC.W    $4EBA,$FB34         ; JSR     $00E22C(PC); $00E6F6
+        jsr     sh2_graphics_cmd(pc)    ; $4EBA $FB34
         MOVE.W  #$0002,D0                       ; $00E6FA
         MOVE.W  #$0001,D1                       ; $00E6FE
         MOVE.W  #$0016,D2                       ; $00E702
         MOVE.W  #$0026,D3                       ; $00E706
         MOVE.W  #$0005,D4                       ; $00E70A
         LEA     $00FF1000,A0                    ; $00E70E
-        DC.W    $4EBA,$FB16         ; JSR     $00E22C(PC); $00E714
+        jsr     sh2_graphics_cmd(pc)    ; $4EBA $FB16
         LEA     $00FF1000,A0                    ; $00E718
-        DC.W    $4EBA,$FBD0         ; JSR     $00E2F0(PC); $00E71E
+        jsr     sh2_load_data(pc)       ; $4EBA $FBD0
         DC.W    $4EBA,$FA98         ; JSR     $00E1BC(PC); $00E722
         BCLR    #7,MARS_VDP_MODE+1                    ; $00E726
         LEA     $00FF6E00,A0                    ; $00E72E

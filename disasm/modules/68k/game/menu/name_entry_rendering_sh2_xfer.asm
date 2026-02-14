@@ -31,7 +31,7 @@
 
 name_entry_rendering_sh2_xfer:
         clr.w   D0                              ; $012084  mode = 0
-        dc.w    $4EBA,$C4A4                     ; $012086  bsr.w dma_transfer ($00E52C)
+        jsr     MemoryInit(pc)          ; $4EBA $C4A4
 ; --- static DMA: header ---
         movea.l #$06018000,A0                   ; $01208A  source
         movea.l #$04004C74,A1                   ; $012090  dest
@@ -63,8 +63,8 @@ name_entry_rendering_sh2_xfer:
 .cmd27_first:
         move.b  D0,D3                           ; $0120EC  D3 = save index
         lea     $008921FA,A1                    ; $0120EE  A1 = source table (×4)
-        dc.w    $D040                           ; $0120F4  add.w d0,d0 — D0 × 2
-        dc.w    $D040                           ; $0120F6  add.w d0,d0 — D0 × 4
+        add.w   d0,d0                   ; $D040
+        add.w   d0,d0                   ; $D040
         movea.l $00(A1,D0.W),A0                 ; $0120F8  A0 = table[idx].source
         move.w  #$0061,D0                       ; $0120FC  size = $61
         tst.b   D3                              ; $012100  index == 0?
@@ -75,7 +75,7 @@ name_entry_rendering_sh2_xfer:
 .wait_comm0_1:
         tst.b   COMM0_HI                        ; $01210C  COMM0 busy?
         bne.s   .wait_comm0_1                   ; $012112  yes → wait
-        dc.w    $4EBA,$C29E                     ; $012114  bsr.w sh2_cmd_27 ($00E3B4)
+        jsr     sh2_cmd_27(pc)          ; $4EBA $C29E
 ; --- second sh2_cmd_27: ×6 table lookup ---
         moveq   #$00,D0                         ; $012118  clear D0
         tst.b   ($FFFFA01A).w                   ; $01211A  active player flag
@@ -88,17 +88,17 @@ name_entry_rendering_sh2_xfer:
         move.w  #$FFC0,D2                       ; $01212E  D2 = $FFC0
 .cmd27_second:
         lea     $00892206,A1                    ; $012132  A1 = source table (×6)
-        dc.w    $D040                           ; $012138  add.w d0,d0 — D0 × 2
+        add.w   d0,d0                   ; $D040
         move.w  D0,D1                           ; $01213A  D1 = D0 × 2
-        dc.w    $D040                           ; $01213C  add.w d0,d0 — D0 × 4
-        dc.w    $D041                           ; $01213E  add.w d1,d0 — D0 × 6
+        add.w   d0,d0                   ; $D040
+        add.w   d1,d0                   ; $D041
         movea.l $00(A1,D0.W),A0                 ; $012140  A0 = table[idx].source
         move.w  $04(A1,D0.W),D0                 ; $012144  D0 = table[idx].size
         move.w  #$0010,D1                       ; $012148  width = $10
 .wait_comm0_2:
         tst.b   COMM0_HI                        ; $01214C  COMM0 busy?
         bne.s   .wait_comm0_2                   ; $012152  yes → wait
-        dc.w    $4EBA,$C25E                     ; $012154  bsr.w sh2_cmd_27 ($00E3B4)
+        jsr     sh2_cmd_27(pc)          ; $4EBA $C25E
 ; --- COMM protocol: cmd $2C ---
 .wait_comm0_3:
         tst.b   COMM0_HI                        ; $012158  COMM0 busy?

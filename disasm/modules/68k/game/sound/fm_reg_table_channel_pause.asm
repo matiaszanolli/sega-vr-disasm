@@ -44,8 +44,8 @@ fm_reg_table_channel_pause:
         BSET    #0,(A5)                         ; $0315C0
         MOVE.B  #$B4,D0                         ; $0315C4
         MOVEQ   #$00,D1                         ; $0315C8
-        DC.W    $4EBA,$F6D6         ; JSR     $030CA2(PC); $0315CA
-        DC.W    $4EBA,$F6BA         ; JSR     $030C8A(PC); $0315CE
+        jsr     fm_cond_write_with_bus(pc); $4EBA $F6D6
+        jsr     fm_init_channel(pc)     ; $4EBA $F6BA
 .loc_0042:
         DBRA    D4,.loc_0024                    ; $0315D2
         MOVEQ   #$02,D4                         ; $0315D6
@@ -55,7 +55,7 @@ fm_reg_table_channel_pause:
         BEQ.S  .loc_005C                        ; $0315DE
         BCLR    #7,(A5)                         ; $0315E0
         BSET    #0,(A5)                         ; $0315E4
-        DC.W    $4EBA,$F9C8         ; JSR     $030FB2(PC); $0315E8
+        jsr     psg_set_pos_silence+16(pc); $4EBA $F9C8
 .loc_005C:
         DBRA    D4,.loc_0048                    ; $0315EC
         MOVEA.L A3,A5                           ; $0315F0

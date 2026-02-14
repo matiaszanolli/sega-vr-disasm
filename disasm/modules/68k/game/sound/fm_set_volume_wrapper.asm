@@ -12,6 +12,6 @@
 ; ============================================================================
 
 fm_set_volume_wrapper:
-        DC.W    $4EBA,$0D76         ; JSR     $030FB2(PC); $03023A
+        jsr     psg_set_pos_silence+16(pc); $4EBA $0D76
         ADDQ.W  #4,A7                           ; $03023E
         RTS                                     ; $030240

@@ -14,7 +14,7 @@
 
 race_mode_flag_set:
         moveq   #0,d0                   ; Default: flag = 0
-        dc.w    $0838,$0002,$C8AB       ; BTST #2,($C8AB).W - check mode bit
+        btst    #2,($FFFFC8AB).w        ; $0838 $0002 $C8AB — check mode bit
         bne.s   .store                  ; If bit 2 set, keep 0
         moveq   #1,d0                   ; Bit 2 clear: flag = 1
 .store:

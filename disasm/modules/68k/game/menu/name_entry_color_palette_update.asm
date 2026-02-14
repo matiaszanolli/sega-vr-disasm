@@ -30,9 +30,9 @@ name_entry_color_palette_update:
         dbra    D0,.copy_base                   ; $0119D6
         moveq   #$00,D0                         ; $0119DA  clear D0
         move.b  ($FFFFA019).w,D0                ; $0119DC  D0 = color offset
-        dc.w    $D080                           ; $0119E0  add.l d0,d0 — D0 × 2
-        dc.w    $D080                           ; $0119E2  add.l d0,d0 — D0 × 4
-        dc.w    $D080                           ; $0119E4  add.l d0,d0 — D0 × 8
+        add.l   d0,d0                   ; $D080
+        add.l   d0,d0                   ; $D080
+        add.l   d0,d0                   ; $D080
         lea     $00FF6E00,A0                    ; $0119E6  A0 = CRAM base
         adda.l  #$000001E0,A0                   ; $0119EC  A0 = CRAM + $1E0
         adda.l  D0,A0                           ; $0119F2  A0 += offset × 8
@@ -52,14 +52,14 @@ name_entry_color_palette_update:
         lsl.w   #5,D4                           ; $011A14  green << 5
         lsl.w   #8,D5                           ; $011A16  red << 8
         lsl.w   #2,D5                           ; $011A18  red << 10 total
-        dc.w    $8644                           ; $011A1A  or.w d4,d3 — combine green+blue
-        dc.w    $8645                           ; $011A1C  or.w d5,d3 — combine red+green+blue
+        or.w    d4,d3                   ; $8644
+        or.w    d5,d3                   ; $8645
         bset    #15,D3                          ; $011A1E  set priority bit
         move.w  D3,(A0)+                        ; $011A22  write final color to CRAM
         dbra    D2,.process_color               ; $011A24
         move.b  ($FFFFA01A).w,D0                ; $011A28  D0 = current brightness
         move.b  ($FFFFA01C).w,D1                ; $011A2C  D1 = fade step
-        dc.w    $D001                           ; $011A30  add.b d1,d0 — apply fade
+        add.b   d1,d0                   ; $D001
         cmpi.b  #$1F,D0                         ; $011A32  brightness > 31?
         ble.s   .check_min                      ; $011A36  no → check minimum
         move.b  #$1F,D0                         ; $011A38  clamp to max 31

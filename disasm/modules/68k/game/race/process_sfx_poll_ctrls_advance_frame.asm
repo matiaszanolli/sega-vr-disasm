@@ -13,9 +13,9 @@
 ; ============================================================================
 
 process_sfx_poll_ctrls_advance_frame:
-        dc.w    $4EBA,$CBCA                     ; BSR.W $0021CA ; $0055FE: — call SFX queue process
-        dc.w    $4EBA,$C19A                     ; BSR.W $00179E ; $005602: — call poll controllers
-        dc.w    $4EBA,$64CC                     ; BSR.W $00BAD4 ; $005606: — call sub
+        jsr     sound_update_disp+244(pc); $4EBA $CBCA
+        jsr     controller_read_button_remap+16(pc); $4EBA $C19A
+        jsr     scene_menu_init_and_input_handler+118(pc); $4EBA $64CC
         addq.b  #1,($FFFFC886).w               ; $00560A: $5238 $C886 — increment frame counter
         move.w  #$0054,$00FF0008                ; $00560E: $33FC $0054 $00FF $0008 — set display mode
         rts                                     ; $005616: $4E75

@@ -64,7 +64,7 @@ camera_state_disp_viewport_control:
         DC.W    $0088                           ; $008A16
         OR.W   $0088(A0),D5                     ; $008A18
         OR.W   $0088(A0),D5                     ; $008A1C
-        DC.W    $8A42                           ; $008A20
+        or.w    d2,d5                   ; $8A42
         DC.W    $0088                           ; $008A22
         OR.W   $1028(A0),D5                     ; $008A24
         DC.W    $00E5                           ; $008A28
@@ -79,10 +79,10 @@ camera_state_disp_viewport_control:
         BCS.S  .loc_00FA                        ; $008A4A
         CMPI.W  #$0048,D0                       ; $008A4C
         BCC.S  .loc_00FA                        ; $008A50
-        DC.W    $43FA,$0108         ; LEA     $008B5C(PC),A1; $008A52
+        lea     state_handler_table_init+52(pc),a1; $43FA $0108
         BTST    #2,(-15597).W                   ; $008A56
         BEQ.S  .loc_00F4                        ; $008A5C
-        DC.W    $43FA,$010C         ; LEA     $008B6C(PC),A1; $008A5E
+        lea     state_handler_table_init+68(pc),a1; $43FA $010C
 .loc_00F4:
         LEA     (-16198).W,A2                   ; $008A62
         BRA.S  .loc_0164                        ; $008A66
@@ -126,7 +126,7 @@ camera_state_disp_viewport_control:
 .loc_0158:
         LEA     $0010(A1),A1                    ; $008AC6
         DBRA    D7,.loc_0138                    ; $008ACA
-        DC.W    $4EFA,$00AC         ; JMP     $008B7C(PC); $008ACE
+        jmp     state_handler_table_init+84(pc); $4EFA $00AC
 .loc_0164:
         BCLR    #3,(-15597).W                   ; $008AD2
         CMPA.L  (-15736).W,A1                   ; $008AD8

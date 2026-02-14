@@ -28,8 +28,8 @@ track_segment_load_031:
         movea.l $00(A1,D0.W),A1                 ; $00B998  A1 = segment_table[D0]
         moveq   #$00,D0                         ; $00B99C  D0 = 0
         move.b  ($FFFFC303).w,D0                ; $00B99E  D0 = segment_sub_index
-        dc.w    $D040                           ; $00B9A2  ADD.W D0,D0 — D0 *= 2
-        dc.w    $D040                           ; $00B9A4  ADD.W D0,D0 — D0 *= 2 (total *4)
+        add.w   d0,d0                   ; $D040
+        add.w   d0,d0                   ; $D040
         move.l  $00(A1,D0.W),D0                 ; $00B9A6  D0 = position longword
         move.w  D0,($FFFFC056).w                ; $00B9AA  track_pos_lo = D0.w
         swap    D0                              ; $00B9AE  swap hi/lo

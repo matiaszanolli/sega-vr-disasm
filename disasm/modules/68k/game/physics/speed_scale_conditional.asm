@@ -18,17 +18,17 @@
 ; ============================================================================
 
 speed_scale_conditional:
-        dc.w    $0838,$0005,$C30E       ; BTST #5,($C30E).W - check flag 1
+        btst    #5,($FFFFC30E).w        ; $0838 $0005 $C30E — check flag 1
         bne.s   .check_second           ; If set, skip first scale
         moveq   #0,d0                   ; Clear D0
-        dc.w    $3038,$907E             ; MOVE.W ($907E).W,D0 - load first value
+        move.w  ($FFFF907E).w,d0        ; $3038 $907E — load first value
         bsr.s   speed_scale_calc        ; Scale it
         move.w  d0,$00FF6328            ; Store first result
 .check_second:
-        dc.w    $0838,$0005,$B4EE       ; BTST #5,($B4EE).W - check flag 2
+        btst    #5,($FFFFB4EE).w        ; $0838 $0005 $B4EE — check flag 2
         bne.s   .return                 ; If set, skip second scale
         moveq   #0,d0                   ; Clear D0
-        dc.w    $3038,$9F7E             ; MOVE.W ($9F7E).W,D0 - load second value
+        move.w  ($FFFF9F7E).w,d0        ; $3038 $9F7E — load second value
         bsr.s   speed_scale_calc        ; Scale it
         move.w  d0,$00FF6558            ; Store second result
 .return:

@@ -16,6 +16,6 @@ v_int_cram_xfer_gate:
         beq.s   .done                           ; $00287C: $6710 — no: skip
         lea     $00FF6E00,a1                    ; $00287E: palette source (work RAM)
         lea     MARS_CRAM,a2                    ; $002884: palette destination (32X CRAM)
-        DC.W    $4EFA,$2046         ; JMP     $0048D2(PC); $00288A — palette copy routine
+        jmp     triple_memory_copy+8(pc); $4EFA $2046
 .done:
         rts                                     ; $00288E: $4E75

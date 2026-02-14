@@ -22,20 +22,20 @@
 
 fm_channel_stop_reg_map_stop_all:
         DC.W    $00FF                           ; $030936
-        DC.W    $8600                           ; $030938
+        or.b    d0,d3                   ; $8600
         DC.W    $00FF                           ; $03093A
         DIVU    -$01(A0,D0.W),D3                ; $03093C
         OR.W   D3,(A0)                          ; $030940
         DC.W    $00FF                           ; $030942
         OR.B   (A0),D4                          ; $030944
         DC.W    $00FF                           ; $030946
-        DC.W    $8840                           ; $030948
+        or.w    d0,d4                   ; $8840
         DC.W    $00FF                           ; $03094A
         DC.W    $8870                           ; $03094C
         CLR.B  $0000(A6)                        ; $03094E
         MOVEQ   #$27,D0                         ; $030952
         MOVEQ   #$00,D1                         ; $030954
-        DC.W    $4EBA,$0362         ; JSR     $030CBA(PC); $030956
+        jsr     fm_write_wrapper(pc)    ; $4EBA $0362
         LEA     $0220(A6),A5                    ; $03095A
         MOVEQ   #$05,D6                         ; $03095E
 .loc_002A:
@@ -45,7 +45,7 @@ fm_channel_stop_reg_map_stop_all:
         MOVEQ   #$00,D3                         ; $03096A
         MOVE.B  $0001(A5),D3                    ; $03096C
         BMI.S  .loc_007C                        ; $030970
-        DC.W    $4EBA,$0316         ; JSR     $030C8A(PC); $030972
+        jsr     fm_init_channel(pc)     ; $4EBA $0316
         CMPI.B  #$04,D3                         ; $030976
         BNE.S  .loc_0056                        ; $03097A
         TST.B  $0340(A6)                        ; $03097C
@@ -56,7 +56,7 @@ fm_channel_stop_reg_map_stop_all:
 .loc_0056:
         SUBQ.B  #2,D3                           ; $03098C
         LSL.B  #2,D3                            ; $03098E
-        DC.W    $41FA,$FEC0         ; LEA     $030852(PC),A0; $030990
+        lea     fm_channel_pointer_table_sfx_loader(pc),a0; $41FA $FEC0
         MOVEA.L A5,A3                           ; $030994
         MOVEA.L $00(A0,D3.W),A5                 ; $030996
         MOVEA.L $0030(A6),A1                    ; $03099A
@@ -64,18 +64,18 @@ fm_channel_stop_reg_map_stop_all:
         BCLR    #2,(A5)                         ; $03099E
         BSET    #1,(A5)                         ; $0309A2
         MOVE.B  $000B(A5),D0                    ; $0309A6
-        DC.W    $4EBA,$093C         ; JSR     $0312E8(PC); $0309AA
+        jsr     fm_instrument_reg_write+52(pc); $4EBA $093C
         MOVEA.L A3,A5                           ; $0309AE
         BRA.S  .loc_00B2                        ; $0309B0
 .loc_007C:
-        DC.W    $4EBA,$05FE         ; JSR     $030FB2(PC); $0309B2
+        jsr     psg_set_pos_silence+16(pc); $4EBA $05FE
         LEA     $0370(A6),A0                    ; $0309B6
         CMPI.B  #$E0,D3                         ; $0309BA
         BEQ.S  .loc_009A                        ; $0309BE
         CMPI.B  #$C0,D3                         ; $0309C0
         BEQ.S  .loc_009A                        ; $0309C4
         LSR.B  #3,D3                            ; $0309C6
-        DC.W    $41FA,$FE88         ; LEA     $030852(PC),A0; $0309C8
+        lea     fm_channel_pointer_table_sfx_loader(pc),a0; $41FA $FE88
         MOVEA.L $00(A0,D3.W),A0                 ; $0309CC
 .loc_009A:
         BCLR    #2,(A0)                         ; $0309D0

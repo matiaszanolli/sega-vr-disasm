@@ -58,9 +58,9 @@ race_pos_sorting_and_rank_assignment:
         LEA     $0100(A1),A1                    ; $009D10
         DBRA    D2,.loc_0060                    ; $009D14
         LEA     (-24508).W,A0                   ; $009D18
-        DC.W    $4EBA,$00C4         ; JSR     $009DE2(PC); $009D1C
+        jsr     depth_sort+12(pc)       ; $4EBA $00C4
         LEA     (-24576).W,A0                   ; $009D20
-        DC.W    $4EBA,$00BC         ; JSR     $009DE2(PC); $009D24
+        jsr     depth_sort+12(pc)       ; $4EBA $00BC
         LEA     (-24508).W,A0                   ; $009D28
         MOVE.L  $003C(A0),-$0004(A0)            ; $009D2C
         MOVE.L  (A0),$0040(A0)                  ; $009D32

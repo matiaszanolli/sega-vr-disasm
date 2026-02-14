@@ -75,7 +75,7 @@ palette_data_loader_and_cycle_handler:
         BNE.W  .loc_01B6                        ; $00D9CA
         CLR.W  D0                               ; $00D9CE
         MOVE.B  (-24537).W,D0                   ; $00D9D0
-        DC.W    $6100,$0B56         ; BSR.W  $00E52C; $00D9D4
+        bsr.w   MemoryInit              ; $6100 $0B56
         MOVE.B  (-24551).W,D0                   ; $00D9D8
         MOVE.W  (-14228).W,D1                   ; $00D9DC
         BTST    #3,D1                           ; $00D9E0

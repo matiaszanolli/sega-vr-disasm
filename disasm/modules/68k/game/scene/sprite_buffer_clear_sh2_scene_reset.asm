@@ -25,7 +25,7 @@ sprite_buffer_clear_sh2_scene_reset:
         clr.l   (a0)+                           ; $011894: $4298 — clear 4 bytes
         dbra    d0,.clear_loop                  ; $011896: $51C8 $FFFC — loop 128 times (512 bytes)
         move.b  #$01,($FFFFC821).w             ; $01189A: $11FC $0001 $C821 — set sprite update flag
-        dc.w    $4EBA,$9E38                     ; JSR sprite_update(PC) ; $0118A0: → $00B6DA
+        jsr     animated_seq_player+10(pc); $4EBA $9E38
         btst    #7,($FFFFC80E).w               ; $0118A4: $0838 $0007 $C80E — scene transition active?
         bne.s   .done                           ; $0118AA: $6626 — yes → skip SH2 reset
 .wait_sh2:

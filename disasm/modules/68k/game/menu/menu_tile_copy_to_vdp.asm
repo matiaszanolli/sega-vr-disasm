@@ -22,12 +22,12 @@ menu_tile_copy_to_vdp:
         movea.l A1,A2                           ; $0145F6  A2 = data source
         lea     ($FFFFA100).w,A3               ; $0145F8  A3 → work buffer
         move.w  D0,D4                           ; $0145FC  D4 = longword count
-        dc.w    $D844                           ; $0145FE  add.w d4,d4 — D4 × 2 (word count)
+        add.w   d4,d4                   ; $D844
         subq.w  #1,D4                           ; $014600  D4-- (DBRA loop count)
 .copy_data:
         move.l  (A2)+,(A3)+                    ; $014602  copy longword to work buffer
         dbra    D4,.copy_data                   ; $014604  loop
-        dc.w    $D040                           ; $014608  add.w d0,d0 — D0 × 2 (byte offset)
+        add.w   d0,d0                   ; $D040
         lea     $00(A1,D0.W),A1                ; $01460A  A1 += data size (skip past data)
         lea     $00844000,A3                    ; $01460E  A3 → VDP nametable base
         adda.l  D1,A3                           ; $014614  A3 += offset

@@ -43,7 +43,7 @@ steering_input_processing_and_velocity_update:
         BEQ.S  .loc_0044                        ; $009534
         SUBQ.W  #1,D1                           ; $009536
 .loc_0044:
-        DC.W    $43FA,$FFBC         ; LEA     $0094F6(PC),A1; $009538
+        lea     steering_input_processing_and_velocity_update+2(pc),a1; $43FA $FFBC
         CMP.W  (-16378).W,D1                    ; $00953C
         BEQ.S  .loc_0066                        ; $009540
         MOVE.W  D1,(-16378).W                   ; $009542

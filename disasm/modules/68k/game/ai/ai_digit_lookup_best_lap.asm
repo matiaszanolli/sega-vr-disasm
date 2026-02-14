@@ -62,10 +62,10 @@ ai_digit_lookup_best_lap:
         move.w  $00(A3,D0.W),D0                 ; $00B210
         move.w  D0,(A1)                         ; $00B214  store digit 2 (word)
 ; --- call 3 subroutines ---
-        dc.w    $4EBA,$00D4         ; jsr     $00B2EC(pc)         ; $00B216
-        dc.w    $4EBA,$0206         ; jsr     $00B422(pc)         ; $00B21A
+        jsr     ai_table_lookup_cond_fall_through+20(pc); $4EBA $00D4
+        jsr     sound_buffer_copy_with_offset(pc); $4EBA $0206
         moveq   #$03,D3                         ; $00B21E
-        dc.w    $4EBA,$003E         ; jsr     $00B260(pc)         ; $00B220
+        jsr     bcd_scoring_calc+2(pc)  ; $4EBA $003E
 ; --- best lap check (racer #5 only) ---
         cmpi.w  #$0005,($FFFF902C).w                ; $00B224
         bne.s   .done                           ; $00B22A

@@ -14,7 +14,7 @@
 
 speed_scale_simple:
         moveq   #0,d0                   ; Clear D0
-        dc.w    $3038,$907E             ; MOVE.W ($907E).W,D0 - load raw value
+        move.w  ($FFFF907E).w,d0        ; $3038 $907E — load raw value
         bsr.s   speed_scale_calc        ; Scale the value
         move.w  d0,$00FF674C            ; Store result
         rts

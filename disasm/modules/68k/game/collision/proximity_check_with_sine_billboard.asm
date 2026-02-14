@@ -33,7 +33,7 @@ proximity_check_with_sine_billboard:
         MOVE.W  (-14110).W,D0                   ; $00389C
         LSL.W  #8,D0                            ; $0038A0
         MOVEM.L D1/A1,-(A7)                     ; $0038A2
-        DC.W    $4EBA,$56AA         ; JSR     $008F52(PC); $0038A6
+        jsr     sine_cosine_quadrant_lookup+4(pc); $4EBA $56AA
         MOVEM.L (A7)+,D1/A1                     ; $0038AA
         ASL.W  #2,D0                            ; $0038AE
         MOVE.W  D0,$0020(A2)                    ; $0038B0

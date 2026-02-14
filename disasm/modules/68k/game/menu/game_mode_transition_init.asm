@@ -71,10 +71,10 @@ game_mode_transition_init:
         JSR     $0088204A                       ; $014330
         JSR     $008849AA                       ; $014336
         MOVE.L  #$00FF9000,(-14200).W           ; $01433C
-        DC.W    $4EBA,$90E6         ; JSR     $00D42C(PC); $014344
+        jsr     scene_init_vdp_dma_setup_track_param_load+48(pc); $4EBA $90E6
         MOVEQ   #$00,D0                         ; $014348
         MOVEQ   #$00,D1                         ; $01434A
-        DC.W    $4EBA,$908C         ; JSR     $00D3DA(PC); $01434C
+        jsr     vdp_dma_config_and_display_init+518(pc); $4EBA $908C
         MOVE.W  #$0010,$00FF0008                ; $014350
         MOVE.B  #$01,(-14323).W                 ; $014358
         MOVE.W  #$0000,(-14210).W               ; $01435E

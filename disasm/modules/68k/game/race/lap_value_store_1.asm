@@ -13,9 +13,9 @@
 ; ============================================================================
 
 lap_value_store_1:
-        dc.w    $4A38,$C30F             ; TST.B ($C30F).W - check flag
+        tst.b    ($FFFFC30F).w          ; $4A38 $C30F — check flag
         beq.s   .return                 ; If zero, skip
-        dc.w    $3038,$907A             ; MOVE.W ($907A).W,D0 - load value
+        move.w  ($FFFF907A).w,d0        ; $3038 $907A — load value
         addq.w  #1,d0                   ; Adjust +1
         move.b  d0,$00FF692B            ; Store result byte
 .return:

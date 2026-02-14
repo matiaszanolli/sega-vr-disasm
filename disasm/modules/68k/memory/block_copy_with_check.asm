@@ -10,17 +10,17 @@
 ; ============================================================================
 
 block_copy_with_check:
-        dc.w    $31FC,$0001,$C048     ; MOVE.W #$0001,($C048).W
-        dc.w    $0838,$0007,$C80E     ; BTST #7,($C80E).W
+        move.w  #$0001,($FFFFC048).w    ; $31FC $0001 $C048
+        btst    #7,($FFFFC80E).w        ; $0838 $0007 $C80E
         bne.s   .done                 ; If SH2 busy, skip
-        dc.w    $43F8,$B400           ; LEA ($B400).W,A1 - source palette
-        dc.w    $45F8,$A400           ; LEA ($A400).W,A2 - dest palette
+        lea     ($FFFFB400).w,a1        ; $43F8 $B400 — source palette
+        lea     ($FFFFA400).w,a2        ; $45F8 $A400 — dest palette
         moveq   #$1F,d7              ; Loop 32 times
 .copy:
         movem.l (a1)+,d0-d6/a3       ; Read 32 bytes
         movem.l d0-d6/a3,-(a2)       ; Write 32 bytes (predecrement)
         dbra    d7,.copy              ; 32*32=1024 bytes
-        dc.w    $11FC,$00F3,$C822     ; MOVE.B #$F3,($C822).W - queue sound
-        dc.w    $5878,$C8BE           ; ADDQ.W #4,($C8BE).W
+        move.b  #$F3,($FFFFC822).w      ; $11FC $00F3 $C822 — queue sound
+        addq.w  #4,($FFFFC8BE).w        ; $5878 $C8BE
 .done:
         rts

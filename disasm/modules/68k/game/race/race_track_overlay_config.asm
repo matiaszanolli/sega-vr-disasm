@@ -30,7 +30,7 @@ race_track_overlay_config:
         MOVE.W  (-14132).W,D0                   ; $00CAD0
         LEA     $00898C68,A1                    ; $00CAD4
         MOVE.L  $00(A1,D0.W),$00FF6858          ; $00CADA
-        DC.W    $43FA,$0012         ; LEA     $00CAF6(PC),A1; $00CAE2
+        lea     race_track_overlay_config+92(pc),a1; $43FA $0012
         MOVEA.L $00(A1,D0.W),A1                 ; $00CAE6
         LEA     $00FF6740,A2                    ; $00CAEA
         JMP     $00884920                       ; $00CAF0
@@ -61,17 +61,17 @@ race_track_overlay_config:
         LEA     $00898C74,A1                    ; $00CB42
         MOVE.L  $00(A1,D0.W),$00FF6858          ; $00CB48
         MOVE.L  $00(A1,D0.W),$00FF69B8          ; $00CB50
-        DC.W    $43FA,$0028         ; LEA     $00CB82(PC),A1; $00CB58
+        lea     race_track_overlay_config+232(pc),a1; $43FA $0028
         MOVEA.L $00(A1,D0.W),A1                 ; $00CB5C
         LEA     $00FF631C,A2                    ; $00CB60
         JSR     $00884920                       ; $00CB66
-        DC.W    $43FA,$0014         ; LEA     $00CB82(PC),A1; $00CB6C
+        lea     race_track_overlay_config+232(pc),a1; $43FA $0014
         MOVEA.L $00(A1,D0.W),A1                 ; $00CB70
         LEA     $00FF654C,A2                    ; $00CB74
         JSR     $00884920                       ; $00CB7A
         BRA.S  .loc_0130                        ; $00CB80
         DC.W    $0088                           ; $00CB82
-        DC.W    $CB8E                           ; $00CB84
+        exg     d5,a6                   ; $CB8E
         DC.W    $0088                           ; $00CB86
         AND.L  D5,-(A2)                         ; $00CB88
         DC.W    $0088                           ; $00CB8A

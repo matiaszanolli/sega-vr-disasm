@@ -36,7 +36,7 @@ tile_decompressor_setup:
         MOVEQ   #$08,D3                         ; $001124
         MOVEQ   #$00,D2                         ; $001126
         MOVEQ   #$00,D4                         ; $001128
-        DC.W    $6100,$00B8         ; BSR.W  $0011E4; $00112A
+        bsr.w   tile_data_stream_byte_read; $6100 $00B8
         MOVE.B  (A0)+,D5                        ; $00112E
         ASL.W  #8,D5                            ; $001130
         MOVE.B  (A0)+,D5                        ; $001132

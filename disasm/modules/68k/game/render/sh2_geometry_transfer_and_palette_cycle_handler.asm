@@ -66,7 +66,7 @@ sh2_geometry_transfer_and_palette_cycle_handler:
         MOVE.L  D0,(-24556).W                   ; $00E9F2
         CLR.W  D0                               ; $00E9F6
         MOVE.B  (-24550).W,D0                   ; $00E9F8
-        DC.W    $6100,$FB2E         ; BSR.W  $00E52C; $00E9FC
+        bsr.w   MemoryInit              ; $6100 $FB2E
         JSR     $0088179E                       ; $00EA00
         TST.W  (-24544).W                       ; $00EA06
         BNE.W  .loc_017A                        ; $00EA0A

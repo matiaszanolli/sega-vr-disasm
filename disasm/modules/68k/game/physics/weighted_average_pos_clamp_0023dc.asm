@@ -20,11 +20,11 @@ weighted_average_pos_clamp_0023dc:
         lsr.w   #4,D0                           ; $0023DC  D0 = input >> 4
         move.w  D0,D1                           ; $0023DE  D1 = D0 (×1)
         lsr.w   #1,D0                           ; $0023E0  D0 >>= 1
-        dc.w    $D240                           ; $0023E2  add.w d0,d1 — D1 += D0 (×1.5)
+        add.w   d0,d1                   ; $D240
         lsr.w   #1,D0                           ; $0023E4  D0 >>= 1
-        dc.w    $D240                           ; $0023E6  add.w d0,d1 — D1 += D0 (×1.75)
+        add.w   d0,d1                   ; $D240
         lsr.w   #2,D0                           ; $0023E8  D0 >>= 2
-        dc.w    $D240                           ; $0023EA  add.w d0,d1 — D1 += D0 (≈29/256)
+        add.w   d0,d1                   ; $D240
         addi.w  #$1A5E,D1                       ; $0023EC  D1 += base ($1A5E)
         add.w   (A1),D1                         ; $0023F0  D1 += current value
         lsr.w   #1,D1                           ; $0023F2  D1 /= 2 (average)

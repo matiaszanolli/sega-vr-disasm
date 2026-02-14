@@ -10,8 +10,8 @@
 ; ============================================================================
 
 counter_init_check:
-        dc.w    $4A78,$A0F0             ; TST.W ($A0F0).W - check counter
+        tst.w    ($FFFFA0F0).w          ; $4A78 $A0F0 — check counter
         bne.s   .return                 ; If non-zero, skip
-        dc.w    $31FC,$0001,$A0F0       ; MOVE.W #$0001,($A0F0).W - init to 1
+        move.w  #$0001,($FFFFA0F0).w    ; $31FC $0001 $A0F0 — init to 1
 .return:
         rts

@@ -27,7 +27,7 @@ fm_operator_reg_write:
 .loc_000A:
         MOVE.B  (A4),D3                         ; $031254
         ADDA.W  #$0009,A0                       ; $031256
-        DC.W    $45FA,$003C         ; LEA     $031298(PC),A2; $03125A
+        lea     fm_operator_reg_write+78(pc),a2; $45FA $003C
         MOVEQ   #$03,D6                         ; $03125E
 .loc_0016:
         MOVE.B  (A1)+,D1                        ; $031260
@@ -35,13 +35,13 @@ fm_operator_reg_write:
         BTST    #7,D3                           ; $031264
         BEQ.S  .loc_0028                        ; $031268
         BSET    #7,D1                           ; $03126A
-        DC.W    $4EBA,$FA32         ; JSR     $030CA2(PC); $03126E
+        jsr     fm_cond_write_with_bus(pc); $4EBA $FA32
 .loc_0028:
         LSL.W  #1,D3                            ; $031272
         DBRA    D6,.loc_0016                    ; $031274
         MOVE.B  (A4)+,D1                        ; $031278
         MOVEQ   #$22,D0                         ; $03127A
-        DC.W    $4EBA,$FA3C         ; JSR     $030CBA(PC); $03127C
+        jsr     fm_write_wrapper(pc)    ; $4EBA $FA3C
         MOVE.B  (A4)+,D1                        ; $031280
         MOVE.B  $0027(A5),D0                    ; $031282
         ANDI.B  #$C0,D0                         ; $031286

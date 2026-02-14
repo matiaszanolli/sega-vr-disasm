@@ -34,7 +34,7 @@ sound_update_disp:
         MOVEM.L A5/A6,-(A7)                     ; $0020F8
         JSR     $008B0000                       ; $0020FC
         MOVEM.L (A7)+,A5/A6                     ; $002102
-        DC.W    $4EFA,$0226         ; JMP     $00232E(PC); $002106
+        jmp     audio_trigger_frequency_calc+4(pc); $4EFA $0226
         TST.B  (-31478).W                       ; $00210A
         BNE.S  .loc_0046                        ; $00210E
         MOVE.B  (-14171).W,(-31478).W           ; $002110
@@ -43,7 +43,7 @@ sound_update_disp:
         MOVEM.L A5/A6,-(A7)                     ; $00211C
         JSR     $008B0000                       ; $002120
         MOVEM.L (A7)+,A5/A6                     ; $002126
-        DC.W    $4EFA,$0202         ; JMP     $00232E(PC); $00212A
+        jmp     audio_trigger_frequency_calc+4(pc); $4EFA $0202
         MOVE.B  (-14302).W,D0                   ; $00212E
         BEQ.S  .loc_006C                        ; $002132
         MOVE.B  D0,(-31479).W                   ; $002134
@@ -54,7 +54,7 @@ sound_update_disp:
         MOVEM.L A5/A6,-(A7)                     ; $002142
         JSR     $008B0000                       ; $002146
         MOVEM.L (A7)+,A5/A6                     ; $00214C
-        DC.W    $4EFA,$01DC         ; JMP     $00232E(PC); $002150
+        jmp     audio_trigger_frequency_calc+4(pc); $4EFA $01DC
         TST.B  (-31478).W                       ; $002154
         BNE.S  .loc_0098                        ; $002158
         MOVE.B  (-14172).W,(-31478).W           ; $00215A
@@ -65,7 +65,7 @@ sound_update_disp:
         MOVEM.L A5/A6,-(A7)                     ; $00216E
         JSR     $008B0000                       ; $002172
         MOVEM.L (A7)+,A5/A6                     ; $002178
-        DC.W    $4EFA,$008E         ; JMP     $00220C(PC); $00217C
+        jmp     audio_frequency_update(pc); $4EFA $008E
         TST.B  (-31478).W                       ; $002180
         BNE.S  .loc_00BC                        ; $002184
         MOVE.B  (-14171).W,(-31478).W           ; $002186
@@ -74,7 +74,7 @@ sound_update_disp:
         MOVEM.L A5/A6,-(A7)                     ; $002192
         JSR     $008B0000                       ; $002196
         MOVEM.L (A7)+,A5/A6                     ; $00219C
-        DC.W    $4EFA,$006A         ; JMP     $00220C(PC); $0021A0
+        jmp     audio_frequency_update(pc); $4EFA $006A
         MOVE.B  (-14302).W,D0                   ; $0021A4
         BEQ.S  .loc_00E2                        ; $0021A8
         MOVE.B  D0,(-31479).W                   ; $0021AA
@@ -85,7 +85,7 @@ sound_update_disp:
         MOVEM.L A5/A6,-(A7)                     ; $0021B8
         JSR     $008B0000                       ; $0021BC
         MOVEM.L (A7)+,A5/A6                     ; $0021C2
-        DC.W    $4EFA,$0044         ; JMP     $00220C(PC); $0021C6
+        jmp     audio_frequency_update(pc); $4EFA $0044
         MOVE.B  (-14302).W,D0                   ; $0021CA
         BEQ.S  .loc_0108                        ; $0021CE
         MOVE.B  D0,(-31479).W                   ; $0021D0

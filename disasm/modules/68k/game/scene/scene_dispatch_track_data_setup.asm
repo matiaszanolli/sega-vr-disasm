@@ -28,11 +28,11 @@
 
 scene_dispatch_track_data_setup:
 ; --- data table (3 pairs of config words) ---
-        dc.w    $5400                           ; $00C8E6  config pair 0, word A
-        dc.w    $5500                           ; $00C8E8  config pair 0, word B
-        dc.w    $5A00                           ; $00C8EA  config pair 1, word A
-        dc.w    $5B00                           ; $00C8EC  config pair 1, word B
-        dc.w    $4A00                           ; $00C8EE  config pair 2, word A
+        addq.b  #2,d0                   ; $5400
+        subq.b  #2,d0                   ; $5500
+        addq.b  #5,d0                   ; $5A00
+        subq.b  #5,d0                   ; $5B00
+        tst.b    d0                     ; $4A00
         dc.w    $4B00                           ; $00C8F0  config pair 2, word B
 ; --- read config from data table ---
         move.w  ($FFFFC8CC).w,D0                    ; $00C8F2  race_substate
@@ -45,7 +45,7 @@ scene_dispatch_track_data_setup:
         lea     $00FF6114,A1                    ; $00C90E
         lea     $008957A0,A4                    ; $00C914
         bsr.s   .setup_block                    ; $00C91A
-        dc.w    $4EBA,$0090         ; jsr     $00C9AE(pc)         ; $00C91C  post_dispatch
+        jsr     object_field_store_helper(pc); $4EBA $0090
 ; --- block 2: $FF6218 ---
         lea     $00FF6218,A1                    ; $00C920
         lea     $008957A0,A4                    ; $00C926

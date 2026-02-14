@@ -39,10 +39,10 @@ race_param_block_load_table_pointer_setup:
         move.w  (A1)+,($FFFFC0FA).w           ; $00A08E  param[10]
         move.l  #$0093925E,($FFFFC27C).w      ; $00A092  work pointer = $0093925E
         move.w  ($FFFFC8A0).w,D1              ; $00A09A  D1 = race_state
-        dc.w    $D241                           ; $00A09E  add.w d1,d1 — D1 × 2
+        add.w   d1,d1                   ; $D241
         move.w  ($FFFFC8C8).w,D0              ; $00A0A0  D0 = boost flag
         muls    #$0030,D0                       ; $00A0A4  D0 × 48 (stride)
-        dc.w    $D240                           ; $00A0A8  add.w d0,d0 — D0 × 2 (??? or add.w d0,d1)
+        add.w   d0,d1                   ; $D240
         lea     $00A0B4(PC,D1.W),A1           ; $00A0AA  A1 = base + race offset
         move.l  A1,($FFFFC280).w              ; $00A0AE  store table pointer
         rts                                     ; $00A0B2

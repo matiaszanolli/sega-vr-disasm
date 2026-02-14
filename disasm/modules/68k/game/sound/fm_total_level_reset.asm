@@ -15,13 +15,13 @@
 ; ============================================================================
 
 fm_total_level_reset:
-        DC.W    $4EBA,$01FE         ; JSR     $030D1C(PC); $030B1C
+        jsr     z80_bus_wait(pc)        ; $4EBA $01FE
         MOVEQ   #$03,D4                         ; $030B20
         MOVEQ   #$40,D3                         ; $030B22
         MOVEQ   #$7F,D1                         ; $030B24
 .loc_000A:
         MOVE.B  D3,D0                           ; $030B26
-        DC.W    $4EBA,$01A2         ; JSR     $030CCC(PC); $030B28
+        jsr     fm_write_cond(pc)       ; $4EBA $01A2
         ADDQ.B  #4,D3                           ; $030B2C
         DBRA    D4,.loc_000A                    ; $030B2E
         MOVEQ   #$03,D4                         ; $030B32
@@ -29,7 +29,7 @@ fm_total_level_reset:
         MOVEQ   #$0F,D1                         ; $030B38
 .loc_001E:
         MOVE.B  D3,D0                           ; $030B3A
-        DC.W    $4EBA,$018E         ; JSR     $030CCC(PC); $030B3C
+        jsr     fm_write_cond(pc)       ; $4EBA $018E
         ADDQ.B  #4,D3                           ; $030B40
         DBRA    D4,.loc_001E                    ; $030B42
         MOVE.W  #$0000,Z80_BUSREQ                ; $030B46

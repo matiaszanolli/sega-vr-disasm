@@ -11,11 +11,11 @@
 ; ============================================================================
 
 fade_subtract_array:
-        dc.w    $3038,$C084           ; MOVE.W ($C084).W,D0 - fade step
+        move.w  ($FFFFC084).w,d0        ; $3038 $C084 — fade step
         cmpi.w  #$000A,d0             ; Check if > 10 steps
         bgt.s   advance_clear_timer   ; If done, advance state (next func)
         addq.w  #1,d0                 ; Increment step
-        dc.w    $31C0,$C084           ; MOVE.W D0,($C084).W
+        move.w  d0,($FFFFC084).w        ; $31C0 $C084
         moveq   #$1E,d0              ; Subtract value = 30
         lea     $00FF6802,a2          ; Palette entry base
         sub.w   d0,$0000(a2)          ; Entry 0

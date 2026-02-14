@@ -26,7 +26,7 @@ fm_channel_resume_panning:
         BCLR    #0,(A5)                         ; $031604
         MOVE.B  #$B4,D0                         ; $031608
         MOVE.B  $0027(A5),D1                    ; $03160C
-        DC.W    $4EBA,$F690         ; JSR     $030CA2(PC); $031610
+        jsr     fm_cond_write_with_bus(pc); $4EBA $F690
 .loc_0020:
         MOVEQ   #$05,D4                         ; $031614
 .loc_0022:
@@ -37,7 +37,7 @@ fm_channel_resume_panning:
         BCLR    #0,(A5)                         ; $031622
         MOVE.B  #$B4,D0                         ; $031626
         MOVE.B  $0027(A5),D1                    ; $03162A
-        DC.W    $4EBA,$F672         ; JSR     $030CA2(PC); $03162E
+        jsr     fm_cond_write_with_bus(pc); $4EBA $F672
 .loc_003E:
         DBRA    D4,.loc_0022                    ; $031632
         MOVEQ   #$02,D4                         ; $031636

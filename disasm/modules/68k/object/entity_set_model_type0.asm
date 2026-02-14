@@ -10,7 +10,7 @@
 ; ============================================================================
 
 entity_set_model_type0:
-        dc.w    $2378,$C710,$0024     ; MOVE.L ($C710).W,$0024(A1)
+        move.l  ($FFFFC710).w,$0024(a1) ; $2378 $C710 $0024
         move.w  #$0001,$0064(a1)      ; Set visibility = 1
         tst.w   $008C(a0)             ; Check mode flag
         beq.s   .done                 ; If zero, keep visible

@@ -17,7 +17,7 @@
 ; ============================================================================
 
 collision_response_surface_tracking:
-        DC.W    $4EBA,$019A         ; JSR     $00789C(PC); $007700
+        jsr     track_boundary_collision_detection(pc); $4EBA $019A
         CMPI.W  #$0000,$0062(A0)                ; $007704
         BGT.W  .loc_00FA                        ; $00770A
         BTST    #0,$0055(A0)                    ; $00770E
@@ -43,7 +43,7 @@ collision_response_surface_tracking:
         ADD.W  D5,$0030(A0)                     ; $007760
         ADD.W  D6,$0034(A0)                     ; $007764
         MOVEM.L D0/D1/D2/D3/D4/D5/D6/D7,-(A7)   ; $007768
-        DC.W    $4EBA,$012E         ; JSR     $00789C(PC); $00776C
+        jsr     track_boundary_collision_detection(pc); $4EBA $012E
         MOVEM.L (A7)+,D0/D1/D2/D3/D4/D5/D6/D7   ; $007770
         BTST    #0,$0055(A0)                    ; $007774
         BNE.W  .loc_00EA                        ; $00777A
@@ -52,7 +52,7 @@ collision_response_surface_tracking:
         ADD.W  D5,$0030(A0)                     ; $007786
         ADD.W  D6,$0034(A0)                     ; $00778A
         MOVEM.L D0/D1/D2/D3/D4/D5/D6/D7,-(A7)   ; $00778E
-        DC.W    $4EBA,$0108         ; JSR     $00789C(PC); $007792
+        jsr     track_boundary_collision_detection(pc); $4EBA $0108
         MOVEM.L (A7)+,D0/D1/D2/D3/D4/D5/D6/D7   ; $007796
         BTST    #0,$0055(A0)                    ; $00779A
         BNE.S  .loc_00EA                        ; $0077A0
@@ -61,7 +61,7 @@ collision_response_surface_tracking:
         ADD.W  D5,$0030(A0)                     ; $0077AA
         ADD.W  D6,$0034(A0)                     ; $0077AE
         MOVEM.L D0/D1/D2/D3/D4/D5/D6/D7,-(A7)   ; $0077B2
-        DC.W    $4EBA,$00E4         ; JSR     $00789C(PC); $0077B6
+        jsr     track_boundary_collision_detection(pc); $4EBA $00E4
         MOVEM.L (A7)+,D0/D1/D2/D3/D4/D5/D6/D7   ; $0077BA
         BTST    #0,$0055(A0)                    ; $0077BE
         BNE.S  .loc_00EA                        ; $0077C4
@@ -70,7 +70,7 @@ collision_response_surface_tracking:
         ADD.W  D5,$0030(A0)                     ; $0077CE
         ADD.W  D6,$0034(A0)                     ; $0077D2
         MOVEM.L D0/D1/D2/D3/D4/D5/D6/D7,-(A7)   ; $0077D6
-        DC.W    $4EBA,$00C0         ; JSR     $00789C(PC); $0077DA
+        jsr     track_boundary_collision_detection(pc); $4EBA $00C0
         MOVEM.L (A7)+,D0/D1/D2/D3/D4/D5/D6/D7   ; $0077DE
         BTST    #0,$0055(A0)                    ; $0077E2
         BEQ.S  .loc_00FA                        ; $0077E8
@@ -85,12 +85,12 @@ collision_response_surface_tracking:
         MOVE.W  $0030(A0),$0036(A0)             ; $007806
         MOVE.W  $0034(A0),$0038(A0)             ; $00780C
         BRA.W  .loc_011A                        ; $007812
-        DC.W    $4EBA,$0084         ; JSR     $00789C(PC); $007816
+        jsr     track_boundary_collision_detection(pc); $4EBA $0084
 .loc_011A:
         MOVEA.L $00D2(A0),A2                    ; $00781A
         MOVE.W  (-16172).W,D1                   ; $00781E
         MOVE.W  (-16170).W,D2                   ; $007822
-        DC.W    $4EBA,$FDB8         ; JSR     $0075E0(PC); $007826
+        jsr     plane_eval+24(pc)       ; $4EBA $FDB8
         BLE.S  .loc_013A                        ; $00782A
         MOVE.W  $005A(A0),D2                    ; $00782C
         EXT.L   D2                              ; $007830
@@ -101,7 +101,7 @@ collision_response_surface_tracking:
         MOVEA.L $00D6(A0),A2                    ; $00783A
         MOVE.W  (-16168).W,D1                   ; $00783E
         MOVE.W  (-16166).W,D2                   ; $007842
-        DC.W    $4EBA,$FD98         ; JSR     $0075E0(PC); $007846
+        jsr     plane_eval+24(pc)       ; $4EBA $FD98
         BLE.S  .loc_015A                        ; $00784A
         MOVE.W  $005C(A0),D2                    ; $00784C
         EXT.L   D2                              ; $007850
@@ -112,7 +112,7 @@ collision_response_surface_tracking:
         MOVEA.L $00DA(A0),A2                    ; $00785A
         MOVE.W  (-16164).W,D1                   ; $00785E
         MOVE.W  (-16162).W,D2                   ; $007862
-        DC.W    $4EBA,$FD78         ; JSR     $0075E0(PC); $007866
+        jsr     plane_eval+24(pc)       ; $4EBA $FD78
         BLE.S  .loc_017A                        ; $00786A
         MOVE.W  $005E(A0),D2                    ; $00786C
         EXT.L   D2                              ; $007870
@@ -123,7 +123,7 @@ collision_response_surface_tracking:
         MOVEA.L $00CE(A0),A2                    ; $00787A
         MOVE.W  (-16176).W,D1                   ; $00787E
         MOVE.W  (-16174).W,D2                   ; $007882
-        DC.W    $4EBA,$FD58         ; JSR     $0075E0(PC); $007886
+        jsr     plane_eval+24(pc)       ; $4EBA $FD58
         BLE.S  .loc_019A                        ; $00788A
         MOVE.W  $0032(A0),D2                    ; $00788C
         EXT.L   D2                              ; $007890

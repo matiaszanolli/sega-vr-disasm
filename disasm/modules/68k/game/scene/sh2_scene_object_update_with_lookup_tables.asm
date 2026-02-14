@@ -23,11 +23,11 @@ sh2_scene_object_update_with_lookup_tables:
         ORI.B  #$00,D0                          ; $00ECD2
         ORI.B  #$00,D0                          ; $00ECD6
         DC.W    $0000                           ; $00ECDA
-        DC.W    $8000                           ; $00ECDC
+        or.b    d0,d0                   ; $8000
         OR.B   -(A1),D2                         ; $00ECDE
-        DC.W    $8842                           ; $00ECE0
+        or.w    d2,d4                   ; $8842
         OR.W   -(A3),D6                         ; $00ECE2
-        DC.W    $9084                           ; $00ECE4
+        sub.l   d4,d0                   ; $9084
         SUB.L  -(A5),D2                         ; $00ECE6
         SUBA.W  D6,A4                           ; $00ECE8
         SUBA.W  -(A7),A6                        ; $00ECEA
@@ -35,7 +35,7 @@ sh2_scene_object_update_with_lookup_tables:
         DC.W    $A529                           ; $00ECEE
         DC.W    $A94A                           ; $00ECF0
         DC.W    $AD6B                           ; $00ECF2
-        DC.W    $B18C                           ; $00ECF4
+        cmpm.l  (a4)+,(a0)+             ; $B18C
         EOR.L  D2,-$4632(A5)                    ; $00ECF6
         CMPA.L  -$3DF0(A7),A6                   ; $00ECFA
         DC.W    $C631                           ; $00ECFE
@@ -54,7 +54,7 @@ sh2_scene_object_update_with_lookup_tables:
         DC.W    $FBDE                           ; $00ED18
         DC.W    $FFFF                           ; $00ED1A
         SUB.W  -(A0),D0                         ; $00ED1C
-        DC.W    $9481                           ; $00ED1E
+        sub.l   d1,d2                   ; $9481
         SUBA.W  D3,A6                           ; $00ED20
         DC.W    $A4E4                           ; $00ED22
         DC.W    $AD26                           ; $00ED24
@@ -66,34 +66,34 @@ sh2_scene_object_update_with_lookup_tables:
         OR.W   -$2C(A3,A1.L),D6                 ; $00ED30
         DC.W    $A535                           ; $00ED34
         CMP.B  D0,D6                            ; $00ED36
-        DC.W    $C400                           ; $00ED38
-        DC.W    $CC40                           ; $00ED3A
-        DC.W    $D482                           ; $00ED3C
+        and.b   d0,d2                   ; $C400
+        and.w   d0,d6                   ; $CC40
+        add.l   d2,d2                   ; $D482
         ASR.W  -(A5)                            ; $00ED3E
         ASL.B  D4,D7                            ; $00ED40
-        DC.W    $8000                           ; $00ED42
-        DC.W    $8000                           ; $00ED44
-        DC.W    $8000                           ; $00ED46
-        DC.W    $8000                           ; $00ED48
-        DC.W    $8000                           ; $00ED4A
-        DC.W    $8000                           ; $00ED4C
-        DC.W    $8000                           ; $00ED4E
-        DC.W    $8000                           ; $00ED50
-        DC.W    $8000                           ; $00ED52
-        DC.W    $8000                           ; $00ED54
-        DC.W    $8000                           ; $00ED56
-        DC.W    $8000                           ; $00ED58
-        DC.W    $8000                           ; $00ED5A
-        DC.W    $8000                           ; $00ED5C
-        DC.W    $8000                           ; $00ED5E
-        DC.W    $8000                           ; $00ED60
-        DC.W    $8000                           ; $00ED62
-        DC.W    $8000                           ; $00ED64
+        or.b    d0,d0                   ; $8000
+        or.b    d0,d0                   ; $8000
+        or.b    d0,d0                   ; $8000
+        or.b    d0,d0                   ; $8000
+        or.b    d0,d0                   ; $8000
+        or.b    d0,d0                   ; $8000
+        or.b    d0,d0                   ; $8000
+        or.b    d0,d0                   ; $8000
+        or.b    d0,d0                   ; $8000
+        or.b    d0,d0                   ; $8000
+        or.b    d0,d0                   ; $8000
+        or.b    d0,d0                   ; $8000
+        or.b    d0,d0                   ; $8000
+        or.b    d0,d0                   ; $8000
+        or.b    d0,d0                   ; $8000
+        or.b    d0,d0                   ; $8000
+        or.b    d0,d0                   ; $8000
+        or.b    d0,d0                   ; $8000
         OR.W   -(A0),D6                         ; $00ED66
-        DC.W    $8840                           ; $00ED68
-        DC.W    $8000                           ; $00ED6A
-        DC.W    $8840                           ; $00ED6C
-        DC.W    $9080                           ; $00ED6E
+        or.w    d0,d4                   ; $8840
+        or.b    d0,d0                   ; $8000
+        or.w    d0,d4                   ; $8840
+        sub.l   d0,d0                   ; $9080
         SUBA.W  D1,A4                           ; $00ED70
         DC.W    $A103                           ; $00ED72
         DC.W    $A945                           ; $00ED74
@@ -130,7 +130,7 @@ sh2_scene_object_update_with_lookup_tables:
 .loc_0134:
         TST.B  COMM0_HI                        ; $00EDF2
         BNE.S  .loc_0134                        ; $00EDF8
-        DC.W    $6100,$0136         ; BSR.W  $00EF32; $00EDFA
+        bsr.w   table_dual_dispatch     ; $6100 $0136
         MOVEA.L #$0603D800,A0                   ; $00EDFE
         MOVEA.L #$0401985C,A1                   ; $00EE04
         MOVE.W  #$0088,D0                       ; $00EE0A
@@ -138,9 +138,9 @@ sh2_scene_object_update_with_lookup_tables:
         DC.W    $4EBA,$F546         ; JSR     $00E35A(PC); $00EE12
         CLR.W  D0                               ; $00EE16
         MOVE.B  (-24550).W,D0                   ; $00EE18
-        DC.W    $6100,$F70E         ; BSR.W  $00E52C; $00EE1C
-        DC.W    $4EBA,$C862         ; JSR     $00B684(PC); $00EE20
-        DC.W    $4EBA,$C8B4         ; JSR     $00B6DA(PC); $00EE24
+        bsr.w   MemoryInit              ; $6100 $F70E
+        jsr     object_update(pc)       ; $4EBA $C862
+        jsr     animated_seq_player+10(pc); $4EBA $C8B4
         CMPI.W  #$0001,(-24544).W               ; $00EE28
         BEQ.W  .loc_01FC                        ; $00EE2E
         CMPI.W  #$0002,(-24544).W               ; $00EE32

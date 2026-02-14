@@ -33,7 +33,7 @@ race_entity_update_loop:
         BRA.S  .loc_002E                        ; $005960
 .loc_0026:
         LEA     (-24832).W,A0                   ; $005962
-        DC.W    $4EBA,$0084         ; JSR     $0059EC(PC); $005966
+        jsr     race_entity_update_loop+176(pc); $4EBA $0084
 .loc_002E:
         LEA     (-28672).W,A0                   ; $00596A
         MOVE.L  $00B2(A0),$0018(A0)             ; $00596E
@@ -89,9 +89,9 @@ race_entity_update_loop:
         DC.W    $0088                           ; $0059E8
         BRA.S  $005A00                          ; $0059EA
         MOVE.W  D7,-(A7)                        ; $0059EC
-        DC.W    $4EBA,$4122         ; JSR     $009B12(PC); $0059EE
-        DC.W    $4EBA,$49C6         ; JSR     $00A3BA(PC); $0059F2
-        DC.W    $4EBA,$49F2         ; JSR     $00A3EA(PC); $0059F6
+        jsr     entity_speed_clamp(pc)  ; $4EBA $4122
+        jsr     speed_calculation(pc)   ; $4EBA $49C6
+        jsr     speed_interpolation(pc) ; $4EBA $49F2
 .loc_00BE:
         DC.W    $4EBA,$4A74         ; JSR     $00A470(PC); $0059FA
         MOVE.W  $0054(A0),D0                    ; $0059FE
@@ -103,13 +103,13 @@ race_entity_update_loop:
         BLE.S  .loc_00E0                        ; $005A14
         ORI.W  #$1000,$0002(A0)                 ; $005A16
 .loc_00E0:
-        DC.W    $4EBA,$4932         ; JSR     $00A350(PC); $005A1C
+        jsr     effect_timer_mgmt(pc)   ; $4EBA $4932
         TST.W  $0004(A0)                        ; $005A20
         BEQ.S  .loc_00F6                        ; $005A24
         SUBI.W  #$2000,$00BC(A0)                ; $005A26
         SUBI.W  #$1800,$00C4(A0)                ; $005A2C
 .loc_00F6:
-        DC.W    $4EBA,$2082         ; JSR     $007AB6(PC); $005A32
+        jsr     entity_heading_init+4(pc); $4EBA $2082
         LEA     $0093AC2C,A1                    ; $005A36
         MOVE.W  $00C8(A0),D0                    ; $005A3C
         SUB.W  $0032(A0),D0                     ; $005A40
@@ -141,8 +141,8 @@ race_entity_update_loop:
 .loc_014E:
         MOVE.W  D0,$003E(A0)                    ; $005A8A
         MOVE.W  $006E(A0),$0046(A0)             ; $005A8E
-        DC.W    $4EBA,$1BB8         ; JSR     $00764E(PC); $005A94
-        DC.W    $4EBA,$16B0         ; JSR     $00714A(PC); $005A98
+        jsr     rotational_offset_calc(pc); $4EBA $1BB8
+        jsr     object_link_copy_table_lookup(pc); $4EBA $16B0
         MOVE.W  $0026(A0),D0                    ; $005A9C
         SUB.W  $0024(A0),D0                     ; $005AA0
         CMPI.W  #$0064,D0                       ; $005AA4

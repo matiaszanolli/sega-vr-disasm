@@ -82,9 +82,9 @@ standings_screen_init:
         MOVE.W  #$0026,D3                       ; $013136
         MOVE.W  #$001A,D4                       ; $01313A
         LEA     $00FF1000,A0                    ; $01313E
-        DC.W    $4EBA,$B0E6         ; JSR     $00E22C(PC); $013144
+        jsr     sh2_graphics_cmd(pc)    ; $4EBA $B0E6
         LEA     $00FF1000,A0                    ; $013148
-        DC.W    $4EBA,$B1A0         ; JSR     $00E2F0(PC); $01314E
+        jsr     sh2_load_data(pc)       ; $4EBA $B1A0
         DC.W    $4EBA,$B068         ; JSR     $00E1BC(PC); $013152
         BCLR    #7,MARS_VDP_MODE+1                    ; $013156
         LEA     $00FF6E00,A0                    ; $01315E

@@ -31,7 +31,7 @@
 ; ============================================================================
 
 race_frame_update:
-        dc.w    $4EBA,$4D34                      ; jsr camera_state_selector(pc) → $00B770
+        jsr     camera_state_selector(pc); $4EBA $4D34
         move.b  #$01,($FFFFC800).w              ; set game_active
         moveq   #$00,d0
         move.w  d0,$0044(a0)                    ; clear display_offset

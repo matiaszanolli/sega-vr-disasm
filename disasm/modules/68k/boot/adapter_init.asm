@@ -143,7 +143,7 @@ adapter_init:
 ; Format: $8nXX where n = register number, XX = value
 vdp_init_data:
         dc.w    $8004,$8134                     ; $0008E8: Mode 1, Mode 2
-        dc.w    $8230,$8328                     ; $0008EC: Scroll A, Window
+        or.b    (40,a0,a0.w),d1         ; $8230 $8328
         dc.w    $8407,$8578                     ; $0008F0: Scroll B, Sprite
         dc.w    $8600,$8700                     ; $0008F4: BG color, Mode 3
         dc.w    $8800,$8900                     ; $0008F8: Mode 4, H-Int
@@ -154,7 +154,7 @@ vdp_init_data:
         dc.w    $9200,$93FF                     ; $00090C: Window Y, DMA length L
         dc.w    $9400,$9500                     ; $000910: DMA length H, DMA src L
         dc.w    $9600,$9700                     ; $000914: DMA src M, DMA src H
-        dc.w    $0000,$0000                     ; $000918: (padding)
+        ori.b  #$00,d0                  ; $0000 $0000
         dc.w    $0000                           ; $00091C
 
 ; ============================================================================

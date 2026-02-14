@@ -24,25 +24,25 @@
 ai_target_check:
         tst.w   $6A(a0)                 ; Timer active?
         bne.s   .return                 ; If active, exit
-        dc.w    $4A78,$C02C             ; TST.W ($C02C).W - check counter
+        tst.w    ($FFFFC02C).w          ; $4A78 $C02C — check counter
         bgt.s   .return                 ; If > 0, exit
         tst.w   $8C(a0)                 ; Lock flag set?
         bne.s   .return                 ; If set, exit
         clr.w   $88(a0)                 ; Clear processing flag
 
         ; --- Check first entity slot ---
-        dc.w    $43F8,$9000             ; LEA ($9000).W,A1 - entity table base
+        lea     ($FFFF9000).w,a1        ; $43F8 $9000 — entity table base
         move.w  $A4(a0),d0              ; First slot index
         lsl.w   #8,d0                   ; Index * 256 (entity stride)
-        dc.w    $43F1,$0000             ; LEA 0(A1,D0.W),A1 - point to entity
+        lea     (a1,d0.w),a1            ; $43F1 $0000 — point to entity
         dc.w    $4EBA,$00CA             ; JSR $ADC4(PC) - validate entity slot
         dc.w    $6616                   ; BNE.S +22 → $AD14 (chain to next function)
 
         ; --- Check second entity slot ---
-        dc.w    $43F8,$9000             ; LEA ($9000).W,A1 - entity table base
+        lea     ($FFFF9000).w,a1        ; $43F8 $9000 — entity table base
         move.w  $A6(a0),d0              ; Second slot index
         lsl.w   #8,d0                   ; Index * 256 (entity stride)
-        dc.w    $43F1,$0000             ; LEA 0(A1,D0.W),A1 - point to entity
+        lea     (a1,d0.w),a1            ; $43F1 $0000 — point to entity
         dc.w    $4EBA,$00B6             ; JSR $ADC4(PC) - validate entity slot
         dc.w    $6602                   ; BNE.S +2 → $AD14 (chain to next function)
 .return:

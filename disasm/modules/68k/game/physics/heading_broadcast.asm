@@ -13,7 +13,7 @@ heading_broadcast:
         moveq   #0,d0
         move.w  $003C(a0),d0          ; Base heading
         add.w   $0096(a0),d0          ; Add offset
-        dc.w    $4A78,$C04C           ; TST.W ($C04C).W - camera flag
+        tst.w    ($FFFFC04C).w          ; $4A78 $C04C — camera flag
         beq.s   .no_cam
         sub.w   $0046(a0),d0          ; Camera correction
 .no_cam:

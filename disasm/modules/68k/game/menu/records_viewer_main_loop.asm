@@ -35,21 +35,21 @@ records_viewer_main_loop:
         DC.W    $C049                           ; $01220E
         DC.W    $003B                           ; $012210
         DC.W    $0401                           ; $012212
-        DC.W    $C083                           ; $012214
+        and.l   d3,d0                   ; $C083
         DC.W    $003A                           ; $012216
         DC.W    $0401                           ; $012218
         AND.L  #$003A0401,D0                    ; $01221A
         MULU    $3B(A5,D0.W),D0                 ; $012220
         CLR.W  D0                               ; $012224
-        DC.W    $4EBA,$C304         ; JSR     $00E52C(PC); $012226
-        DC.W    $4EBA,$9458         ; JSR     $00B684(PC); $01222A
-        DC.W    $4EBA,$94AA         ; JSR     $00B6DA(PC); $01222E
+        jsr     MemoryInit(pc)          ; $4EBA $C304
+        jsr     object_update(pc)       ; $4EBA $9458
+        jsr     animated_seq_player+10(pc); $4EBA $94AA
         MOVEA.L (-24528).W,A1                   ; $012232
         MOVE.L  (-24546).W,D0                   ; $012236
         MOVE.L  (-24542).W,D1                   ; $01223A
         MOVEQ   #$00,D2                         ; $01223E
         MOVE.W  (-24532).W,D2                   ; $012240
-        DC.W    $6100,$02EE         ; BSR.W  $012534; $012244
+        bsr.w   camera_tile_render      ; $6100 $02EE
         MOVEA.L #$0601AD00,A0                   ; $012248
         MOVEA.L #$04008020,A1                   ; $01224E
         MOVE.W  #$0110,D0                       ; $012254
@@ -88,12 +88,12 @@ records_viewer_main_loop:
         ADD.W   D0,D0                           ; $0122DC
         ADD.W   D0,D0                           ; $0122DE
         ADDA.L  D0,A2                           ; $0122E0
-        DC.W    $6100,$0326         ; BSR.W  $01260A; $0122E2
+        bsr.w   byte_iterator           ; $6100 $0326
         ADDA.L  #$00000010,A1                   ; $0122E6
         MOVE.B  (A2)+,D5                        ; $0122EC
-        DC.W    $6100,$02AC         ; BSR.W  $01259C; $0122EE
+        bsr.w   lap_time_digit_renderer ; $6100 $02AC
         ADDA.L  #$00000020,A1                   ; $0122F2
-        DC.W    $6100,$03AC         ; BSR.W  $0126A6; $0122F8
+        bsr.w   camera_tile_block_send  ; $6100 $03AC
         MOVEA.L #$06030000,A0                   ; $0122FC
         LEA     $040378A2,A1                    ; $012302
         MOVE.W  #$0088,D0                       ; $012308

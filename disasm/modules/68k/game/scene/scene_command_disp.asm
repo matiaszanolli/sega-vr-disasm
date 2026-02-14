@@ -30,9 +30,9 @@ scene_command_disp:
         MOVE.W  #$0010,(A1)                     ; $00BC46
         MOVE.W  #$00CF,$0002(A1)                ; $00BC4A
         MOVE.B  #$00,$00FF6850                  ; $00BC50
-        DC.W    $4EBA,$020E         ; JSR     $00BE68(PC); $00BC58
-        DC.W    $4EBA,$E3F2         ; JSR     $00A050(PC); $00BC5C
-        DC.W    $4EBA,$0174         ; JSR     $00BDD6(PC); $00BC60
+        jsr     ai_state_dispatch+24(pc); $4EBA $020E
+        jsr     race_param_block_load_table_pointer_setup(pc); $4EBA $E3F2
+        jsr     ai_object_setup_cond_flag_set(pc); $4EBA $0174
         LEA     $00897000,A0                    ; $00BC64
         MOVE.W  (-14176).W,D0                   ; $00BC6A
         MOVEA.L $00(A0,D0.W),A0                 ; $00BC6E

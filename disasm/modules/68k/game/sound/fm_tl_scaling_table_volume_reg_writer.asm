@@ -45,14 +45,14 @@ fm_tl_scaling_table_volume_reg_writer:
         DBRA    D0,.loc_0034                    ; $031388
 .loc_003A:
         ADDA.W  #$0015,A1                       ; $03138C
-        DC.W    $45FA,$004C         ; LEA     $0313DE(PC),A2; $031390
+        lea     fm_reg_table_vibrato_setup+20(pc),a2; $45FA $004C
         MOVE.B  $0025(A5),D0                    ; $031394
         ANDI.W  #$0007,D0                       ; $031398
         MOVE.B  $031352(PC,D0.W),D4             ; $03139C
         MOVE.B  $0009(A5),D3                    ; $0313A0
         BMI.S  .loc_0076                        ; $0313A4
         MOVEQ   #$03,D5                         ; $0313A6
-        DC.W    $4EBA,$F972         ; JSR     $030D1C(PC); $0313A8
+        jsr     z80_bus_wait(pc)        ; $4EBA $F972
 .loc_005A:
         MOVE.B  (A2)+,D0                        ; $0313AC
         MOVE.B  (A1)+,D1                        ; $0313AE
@@ -60,7 +60,7 @@ fm_tl_scaling_table_volume_reg_writer:
         BCC.S  .loc_006A                        ; $0313B2
         ADD.B   D3,D1                           ; $0313B4
         BCS.S  .loc_006A                        ; $0313B6
-        DC.W    $4EBA,$F912         ; JSR     $030CCC(PC); $0313B8
+        jsr     fm_write_cond(pc)       ; $4EBA $F912
 .loc_006A:
         DBRA    D5,.loc_005A                    ; $0313BC
         MOVE.W  #$0000,Z80_BUSREQ                ; $0313C0

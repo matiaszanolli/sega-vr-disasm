@@ -55,7 +55,7 @@ tile_decompression_disp_b:
         LSL.W  #3,D1                            ; $001538
         MOVEA.L $001546(PC,D1.W),A0             ; $00153A
         MOVEA.L $00154A(PC,D1.W),A4             ; $00153E
-        DC.W    $4EBA,$FBC2         ; JSR     $001106(PC); $001542
+        jsr     tile_decompressor_setup+18(pc); $4EBA $FBC2
 .loc_0066:
         ROR.L  #8,D0                            ; $001546
         DBRA    D2,.loc_0052                    ; $001548

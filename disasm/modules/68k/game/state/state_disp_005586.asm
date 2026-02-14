@@ -27,9 +27,9 @@ state_disp_005586:
         dc.l    $008855D0                       ; $005598  [8] → $0055D0 (past fn)
         dc.l    $008855FE                       ; $00559C  [C] → $0055FE (past fn)
 ; --- state 0 handler ---
-        dc.w    $4EBA,$D320                     ; $0055A0  jsr $0028C2(pc) — VDPSyncSH2
-        dc.w    $4EBA,$CC24                     ; $0055A4  jsr $0021CA(pc) — sfx_queue_process
-        dc.w    $4EBA,$031E                     ; $0055A8  jsr $0058C8(pc) — sprite_input_check
+        jsr     mars_dma_xfer_vdp_fill(pc); $4EBA $D320
+        jsr     sound_update_disp+244(pc); $4EBA $CC24
+        jsr     sh2_handler_dispatch_scene_init+98(pc); $4EBA $031E
         addq.w  #4,($FFFFC87E).w               ; $0055AC  advance state
         move.w  #$0010,$00FF0008               ; $0055B0  SH2 COMM = $10
         rts                                     ; $0055B8

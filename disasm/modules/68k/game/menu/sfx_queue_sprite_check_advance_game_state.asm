@@ -12,8 +12,8 @@
 ; ============================================================================
 
 sfx_queue_sprite_check_advance_game_state:
-        dc.w    $4EBA,$CC0E                     ; JSR sfx_queue_process(PC) ; $0055BA: → $0021CA
-        dc.w    $4EBA,$0348                     ; JSR sprite_update_check(PC) ; $0055BE: → $005908
+        jsr     sound_update_disp+244(pc); $4EBA $CC0E
+        jsr     sh2_comm_check_cond_guard(pc); $4EBA $0348
         addq.w  #4,($FFFFC87E).w               ; $0055C2: $5878 $C87E — advance game state
         move.w  #$0010,$00FF0008                ; $0055C6: $33FC $0010 $00FF $0008 — 16 frame delay
         rts                                     ; $0055CE: $4E75

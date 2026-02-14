@@ -23,7 +23,7 @@ track_data_extract_033:
         movea.l ($FFFFC268).w,A1                ; $0076A2  A1 → track data base
         lea     ($FFFFC02E).w,A2                ; $0076A6  A2 → work buffer
         lsr.w   #6,D0                           ; $0076AA  D0 >>= 6 (segment stride)
-        dc.w    $D040                           ; $0076AC  ADD.W D0,D0 — D0 *= 2
+        add.w   d0,d0                   ; $D040
         lea     $00(A1,D0.W),A1                 ; $0076AE  A1 += offset
 ; --- page 0: read signed byte pair ---
         move.b  (A1)+,D2                        ; $0076B2  D2 = byte 0 (signed)

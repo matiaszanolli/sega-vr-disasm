@@ -34,7 +34,7 @@ timer_disp_update_004:
         lea     $00FF68F8,A1                    ; $008296  A1 → time_display_buf
         move.b  D0,-$0007(A1)                   ; $00829C  buf[-7] = D0
         move.b  D1,(A1)+                        ; $0082A0  buf[0] = D1, A1++
-        dc.w    $4EBA,$00F6         ; JSR     $00839A(PC); $0082A2  num_to_decimal
+        jsr     nibble_unpack(pc)       ; $4EBA $00F6
         move.w  ($FFFFC04E).w,D0                ; $0082A6  D0 = timer_countdown
         dc.w    $673A               ; BEQ.S   $0082E6    ; $0082AA  zero → exit (RTS in write_status_code_to_ram)
         moveq   #$00,D7                         ; $0082AC  D7 = 0

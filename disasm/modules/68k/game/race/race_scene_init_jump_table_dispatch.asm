@@ -19,12 +19,12 @@
 
 race_scene_init_jump_table_dispatch:
 ; --- data prefix: 4-word scene identifiers ---
-        dc.w    $5041                           ; $00D04C  "PA"
+        addq.w  #8,d1                   ; $5041
         dc.w    $4100                           ; $00D04E  "A\0"
-        dc.w    $504B                           ; $00D050  "PK"
-        dc.w    $4600                           ; $00D052  "F\0"
+        addq.w  #8,a3                   ; $504B
+        not.b    d0                     ; $4600
 ; --- code ---
-        dc.w    $4EBA,$FFB6                     ; $00D054  jsr $00D00C(pc) — scene pre-init
+        jsr     scene_init_vdp_block_setup_counter_reset+54(pc); $4EBA $FFB6
         move.w  ($FFFFC8A0).w,D0               ; $00D058  D0 = race_state
         lea     $00898C0C,A1                    ; $00D05C  A1 → race data table
         move.l  $00(A1,D0.W),$00FF6868         ; $00D062  VDP = table[race_state]

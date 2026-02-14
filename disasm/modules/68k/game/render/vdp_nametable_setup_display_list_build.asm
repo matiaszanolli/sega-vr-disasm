@@ -13,7 +13,7 @@
 
 vdp_nametable_setup_display_list_build:
         ORI.L  #$C0000095,(A5)                  ; $007248
-        DC.W    $D000                           ; $00724E
+        add.b   d0,d0                   ; $D000
         ORI.L  #$E0000095,(A5)                  ; $007250
         DC.W    $F000                           ; $007256
         ORI.L  #$10000096,(A6)                  ; $007258

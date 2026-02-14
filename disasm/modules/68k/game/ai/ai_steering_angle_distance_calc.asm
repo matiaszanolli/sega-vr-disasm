@@ -28,11 +28,11 @@ ai_steering_angle_distance_calc:
         move.w  ($FFFFC0BE).w,D1                ; $008F00  D1 = target_y
         move.w  $0030(A0),D2                    ; $008F04  D2 = object X
         move.w  $0034(A0),D3                    ; $008F08  D3 = object Y
-        dc.w    $4EBA,$1892                     ; $008F0C  jsr $00A7A0(pc) — ai_steering_calc
+        jsr     ai_steering_calc(pc)    ; $4EBA $1892
         subi.w  #$4000,D0                       ; $008F10  D0 -= 90° (→ cosine)
         neg.w   D0                              ; $008F14  negate
         move.w  D0,D3                           ; $008F16  D3 = angle
-        dc.w    $4EBA,$0034                     ; $008F18  jsr $008F4E(pc) — cosine_lookup
+        jsr     sine_cosine_quadrant_lookup(pc); $4EBA $0034
         move.w  $0030(A0),D2                    ; $008F1C  D2 = object X
         sub.w   ($FFFFC0BA).w,D2                ; $008F20  D2 -= target_x
         cmpi.w  #$C000,D3                       ; $008F24  angle == $C000?

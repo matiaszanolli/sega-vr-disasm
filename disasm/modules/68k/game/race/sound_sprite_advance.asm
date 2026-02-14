@@ -9,7 +9,7 @@
 ; ============================================================================
 
 sound_sprite_advance:
-        dc.w    $11FC,$00F2,$C822     ; MOVE.B #$F2,($C822).W - queue sound
+        move.b  #$F2,($FFFFC822).w      ; $11FC $00F2 $C822 — queue sound
         subq.w  #6,$00FF69E2          ; Move sprite up by 6
-        dc.w    $5878,$C07C           ; ADDQ.W #4,($C07C).W
+        addq.w  #4,($FFFFC07C).w        ; $5878 $C07C
         rts

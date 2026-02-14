@@ -31,24 +31,24 @@ race_pos_comparison_with_sound_triggers:
         MOVE.W  $001E(A0),D0                    ; $008808
         NEG.W  D0                               ; $00880C
         MOVE.W  D0,D2                           ; $00880E
-        DC.W    $4EBA,$0740         ; JSR     $008F52(PC); $008810
+        jsr     sine_cosine_quadrant_lookup+4(pc); $4EBA $0740
         ASR.W  #4,D0                            ; $008814
         MULS    $0030(A0),D0                    ; $008816
         MOVE.L  D0,D4                           ; $00881A
         MOVE.W  D2,D0                           ; $00881C
-        DC.W    $4EBA,$072E         ; JSR     $008F4E(PC); $00881E
+        jsr     sine_cosine_quadrant_lookup(pc); $4EBA $072E
         ASR.W  #4,D0                            ; $008822
         MULS    $0034(A0),D0                    ; $008824
         ADD.L   D0,D4                           ; $008828
         MOVE.W  $001E(A2),D0                    ; $00882A
         NEG.W  D0                               ; $00882E
         MOVE.W  D0,D2                           ; $008830
-        DC.W    $4EBA,$071E         ; JSR     $008F52(PC); $008832
+        jsr     sine_cosine_quadrant_lookup+4(pc); $4EBA $071E
         ASR.W  #4,D0                            ; $008836
         MULS    $0030(A2),D0                    ; $008838
         MOVE.L  D0,D3                           ; $00883C
         MOVE.W  D2,D0                           ; $00883E
-        DC.W    $4EBA,$070C         ; JSR     $008F4E(PC); $008840
+        jsr     sine_cosine_quadrant_lookup(pc); $4EBA $070C
         ASR.W  #4,D0                            ; $008844
         MULS    $0034(A2),D0                    ; $008846
         ADD.L   D3,D0                           ; $00884A

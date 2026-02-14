@@ -33,8 +33,8 @@
 
 name_entry_sprite_update_anim:
         clr.w   D0                              ; $0104A2  mode = 0
-        dc.w    $4EBA,$E086                     ; $0104A4  bsr.w dma_transfer ($00E52C)
-        dc.w    $4EBA,$B230                     ; $0104A8  bsr.w sprite_update ($00B6DA)
+        jsr     MemoryInit(pc)          ; $4EBA $E086
+        jsr     animated_seq_player+10(pc); $4EBA $B230
         movea.l #$06014000,A0                   ; $0104AC  A0 = sprite source
         movea.l #$24014034,A1                   ; $0104B2  A1 = sprite dest
         move.w  #$00D8,D0                       ; $0104B8  size = $D8
@@ -69,7 +69,7 @@ name_entry_sprite_update_anim:
         cmpi.b  #$03,D0                         ; $01052E  is end marker?
         beq.w   .check_char1                    ; $010532  yes → skip
         movea.l #$24034060,A1                   ; $010536  A1 = sprite slot 0
-        dc.w    $6100,$0136                     ; $01053C  bsr.w sprite_slot_render ($010674)
+        bsr.w   ascii_character_to_tile_index_mapper_010674; $6100 $0136
 .check_char1:
         tst.b   ($FFFFA02C).w                   ; $010540  input active?
         beq.w   .check_char2                    ; $010544  no → skip slot 1
@@ -80,7 +80,7 @@ name_entry_sprite_update_anim:
         cmpi.b  #$03,D0                         ; $010556  is end marker?
         beq.w   .check_char2                    ; $01055A  yes → skip
         movea.l #$24034090,A1                   ; $01055E  A1 = sprite slot 1
-        dc.w    $6100,$010E                     ; $010564  bsr.w sprite_slot_render ($010674)
+        bsr.w   ascii_character_to_tile_index_mapper_010674; $6100 $010E
 .check_char2:
         tst.b   ($FFFFA02C).w                   ; $010568  input active?
         beq.w   .check_complete                 ; $01056C  no → skip slot 2
@@ -91,7 +91,7 @@ name_entry_sprite_update_anim:
         cmpi.b  #$03,D0                         ; $010580  is end marker?
         beq.w   .check_complete                 ; $010584  yes → skip
         movea.l #$240340C0,A1                   ; $010588  A1 = sprite slot 2
-        dc.w    $6100,$00E4                     ; $01058E  bsr.w sprite_slot_render ($010674)
+        bsr.w   ascii_character_to_tile_index_mapper_010674; $6100 $00E4
 .check_complete:
         cmpi.w  #$0002,($FFFFA036).w            ; $010592  confirm state = 2?
         beq.w   .sh2_complete                   ; $010598  yes → check SH2

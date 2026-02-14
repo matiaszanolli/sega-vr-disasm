@@ -23,7 +23,7 @@
 
 name_entry_sh2_comm_scroll_dma_blink:
         clr.w   D0                              ; $0115A8  mode = 0
-        dc.w    $4EBA,$CF80                     ; $0115AA  bsr.w dma_transfer ($00E52C)
+        jsr     MemoryInit(pc)          ; $4EBA $CF80
 .wait_comm0:
         tst.b   COMM0_HI                        ; $0115AE  COMM0 busy?
         bne.s   .wait_comm0                     ; $0115B4  yes → wait
@@ -48,7 +48,7 @@ name_entry_sh2_comm_scroll_dma_blink:
         move.w  #$0010,($FFFFA052).w            ; $011612  reset counter (16)
         bchg    #0,($FFFFA050).w                ; $011618  toggle display
 .render_scores:
-        dc.w    $6100,$065E                     ; $01161E  bsr.w score_area_transfer ($011C7E)
+        bsr.w   name_entry_score_area_dma_xfer; $6100 $065E
         move.w  #$0020,$00FF0008                ; $011622  display mode = $0020
         addq.w  #4,($FFFFC87E).w                ; $01162A  advance game_state
         rts                                     ; $01162E

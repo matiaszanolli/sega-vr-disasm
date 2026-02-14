@@ -46,14 +46,14 @@ vdp_dma_xfer_vram_clear:
         move.w  ($FFFFC874).w,(A5)              ; $00108E  restore vdp_reg
         move.w  #$0000,Z80_BUSREQ               ; $001092  release Z80 bus
         move    (A7)+,SR                        ; $00109A  restore SR
-        dc.w    $4EBA,$000E                     ; $00109C  jsr $0010AC(pc) — vsram_clear
+        jsr     vdp_dma_xfer_vram_clear+120(pc); $4EBA $000E
         move.l  #$40000010,(A5)                 ; $0010A0  VDP addr = CRAM $0000
         moveq   #$00,D1                         ; $0010A6  D1 = 0
-        dc.w    $4EFA,$37FE                     ; $0010A8  jmp $0048A8(pc) — cram_handler
+        jmp     fast_fill_128_fixed+32(pc); $4EFA $37FE
 ; --- vsram_clear ---
         move.l  #$C0000000,(A5)                 ; $0010AC  VDP addr = VSRAM $0000
         moveq   #$00,D1                         ; $0010B2  D1 = 0
-        dc.w    $4EFA,$37D2                     ; $0010B4  jmp $004888(pc) — vsram_handler
+        jmp     fast_fill_128_fixed(pc) ; $4EFA $37D2
 ; --- nametable_clear ---
         moveq   #$00,D1                         ; $0010B8  D1 = 0
         move.l  #$72000003,(A5)                 ; $0010BA  VDP addr = VRAM $7200

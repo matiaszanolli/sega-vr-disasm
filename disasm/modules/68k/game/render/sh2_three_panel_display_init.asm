@@ -70,23 +70,23 @@ sh2_three_panel_display_init:
         MOVE.W  #$0026,D3                       ; $00F214
         MOVE.W  #$0009,D4                       ; $00F218
         LEA     $00FF1000,A0                    ; $00F21C
-        DC.W    $4EBA,$F008         ; JSR     $00E22C(PC); $00F222
+        jsr     sh2_graphics_cmd(pc)    ; $4EBA $F008
         MOVE.W  #$0002,D0                       ; $00F226
         MOVE.W  #$0001,D1                       ; $00F22A
         MOVE.W  #$000B,D2                       ; $00F22E
         MOVE.W  #$0013,D3                       ; $00F232
         MOVE.W  #$0010,D4                       ; $00F236
         LEA     $00FF1000,A0                    ; $00F23A
-        DC.W    $4EBA,$EFEA         ; JSR     $00E22C(PC); $00F240
+        jsr     sh2_graphics_cmd(pc)    ; $4EBA $EFEA
         MOVE.W  #$0003,D0                       ; $00F244
         MOVE.W  #$0014,D1                       ; $00F248
         MOVE.W  #$000B,D2                       ; $00F24C
         MOVE.W  #$0013,D3                       ; $00F250
         MOVE.W  #$0010,D4                       ; $00F254
         LEA     $00FF1000,A0                    ; $00F258
-        DC.W    $4EBA,$EFCC         ; JSR     $00E22C(PC); $00F25E
+        jsr     sh2_graphics_cmd(pc)    ; $4EBA $EFCC
         LEA     $00FF1000,A0                    ; $00F262
-        DC.W    $4EBA,$F086         ; JSR     $00E2F0(PC); $00F268
+        jsr     sh2_load_data(pc)       ; $4EBA $F086
         DC.W    $4EBA,$EF4E         ; JSR     $00E1BC(PC); $00F26C
         BCLR    #7,MARS_VDP_MODE+1                    ; $00F270
         LEA     $00FF6E00,A0                    ; $00F278

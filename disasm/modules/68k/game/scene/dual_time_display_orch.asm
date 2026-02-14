@@ -25,7 +25,7 @@ dual_time_display_orch:
         LSL.W  #2,D0                            ; $0083F6
         LEA     $00(A2,D0.W),A2                 ; $0083F8
         MOVE.L  A2,-(A7)                        ; $0083FC
-        DC.W    $4EBA,$2FCE         ; JSR     $00B3CE(PC); $0083FE
+        jsr     sequence_data_word_decoder(pc); $4EBA $2FCE
         MOVEA.L (A7)+,A1                        ; $008402
         MOVEQ   #$00,D0                         ; $008404
         MOVE.B  (-15591).W,D0                   ; $008406
@@ -33,7 +33,7 @@ dual_time_display_orch:
         LSR.W  #6,D0                            ; $00840E
         SUBQ.W  #1,D0                           ; $008410
         ADD.W   D0,D0                           ; $008412
-        DC.W    $4EFA,$2FA6         ; JMP     $00B3BC(PC); $008414
+        jmp     ai_param_lookup_threshold_check_00b398+36(pc); $4EFA $2FA6
         BTST    #6,$0002(A0)                    ; $008418
         BEQ.S  .loc_0088                        ; $00841E
         ANDI.W  #$BFFF,$0002(A0)                ; $008420
@@ -42,18 +42,18 @@ dual_time_display_orch:
         LEA     (-22288).W,A3                   ; $00842E
         MOVEQ   #$00,D1                         ; $008432
         MOVE.B  (-22048).W,D1                   ; $008434
-        DC.W    $4EBA,$00BA         ; JSR     $0084F4(PC); $008438
+        jsr     time_array_entry_comparison(pc); $4EBA $00BA
         BEQ.S  .loc_0062                        ; $00843C
         MOVE.W  #$0000,(-16306).W               ; $00843E
         BRA.S  .loc_00A6                        ; $008444
 .loc_0062:
         ANDI.W  #$BFFF,$0002(A1)                ; $008446
-        DC.W    $4EBA,$00C0         ; JSR     $00850E(PC); $00844C
+        jsr     fixed_point_threshold_state_marker(pc); $4EBA $00C0
         LEA     $00FF68F8,A1                    ; $008450
         MOVE.L  #$04028070,-$0004(A1)           ; $008456
         MOVE.B  D0,-$0007(A1)                   ; $00845E
         MOVE.B  D1,(A1)+                        ; $008462
-        DC.W    $4EBA,$FF34         ; JSR     $00839A(PC); $008464
+        jsr     nibble_unpack(pc)       ; $4EBA $FF34
         LEA     (-24832).W,A1                   ; $008468
 .loc_0088:
         TST.W  (-16306).W                       ; $00846C
@@ -75,17 +75,17 @@ dual_time_display_orch:
         LEA     (-22528).W,A3                   ; $0084A0
         MOVEQ   #$00,D1                         ; $0084A4
         MOVE.B  (-22047).W,D1                   ; $0084A6
-        DC.W    $4EBA,$0048         ; JSR     $0084F4(PC); $0084AA
+        jsr     time_array_entry_comparison(pc); $4EBA $0048
         BEQ.S  .loc_00D4                        ; $0084AE
         MOVE.W  #$0000,(-18514).W               ; $0084B0
         BRA.S  .loc_010E                        ; $0084B6
 .loc_00D4:
-        DC.W    $4EBA,$0054         ; JSR     $00850E(PC); $0084B8
+        jsr     fixed_point_threshold_state_marker(pc); $4EBA $0054
         LEA     $00FF68F8,A1                    ; $0084BC
         MOVE.L  #$04034070,-$0004(A1)           ; $0084C2
         MOVE.B  D0,-$0007(A1)                   ; $0084CA
         MOVE.B  D1,(A1)+                        ; $0084CE
-        DC.W    $4EBA,$FEC8         ; JSR     $00839A(PC); $0084D0
+        jsr     nibble_unpack(pc)       ; $4EBA $FEC8
 .loc_00F0:
         TST.W  (-18514).W                       ; $0084D4
         BEQ.S  .loc_010E                        ; $0084D8

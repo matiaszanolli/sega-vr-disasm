@@ -12,7 +12,7 @@
 ; ============================================================================
 
 register_restore_from_table:
-        DC.W    $4DFA,$0014         ; LEA     $000C70(PC),A6; $000C5A
+        lea     hardware_init(pc),a6    ; $4DFA $0014
         MOVEM.L (A6),D0/D1/D2/D3                ; $000C5E
         MOVEM.L (A6),D4/D5/D6/D7                ; $000C62
         MOVEM.L (A6),A0/A1/A2/A3                ; $000C66

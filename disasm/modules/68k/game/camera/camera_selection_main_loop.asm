@@ -23,9 +23,9 @@
 
 camera_selection_main_loop:
         CLR.W  D0                               ; $012CC2
-        DC.W    $6100,$B866         ; BSR.W  $00E52C; $012CC4
-        DC.W    $4EBA,$89BA         ; JSR     $00B684(PC); $012CC8
-        DC.W    $4EBA,$8A0C         ; JSR     $00B6DA(PC); $012CCC
+        bsr.w   MemoryInit              ; $6100 $B866
+        jsr     object_update(pc)       ; $4EBA $89BA
+        jsr     animated_seq_player+10(pc); $4EBA $8A0C
         JSR     $0088179E                       ; $012CD0
         TST.W  (-24518).W                       ; $012CD6
         BNE.W  .loc_0150                        ; $012CDA
@@ -131,7 +131,7 @@ camera_selection_main_loop:
 .loc_0174:
         TST.B  COMM0_HI                        ; $012E36
         BNE.S  .loc_0174                        ; $012E3C
-        DC.W    $6100,$0132         ; BSR.W  $012F72; $012E3E
+        bsr.w   camera_sh2_command_27_dispatch+28; $6100 $0132
 .loc_0180:
         MOVEA.L #$0603DE80,A0                   ; $012E42
         MOVEA.L #$04004C60,A1                   ; $012E48

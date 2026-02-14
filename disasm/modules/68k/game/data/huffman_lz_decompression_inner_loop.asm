@@ -31,10 +31,10 @@ huffman_lz_decompression_inner_loop:
         cmpi.b  #$FC,D1                         ; $001148  escape code?
         bcc.s   .escape_code                    ; $00114C  yes → long symbol
         andi.w  #$00FF,D1                       ; $00114E  mask to byte
-        dc.w    $D241                ; add.w   D1,D1  ; D1 × 2 (table index)
+        add.w   d1,d1                   ; $D241
         move.b  $00(A1,D1.W),D0                 ; $001154  table[D1] = signed delta
         ext.w   D0                              ; $001158  sign-extend
-        dc.w    $9C40                ; sub.w   D0,D6  ; consume D0 bits from register
+        sub.w   d0,d6                   ; $9C40
         cmpi.w  #$0009,D6                       ; $00115C  need refill?
         bcc.s   .read_nibble_pair               ; $001160  no → continue
         addq.w  #8,D6                           ; $001162  refill 8 bits
@@ -49,7 +49,7 @@ huffman_lz_decompression_inner_loop:
         lsr.w   #4,D0                           ; $001176  align value to low nibble
 .accumulate_nibbles:
         lsl.l   #4,D4                           ; $001178  shift accumulator left
-        dc.w    $8801                ; or.b    D1,D4  ; merge nibble into accumulator
+        or.b    d1,d4                   ; $8801
         subq.w  #1,D3                           ; $00117C  decrement output counter
         bne.s   .check_repeat                   ; $00117E  more nibbles needed
         jmp     (A3)                            ; $001180  value complete → return

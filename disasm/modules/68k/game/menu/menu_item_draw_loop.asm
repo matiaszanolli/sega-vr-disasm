@@ -22,16 +22,16 @@
 ; ============================================================================
 
 menu_item_draw_loop:
-        dc.w    $4EBA,$00F8                     ; $01446C  jsr $014566(pc) — menu check/init
+        jsr     read_combined_start_button_state(pc); $4EBA $00F8
         beq.s   .dispatch                       ; $014470  zero → proceed
         move.w  #$000F,($FFFFC084).w           ; $014472  reset substate = $0F
 .dispatch:
-        dc.w    $41FA,$01B0                     ; $014478  lea $01462A(pc),A0 — jump table
+        lea     menu_item_address_table_vdp_reg_clear(pc),a0; $41FA $01B0
         move.w  ($FFFFC084).w,D0               ; $01447C  D0 = menu_substate
         asl.w   #2,D0                           ; $014480  D0 × 4 (longword index)
         movea.l $00(A0,D0.W),A1                ; $014482  A1 = table[substate]
         move.l  #$00009A00,D1                   ; $014486  D1 = $9A00 (param)
-        dc.w    $4EBA,$0162                     ; $01448C  jsr $0145F0(pc) — menu_state_check
+        jsr     menu_tile_copy_to_vdp(pc); $4EBA $0162
         addq.w  #1,($FFFFC084).w               ; $014490  substate++
         cmpi.w  #$000F,($FFFFC084).w           ; $014494  substate > $0F?
         ble.s   .done                           ; $01449A  no → done

@@ -24,32 +24,32 @@ vdp_tile_unpack_0025b0:
 ; --- row A: VRAM $6502-$6532 ---
         lea     ($FFFFC888).w,A0                ; $0025B8  A0 → tile_source_ptr
         move.l  #$65020002,(A5)                 ; $0025BC  VDP addr = $6502
-        dc.w    $4EBA,$FEB8                     ; $0025C2  jsr $00247C(pc) — unpack [1]
-        dc.w    $4EBA,$FEB4                     ; $0025C6  jsr $00247C(pc) — unpack [2]
+        jsr     pixel_unpack_2pairs(pc) ; $4EBA $FEB8
+        jsr     pixel_unpack_2pairs(pc) ; $4EBA $FEB4
         movea.l ($FFFFC888).w,A0                ; $0025CA  reload source ptr
         move.l  #$65140002,(A5)                 ; $0025CE  VDP addr = $6514
-        dc.w    $4EBA,$FEA6                     ; $0025D4  jsr $00247C(pc) — unpack [3]
+        jsr     pixel_unpack_2pairs(pc) ; $4EBA $FEA6
         move.l  #$651E0002,(A5)                 ; $0025D8  VDP addr = $651E
-        dc.w    $4EBA,$FE9C                     ; $0025DE  jsr $00247C(pc) — unpack [4]
+        jsr     pixel_unpack_2pairs(pc) ; $4EBA $FE9C
         move.l  #$65280002,(A5)                 ; $0025E2  VDP addr = $6528
-        dc.w    $4EBA,$FE92                     ; $0025E8  jsr $00247C(pc) — unpack [5]
+        jsr     pixel_unpack_2pairs(pc) ; $4EBA $FE92
         move.l  #$65320002,(A5)                 ; $0025EC  VDP addr = $6532
-        dc.w    $4EBA,$FE88                     ; $0025F2  jsr $00247C(pc) — unpack [6]
+        jsr     pixel_unpack_2pairs(pc) ; $4EBA $FE88
 ; --- advance source by 8, start row B ---
         addq.l  #8,($FFFFC888).w                ; $0025F6  source ptr += 8
         lea     ($FFFFC888).w,A0                ; $0025FA  A0 → tile_source_ptr
         move.l  #$66020002,(A5)                 ; $0025FE  VDP addr = $6602
-        dc.w    $4EBA,$FE76                     ; $002604  jsr $00247C(pc) — unpack [7]
-        dc.w    $4EBA,$FE72                     ; $002608  jsr $00247C(pc) — unpack [8]
+        jsr     pixel_unpack_2pairs(pc) ; $4EBA $FE76
+        jsr     pixel_unpack_2pairs(pc) ; $4EBA $FE72
         movea.l ($FFFFC888).w,A0                ; $00260C  reload source ptr
         move.l  #$66140002,(A5)                 ; $002610  VDP addr = $6614
-        dc.w    $4EBA,$FE64                     ; $002616  jsr $00247C(pc) — unpack [9]
+        jsr     pixel_unpack_2pairs(pc) ; $4EBA $FE64
         move.l  #$661E0002,(A5)                 ; $00261A  VDP addr = $661E
-        dc.w    $4EBA,$FE5A                     ; $002620  jsr $00247C(pc) — unpack [10]
+        jsr     pixel_unpack_2pairs(pc) ; $4EBA $FE5A
         move.l  #$66280002,(A5)                 ; $002624  VDP addr = $6628
-        dc.w    $4EBA,$FE50                     ; $00262A  jsr $00247C(pc) — unpack [11]
+        jsr     pixel_unpack_2pairs(pc) ; $4EBA $FE50
         move.l  #$66320002,(A5)                 ; $00262E  VDP addr = $6632
-        dc.w    $4EBA,$FE46                     ; $002634  jsr $00247C(pc) — unpack [12]
+        jsr     pixel_unpack_2pairs(pc) ; $4EBA $FE46
 ; --- restore source pointer ---
         subq.l  #8,($FFFFC888).w                ; $002638  source ptr -= 8
 .done:

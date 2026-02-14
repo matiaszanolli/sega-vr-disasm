@@ -10,9 +10,9 @@
 ; ============================================================================
 
 counter_check_advance:
-        dc.w    $0C38,$0003,$C819     ; CMPI.B #$03,($C819).W
+        cmpi.b  #$03,($FFFFC819).w      ; $0C38 $0003 $C819
         bne.s   .done                 ; If not 3, skip
-        dc.w    $5878,$C8BE           ; ADDQ.W #4,($C8BE).W
-        dc.w    $31FC,$0000,$C8AA     ; MOVE.W #$0000,($C8AA).W
+        addq.w  #4,($FFFFC8BE).w        ; $5878 $C8BE
+        move.w  #$0000,($FFFFC8AA).w    ; $31FC $0000 $C8AA
 .done:
         rts

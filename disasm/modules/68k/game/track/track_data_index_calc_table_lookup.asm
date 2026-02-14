@@ -21,17 +21,17 @@ track_data_index_calc_table_lookup:
         move.l  #$00000400,D3                   ; $0073E8  D3 = base offset $400
         move.w  D1,D4                           ; $0073EE  D4 = D1
         asr.w   #4,D4                           ; $0073F0  D4 >>= 4
-        dc.w    $D843                           ; $0073F2  add.w d3,d4 — D4 += D3
+        add.w   d3,d4                   ; $D843
         asr.w   #5,D4                           ; $0073F4  D4 >>= 5
         move.w  D2,D5                           ; $0073F6  D5 = D2
         asr.w   #4,D5                           ; $0073F8  D5 >>= 4
-        dc.w    $D645                           ; $0073FA  add.w d5,d3 — D3 += D5
+        add.w   d5,d3                   ; $D645
         andi.w  #$FFE0,D3                       ; $0073FC  align to 32-byte boundary
         asl.w   #1,D3                           ; $007400  D3 × 2
-        dc.w    $D644                           ; $007402  add.w d4,d3 — D3 += D4
-        dc.w    $D643                           ; $007404  add.w d3,d3 — D3 × 2
+        add.w   d4,d3                   ; $D644
+        add.w   d3,d3                   ; $D643
         move.w  ($FFFFC8A0).w,D0                ; $007406  D0 = race_state
-        dc.w    $D040                           ; $00740A  add.w d0,d0 — D0 × 2
+        add.w   d0,d0                   ; $D040
         dc.w    $45FA,$001E                     ; $00740C  lea $00742C(pc),a2 — normal table
         tst.b   $00E4(A0)                       ; $007410  alternate table?
         beq.s   .lookup                         ; $007414  no → use normal
@@ -40,7 +40,7 @@ track_data_index_calc_table_lookup:
         movea.l $00(A2,D0.W),A1                 ; $00741A  A1 = segment ptr
         move.w  $00(A1,D3.W),D3                 ; $00741E  D3 = segment[offset]
         movea.l $04(A2,D0.W),A1                 ; $007422  A1 = base ptr
-        dc.w    $D683                           ; $007426  add.l d3,d3 — D3 × 2
+        add.l   d3,d3                   ; $D683
         adda.l  D3,A1                           ; $007428  A1 += D3
         rts                                     ; $00742A
 

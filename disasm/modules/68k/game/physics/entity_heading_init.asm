@@ -17,7 +17,7 @@ entity_heading_init:
         DIVU    #$0000,D0                       ; $007AB2
         BTST    #7,$00C0(A0)                    ; $007AB6
         DC.W    $6618               ; BNE.S  $007AD6; $007ABC
-        DC.W    $4EBA,$00EC         ; JSR     $007BAC(PC); $007ABE
+        jsr     visibility_eval_caller(pc); $4EBA $00EC
         MOVE.W  $0032(A0),D1                    ; $007AC2
         MOVE.W  D1,$00C6(A0)                    ; $007AC6
         MOVE.W  D1,$00C8(A0)                    ; $007ACA

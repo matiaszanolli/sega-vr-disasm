@@ -19,7 +19,7 @@
 ; ============================================================================
 
 obj_distance_calc:
-        dc.w    $4A78,$C04C             ; TST.W ($C04C).W - check mode flag
+        tst.w    ($FFFFC04C).w          ; $4A78 $C04C — check mode flag
         bne.s   .with_offset            ; If non-zero, subtract offset
         move.w  $3C(a0),d0             ; Load base position
         add.w   $96(a0),d0             ; Add position offset

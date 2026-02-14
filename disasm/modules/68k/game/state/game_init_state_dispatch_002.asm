@@ -44,9 +44,9 @@ game_init_state_dispatch_002:
         move.w  D0,($FFFFC880).w                ; $004410  vdp_color_a = 0
         move.w  D0,($FFFFC882).w                ; $004414  vdp_color_b = 0
         move.w  #$0020,$00FF0008                ; $004418  display list cmd = $20
-        dc.w    $4EBA,$70A8         ; JSR     $00B4CA(PC); $004420  ai_scene_interpolation
+        jsr     display_digit_extract(pc); $4EBA $70A8
         move.b  #$00,($FFFFC800).w              ; $004424  race_init_flag = 0
-        dc.w    $4EFA,$E464         ; JMP     $002890(PC); $00442A  → v_int_comm1_signal_handler
+        jmp     mars_comm_write(pc)     ; $4EFA $E464
 ; --- entry B: state dispatch ---
         move.w  #$0001,($FFFFC048).w            ; $00442E  camera_state = 1
         move.w  ($FFFFC07C).w,D0                ; $004434  D0 = input_state

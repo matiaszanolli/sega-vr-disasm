@@ -127,9 +127,9 @@ sh2_display_and_palette_init:
         MOVE.W  #$0026,D3                       ; $00D650
         MOVE.W  #$001A,D4                       ; $00D654
         LEA     $00FF1000,A0                    ; $00D658
-        DC.W    $4EBA,$0BCC         ; JSR     $00E22C(PC); $00D65E
+        jsr     sh2_graphics_cmd(pc)    ; $4EBA $0BCC
         LEA     $00FF1000,A0                    ; $00D662
-        DC.W    $4EBA,$0C86         ; JSR     $00E2F0(PC); $00D668
+        jsr     sh2_load_data(pc)       ; $4EBA $0C86
         BRA.W  .loc_0254                        ; $00D66C
 .loc_01EE:
         LEA     $000E8E10,A0                    ; $00D670
@@ -144,16 +144,16 @@ sh2_display_and_palette_init:
         MOVE.W  #$0026,D3                       ; $00D69C
         MOVE.W  #$0016,D4                       ; $00D6A0
         LEA     $00FF1000,A0                    ; $00D6A4
-        DC.W    $4EBA,$0B80         ; JSR     $00E22C(PC); $00D6AA
+        jsr     sh2_graphics_cmd(pc)    ; $4EBA $0B80
         MOVE.W  #$0002,D0                       ; $00D6AE
         MOVE.W  #$0001,D1                       ; $00D6B2
         MOVE.W  #$0017,D2                       ; $00D6B6
         MOVE.W  #$0026,D3                       ; $00D6BA
         MOVE.W  #$0004,D4                       ; $00D6BE
         LEA     $00FF1000,A0                    ; $00D6C2
-        DC.W    $4EBA,$0B62         ; JSR     $00E22C(PC); $00D6C8
+        jsr     sh2_graphics_cmd(pc)    ; $4EBA $0B62
         LEA     $00FF1000,A0                    ; $00D6CC
-        DC.W    $4EBA,$0C1C         ; JSR     $00E2F0(PC); $00D6D2
+        jsr     sh2_load_data(pc)       ; $4EBA $0C1C
 .loc_0254:
         CLR.B  (-24537).W                       ; $00D6D6
         MOVEQ   #$00,D0                         ; $00D6DA

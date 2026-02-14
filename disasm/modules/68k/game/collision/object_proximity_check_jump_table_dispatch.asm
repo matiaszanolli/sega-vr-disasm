@@ -54,8 +54,8 @@ object_proximity_check_jump_table_dispatch:
 .store_counter:
         move.w  D0,($FFFFC008).w                ; $00381A
         lsr.w   #1,D0                           ; $00381E  D0 /= 2
-        dc.w    $D040                ; add.w   D0,D0  ; D0 *= 2
-        dc.w    $D040                ; add.w   D0,D0  ; D0 *= 4 (longword index)
+        add.w   d0,d0                   ; $D040
+        add.w   d0,d0                   ; $D040
         move.l  $00(A1,D0.W),$0010(A2)          ; $003824  target animation frame
         bra.s   .dispatch                       ; $00382A
 .next_target:

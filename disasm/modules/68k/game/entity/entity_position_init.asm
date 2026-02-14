@@ -10,8 +10,8 @@
 ; ============================================================================
 
 entity_position_init:
-        dc.w    $3278,$C8C0           ; MOVEA.W ($C8C0).W,A1 - table pointer
-        dc.w    $0CB8,$0000,$0000,$EEDC ; CMPI.L #0,($EEDC).W - init check
+        movea.w ($FFFFC8C0).w,a1        ; $3278 $C8C0 — table pointer
+        cmpi.l  #$00000000,($FFFFEEDC).w; $0CB8 $0000 $0000 $EEDC — init check
         beq.s   .compare              ; If zero, skip fill
         movea.l a1,a2                 ; Save A1
         move.w  #$0253,d7             ; 596 iterations

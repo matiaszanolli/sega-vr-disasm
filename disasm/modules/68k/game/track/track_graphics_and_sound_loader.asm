@@ -32,8 +32,8 @@ track_graphics_and_sound_loader:
         JSR     $008813B4                       ; $00C7F2
         LEA     $0089B6AC,A1                    ; $00C7F8
         LEA     (-1464).W,A2                    ; $00C7FE
-        DC.W    $4EBA,$80E6         ; JSR     $0048EA(PC); $00C802
-        DC.W    $4EBA,$811A         ; JSR     $004922(PC); $00C806
+        jsr     triple_memory_copy+32(pc); $4EBA $80E6
+        jsr     triple_memory_copy+88(pc); $4EBA $811A
         LEA     $0089B73C,A1                    ; $00C80A
         LEA     (-598).W,A2                     ; $00C810
         MOVEQ   #$35,D7                         ; $00C814

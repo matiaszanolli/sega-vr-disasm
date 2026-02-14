@@ -22,8 +22,8 @@ position_table_lookup:
         subq.w  #1,$001C(A0)                    ; $006D6E  decrement frame counter
         move.w  $001C(A0),D0                    ; $006D72  D0 = new counter value
         movea.l ($FFFFC700).w,A2                ; $006D76  A2 = position table base
-        dc.w    $D040                           ; $006D7A  add.w d0,d0 — D0 × 2
-        dc.w    $D040                           ; $006D7C  add.w d0,d0 — D0 × 4
+        add.w   d0,d0                   ; $D040
+        add.w   d0,d0                   ; $D040
         move.w  $00(A2,D0.W),$0030(A0)          ; $006D7E  obj x_pos = table[idx].x
         move.w  $02(A2,D0.W),$0034(A0)          ; $006D84  obj y_pos = table[idx].y
         rts                                     ; $006D8A

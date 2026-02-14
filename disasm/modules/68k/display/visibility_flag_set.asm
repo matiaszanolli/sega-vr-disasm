@@ -11,7 +11,7 @@
 
 visibility_flag_set:
         moveq   #0,d0                 ; Default: invisible
-        dc.w    $0838,$0002,$C8AB     ; BTST #2,($C8AB).W
+        btst    #2,($FFFFC8AB).w        ; $0838 $0002 $C8AB
         bne.s   .write                ; If set, keep hidden
         moveq   #7,d0                 ; Else: visible (type 7)
 .write:

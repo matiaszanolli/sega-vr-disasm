@@ -24,10 +24,10 @@ lap_disp_update_vdp_tile_write:
         lea     $00FF689A,A1                    ; $00B5AE  A1 → VDP tile target
         move.w  ($FFFF902C).w,D0               ; $00B5B4  D0 = lap count
         addq.w  #1,D0                           ; $00B5B8  D0 += 1
-        dc.w    $D040                           ; $00B5BA  add.w d0,d0 — D0 × 2
+        add.w   d0,d0                   ; $D040
         lea     $00899884,A0                    ; $00B5BC  A0 → display value table
         move.w  $00(A0,D0.W),D0                ; $00B5C2  D0 = table[lap+1]
-        dc.w    $4EFA,$FF84                     ; $00B5C6  jmp $00B54C(pc) — write routine (tail)
+        jmp     display_digit_extract+130(pc); $4EFA $FF84
 ; --- entry 2: VDP tile update ---
         move.w  ($FFFF902C).w,D0               ; $00B5CA  D0 = lap count
         cmpi.w  #$0004,D0                       ; $00B5CE  lap > 4?

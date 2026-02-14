@@ -24,11 +24,11 @@
 controller_read_button_remap:
 ; --- controller remap table (16 bytes, 2 × 8 entries) ---
         dc.w    $0406                           ; $00178E  remap[0]: buttons 4,6
-        dc.w    $0100                           ; $001790  remap[1]: buttons 1,0
-        dc.w    $0500                           ; $001792  remap[2]: buttons 5,0
+        btst    d0,d0                   ; $0100
+        btst    d2,d0                   ; $0500
         dc.w    $0000                           ; $001794  remap[3]: 0,0
         dc.w    $0406                           ; $001796  remap[4]: buttons 4,6
-        dc.w    $0100                           ; $001798  remap[5]: buttons 1,0
+        btst    d0,d0                   ; $0100
         dc.w    $050A                           ; $00179A  remap[6]: buttons 5,10
         dc.w    $0908                           ; $00179C  remap[7]: buttons 9,8
 ; --- code ---
@@ -39,8 +39,8 @@ controller_read_button_remap:
         lea     $00A10003,A1                    ; $0017B0  A1 → genesis controller port 1
         lea     ($FFFFC970).w,A2                ; $0017B6  A2 → controller work buffer
         lea     ($FFFFFE82).w,A3                ; $0017BA  A3 → I/O register
-        dc.w    $4EBA,$009E                     ; $0017BE  jsr $00185E(pc) — zbus_request
-        dc.w    $4EBA,$002A                     ; $0017C2  jsr $0017EE(pc) — button_remap
+        jsr     joypad_read_hw(pc)      ; $4EBA $009E
+        jsr     joypad_process+10(pc)   ; $4EBA $002A
         cmpi.b  #$0D,($FFFFC811).w             ; $0017C6  P2 mode == $0D?
         dc.w    $6716                           ; $0017CC  beq.s $0017E4 → exit (past fn, P2 active)
         move.b  #$00,($FFFFC86E).w             ; $0017CE  clear P2 byte A (no P2)

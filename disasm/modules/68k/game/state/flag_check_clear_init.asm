@@ -10,12 +10,12 @@
 ; ============================================================================
 
 flag_check_clear_init:
-        dc.w    $0838,$0007,$C80E     ; BTST #7,($C80E).W
+        btst    #7,($FFFFC80E).w        ; $0838 $0007 $C80E
         bne.s   .done                 ; If SH2 busy, skip
         move.w  #$8B00,(a5)           ; Write VDP register
         moveq   #0,d0
-        dc.w    $11C0,$C304           ; MOVE.B D0,($C304).W
-        dc.w    $11C0,$C30C           ; MOVE.B D0,($C30C).W
-        dc.w    $5838,$C8C5           ; ADDQ.B #4,($C8C5).W
+        move.b  d0,($FFFFC304).w        ; $11C0 $C304
+        move.b  d0,($FFFFC30C).w        ; $11C0 $C30C
+        addq.b  #4,($FFFFC8C5).w        ; $5838 $C8C5
 .done:
         rts

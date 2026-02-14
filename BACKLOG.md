@@ -89,11 +89,12 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 
 ## P3 — Code Quality
 
-### B-010: Translate remaining 122 68K dc.w modules
-**Status:** OPEN
-**Why:** 571/693 modules translated (82.5%). Improves readability and maintainability.
-**Acceptance:** Each translated module verified byte-identical. No build regressions.
-**Key files:** Modules in `disasm/modules/68k/*/fn_*.asm` still containing dc.w blocks.
+### B-010: Translate remaining 68K dc.w modules
+**Status:** DONE (Phase 1+2 complete)
+**Phase 1 (done):** Automated translation of non-PC-relative, non-branch dc.w lines — 3851 lines across 139 files.
+**Phase 2 (done):** Label map builder (800 labels from 771 included modules + section files) + PC-relative decoder (JSR/JMP/BSR/LEA d16(PC)) + branch decoder (Bcc.S/W, BRA, DBcc) with local label generation. 5504 total dc.w lines converted, 2722 remaining (data tables, complex addressing modes, unlabeled targets). 530 of 821 modules fully translated.
+**Build:** Byte-identical verified (md5: `2d842a62085df8efba46053c5bea8868`).
+**Tool:** `python3 tools/translate_68k_modules.py --phase2 --batch disasm/modules/68k/`
 
 ### B-011: Translate 17 remaining SH2 functions
 **Status:** OPEN (partially blocked — see [KNOWN_ISSUES.md](KNOWN_ISSUES.md))
@@ -116,6 +117,7 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 | ID | Description | Commit | Date |
 |----|-------------|--------|------|
 | B-006 | Activate v4.0 parallel hooks — **PARTIAL**: Patch #2 needs revert (COMM7 collision crash) | 651a415 | 2026-02-10 |
+| B-010 | dc.w→mnemonic Phase 1+2 (5504 lines, 530/821 modules fully translated) | — | 2026-02-13 |
 | B-012 | Symbolic register hardening batch 1 (6 sh2/vdp modules) | 3b347d3 | 2026-02-10 |
 | B-012 | Symbolic register hardening batch 2 (8 modules + COMM6 fix) | 350e346 | 2026-02-10 |
 | B-012 | Symbolic register hardening batch 3 (20 modules, all categories) | 170c6e7 | 2026-02-10 |

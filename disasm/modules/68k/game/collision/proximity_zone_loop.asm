@@ -16,7 +16,7 @@ proximity_zone_loop:
         move.w  #$02C0,d5             ; Near threshold
         move.w  #$1000,d6             ; Approach threshold
         moveq   #14,d7               ; 15 entities
-        dc.w    $43F8,$9100           ; LEA ($9100).W,A1
+        lea     ($FFFF9100).w,a1        ; $43F8 $9100
 .loop:
         move.w  #$0000,$00C0(a1)      ; Default zone 0
         move.w  $0030(a1),d2

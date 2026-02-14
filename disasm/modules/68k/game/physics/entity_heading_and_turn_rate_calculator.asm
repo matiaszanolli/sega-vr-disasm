@@ -32,15 +32,15 @@ entity_heading_and_turn_rate_calculator:
         MOVEQ   #$0E,D7                         ; $00CF10
 .loc_0024:
         MOVE.W  D7,-(A7)                        ; $00CF12
-        DC.W    $4EBA,$ABA0         ; JSR     $007AB6(PC); $00CF14
-        DC.W    $4EBA,$AB9C         ; JSR     $007AB6(PC); $00CF18
-        DC.W    $4EBA,$AB98         ; JSR     $007AB6(PC); $00CF1C
-        DC.W    $4EBA,$AB94         ; JSR     $007AB6(PC); $00CF20
-        DC.W    $4EBA,$AB90         ; JSR     $007AB6(PC); $00CF24
-        DC.W    $4EBA,$AB8C         ; JSR     $007AB6(PC); $00CF28
-        DC.W    $4EBA,$AB88         ; JSR     $007AB6(PC); $00CF2C
-        DC.W    $4EBA,$AB84         ; JSR     $007AB6(PC); $00CF30
-        DC.W    $4EBA,$AB80         ; JSR     $007AB6(PC); $00CF34
+        jsr     entity_heading_init+4(pc); $4EBA $ABA0
+        jsr     entity_heading_init+4(pc); $4EBA $AB9C
+        jsr     entity_heading_init+4(pc); $4EBA $AB98
+        jsr     entity_heading_init+4(pc); $4EBA $AB94
+        jsr     entity_heading_init+4(pc); $4EBA $AB90
+        jsr     entity_heading_init+4(pc); $4EBA $AB8C
+        jsr     entity_heading_init+4(pc); $4EBA $AB88
+        jsr     entity_heading_init+4(pc); $4EBA $AB84
+        jsr     entity_heading_init+4(pc); $4EBA $AB80
         LEA     $0093AC2C,A1                    ; $00CF38
         MOVE.W  $00C8(A0),D0                    ; $00CF3E
         SUB.W  $0032(A0),D0                     ; $00CF42
@@ -70,8 +70,8 @@ entity_heading_and_turn_rate_calculator:
         MOVE.W  $00(A1,D0.W),D0                 ; $00CF86
         NEG.W  D0                               ; $00CF8A
 .loc_009E:
-        DC.W    $4EBA,$A6C0         ; JSR     $00764E(PC); $00CF8C
-        DC.W    $4EBA,$A1B8         ; JSR     $00714A(PC); $00CF90
+        jsr     rotational_offset_calc(pc); $4EBA $A6C0
+        jsr     object_link_copy_table_lookup(pc); $4EBA $A1B8
         MOVE.W  D0,$003E(A0)                    ; $00CF94
         MOVE.W  $006E(A0),$0046(A0)             ; $00CF98
         LEA     $0100(A0),A0                    ; $00CF9E

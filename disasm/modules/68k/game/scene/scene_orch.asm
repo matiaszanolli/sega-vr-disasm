@@ -50,15 +50,15 @@ scene_orch:
         move.w  A0,($FFFFC8C0).w                ; $00C3C4  advance controller_ptr
         jsr     $0088593C                       ; $00C3C8  sprite_state_process
         jsr     $008824CA                       ; $00C3CE  scene handler
-        dc.w    $4EBA,$F304                     ; $00C3D4  jsr $00B6DA(pc) — sprite_update
-        dc.w    $4EBA,$F2AA                     ; $00C3D8  jsr $00B684(pc) — object_update
+        jsr     animated_seq_player+10(pc); $4EBA $F304
+        jsr     object_update(pc)       ; $4EBA $F2AA
         addq.b  #1,($FFFFC886).w                ; $00C3DC  scene_counter++
         addq.w  #4,($FFFFC87E).w                ; $00C3E0  advance state
         move.w  #$0038,$00FF0008                ; $00C3E4  SH2 COMM = $38
-        dc.w    $4EBA,$0028                     ; $00C3EC  jsr $00C416(pc) — handler B
-        dc.w    $4EBA,$01BC                     ; $00C3F0  jsr $00C5AE(pc) — handler C
-        dc.w    $4EBA,$FC7A                     ; $00C3F4  jsr $00C070(pc) — handler A
-        dc.w    $4EFA,$0268                     ; $00C3F8  jmp $00C662(pc) — tail-jump
+        jsr     scene_dispatch(pc)      ; $4EBA $0028
+        jsr     countdown_timer_setup_race_start_init(pc); $4EBA $01BC
+        jsr     display_list_builder+20(pc); $4EBA $FC7A
+        jmp     scene_state_disp_race_init_phases(pc); $4EFA $0268
 ; --- entry 2: reduced orchestrator ---
         jsr     $008821CA                       ; $00C3FC  init handler
         jsr     $0088179E                       ; $00C402  poll_controllers

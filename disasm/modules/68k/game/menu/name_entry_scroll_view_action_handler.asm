@@ -32,9 +32,9 @@
 
 name_entry_scroll_view_action_handler:
         clr.w   D0                              ; $01146E  mode = 0
-        dc.w    $4EBA,$D0BA                     ; $011470  bsr.w dma_transfer ($00E52C)
-        dc.w    $4EBA,$A20E                     ; $011474  bsr.w object_update ($00B684)
-        dc.w    $4EBA,$A260                     ; $011478  bsr.w sprite_update ($00B6DA)
+        jsr     MemoryInit(pc)          ; $4EBA $D0BA
+        jsr     object_update(pc)       ; $4EBA $A20E
+        jsr     animated_seq_player+10(pc); $4EBA $A260
         movea.l #$06018F80,A0                   ; $01147C  A0 = score display source
         movea.l #$0400E038,A1                   ; $011482  A1 = display dest
         move.w  #$00D8,D0                       ; $011488  size = $D8
@@ -51,7 +51,7 @@ name_entry_scroll_view_action_handler:
         beq.w   .no_velocity                    ; $0114B6  no → check input
         move.l  ($FFFFA022).w,D0                ; $0114BA  D0 = scroll position
         move.l  ($FFFFA026).w,D1                ; $0114BE  D1 = velocity
-        dc.w    $D081                           ; $0114C2  add.l d1,d0 — apply velocity
+        add.l   d1,d0                   ; $D081
         move.l  D0,($FFFFA022).w                ; $0114C4  store new position
         subq.b  #1,($FFFFA02E).w                ; $0114C8  decrement step counter
         bcc.w   .revert_state                   ; $0114CC  still stepping → revert

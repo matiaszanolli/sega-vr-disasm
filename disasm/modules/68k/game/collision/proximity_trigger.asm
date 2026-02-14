@@ -16,7 +16,7 @@ proximity_trigger:
 .check:
         move.w  $00A4(a0),d0          ; Entity index
         asl.w   #8,d0                 ; Word index
-        dc.w    $43F8,$9000           ; LEA ($9000).W,A1 - entity table
+        lea     ($FFFF9000).w,a1        ; $43F8 $9000 — entity table
         lea     (a1,d0.w),a1          ; Index into table
         move.w  $0072(a1),d0          ; Target lap position
         sub.w   $0072(a0),d0          ; Difference

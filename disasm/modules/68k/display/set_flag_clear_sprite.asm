@@ -9,6 +9,6 @@
 ; ============================================================================
 
 set_flag_clear_sprite:
-        dc.w    $11FC,$00AB,$C8A5     ; MOVE.B #$AB,($C8A5).W
+        move.b  #$AB,($FFFFC8A5).w      ; $11FC $00AB $C8A5
         move.b  #$00,$00FF6940        ; Clear sprite enable
         rts

@@ -14,20 +14,20 @@ sprite_position_check:
         move.b  #$07,(a2)             ; Set sprite type = 7
         move.w  #$01AE,$0002(a2)      ; Set Y position = 430
         move.l  #$222EDB1A,$0008(a2)  ; Set tile pointer
-        dc.w    $11FC,$0003,$C819     ; MOVE.B #$03,($C819).W - step counter
+        move.b  #$03,($FFFFC819).w      ; $11FC $0003 $C819 — step counter
         cmpa.w  #$9000,a0             ; Check player ID
         beq.s   .player1              ; If player 1, branch
-        dc.w    $2038,$B180           ; MOVE.L ($B180).W,D0 - P2 score
-        dc.w    $B0B8,$C260           ; CMP.L ($C260).W,D0 - threshold
+        move.l  ($FFFFB180).w,d0        ; $2038 $B180 — P2 score
+        cmp.l   ($FFFFC260).w,d0        ; $B0B8 $C260 — threshold
         ble.s   sprite_clear_alt      ; If <=, alternate path (next func)
         bra.s   .set_flag             ; Otherwise set flag
 .player1:
-        dc.w    $2038,$B580           ; MOVE.L ($B580).W,D0 - P1 score
-        dc.w    $B0B8,$C260           ; CMP.L ($C260).W,D0 - threshold
+        move.l  ($FFFFB580).w,d0        ; $2038 $B580 — P1 score
+        cmp.l   ($FFFFC260).w,d0        ; $B0B8 $C260 — threshold
         ble.s   .set_flag             ; If <=, set flag
         bra.s   sprite_clear_alt      ; Otherwise alternate path
 .set_flag:
-        dc.w    $11FC,$0001,$C816     ; MOVE.B #$01,($C816).W - position flag
+        move.b  #$01,($FFFFC816).w      ; $11FC $0001 $C816 — position flag
         move.l  #$04038000,$0004(a2)  ; Set sprite attributes
-        dc.w    $31FC,$0000,$B39C     ; MOVE.W #$0000,($B39C).W
+        move.w  #$0000,($FFFFB39C).w    ; $31FC $0000 $B39C
         rts

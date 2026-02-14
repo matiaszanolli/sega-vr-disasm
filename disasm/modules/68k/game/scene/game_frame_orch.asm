@@ -34,42 +34,42 @@ game_frame_orch:
         move.w  D0,$0046(A0)                    ; $005E3E  display_scale = 0
         move.w  D0,$004A(A0)                    ; $005E42  display_param = 0
         move.l  #$00100010,($FFFFC970).w            ; $005E46  display_scale_pair = 16|16
-        dc.w    $4EBA,$592C         ; jsr     $00B77C(pc)         ; $005E4E
+        jsr     camera_state_selector+12(pc); $4EBA $592C
         move.w  #$0002,$0092(A0)                ; $005E52  param_92 = 2
-        dc.w    $4EBA,$2740         ; jsr     $00859A(pc)         ; $005E58
-        dc.w    $4EBA,$44F2         ; jsr     $00A350(pc)         ; $005E5C
-        dc.w    $4EBA,$230E         ; jsr     $008170(pc)         ; $005E60
-        dc.w    $4EBA,$2266         ; jsr     $0080CC(pc)         ; $005E64
-        dc.w    $4EBA,$26DE         ; jsr     $008548(pc)         ; $005E68
-        dc.w    $4EBA,$368C         ; jsr     $0094FA(pc)         ; $005E6C
-        dc.w    $4EBA,$34A0         ; jsr     $009312(pc)         ; $005E70
-        dc.w    $4EBA,$3C9C         ; jsr     $009B12(pc)         ; $005E74
-        dc.w    $4EBA,$3308         ; jsr     $009182(pc)         ; $005E78
-        dc.w    $4EBA,$37A0         ; jsr     $00961E(pc)         ; $005E7C
-        dc.w    $4EBA,$3806         ; jsr     $009688(pc)         ; $005E80
-        dc.w    $4EBA,$397C         ; jsr     $009802(pc)         ; $005E84
-        dc.w    $4EBA,$1FF0         ; jsr     $007E7A(pc)         ; $005E88
-        dc.w    $4EBA,$110A         ; jsr     $006F98(pc)         ; $005E8C  calc_steering
-        dc.w    $4EBA,$1E46         ; jsr     $007CD8(pc)         ; $005E90
-        dc.w    $4EBA,$459E         ; jsr     $00A434(pc)         ; $005E94
-        dc.w    $4EBA,$1210         ; jsr     $0070AA(pc)         ; $005E98
-        dc.w    $4EBA,$2066         ; jsr     $007F04(pc)         ; $005E9C
-        dc.w    $4EBA,$1DAC         ; jsr     $007C4E(pc)         ; $005EA0
-        dc.w    $4EBA,$12A4         ; jsr     $00714A(pc)         ; $005EA4
-        dc.w    $4EBA,$17A4         ; jsr     $00764E(pc)         ; $005EA8
-        dc.w    $4EBA,$20A2         ; jsr     $007F50(pc)         ; $005EAC
-        dc.w    $4EBA,$3E1C         ; jsr     $009CCE(pc)         ; $005EB0
-        dc.w    $4EBA,$3C9E         ; jsr     $009B54(pc)         ; $005EB4
-        dc.w    $4EBA,$2844         ; jsr     $0086FE(pc)         ; $005EB8
-        dc.w    $4EBA,$3182         ; jsr     $009040(pc)         ; $005EBC
-        dc.w    $4EBA,$4E12         ; jsr     $00ACD4(pc)         ; $005EC0
-        dc.w    $4EBA,$E1BE         ; jsr     $004084(pc)         ; $005EC4
-        dc.w    $4EBA,$1734         ; jsr     $0075FE(pc)         ; $005EC8
-        dc.w    $4EBA,$12D8         ; jsr     $0071A6(pc)         ; $005ECC
-        dc.w    $4EBA,$CAB2         ; jsr     $002984(pc)         ; $005ED0  palette_update
-        dc.w    $4EBA,$D2D0         ; jsr     $0031A6(pc)         ; $005ED4  display_mode_dispatch
-        dc.w    $4EBA,$D804         ; jsr     $0036DE(pc)         ; $005ED8  clear_buffer
-        dc.w    $4EBA,$D8D8         ; jsr     $0037B6(pc)         ; $005EDC  memory_copy
-        dc.w    $4EBA,$E0A4         ; jsr     $003F86(pc)         ; $005EE0  clear_display_vars
-        dc.w    $4EBA,$D1E0         ; jsr     $0030C6(pc)         ; $005EE4
+        jsr     speed_degrade_calc(pc)  ; $4EBA $2740
+        jsr     effect_timer_mgmt(pc)   ; $4EBA $44F2
+        jsr     object_timer_expire_speed_param_reset(pc); $4EBA $230E
+        jsr     field_check_guard(pc)   ; $4EBA $2266
+        jsr     timer_decrement_multi(pc); $4EBA $26DE
+        jsr     steering_input_processing_and_velocity_update+6(pc); $4EBA $368C
+        jsr     entity_force_integration_and_speed_calc+18(pc); $4EBA $34A0
+        jsr     entity_speed_clamp(pc)  ; $4EBA $3C9C
+        jsr     entity_speed_acceleration_and_braking(pc); $4EBA $3308
+        jsr     tilt_adjust(pc)         ; $4EBA $37A0
+        jsr     drift_physics_and_camera_offset_calc(pc); $4EBA $3806
+        jsr     suspension_steering_damping(pc); $4EBA $397C
+        jsr     object_anim_timer_speed_clear+6(pc); $4EBA $1FF0
+        jsr     entity_pos_update(pc)   ; $4EBA $110A
+        jsr     multi_flag_test(pc)     ; $4EBA $1E46
+        jsr     ai_opponent_select(pc)  ; $4EBA $459E
+        jsr     angle_to_sine(pc)       ; $4EBA $1210
+        jsr     object_heading_deviation_check_warning_flag+8(pc); $4EBA $2066
+        jsr     entity_speed_guard+4(pc); $4EBA $1DAC
+        jsr     object_link_copy_table_lookup(pc); $4EBA $12A4
+        jsr     rotational_offset_calc(pc); $4EBA $17A4
+        jsr     position_threshold_check(pc); $4EBA $20A2
+        jsr     race_pos_sorting_and_rank_assignment+50(pc); $4EBA $3E1C
+        jsr     set_camera_regs_to_invalid(pc); $4EBA $3C9E
+        jsr     proximity_zone_multi+54(pc); $4EBA $2844
+        jsr     heading_from_position(pc); $4EBA $3182
+        jsr     ai_target_check(pc)     ; $4EBA $4E12
+        jsr     display_state_disp_004084(pc); $4EBA $E1BE
+        jsr     obj_distance_calc(pc)   ; $4EBA $1734
+        jsr     object_visibility_collector(pc); $4EBA $12D8
+        jsr     camera_param_calc(pc)   ; $4EBA $CAB2
+        jsr     object_state_disp_0031a6(pc); $4EBA $D2D0
+        jsr     object_table_sprite_param_update(pc); $4EBA $D804
+        jsr     object_proximity_check_jump_table_dispatch(pc); $4EBA $D8D8
+        jsr     render_slot_setup+88(pc); $4EBA $E0A4
+        jsr     camera_offset_clamping(pc); $4EBA $D1E0
         rts                                     ; $005EE8

@@ -21,7 +21,7 @@ sh2_command_sender:
 ; --- data prefix (20 words = 40 bytes) ----------------------------------------
         dc.w    $4400,$44A3,$4946,$4DE9         ; $011A70  block 0
         dc.w    $4400,$44A3,$4946,$4DE9         ; $011A78  block 1 (same as block 0)
-        dc.w    $0000,$0000                     ; $011A80  separator
+        ori.b  #$00,d0                  ; $0000 $0000
         dc.w    $0011,$0003,$0005,$0011          ; $011A84  parameter descriptors
         dc.w    $0006,$000A,$0012,$0008          ; $011A8C
         dc.w    $000F,$0013                     ; $011A94

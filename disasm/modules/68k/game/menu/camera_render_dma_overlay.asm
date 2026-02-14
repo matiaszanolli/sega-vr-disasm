@@ -34,7 +34,7 @@
 
 camera_render_dma_overlay:
         clr.w   D0                              ; $013346  mode = 0
-        dc.w    $4EBA,$B1E2                     ; $013348  bsr.w dma_transfer ($00E52C)
+        jsr     MemoryInit(pc)          ; $4EBA $B1E2
 ; --- static DMA: header area ---
         movea.l #$06018000,A0                   ; $01334C  source
         movea.l #$04004C74,A1                   ; $013352  dest
@@ -56,8 +56,8 @@ camera_render_dma_overlay:
 ; --- dynamic DMA: replay angle label ---
         lea     $0089ABEE,A0                    ; $013394  A0 = replay angle table
         move.w  ($FFFFA01A).w,D0                ; $01339A  D0 = replay_angle counter
-        dc.w    $D040                           ; $01339E  add.w d0,d0 — D0 × 2
-        dc.w    $D040                           ; $0133A0  add.w d0,d0 — D0 × 4
+        add.w   d0,d0                   ; $D040
+        add.w   d0,d0                   ; $D040
         movea.l $00(A0,D0.W),A0                 ; $0133A2  A0 = table[replay_angle]
         movea.l #$04009088,A1                   ; $0133A6  dest
         move.w  #$0040,D0                       ; $0133AC  size = $40
@@ -66,8 +66,8 @@ camera_render_dma_overlay:
 ; --- dynamic DMA: music track label ---
         lea     $0089ABFA,A0                    ; $0133B8  A0 = music track table
         move.w  ($FFFFA01C).w,D0                ; $0133BE  D0 = music_track counter
-        dc.w    $D040                           ; $0133C2  add.w d0,d0 — D0 × 2
-        dc.w    $D040                           ; $0133C4  add.w d0,d0 — D0 × 4
+        add.w   d0,d0                   ; $D040
+        add.w   d0,d0                   ; $D040
         movea.l $00(A0,D0.W),A0                 ; $0133C6  A0 = table[music_track]
         movea.l #$0400C088,A1                   ; $0133CA  dest
         move.w  #$0078,D0                       ; $0133D0  size = $78
@@ -76,8 +76,8 @@ camera_render_dma_overlay:
 ; --- dynamic DMA: SFX A label ---
         lea     $0089AC7C,A0                    ; $0133DC  A0 = SFX A table
         move.w  ($FFFFA01E).w,D0                ; $0133E2  D0 = sfx_a counter
-        dc.w    $D040                           ; $0133E6  add.w d0,d0 — D0 × 2
-        dc.w    $D040                           ; $0133E8  add.w d0,d0 — D0 × 4
+        add.w   d0,d0                   ; $D040
+        add.w   d0,d0                   ; $D040
         movea.l $00(A0,D0.W),A0                 ; $0133EA  A0 = table[sfx_a]
         movea.l #$0400F088,A1                   ; $0133EE  dest
         move.w  #$0068,D0                       ; $0133F4  size = $68
@@ -86,8 +86,8 @@ camera_render_dma_overlay:
 ; --- dynamic DMA: SFX B label ---
         lea     $0089ACBE,A0                    ; $013400  A0 = SFX B table
         move.w  ($FFFFA020).w,D0                ; $013406  D0 = sfx_b counter
-        dc.w    $D040                           ; $01340A  add.w d0,d0 — D0 × 2
-        dc.w    $D040                           ; $01340C  add.w d0,d0 — D0 × 4
+        add.w   d0,d0                   ; $D040
+        add.w   d0,d0                   ; $D040
         movea.l $00(A0,D0.W),A0                 ; $01340E  A0 = table[sfx_b]
         movea.l #$04012088,A1                   ; $013412  dest
         move.w  #$0088,D0                       ; $013418  size = $88
@@ -99,8 +99,8 @@ camera_render_dma_overlay:
         moveq   #$00,D0                         ; $01342A  clear D0
         move.b  ($FFFFA019).w,D0                ; $01342C  D0 = mode index
         lea     $008934C8,A1                    ; $013430  A1 = overlay table
-        dc.w    $D040                           ; $013436  add.w d0,d0 — D0 × 2
-        dc.w    $D040                           ; $013438  add.w d0,d0 — D0 × 4
+        add.w   d0,d0                   ; $D040
+        add.w   d0,d0                   ; $D040
         movea.l $00(A1,D0.W),A0                 ; $01343A  A0 = overlay[mode]
         move.w  #$0048,D0                       ; $01343E  height = $48
         move.w  #$0010,D1                       ; $013442  width = $10
@@ -108,7 +108,7 @@ camera_render_dma_overlay:
 .wait_comm0:
         tst.b   COMM0_HI                        ; $01344A  COMM0 busy?
         bne.s   .wait_comm0                     ; $013450  yes → wait
-        dc.w    $4EBA,$AF60                     ; $013452  bsr.w sh2_cmd_27 ($00E3B4)
+        jsr     sh2_cmd_27(pc)          ; $4EBA $AF60
 ; --- copy highlight palette to CRAM+$178 ---
 .copy_palette:
         lea     $00FF6E00,A1                    ; $013456  A1 = CRAM base
@@ -128,9 +128,9 @@ camera_render_dma_overlay:
         beq.s   .finish                         ; $013484  yes → skip
         clr.w   D0                              ; $013486
         move.b  ($FFFFA019).w,D0                ; $013488  D0 = mode index
-        dc.w    $D040                           ; $01348C  add.w d0,d0 — D0 × 2
-        dc.w    $D040                           ; $01348E  add.w d0,d0 — D0 × 4
-        dc.w    $D040                           ; $013490  add.w d0,d0 — D0 × 8
+        add.w   d0,d0                   ; $D040
+        add.w   d0,d0                   ; $D040
+        add.w   d0,d0                   ; $D040
         lea     $00FF6E00,A1                    ; $013492  A1 = CRAM base
         adda.l  #$00000178,A1                   ; $013498  A1 += $178
         lea     $008934E0,A0                    ; $01349E  A0 = active palette

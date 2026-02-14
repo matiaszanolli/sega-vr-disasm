@@ -31,10 +31,10 @@
 pause_menu_handler_ctrl_check:
 ; --- entry 1: clear pause flag + tail jump ---
         bclr    #7,($FFFFFDA8).w               ; $0056E4  clear pause bit 7
-        dc.w    $4EFA,$7D9E                     ; $0056EA  jmp $00D48A(pc) — pause handler
+        jmp     sh2_display_and_palette_init+8(pc); $4EFA $7D9E
 ; --- entry 2: set pause flag + tail jump ---
         bset    #7,($FFFFFDA8).w               ; $0056EE  set pause bit 7
-        dc.w    $4EFA,$7D94                     ; $0056F4  jmp $00D48A(pc) — pause handler
+        jmp     sh2_display_and_palette_init+8(pc); $4EFA $7D94
 ; --- entry 3: controller check ---
         move.b  ($FFFFC86D).w,D0               ; $0056F8  D0 = P1 controller B
         btst    #4,($FFFFC80E).w               ; $0056FC  2-player mode?
@@ -46,7 +46,7 @@ pause_menu_handler_ctrl_check:
         tst.b   ($FFFFC800).w                  ; $00570E  scene flag set?
         bne.s   .done                           ; $005712  yes → done
         move.b  #$01,$00FF69F0                 ; $005714  write mode flag
-        dc.w    $4EBA,$F28C                     ; $00571C  jsr $0049AA(pc) — SetDisplayParams
+        jsr     input_clear_both(pc)    ; $4EBA $F28C
         move.b  #$00,($FFFFA510).w             ; $005720  clear tick counter
         move.w  #$0C00,($FFFFC8C4).w          ; $005726  sub_state = $0C00
         move.w  #$0010,($FFFFC87E).w          ; $00572C  state_dispatch = $10

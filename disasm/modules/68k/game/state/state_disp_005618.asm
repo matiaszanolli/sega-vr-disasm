@@ -30,10 +30,10 @@ state_disp_005618:
         dc.l    $008856CE                       ; $00562E  [0C] → $0056CE (past fn)
         dc.l    $0088573C                       ; $005632  [10] → $00573C (past fn)
 ; --- state 0 handler ---
-        dc.w    $4EBA,$D28A                     ; $005636  jsr $0028C2(pc) — VDPSyncSH2
-        dc.w    $4EBA,$CB8E                     ; $00563A  jsr $0021CA(pc) — sfx_queue_process
-        dc.w    $4EBA,$327E                     ; $00563E  jsr $0088BE(pc) — handler sub
-        dc.w    $4EBA,$0284                     ; $005642  jsr $0058C8(pc) — sprite_input_check
+        jsr     mars_dma_xfer_vdp_fill(pc); $4EBA $D28A
+        jsr     sound_update_disp+244(pc); $4EBA $CB8E
+        jsr     camera_view_toggle_020(pc); $4EBA $327E
+        jsr     sh2_handler_dispatch_scene_init+98(pc); $4EBA $0284
         addq.b  #1,($FFFFC886).w               ; $005646  scene counter++
         addq.w  #4,($FFFFC87E).w               ; $00564A  advance state
         move.w  #$0010,$00FF0008               ; $00564E  SH2 COMM = $10

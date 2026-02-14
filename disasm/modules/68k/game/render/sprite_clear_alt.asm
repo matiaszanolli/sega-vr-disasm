@@ -9,7 +9,7 @@
 ; ============================================================================
 
 sprite_clear_alt:
-        dc.w    $11FC,$0000,$C816     ; MOVE.B #$00,($C816).W
+        move.b  #$00,($FFFFC816).w      ; $11FC $0000 $C816
         move.l  #$0402C000,$0004(a2)  ; Set alternate attributes
-        dc.w    $31FC,$0000,$B79C     ; MOVE.W #$0000,($B79C).W
+        move.w  #$0000,($FFFFB79C).w    ; $31FC $0000 $B79C
         rts

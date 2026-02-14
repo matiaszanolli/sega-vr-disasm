@@ -44,9 +44,9 @@
 
 name_entry_mode_select_input_handler:
         clr.w   D0                              ; $011240  mode = 0
-        dc.w    $4EBA,$D2E8                     ; $011242  bsr.w dma_transfer ($00E52C)
-        dc.w    $4EBA,$A43C                     ; $011246  bsr.w object_update ($00B684)
-        dc.w    $4EBA,$A48E                     ; $01124A  bsr.w sprite_update ($00B6DA)
+        jsr     MemoryInit(pc)          ; $4EBA $D2E8
+        jsr     object_update(pc)       ; $4EBA $A43C
+        jsr     animated_seq_player+10(pc); $4EBA $A48E
 ; --- SH2 DMA: score display ---
         movea.l #$06018F80,A0                   ; $01124E  source
         movea.l #$0400E038,A1                   ; $011254  dest
@@ -62,7 +62,7 @@ name_entry_mode_select_input_handler:
 ; --- time digit render ---
         lea     $0402C090,A1                    ; $01127E  dest for digits
         lea     ($FFFFA046).w,A2                ; $011284  A2 = time digit buffer
-        dc.w    $4EBA,$064A                     ; $011288  bsr.w time_digit_render ($0118D4)
+        jsr     lap_time_digit_renderer_b(pc); $4EBA $064A
 ; --- SH2 DMA: status bar ---
         movea.l #$06018C00,A0                   ; $01128C  source
         movea.l #$0400C048,A1                   ; $011292  dest
@@ -163,7 +163,7 @@ name_entry_mode_select_input_handler:
         bra.w   .set_display                    ; $011408
 ; --- epilogue ---
 .revert_state:
-        dc.w    $6100,$05AA                     ; $01140C  bsr.w fn_10200_041 ($0119B8)
+        bsr.w   name_entry_color_palette_update; $6100 $05AA
 .set_display:
         move.w  #$0018,$00FF0008                ; $011410  display mode = $0018
         rts                                     ; $011418

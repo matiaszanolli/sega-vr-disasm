@@ -39,14 +39,14 @@ state_disp_005020:
         dc.l    $008850DE                       ; $00503A  [0C] → $0050DE (past fn)
         dc.l    $0088573C                       ; $00503E  [10] → $00573C (past fn)
 ; --- state 0 handler ---
-        dc.w    $4EBA,$D87E                     ; $005042  jsr $0028C2(pc) — VDPSyncSH2
-        dc.w    $4EBA,$D10C                     ; $005046  jsr $002154(pc) — init handler
-        dc.w    $4EBA,$6052                     ; $00504A  jsr $00B09E(pc) — animation_update
-        dc.w    $4EBA,$6044                     ; $00504E  jsr $00B094(pc) — frame_sync
-        dc.w    $4EBA,$608A                     ; $005052  jsr $00B0DE(pc) — display_update
-        dc.w    $4EBA,$5FE4                     ; $005056  jsr $00B03C(pc) — frame_update
-        dc.w    $4EBA,$65D6                     ; $00505A  jsr $00B632(pc) — sprite_setup
-        dc.w    $4EBA,$65E6                     ; $00505E  jsr $00B646(pc) — sprite_finalize
+        jsr     mars_dma_xfer_vdp_fill(pc); $4EBA $D87E
+        jsr     sound_update_disp+126(pc); $4EBA $D10C
+        jsr     cascaded_frame_counter+10(pc); $4EBA $6052
+        jsr     cascaded_frame_counter(pc); $4EBA $6044
+        jsr     ai_timer_inc(pc)        ; $4EBA $608A
+        jsr     speed_scale_conditional(pc); $4EBA $5FE4
+        jsr     lap_value_store_1(pc)   ; $4EBA $65D6
+        jsr     lap_value_store_2(pc)   ; $4EBA $65E6
         addq.w  #4,($FFFFC87E).w                ; $005062  advance state
         move.w  #$0014,$00FF0008                ; $005066  SH2 COMM = $14
         rts                                     ; $00506E

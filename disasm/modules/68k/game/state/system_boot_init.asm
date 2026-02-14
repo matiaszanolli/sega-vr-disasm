@@ -74,13 +74,13 @@ system_boot_init:
 .loc_007C:
         BCLR    #0,$008B(A1)                    ; $000738
         BNE.S  .loc_007C                        ; $00073E
-        DC.W    $6100,$FF12         ; BSR.W  $000654; $000740
+        bsr.w   framebuffer_auto_fill_clear+22; $6100 $FF12
 .loc_0088:
         BSET    #0,$008B(A1)                    ; $000744
         BEQ.S  .loc_0088                        ; $00074A
-        DC.W    $6100,$FF06         ; BSR.W  $000654; $00074C
+        bsr.w   framebuffer_auto_fill_clear+22; $6100 $FF06
         BCLR    #0,$008B(A1)                    ; $000750
-        DC.W    $6100,$FF3C         ; BSR.W  $000694; $000756
+        bsr.w   gfx_32x_cram_fill       ; $6100 $FF3C
         MOVE.W  #$0040,D0                       ; $00075A
         MOVE.L  $0020(A1),D1                    ; $00075E
         CMPI.L  #$53514552,D1                   ; $000762
@@ -185,7 +185,7 @@ system_boot_init:
         CMPI.L  #$56524553,COMM6            ; $0008AC
         DBEQ    D7,.loc_01F0                    ; $0008B6
         BEQ.W  .loc_02FA                        ; $0008BA
-        DC.W    $4EBA,$1D7E         ; JSR     $00263E(PC); $0008BE
+        jsr     mars_regs_init_13(pc)   ; $4EBA $1D7E
         ORI.B  #$03,MARS_SYS_INTMASK+1                   ; $0008C2
         LEA     COMM0,A0                    ; $0008CA
 .loc_0214:
@@ -249,7 +249,7 @@ system_boot_init:
         MOVEQ   #$00,D0                         ; $0009A4
         JSR     ($00C0).W                       ; $0009A6
         MOVE.W  #$0000,Z80_BUSREQ                ; $0009AA
-        DC.W    $4EFA,$01B6         ; JMP     $000B6A(PC); $0009B2
+        jmp     system_boot_init+1198(pc); $4EFA $01B6
 .loc_02FA:
         MOVE    SR,-(A7)                        ; $0009B6
         MOVE    #$2700,SR                       ; $0009B8
@@ -305,8 +305,8 @@ system_boot_init:
         MOVEQ   #$00,D0                         ; $000A72
         JSR     ($00C0).W                       ; $000A74
         MOVE.W  #$0000,Z80_BUSREQ                ; $000A78
-        DC.W    $4EBA,$1BBC         ; JSR     $00263E(PC); $000A80
-        DC.W    $4EFA,$00E4         ; JMP     $000B6A(PC); $000A84
+        jsr     mars_regs_init_13(pc)   ; $4EBA $1BBC
+        jmp     system_boot_init+1198(pc); $4EFA $00E4
 .loc_03CC:
         MOVE    SR,-(A7)                        ; $000A88
         MOVE    #$2700,SR                       ; $000A8A
@@ -365,9 +365,9 @@ system_boot_init:
         MOVE.W  #$0001,MARS_SYS_HCOUNT                ; $000B52
         LEA     VDP_DATA,A6                    ; $000B5A
         LEA     VDP_CTRL,A5                    ; $000B60
-        DC.W    $4EBA,$0118         ; JSR     $000C80(PC); $000B66
+        jsr     hardware_init+16(pc)    ; $4EBA $0118
         JSR     .loc_058C(PC)                   ; $000B6A
-        DC.W    $4EBA,$00EA         ; JSR     $000C5A(PC); $000B6E
+        jsr     register_restore_from_table(pc); $4EBA $00EA
         LEA     VDP_DATA,A6                    ; $000B72
         LEA     VDP_CTRL,A5                    ; $000B78
         MOVE    SR,-(A7)                        ; $000B7E
@@ -415,9 +415,9 @@ system_boot_init:
         NOP                                     ; $000C14
         SUBI.B  #$20,D0                         ; $000C16
         MOVE.B  D0,PSG                    ; $000C1A
-        DC.W    $4EBA,$1418         ; JSR     $00203A(PC); $000C20
-        DC.W    $4EBA,$0142         ; JSR     $000D68(PC); $000C24
-        DC.W    $4EBA,$019A         ; JSR     $000DC4(PC); $000C28
+        jsr     sh2_frame_sync_wrapper(pc); $4EBA $1418
+        jsr     system_init_orch(pc)    ; $4EBA $0142
+        jsr     double_cond_guard(pc)   ; $4EBA $019A
         JSR     $0088C85C                       ; $000C2C
         JSR     $00880FBE                       ; $000C32
         MOVE.L  #$00894262,$00FF0002            ; $000C38

@@ -54,7 +54,7 @@ object_geometry_visibility_collect:
 ; --- get racer segment pointer table ---
         move.l  #$2207FFFE,D3                   ; $0073A2  sentinel value
         move.w  ($FFFFC8A0).w,D0                    ; $0073A8  racer_index
-        dc.w    $43FA,$FE9A         ; lea     $007248(pc),A1      ; $0073AC  racer_segment_ptr_table
+        lea     vdp_nametable_setup_display_list_build(pc),a1; $43FA $FE9A
         movea.l $00(A1,D0.W),A1                 ; $0073B0  A1 = racer segment ptrs
 ; --- collect visible objects ---
         lea     $00FF6000,A2                    ; $0073B4  output list

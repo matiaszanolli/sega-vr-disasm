@@ -22,12 +22,12 @@
 
 physics_integration:
         ; --- Compute Manhattan distance to target ---
-        dc.w    $3038,$A000             ; MOVE.W ($A000).W,D0 - target X
+        move.w  ($FFFFA000).w,d0        ; $3038 $A000 — target X
         sub.w   $30(a0),d0              ; DX = target_x - pos_x
         bpl.s   .dx_pos                 ; If positive, skip negate
         neg.w   d0                      ; |DX|
 .dx_pos:
-        dc.w    $3238,$A002             ; MOVE.W ($A002).W,D1 - target Y
+        move.w  ($FFFFA002).w,d1        ; $3238 $A002 — target Y
         sub.w   $34(a0),d1              ; DY = target_y - pos_y
         bpl.s   .dy_pos                 ; If positive, skip negate
         neg.w   d1                      ; |DY|
@@ -56,8 +56,8 @@ physics_integration:
         move.w  $34(a0),d0              ; Current Y position
         move.w  $30(a0),d1              ; Current X position
         neg.w   d1                      ; Negate X (coordinate transform)
-        dc.w    $3438,$A002             ; MOVE.W ($A002).W,D2 - target Y
-        dc.w    $3638,$A000             ; MOVE.W ($A000).W,D3 - target X
+        move.w  ($FFFFA002).w,d2        ; $3438 $A002 — target Y
+        move.w  ($FFFFA000).w,d3        ; $3638 $A000 — target X
         neg.w   d3                      ; Negate target X
 
         ; --- Compute target heading via steering calc ---

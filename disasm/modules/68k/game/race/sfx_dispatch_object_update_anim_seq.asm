@@ -27,9 +27,9 @@ sfx_dispatch_object_update_anim_seq:
 ; --- SFX dispatch: 3 calls ---
         move.b  #$01,($FFFFC802).w              ; $00B65A  sfx_enable = 1
         lea     ($FFFF8480).w,A2                ; $00B660  A2 → work buffer
-        dc.w    $4EBA,$000A                     ; $00B664  jsr $00B670(pc) — dispatch_sfx [1]
-        dc.w    $4EBA,$0006                     ; $00B668  jsr $00B670(pc) — dispatch_sfx [2]
-        dc.w    $4EBA,$0002                     ; $00B66C  jsr $00B670(pc) — dispatch_sfx [3]
+        jsr     sfx_dispatch_object_update_anim_seq+22(pc); $4EBA $000A
+        jsr     sfx_dispatch_object_update_anim_seq+22(pc); $4EBA $0006
+        jsr     sfx_dispatch_object_update_anim_seq+22(pc); $4EBA $0002
 ; --- dispatch_sfx subroutine ---
         lea     $008BA000,A1                    ; $00B670  A1 → SFX ROM table base
         moveq   #$00,D1                         ; $00B676  clear D1
@@ -37,7 +37,7 @@ sfx_dispatch_object_update_anim_seq:
         ror.l   #8,D0                           ; $00B67A  rotate next byte into position
         lsl.w   #5,D1                           ; $00B67C  D1 × 32 (table stride)
         adda.w  D1,A1                           ; $00B67E  A1 += offset
-        dc.w    $4EFA,$9298                     ; $00B680  jmp $00491A(pc) — SFX handler
+        jmp     triple_memory_copy+80(pc); $4EFA $9298
 ; --- object_update ---
 object_update:
         btst    #6,($FFFFC80E).w                ; $00B684  animation active?
@@ -50,7 +50,7 @@ object_update:
         bne.s   .read_seq                       ; $00B69E  nonzero → read sequence
         movea.l ($FFFFC96C).w,A1                ; $00B6A0  A1 = object_base_ptr
         lea     ($FFFF8480).w,A2                ; $00B6A4  A2 → work buffer
-        dc.w    $4EBA,$9240                     ; $00B6A8  jsr $0048EA(pc) — object setup
+        jsr     triple_memory_copy+32(pc); $4EBA $9240
 .read_seq:
         move.b  $00B6D0(PC,D0.W),D1             ; $00B6AC  D1 = sequence[idx]
         move.b  D1,$00FF60D5                    ; $00B6B0  write to VDP

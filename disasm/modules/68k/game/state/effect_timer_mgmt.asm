@@ -25,7 +25,7 @@ effect_timer_mgmt:
         move.w  $6C(a0),d0              ; Load sine index
         add.w   d0,d0                   ; Word offset (index * 2)
         lea     sine_table(pc),a1       ; Point to sine table ($00A2D8)
-        dc.w    $3171,$0000,$006E       ; MOVE.W 0(A1,D0.W),$6E(A0) - store sine value
+        move.w  (a1,d0.w),$006E(a0)     ; $3171 $0000 $006E — store sine value
         subq.w  #1,$6A(a0)              ; Decrement timer
         addq.w  #1,$6C(a0)              ; Advance sine index
         bra.s   .return

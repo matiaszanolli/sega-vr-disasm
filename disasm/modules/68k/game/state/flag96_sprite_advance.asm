@@ -9,7 +9,7 @@
 ; ============================================================================
 
 flag96_sprite_advance:
-        dc.w    $11FC,$0096,$C8A5     ; MOVE.B #$96,($C8A5).W
+        move.b  #$96,($FFFFC8A5).w      ; $11FC $0096 $C8A5
         subq.w  #6,$00FF69E2          ; Move sprite up by 6
-        dc.w    $5878,$C07C           ; ADDQ.W #4,($C07C).W
+        addq.w  #4,($FFFFC07C).w        ; $5878 $C07C
         rts

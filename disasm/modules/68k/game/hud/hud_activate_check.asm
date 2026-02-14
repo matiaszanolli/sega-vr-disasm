@@ -16,9 +16,9 @@
 ; ============================================================================
 
 hud_activate_check:
-        dc.w    $4A78,$A0F0             ; TST.W ($A0F0).W - check active flag
+        tst.w    ($FFFFA0F0).w          ; $4A78 $A0F0 — check active flag
         bne.s   .return                 ; If non-zero, already active
-        dc.w    $0838,$0001,$C8AB       ; BTST #1,($C8AB).W - check mode bit
+        btst    #1,($FFFFC8AB).w        ; $0838 $0001 $C8AB — check mode bit
         beq.s   .return                 ; If clear, skip activation
         move.w  #$FFFF,$00FF60C8        ; Enable HUD
         move.b  #$09,$00FF6850          ; Set HUD mode

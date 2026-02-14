@@ -13,5 +13,5 @@
 
 abort_with_flag:
         addq.w  #4,sp                   ; Pop caller's return address
-        dc.w    $11FC,$0001,$C308       ; MOVE.B #$01,($C308).W - set flag
+        move.b  #$01,($FFFFC308).w      ; $11FC $0001 $C308 — set flag
         rts

@@ -84,7 +84,7 @@ scene_state_disp_with_color_tables:
         DC.W    $F6E2                           ; $00F432
         DC.W    $0088                           ; $00F434
         DC.W    $F85C                           ; $00F436
-        DC.W    $4EBA,$C24A         ; JSR     $00B684(PC); $00F438
+        jsr     object_update(pc)       ; $4EBA $C24A
         BTST    #6,(-14322).W                   ; $00F43C
 .loc_00A6:
         BNE.S  .loc_00AE                        ; $00F442

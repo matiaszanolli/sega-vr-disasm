@@ -32,7 +32,7 @@ sprite_strip_renderer_via_sh2_cmd_27:
 .loc_0022:
         TST.B  COMM0_HI                        ; $014222
         BNE.S  .loc_0022                        ; $014228
-        DC.W    $4EBA,$A188         ; JSR     $00E3B4(PC); $01422A
+        jsr     sh2_cmd_27(pc)          ; $4EBA $A188
         SUB.W   D4,D3                           ; $01422E
         BCS.W  .loc_0060                        ; $014230
         ADDQ.W  #1,D4                           ; $014234
@@ -48,7 +48,7 @@ sprite_strip_renderer_via_sh2_cmd_27:
 .loc_004E:
         TST.B  COMM0_HI                        ; $01424E
         BNE.S  .loc_004E                        ; $014254
-        DC.W    $4EBA,$A15C         ; JSR     $00E3B4(PC); $014256
+        jsr     sh2_cmd_27(pc)          ; $4EBA $A15C
         ADDQ.W  #1,D4                           ; $01425A
         DBRA    D3,.loc_0036                    ; $01425C
 .loc_0060:

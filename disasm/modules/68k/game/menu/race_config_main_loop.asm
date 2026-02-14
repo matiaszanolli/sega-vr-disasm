@@ -21,7 +21,7 @@
 
 race_config_main_loop:
         CLR.W  D0                               ; $013CBA
-        DC.W    $4EBA,$A86E         ; JSR     $00E52C(PC); $013CBC
+        jsr     MemoryInit(pc)          ; $4EBA $A86E
         JSR     $0088B684                       ; $013CC0
         JSR     $0088B6DA                       ; $013CC6
         MOVEA.L #$06014000,A0                   ; $013CCC
@@ -168,7 +168,7 @@ race_config_main_loop:
         LEA     (-364).W,A2                     ; $013ED4
         LEA     (-24551).W,A3                   ; $013ED8
         LEA     (-24544).W,A4                   ; $013EDC
-        DC.W    $6100,$00FE         ; BSR.W  $013FE0; $013EE0
+        bsr.w   car_driver_selection_input_handler; $6100 $00FE
         CLR.W  D0                               ; $013EE4
         BTST    #1,(-14312).W                   ; $013EE6
         BEQ.S  .loc_0238                        ; $013EEC
@@ -182,7 +182,7 @@ race_config_main_loop:
         LEA     (-356).W,A2                     ; $013F04
         LEA     (-24550).W,A3                   ; $013F08
         LEA     (-24542).W,A4                   ; $013F0C
-        DC.W    $6100,$00CE         ; BSR.W  $013FE0; $013F10
+        bsr.w   car_driver_selection_input_handler; $6100 $00CE
         TST.W  (-24546).W                       ; $013F14
         BEQ.W  .loc_02B8                        ; $013F18
         MOVE.B  #$01,(-14327).W                 ; $013F1C

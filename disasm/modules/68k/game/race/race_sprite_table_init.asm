@@ -23,7 +23,7 @@ race_sprite_table_init:
         MOVE.L  #$61000000,(-15788).W           ; $00D0B4
         MOVE.L  #$60000000,(-15776).W           ; $00D0BC
         MOVE.W  (-14176).W,D0                   ; $00D0C4
-        DC.W    $4EFA,$FFA0         ; JMP     $00D06A(PC); $00D0C8
+        jmp     race_scene_init_jump_table_dispatch+30(pc); $4EFA $FFA0
         LEA     (-598).W,A1                     ; $00D0CC
         MOVE.W  (-14180).W,D1                   ; $00D0D0
         LSL.W  #5,D1                            ; $00D0D4
@@ -47,7 +47,7 @@ race_sprite_table_init:
         LEA     $00FF68D8,A3                    ; $00D126
         MOVEQ   #$04,D7                         ; $00D12C
 .loc_00A4:
-        DC.W    $4EBA,$E30C         ; JSR     $00B43C(PC); $00D12E
+        jsr     word_to_nibble_unpacker(pc); $4EBA $E30C
         LEA     $0004(A1),A1                    ; $00D132
         LEA     $0010(A3),A3                    ; $00D136
         DBRA    D7,.loc_00A4                    ; $00D13A
@@ -64,8 +64,8 @@ race_sprite_table_init:
         LEA     $00(A1,D1.W),A1                 ; $00D15A
         MOVE.B  #$01,$0001(A1)                  ; $00D15E
         MOVE.L  A1,(-13984).W                   ; $00D164
-        DC.W    $4EBA,$9ADC         ; JSR     $006C46(PC); $00D168
-        DC.W    $4EBA,$B750         ; JSR     $0088BE(PC); $00D16C
+        jsr     tile_block_dma_setup(pc); $4EBA $9ADC
+        jsr     camera_view_toggle_020(pc); $4EBA $B750
         MOVE.W  #$00C0,(-16184).W               ; $00D170
         MOVE.W  #$07D0,(-14124).W               ; $00D176
         MOVE.W  #$0600,(-14122).W               ; $00D17C

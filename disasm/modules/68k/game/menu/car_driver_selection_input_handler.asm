@@ -78,7 +78,7 @@ car_driver_selection_input_handler:
         BEQ.S  .loc_00AE                        ; $014088
         LEA     (-24548).W,A4                   ; $01408A
 .loc_00AE:
-        DC.W    $6100,$00FE         ; BSR.W  $01418E; $01408E
+        bsr.w   table_entry_swap_by_index; $6100 $00FE
         SUBQ.B  #1,(A4)                         ; $014092
         MOVE.B  (A4),D3                         ; $014094
         CMP.B  (A3),D3                          ; $014096
@@ -88,7 +88,7 @@ car_driver_selection_input_handler:
         BEQ.W  .loc_00CA                        ; $0140A2
         MOVE.B  #$07,(A4)                       ; $0140A6
 .loc_00CA:
-        DC.W    $6100,$00E2         ; BSR.W  $01418E; $0140AA
+        bsr.w   table_entry_swap_by_index; $6100 $00E2
         BRA.W  .loc_01AC                        ; $0140AE
 .loc_00D2:
         BTST    #3,D1                           ; $0140B2
@@ -107,7 +107,7 @@ car_driver_selection_input_handler:
         BEQ.S  .loc_0102                        ; $0140DC
         LEA     (-24548).W,A4                   ; $0140DE
 .loc_0102:
-        DC.W    $6100,$00AA         ; BSR.W  $01418E; $0140E2
+        bsr.w   table_entry_swap_by_index; $6100 $00AA
         ADDQ.B  #1,(A4)                         ; $0140E6
         MOVE.B  #$04,D3                         ; $0140E8
         TST.W  D0                               ; $0140EC
@@ -118,7 +118,7 @@ car_driver_selection_input_handler:
         BGE.W  .loc_011E                        ; $0140F8
         MOVE.B  (A3),(A4)                       ; $0140FC
 .loc_011E:
-        DC.W    $6100,$008E         ; BSR.W  $01418E; $0140FE
+        bsr.w   table_entry_swap_by_index; $6100 $008E
         BRA.W  .loc_01AC                        ; $014102
 .loc_0126:
         CMPI.B  #$06,(A0)                       ; $014106

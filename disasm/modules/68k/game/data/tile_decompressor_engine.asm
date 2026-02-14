@@ -84,7 +84,7 @@ tile_decompressor_engine:
         MOVEQ   #$06,D0                         ; $00126C
         LSR.W  #1,D2                            ; $00126E
 .loc_0082:
-        DC.W    $6100,$0132         ; BSR.W  $0013A4; $001270
+        bsr.w   tile_bit_stream_refill_with_mask_table+54; $6100 $0132
         ANDI.W  #$000F,D2                       ; $001274
         LSR.W  #4,D1                            ; $001278
         ADD.W   D1,D1                           ; $00127A
@@ -99,20 +99,20 @@ tile_decompressor_engine:
         DBRA    D2,.loc_009C                    ; $00128C
         BRA.S  .loc_0068                        ; $001290
 .loc_00A4:
-        DC.W    $6100,$0060         ; BSR.W  $0012F4; $001292
+        bsr.w   tile_bit_stream_unpacker; $6100 $0060
 .loc_00A8:
         MOVE.W  D1,(A1)+                        ; $001296
         DBRA    D2,.loc_00A8                    ; $001298
         BRA.S  .loc_0068                        ; $00129C
 .loc_00B0:
-        DC.W    $6100,$0054         ; BSR.W  $0012F4; $00129E
+        bsr.w   tile_bit_stream_unpacker; $6100 $0054
 .loc_00B4:
         MOVE.W  D1,(A1)+                        ; $0012A2
         ADDQ.W  #1,D1                           ; $0012A4
         DBRA    D2,.loc_00B4                    ; $0012A6
         BRA.S  .loc_0068                        ; $0012AA
 .loc_00BE:
-        DC.W    $6100,$0046         ; BSR.W  $0012F4; $0012AC
+        bsr.w   tile_bit_stream_unpacker; $6100 $0046
 .loc_00C2:
         MOVE.W  D1,(A1)+                        ; $0012B0
         SUBQ.W  #1,D1                           ; $0012B2
@@ -122,7 +122,7 @@ tile_decompressor_engine:
         CMPI.W  #$000F,D2                       ; $0012BA
         BEQ.S  .loc_00EE                        ; $0012BE
 .loc_00D2:
-        DC.W    $6100,$0032         ; BSR.W  $0012F4; $0012C0
+        bsr.w   tile_bit_stream_unpacker; $6100 $0032
         MOVE.W  D1,(A1)+                        ; $0012C4
         DBRA    D2,.loc_00D2                    ; $0012C6
         BRA.S  .loc_0068                        ; $0012CA

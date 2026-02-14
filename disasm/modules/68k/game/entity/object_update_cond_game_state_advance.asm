@@ -12,7 +12,7 @@
 ; ============================================================================
 
 object_update_cond_game_state_advance:
-        dc.w    $4EBA,$DDCA                     ; JSR object_update(PC) ; $00D8B8: → $00B684
+        jsr     object_update(pc)       ; $4EBA $DDCA
         btst    #6,($FFFFC80E).w               ; $00D8BC: $0838 $0006 $C80E — sync flag set?
         bne.s   .done                           ; $00D8C2: $6606 — yes → skip advance
         addq.w  #4,($FFFFC87E).w               ; $00D8C4: $5878 $C87E — advance game state

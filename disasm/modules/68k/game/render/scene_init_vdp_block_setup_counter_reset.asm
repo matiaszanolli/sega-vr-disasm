@@ -52,7 +52,7 @@ scene_init_vdp_block_setup_counter_reset:
         move.l  #$61000000,($FFFFC254).w        ; $00D02A  work_param_A
         move.l  #$60000000,($FFFFC260).w        ; $00D032  work_param_B
 .load_track:
-        dc.w    $43FA,$0014                     ; $00D03A  lea $00D050(pc),a1 — track table
+        lea     race_scene_init_jump_table_dispatch+4(pc),a1; $43FA $0014
         moveq   #$00,D0                         ; $00D03E  clear D0
         move.b  ($FFFFFDA9).w,D0                ; $00D040  D0 = race_active
         move.b  $00(A1,D0.W),($FFFFC051).w      ; $00D044  track_param = table[D0]

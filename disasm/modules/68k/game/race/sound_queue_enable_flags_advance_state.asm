@@ -18,7 +18,7 @@
 ; ============================================================================
 
 sound_queue_enable_flags_advance_state:
-        dc.w    $4EBA,$CC50                     ; BSR.W $002474 ; $005822: — call sound queue sub
+        jsr     set_flag_8507_80(pc)    ; $4EBA $CC50
         move.b  #$01,($FFFFC809).w              ; $005826: $11FC $0001 $C809 — enable SH2 flag
         move.b  #$01,($FFFFC80A).w              ; $00582C: $11FC $0001 $C80A — enable display mode
         bset    #7,($FFFFC80E).w                ; $005832: $08F8 $0007 $C80E — set sync bit 7

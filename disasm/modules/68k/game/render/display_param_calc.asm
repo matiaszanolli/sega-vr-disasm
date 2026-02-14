@@ -19,7 +19,7 @@
 ; ============================================================================
 
 display_param_calc:
-        dc.w    $D241                           ; $00BDFE  add.w d1,d1 — D1 × 2
+        add.w   d1,d1                   ; $D241
         move.w  $00BE50(PC,D1.W),D0             ; $00BE00  D0 = table[D1]
         addi.w  #$0010,D0                       ; $00BE04  D0 += 16
         move.w  D0,($FFFFA0E6).w                ; $00BE08  store display_param
@@ -28,7 +28,7 @@ display_param_calc:
         move.w  D2,$0002(A1)                    ; $00BE12  A1+$02 = table value
         move.w  D2,$0012(A1)                    ; $00BE16  A1+$12 = table value
         move.w  #$00E0,D1                       ; $00BE1A  D1 = $E0 (224)
-        dc.w    $9240                           ; $00BE1E  sub.w d0,d1 — D1 = $E0 - D0
+        sub.w   d0,d1                   ; $9240 — D0
         lea     $00FF60C8,A2                    ; $00BE20  A2 → viewport block
         move.w  D0,(A2)                         ; $00BE26  viewport width = D0
         move.w  D1,$0002(A2)                    ; $00BE28  viewport height = D1
@@ -39,8 +39,8 @@ display_param_calc:
         ext.l   D1                              ; $00BE34  sign-extend D1
         asl.l   D2,D1                           ; $00BE36  D1 <<= 9 (×512)
         move.l  #$04024140,D2                   ; $00BE38  D2 = fixed-point base
-        dc.w    $D082                           ; $00BE3E  add.l d2,d0 — D0 += base
-        dc.w    $D282                           ; $00BE40  add.l d2,d1 — D1 += base
+        add.l   d2,d0                   ; $D082
+        add.l   d2,d1                   ; $D282
         move.l  D0,$0004(A1)                    ; $00BE42  A1+$04 = scaled width
         move.l  D1,$0014(A1)                    ; $00BE46  A1+$14 = scaled height
         addq.w  #1,($FFFFA0F0).w                ; $00BE4A  display_counter++

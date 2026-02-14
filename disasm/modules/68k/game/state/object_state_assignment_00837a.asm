@@ -14,7 +14,7 @@
 object_state_assignment_00837a:
         MOVE.L  (A3),(A4)                       ; $00837A
         MOVE.L  D5,$0004(A4)                    ; $00837C
-        DC.W    $4EBA,$30F6         ; JSR     $00B478(PC); $008380
+        jsr     bcd_nibble_subtractor(pc); $4EBA $30F6
         MOVEQ   #$02,D0                         ; $008384
         MOVEQ   #$0D,D1                         ; $008386
         RTS                                     ; $008388

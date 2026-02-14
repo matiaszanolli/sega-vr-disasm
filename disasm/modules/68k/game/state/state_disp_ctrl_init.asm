@@ -33,7 +33,7 @@ state_disp_ctrl_init:
 ; --- state 0 handler: controller poll + advance ---
 .state0_handler:
         jsr     $0088179E                       ; $0143E2  controller_poll
-        dc.w    $4EBA,$0024                     ; $0143E8  bsr.w $01440E (input handler)
+        jsr     menu_state_dispatch_042(pc); $4EBA $0024
         addq.w  #4,($FFFFC87E).w               ; $0143EC  advance game_state
         move.w  #$0020,$00FF0008               ; $0143F0  display mode = $0020
         rts                                     ; $0143F8

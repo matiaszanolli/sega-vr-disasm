@@ -16,13 +16,13 @@
 
 rotational_offset_calc:
         MOVE.W  $001E(A0),D0                    ; $00764E
-        DC.W    $4EBA,$18FA         ; JSR     $008F4E(PC); $007652
+        jsr     sine_cosine_quadrant_lookup(pc); $4EBA $18FA
         MOVE.W  D0,D4                           ; $007656
         MOVE.W  $0020(A0),D2                    ; $007658
         SUB.W  $0030(A0),D2                     ; $00765C
         MULS    D0,D2                           ; $007660
         MOVE.W  $001E(A0),D0                    ; $007662
-        DC.W    $4EBA,$18EA         ; JSR     $008F52(PC); $007666
+        jsr     sine_cosine_quadrant_lookup+4(pc); $4EBA $18EA
         MOVE.W  D0,D5                           ; $00766A
         MOVE.W  $0022(A0),D3                    ; $00766C
         SUB.W  $0034(A0),D3                     ; $007670

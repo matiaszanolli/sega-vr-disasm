@@ -26,7 +26,7 @@ input_dispatch_table_and_controller_port_init:
         DC.W    $0088                           ; $0016BA
         DC.W    $19FE                           ; $0016BC
         DC.W    $0001                           ; $0016BE
-        DC.W    $8200                           ; $0016C0
+        or.b    d0,d1                   ; $8200
         DC.W    $0088                           ; $0016C2
         DC.W    $1A6E                           ; $0016C4
         DC.W    $0088                           ; $0016C6
@@ -80,16 +80,16 @@ input_dispatch_table_and_controller_port_init:
         MOVE.B  #$09,(A1)+                      ; $001754
         MOVE.B  #$08,(A1)                       ; $001758
         LEA     (-364).W,A1                     ; $00175C
-        DC.W    $47FA,$0034         ; LEA     $001796(PC),A3; $001760
+        lea     controller_read_button_remap+8(pc),a3; $47FA $0034
         BTST    #0,(-14312).W                   ; $001764
         BNE.S  .loc_00BE                        ; $00176A
-        DC.W    $47FA,$0020         ; LEA     $00178E(PC),A3; $00176C
+        lea     controller_read_button_remap(pc),a3; $47FA $0020
 .loc_00BE:
         JSR     .loc_00D2(PC)                   ; $001770
-        DC.W    $47FA,$0020         ; LEA     $001796(PC),A3; $001774
+        lea     controller_read_button_remap+8(pc),a3; $47FA $0020
         BTST    #1,(-14312).W                   ; $001778
         BNE.S  .loc_00D2                        ; $00177E
-        DC.W    $47FA,$000C         ; LEA     $00178E(PC),A3; $001780
+        lea     controller_read_button_remap(pc),a3; $47FA $000C
 .loc_00D2:
         MOVEQ   #$07,D7                         ; $001784
 .loc_00D4:

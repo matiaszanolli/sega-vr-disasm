@@ -15,7 +15,7 @@
 
 z80_dac_byte_write:
         MOVE.B  (A4)+,D0                        ; $031166
-        DC.W    $4EBA,$FBB2         ; JSR     $030D1C(PC); $031168
+        jsr     z80_bus_wait(pc)        ; $4EBA $FBB2
         MOVE.B  D0,$00A00FFE                    ; $03116C
         MOVE.W  #$0000,Z80_BUSREQ                ; $031172
         RTS                                     ; $03117A

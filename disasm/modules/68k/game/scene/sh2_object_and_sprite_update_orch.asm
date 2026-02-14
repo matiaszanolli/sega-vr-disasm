@@ -17,9 +17,9 @@
 
 sh2_object_and_sprite_update_orch:
         CLR.W  D0                               ; $00DCD0
-        DC.W    $4EBA,$0858         ; JSR     $00E52C(PC); $00DCD2
-        DC.W    $4EBA,$D9AC         ; JSR     $00B684(PC); $00DCD6
-        DC.W    $4EBA,$D9FE         ; JSR     $00B6DA(PC); $00DCDA
+        jsr     MemoryInit(pc)          ; $4EBA $0858
+        jsr     object_update(pc)       ; $4EBA $D9AC
+        jsr     animated_seq_player+10(pc); $4EBA $D9FE
 .loc_000E:
         TST.B  COMM0_HI                        ; $00DCDE
         BNE.S  .loc_000E                        ; $00DCE4
@@ -72,7 +72,7 @@ sh2_object_and_sprite_update_orch:
         BEQ.W  .loc_00BC                        ; $00DD82
         LEA     $0088DECA,A2                    ; $00DD86
 .loc_00BC:
-        DC.W    $4EBA,$06D8         ; JSR     $00E466(PC); $00DD8C
+        jsr     ByteProcessLoop(pc)     ; $4EBA $06D8
         LEA     $240348E8,A1                    ; $00DD90
         LEA     (-1464).W,A2                    ; $00DD96
         MOVEQ   #$00,D0                         ; $00DD9A
@@ -96,7 +96,7 @@ sh2_object_and_sprite_update_orch:
         BEQ.W  .loc_0100                        ; $00DDC6
         LEA     $0088DECA,A2                    ; $00DDCA
 .loc_0100:
-        DC.W    $4EBA,$0694         ; JSR     $00E466(PC); $00DDD0
+        jsr     ByteProcessLoop(pc)     ; $4EBA $0694
         MOVEQ   #$00,D0                         ; $00DDD4
         MOVE.B  (-24551).W,D0                   ; $00DDD6
         LEA     $0088DE98,A1                    ; $00DDDA
@@ -111,7 +111,7 @@ sh2_object_and_sprite_update_orch:
 .loc_0128:
         TST.B  COMM0_HI                        ; $00DDF8
         BNE.S  .loc_0128                        ; $00DDFE
-        DC.W    $6100,$05B2         ; BSR.W  $00E3B4; $00DE00
+        bsr.w   sh2_cmd_27              ; $6100 $05B2
         MOVE.W  #$0018,$00FF0008                ; $00DE04
         CMPI.W  #$0001,(-24532).W               ; $00DE0C
         BEQ.W  .loc_0198                        ; $00DE12

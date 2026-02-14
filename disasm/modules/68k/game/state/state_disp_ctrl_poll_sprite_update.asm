@@ -22,15 +22,15 @@
 ; ============================================================================
 
 state_disp_ctrl_poll_sprite_update:
-        dc.w    $4EBA,$C01C                     ; $005780  jsr $00179E(pc) — poll_controllers
+        jsr     controller_read_button_remap+16(pc); $4EBA $C01C
         addq.b  #4,($FFFFC8C4).w               ; $005784  sub_state += 4
         move.w  #$0044,$00FF0008               ; $005788  SH2 COMM = $44
         moveq   #$00,D0                         ; $005790  clear high bits
         move.b  ($FFFFC8C5).w,D0               ; $005792  D0 = frame sub-counter
         movea.l $0057A4(PC,D0.W),A1            ; $005796  A1 = handler address
         jsr     (A1)                            ; $00579A  call handler
-        dc.w    $4EBA,$5F3C                     ; $00579C  jsr $00B6DA(pc) — sprite_update
-        dc.w    $4EFA,$5EE2                     ; $0057A0  jmp $00B684(pc) — object_update (tail)
+        jsr     animated_seq_player+10(pc); $4EBA $5F3C
+        jmp     object_update(pc)       ; $4EFA $5EE2
 ; --- jump table (6 longword entries) ---
         dc.l    $008857CA                       ; $0057A4  [00] → $0057CA (past fn)
         dc.l    $008857D0                       ; $0057A8  [04] → $0057D0 (past fn)

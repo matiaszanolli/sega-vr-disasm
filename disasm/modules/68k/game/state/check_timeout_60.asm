@@ -10,9 +10,9 @@
 ; ============================================================================
 
 check_timeout_60:
-        dc.w    $0C78,$003C,$C8AA     ; CMPI.W #$003C,($C8AA).W
+        cmpi.w  #$003C,($FFFFC8AA).w    ; $0C78 $003C $C8AA
         bne.s   .done                 ; If not 60, return
-        dc.w    $5878,$C07C           ; ADDQ.W #4,($C07C).W
-        dc.w    $31FC,$0000,$C8AA     ; MOVE.W #$0000,($C8AA).W
+        addq.w  #4,($FFFFC07C).w        ; $5878 $C07C
+        move.w  #$0000,($FFFFC8AA).w    ; $31FC $0000 $C8AA
 .done:
         rts

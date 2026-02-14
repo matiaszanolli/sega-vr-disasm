@@ -16,7 +16,7 @@ records_scene_state_disp:
         DC.W    $000E                           ; $010084
         ADD.B  D1,(A0)                          ; $010086
         DC.W    $000E                           ; $010088
-        DC.W    $D440                           ; $01008A
+        add.w   d0,d2                   ; $D440
         DC.W    $000E                           ; $01008C
         ADD.B  D2,$0E(A0,D0.W)                  ; $01008E
         ADD.W  $0E(A0,D0.W),D3                  ; $010092
@@ -101,7 +101,7 @@ records_scene_state_disp:
         BSET    D1,D4                           ; $01015E
         DC.W    $0089                           ; $010160
         SUBI.L  #$008905DE,-(A2)                ; $010162
-        DC.W    $4EBA,$B51A         ; JSR     $00B684(PC); $010168
+        jsr     object_update(pc)       ; $4EBA $B51A
         BTST    #6,(-14322).W                   ; $01016C
         BNE.S  .loc_00F4                        ; $010172
         ADDQ.W  #4,(-14210).W                   ; $010174

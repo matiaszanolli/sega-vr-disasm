@@ -17,7 +17,7 @@
 menu_state_check_cond_advance_0144f2:
         lea     $00929CA6,a1                    ; $0144F2: $43F9 $0092 $9CA6 — table address
         move.l  #$00002000,d1                   ; $0144F8: $223C $0000 $2000 — parameter
-        dc.w    $4EBA,$00F0                     ; BSR.W $0145F0 ; $0144FE: — call menu_state_check
+        jsr     menu_tile_copy_to_vdp(pc); $4EBA $00F0
         tst.w   ($FFFFA008).w                   ; $014502: $4A78 $A008 — test player data
         bne.s   .done                           ; $014506: $660E — non-zero → return
         clr.w   ($FFFFA008).w                   ; $014508: $4278 $A008 — clear player data

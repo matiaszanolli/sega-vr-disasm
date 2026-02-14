@@ -18,13 +18,13 @@
 
 object_bitmask_table_button_flag_handler:
 ; --- data: 8 bitmask pairs (referenced by object_bitmask_table_lookup) ---
-        dc.w    $0001,$0001                     ; $006BCA  pair 0: bit 0
-        dc.w    $0002,$0002                     ; $006BCE  pair 1: bit 1
-        dc.w    $0004,$0004                     ; $006BD2  pair 2: bit 2
+        ori.b  #$01,d1                  ; $0001 $0001
+        ori.b  #$02,d2                  ; $0002 $0002
+        ori.b  #$04,d4                  ; $0004 $0004
         dc.w    $0008,$0008                     ; $006BD6  pair 3: bit 3
-        dc.w    $0010,$0010                     ; $006BDA  pair 4: bit 4
-        dc.w    $0020,$0020                     ; $006BDE  pair 5: bit 5
-        dc.w    $0040,$0040                     ; $006BE2  pair 6: bit 6
+        ori.b  #$10,(a0)                ; $0010 $0010
+        ori.b  #$20,-(a0)               ; $0020 $0020
+        ori.w  #$0040,d0                ; $0040 $0040
         dc.w    $0080,$0080                     ; $006BE6  pair 7: bit 7
 ; --- code: button flag handler ---
         move.b  ($FFFFC30E).w,D0               ; $006BEA  D0 = button flags

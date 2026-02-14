@@ -14,10 +14,10 @@ tilt_adjust:
         or.w    $008C(a0),d0          ; Race condition B
         bne.s   .done                 ; If either set, skip
         moveq   #$30,d0              ; Tilt rate
-        dc.w    $3238,$C0AC           ; MOVE.W ($C0AC).W,D1 - track tilt
+        move.w  ($FFFFC0AC).w,d1        ; $3238 $C0AC — track tilt
         cmp.w   $0092(a0),d1          ; Compare with entity direction
         blt.s   .negate_x
-        dc.w    $0838,$0004,$C971     ; BTST #4,($C971).W - direction flag
+        btst    #4,($FFFFC971).w        ; $0838 $0004 $C971 — direction flag
         bne.s   .x_apply
 .negate_x:
         neg.w   d0                    ; Reverse tilt
@@ -34,7 +34,7 @@ tilt_adjust:
 .x_lower_ok:
         move.w  d1,$000E(a0)          ; Store X-tilt
         moveq   #$30,d0              ; Reset tilt rate
-        dc.w    $0838,$0006,$C971     ; BTST #6,($C971).W - Z direction flag
+        btst    #6,($FFFFC971).w        ; $0838 $0006 $C971 — Z direction flag
         bne.s   .z_apply
         neg.w   d0
 .z_apply:

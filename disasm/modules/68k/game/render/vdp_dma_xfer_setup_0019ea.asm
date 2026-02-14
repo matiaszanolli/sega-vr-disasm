@@ -24,7 +24,7 @@
 vdp_dma_xfer_setup_0019ea:
 ; --- data prefix: 10-word VDP register table ---
         dc.w    $400C                           ; $0019EA  VDP reg: $400C
-        dc.w    $4003                           ; $0019EC  VDP reg: $4003
+        negx.b   d3                     ; $4003
         dc.w    $000C                           ; $0019EE  param: $000C
         dc.w    $0003                           ; $0019F0  param: $0003
         dc.w    $00A1                           ; $0019F2  addr: $00A1

@@ -70,11 +70,11 @@ ascii_character_to_tile_index_mapper_010674:
         lsl.l   #6,D0                           ; $0106F6  D0 = index × 64
         move.l  D0,D1                           ; $0106F8  D1 = index × 64
         lsl.l   #1,D0                           ; $0106FA  D0 = index × 128
-        dc.w    $D280                ; add.l   D0,D1  ; D1 = index × 192
+        add.l   d0,d1                   ; $D280
         lsl.l   #1,D0                           ; $0106FE  (unused intermediate)
-        dc.w    $D280                ; add.l   D0,D1  ; (chained computation)
+        add.l   d0,d1                   ; $D280
         lsl.l   #1,D0                           ; $010702
-        dc.w    $D081                ; add.l   D1,D0  ; D0 = index × 192 (final stride)
+        add.l   d1,d0                   ; $D081
         movea.l #$06024000,A0                   ; $010706  base tile address in SH2 ROM
         adda.l  D0,A0                           ; $01070C  A0 = base + offset
         move.w  #$0018,D0                       ; $01070E  width = 24

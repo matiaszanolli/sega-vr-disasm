@@ -17,7 +17,7 @@
 
 name_entry_sh2_comm_setup_dma:
         clr.w   D0                              ; $01141A  mode = 0
-        dc.w    $4EBA,$D10E                     ; $01141C  bsr.w dma_transfer ($00E52C)
+        jsr     MemoryInit(pc)          ; $4EBA $D10E
 .wait_comm0:
         tst.b   COMM0_HI                        ; $011420  COMM0 busy?
         bne.s   .wait_comm0                     ; $011426  yes → wait

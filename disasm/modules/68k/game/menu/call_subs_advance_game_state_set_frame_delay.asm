@@ -12,8 +12,8 @@
 ; ============================================================================
 
 call_subs_advance_game_state_set_frame_delay:
-        dc.w    $4EBA,$CDC0                     ; JSR $00210A(PC) ; $005348:
-        dc.w    $4EBA,$5D50                     ; JSR animation_update(PC) ; $00534C: → $00B09E
+        jsr     sound_update_disp+52(pc); $4EBA $CDC0
+        jsr     cascaded_frame_counter+10(pc); $4EBA $5D50
         addq.w  #4,($FFFFC87E).w               ; $005350: $5878 $C87E — advance game state
         move.w  #$0010,$00FF0008                ; $005354: $33FC $0010 $00FF $0008 — 16 frame delay
         rts                                     ; $00535C: $4E75

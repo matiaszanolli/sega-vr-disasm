@@ -25,7 +25,7 @@ ai_steering_calc_negate:
         move.w  ($FFFFC0BE).w,D1                ; $008EBA  D1 = viewport Y
         move.w  $0030(A0),D2                    ; $008EBE  D2 = object X
         move.w  $0034(A0),D3                    ; $008EC2  D3 = object Y
-        dc.w    $4EBA,$18D8                     ; $008EC6  bsr.w ai_steering_calc ($00A7A0)
+        jsr     ai_steering_calc(pc)    ; $4EBA $18D8
         subi.w  #$4000,D0                       ; $008ECA  subtract quarter turn
         neg.w   D0                              ; $008ECE  negate angle
         move.w  D0,($FFFFC0C2).w                ; $008ED0  store heading result

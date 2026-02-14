@@ -34,9 +34,9 @@
 
 name_entry_character_input_010244:
         clr.w   D0                              ; $010244  mode = 0
-        dc.w    $4EBA,$E2E4                     ; $010246  bsr.w dma_transfer ($00E52C)
+        jsr     MemoryInit(pc)          ; $4EBA $E2E4
         movea.l ($FFFFA018).w,A0                ; $01024A  A0 = P1 name buffer
-        dc.w    $6100,$0546                     ; $01024E  bsr.w cursor_render ($010796)
+        bsr.w   name_entry_cursor_render; $6100 $0546
         jsr     $0088179E                       ; $010252  poll controllers
         cmpi.w  #$0001,($FFFFA036).w            ; $010258  confirm state = 1?
         beq.w   .confirm_check                  ; $01025E  yes → check SH2
@@ -96,7 +96,7 @@ name_entry_character_input_010244:
 .update_display:
         bra.w   .revert_state                   ; $010334
 .no_action_btn:
-        dc.w    $6100,$0512                     ; $010338  bsr.w input_handler ($01084C)
+        bsr.w   name_entry_input_handler; $6100 $0512
 .confirm_check:
         jsr     $0088FB36                       ; $01033C  SH2 transition check
         btst    #6,($FFFFC80E).w                ; $010342  display busy?

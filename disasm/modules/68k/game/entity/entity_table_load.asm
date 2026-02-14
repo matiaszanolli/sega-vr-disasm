@@ -14,10 +14,10 @@
 
 entity_table_load:
         lea     $00938F2E,a1            ; ROM speed/attribute table
-        dc.w    $3038,$C89C             ; MOVE.W ($C89C).W,D0 - load mode index
+        move.w  ($FFFFC89C).w,d0        ; $3038 $C89C — load mode index
         asl.w   #5,d0                   ; index * 32 (entry size)
-        dc.w    $43F1,$0000             ; LEA 0(A1,D0.W),A1 - point to selected entry
-        dc.w    $45F8,$9100             ; LEA ($9100).W,A2 - entity table base ($FF9100)
+        lea     (a1,d0.w),a1            ; $43F1 $0000 — point to selected entry
+        lea     ($FFFF9100).w,a2        ; $45F8 $9100 — entity table base ($FF9100)
         moveq   #14,d0                  ; Loop 15 times (entities 0-14)
 .loop:
         move.w  (a1),$B6(a2)            ; Copy word to entity field +$B6

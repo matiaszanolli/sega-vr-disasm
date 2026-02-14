@@ -53,18 +53,18 @@ camera_menu_orch:
         add.w   -$1D2F(A6),D5                   ; $0134EC  (data: $DA6E $E2D1)
 ; --- executable code ---
         clr.w   D0                              ; $0134F0  mode = 0
-        dc.w    $4EBA,$B038                     ; $0134F2  bsr.w dma_transfer ($00E52C)
-        dc.w    $4EBA,$818C                     ; $0134F6  bsr.w object_update ($00B684)
-        dc.w    $4EBA,$81DE                     ; $0134FA  bsr.w sprite_update ($00B6DA)
+        jsr     MemoryInit(pc)          ; $4EBA $B038
+        jsr     object_update(pc)       ; $4EBA $818C
+        jsr     animated_seq_player+10(pc); $4EBA $81DE
         cmpi.w  #$0001,($FFFFA028).w            ; $0134FE  action_state == 1?
         beq.w   .sh2_check_bit6                 ; $013504  yes → check SH2
         cmpi.w  #$0002,($FFFFA028).w            ; $013508  action_state == 2?
         beq.w   .sh2_check_bit7                 ; $01350E  yes → check SH2
         jsr     $0088179E                       ; $013512  poll controllers
         move.w  ($FFFFC86C).w,D1                ; $013518  D1 = P1 controller
-        dc.w    $6100,$00A6                     ; $01351C  bsr.w camera_menu_input_handler ($0135C4)
+        bsr.w   camera_menu_input_handler; $6100 $00A6
         move.w  ($FFFFC86E).w,D1                ; $013520  D1 = P2 controller
-        dc.w    $6100,$009E                     ; $013524  bsr.w camera_menu_input_handler ($0135C4)
+        bsr.w   camera_menu_input_handler; $6100 $009E
         tst.w   ($FFFFA022).w                   ; $013528  selection state active?
         beq.w   .revert_state                   ; $01352C  no → revert
         cmpi.w  #$0001,($FFFFA022).w            ; $013530  state == 1 (confirm)?
@@ -81,8 +81,8 @@ camera_menu_orch:
         lea     $008936AA,A0                    ; $013564  A0 = handler table
         clr.w   D2                              ; $01356A
         move.b  ($FFFFA019).w,D2                ; $01356C  D2 = mode index
-        dc.w    $D442                           ; $013570  add.w d2,d2 — D2 × 2
-        dc.w    $D442                           ; $013572  add.w d2,d2 — D2 × 4
+        add.w   d2,d2                   ; $D442
+        add.w   d2,d2                   ; $D442
         movea.l $00(A0,D2.W),A0                 ; $013574  A0 = handler[mode]
         move.w  #$0001,D2                       ; $013578  D2 = 1 (select flag)
         jsr     (A0)                            ; $01357C  call handler

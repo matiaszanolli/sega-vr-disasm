@@ -42,6 +42,7 @@
 ;   0x300400-0x300450  shadow_path_wrapper (~80 bytes, added per-call barrier)
 ;   0x300500-0x300537  batch_copy_handler (~56 bytes)
 ;   0x300600-0x30067F  cmd27_queue_drain (128 bytes)
+;   0x300700-0x300727  slave_comm7_idle_check (40 bytes, COMM7 doorbell handler)
 ;   --- Phase 1 allocations (reserved) ---
 ;   0x300800-0x300BFF  cmdint_handler (Master SH2 CMDINT ISR, 1KB reserved)
 ;   0x300C00-0x300FFF  queue_processor (ring buffer drain loop, 1KB reserved)
@@ -269,10 +270,24 @@ cmd27_queue_drain:
         include "sh2/generated/cmd27_queue_drain.inc"
 
 ; ============================================================================
+; SLAVE COMM7 IDLE CHECK: 0x300700 (SH2 address: 0x02300700)
+; ============================================================================
+; Replaces Slave's 64-NOP delay loop with COMM7 doorbell check.
+; When COMM7 = $0027: clears COMM7, calls cmd27_queue_drain, returns to
+; command_loop. When COMM7 = 0: returns directly to command_loop.
+;
+; Trampoline at $020608 (Slave delay loop) JMPs here.
+; See: disasm/sh2/expansion/slave_comm7_idle_check.asm for full source
+;
+        dcb.b   ($300700 - *), $FF      ; Pad to 0x300700
+slave_comm7_idle_check:
+        include "sh2/generated/slave_comm7_idle_check.inc"
+
+; ============================================================================
 ; PHASE 1: CMDINT HANDLER AND QUEUE PROCESSOR
 ; ============================================================================
-; Pad from end of cmd27_queue_drain (~0x300682) to Phase 1 allocation at 0x300800
-        dcb.b   ($800 - $700), $FF
+; Pad from end of slave_comm7_idle_check to Phase 1 allocation at 0x300800
+        dcb.b   ($300800 - *), $FF
 
 ; --- Phase 1: Master SH2 CMDINT Handler (at 0x300800) ---
 ; SH2 address: 0x02300800

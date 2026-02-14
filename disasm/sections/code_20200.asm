@@ -531,12 +531,12 @@ vdp_wait_test:                   ; $02050C
         dc.w    $0608        ; $020602
         dc.w    $0600        ; $020604
         dc.w    $0608        ; $020606
-        dc.w    $E740        ; $020608
-        dc.w    $0009        ; $02060A
-        dc.w    $4710        ; $02060C
-        dc.w    $8BFC        ; $02060E
-        dc.w    $AFBF        ; $020610
-        dc.w    $0009        ; $020612
+        dc.w    $D301        ; $020608  MOV.L @(4,PC),R3 → $02300700
+        dc.w    $432B        ; $02060A  JMP @R3 (slave_comm7_idle_check)
+        dc.w    $0009        ; $02060C  NOP (delay slot)
+        dc.w    $0009        ; $02060E  NOP (pad)
+        dc.w    $0230        ; $020610  literal: $02300700 (high)
+        dc.w    $0700        ; $020612  literal: $02300700 (low)
         dc.w    $DE07        ; $020614
         dc.w    $E000        ; $020616
         dc.w    $81EA        ; $020618

@@ -122,13 +122,28 @@ slave_init:
  * the Slave actual rendering work to do.
  * ============================================================================ */
 .delay_loop:
-    /* $020608: E740 */ mov     #64,r7                  /* R7 = 64 iterations */
-.delay_spin:
-    /* $02060A: 0009 */ nop                             /* ← Profiler hotspot */
-    /* $02060C: 4710 */ dt      r7                      /* R7-- and T = (R7==0) */
-    /* $02060E: 8BFC */ bf      .delay_spin             /* Loop while R7 != 0 */
-    /* $020610: AFBF */ bra     .command_loop           /* Return to dispatcher */
-    /* $020612: 0009 */ nop                             /* Delay slot */
+    /* REPLACED: 64-NOP idle loop → JMP to expansion ROM COMM7 handler.
+     * The expansion handler at 0x02300700 checks COMM7 for doorbell
+     * signals ($0027 = cmd27 queue drain), then returns to .command_loop.
+     * Original COMM1 command dispatch is preserved (trampoline only
+     * replaces the idle path). Same 12 bytes as original delay loop.
+     *
+     * Original code was:
+     *   $020608: E740  MOV #64,R7
+     *   $02060A: 0009  NOP           (66.5% profiler hotspot)
+     *   $02060C: 4710  DT R7
+     *   $02060E: 8BFC  BF .delay_spin
+     *   $020610: AFBF  BRA .command_loop
+     *   $020612: 0009  NOP
+     */
+    /* $020608: D301 */ mov.l   .L_comm7_handler,r3     /* R3 = expansion handler addr */
+    /* $02060A: 432B */ jmp     @r3                     /* Jump to COMM7 idle check */
+    /* $02060C: 0009 */ nop                             /* Delay slot */
+    /* $02060E: 0009 */ nop                             /* Align literal to 4 bytes */
+
+    /* Literal: expansion handler at 0x02300700 */
+.L_comm7_handler:
+    /* $020610 */ .long  0x02300700
 
 /* ============================================================================
  * Analysis Notes

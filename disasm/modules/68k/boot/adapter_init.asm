@@ -101,6 +101,9 @@ adapter_init:
 ; Initialize ring buffer pointers + FPS counter state
         bsr.w   ring_buffer_init                ; Initialize ring buffer in SDRAM
 
+; Initialize cmd27 async queue indices (must be zero before any cmd_27 calls)
+        clr.l   $FFFB00                         ; write_idx=0, read_idx=0
+
 ; Bank register probe — identify 68K access path to expansion ROM
 ; Results at $FFFFF080 (see bank_probe.asm for layout)
         jsr     bank_probe                      ; Probe runs once, stores results in WRAM

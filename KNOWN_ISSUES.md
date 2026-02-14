@@ -133,9 +133,9 @@ Original SH2 silicon has a documented bug (see [32x-hardware-manual-supplement-2
 
 ### COMM7 Signal Namespace Collision — Don't Broadcast Game Commands
 
-**Status:** Root cause of race-mode crash in B-006 activation (commits 651a415, 7bab6fc).
+**Status:** Root cause of race-mode crash in B-006 activation (commits 651a415, 7bab6fc). **Fixed in B-003** (2026-02-14) by activating the async infrastructure correctly.
 
-The `master_dispatch_hook` (Patch #2) was designed to write every game command byte to COMM7 so the Slave could "see" what the Master was dispatching. This is fundamentally wrong because **game command codes overlap with expansion ROM signal values**:
+The `master_dispatch_hook` (B-006 Patch #2) was designed to write every game command byte to COMM7 so the Slave could "see" what the Master was dispatching. This is fundamentally wrong because **game command codes overlap with expansion ROM signal values**:
 
 | Value | Game meaning | Expansion meaning | Collision? |
 |-------|-------------|-------------------|------------|
@@ -147,9 +147,15 @@ The Slave's `slave_work_wrapper` interprets COMM7 values as expansion ROM signal
 
 **Rules:**
 1. **Never broadcast raw game command bytes to COMM7.** The game's command namespace and the expansion ROM's signal namespace are independent; conflating them causes collisions.
-2. **Only write COMM7 from code that knows the Slave's signal protocol** (currently only `shadow_path_wrapper` for signal 0x16).
+2. **Only write COMM7 from code that knows the Slave's signal protocol.** Currently: `sh2_cmd_27` async enqueue (COMM7=$0027 when queue has work).
 3. **Don't activate signal consumers (queue drain) before their producers (async queue) exist.** Infrastructure without data = garbage processing.
 4. **A dispatch hook that only dispatches is pointless overhead.** If the hook doesn't add behavior beyond what the original code does, don't have a hook.
+
+**B-003 Implementation (Feb 2026):**
+- 68K writes COMM7=$0027 ONLY from `sh2_cmd_27` enqueue (after queueing valid entry)
+- Slave checks COMM7 in idle loop (expansion handler at $300700)
+- Queue initialized to zero at boot (covered by Work RAM clear)
+- No namespace collision: COMM7 is written by async producer, not by generic dispatch hook
 
 **Fix:** Revert Patch #2 entirely. The original Master dispatch at `$02046A` works correctly. COMM7 signaling for cmd 0x16 is already handled by `shadow_path_wrapper` (Patch #3), which writes COMM7 only when vertex transform parameters are ready.
 
@@ -222,6 +228,33 @@ Both produce the same result: handler returns to the dispatch loop. The differen
 
 **Exception:** If a handler is a leaf function that doesn't save PR AND also modifies PR (impossible for a true leaf), JMP would break. In practice all non-trivial handlers save/restore PR.
 
+### Successful Async Pattern — sh2_cmd_27 Implementation (B-003, Feb 2026)
+
+**Works:** In-place async replacement of blocking COMM handshake with ring buffer + COMM7 doorbell.
+
+**Design:**
+1. **68K producer** (`sh2_cmd_27` at $E3B4): Enqueues 10-byte entry to Work RAM ring buffer ($FFFB00), writes COMM7=$0027 if Slave idle
+2. **Slave idle hook** (trampoline at $020608): When no COMM1 work, jumps to expansion ROM instead of burning 64 NOPs
+3. **Expansion consumer** (`slave_comm7_idle_check` at $300700): Checks COMM7; if $0027, clears COMM7, drains queue, returns to Slave loop
+
+**Key implementation details:**
+- **In-place 68K replacement:** 82-byte function body replaced with 68B enqueue + MOVEM save/restore (d3/d5/a1-a2) + 14B NOP padding. No section space needed.
+- **Register safety:** Original sh2_cmd_27 clobbers NO caller-visible registers. MOVEM preserves this contract (5-7 callers depend on D3/A1/A2).
+- **Doorbell race fix:** `tst.w COMM7 / bne.s / move.w #$0027,COMM7` — checks if Slave idle before ringing. If Slave is processing, skip doorbell (Slave will check queue when done).
+- **Queue drain race safety:** Handler clears COMM7 BEFORE calling drain. If 68K enqueues during drain, new doorbell writes after clear. If 68K enqueues after drain returns, queue was empty → doorbell picked up on next idle iteration.
+- **Slave integration:** 12-byte JMP trampoline at $020608 replaces original delay loop (exact same size). Original COMM1 command dispatch unchanged.
+- **Queue init:** Boot RAM clear ($FFC800+) already zeroes $FFFB00. No explicit init needed.
+
+**Tested:** ROM boots and runs in PicoDrive without issues. Expected savings: ~8,400 68K cycles/frame (~6.5% of budget).
+
+**Files:**
+- [code_e200.asm](../disasm/sections/code_e200.asm) lines 329-363 (sh2_cmd_27)
+- [code_20200.asm](../disasm/sections/code_20200.asm) lines 534-539 (Slave trampoline)
+- [slave_comm7_idle_check.asm](../disasm/sh2/expansion/slave_comm7_idle_check.asm) (expansion handler)
+- [expansion_300000.asm](../disasm/sections/expansion_300000.asm) lines 271-283 (handler include)
+
+**Reusable for other blocking functions:** The pattern (in-place enqueue + trampoline + expansion handler) can be applied to `sh2_send_cmd_wait` and other hot blocking functions.
+
 ---
 
 ## Active Bugs
@@ -247,6 +280,7 @@ Both produce the same result: handler returns to the dispatch loop. The differen
 The SH2 communication section is completely full. Any new 68K-side code must either:
 1. Reclaim dead code within the section
 2. Use a BSR trampoline to a section with space
+3. **Replace existing function bodies in-place** (used for B-003: sh2_cmd_27's 82-byte body replaced with 68B async enqueue + 14B padding)
 3. Use a banked-call trampoline to expansion ROM at $300000+ (see bank_probe results)
 
 Previous attempt to add async queue logic here was removed (commit 0dd98c4).

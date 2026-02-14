@@ -1,7 +1,7 @@
 # Virtua Racing 32X - Optimization Strategy
 
-**Status:** Revised strategic plan (v5.0 update)
-**Last Updated:** February 7, 2026
+**Status:** Revised strategic plan (v6.0 update)
+**Last Updated:** February 13, 2026
 **Baseline:** ~20-24 FPS (measured, scene-dependent)
 **Target:** 60 FPS (+150%)
 **Approach:** Data-driven, 68K-bottleneck-first
@@ -116,31 +116,56 @@ Each command follows a strict `submit → wait → continue` pattern:
 
 ### v4.0 Parallel Processing Infrastructure (January 2026)
 
-**Status:** COMPLETE but NOT ACTIVATED
+**Status:** COMPLETE but NOT ACTIVATED (B-006 patches reverted due to namespace collision)
 
-| Component | Address | Size | Purpose |
-|-----------|---------|------|---------|
-| `handler_frame_sync` | $300028 | 22B | Frame synchronization |
-| `master_dispatch_hook` | $300050 | 44B | Skips COMM7 for cmd $16 |
-| `func_021_optimized` | $300100 | 96B | Vertex transform (func_016 inlined) |
-| `slave_work_wrapper` | $300200 | 76B | Command dispatch |
-| `slave_test_func` | $300280 | 44B | Test harness |
-| `batch_copy_handler` | $300500 | — | Batch copy command handler |
-| `cmd27_queue_drain` | $300600 | — | Queue drain for cmd $27 |
+| Component | Address | Size | Purpose | Status |
+|-----------|---------|------|---------|--------|
+| `handler_frame_sync` | $300028 | 22B | Frame synchronization | Dormant |
+| `master_dispatch_hook` | $300050 | 44B | Skips COMM7 for cmd $16 | Reverted |
+| `func_021_optimized` | $300100 | 96B | Vertex transform (func_016 inlined) | Dormant |
+| `slave_work_wrapper` | $300200 | 76B | COMM7 command dispatch | Dormant |
+| `slave_test_func` | $300280 | 44B | Test harness | Dormant |
+| `batch_copy_handler` | $300500 | ~56B | Batch copy command handler | Dormant |
+| `cmd27_queue_drain` | $300600 | 128B | Queue drain for cmd $27 | **ACTIVE (B-003)** |
+| `slave_comm7_idle_check` | $300700 | 48B | COMM7 doorbell handler | **ACTIVE (B-003)** |
+| `cmdint_handler` | $300800 | 64B | Master CMDINT ISR (reserved) | Dormant |
+| `queue_processor` | $300C00 | 128B | Ring buffer drain (reserved) | Dormant |
 
-**Expansion ROM:** 1MB at $300000-$3FFFFF, only ~1KB used (~99.9% free)
+**Expansion ROM:** 1MB at $300000-$3FFFFF, ~1.5KB used (~99.85% free)
 
-**Activation requires:** Patching dispatch at $02046A and trampoline at $0234C8.
+**Activation requires:** Patching dispatch at $02046A and trampoline at $0234C8 (B-006 reverted, needs redesign).
 
-### v5.0 68K Modularization (February 2026)
+### v6.0 Full Codebase Translation (February 2026)
 
-- **693 68K functions** modularized across 12 sections (79,940 bytes)
-- **571 modules** auto-translated to proper assembly mnemonics (82.5%)
-- **75 SH2 functions** integrated into build system
-- **17 module categories:** boot, data, display, frame, game, graphics, hardware-regs, input, main-loop, math, memory, object, sh2, sound, util, vdp, vint
-- All translations verified byte-identical to original ROM
+- **821 68K modules** organized across 17 categories + 15 game subcategories
+- **530 modules** fully translated to mnemonics (5504 dc.w lines converted via automated tool)
+- **92 SH2 functions** integrated into build system (86 .inc files, zero remaining)
+- **118+ modules** hardened with symbolic register names (COMM/MARS/VDP/Z80 equates)
+- Translation tool: label map (800 labels), PC-relative decoder, branch decoder with local labels
+- All translations verified byte-identical to original ROM (md5: `2d842a62085df8efba46053c5bea8868`)
 
-### 68K Async Attempt (January 2026) — FAILED
+### v7.0 Async cmd_27 (February 2026) — SUCCEEDED ✅
+
+**Status:** COMPLETE and TESTED (B-003)
+
+**What happened:** In-place replacement of sh2_cmd_27's blocking handshake with async queue enqueue.
+
+**Implementation:**
+- **68K producer** (code_e200.asm): 82-byte sh2_cmd_27 body replaced with 68B async enqueue + MOVEM save/restore + 14B NOP padding
+- **Slave trampoline** (code_20200.asm): 12-byte JMP at $020608 replaces 64-NOP idle loop
+- **Expansion consumer** (slave_comm7_idle_check.asm): 48-byte handler at $300700 checks COMM7, drains queue
+- **Queue**: Work RAM ring buffer at $FFFB00 (32 entries × 10 bytes, zeroed by boot RAM clear)
+- **Doorbell**: COMM7=$0027 signal when Slave idle
+
+**ROM tested:** Boots and runs in PicoDrive without issues.
+
+**Expected savings:** ~8,400 68K cycles/frame (~6.5% of budget) from eliminating 21 × 2 blocking loops.
+
+**Key insight:** B-001 space blocker was moot — in-place replacement needs NO additional 68K space. The 82-byte function body was replaced exactly.
+
+**Lesson:** When section space is tight, replace existing function bodies in-place instead of adding new code.
+
+### 68K Async Attempt (January 2026) — FAILED (superseded by B-003)
 
 **What happened:** Implemented `sh2_send_cmd_async` and async queue logic in 68K section.
 
@@ -148,7 +173,7 @@ Each command follows a strict `submit → wait → continue` pattern:
 
 **Removed in:** Commit `0dd98c4`
 
-**Lesson:** 68K-side async is impossible in the current ROM layout. The solution must live on the SH2 side.
+**Lesson:** 68K-side async is impossible without space. The solution is in-place replacement (B-003) or SH2-side infrastructure.
 
 ### Delay Loop Elimination Experiment (January 2026) — SUCCEEDED (but no FPS gain)
 
@@ -218,44 +243,43 @@ All 17 command submissions per frame reuse COMM0/COMM4/COMM6. Naive async would 
 
 #### Implementation Phases
 
-**Phase 1: Master SH2 Queue Infrastructure** (Expansion ROM)
-1. Ring buffer in SDRAM (64 commands × 8 bytes = 512 bytes at $2203F000)
-2. CMDINT handler on Master SH2 (dequeue + COMM register write)
-3. 68K-side `sh2_send_cmd_async` shim (write to buffer + trigger CMDINT)
-4. Frame boundary sync (`sh2_wait_frame_complete`)
+**Phase 1: ~~Master SH2 Queue Infrastructure~~** SKIPPED (simpler design adopted)
+1. ~~Ring buffer in SDRAM (64 commands × 8 bytes = 512 bytes at $2203F000)~~
+2. ~~CMDINT handler on Master SH2 (dequeue + COMM register write)~~
+3. ~~68K-side `sh2_send_cmd_async` shim (write to buffer + trigger CMDINT)~~
+4. ~~Frame boundary sync (`sh2_wait_frame_complete`)~~
 
-**Phase 2: Convert sh2_cmd_27** (21 calls/frame — biggest win)
-1. Replace inline blocking loops with async shim calls
-2. Test with profiler — expect ~40% 68K cycle reduction for these calls
-3. Validate rendering correctness
+**Phase 2: Convert sh2_cmd_27** (21 calls/frame — biggest win) — ✅ DONE (B-003, Feb 2026)
+1. ✅ Replace sh2_cmd_27 body with in-place async enqueue (68B code + 14B padding = 82B)
+2. ✅ Work RAM ring buffer at $FFFB00 (32 entries × 10 bytes)
+3. ✅ COMM7 doorbell ($0027) from 68K enqueue
+4. ✅ Slave trampoline ($020608) + expansion handler ($300700) drain queue
+5. ✅ ROM tested — boots and runs in PicoDrive
+6. **TODO:** Profile to measure actual 68K cycle reduction
 
-**Phase 3: Convert sh2_graphics_cmd** (14 calls/frame)
-1. Replace `sh2_send_cmd_wait` path with async
-2. Handle the 2 unsafe call sites (secondary RAM flag blocking)
+**Phase 3: Convert sh2_graphics_cmd** (14 calls/frame) — OPEN
+1. Apply same in-place replacement pattern to sh2_send_cmd_wait
+2. Handle the 2 unsafe call sites (secondary RAM flag blocking at $010B2C, $010BAE)
 3. Full-frame async: all 35 commands non-blocking
 
-**Phase 4: Pipeline frame sync**
-1. Move frame completion check to dedicated sync point
+**Phase 4: Pipeline frame sync** — OPEN
+1. Move frame completion check to dedicated sync point (or V-INT flush)
 2. Ensure Slave finishes before buffer flip
 3. Measure total FPS gain
 
-#### Sizing
+#### Sizing (B-003 Implementation)
 
-The 68K async shim needs to fit in the cramped `$00E200` section. Minimum footprint:
+**Actual footprint (in-place replacement):**
 
-| Component | Location | Size |
-|-----------|----------|------|
-| `sh2_send_cmd_async` shim | $00E200 section | ~20 bytes |
-| Ring buffer | SDRAM $2203F000 | 512 bytes |
-| CMDINT handler | Expansion ROM $300700 | ~128 bytes |
-| Queue drain logic | Expansion ROM $300800 | ~128 bytes |
-| Frame sync | Expansion ROM $300900 | ~64 bytes |
+| Component | Location | Size | Status |
+|-----------|----------|------|--------|
+| sh2_cmd_27 async enqueue | $E3B4 (in-place) | 68B code + 14B NOP | ✅ Active |
+| Ring buffer | Work RAM $FFFB00 | 324 bytes (4B header + 32×10B) | ✅ Active |
+| Slave trampoline | ROM $020608 (in-place) | 12B | ✅ Active |
+| slave_comm7_idle_check | Expansion ROM $300700 | 48B | ✅ Active |
+| cmd27_queue_drain | Expansion ROM $300600 | 128B | ✅ Active |
 
-**Blocker (partially resolved):** The 68K $E200 section has 0 bytes free. Options:
-1. Find dead code to reclaim (analyze all 68K modules for unreachable paths)
-2. Shorten existing code (compress adjacent functions by 20 bytes)
-3. Move the shim to a different 68K section with space
-4. **Use banked-call trampoline to expansion ROM** (bank_call.asm pattern exists, pending bank_probe results)
+**B-001 space blocker:** MOOT — in-place replacement needs no additional 68K space. The existing 82-byte sh2_cmd_27 body was sufficient.
 
 #### References
 - [ASYNC_COMMAND_IMPLEMENTATION_PLAN.md](analysis/optimization/ASYNC_COMMAND_IMPLEMENTATION_PLAN.md)

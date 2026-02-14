@@ -9,38 +9,43 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 ## P0 — Blockers
 
 ### B-001: Find 20+ bytes in 68K $00E200 section
-**Status:** OPEN
-**Why:** Track 1 (async commands) needs `sh2_send_cmd_async` shim in this section, but it has 0 bytes free.
-**Approach:** Analyze modules in the section for dead code, unreachable paths, or compressible functions. Alternative: BSR trampoline to a section with space.
-**Acceptance:** 20+ bytes reclaimed, ROM byte-identical in all other regions.
-**Key files:** `disasm/sections/code_e200.asm`, [68K_FUNCTION_REFERENCE.md](analysis/68K_FUNCTION_REFERENCE.md)
-**Depends on:** Nothing
-**Ref:** [OPTIMIZATION_PLAN.md](OPTIMIZATION_PLAN.md) § Phase 1
+**Status:** MOOT (bypassed by in-place replacement)
+**Why:** Track 1 (async commands) originally needed `sh2_send_cmd_async` shim in this section, but had 0 bytes free.
+**Resolution:** In-place replacement strategy bypassed the need. sh2_cmd_27's 82-byte body at $E3B4 was replaced with 68-byte async enqueue + 14B padding. No additional space needed.
+**Key files:** `disasm/sections/code_e200.asm`
+**Closed:** 2026-02-14
 
 ---
 
 ## P1 — FPS Improvement (Track 1: Async Commands)
 
-### B-002: Master SH2 CMDINT queue infrastructure
-**Status:** OPEN (blocked by B-001)
-**Why:** Core of Track 1 — allows 68K to submit commands without blocking on COMM registers.
-**Approach:** Ring buffer in SDRAM ($2203F000, 64 entries x 8 bytes = 512B). CMDINT handler in expansion ROM. 68K shim writes to buffer + fires CMDINT.
-**Acceptance:** Single command type (cmd_27) submits async. Profiler shows reduced 68K blocking.
-**Key files:** `disasm/sections/expansion_300000.asm`, [SH2_ASYNC_QUEUE_ANALYSIS.md](analysis/optimization/SH2_ASYNC_QUEUE_ANALYSIS.md)
-**Depends on:** B-001
-**Ref:** [OPTIMIZATION_PLAN.md](OPTIMIZATION_PLAN.md) § Track 1
+### B-002: ~~Master SH2 CMDINT queue infrastructure~~
+**Status:** SKIPPED (CMDINT not needed for cmd_27 async)
+**Why:** Original Track 1 design required Master SH2 CMDINT ISR + ring buffer in SDRAM for async command submission.
+**Resolution:** Simpler design adopted — Work RAM ring buffer ($FFFB00) + COMM7 doorbell + Slave SH2 processing. No CMDINT interrupts needed. Infrastructure exists (cmdint_handler at $300800 reserved but dormant).
+**Key files:** `disasm/sections/expansion_300000.asm`
+**Closed:** 2026-02-14
 
 ### B-003: Convert sh2_cmd_27 to async (21 calls/frame)
-**Status:** OPEN (blocked by B-002)
-**Why:** Biggest single win — 60% of command submissions.
-**Acceptance:** 21 cmd_27 calls use async path. Profiler shows >=25% 68K cycle reduction.
-**Depends on:** B-002
+**Status:** DONE (2026-02-14)
+**Implementation:** In-place replacement at $E3B4 with async enqueue to ring buffer at $FFFB00. Slave SH2 trampoline at $020608 jumps to expansion handler ($300700) which drains queue on COMM7=$0027 doorbell.
+**Changes:**
+  - `code_e200.asm`: sh2_cmd_27 → 68B async enqueue + MOVEM save/restore (d3/d5/a1-a2)
+  - `code_20200.asm`: Slave delay loop → 12B JMP trampoline to $02300700
+  - `slave_comm7_idle_check.asm`: New 48B expansion handler (checks COMM7, drains queue)
+  - `expansion_300000.asm`: Include new handler at $300700
+  - `Makefile`: Build rules for new SH2 module
+**ROM tested:** Boots and runs in PicoDrive without issues.
+**Expected savings:** ~8,400 68K cycles/frame (~6.5% of budget)
+**Key files:** `disasm/sections/code_e200.asm`, `disasm/sections/code_20200.asm`, `disasm/sh2/expansion/slave_comm7_idle_check.asm`
+**Commit:** (pending)
 
 ### B-004: Convert remaining commands to async (14 calls/frame)
-**Status:** OPEN (blocked by B-003)
+**Status:** OPEN
 **Why:** Complete Track 1 — all 35 commands non-blocking.
+**Approach:** Apply same in-place replacement pattern to other blocking functions (sh2_send_cmd_wait, sh2_send_cmd, etc.).
 **Acceptance:** All submissions async. Handle 2 unsafe call sites ($010B2C, $010BAE with secondary RAM flag blocking).
-**Depends on:** B-003
+**Depends on:** B-003 profiling validation
 
 ### B-005: Command batching (Track 2)
 **Status:** OPEN (blocked by B-004)

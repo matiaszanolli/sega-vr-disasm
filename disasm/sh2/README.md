@@ -110,7 +110,7 @@ Replace dc.w section with assembly-generated include.
 - `func_040_059_display_engine.asm` - Display list processing (~20 funcs)
 - `func_060_063_raster_batch.asm` - Batch copy coordinators (call func_065)
 - `func_067_plus_vdp_hw.asm` - VDP hardware init and RLE unpacker
-- *(41 total function files, ~100+ functions translated)*
+- *(98 function files covering 92 SH2 functions)*
 
 ### Expansion (`expansion/`)
 - `func_021_optimized.asm` - Optimized vertex transform for Slave
@@ -184,8 +184,8 @@ For each converted section:
 - ✅ Assembly toolchain working (sh-elf-as)
 - ✅ Byte-perfect output proven (slave_test_exact.asm)
 - ✅ Conversion workflow created
-- ✅ Build system integration (Makefile rules for 21 functions)
-- ⏳ Batch conversion tools (planned)
+- ✅ Build system integration (Makefile rules for 86 generated includes)
+- ✅ All 92 SH2 functions integrated into build system
 
 ## Functions in Build System
 

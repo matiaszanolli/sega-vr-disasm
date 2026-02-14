@@ -1,10 +1,10 @@
 # Virtua Racing Deluxe (32X) - Performance Optimization Project
 
-**Status: v5.1.0 — Symbolic Hardening & Active Optimization**
+**Status: v6.0.0 — Full Codebase Translation & Active Optimization**
 
 A complete, buildable disassembly of Virtua Racing Deluxe for the Sega 32X, now actively optimized to make full use of the 32X hardware. The original game runs at ~20 FPS due to a conservative blocking synchronization model that leaves significant hardware capacity untapped. This project aims to unlock that potential.
 
-> **Looking for the unmodified disassembly?** The byte-identical original code is preserved in the [`v5.0-freeze`](../../tree/v5.0-freeze) branch — 693 68K functions modularized, 571 auto-translated, 75 SH2 functions translated, all verified byte-perfect against the original ROM.
+> **Looking for the unmodified disassembly?** The byte-identical original code is preserved in the [`v5.0-freeze`](../../tree/v5.0-freeze) branch.
 
 ## The Problem
 
@@ -32,7 +32,7 @@ Restructure the command pipeline to eliminate blocking waits, batch commands, an
 
 **Target: 60 FPS** (from ~20-24 FPS baseline)
 
-See [OPTIMIZATION_PLAN.md](OPTIMIZATION_PLAN.md) for the full strategy and [ROADMAP.md](ROADMAP.md) for the implementation plan (10 phases, 94 tasks).
+See [OPTIMIZATION_PLAN.md](OPTIMIZATION_PLAN.md) for the full strategy and [BACKLOG.md](BACKLOG.md) for the task queue.
 
 ## Quick Start
 
@@ -40,10 +40,7 @@ See [OPTIMIZATION_PLAN.md](OPTIMIZATION_PLAN.md) for the full strategy and [ROAD
 # Build the ROM
 make all
 
-# Verify build
-make compare
-
-# Test in emulator
+# Test in emulator (PicoDrive only — BlastEm has no 32X support)
 picodrive build/vr_rebuild.32x
 ```
 
@@ -55,11 +52,11 @@ picodrive build/vr_rebuild.32x
 │   ├── vrd.asm                    # Main build file
 │   ├── sections/                  # Buildable section sources
 │   ├── modules/
-│   │   ├── 68k/                   # 693 modularized 68K functions (17 categories)
+│   │   ├── 68k/                   # 821 modularized 68K modules (17 categories + 15 game subcats)
 │   │   └── shared/definitions.asm # Master symbol table (all HW register equates)
 │   ├── sh2/                       # SH2 functions + expansion code
-│   │   ├── 3d_engine/             # 75 translated SH2 3D pipeline functions
-│   │   ├── generated/             # 78 SH2 function includes
+│   │   ├── 3d_engine/             # 92 SH2 3D pipeline functions
+│   │   ├── generated/             # 86 SH2 function includes
 │   │   └── expansion/             # SH2 expansion ROM code ($300000+)
 │   └── sh2_symbols.inc            # 107 SH2 function symbols
 │
@@ -74,7 +71,7 @@ picodrive build/vr_rebuild.32x
 │
 ├── tools/
 │   ├── libretro-profiling/        # Custom PicoDrive profiler (cycle-accurate)
-│   ├── translate_modules.py       # Batch dc.w→mnemonic translator
+│   ├── translate_68k_modules.py   # Batch dc.w→mnemonic translator (Phase 1+2)
 │   ├── m68k_disasm.py             # 68K disassembler
 │   └── sh2_disasm.py              # SH2 disassembler
 │
@@ -97,19 +94,19 @@ The expansion space at $300000+ is executed by SH2 processors only and already c
 
 ## Codebase Status
 
-### Disassembly (complete — frozen in `v5.0-freeze`)
-- **693 68K functions** modularized across 12 code sections (79,940 bytes)
-- **571 modules** auto-translated to proper assembly mnemonics (82.5% rate)
-- **75 SH2 functions** translated to annotated assembly
+### Disassembly & Translation (v6.0.0 — current)
+- **821 68K modules** organized across 17 categories + 15 game subcategories
+- **530 modules** fully translated to proper assembly mnemonics (5504 dc.w lines converted)
+- **92 SH2 functions** integrated into build system (86 .inc files)
 - **107 SH2 functions** mapped and symbolized
 - **503+ 68K functions** named and categorized
 - All translations verified **byte-identical** to original ROM
+- Automated translation tool with label resolution, PC-relative decoding, and branch support
 
 ### Symbolic Hardening (v5.1.0 — complete)
 - **118+ modules** hardened with symbolic register names across all 17 categories
 - Centralized [definitions.asm](disasm/modules/shared/definitions.asm) with MARS/COMM/VDP/Z80/PSG equates
 - Raw hex like `$00A15120` replaced with self-documenting `COMM0_HI` throughout
-- Tracked as [B-012](BACKLOG.md) — 5 commits, zero binary impact
 
 ### Profiling (operational)
 - Custom PicoDrive libretro core with cycle-accurate instrumentation
@@ -156,7 +153,6 @@ python3 analyze_pc_profile.py profile.csv
 | **Task Queue** | [BACKLOG.md](BACKLOG.md) (prioritized work items) |
 | **Known Pitfalls** | [KNOWN_ISSUES.md](KNOWN_ISSUES.md) (hardware hazards, translation issues) |
 | **Optimization Plan** | [OPTIMIZATION_PLAN.md](OPTIMIZATION_PLAN.md) (strategy & rationale) |
-| **Implementation Roadmap** | [ROADMAP.md](ROADMAP.md) (10 phases, 94 tasks) |
 | **Bottleneck Analysis** | [ARCHITECTURAL_BOTTLENECK_ANALYSIS.md](analysis/ARCHITECTURAL_BOTTLENECK_ANALYSIS.md) |
 | **68K Profiling** | [68K_BOTTLENECK_ANALYSIS.md](analysis/profiling/68K_BOTTLENECK_ANALYSIS.md) |
 | **Async Design** | [ASYNC_COMMAND_IMPLEMENTATION_PLAN.md](analysis/optimization/ASYNC_COMMAND_IMPLEMENTATION_PLAN.md) |

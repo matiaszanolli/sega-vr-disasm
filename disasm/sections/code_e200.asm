@@ -212,10 +212,12 @@ sh2_load_data:
 ; sh2_send_cmd_wait ($00E316) - Wait for Ready, Send Command
 ; ============================================================================
 ; Purpose: Waits for SH2 to be ready, then sends a command with data pointer
-; Called by: Various graphics/3D functions
+; Called by: Various graphics/3D functions (8 call sites)
 ; Parameters:
 ;   A0 = 68K data pointer (converted to SH2 address space)
-; Returns: Nothing (A0 preserved in A1)
+;   A1 = Secondary data pointer (passed to sh2_wait_response phase 2)
+; Clobbers: A0 (adds $02000000 SH2 offset — original value NOT preserved)
+; Preserves: D0-D7, A1-A6
 ;
 ; BLOCKING: Contains busy-wait loop at $00E316-$00E31C
 ; This is a PRIMARY BOTTLENECK FUNCTION
@@ -242,7 +244,8 @@ sh2_send_cmd_wait:
 ; Called by: sh2_send_cmd_wait (fall-through), other command functions
 ; Parameters:
 ;   A1 = Secondary data pointer
-; Returns: Nothing
+; Clobbers: Nothing
+; Preserves: D0-D7, A0-A6
 ;
 ; BLOCKING: Contains busy-wait loop at $00E342-$00E348
 ; This is a PRIMARY BOTTLENECK FUNCTION
@@ -260,16 +263,17 @@ sh2_wait_response:
         rts                                     ; $00E358: $4E75             - Return
 
 ; ============================================================================
-; sh2_send_cmd ($00E35A) - Direct Command Send
+; sh2_send_cmd ($00E35A) - Direct Command Send (cmd $22)
 ; ============================================================================
-; Purpose: Sends a command directly with multiple parameters
-; Called by: text_render, various graphics functions
+; Purpose: Sends command $22 with pointer, secondary pointer, and 2 params
+; Called by: text_render, various graphics functions (14 call sites)
 ; Parameters:
-;   A0 = Data pointer
-;   A1 = Secondary pointer
-;   D0 = Parameter 1 (width/count)
-;   D1 = Parameter 2 (height/type)
-; Returns: Nothing
+;   A0 = Data pointer (written as COMM4 in phase 3)
+;   A1 = Secondary pointer (written as COMM4 in phase 1)
+;   D0 = Parameter 1 (width/count, written as COMM4 in phase 2)
+;   D1 = Parameter 2 (height/type, written as COMM5 in phase 2)
+; Clobbers: Nothing
+; Preserves: D0-D7, A0-A6 (all registers preserved)
 ;
 ; BLOCKING: Contains THREE busy-wait loops
 ; This function has the MOST BLOCKING WAITS of all comm functions
@@ -310,13 +314,14 @@ sh2_send_cmd:
 ; sh2_cmd_27 ($00E3B4) - Command $27 (Most frequent: 21 calls/frame)
 ; ============================================================================
 ; Purpose: Sends command $27 with data pointer and 3 parameters
-; Called by: 3D rendering, polygon processing
+; Called by: 3D rendering, polygon processing (38 call sites)
 ; Parameters:
-;   A0 = Data pointer (68K address, written directly)
-;   D0 = Parameter 1
-;   D1 = Parameter 2
-;   D2 = Parameter 3
-; Returns: Nothing
+;   A0 = Data pointer (68K address, written directly to COMM4)
+;   D0 = Parameter 1 (written as COMM4 in phase 2)
+;   D1 = Parameter 2 (written as COMM5 in phase 2)
+;   D2 = Parameter 3 (written as COMM4 in phase 3)
+; Clobbers: Nothing
+; Preserves: D0-D7, A0-A6 (all registers preserved)
 ;
 ; BLOCKING: Contains TWO busy-wait loops
 ; This is a HIGH-FREQUENCY BOTTLENECK FUNCTION (21 calls/frame)
@@ -357,12 +362,13 @@ sh2_cmd_27:
 ; Purpose: Sends command $2F with data pointer and 4 parameters (D0-D3)
 ; Called by: Complex graphics operations
 ; Parameters:
-;   A0 = Data pointer (68K address, written directly)
-;   D0 = Parameter 1
-;   D1 = Parameter 2
-;   D2 = Parameter 3
-;   D3 = Parameter 4
-; Returns: Nothing
+;   A0 = Data pointer (68K address, written directly to COMM4)
+;   D0 = Parameter 1 (written as COMM4 in phase 2)
+;   D1 = Parameter 2 (written as COMM5 in phase 2)
+;   D2 = Parameter 3 (written as COMM4 in phase 3)
+;   D3 = Parameter 4 (written as COMM5 in phase 3)
+; Clobbers: Nothing
+; Preserves: D0-D7, A0-A6 (all registers preserved)
 ;
 ; BLOCKING: Contains THREE busy-wait loops
 ; Similar to sh2_cmd_27 but with an additional parameter phase
@@ -468,11 +474,12 @@ DigitToASCII:
 ; Purpose: Sends command $21 with secondary pointer and 2 parameters
 ; Called by: Graphics/rendering functions
 ; Parameters:
-;   A0 = Data pointer
-;   A1 = Secondary pointer
-;   D0 = Parameter 1
-;   D1 = Parameter 2
-; Returns: Nothing
+;   A0 = Data pointer (written as COMM4 in phase 3)
+;   A1 = Secondary pointer (written as COMM4 in phase 1)
+;   D0 = Parameter 1 (written as COMM4 in phase 2)
+;   D1 = Parameter 2 (written as COMM5 in phase 2)
+; Clobbers: Nothing
+; Preserves: D0-D7, A0-A6 (all registers preserved)
 ;
 ; BLOCKING: Contains TWO busy-wait loops
 ; Similar protocol to sh2_cmd_27
@@ -676,7 +683,7 @@ VDPRegManipulate:
 ; Uses: None (bit test and conditional increment only)
 ; ============================================================================
 post_dispatch_callback:
-        dc.w    $4EBA,$CD5A                     ; $00E928: JSR (d16,PC) → $00B684 (cross-section)
+        jsr     object_update(pc)               ; $00E928: $4EBA $CD5A (cross-section)
         btst    #6,($FFFFC80E).w                ; $00E92C - Test bit 6 of game state
         bne.s   .skip_advance                   ; $00E932 - Skip if set
         addq.w  #4,($FFFFC87E).w                ; $00E934 - Advance jump table index
@@ -1035,70 +1042,63 @@ table_dual_dispatch:
         include "modules/68k/sh2/comm_transfer_block.asm"
         include "modules/68k/game/menu/time_trial_records_display_init.asm"
         include "modules/68k/game/menu/records_scene_state_disp.asm"
-        dc.w    $4240        ; $01017A
-        dc.w    $6100        ; $01017C
-        dc.w    $E3AE        ; $01017E
-        dc.w    $4EBA        ; $010180
-        dc.w    $B502        ; $010182
-        dc.w    $6100        ; $010184
-        dc.w    $0596        ; $010186
-        dc.w    $207C        ; $010188
-        dc.w    $0601        ; $01018A
-        dc.w    $AA00        ; $01018C
-        dc.w    $227C        ; $01018E
-        dc.w    $2400        ; $010190
-        dc.w    $C060        ; $010192
-        dc.w    $303C        ; $010194
-        dc.w    $0038        ; $010196
-        dc.w    $323C        ; $010198
-        dc.w    $0010        ; $01019A
-        dc.w    $4EBA        ; $01019C
-        dc.w    $E1BC        ; $01019E
-        dc.w    $43F9        ; $0101A0
-        dc.w    $2402        ; $0101A2
-        dc.w    $C0A0        ; $0101A4
-        dc.w    $45F8        ; $0101A6
-        dc.w    $A032        ; $0101A8
-        dc.w    $6100        ; $0101AA
-        dc.w    $045A        ; $0101AC
-        dc.w    $0838        ; $0101AE
-        dc.w    $0001        ; $0101B0
-        dc.w    $A014        ; $0101B2
-        dc.w    $661A        ; $0101B4
-        dc.w    $207C        ; $0101B6
-        dc.w    $0601        ; $0101B8
-        dc.w    $AD80        ; $0101BA
-        dc.w    $227C        ; $0101BC
-        dc.w    $2400        ; $0101BE
-        dc.w    $E050        ; $0101C0
-        dc.w    $303C        ; $0101C2
-        dc.w    $0048        ; $0101C4
-        dc.w    $323C        ; $0101C6
-        dc.w    $0010        ; $0101C8
-        dc.w    $4EBA        ; $0101CA
-        dc.w    $E18E        ; $0101CC
-        dc.w    $6018        ; $0101CE
-        dc.w    $207C        ; $0101D0
-        dc.w    $0601        ; $0101D2
-        dc.w    $B200        ; $0101D4
-        dc.w    $227C        ; $0101D6
-        dc.w    $2400        ; $0101D8
-        dc.w    $E038        ; $0101DA
-        dc.w    $303C        ; $0101DC
-        dc.w    $0068        ; $0101DE
-        dc.w    $323C        ; $0101E0
-        dc.w    $0010        ; $0101E2
-        dc.w    $4EBA        ; $0101E4
-        dc.w    $E174        ; $0101E6
-        dc.w    $43F9        ; $0101E8
-        dc.w    $2402        ; $0101EA
-        dc.w    $E0A0        ; $0101EC
-        dc.w    $45F8        ; $0101EE
-        dc.w    $C254        ; $0101F0
-        dc.w    $6100        ; $0101F2
-        dc.w    $0412        ; $0101F4
-        dc.w    $207C        ; $0101F6
-        dc.w    $0601        ; $0101F8
-        dc.w    $B880        ; $0101FA
-        dc.w    $227C        ; $0101FC - MOVEA.L #$24011050,A1 (partial)
-        dc.w    $2401        ; $0101FE
+; ============================================================================
+; Function: Name Entry Display Render Init ($01017A-$010201)
+; ============================================================================
+; Dispatched from records_scene_state_disp jump table (state 0).
+; Initializes memory, updates objects, transfers character rendering data
+; to SH2 framebuffer via sh2_send_cmd ($22). Two display modes selected
+; by bit 1 of ($A014). Flows into name_entry_sh2_xfer_advance at $010200.
+;
+; Parameters: None (uses game state from Work RAM)
+; Clobbers: D0, D1, A0, A1, A2 (plus callee clobbers)
+; Calls: MemoryInit, object_update, name_entry_background_tile_transfer,
+;        sh2_send_cmd, lap_time_digit_renderer_a
+; ============================================================================
+name_entry_display_render_init:
+        clr.w   d0                              ; $01017A: D0 = 0 (select buffer A)
+        bsr.w   MemoryInit                      ; $01017C: Initialize memory buffers
+        jsr     object_update(pc)               ; $010180: $4EBA $B502 Update all objects
+        bsr.w   name_entry_background_tile_transfer ; $010184: Transfer background tiles
+
+; Send character region A to SH2 framebuffer
+        movea.l #$0601AA00,a0                   ; $010188: SH2 framebuffer source
+        movea.l #$2400C060,a1                   ; $01018E: SH2 SDRAM dest (cache-through)
+        move.w  #$0038,d0                       ; $010194: Width = 56
+        move.w  #$0010,d1                       ; $010198: Height = 16
+        jsr     sh2_send_cmd(pc)                ; $01019C: $4EBA $E1BC Send command $22
+
+; Render digit tiles (first set)
+        lea     ($2402C0A0).l,a1                ; $0101A0: SH2 tile palette address
+        lea     ($FFFFA032).w,a2                ; $0101A6: Work RAM source data
+        bsr.w   lap_time_digit_renderer_a       ; $0101AA: Render character digits
+
+; Select display mode based on game state flag
+        btst    #1,($FFFFA014).w                ; $0101AE: Test display mode bit
+        bne.s   .alt_display                    ; $0101B4: Branch if alternate mode
+
+; Normal display mode: 72-pixel wide region
+        movea.l #$0601AD80,a0                   ; $0101B6: SH2 framebuffer source B
+        movea.l #$2400E050,a1                   ; $0101BC: SH2 SDRAM dest B
+        move.w  #$0048,d0                       ; $0101C2: Width = 72
+        move.w  #$0010,d1                       ; $0101C6: Height = 16
+        jsr     sh2_send_cmd(pc)                ; $0101CA: $4EBA $E18E Send command $22
+        bra.s   .continue                       ; $0101CE: Skip alternate path
+
+; Alternate display mode: 104-pixel wide region
+.alt_display:
+        movea.l #$0601B200,a0                   ; $0101D0: SH2 framebuffer source C
+        movea.l #$2400E038,a1                   ; $0101D6: SH2 SDRAM dest C
+        move.w  #$0068,d0                       ; $0101DC: Width = 104
+        move.w  #$0010,d1                       ; $0101E0: Height = 16
+        jsr     sh2_send_cmd(pc)                ; $0101E4: $4EBA $E174 Send command $22
+
+; Render digit tiles (second set)
+.continue:
+        lea     ($2402E0A0).l,a1                ; $0101E8: SH2 tile palette address B
+        lea     ($FFFFC254).w,a2                ; $0101EE: Work RAM source data B
+        bsr.w   lap_time_digit_renderer_a       ; $0101F2: Render character digits B
+
+; Continue into name_entry_sh2_xfer_advance (spans section boundary)
+        movea.l #$0601B880,a0                   ; $0101F6: SH2 framebuffer source D
+        dc.w    $227C,$2401                     ; $0101FC: MOVEA.L #$24011050,A1 (3rd word $1050 at $010200 in next section)

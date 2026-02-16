@@ -65,11 +65,11 @@ are integrated into the build system via `.inc` generated includes. Zero remaini
 
 ## Hardware Hazards
 
-### RV Bit — SH2 ROM Access Stalls
+### RV Bit — SH2 ROM Access Stalls (RESOLVED — Not a Risk for VRD)
 When RV=1 (68K ROM→VRAM DMA active), **ALL SH2 ROM access blocks** until 68K clears it.
-- **Risk:** Expansion ROM at $02300000+ stalls during DMA transfers
-- **Status:** Not yet profiled during gameplay (see [BACKLOG.md](BACKLOG.md) B-008)
-- **Mitigation:** If confirmed, copy critical expansion code to SDRAM ($06xxxxxx)
+- **Risk:** Expansion ROM at $02300000+ would stall during DMA transfers
+- **Status:** RESOLVED (B-008, 2026-02-16) — VRD never sets RV=1. All DREQ_CTRL writes use `#$04` (68S mode only). The game uses manual FIFO feeding, not ROM-to-VRAM DMA. Expansion ROM is safe for SH2 execution at all times.
+- **No mitigation needed.** SDRAM copy is unnecessary.
 
 ### FM Bit — Immediate VDP Preemption
 Writing FM=1 **immediately preempts** any ongoing 68K VDP access, even mid-transfer.

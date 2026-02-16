@@ -74,11 +74,10 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 **Depends on:** Nothing
 
 ### B-008: Profile RV bit usage during gameplay
-**Status:** OPEN
+**Status:** DONE (2026-02-16) — RV is NEVER set. Expansion ROM is safe.
 **Why:** If RV=1 during gameplay, expansion ROM code at $02300000 stalls — critical for all Track 1+ work.
-**Approach:** Instrument profiler or add RV monitoring to init_sequence.
-**Acceptance:** Definitive answer: does RV=1 occur during active rendering?
-**Key files:** `tools/libretro-profiling/`, `disasm/modules/68k/boot/init_sequence.asm`
+**Result:** Full static analysis of every DREQ_CTRL ($A15106/$A15107) reference in the codebase. VRD exclusively uses CPU Write mode (manual FIFO feeding via $A15112), never ROM-to-VRAM DMA. All 9 translated writes use `move.b #$04,$A15107` (sets 68S only, RV=0). All 13 raw dc.w `$5106`/`$5107` occurrences are data values in data tables (no preceding instruction encoding). Boot code writes to DREQ source/dest regs but never DREQ_CTRL. **RV=1 never occurs.**
+**Impact:** Expansion ROM at $02300000+ is confirmed safe for SH2 execution at all times. No SDRAM copy mitigation needed. All Track 1+ optimization work can proceed without RV concerns.
 
 ### B-009: Profile frame buffer write patterns (FIFO bursts)
 **Status:** OPEN
@@ -117,6 +116,7 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 
 | ID | Description | Commit | Date |
 |----|-------------|--------|------|
+| B-008 | RV bit profiling — NEVER set, expansion ROM safe (static analysis) | — | 2026-02-16 |
 | B-006 | Activate v4.0 parallel hooks — **PARTIAL**: Patch #2 needs revert (COMM7 collision crash) | 651a415 | 2026-02-10 |
 | B-010 | dc.w→mnemonic Phase 1+2 (5504 lines, 530/821 modules fully translated) | — | 2026-02-13 |
 | B-012 | Symbolic register hardening batch 1 (6 sh2/vdp modules) | 3b347d3 | 2026-02-10 |

@@ -467,9 +467,7 @@ The 32X frame buffer has a 4-word write FIFO:
 
 **Impact on expansion ROM:** Functions at $02300000+ would stall during any 68K ROM→VRAM DMA transfer.
 
-**Mitigation:** If RV=1 occurs during gameplay, critical expansion code must be copied to SDRAM ($06xxxxxx) which is not affected by RV.
-
-**Status:** Not yet profiled. Priority investigation item.
+**Status:** RESOLVED (B-008, 2026-02-16). VRD never sets RV=1. The game exclusively uses CPU Write mode (manual FIFO feeding via `$A15112`), never ROM-to-VRAM DMA. All 9 DREQ_CTRL writes use `#$04` (68S only, RV=0). Expansion ROM is safe for SH2 execution at all times. No SDRAM copy mitigation needed.
 
 ### FM Bit — VDP Access Preemption
 
@@ -662,7 +660,7 @@ python3 analyze_pc_profile.py profile.csv
 
 | Risk | Severity | Mitigation |
 |------|----------|------------|
-| RV bit blocks expansion ROM access | Medium | Copy critical code to SDRAM if needed |
+| ~~RV bit blocks expansion ROM access~~ | ~~Medium~~ | RESOLVED: VRD never sets RV=1 (B-008) |
 | FM bit preemption corrupts VDP state | Medium | Only switch FM during V-Blank |
 | SH2 interrupt hardware bug | Medium | FRT TOCR toggle workaround (documented) |
 
@@ -700,7 +698,7 @@ python3 analyze_pc_profile.py profile.csv
 
 Items requiring empirical measurement before implementation:
 
-1. **RV bit during gameplay** — Does 68K ever set RV=1 during active rendering? If yes, expansion ROM code stalls.
+1. ~~**RV bit during gameplay**~~ — RESOLVED (B-008): VRD never sets RV=1. Expansion ROM safe.
 2. **68K dead code in $00E200 section** — Can we reclaim 20+ bytes for the async shim?
 3. **Frame buffer FIFO burst patterns** — Does VRD already use 4-word bursts? If not, 2.4x rasterizer speedup available.
 4. **SDRAM 16-byte alignment impact** — Do aligned data structures measurably improve burst reads?

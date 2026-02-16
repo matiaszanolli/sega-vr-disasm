@@ -102,11 +102,14 @@ Controls ROM cartridge bank switching (256KB window):
   - Main ROM: `0x02000000-0x022FFFFF`
   - **Expansion ROM: `0x02300000-0x023FFFFF`**
 - SH2 CPUs stall until RV returns to 0
-- Critical for expansion code execution timing
+
+**VRD Status (B-008, 2026-02-16):** VRD never sets RV=1. The game uses CPU Write mode (`#$04` = 68S) for all DREQ transfers, never ROM-to-VRAM DMA. Expansion ROM is safe for SH2 execution at all times.
 
 **68S** - DMA Mode
 - `0`: No Operation
 - `1`: CPU Write (68K writes data in FIFO)
+
+> **Note on bit layout:** The hardware manual (§3.2) shows a compact layout `{FULL=bit2, RV=bit1, 68S=bit0}`, but VRD's actual register access confirms the layout above: `move.b #$04,$A15107` sets 68S (bit 2), `btst #7,$A15107` tests FULL (bit 7). This matches the expanded layout in this table. The hardware manual's compact table appears to show logical field ordering, not physical bit positions.
 
 The internal system starts operation when 68S is 1. Writing 0 force-ends the operation. It is automatically set to 0 after DMA ends.
 

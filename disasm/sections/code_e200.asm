@@ -327,40 +327,29 @@ sh2_send_cmd:
 ;   Phase 3: Send D2, return (no wait - SH2 processes async)
 ; ============================================================================
 sh2_cmd_27:
-; Async enqueue — replaces blocking 3-phase COMM handshake
-; Writes entry to ring buffer at $FFFB00, Slave SH2 drains via COMM7 doorbell
-; Parameters: A0=data_ptr, D0=width, D1=height, D2=add_value
-; Clobbers: nothing visible (MOVEM save/restore)
-; Size: 68 bytes code + 14 bytes padding = 82 bytes (matches original)
-        movem.l d3/d5/a1-a2,-(sp)              ; $00E3B4: Save regs callers depend on
-        lea     $FFFB00,a1                      ; A1 = queue base (write_idx at +0)
-        move.w  (a1),d3                         ; D3 = write_idx
-        ; Calculate entry address: $FFFB04 + write_idx * 10
-        move.w  d3,d5                           ; D5 = write_idx
-        lsl.w   #3,d5                           ; D5 = idx * 8
-        move.w  d3,a2                           ; A2 = idx (temp)
-        add.w   a2,a2                           ; A2 = idx * 2
-        add.w   a2,d5                           ; D5 = idx * 10
-        lea     $FFFB04,a2                      ; A2 = entries base
-        adda.w  d5,a2                           ; A2 = &entry[write_idx]
-        ; Write 10-byte queue entry
-        move.l  a0,(a2)+                        ; +0: data_ptr (68K addr, SH2 adds $02000000)
-        move.w  d0,(a2)+                        ; +4: width
-        move.w  d1,(a2)+                        ; +6: height
-        move.w  d2,(a2)                         ; +8: add_value
-        ; Update write_idx (mod 32)
-        addq.w  #1,d3
-        andi.w  #$001F,d3                       ; Mask to 0-31
-        move.w  d3,(a1)                         ; Store new write_idx
-        ; Ring doorbell if Slave idle (COMM7 == 0)
-        tst.w   COMM7                           ; Slave processing?
-        bne.s   .cmd27_done                     ; Yes: skip doorbell
-        move.w  #$0027,COMM7                    ; Ring doorbell for Slave
-.cmd27_done:
-        movem.l (sp)+,d3/d5/a1-a2              ; Restore registers
-        rts
-        ; Padding to maintain exact 82-byte function size
-        dcb.w   7,$4E71                         ; 14 bytes NOP fill to $E406
+; Phase 1: Send data pointer and command
+        move.l  a0,COMM4                        ; $00E3B4: $23C8 $00A1 $5128 - Write pointer
+        move.w  #HANDSHAKE_READY,COMM6          ; $00E3BA: $33FC $0101 $00A1 $512C - Signal ready
+        move.b  #CMD_27,COMM0_LO                ; $00E3C2: $13FC $0027 $00A1 $5121 - Command $27
+        move.b  #$01,COMM0_HI                   ; $00E3CA: $13FC $0001 $00A1 $5120 - Trigger
+; --- BLOCKING WAIT 1 ---
+.cmd27_wait_phase1:
+        tst.b   COMM6                           ; $00E3D2: $4A39 $00A1 $512C - Check handshake
+        bne.s   .cmd27_wait_phase1              ; $00E3D8: $66F8             - Loop until clear
+
+; Phase 2: Send parameters D0 and D1
+        move.w  d0,COMM4                        ; $00E3DA: $33C0 $00A1 $5128 - Write D0
+        move.w  d1,COMM5                        ; $00E3E0: $33C1 $00A1 $512A - Write D1
+        move.w  #HANDSHAKE_READY,COMM6          ; $00E3E6: $33FC $0101 $00A1 $512C - Signal ready
+; --- BLOCKING WAIT 2 ---
+.cmd27_wait_phase2:
+        tst.b   COMM6                           ; $00E3EE: $4A39 $00A1 $512C - Check handshake
+        bne.s   .cmd27_wait_phase2              ; $00E3F4: $66F8             - Loop until clear
+
+; Phase 3: Send parameter D2 (no wait - SH2 processes after return)
+        move.w  d2,COMM4                        ; $00E3F6: $33C2 $00A1 $5128 - Write D2
+        move.w  #HANDSHAKE_READY,COMM6          ; $00E3FC: $33FC $0101 $00A1 $512C - Signal ready
+        rts                                     ; $00E404: $4E75             - Return
 
 ; ============================================================================
 ; sh2_cmd_2F ($00E406) - Extended Command with 4 Parameters

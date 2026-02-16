@@ -26,7 +26,7 @@
  *
  * ENTRY FORMAT (10 bytes each)
  * ----------------------------
- *   +0: data_ptr   (32-bit) - pointer to pixel region
+ *   +0: data_ptr   (32-bit) - pointer to pixel region (SH2 address space)
  *   +4: width      (16-bit) - bytes per row
  *   +6: height     (16-bit) - number of rows
  *   +8: add_value  (16-bit) - constant to add to each byte
@@ -89,7 +89,7 @@
 cmd27_queue_drain:
         sts.l   pr,@-r15                /* Save return address */
 
-        mov.l   .L_queue_base,r8        /* R8 = 0x2203E100 (queue base) */
+        mov.l   .L_queue_base,r8        /* R8 = 0x02FFFB00 (queue base) */
 
 .L_drain_loop:
         /* Load indices - must re-read write_idx each iteration
@@ -116,14 +116,15 @@ cmd27_queue_drain:
         add     #4,r2                   /* R2 = base + 4 + read_idx*10 = &entry */
 
         /* Load entry fields */
-        mov.l   @r2+,r3                 /* R3 = data_ptr (68K address) */
+        mov.l   @r2+,r3                 /* R3 = data_ptr (already SH2 address) */
         mov.w   @r2+,r4                 /* R4 = width (16-bit) */
         mov.w   @r2+,r5                 /* R5 = height (16-bit) */
         mov.w   @r2,r6                  /* R6 = add_value (16-bit) */
 
-        /* Convert 68K address to SH2 address space */
-        mov.l   .L_sh2_offset,r0        /* R0 = 0x02000000 */
-        add     r0,r3                   /* R3 = data_ptr + 0x02000000 */
+        /* NOTE: No address conversion needed — 68K callers pass SH2-space
+         * addresses (e.g., $04xxxxxx framebuffer) directly via A0.
+         * The original cmd_27 writes A0 to COMM4 for the Master SH2,
+         * which uses these SH2 addresses as-is. */
 
         /* Zero-extend width/height/add_value (MOV.W sign-extends) */
         extu.w  r4,r4                   /* Zero-extend width */
@@ -203,9 +204,6 @@ cmd27_queue_drain:
 
 .L_queue_base:
         .long   0x02FFFB00              /* Queue in 68K Work RAM (SH2 view) */
-
-.L_sh2_offset:
-        .long   0x02000000              /* 68K→SH2 address conversion offset */
 
 .L_comm7_addr:
         .long   0x2000402E              /* COMM7 register */

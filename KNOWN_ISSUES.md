@@ -111,6 +111,26 @@ A boot-time probe at [bank_probe.asm](disasm/modules/68k/optimization/bank_probe
 - **Status:** Probe integrated into boot sequence, ROM builds. Awaiting PicoDrive test to read results.
 - **Do not hardcode a bank register** until probe results confirm which path works
 
+### SH2 Cannot Access 68K Work RAM — At ANY Address
+The SH2 memory map (hardware manual §4.2) shows:
+- `$0200 0000h` — SDRAM (256KB, ends at `$0203 FFFF`)
+- `$0240 0000h` — **"-" (NOTHING)** — unmapped space
+- `$0400 0000h` — Frame Buffer DRAM
+
+68K Work RAM lives at 68K address `$FF0000-$FFFFFF`. There is **NO SH2 address** that maps to this region. Both `$02FFFB00` and `$22FFFB00` fall in the unmapped gap between SDRAM and Frame Buffer.
+
+**Failed approaches (B-003 v1-v3):**
+- `$22FFFB00` (cache-through) — unmapped, reads as garbage
+- `$02FFFB00` (cached) — same unmapped region, same result
+- `$06FFFB00` (SDRAM mirror on PicoDrive) — not documented, not portable
+
+**Correct approach:** Use COMM registers ($20004020-$2000402E) for parameter passing between 68K and SH2. These 8 words are the ONLY always-accessible shared writable memory between the two CPUs.
+
+**Rule:** NEVER use 68K Work RAM addresses in SH2 code. The only shared memory options are:
+1. **COMM registers** (16 bytes, always accessible)
+2. **SDRAM** ($0200 0000 - $0203 FFFF, both CPUs can access)
+3. **Frame Buffer** ($0400 0000 / $2400 0000, access controlled by FM bit)
+
 ### Cache-Through Addressing for Shared Memory
 Use `0x22XXXXXX` (cache-through), not `0x0XXXXXXX` (cached) for:
 - System registers (COMM, control registers)
@@ -228,32 +248,32 @@ Both produce the same result: handler returns to the dispatch loop. The differen
 
 **Exception:** If a handler is a leaf function that doesn't save PR AND also modifies PR (impossible for a true leaf), JMP would break. In practice all non-trivial handlers save/restore PR.
 
-### Successful Async Pattern — sh2_cmd_27 Implementation (B-003, Feb 2026)
+### Successful Async Pattern — sh2_cmd_27 via COMM Registers (B-003, Feb 2026)
 
-**Works:** In-place async replacement of blocking COMM handshake with ring buffer + COMM7 doorbell.
+**Works:** Direct parameter passing via COMM registers, bypassing Master SH2 entirely.
 
 **Design:**
-1. **68K producer** (`sh2_cmd_27` at $E3B4): Enqueues 10-byte entry to Work RAM ring buffer ($FFFB00), writes COMM7=$0027 if Slave idle
-2. **Slave idle hook** (trampoline at $020608): When no COMM1 work, jumps to expansion ROM instead of burning 64 NOPs
-3. **Expansion consumer** (`slave_comm7_idle_check` at $300700): Checks COMM7; if $0027, clears COMM7, drains queue, returns to Slave loop
+1. **68K sender** (`sh2_cmd_27` at $E3B4): Waits COMM7==0, writes params to COMM2-6, writes COMM7=$0027 (doorbell), waits COMM7==0 (ack)
+2. **Slave inline drain** (SDRAM at $020608, 88 bytes): Checks COMM7, reads COMM2-6, clears COMM7, processes pixels with cache-through writes, loops back to check for more
+3. No Master SH2 involvement, no Work RAM queue, no expansion ROM execution
 
 **Key implementation details:**
-- **In-place 68K replacement:** 82-byte function body replaced with 68B enqueue + MOVEM save/restore (d3/d5/a1-a2) + 14B NOP padding. No section space needed.
-- **Register safety:** Original sh2_cmd_27 clobbers NO caller-visible registers. MOVEM preserves this contract (5-7 callers depend on D3/A1/A2).
-- **Doorbell race fix:** `tst.w COMM7 / bne.s / move.w #$0027,COMM7` — checks if Slave idle before ringing. If Slave is processing, skip doorbell (Slave will check queue when done).
-- **Queue drain race safety:** Handler clears COMM7 BEFORE calling drain. If 68K enqueues during drain, new doorbell writes after clear. If 68K enqueues after drain returns, queue was empty → doorbell picked up on next idle iteration.
-- **Slave integration:** 12-byte JMP trampoline at $020608 replaces original delay loop (exact same size). Original COMM1 command dispatch unchanged.
-- **Queue init:** Boot RAM clear ($FFC800+) already zeroes $FFFB00. No explicit init needed.
+- **COMM-only parameter passing:** data_ptr→COMM4+5 (move.l), width→COMM2, height→COMM3, add_value→COMM6. Uses ONLY documented shared memory (see "SH2 Cannot Access 68K Work RAM" above).
+- **In-place 68K replacement:** 82-byte function body replaced with 50B COMM writes + 32B NOP padding. No section space needed, no register clobber (no MOVEM needed).
+- **Two short waits:** WAIT#1 for previous entry (Slave processing time), WAIT#2 for Slave ack (~17 SH2 cycles to read params + clear COMM7). Much faster than original Master SH2 dispatch.
+- **Cache-through conversion on SH2 side:** Slave converts data_ptr from $04xxxxxx → $24xxxxxx (OR with $20000000) to bypass SH2 data cache. Without this, pixel writes stay in cache and never reach DRAM.
+- **Inline SDRAM execution:** All Slave drain code runs from SDRAM at $020608 (128-byte slot replacing original delay loop). PicoDrive cannot execute Slave code from expansion ROM ($02300000+).
+- **COMM conflict safety:** WAIT#2 ensures Slave has read all params before RTS. No other command can overwrite COMM2-6 while Slave is still reading them.
+- **Re-entrancy:** After processing, Slave BRAs back to COMM7 check — picks up next entry immediately if 68K wrote one during processing.
 
-**Tested:** ROM boots and runs in PicoDrive without issues. Expected savings: ~8,400 68K cycles/frame (~6.5% of budget).
+**Tested:** Boots and runs in PicoDrive. Menu highlights, records/options, race mode all working.
 
 **Files:**
-- [code_e200.asm](../disasm/sections/code_e200.asm) lines 329-363 (sh2_cmd_27)
-- [code_20200.asm](../disasm/sections/code_20200.asm) lines 534-539 (Slave trampoline)
-- [slave_comm7_idle_check.asm](../disasm/sh2/expansion/slave_comm7_idle_check.asm) (expansion handler)
-- [expansion_300000.asm](../disasm/sections/expansion_300000.asm) lines 271-283 (handler include)
+- [code_e200.asm](disasm/sections/code_e200.asm) lines 313-346 (68K sh2_cmd_27)
+- [code_20200.asm](disasm/sections/code_20200.asm) lines 534-580 (SH2 inline drain dc.w)
+- [inline_slave_drain.asm](disasm/sh2/expansion/inline_slave_drain.asm) (SH2 source)
 
-**Reusable for other blocking functions:** The pattern (in-place enqueue + trampoline + expansion handler) can be applied to `sh2_send_cmd_wait` and other hot blocking functions.
+**Previous failed approaches (v1-v3):** Used Work RAM ring buffer ($FFFB00) readable from SH2 — impossible because SH2 cannot access 68K Work RAM. See "SH2 Cannot Access 68K Work RAM" and Abandoned Approaches table.
 
 ---
 
@@ -303,3 +323,4 @@ ROM $300000-$3FFFFF (~1MB, 99.9% free) is accessible to the 68K via banking or p
 | COMM7 broadcast of game commands via dispatch hook | Game cmd bytes (0x01, 0x27) collide with expansion signal values → Slave processes uninitialized queue → crash. See §COMM7 Signal Namespace Collision above. |
 | Placing Patch #2 literal at $020480 | Shared by D011@$020438 (init code). Silently redirects init JSR to hook address. Always scan for $Dnxx refs before overwriting. |
 | Fully async general commands ($22/$25/$2F/$21) | Buffer aliasing: 68K overwrites shared data buffers before Slave replays COMM protocol. Menu graphics corrupt, race timer runs at wrong speed. COMM replay mechanism confirmed working (race 3D scene rendered). Infrastructure kept dormant at $301000. Needs per-call-site data dependency analysis before selective async activation. |
+| Work RAM ring buffer for SH2 queue ($FFFB00) | SH2 CANNOT access 68K Work RAM at ANY address. $02FFFB00 and $22FFFB00 are both in unmapped space (past SDRAM at $0203FFFF, before Frame Buffer at $04000000). Three attempts failed before reading the hardware manual. **Use COMM registers or SDRAM for 68K↔SH2 shared data.** |

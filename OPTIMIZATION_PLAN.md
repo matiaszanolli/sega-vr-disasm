@@ -146,24 +146,22 @@ Each command follows a strict `submit → wait → continue` pattern:
 
 ### v7.0 Async cmd_27 (February 2026) — SUCCEEDED ✅
 
-**Status:** COMPLETE and TESTED (B-003)
+**Status:** COMPLETE and TESTED (B-003, 2026-02-17)
 
-**What happened:** In-place replacement of sh2_cmd_27's blocking handshake with async queue enqueue.
+**What happened:** Replaced sh2_cmd_27's blocking Master SH2 dispatch with direct COMM register parameter passing to the Slave SH2.
 
 **Implementation:**
-- **68K producer** (code_e200.asm): 82-byte sh2_cmd_27 body replaced with 68B async enqueue + MOVEM save/restore + 14B NOP padding
-- **Slave trampoline** (code_20200.asm): 12-byte JMP at $020608 replaces 64-NOP idle loop
-- **Expansion consumer** (slave_comm7_idle_check.asm): 48-byte handler at $300700 checks COMM7, drains queue
-- **Queue**: Work RAM ring buffer at $FFFB00 (32 entries × 10 bytes, zeroed by boot RAM clear)
-- **Doorbell**: COMM7=$0027 signal when Slave idle
+- **68K sender** (code_e200.asm): 82-byte sh2_cmd_27 body replaced with 50B COMM writes + 32B NOP padding. Waits COMM7==0, writes params to COMM2-6, doorbell COMM7=$0027, waits COMM7==0 (ack).
+- **Slave inline drain** (code_20200.asm): 88-byte COMM-reading pixel processor at $020608 (SDRAM). Reads COMM2-6, clears COMM7, converts data_ptr to cache-through ($04xx→$24xx), processes pixels, loops back.
+- **No queue, no expansion ROM execution on Slave.** Uses only COMM registers (documented shared memory).
 
-**ROM tested:** Boots and runs in PicoDrive without issues.
+**ROM tested:** Boots and runs in PicoDrive. Menu highlights, records/options panels, race mode all working.
 
-**Expected savings:** ~8,400 68K cycles/frame (~6.5% of budget) from eliminating 21 × 2 blocking loops.
-
-**Key insight:** B-001 space blocker was moot — in-place replacement needs NO additional 68K space. The 82-byte function body was replaced exactly.
-
-**Lesson:** When section space is tight, replace existing function bodies in-place instead of adding new code.
+**Key lessons:**
+1. **SH2 cannot access 68K Work RAM** — $02FFFB00 and $22FFFB00 are unmapped. Three failed attempts (v1-v3) before reading the hardware manual's SH2 memory map.
+2. **COMM registers are the only always-accessible shared memory** between 68K and SH2. SDRAM is also shared but requires address calculation.
+3. **In-place replacement** needs NO additional 68K section space. The 82-byte function body was sufficient.
+4. **Read the hardware manual first.** Don't guess about memory maps.
 
 ### 68K Async Attempt (January 2026) — FAILED (superseded by B-003)
 
@@ -250,11 +248,11 @@ All 17 command submissions per frame reuse COMM0/COMM4/COMM6. Naive async would 
 4. ~~Frame boundary sync (`sh2_wait_frame_complete`)~~
 
 **Phase 2: Convert sh2_cmd_27** (21 calls/frame — biggest win) — ✅ DONE (B-003, Feb 2026)
-1. ✅ Replace sh2_cmd_27 body with in-place async enqueue (68B code + 14B padding = 82B)
-2. ✅ Work RAM ring buffer at $FFFB00 (32 entries × 10 bytes)
-3. ✅ COMM7 doorbell ($0027) from 68K enqueue
-4. ✅ Slave trampoline ($020608) + expansion handler ($300700) drain queue
-5. ✅ ROM tested — boots and runs in PicoDrive
+1. ✅ Replace sh2_cmd_27 body with COMM register writes (50B code + 32B padding = 82B)
+2. ✅ Direct COMM2-6 parameter passing (no queue, no Work RAM)
+3. ✅ COMM7 doorbell ($0027) + COMM7==0 ack handshake
+4. ✅ Slave inline drain at $020608 (88B SDRAM, reads COMM registers, cache-through writes)
+5. ✅ ROM tested — menus, records, race mode all working in PicoDrive
 6. **TODO:** Profile to measure actual 68K cycle reduction
 
 **Phase 3: Convert sh2_graphics_cmd** (14 calls/frame) — OPEN
@@ -273,11 +271,10 @@ All 17 command submissions per frame reuse COMM0/COMM4/COMM6. Naive async would 
 
 | Component | Location | Size | Status |
 |-----------|----------|------|--------|
-| sh2_cmd_27 async enqueue | $E3B4 (in-place) | 68B code + 14B NOP | ✅ Active |
-| Ring buffer | Work RAM $FFFB00 | 324 bytes (4B header + 32×10B) | ✅ Active |
-| Slave trampoline | ROM $020608 (in-place) | 12B | ✅ Active |
+| sh2_cmd_27 COMM sender | $E3B4 (in-place) | 50B code + 32B NOP | ✅ Active |
+| Slave inline drain | SDRAM $020608 (in-place) | 88B code + 40B NOP | ✅ Active |
 | slave_comm7_idle_check | Expansion ROM $300700 | 48B | ✅ Active |
-| cmd27_queue_drain | Expansion ROM $300600 | 128B | ✅ Active |
+| cmd27_queue_drain | Expansion ROM $300600 | 128B | Dormant (superseded) |
 
 **B-001 space blocker:** MOOT — in-place replacement needs no additional 68K space. The existing 82-byte sh2_cmd_27 body was sufficient.
 

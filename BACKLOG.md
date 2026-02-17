@@ -27,12 +27,12 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 **Closed:** 2026-02-14
 
 ### B-003: Convert sh2_cmd_27 to async (21 calls/frame)
-**Status:** REVERTED (2026-02-16) — async path breaks menu highlighting
-**Attempt:** In-place replacement at $E3B4 with async enqueue to ring buffer at $FFFB00. Slave SH2 trampoline at $020608 jumps to expansion handler ($300700) which drains queue on COMM7=$0027 doorbell.
-**Root cause:** cmd27_queue_drain on the Slave SH2 performs the pixel brightness adjustments (add constant to 2D region) but the processing either happens too late (after frame display) or the Slave's framebuffer writes don't take effect. The committed version also had a bug: added $02000000 to data_ptr addresses that are already SH2 framebuffer addresses ($04xxxxxx → $06xxxxxx SDRAM = wrong memory). Reverting to original blocking code restored menu highlights immediately.
-**Infrastructure preserved:** Trampoline at $020608, slave_comm7_idle_check at $300700, cmd27_queue_drain at $300600, general_queue_drain at $301000. All dormant (COMM7 never written by 68K now).
-**Key files:** `disasm/sections/code_e200.asm`
-**Original commit:** ceb0ed3 (reverted in this commit)
+**Status:** DONE (2026-02-17) — COMM-register approach, fully tested
+**v1 (ceb0ed3, reverted):** Broke menu highlights. Used Work RAM queue ($FFFB00) — SH2 cannot access 68K Work RAM.
+**v2-v3 (reverted):** Tried $22FFFB00 and $02FFFB00 as queue base — both unmapped SH2 space.
+**v4 (current, working):** Direct COMM register parameter passing. 68K writes params to COMM2-6, doorbell COMM7=$0027. Slave reads COMM2-6 inline from SDRAM at $020608 (88 bytes). No queue, no Work RAM, no expansion ROM execution on Slave.
+**Key insight:** SH2 memory map shows $0240 0000+ as "-" (nothing). The ONLY shared writable memory is COMM registers (16 bytes) and SDRAM ($0200 0000-$0203 FFFF).
+**Key files:** `disasm/sections/code_e200.asm`, `disasm/sections/code_20200.asm`
 
 ### B-004: Convert remaining commands to async (14 calls/frame)
 **Status:** REVERTED (2026-02-14) — same buffer aliasing issue as Phase 3
@@ -116,6 +116,7 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 
 | ID | Description | Commit | Date |
 |----|-------------|--------|------|
+| B-003 | Async sh2_cmd_27 via COMM registers (bypasses Master SH2) | — | 2026-02-17 |
 | B-008 | RV bit profiling — NEVER set, expansion ROM safe (static analysis) | — | 2026-02-16 |
 | B-006 | Activate v4.0 parallel hooks — **PARTIAL**: Patch #2 needs revert (COMM7 collision crash) | 651a415 | 2026-02-10 |
 | B-010 | dc.w→mnemonic Phase 1+2 (5504 lines, 530/821 modules fully translated) | — | 2026-02-13 |

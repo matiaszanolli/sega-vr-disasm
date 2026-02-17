@@ -531,70 +531,58 @@ vdp_wait_test:                   ; $02050C
         dc.w    $0608        ; $020602
         dc.w    $0600        ; $020604
         dc.w    $0608        ; $020606
-        dc.w    $D301        ; $020608  MOV.L @(4,PC),R3 → $02300700
-        dc.w    $432B        ; $02060A  JMP @R3 (slave_comm7_idle_check)
-        dc.w    $0009        ; $02060C  NOP (delay slot)
-        dc.w    $0009        ; $02060E  NOP (pad)
-        dc.w    $0230        ; $020610  literal: $02300700 (high)
-        dc.w    $0700        ; $020612  literal: $02300700 (low)
-        dc.w    $DE07        ; $020614
-        dc.w    $E000        ; $020616
-        dc.w    $81EA        ; $020618
-        dc.w    $8416        ; $02061A
-        dc.w    $C801        ; $02061C
-        dc.w    $8B0F        ; $02061E
-        dc.w    $E000        ; $020620
-        dc.w    $1E09        ; $020622
-        dc.w    $D204        ; $020624
-        dc.w    $E000        ; $020626
-        dc.w    $120C        ; $020628
-        dc.w    $1203        ; $02062A
-        dc.w    $D003        ; $02062C
-        dc.w    $1203        ; $02062E
-        dc.w    $AF9E        ; $020630
-        dc.w    $0009        ; $020632
-        dc.w    $2000        ; $020634
-        dc.w    $4000        ; $020636
-        dc.w    $FFFF        ; $020638
-        dc.w    $FF80        ; $02063A
-        dc.w    $0000        ; $02063C
-        dc.w    $44E0        ; $02063E
-        dc.w    $AFFE        ; $020640
-        dc.w    $0009        ; $020642
-        dc.w    $DE04        ; $020644
-        dc.w    $E000        ; $020646
-        dc.w    $81ED        ; $020648
-        dc.w    $D004        ; $02064A
-        dc.w    $1E09        ; $02064C
-        dc.w    $D104        ; $02064E
-        dc.w    $DE13        ; $020650
-        dc.w    $D014        ; $020652
-        dc.w    $1E01        ; $020654
-        dc.w    $50E0        ; $020656
-        dc.w    $D113        ; $020658
-        dc.w    $3010        ; $02065A
-        dc.w    $8901        ; $02065C
-        dc.w    $AFFA        ; $02065E
-        dc.w    $0009        ; $020660
-        dc.w    $5AE5        ; $020662
-        dc.w    $5BE6        ; $020664
-        dc.w    $5CE8        ; $020666
-        dc.w    $5DE9        ; $020668
-        dc.w    $59EA        ; $02066A
-        dc.w    $B00C        ; $02066C
-        dc.w    $0009        ; $02066E
-        dc.w    $D00E        ; $020670
-        dc.w    $1E03        ; $020672
-        dc.w    $30E1        ; $020674
-        dc.w    $6010        ; $020676
-        dc.w    $7001        ; $020678
-        dc.w    $3E01        ; $02067A
-        dc.w    $2010        ; $02067C
-        dc.w    $E000        ; $02067E
-        dc.w    $1E01        ; $020680
-        dc.w    $AFE5        ; $020682
-        dc.w    $0009        ; $020684
-        dc.w    $0009        ; $020686
+; --- Inline COMM7 check + cmd27 COMM-register processing (88 bytes + 40 NOP) ---
+; Replaces original delay loop. Runs from SDRAM (no expansion ROM).
+; Source: disasm/sh2/expansion/inline_slave_drain.asm
+; Protocol: 68K writes params to COMM2-6 + doorbell COMM7=$0027.
+;   Slave reads COMM2-6, clears COMM7, processes pixels, loops back.
+; Uses ONLY COMM registers for parameter passing (documented shared memory).
+        dc.w    $D812        ; $020608  MOV.L .comm7_addr,R8   (R8=&COMM7)
+        dc.w    $6081        ; $02060A  MOV.W @R8,R0           ← check_comm7
+        dc.w    $2008        ; $02060C  TST R0,R0
+        dc.w    $891E        ; $02060E  BT .idle
+        dc.w    $D111        ; $020610  MOV.L .comm_base,R1    (R1=$20004020)
+        dc.w    $5312        ; $020612  MOV.L @(8,R1),R3       (data_ptr from COMM4+5)
+        dc.w    $6213        ; $020614  MOV R1,R2
+        dc.w    $7204        ; $020616  ADD #4,R2              (&COMM2)
+        dc.w    $6421        ; $020618  MOV.W @R2,R4           (width)
+        dc.w    $7202        ; $02061A  ADD #2,R2              (&COMM3)
+        dc.w    $6521        ; $02061C  MOV.W @R2,R5           (height)
+        dc.w    $6213        ; $02061E  MOV R1,R2
+        dc.w    $720C        ; $020620  ADD #12,R2             (&COMM6)
+        dc.w    $6621        ; $020622  MOV.W @R2,R6           (add_value)
+        dc.w    $E000        ; $020624  MOV #0,R0
+        dc.w    $2801        ; $020626  MOV.W R0,@R8           (clear COMM7)
+        dc.w    $E020        ; $020628  MOV #$20,R0            ← cache-through
+        dc.w    $4028        ; $02062A  SHLL16 R0              ($200000)
+        dc.w    $4018        ; $02062C  SHLL8 R0               ($20000000)
+        dc.w    $230B        ; $02062E  OR R0,R3               (ptr→$24xxxxxx)
+        dc.w    $E702        ; $020630  MOV #2,R7
+        dc.w    $4718        ; $020632  SHLL8 R7               (stride=$200)
+        dc.w    $6933        ; $020634  MOV R3,R9              ← outer_loop
+        dc.w    $6A43        ; $020636  MOV R4,R10
+        dc.w    $6B90        ; $020638  MOV.B @R9,R11          ← inner_loop
+        dc.w    $3B6C        ; $02063A  ADD R6,R11
+        dc.w    $29B0        ; $02063C  MOV.B R11,@R9
+        dc.w    $7901        ; $02063E  ADD #1,R9
+        dc.w    $4A10        ; $020640  DT R10
+        dc.w    $8BF9        ; $020642  BF .inner_loop
+        dc.w    $337C        ; $020644  ADD R7,R3              ← next_row
+        dc.w    $4510        ; $020646  DT R5
+        dc.w    $8BF4        ; $020648  BF .outer_loop
+        dc.w    $AFDE        ; $02064A  BRA .check_comm7       (check for more)
+        dc.w    $0009        ; $02064C  NOP (delay slot)
+        dc.w    $D303        ; $02064E  MOV.L .cmdloop,R3      ← idle
+        dc.w    $432B        ; $020650  JMP @R3
+        dc.w    $0009        ; $020652  NOP (delay slot)
+        dc.w    $2000        ; $020654  literal: $2000402E (COMM7)
+        dc.w    $402E        ; $020656
+        dc.w    $2000        ; $020658  literal: $20004020 (COMM base)
+        dc.w    $4020        ; $02065A
+        dc.w    $0600        ; $02065C  literal: $06000592 (command_loop)
+        dc.w    $0592        ; $02065E
+; Remaining 40 bytes NOP padding to fill 128-byte slot
+        dcb.w   20,$0009     ; $020660-$020687  NOP fill
         dc.w    $4F22        ; $020688
         dc.w    $E800        ; $02068A
         dc.w    $3AB7        ; $02068C

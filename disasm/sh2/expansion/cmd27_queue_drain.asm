@@ -2,7 +2,7 @@
  * cmd27_queue_drain - Async Queue Processor for cmd $27
  * ======================================================
  * Location: Expansion ROM at $300600 (suggested)
- * Size: ~120 bytes (including literal pool)
+ * Size: ~150 bytes (including literal pool and diagnostic)
  *
  * PURPOSE
  * -------
@@ -15,7 +15,9 @@
  * QUEUE LAYOUT (68K Work RAM, shared with SH2)
  * ---------------------------------------------
  * 68K address:  $FFFB00  (in 68K Work RAM)
- * SH2 address:  $02FFFB00 (68K RAM visible to SH2)
+ * SH2 address:  $02FFFB00 (68K WRAM via CS0 address decode in PicoDrive
+ *               — $22FFFB00 does NOT work because PicoDrive limits the
+ *               cache-through decode to 256KB SDRAM range only)
  *
  *   +0x00: write_idx (16-bit, 0-31, wraps)
  *   +0x02: read_idx  (16-bit, 0-31, wraps)
@@ -89,7 +91,7 @@
 cmd27_queue_drain:
         sts.l   pr,@-r15                /* Save return address */
 
-        mov.l   .L_queue_base,r8        /* R8 = 0x02FFFB00 (queue base) */
+        mov.l   .L_queue_base,r8        /* R8 = $02FFFB00 (queue base, via CS0 decode) */
 
 .L_drain_loop:
         /* Load indices - must re-read write_idx each iteration
@@ -115,8 +117,17 @@ cmd27_queue_drain:
         add     r8,r2                   /* R2 = base + read_idx*10 */
         add     #4,r2                   /* R2 = base + 4 + read_idx*10 = &entry */
 
-        /* Load entry fields */
-        mov.l   @r2+,r3                 /* R3 = data_ptr (already SH2 address) */
+        /* Load entry fields.
+         * data_ptr is read as two MOV.W instead of one MOV.L to handle
+         * non-4-byte-aligned entries.  With 10-byte entries, odd indices
+         * start at addresses like $xxxxxx0E; SH2 MOV.L masks the low 2
+         * bits, reading from the wrong address.  Two MOV.W reads work
+         * correctly at any 2-byte-aligned address. */
+        mov.w   @r2+,r0                 /* R0 = data_ptr high word (sign-ext) */
+        mov.w   @r2+,r3                 /* R3 = data_ptr low word (sign-ext) */
+        extu.w  r3,r3                   /* Zero-extend low word */
+        shll16  r0                      /* R0 = high_word << 16 */
+        or      r0,r3                   /* R3 = full 32-bit data_ptr */
         mov.w   @r2+,r4                 /* R4 = width (16-bit) */
         mov.w   @r2+,r5                 /* R5 = height (16-bit) */
         mov.w   @r2,r6                  /* R6 = add_value (16-bit) */
@@ -203,7 +214,7 @@ cmd27_queue_drain:
         .word   0x0000                  /* Padding */
 
 .L_queue_base:
-        .long   0x02FFFB00              /* Queue in 68K Work RAM (SH2 view) */
+        .long   0x02FFFB00              /* Queue in 68K Work RAM (via CS0 decode) */
 
 .L_comm7_addr:
         .long   0x2000402E              /* COMM7 register */

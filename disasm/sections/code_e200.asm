@@ -324,32 +324,29 @@ sh2_send_cmd:
 ;   D2 = Add value (constant added to each byte in region)
 ; Clobbers: Nothing (no registers modified)
 ;
-; Protocol: Wait COMM7==0 → write COMM4+5(ptr), COMM2(w), COMM3(h),
-;   COMM6(add) → write COMM7=$0027 (doorbell) → wait COMM7==0 (Slave ack)
+; Protocol: Wait COMM7==0 (Slave read previous params) → write COMM2-6 →
+;   write COMM7=$0027 (doorbell) → return immediately (fire-and-forget).
+;   Safe because Slave copies COMM2-6 to local regs before clearing COMM7.
 ;
 ; Slave drain at $020608 (inline SDRAM): reads COMM2-6, clears COMM7,
 ;   applies cache-through ($04xx→$24xx), processes pixel region.
-; Size: 50 bytes code + 32 bytes NOP padding = 82 bytes ($E3B4-$E405)
+; Size: 42 bytes code + 40 bytes NOP padding = 82 bytes ($E3B4-$E405)
 ; ============================================================================
 sh2_cmd_27:
-; Wait for Slave to finish any previous cmd_27
+; Wait for Slave to have read previous params (COMM7==0 means params copied)
 .wait_prev:
-        tst.w   COMM7                          ; $00E3B4: Slave still processing?
-        bne.s   .wait_prev                     ; $00E3BA: Yes: spin until COMM7==0
+        tst.w   COMM7                          ; $00E3B4: Slave read previous params?
+        bne.s   .wait_prev                     ; $00E3BA: No: spin until COMM7==0
 ; Write parameters to COMM registers
         move.l  a0,COMM4                       ; $00E3BC: data_ptr → COMM4+5
         move.w  d0,COMM2                       ; $00E3C2: width → COMM2
         move.w  d1,COMM3                       ; $00E3C8: height → COMM3
         move.w  d2,COMM6                       ; $00E3CE: add_value → COMM6
-; Ring doorbell — Slave sees $0027 and reads COMM2-6
+; Ring doorbell and return — Slave will process asynchronously
         move.w  #$0027,COMM7                   ; $00E3D4: doorbell
-; Wait for Slave to acknowledge (reads params, clears COMM7)
-.wait_read:
-        tst.w   COMM7                          ; $00E3DC: Slave read params yet?
-        bne.s   .wait_read                     ; $00E3E2: No: spin until COMM7==0
-        rts                                    ; $00E3E4: Done
+        rts                                    ; $00E3DC: fire-and-forget
 ; Padding to maintain 82-byte function size ($E3B4-$E405)
-        dcb.w   16,$4E71                       ; 32 bytes NOP fill
+        dcb.w   20,$4E71                       ; 40 bytes NOP fill
 
 ; ============================================================================
 ; sh2_cmd_2F ($00E406) - Extended Command with 4 Parameters

@@ -52,6 +52,35 @@ The project disassembler (`tools/m68k_disasm.py`) has these confirmed issues:
 - **Safe to translate:** Self-contained leaf functions, small (26-32 bytes), no PC-relative data
 - **For larger functions:** Use `.short` hex format with annotated comments
 
+### SH2 gas `.align N` — Power-of-2 Semantics
+On SH2, `sh-elf-as` uses **power-of-2** alignment, NOT byte count:
+- `.align 1` = 2^1 = **2-byte alignment** (for .word data)
+- `.align 2` = 2^2 = **4-byte alignment** (for .long data, standard for code sections)
+- `.align 4` = 2^4 = **16-byte alignment** (excessive for most literal pools!)
+
+**Discovered (B-004, Feb 2026):** Using `.align 4` before a `.long` literal pool generated 16-byte alignment padding, inflating a 60-byte handler to 80 bytes and shifting all PC-relative displacements. Fix: use `.align 2` for longword data.
+
+**Rule:** For SH2 literal pools: `.align 1` before `.word`, `.align 2` before `.long`.
+
+### SH2 gas MOV @(disp,Rm) — Byte Offsets, Not Scaled
+The SH2 assembler (`sh-elf-as`) uses **byte offsets** for `MOV.W @(disp,Rm)` and `MOV.L @(disp,Rm)` instructions:
+- `mov.w @(2,r8),r0` → EA = R8 + 2 (byte offset). Assembler stores disp/2=1 in the opcode.
+- `mov.l @(4,r8),r0` → EA = R8 + 4 (byte offset). Assembler stores disp/4=1 in the opcode.
+
+**Wrong:** `mov.w @(1,r8),r0` → Error "misaligned offset" (1 is not a multiple of 2)
+**Wrong:** `mov.l @(1,r8),r0` → Error "misaligned offset" (1 is not a multiple of 4)
+
+The opcode encoding stores a SCALED displacement (divided by the access size), but the assembler syntax takes the ACTUAL byte offset. Don't confuse the two when translating from raw opcodes.
+
+**COMM register byte offsets from R8=$20004020:**
+| Register | SH2 Address | Byte Offset | MOV.W syntax | MOV.L syntax |
+|----------|-------------|-------------|-------------|-------------|
+| COMM1 | $20004022 | 2 | `@(2,r8)` | — |
+| COMM2:3 | $20004024 | 4 | — | `@(4,r8)` |
+| COMM4:5 | $20004028 | 8 | — | `@(8,r8)` |
+| COMM6 | $2000402C | 12 | `@(12,r8)` | — |
+| COMM7 | $2000402E | 14 | `@(14,r8)` | — |
+
 ### All SH2 Functions Now Integrated
 All 92 SH2 3D engine functions (func_000 through func_091, with gaps for non-existent numbers)
 are integrated into the build system via `.inc` generated includes. Zero remaining.
@@ -274,6 +303,32 @@ Both produce the same result: handler returns to the dispatch loop. The differen
 - [inline_slave_drain.asm](disasm/sh2/expansion/inline_slave_drain.asm) (SH2 source)
 
 **Previous failed approaches (v1-v3):** Used Work RAM ring buffer ($FFFB00) readable from SH2 — impossible because SH2 cannot access 68K Work RAM. See "SH2 Cannot Access 68K Work RAM" and Abandoned Approaches table.
+
+### Successful Handshake Reduction — sh2_send_cmd Single-Shot (B-004, Feb 2026)
+
+**Works:** Replace 3-phase COMM6 handshake with single-shot COMM parameter write + jump table redirect to expansion ROM handler.
+
+**Design:**
+1. **68K sender** (`sh2_send_cmd` at $E35A, 50 bytes): Waits COMM0_HI==0, writes D1→COMM1, A0→COMM2:3, A1→COMM4:5, D0→COMM6, triggers COMM0_LO=$22 + COMM0_HI=$01, returns immediately.
+2. **SH2 handler** (`cmd22_single_shot` at expansion $3010F0, 60 bytes): Reads all params from COMM1-6 in one shot (R8=$20004020 as COMM base), performs word-by-word 2D block copy with $200 stride, calls func_084 for completion.
+3. **Jump table redirect**: Entry at $020808 changed from $06005198 → $023010F0.
+
+**Key implementation details:**
+- **COMM7 reserved:** Layout uses COMM1-6 only. COMM7 is the Slave doorbell (sh2_cmd_27 async) and must NEVER be overwritten by cmd $22 data.
+- **func_084 completion:** Original handler calls func_084 ($060043F0) which clears COMM0+COMM1 (longword zero write to $20004020). This tells the 68K the command is done. Single-shot handler preserves this behavior — Option 2 (safest).
+- **Eliminates 2 blocking waits:** The original 3-phase protocol had 3 COMM6 handshake waits. Single-shot eliminates phases 2 and 3 entirely. 68K only waits once (COMM0_HI poll before writing).
+- **In-place replacement:** 90-byte function body → 50B new code + 40B NOP padding. No additional 68K section space needed.
+
+**Why this succeeds where blanket async failed:**
+- Fully async (Feb 14 attempt) violated the 3-phase COMM multiplexing protocol — the Slave replayed COMM writes that collided with the Master's own reads.
+- Single-shot keeps the Master SH2 dispatch path intact. The Master reads params directly from COMM registers (which the 68K has already written). No Slave involvement, no COMM replay, no protocol violation.
+- Per-call-site analysis confirmed all 14 callers pass stable pointers (SDRAM/ROM/framebuffer), disproving the pointer aliasing hypothesis.
+
+**Files:**
+- [code_e200.asm](disasm/sections/code_e200.asm) lines 281-311 (68K sender)
+- [cmd22_single_shot.asm](disasm/sh2/expansion/cmd22_single_shot.asm) (SH2 handler source)
+- [code_20200.asm](disasm/sections/code_20200.asm) line 778 (jump table patch)
+- [expansion_300000.asm](disasm/sections/expansion_300000.asm) (ROM layout)
 
 ---
 

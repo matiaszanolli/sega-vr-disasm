@@ -130,8 +130,10 @@ Each command follows a strict `submit → wait → continue` pattern:
 | `slave_comm7_idle_check` | $300700 | 48B | COMM7 doorbell handler | **ACTIVE (B-003)** |
 | `cmdint_handler` | $300800 | 64B | Master CMDINT ISR (reserved) | Dormant |
 | `queue_processor` | $300C00 | 128B | Ring buffer drain (reserved) | Dormant |
+| `general_queue_drain` | $301000 | 240B | General cmd async replay (dormant) | Dormant |
+| `cmd22_single_shot` | $3010F0 | 60B | Single-shot 2D block copy (B-004) | **ACTIVE (B-004)** |
 
-**Expansion ROM:** 1MB at $300000-$3FFFFF, ~1.5KB used (~99.85% free)
+**Expansion ROM:** 1MB at $300000-$3FFFFF, ~1.8KB used (~99.82% free)
 
 **Activation requires:** Patching dispatch at $02046A and trampoline at $0234C8 (B-006 reverted, needs redesign).
 
@@ -143,6 +145,26 @@ Each command follows a strict `submit → wait → continue` pattern:
 - **118+ modules** hardened with symbolic register names (COMM/MARS/VDP/Z80 equates)
 - Translation tool: label map (800 labels), PC-relative decoder, branch decoder with local labels
 - All translations verified byte-identical to original ROM (md5: `2d842a62085df8efba46053c5bea8868`)
+
+### v8.0 Single-Shot cmd_22 (February 2026) — BUILT, PENDING TEST
+
+**Status:** Built and binary-verified (B-004, 2026-02-17). Awaiting PicoDrive emulator test.
+
+**What changed:** Replaced the 3-phase COMM6 handshake in `sh2_send_cmd` with a single-shot write. The 68K writes all 4 parameters (D1, A0, A1, D0) to COMM1-6 at once, triggers the Master SH2 via COMM0, and the Master dispatches to a new expansion ROM handler that reads everything in one shot.
+
+**Implementation:**
+- **68K sender** (code_e200.asm): 90-byte function → 50B single-shot writes + 40B NOP padding
+- **SH2 handler** (cmd22_single_shot at $3010F0): 60 bytes, reads COMM1-6, 2D block copy with $200 stride, calls func_084
+- **Jump table** (code_20200.asm): Entry $020808 redirected $06005198 → $023010F0
+- **COMM layout**: COMM1=D1, COMM2:3=A0, COMM4:5=A1, COMM6=D0, COMM7=untouched
+
+**Key discoveries:**
+1. Per-call-site analysis proved ALL 14 sh2_send_cmd callers pass stable pointers — the Feb 14 "buffer aliasing" diagnosis was wrong
+2. The real constraint is the 3-phase COMM multiplexing protocol, not pointer stability
+3. SH2 gas assembler uses power-of-2 `.align` semantics and byte-offset displacements (not scaled)
+4. COMM7 MUST be left untouched — it's the Slave doorbell for sh2_cmd_27 async (B-003)
+
+**Estimated savings:** ~128 cycles × 14 calls/frame = ~1,792 cycles/frame (1.4% of 68K budget)
 
 ### v7.0 Async cmd_27 (February 2026) — SUCCEEDED ✅
 
@@ -255,10 +277,15 @@ All 17 command submissions per frame reuse COMM0/COMM4/COMM6. Naive async would 
 5. ✅ ROM tested — menus, records, race mode all working in PicoDrive
 6. **TODO:** Profile to measure actual 68K cycle reduction
 
-**Phase 3: Convert sh2_graphics_cmd** (14 calls/frame) — OPEN
-1. Apply same in-place replacement pattern to sh2_send_cmd_wait
-2. Handle the 2 unsafe call sites (secondary RAM flag blocking at $010B2C, $010BAE)
-3. Full-frame async: all 35 commands non-blocking
+**Phase 3: Handshake reduction for sh2_send_cmd** (14 calls/frame) — IN PROGRESS (B-004)
+1. ✅ Per-call-site analysis: all 14 callers pass stable SDRAM/ROM/framebuffer pointers
+2. ✅ Single-shot COMM protocol: 68K writes D1→COMM1, A0→COMM2:3, A1→COMM4:5, D0→COMM6, triggers COMM0
+3. ✅ New SH2 handler: cmd22_single_shot at expansion $3010F0 (60B), reads COMM1-6, copies rows, calls func_084
+4. ✅ Jump table redirect: $020808 → $023010F0
+5. ✅ ROM builds and binary verified
+6. **TODO:** Emulator test (PicoDrive) — menus, race mode, all game states
+7. **TODO:** Profile to measure actual 68K cycle reduction (~1,792 cycles/frame estimated)
+8. **Note:** Previous fully-async approach (general_queue_drain) FAILED — blanket async violates 3-phase COMM multiplexing protocol. Single-shot approach keeps Master SH2 dispatch intact.
 
 **Phase 4: Pipeline frame sync** — OPEN
 1. Move frame completion check to dedicated sync point (or V-INT flush)
@@ -275,6 +302,14 @@ All 17 command submissions per frame reuse COMM0/COMM4/COMM6. Naive async would 
 | Slave inline drain | SDRAM $020608 (in-place) | 88B code + 40B NOP | ✅ Active |
 | slave_comm7_idle_check | Expansion ROM $300700 | 48B | ✅ Active |
 | cmd27_queue_drain | Expansion ROM $300600 | 128B | Dormant (superseded) |
+
+**B-004 footprint (single-shot protocol):**
+
+| Component | Location | Size | Status |
+|-----------|----------|------|--------|
+| sh2_send_cmd single-shot sender | $E35A (in-place) | 50B code + 40B NOP | Built, pending test |
+| cmd22_single_shot handler | Expansion ROM $3010F0 | 60B | Built, pending test |
+| Jump table redirect | $020808 (in-place) | 4B | Built, pending test |
 
 **B-001 space blocker:** MOOT — in-place replacement needs no additional 68K space. The existing 82-byte sh2_cmd_27 body was sufficient.
 

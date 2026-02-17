@@ -279,36 +279,30 @@ sh2_wait_response:
 ; This function has the MOST BLOCKING WAITS of all comm functions
 ; ============================================================================
 sh2_send_cmd:
-; --- BLOCKING WAIT 1 ---
+; --- Single-shot protocol (B-004) ---
+; Writes all parameters to COMM1-6 at once, triggers via COMM0.
+; SH2 expansion handler at $023010F0 reads them in one shot.
+; Eliminates 2 blocking waits vs. original 3-phase COMM6 handshake.
+;
+; COMM layout:
+;   COMM1 = D1 (height)     COMM2:3 = A0 (source ptr)
+;   COMM4:5 = A1 (dest ptr) COMM6 = D0 (width)
+;   COMM7 = UNTOUCHED (Slave doorbell)
+;
 .wait_ready:
-        tst.b   COMM0_HI                        ; $00E35A: $4A39 $00A1 $5120 - Test command flag
+        tst.b   COMM0_HI                        ; $00E35A: $4A39 $00A1 $5120 - Wait for SH2 ready
         bne.s   .wait_ready                     ; $00E360: $66F8             - Loop until ready
 
-; Send secondary pointer
-        move.l  a1,COMM4                        ; $00E362: $23C9 $00A1 $5128 - Write A1 (COMM4+COMM5)
-        move.w  #HANDSHAKE_READY,COMM6          ; $00E368: $33FC $0101 $00A1 $512C - Signal ready
-        move.b  #CMD_DIRECT,COMM0_LO            ; $00E370: $13FC $0022 $00A1 $5121 - Command $22
-        move.b  #$01,COMM0_HI                   ; $00E378: $13FC $0001 $00A1 $5120 - Trigger command
-
-; --- BLOCKING WAIT 2 ---
-.wait_phase1:
-        tst.b   COMM6                           ; $00E380: $4A39 $00A1 $512C - Test handshake
-        bne.s   .wait_phase1                    ; $00E386: $66F8             - Loop until cleared
-
-; Send parameters D0/D1
-        move.w  d0,COMM4                        ; $00E388: $33C0 $00A1 $5128 - Write D0
-        move.w  d1,COMM5                        ; $00E38E: $33C1 $00A1 $512A - Write D1
-        move.w  #HANDSHAKE_READY,COMM6          ; $00E394: $33FC $0101 $00A1 $512C - Signal ready
-
-; --- BLOCKING WAIT 3 ---
-.wait_phase2:
-        tst.b   COMM6                           ; $00E39C: $4A39 $00A1 $512C - Test handshake
-        bne.s   .wait_phase2                    ; $00E3A2: $66F8             - Loop until cleared
-
-; Send data pointer
-        move.l  a0,COMM4                        ; $00E3A4: $23C8 $00A1 $5128 - Write A0 (COMM4+COMM5)
-        move.w  #HANDSHAKE_READY,COMM6          ; $00E3AA: $33FC $0101 $00A1 $512C - Signal ready
-        rts                                     ; $00E3B2: $4E75             - Return
+; Write all params at once (COMM7 untouched — reserved for Slave)
+        move.w  d1,COMM1                        ; $00E362: $33C1 $00A1 $5122 - Height
+        move.l  a0,COMM2                        ; $00E368: $23C8 $00A1 $5124 - Source → COMM2:3
+        move.l  a1,COMM4                        ; $00E36E: $23C9 $00A1 $5128 - Dest → COMM4:5
+        move.w  d0,COMM6                        ; $00E374: $33C0 $00A1 $512C - Width
+        move.b  #CMD_DIRECT,COMM0_LO            ; $00E37A: $13FC $0022 $00A1 $5121 - Command $22
+        move.b  #$01,COMM0_HI                   ; $00E382: $13FC $0001 $00A1 $5120 - Trigger
+        rts                                     ; $00E38A: $4E75
+; 50 bytes used, 40 bytes NOP padding to preserve alignment
+        dcb.w   20,$4E71                        ; $00E38C-$00E3B3: NOP sled
 
 ; ============================================================================
 ; sh2_cmd_27 ($00E3B4) - Command $27 via COMM Registers (21 calls/frame)

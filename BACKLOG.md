@@ -34,14 +34,18 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 **Key insight:** SH2 memory map shows $0240 0000+ as "-" (nothing). The ONLY shared writable memory is COMM registers (16 bytes) and SDRAM ($0200 0000-$0203 FFFF).
 **Key files:** `disasm/sections/code_e200.asm`, `disasm/sections/code_20200.asm`
 
-### B-004: Convert remaining commands to async (14 calls/frame)
-**Status:** REVERTED (2026-02-14) — same buffer aliasing issue as Phase 3
-**Attempt:** In-place replacement of 3 blocking functions (sh2_send_cmd_wait, sh2_send_cmd, sh2_cmd_2F) with async enqueue to general queue at $FFFC00. Code was correct and built byte-perfect, but causes scrambled menus and instant game over — identical to Phase 3 failure.
-**Root cause:** These commands pass POINTERS (A0/A1) to data buffers. The 68K returns immediately and reuses those buffers before the Slave finishes replaying the COMM protocol to the Master. The Master then reads stale/wrong data from the pointed-to addresses. This is fundamentally different from cmd_27 (B-003) which stores actual VALUES in the queue, not pointers.
-**Dead code removed:** sh2_send_cmd_async.asm, sh2_wait_queue_empty.asm, test_async_single_cmd.asm (abandoned SDRAM/CMDINT approach, kept deleted).
-**Infrastructure preserved:** general_queue_drain at $301000 (dormant), slave_comm7_idle_check calls it (no-op when queue empty).
-**Next approach:** Per-call-site analysis — identify callers that pass stable SDRAM addresses (safe for async) vs. Work RAM addresses (must stay blocking). Selective conversion, not blanket async.
-**Key files:** `disasm/sections/code_e200.asm`
+### B-004: Single-shot protocol for sh2_send_cmd (14 calls/frame)
+**Status:** IN PROGRESS (2026-02-17) — built and ROM-verified, pending emulator test
+**Previous approach (REVERTED 2026-02-14):** Blanket async via general_queue_drain at $FFFC00 — failed due to buffer aliasing (68K reuses pointed-to buffers before Slave replays COMM protocol to Master). Infrastructure preserved dormant at $301000.
+**New approach:** Single-shot COMM register protocol. Instead of making the calls fully async (which fails because of pointer aliasing), we eliminate the intermediate COMM6 handshake phases. The 68K writes ALL four parameters (D1→COMM1, A0→COMM2:3, A1→COMM4:5, D0→COMM6) at once, then triggers the Master SH2 via COMM0. A new expansion ROM handler at $023010F0 reads all params in one shot, performs the 2D block copy, and calls func_084 for completion. The 68K still blocks on COMM0_HI==0 (func_084 clear), but the two intermediate COMM6 phase waits are eliminated.
+**Implementation:**
+- 68K: sh2_send_cmd at $E35A replaced with 50-byte single-shot write + 40-byte NOP pad
+- SH2: cmd22_single_shot at expansion $3010F0 (60 bytes), reads COMM1-6, copies rows, calls func_084
+- Jump table: entry at $020808 redirected from $06005198 → $023010F0
+- COMM7 left UNTOUCHED (Slave doorbell reserved for B-003)
+**Cycle savings:** ~128 cycles/call × 14 calls/frame = ~1,792 cycles/frame (1.4% of 68K budget)
+**Key finding:** Per-call-site analysis (Feb 17) showed ALL 14 callers pass stable pointers (SDRAM/ROM/framebuffer). The Feb 14 failure was NOT pointer aliasing — it was the 3-phase COMM multiplexing protocol that the async replay violated. The single-shot approach avoids this entirely by keeping the Master SH2 dispatch path.
+**Key files:** `disasm/sections/code_e200.asm`, `disasm/sh2/expansion/cmd22_single_shot.asm`, `disasm/sections/code_20200.asm` (jump table), `disasm/sections/expansion_300000.asm`
 
 ### B-005: Command batching (Track 2)
 **Status:** OPEN (blocked by B-004)

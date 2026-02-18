@@ -33,9 +33,10 @@
  *   signaling the 68K that the command is done.
  *
  * Algorithm:
+ *   words = R1 / 2;   // bytes → words (ONCE, before loop)
  *   for (row = 0; row < R2; row++) {
  *       dest = R0;
- *       for (word = 0; word < R1/2; word++)
+ *       for (word = 0; word < words; word++)
  *           *dest++ = *src++;
  *       R0 += 0x200;  // next row
  *   }
@@ -55,13 +56,13 @@ cmd22_single_shot:
     /* $3010FC */ mov     r0,r3               /* R3 = source pointer */
     /* $3010FE */ mov.l   @(8,r8),r0           /* R0 = COMM4:5 = A1 (dest) [byte offset 8] */
 
-    /* === BLOCK COPY SETUP (2 instructions, 4 bytes) === */
+    /* === BLOCK COPY SETUP (3 instructions, 6 bytes) === */
     /* $301100 */ mov.w   @(.stride,pc),r6    /* R6 = $0200 (row stride) */
     /* $301102 */ mov     #1,r8               /* R8 = 1 (loop constant) */
+    /* $301104 */ shlr    r1                  /* R1 /= 2 (bytes → words, ONCE) */
 
     /* === OUTER LOOP: Row Iterator === */
 .row_loop:
-    /* $301104 */ shlr    r1                  /* R1 /= 2 (bytes → words) */
     /* $301106 */ mov     r0,r4               /* R4 = dest row start */
     /* $301108 */ mov     r1,r5               /* R5 = words per row */
 

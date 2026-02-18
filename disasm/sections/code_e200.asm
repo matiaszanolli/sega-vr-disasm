@@ -298,11 +298,10 @@ sh2_send_cmd:
         move.l  a0,COMM2                        ; $00E368: $23C8 $00A1 $5124 - Source → COMM2:3
         move.l  a1,COMM4                        ; $00E36E: $23C9 $00A1 $5128 - Dest → COMM4:5
         move.w  d0,COMM6                        ; $00E374: $33C0 $00A1 $512C - Width
-        move.b  #CMD_DIRECT,COMM0_LO            ; $00E37A: $13FC $0022 $00A1 $5121 - Command $22
-        move.b  #$01,COMM0_HI                   ; $00E382: $13FC $0001 $00A1 $5120 - Trigger
-        rts                                     ; $00E38A: $4E75
-; 50 bytes used, 40 bytes NOP padding to preserve alignment
-        dcb.w   20,$4E71                        ; $00E38C-$00E3B3: NOP sled
+        move.b  #CMD_DIRECT,COMM0_HI             ; $00E37A: $13FC $0022 $00A1 $5120 - Trigger + jump table index
+        rts                                     ; $00E382: $4E75
+; 42 bytes used, 48 bytes NOP padding to preserve alignment
+        dcb.w   24,$4E71                        ; $00E384-$00E3B3: NOP sled
 
 ; ============================================================================
 ; sh2_cmd_27 ($00E3B4) - Command $27 via COMM Registers (21 calls/frame)

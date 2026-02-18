@@ -1,9 +1,9 @@
 # 68K-SH2 Communication
 
-**Last Updated**: February 6, 2026
+**Last Updated**: February 17, 2026
 **Purpose:** Communication protocol and coordination between 68000 and dual SH2 processors
-**Status:** Reference document with mixed confidence levels
-**Related:** [MASTER_SLAVE_ANALYSIS.md](architecture/MASTER_SLAVE_ANALYSIS.md) for validated v2.3 sync protocol
+**Status:** Reference document — reflects B-003/B-004 optimizations (Feb 2026)
+**Related:** [COMM_REGISTER_REFERENCE.md](../disasm/sh2/COMM_REGISTER_REFERENCE.md) for register-level quick reference, [MASTER_SLAVE_ANALYSIS.md](architecture/MASTER_SLAVE_ANALYSIS.md) for validated v2.3 sync protocol
 
 ---
 
@@ -45,16 +45,16 @@
 
 The 32X has **8 COMM registers** (COMM0-COMM7) at **2-byte (word) intervals**:
 
-| 68K Address | SH2 Address | Name  | VRD Game Usage |
-|-------------|-------------|-------|----------------|
+| 68K Address | SH2 Address | Name  | VRD Usage (Current) |
+|-------------|-------------|-------|---------------------|
 | $A15120 | $20004020 | COMM0 | Command flag (hi byte) + code (lo byte) |
-| $A15122 | $20004022 | COMM1 | Status/reserved |
-| $A15124 | $20004024 | COMM2 | Parameter word |
-| $A15126 | $20004026 | COMM3 | Parameter word |
-| $A15128 | $20004028 | COMM4 | Data pointer (hi word) |
-| $A1512A | $2000402A | COMM5 | Data pointer (lo word) |
-| $A1512C | $2000402C | COMM6 | Handshake flag |
-| $A1512E | $2000402E | COMM7 | Master→Slave signal (expansion ROM) |
+| $A15122 | $20004022 | COMM1 | Height param (B-004) / Slave cmd byte (original) |
+| $A15124 | $20004024 | COMM2 | Source ptr hi (B-004) / Width (B-003) |
+| $A15126 | $20004026 | COMM3 | Source ptr lo (B-004) / Height (B-003) |
+| $A15128 | $20004028 | COMM4 | Dest ptr hi (B-004) / Data ptr hi (B-003) |
+| $A1512A | $2000402A | COMM5 | Dest ptr lo (B-004) / Data ptr lo (B-003) |
+| $A1512C | $2000402C | COMM6 | Width (B-004) / Add value (B-003) / Handshake (original) |
+| $A1512E | $2000402E | COMM7 | Slave doorbell: $0027=cmd27 work (B-003), $0000=idle |
 
 **Access patterns:**
 - **68K word access**: Each register is a 16-bit word (e.g., `MOVE.W d0,$A15120`)
@@ -147,23 +147,79 @@ The Slave SH2 runs a command dispatcher loop at SDRAM `$06000592`:
 
 ```
 1. Read COMM1 byte ($20004022)
-2. If COMM1 == 0: No work → enter delay loop ($06000608)
+2. If COMM1 == 0: No work → enter COMM7 doorbell check ($06000608)
 3. If COMM1 != 0: Dispatch to handler via jump table ($060005C8)
 4. Loop back to step 1
 ```
 
-The delay loop burns 64 cycles before rechecking COMM1. Profiling shows **66.5% of Slave cycles** spent in this loop - confirming architectural underutilization.
+**B-003 Change (Feb 2026):** The original 64-cycle delay loop at `$06000608` has been **replaced** by `inline_slave_drain` — a COMM7 doorbell handler that checks for cmd $27 async work. When COMM7 != 0, the Slave reads pixel parameters from COMM2-6, processes them, and clears COMM7. When COMM7 == 0, it returns to the COMM1 command loop. This converts ~66.5% idle time into useful work processing.
 
-See: [slave_command_dispatcher.asm](../disasm/sh2/3d_engine/slave_command_dispatcher.asm)
+See: [slave_command_dispatcher.asm](../disasm/sh2/3d_engine/slave_command_dispatcher.asm), [inline_slave_drain.asm](../disasm/sh2/expansion/inline_slave_drain.asm)
 
 ### v2.3+ Protocol Additions (Expansion ROM)
 
 | Register | 68K Addr | Expansion ROM Usage |
 |----------|----------|---------------------|
 | COMM5 | $A1512A | Vertex transform counter (+101 per call) |
-| COMM7 | $A1512E | Master→Slave signal (0x16 = work, 0x00 = idle) |
+| COMM7 | $A1512E | Slave doorbell signal (see below) |
+
+**COMM7 Values (current):**
+
+| Value | Meaning | Writer | Consumer |
+|-------|---------|--------|----------|
+| `$0000` | Idle / ack | Slave SH2 | 68K (polls before next write) |
+| `$0027` | cmd27 async work | 68K (`sh2_cmd_27`) | Slave (`inline_slave_drain` at $020608) |
+
+**Important:** COMM7 must **never** carry raw game command codes. Game commands ($01, $16, $27...) overlap with expansion signal values — broadcasting them to COMM7 triggers uninitialized handlers on the Slave and crashes (proven in B-006). See [KNOWN_ISSUES.md](../KNOWN_ISSUES.md) §COMM7 Signal Namespace Collision.
+
+### B-003: Async sh2_cmd_27 via COMM Registers (Feb 2026)
+
+Bypasses Master SH2 entirely. 68K writes pixel parameters directly to COMM2-6, rings COMM7 doorbell, Slave processes inline from SDRAM.
+
+```
+68K (sh2_cmd_27)                 Slave SH2 ($020608)
+ │                                    │
+ ├─ Wait COMM7==0 (Slave idle) ──────>│  Polls COMM7
+ ├─ A0→COMM4:5 (data ptr)            │
+ ├─ D0→COMM2 (width)                 │
+ ├─ D1→COMM3 (height)                │
+ ├─ D2→COMM6 (add value)             │
+ ├─ $0027→COMM7 (doorbell) ─────────>│  COMM7 != 0 detected
+ ├─ RTS (fire-and-forget)             ├─ Read COMM2-6
+ │                                    ├─ Clear COMM7=0 (ack)
+ │                                    ├─ OR ptr with $20000000 (cache-through)
+ │                                    ├─ Process pixel region
+ │                                    └─ BRA check_comm7 (re-entrant)
+```
+
+- **21 calls/frame**, ~50 cycles each (was ~250 with Master dispatch)
+- No Master SH2 involvement, no COMM0 dispatch overhead
+- Slave code runs from SDRAM (PicoDrive cannot execute Slave code from expansion ROM)
+- **Files:** [code_e200.asm](../disasm/sections/code_e200.asm):328 (68K), [inline_slave_drain.asm](../disasm/sh2/expansion/inline_slave_drain.asm) (SH2)
+
+### B-004: Single-Shot sh2_send_cmd (Feb 2026)
+
+Keeps Master SH2 dispatch but writes all params to COMM1-6 at once, eliminating 2 of 3 COMM6 handshake waits.
+
+```
+68K (sh2_send_cmd)               Master SH2 ($3010F0)
+ │                                    │
+ ├─ Wait COMM0_HI==0 ───────────────>│  Idle poll
+ ├─ D1→COMM1, A0→COMM2:3            │
+ ├─ A1→COMM4:5, D0→COMM6            │
+ ├─ $22→COMM0_HI (trigger) ────────>│  Dispatch to handler
+ ├─ RTS (immediate return)            ├─ Read COMM1,2:3,4:5,6 at once
+ │                                    ├─ Word-by-word 2D block copy
+ │                                    ├─ func_084: clr.l COMM0 (done)
+ │                                    └─ Return to dispatch loop
+```
+
+- **14 calls/frame**, ~170 cycles each (was ~300 with 3-phase)
+- Jump table entry at $020808 redirected to expansion $3010F0
+- **Files:** [code_e200.asm](../disasm/sections/code_e200.asm):281 (68K), [cmd22_single_shot.asm](../disasm/sh2/expansion/cmd22_single_shot.asm) (SH2)
 
 See [MASTER_SLAVE_ANALYSIS.md](architecture/MASTER_SLAVE_ANALYSIS.md) for validated synchronization protocol details.
+See [COMM_REGISTER_REFERENCE.md](../disasm/sh2/COMM_REGISTER_REFERENCE.md) for register-level details and SH2 assembly patterns.
 
 ---
 
@@ -174,9 +230,9 @@ See [MASTER_SLAVE_ANALYSIS.md](architecture/MASTER_SLAVE_ANALYSIS.md) for valida
 | Address | Name | Description |
 |---------|------|-------------|
 | $00E316 | `sh2_send_cmd_wait` | Wait for ready, send command (1 blocking loop) |
-| $00E35A | `sh2_send_cmd` | Direct command send (3 blocking loops) |
-| $00E342 | `sh2_wait_response` | Poll COMM6 for SH2 response |
-| $00E3B4 | `sh2_cmd_27` | Graphics command $27 (2 inline blocking loops, 21 calls/frame) |
+| $00E35A | `sh2_send_cmd` | **B-004:** Single-shot param write + COMM0 trigger (was 3 blocking loops) |
+| $00E342 | `sh2_wait_response` | Poll COMM6 for SH2 response (used by remaining 3-phase cmds) |
+| $00E3B4 | `sh2_cmd_27` | **B-003:** Fire-and-forget via COMM2-6 + COMM7 doorbell (was 2 blocking loops, 21 calls/frame) |
 | $00E406 | `sh2_cmd_2F` | Extended command $2F (3 inline blocking loops, 4 params) |
 | $00E22C | `sh2_graphics_cmd` | General graphics command |
 | $00E2F0 | `sh2_load_data` | Data load via SH2 |
@@ -216,13 +272,13 @@ See [68K_FUNCTION_REFERENCE.md](68K_FUNCTION_REFERENCE.md) for complete function
 | $06000570 | $020570 | `slave_init` | Initialize Slave, set VBR, wait for Master |
 | $06000592 | $020592 | `slave_command_loop` | Poll COMM1 for commands |
 | $060005C8 | $0205C8 | `slave_jump_table` | Command handler dispatch table |
-| $06000608 | $020608 | `slave_delay_loop` | Idle state (64-cycle delay) |
-| $0600060A | $02060A | *(delay NOP)* | **66.5% of Slave cycles** (profiler hotspot) |
+| $06000608 | $020608 | `inline_slave_drain` | **B-003:** COMM7 doorbell check + cmd27 pixel processing (was 64-cycle delay) |
+| $0600060A | $02060A | *(drain code)* | Previously 66.5% idle — now processes cmd27 work via COMM2-6 |
 | $02220694 | $020694 | *(unused)* | "OVRN" marker write (fallback idle) |
 
-**Profiler Confirmation:** PC-level profiling shows the Slave spends 66.5% of its cycles at `$0600060A` (the NOP inside the delay loop), confirming the Slave is **architecturally underutilized** - it has no rendering work to do.
+**Profiler Note:** Pre-optimization profiling showed the Slave spending 66.5% of its cycles at `$0600060A` (NOP inside delay loop). B-003 replaces this delay with `inline_slave_drain`, which processes cmd $27 pixel work during what was previously idle time.
 
-See: [slave_command_dispatcher.asm](../disasm/sh2/3d_engine/slave_command_dispatcher.asm)
+See: [slave_command_dispatcher.asm](../disasm/sh2/3d_engine/slave_command_dispatcher.asm), [inline_slave_drain.asm](../disasm/sh2/expansion/inline_slave_drain.asm)
 See: [MASTER_SLAVE_ANALYSIS.md](architecture/MASTER_SLAVE_ANALYSIS.md) for optimization strategies.
 
 ---
@@ -291,10 +347,11 @@ See [VINT_HANDLER_ARCHITECTURE.md](architecture/VINT_HANDLER_ARCHITECTURE.md) fo
 
 ## Related Documentation
 
-- [sh2_communication.asm](../disasm/modules/68k/sh2/sh2_communication.asm) - **Annotated disassembly of blocking comm functions**
+- [COMM_REGISTER_REFERENCE.md](../disasm/sh2/COMM_REGISTER_REFERENCE.md) - **Register-level quick reference with code patterns and hazards**
 - [MASTER_SLAVE_ANALYSIS.md](architecture/MASTER_SLAVE_ANALYSIS.md) - Parallel processing infrastructure
+- [MASTER_SH2_DISPATCH_ANALYSIS.md](architecture/MASTER_SH2_DISPATCH_ANALYSIS.md) - Master dispatch + B-006 crash analysis
+- [KNOWN_ISSUES.md](../KNOWN_ISSUES.md) - COMM7 namespace collision, SH2 Work RAM inaccessibility, cache-through
 - [DATA_STRUCTURES.md](architecture/DATA_STRUCTURES.md) - Memory maps and data structures
-- [STATE_MACHINES.md](architecture/STATE_MACHINES.md) - Game state machines
 - [VINT_HANDLER_ARCHITECTURE.md](architecture/VINT_HANDLER_ARCHITECTURE.md) - V-INT handler details
 - [68K_FUNCTION_REFERENCE.md](68K_FUNCTION_REFERENCE.md) - Complete 68K function catalog
 - [SH2_SYMBOL_MAP.md](../disasm/SH2_SYMBOL_MAP.md) - SH2 function symbols
@@ -302,5 +359,5 @@ See [VINT_HANDLER_ARCHITECTURE.md](architecture/VINT_HANDLER_ARCHITECTURE.md) fo
 ---
 
 **Document Status:** Reference document
-**Confidence:** High - COMM register mapping confirmed, command functions disassembled
-**Last Updated:** 2026-02-01 (Added sh2_cmd_2F, updated sh2_cmd_27 to note inline loops)
+**Confidence:** High — COMM register mapping confirmed, command functions disassembled, B-003/B-004 implementations verified
+**Last Updated:** 2026-02-17 (Updated for B-003 async cmd27, B-004 single-shot cmd22, COMM7 doorbell protocol)

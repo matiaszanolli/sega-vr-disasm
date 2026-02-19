@@ -265,43 +265,52 @@ sh2_wait_response:
 ; ============================================================================
 ; sh2_send_cmd ($00E35A) - Direct Command Send (cmd $22)
 ; ============================================================================
-; Purpose: Sends command $22 with pointer, secondary pointer, and 2 params
-; Called by: text_render, various graphics functions (14 call sites)
+; Purpose: Sends command $22 with source ptr, dest ptr, width, and height
+; Called by: text_render, various graphics functions (14+ call sites)
 ; Parameters:
-;   A0 = Data pointer (written as COMM4 in phase 3)
-;   A1 = Secondary pointer (written as COMM4 in phase 1)
-;   D0 = Parameter 1 (width/count, written as COMM4 in phase 2)
-;   D1 = Parameter 2 (height/type, written as COMM5 in phase 2)
-; Clobbers: Nothing
+;   A0 = Source pointer (any valid SH2 address: ROM/SDRAM)
+;   A1 = Destination pointer (any valid SH2 address: framebuffer/SDRAM)
+;   D0 = Width in bytes per row (must be even; D0/2 < 256 — verified at all sites)
+;   D1 = Height in rows (< 224 — always true per call-site analysis)
+; Clobbers: Nothing (D0 temporarily halved then restored; D0 always even)
 ; Preserves: D0-D7, A0-A6 (all registers preserved)
 ;
-; BLOCKING: Contains THREE busy-wait loops
-; This function has the MOST BLOCKING WAITS of all comm functions
+; BLOCKING: Two busy-wait loops (params-consumed + copy-complete)
+; B-004 v5: eliminates all 3 original COMM6 handshake round-trips
 ; ============================================================================
 sh2_send_cmd:
-; --- Single-shot protocol (B-004) ---
-; Writes all parameters to COMM1-6 at once, triggers via COMM0.
-; SH2 expansion handler at $023010F0 reads them in one shot.
-; Eliminates 2 blocking waits vs. original 3-phase COMM6 handshake.
+; --- Single-shot protocol (B-004 v5) — COMM1-safe ---
+; Writes all parameters to COMM2-6, triggers via COMM0. COMM1 is NEVER
+; written: the Slave SH2 polls COMM1_HI ($20004022) for work commands, and
+; any non-zero write causes a spurious Slave dispatch + crash (A1_HI is
+; always non-zero for any framebuffer or SDRAM address).
 ;
-; COMM layout:
-;   COMM1 = D1 (height)     COMM2:3 = A0 (source ptr)
-;   COMM4:5 = A1 (dest ptr) COMM6 = D0 (width)
-;   COMM7 = UNTOUCHED (Slave doorbell)
+; COMM layout (COMM1 and COMM7 untouched):
+;   COMM2:3 = A0 (source ptr, longword)    COMM4:5 = A1 (dest ptr, longword)
+;   COMM6_HI = D1 (height, byte)           COMM6_LO = D0/2 (words/row, byte)
 ;
 .wait_ready:
-        tst.b   COMM0_HI                        ; $00E35A: $4A39 $00A1 $5120 - Wait for SH2 ready
-        bne.s   .wait_ready                     ; $00E360: $66F8             - Loop until ready
-
-; Write all params at once (COMM7 untouched — reserved for Slave)
-        move.w  d1,COMM1                        ; $00E362: $33C1 $00A1 $5122 - Height
-        move.l  a0,COMM2                        ; $00E368: $23C8 $00A1 $5124 - Source → COMM2:3
-        move.l  a1,COMM4                        ; $00E36E: $23C9 $00A1 $5128 - Dest → COMM4:5
-        move.w  d0,COMM6                        ; $00E374: $33C0 $00A1 $512C - Width
-        move.b  #CMD_DIRECT,COMM0_HI             ; $00E37A: $13FC $0022 $00A1 $5120 - Trigger + jump table index
-        rts                                     ; $00E382: $4E75
-; 42 bytes used, 48 bytes NOP padding to preserve alignment
-        dcb.w   24,$4E71                        ; $00E384-$00E3B3: NOP sled
+        tst.b   COMM0_HI                        ; Wait for SH2 ready (func_084 cleared HI)
+        bne.s   .wait_ready
+        move.w  sr,-(sp)                        ; Save SR
+        ori.w   #$0700,sr                       ; Disable all interrupts
+        move.l  a0,COMM2                        ; A0 → COMM2:3 (source ptr, longword)
+        move.l  a1,COMM4                        ; A1 → COMM4:5 (dest ptr, longword)
+        lsr.w   #1,d0                           ; D0 = D0/2 (temporarily — D0 always even)
+        move.b  d0,COMM6_LO                     ; D0/2 → COMM6 low byte (words/row for SH2)
+        add.w   d0,d0                           ; Restore D0 (D0/2 * 2 = original D0)
+        move.b  d1,COMM6_HI                     ; D1 → COMM6 high byte (height)
+        move.w  #(CMD_DIRECT<<8)|CMD_DIRECT,COMM0 ; Trigger ($2222): HI=$22 dispatch, LO=$22 poll
+; Wait for SH2 to consume params (handler clears COMM0_LO after reading COMM2-6)
+.wait_params_read:
+        tst.b   COMM0_LO                        ; Params consumed?
+        bne.s   .wait_params_read
+        move.w  (sp)+,sr                        ; Restore interrupts
+; Wait for full copy completion (func_084 clears COMM0_HI → $00)
+.wait_complete:
+        tst.b   COMM0_HI                        ; Command fully done?
+        bne.s   .wait_complete
+        rts
 
 ; ============================================================================
 ; sh2_cmd_27 ($00E3B4) - Command $27 via COMM Registers (21 calls/frame)

@@ -1837,52 +1837,65 @@
         dc.w    $4F26        ; $025192
         dc.w    $000B        ; $025194
         dc.w    $0009        ; $025196
-        dc.w    $4F22        ; $025198
-        dc.w    $E901        ; $02519A
-        dc.w    $D312        ; $02519C
-        dc.w    $D513        ; $02519E
-        dc.w    $6032        ; $0251A0
-        dc.w    $E600        ; $0251A2
-        dc.w    $2561        ; $0251A4
-        dc.w    $6751        ; $0251A6
-        dc.w    $3760        ; $0251A8
-        dc.w    $89FC        ; $0251AA
-        dc.w    $6135        ; $0251AC
-        dc.w    $6231        ; $0251AE
-        dc.w    $2561        ; $0251B0
-        dc.w    $6751        ; $0251B2
-        dc.w    $3760        ; $0251B4
-        dc.w    $89FC        ; $0251B6
-        dc.w    $D30B        ; $0251B8
-        dc.w    $6332        ; $0251BA
-        dc.w    $E600        ; $0251BC
-        dc.w    $2561        ; $0251BE
-        dc.w    $9611        ; $0251C0
-        dc.w    $E801        ; $0251C2
-        dc.w    $4101        ; $0251C4
-        dc.w    $6403        ; $0251C6
-        dc.w    $6513        ; $0251C8
-        dc.w    $6735        ; $0251CA
-        dc.w    $2471        ; $0251CC
-        dc.w    $4510        ; $0251CE
-        dc.w    $8FFB        ; $0251D0
-        dc.w    $7402        ; $0251D2
-        dc.w    $4210        ; $0251D4
-        dc.w    $8FF6        ; $0251D6
-        dc.w    $306C        ; $0251D8
-        dc.w    $D005        ; $0251DA
-        dc.w    $400B        ; $0251DC
-        dc.w    $0009        ; $0251DE
-        dc.w    $4F26        ; $0251E0
-        dc.w    $000B        ; $0251E2
+; --- B-004 v2 Single-Shot cmd $22 handler (76 bytes + 16 bytes NOP padding) ---
+; COMM2-safe layout: A0 moved from COMM2:3 → COMM4:5 to avoid Slave SH2
+; spurious dispatch (Slave polls COMM2_HI at $20004024 as command byte).
+; Source: disasm/sh2/expansion/cmd22_single_shot.asm
+; NOTE: Jump table redirected to expansion ROM $023010F0. This SDRAM copy
+;       at $06005198 is dead code, kept in sync for reference.
+; Param read (24 bytes) — COMM2=height, COMM3=width, COMM4:5=source, COMM1+COMM6=dest
+        dc.w    $4F22        ; $025198  sts.l pr,@-r15
+        dc.w    $8582        ; $02519A  mov.w @(4,r8),r0       ; COMM2=height
+        dc.w    $6203        ; $02519C  mov r0,r2
+        dc.w    $8583        ; $02519E  mov.w @(6,r8),r0       ; COMM3=width
+        dc.w    $6103        ; $0251A0  mov r0,r1
+        dc.w    $5382        ; $0251A2  mov.l @(8,r8),r3       ; COMM4:5=source
+        dc.w    $8581        ; $0251A4  mov.w @(2,r8),r0       ; COMM1=dest_HI
+        dc.w    $4028        ; $0251A6  shll16 r0              ; R0 = dest_HI << 16
+        dc.w    $6403        ; $0251A8  mov r0,r4              ; R4 = shifted high word
+        dc.w    $8586        ; $0251AA  mov.w @(12,r8),r0      ; COMM6=dest_LO
+        dc.w    $600D        ; $0251AC  extu.w r0,r0           ; zero-extend
+        dc.w    $204B        ; $0251AE  or r4,r0               ; R0 = complete dest ptr
+; Params-read signal (6 bytes) — word write $0100 to COMM0
+        dc.w    $E601        ; $0251B0  mov #1,r6
+        dc.w    $4618        ; $0251B2  shll8 r6               ; R6=$0100
+        dc.w    $2861        ; $0251B4  mov.w r6,@r8           ; COMM0=$0100 (HI=$01,LO=$00)
+; Block copy setup (6 bytes)
+        dc.w    $9611        ; $0251B6  mov.w @(.stride,pc),r6 ; R6=$0200
+        dc.w    $E801        ; $0251B8  mov #1,r8
+        dc.w    $4101        ; $0251BA  shlr r1                ; width/2
+; Row loop (20 bytes)
+        dc.w    $6403        ; $0251BC  mov r0,r4              ; .row_loop
+        dc.w    $6513        ; $0251BE  mov r1,r5
+        dc.w    $6735        ; $0251C0  mov.w @r3+,r7          ; .copy_word
+        dc.w    $2471        ; $0251C2  mov.w r7,@r4
+        dc.w    $4510        ; $0251C4  dt r5
+        dc.w    $8FFB        ; $0251C6  bf/s .copy_word
+        dc.w    $7402        ; $0251C8  add #2,r4
+        dc.w    $4210        ; $0251CA  dt r2
+        dc.w    $8FF6        ; $0251CC  bf/s .row_loop
+        dc.w    $306C        ; $0251CE  add r6,r0
+; Completion (12 bytes)
+        dc.w    $D003        ; $0251D0  mov.l @(.func084,pc),r0
+        dc.w    $400B        ; $0251D2  jsr @r0
+        dc.w    $0009        ; $0251D4  nop
+        dc.w    $4F26        ; $0251D6  lds.l @r15+,pr
+        dc.w    $000B        ; $0251D8  rts
+        dc.w    $0009        ; $0251DA  nop
+; Literal pool (8 bytes)
+        dc.w    $0200        ; $0251DC  .stride = 512
+        dc.w    $0009        ; $0251DE  (align padding)
+        dc.w    $0600        ; $0251E0  .func084 = $060043F0
+        dc.w    $43F0        ; $0251E2
+; NOP padding (8 words = 16 bytes to fill original 92-byte space)
         dc.w    $0009        ; $0251E4
-        dc.w    $0200        ; $0251E6
-        dc.w    $2000        ; $0251E8
-        dc.w    $4028        ; $0251EA
-        dc.w    $2000        ; $0251EC
-        dc.w    $402C        ; $0251EE
-        dc.w    $0600        ; $0251F0
-        dc.w    $43F0        ; $0251F2
+        dc.w    $0009        ; $0251E6
+        dc.w    $0009        ; $0251E8
+        dc.w    $0009        ; $0251EA
+        dc.w    $0009        ; $0251EC
+        dc.w    $0009        ; $0251EE
+        dc.w    $0009        ; $0251F0
+        dc.w    $0009        ; $0251F2
         dc.w    $4F22        ; $0251F4
         dc.w    $D315        ; $0251F6
         dc.w    $D515        ; $0251F8

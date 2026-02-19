@@ -107,6 +107,33 @@ Comprehensive Genesis/Mega Drive hardware specifications:
 
 ---
 
+## System Overview
+
+### Genesis 32X US Overview (35 pages)
+**File:** [genesis-32x-overview.md](genesis-32x-overview.md)
+
+Official SEGA of America 32X overview document (April 1994) containing:
+- System features and hardware specifications
+- SH2 memory map with cached/cache-through address pairs:
+  - CS0: Boot ROM ($00000000/$20000000), SYS REG ($00004000/$20004000), VDP REG ($00004100/$20004100)
+  - CS1: Cartridge ROM ($02000000/$22000000)
+  - CS2: Frame Buffer DRAM ($04000000/$24000000), Over Write Image ($04020000/$24020000)
+  - CS3: SDRAM ($06000000/$26000000, 256KB)
+- MD memory map (ADEN=0 and ADEN=1 modes), ROM banking
+- Complete SYS REG definitions (both MD and SH sides)
+- VDP register definitions, display modes, frame buffer control
+- DRAM (frame buffer) map: line table at $0000, pixel data at $0200
+- Auto Fill function (256-word page units, 7+3×Length cycles)
+- Communication port details ($A15120-$A1512E / $4020-$402E)
+- DMA/DREQ configuration and FIFO usage
+- Access time tables (ROM, Frame Buffer, SYS REG, VDP REG, Boot ROM)
+- PWM sound driver specifications
+- Development tools overview
+
+**Key for:** SH2 memory map quick reference, access timing, register definitions, frame buffer programming
+
+---
+
 ## Software Development Manuals
 
 ### Genesis Software Development Manual V2.0 (26 pages)
@@ -249,7 +276,8 @@ Official SEGA assembler (SNASM68K) syntax and usage notes:
 
 ### For 32X Development:
 1. **32X Hardware Manual** - Complete 32X hardware reference
-2. **Genesis Technical Overview** - Base Genesis system understanding
+2. **Genesis 32X US Overview** - System overview, SH2 memory map, register definitions, access timing
+3. **Genesis Technical Overview** - Base Genesis system understanding
 
 ### For Debugging Issues:
 1. **Technical Bulletins** - Known errata and workarounds

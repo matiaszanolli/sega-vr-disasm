@@ -775,7 +775,7 @@ vdp_wait_test:                   ; $02050C
         dc.w    $5258        ; $020802
         dc.w    $0600        ; $020804
         dc.w    $51F4        ; $020806
-        dc.w    $0230        ; $020808  cmd $22 → expansion $023010F0
+        dc.w    $0230        ; $020808  cmd $22 → Expansion ROM $023010F0
         dc.w    $10F0        ; $02080A
         dc.w    $0600        ; $02080C
         dc.w    $4AD0        ; $02080E

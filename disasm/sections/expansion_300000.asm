@@ -48,8 +48,8 @@
 ;   0x300C00-0x300FFF  queue_processor (ring buffer drain loop, 1KB reserved)
 ;   --- Track 1 Phase 3: General command async ---
 ;   0x301000-0x3010EF  general_queue_drain (240 bytes, COMM protocol replay)
-;   0x3010F0-0x30112B  cmd22_single_shot (60 bytes, single-shot 2D block copy)
-;   0x30112C-0x3FFFFF  Free space (remaining ~1019KB)
+;   0x3010F0-0x30113B  cmd22_single_shot (76 bytes, single-shot 2D block copy)
+;   0x30113C-0x3FFFFF  Free space (remaining ~1019KB)
 ;
 ; Shared Data Structures (cache-through SDRAM, NOT in expansion ROM):
 ;   0x2203E000-0x2203E00F  Parameter block (16 bytes: R14, R7, R8, R5)
@@ -329,11 +329,14 @@ general_queue_drain:
 ; ============================================================================
 ; CMD22 SINGLE-SHOT HANDLER: 0x3010F0 (SH2 address: 0x023010F0)
 ; ============================================================================
-; Replaces the 3-phase COMM6 handshake for cmd $22 (2D block copy).
-; 68K writes all parameters to COMM1-6 at once, SH2 reads in one shot.
-; Eliminates 2 blocking waits from the 68K side (~128 cycles × 14 calls/frame).
+; B-004 v2: COMM2-safe single-shot layout for cmd $22 (2D block copy).
+; Previous layout wrote A0 to COMM2:3, but Slave polls COMM2_HI as command
+; byte — A0's high byte ($06) triggered spurious Slave dispatch.
+; Fix: height (always < 224) in COMM2 → COMM2_HI=$00, Slave ignores.
+; A1 split across COMM1 (high, save/restore) + COMM6 (low).
 ;
-; COMM layout: COMM1=D1(height), COMM2:3=A0(source), COMM4:5=A1(dest), COMM6=D0(width)
+; COMM layout: COMM2=D1(height), COMM3=D0(width), COMM4:5=A0(source),
+;              COMM1=A1_HI(dest high), COMM6=A1_LO(dest low)
 ; COMM7 UNTOUCHED (reserved for Slave doorbell).
 ;
 ; Jump table entry at $020808 redirected from $06005198 → $023010F0.
@@ -345,7 +348,7 @@ cmd22_single_shot:
         include "sh2/generated/cmd22_single_shot.inc"
 
 ; ============================================================================
-; REMAINING EXPANSION ROM SPACE (from ~0x30112C)
+; REMAINING EXPANSION ROM SPACE (from ~0x30113C)
 ; ============================================================================
 ; Pad to $3F0000 (960KB) instead of $400000 (1MB) to avoid PicoDrive
 ; emulator bug triggered by ROM files > ~0x3F1F40 bytes.

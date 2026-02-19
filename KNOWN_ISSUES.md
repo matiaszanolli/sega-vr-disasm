@@ -106,11 +106,62 @@ Writing FM=1 **immediately preempts** any ongoing 68K VDP access, even mid-trans
 - **Mitigation:** Only switch FM during V-Blank when VDP is idle
 - **Hardware Manual:** "access authorisation is forced to switch to the SH2 side, even if access of VDP is in progress in the MEGA Drive side"
 
-### COMM Register Races
-Simultaneous writes from 68K and SH2 to the same COMM register = **undefined value**.
+### COMM Register Races — Read-During-Write Is Also Undefined
+
+The hardware manual (Section 3.3) states:
+
+> "If simultaneously writing the same register from both the 68000 and SH2, **or if either the 68000 or SH2 is writing while the other is reading**, the value of that register becomes undefined."
+
+This is **three hazard cases**, not just one:
+
+| Scenario | Result |
+|----------|--------|
+| 68K writes + SH2 writes same register | **Undefined** |
+| 68K writes + SH2 reads same register | **Undefined** |
+| SH2 writes + 68K reads same register | **Undefined** |
+
+Only read + read is safe without synchronization. All protocols must sequence accesses via handshakes on a DIFFERENT register.
+
 - COMM7 ($2000402E): Master→Slave signal (unidirectional — safe)
 - COMM5 ($2000402A): Vertex transform counter (verify write direction)
-- **Rule:** Never write the same COMM register from both CPUs simultaneously
+
+**Full reference:** [COMM_REGISTERS_HARDWARE_ANALYSIS.md](analysis/COMM_REGISTERS_HARDWARE_ANALYSIS.md)
+
+### SH2 Write Buffer — COMM Writes Are Asynchronous
+
+The SH7604 has a 1-level write buffer (SH7604 manual §7.11.2). After `mov.w r6,@r8` (write to COMM0), the SH2 CPU moves to the next instruction **before the write reaches the physical register**. The 68K may not see the new value immediately.
+
+**Synchronization pattern:** Dummy-read the same address after writing to force the write buffer to flush:
+
+```asm
+mov.w   r6,@r8          ; Write to COMM register
+mov.w   @r8,r6          ; Dummy read — forces write completion
+; Now 68K is guaranteed to see the new value
+```
+
+This pattern is also required for interrupt clear registers (see supplement-2 sample code).
+
+### COMM1 Is a System Signal Register — Do Not Repurpose
+
+COMM1 (`$A15122`/`$20004022`) has multiple system-wide roles in VRD:
+
+| Consumer | What It Reads | How |
+|----------|--------------|-----|
+| **func_084** (Master SH2) | Clears COMM0:1 via longword zero, then sets COMM1_LO bit 0 | "command done" signal |
+| **V-INT handler** (68K) | `btst #0,COMM1_LO` | Checks SH2 completion |
+| **Scene init** (68K) | `btst #0,COMM1_LO` wait loop | Waits for SH2 ready |
+| **Frame swap** (68K) | `btst #0,COMM1_LO` | Checks SH2 state |
+| **VDP operations** (68K) | COMM1_LO bits 0 and 1 | Handshake signals |
+| **Race scene init** (68K) | `move.b #$04,COMM1_HI` | 2-player mode flag |
+| **Slave SH2 dispatcher** | Byte at `$20004022` | Polls for Slave work (non-zero = dispatch) |
+
+Writing arbitrary data (e.g., a height parameter) to COMM1 corrupts ALL of these signals simultaneously. If COMM1 must be used for parameter passing, protect it with:
+1. Disable 68K interrupts (`ori.w #$0700,sr`) to prevent V-INT from reading corrupted value
+2. Save COMM1 before writing (`move.w COMM1,-(sp)`)
+3. Wait for SH2 to consume the parameter (handshake on a different register)
+4. Restore COMM1 before re-enabling interrupts
+
+**Note:** Even with interrupt protection on the 68K side, the Slave SH2 continuously polls COMM1 — writing to COMM1 may cause the Slave to misinterpret data as a work command.
 
 ### CMDINT vs Other Interrupts
 Most interrupts (VRES, VINT, HINT, PWMINT) persist until explicitly cleared. CMDINT behaves differently:

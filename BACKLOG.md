@@ -35,17 +35,18 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 **Key files:** `disasm/sections/code_e200.asm`, `disasm/sections/code_20200.asm`
 
 ### B-004: Single-shot protocol for sh2_send_cmd (14 calls/frame)
-**Status:** IN PROGRESS (2026-02-17) — built and ROM-verified, pending emulator test
-**Previous approach (REVERTED 2026-02-14):** Blanket async via general_queue_drain at $FFFC00 — failed due to buffer aliasing (68K reuses pointed-to buffers before Slave replays COMM protocol to Master). Infrastructure preserved dormant at $301000.
-**New approach:** Single-shot COMM register protocol. Instead of making the calls fully async (which fails because of pointer aliasing), we eliminate the intermediate COMM6 handshake phases. The 68K writes ALL four parameters (D1→COMM1, A0→COMM2:3, A1→COMM4:5, D0→COMM6) at once, then triggers the Master SH2 via COMM0. A new expansion ROM handler at $023010F0 reads all params in one shot, performs the 2D block copy, and calls func_084 for completion. The 68K still blocks on COMM0_HI==0 (func_084 clear), but the two intermediate COMM6 phase waits are eliminated.
+**Status:** IN PROGRESS (2026-02-17) — params-read signal fix applied, pending emulator test
+**Previous approach (REVERTED 2026-02-14):** Blanket async via general_queue_drain at $FFFC00 — failed due to 3-phase COMM multiplexing protocol constraints. Infrastructure preserved dormant at $301000.
+**Current approach:** In-place handler replacement at SDRAM $06005198 with "params read" signal. The 68K writes ALL four parameters (D1→COMM1, A0→COMM2:3, A1→COMM4:5, D0→COMM6) at once, triggers COMM0_LO=$22 + COMM0_HI=$01 (standard dispatch — COMM0_LO is the jump table index, entry $22→$06005198). Handler reads COMM1-6, then clears COMM0_LO to signal "params read." 68K waits for COMM0_LO==0 before returning. Block copy proceeds, func_084 clears COMM0_HI.
+**Root cause of earlier failures (black bar + crash):** COMM register clobber race. The original sh2_send_cmd was blocking (~150 cycles in 3 COMM6 waits), preventing other COMM-writing code from running. Our single-shot version returned instantly, and sh2_cmd_27 (21 calls/frame, writes COMM2-6) ran before the SH2 handler read the params, corrupting source/dest/width. The "params read" signal handshake closes this race window.
+**Discarded hypotheses:** (1) $06004448 COMM1_LO bit 1 corruption was irrelevant — $06004448 is cmd $01's handler, dispatch uses COMM0_LO not COMM0_HI. (2) "Second-level dispatcher" at $060008A0 is actually cmd $01's fixed handler, not a general dispatcher.
 **Implementation:**
-- 68K: sh2_send_cmd at $E35A replaced with 50-byte single-shot write + 40-byte NOP pad
-- SH2: cmd22_single_shot at expansion $3010F0 (60 bytes), reads COMM1-6, copies rows, calls func_084
-- Jump table: entry at $020808 redirected from $06005198 → $023010F0
+- 68K: sh2_send_cmd at $E35A writes COMM1-6 params, triggers COMM0, waits for COMM0_LO==0
+- SH2: handler at $06005198 reads COMM1-6, clears COMM0_LO (signal), block copy, func_084
+- Jump table: entry at $020808 unchanged ($06005198) — direct dispatch via COMM0_LO index
 - COMM7 left UNTOUCHED (Slave doorbell reserved for B-003)
-**Cycle savings:** ~128 cycles/call × 14 calls/frame = ~1,792 cycles/frame (1.4% of 68K budget)
-**Key finding:** Per-call-site analysis (Feb 17) showed ALL 14 callers pass stable pointers (SDRAM/ROM/framebuffer). The Feb 14 failure was NOT pointer aliasing — it was the 3-phase COMM multiplexing protocol that the async replay violated. The single-shot approach avoids this entirely by keeping the Master SH2 dispatch path.
-**Key files:** `disasm/sections/code_e200.asm`, `disasm/sh2/expansion/cmd22_single_shot.asm`, `disasm/sections/code_20200.asm` (jump table), `disasm/sections/expansion_300000.asm`
+**Cycle savings:** ~100 cycles/call × 14 calls/frame = ~1,400 cycles/frame (~1.1% of 68K budget). The params-read wait adds ~50 cycles but saves ~150 from eliminated COMM6 handshake phases.
+**Key files:** `disasm/sections/code_e200.asm`, `disasm/sections/code_24200.asm` (in-place handler)
 
 ### B-005: Command batching (Track 2)
 **Status:** OPEN (blocked by B-004)

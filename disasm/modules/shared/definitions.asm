@@ -53,8 +53,10 @@ COMM7               equ $A1512E        ; Master→Slave signal (expansion ROM)
 ; Byte-level access aliases (VRD uses TST.B / MOVE.B within words):
 COMM0_HI            equ $A15120        ; COMM0 high byte — command flag (68K→SH2)
 COMM0_LO            equ $A15121        ; COMM0 low byte — command code ($21/$22/$25/$27/$2F)
-COMM1_HI            equ $A15122        ; COMM1 high byte
+COMM1_HI            equ $A15122        ; COMM1 high byte — Slave SH2 polls this for work cmds!
 COMM1_LO            equ $A15123        ; COMM1 low byte (VRD: cleared at $00EEFA)
+COMM6_HI            equ $A1512C        ; COMM6 high byte (B-004: D1 height)
+COMM6_LO            equ $A1512D        ; COMM6 low byte  (B-004: D0/2 words/row)
 
 ; ============================================================================
 ; SH2 Address Space

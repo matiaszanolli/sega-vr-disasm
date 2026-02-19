@@ -23,6 +23,20 @@ Build produces `build/vr_rebuild.32x`. Binary compatibility with the original RO
 5. **Clean Commits** — No stale comments, no partial changes. Revert completely if something doesn't work.
 6. **Verify Changes** — `make clean && make all` after every modification. Confirm build succeeds.
 7. **DRY** — Never create duplicate files. Fix in place. Use git branches for experiments.
+8. **COMM Register Safety** — Before modifying any 68K↔SH2 communication code, read [analysis/COMM_REGISTERS_HARDWARE_ANALYSIS.md](analysis/COMM_REGISTERS_HARDWARE_ANALYSIS.md). Critical rules:
+   - **Read-during-write = undefined** — not just write-write. Both CPUs must use handshakes.
+   - **SH2 writes are buffered** — value may not reach the register immediately. Dummy-read the same address to force synchronization.
+   - **COMM1 is a system signal register** — func_084 manages COMM1_LO bit 0 ("command done"); V-INT, scene init, frame swap all poll it. Never write arbitrary data to COMM1 without save/restore + interrupt disable.
+   - **COMM7 is the Slave doorbell** — never broadcast game command bytes to it (proven crash, B-006).
+   - **Always use cache-through** (`$20004020`) for SH2 COMM access, never `$00004020`.
+9. **Memory Boundaries** — Always check the [hardware manual memory map](docs/32x-hardware-manual.md) before assuming an address is accessible from another CPU.
+   - **SH2 CANNOT access 68K Work RAM** (`$FF0000`) at ANY address. The region between SDRAM (`$0203FFFF`) and Frame Buffer (`$04000000`) is unmapped. Three failed B-003 attempts proved this.
+   - **SDRAM mapping**: SH2 `$0600xxxx` = ROM file offset `$20000 + xxxx`, NOT `$xxxx`. Getting this wrong produces hex dumps of 68K code instead of SH2 SDRAM.
+   - **Shared memory options** (exhaustive): COMM registers (16 bytes), SDRAM ($02000000-$0203FFFF), Frame Buffer ($04000000, FM-controlled). That's all.
+10. **SH2 Patching Discipline** — SH2 code is tightly interconnected. Careless patches cause silent corruption.
+    - **Literal pool sharing**: `MOV.L @(disp,PC),Rn` instructions share literal pools. Before overwriting ANY address in SH2 code, scan the entire section for `$Dnxx` opcodes that resolve to it (see [KNOWN_ISSUES.md](KNOWN_ISSUES.md) §SH2 Literal Pool Sharing).
+    - **Test patches in isolation**: Interacting patches hide root causes. Never combine multiple SH2 patches without testing each one alone first (proven in B-006: reverting Patch #2 alone was insufficient).
+    - **Verify encodings**: Always verify assembled SH2 opcodes against original ROM bytes with `python3`. Subtle encoding errors (wrong register field, wrong displacement) are invisible until runtime.
 
 ## Architecture
 
@@ -80,6 +94,7 @@ disasm/vrd.asm (entry point)
 | All documentation index | [docs/DOCUMENTATION_INDEX.md](docs/DOCUMENTATION_INDEX.md) |
 | 68K function catalog (503+) | [analysis/68K_FUNCTION_REFERENCE.md](analysis/68K_FUNCTION_REFERENCE.md) |
 | 68K↔SH2 communication | [analysis/68K_SH2_COMMUNICATION.md](analysis/68K_SH2_COMMUNICATION.md) |
+| COMM registers hardware deep dive | [analysis/COMM_REGISTERS_HARDWARE_ANALYSIS.md](analysis/COMM_REGISTERS_HARDWARE_ANALYSIS.md) |
 | Register reference + hazards | [analysis/architecture/32X_REGISTERS.md](analysis/architecture/32X_REGISTERS.md) |
 | Master SH2 dispatch + COMM7 design | [analysis/architecture/MASTER_SH2_DISPATCH_ANALYSIS.md](analysis/architecture/MASTER_SH2_DISPATCH_ANALYSIS.md) |
 | Bottleneck root cause | [analysis/ARCHITECTURAL_BOTTLENECK_ANALYSIS.md](analysis/ARCHITECTURAL_BOTTLENECK_ANALYSIS.md) |

@@ -35,18 +35,14 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 **Key files:** `disasm/sections/code_e200.asm`, `disasm/sections/code_20200.asm`
 
 ### B-004: Single-shot protocol for sh2_send_cmd (14 calls/frame)
-**Status:** DONE (2026-02-20) — tested in PicoDrive, 189 32X frames, no crash, game completes race and returns to menu normally.
-**Previous approach (REVERTED 2026-02-14):** Blanket async via general_queue_drain at $FFFC00 — failed due to 3-phase COMM multiplexing protocol constraints. Infrastructure preserved dormant at $301000.
-**v5 (COMM1-safe) implementation:** COMM2:3=A0 (source ptr), COMM4:5=A1 (dest ptr), COMM6_HI=D1 (height), COMM6_LO=D0/2 (words/row). COMM1 and COMM7 untouched. Trigger: write $2222 to COMM0 word (HI=$22 trigger flag, LO=$22 dispatch index).
-**Root cause of earlier failures (black bar + crash):** COMM register clobber race. The original sh2_send_cmd was blocking (~150 cycles in 3 COMM6 waits), preventing other COMM-writing code from running. Our single-shot version returned instantly, and sh2_cmd_27 (21 calls/frame, writes COMM2-6) ran before the SH2 handler read the params, corrupting source/dest/width. The "params read" signal handshake closes this race window.
-**Dispatch mechanism:** COMM0_HI ($20004020) = trigger flag (polled for non-zero). COMM0_LO ($20004021) = dispatch index. Jump table base = $06000780; entry $22 at $06000808 → expansion ROM $023010F0. All original game commands use COMM0_LO=$01; our cmd uses $22.
-**Implementation:**
-- 68K: sh2_send_cmd at $E35A writes COMM2-6 params, triggers COMM0=$2222, waits COMM0_LO==0 (params-read ack), then COMM0_HI==0 (done)
-- SH2: cmd22_single_shot at expansion ROM $023010F0 (60B) reads COMM2-6, clears COMM0_LO (ack), block copy, calls func_084
-- Jump table: entry at $020808 = $023010F0 (expansion ROM) — active since commit 7ba0150
-- COMM7 left UNTOUCHED (Slave doorbell reserved for B-003)
-**Cycle savings:** Below profiler measurement noise in emulator (~1.4% of 68K budget, <1,800 cycles/frame estimated). Real savings TBD with hardware or more precise profiling.
-**Key files:** `disasm/sections/code_e200.asm`, `disasm/sh2/expansion/cmd22_single_shot.asm`
+**Status:** REVERTED (2026-02-20) — regression: black bar + crash on first menu choice.
+**Previous attempt (REVERTED 2026-02-14):** Blanket async via general_queue_drain at $FFFC00 — failed due to 3-phase COMM multiplexing protocol constraints. Infrastructure preserved dormant at $301000.
+**v5 (COMM1-safe) — REVERTED:** COMM2:3=A0 (source ptr), COMM4:5=A1 (dest ptr), COMM6_HI=D1 (height), COMM6_LO=D0/2 (words/row). Trigger: write $2222 to COMM0.
+**Root cause of v5 regression (2026-02-20):** Slave SH2 command loop polls `COMM2_HI` (`$20004024`) as its work command byte selector — non-zero triggers Slave dispatch. v5 writes A0 (source ptr, always `$06xxxxxx`) to COMM2:3, making COMM2_HI = `$06` (non-zero). During races the Slave is busy processing sh2_cmd_27 and rarely polls COMM2. During menus the Slave is IDLE and actively polls COMM2_HI every ~25 cycles, catching the spurious `$06` and dispatching to the wrong (cmd-6) handler with garbage parameters → black bar + crash. The 189-frame acceptance test was race-only and did not exercise menu idle state.
+**Why no COMM2-safe layout exists:** All SH2 addresses have non-zero high bytes (`$02xxxxxx`, `$04xxxxxx`, `$06xxxxxx`). There is no way to write A0 or A1 to COMM2:3 without triggering spurious Slave dispatch.
+**Current state:** Fully reverted to original 3-phase blocking protocol. Jump table entry at $020808 restored to $06005198 (SDRAM handler). cmd22_single_shot still in expansion ROM but unreachable (jump table no longer points to it).
+**Future redesign constraint:** Any replacement for cmd $22 must avoid writing non-zero values to COMM2_HI. Options: (a) use a COMM layout that keeps COMM2_HI = $00 (only small integers like D0/D1 < 256 are safe there), (b) temporarily disable Slave via COMM2_HI=$00 signal before writing params (requires Slave cooperation), (c) route via COMM0 single-shot but place only safe values in COMM2.
+**Key files:** `disasm/sections/code_e200.asm`, `disasm/sections/code_20200.asm`, `disasm/sections/code_24200.asm`, `disasm/sh2/expansion/cmd22_single_shot.asm`
 
 ### B-005: Command batching (Track 2)
 **Status:** OPEN (B-004 unblocked 2026-02-20)
@@ -129,7 +125,7 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 
 | ID | Description | Commit | Date |
 |----|-------------|--------|------|
-| B-004 | Single-shot cmd $22 (COMM1-safe v5, params-read signal) — 189 frames tested | 7ba0150 | 2026-02-20 |
+| B-004 | ~~Single-shot cmd $22 (COMM1-safe v5)~~ REVERTED — Slave COMM2_HI poll causes spurious dispatch in menus | — | 2026-02-20 |
 | B-003 | Async sh2_cmd_27 via COMM registers (bypasses Master SH2) | — | 2026-02-17 |
 | B-008 | RV bit profiling — NEVER set, expansion ROM safe (static analysis) | — | 2026-02-16 |
 | B-006 | Activate v4.0 parallel hooks — **PARTIAL**: Patch #2 needs revert (COMM7 collision crash) | 651a415 | 2026-02-10 |

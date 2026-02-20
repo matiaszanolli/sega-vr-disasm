@@ -290,6 +290,14 @@ for addr in range(section_start, section_end, 2):
 
 **Rule:** Before placing a literal at any address, scan the entire section for `$Dnxx` opcodes that resolve to that address.
 
+### Reverting SH2 dc.w — Literal Pool Values Must Be Byte-Verified
+
+When reverting SH2 code sections that contain literal pools (data words following code), the pool values must be restored from the original ROM bytes — **never reconstructed from memory or assumed to be NOPs**.
+
+**Root cause (2026-02-20):** A revert of B-004 replaced literal pool words at `$0251F0/$0251F2` with `$0009, $0009` (which look like NOP opcodes) instead of the correct `$0600, $43F0` (`func_084` pointer). The `JSR @R0` that loads this literal then jumped to `$00090009` (unmapped) → crash on every `sh2_send_cmd` call, earlier than the original bug.
+
+**Rule:** For every address being restored, grep the original ROM hex dump or the pre-patch git commit for the exact byte values. Do not trust manual reconstruction of literal pools.
+
 ### Slave SH2 Idle Loop at $0203CC — Context and Constraints
 
 The original Slave idle loop at `$0203CC` is:

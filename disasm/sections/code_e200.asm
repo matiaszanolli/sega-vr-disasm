@@ -265,52 +265,51 @@ sh2_wait_response:
 ; ============================================================================
 ; sh2_send_cmd ($00E35A) - Direct Command Send (cmd $22)
 ; ============================================================================
-; Purpose: Sends command $22 with source ptr, dest ptr, width, and height
+; Purpose: Sends command $22 with dest ptr, width, height, then source ptr
 ; Called by: text_render, various graphics functions (14+ call sites)
 ; Parameters:
-;   A0 = Source pointer (any valid SH2 address: ROM/SDRAM)
-;   A1 = Destination pointer (any valid SH2 address: framebuffer/SDRAM)
-;   D0 = Width in bytes per row (must be even; D0/2 < 256 — verified at all sites)
-;   D1 = Height in rows (< 224 — always true per call-site analysis)
-; Clobbers: Nothing (D0 temporarily halved then restored; D0 always even)
+;   A0 = Source pointer (SH2 address: ROM/SDRAM — converts via SH2_ADDR_OFFSET)
+;   A1 = Destination pointer (SH2 address: framebuffer/SDRAM)
+;   D0 = Width in bytes per row
+;   D1 = Height in rows
+; Clobbers: Nothing
 ; Preserves: D0-D7, A0-A6 (all registers preserved)
 ;
-; BLOCKING: Two busy-wait loops (params-consumed + copy-complete)
-; B-004 v5: eliminates all 3 original COMM6 handshake round-trips
+; BLOCKING: Three busy-wait loops (original 3-phase COMM6 handshake protocol)
+; NOTE: COMM2 is NEVER written by this protocol — safe from Slave SH2 spurious
+; dispatch (Slave polls COMM2_HI at $20004024 as its work command selector).
 ; ============================================================================
 sh2_send_cmd:
-; --- Single-shot protocol (B-004 v5) — COMM1-safe ---
-; Writes all parameters to COMM2-6, triggers via COMM0. COMM1 is NEVER
-; written: the Slave SH2 polls COMM1_HI ($20004022) for work commands, and
-; any non-zero write causes a spurious Slave dispatch + crash (A1_HI is
-; always non-zero for any framebuffer or SDRAM address).
-;
-; COMM layout (COMM1 and COMM7 untouched):
-;   COMM2:3 = A0 (source ptr, longword)    COMM4:5 = A1 (dest ptr, longword)
-;   COMM6_HI = D1 (height, byte)           COMM6_LO = D0/2 (words/row, byte)
-;
+; --- BLOCKING WAIT 1 ---
 .wait_ready:
-        tst.b   COMM0_HI                        ; Wait for SH2 ready (func_084 cleared HI)
-        bne.s   .wait_ready
-        move.w  sr,-(sp)                        ; Save SR
-        ori.w   #$0700,sr                       ; Disable all interrupts
-        move.l  a0,COMM2                        ; A0 → COMM2:3 (source ptr, longword)
-        move.l  a1,COMM4                        ; A1 → COMM4:5 (dest ptr, longword)
-        lsr.w   #1,d0                           ; D0 = D0/2 (temporarily — D0 always even)
-        move.b  d0,COMM6_LO                     ; D0/2 → COMM6 low byte (words/row for SH2)
-        add.w   d0,d0                           ; Restore D0 (D0/2 * 2 = original D0)
-        move.b  d1,COMM6_HI                     ; D1 → COMM6 high byte (height)
-        move.w  #(CMD_DIRECT<<8)|CMD_DIRECT,COMM0 ; Trigger ($2222): HI=$22 dispatch, LO=$22 poll
-; Wait for SH2 to consume params (handler clears COMM0_LO after reading COMM2-6)
-.wait_params_read:
-        tst.b   COMM0_LO                        ; Params consumed?
-        bne.s   .wait_params_read
-        move.w  (sp)+,sr                        ; Restore interrupts
-; Wait for full copy completion (func_084 clears COMM0_HI → $00)
-.wait_complete:
-        tst.b   COMM0_HI                        ; Command fully done?
-        bne.s   .wait_complete
-        rts
+        tst.b   COMM0_HI                        ; $00E35A: $4A39 $00A1 $5120 - Test command flag
+        bne.s   .wait_ready                     ; $00E360: $66F8             - Loop until ready
+
+; Send secondary pointer
+        move.l  a1,COMM4                        ; $00E362: $23C9 $00A1 $5128 - Write A1 (COMM4+COMM5)
+        move.w  #HANDSHAKE_READY,COMM6          ; $00E368: $33FC $0101 $00A1 $512C - Signal ready
+        move.b  #CMD_DIRECT,COMM0_LO            ; $00E370: $13FC $0022 $00A1 $5121 - Command $22
+        move.b  #$01,COMM0_HI                   ; $00E378: $13FC $0001 $00A1 $5120 - Trigger command
+
+; --- BLOCKING WAIT 2 ---
+.wait_phase1:
+        tst.b   COMM6                           ; $00E380: $4A39 $00A1 $512C - Test handshake
+        bne.s   .wait_phase1                    ; $00E386: $66F8             - Loop until cleared
+
+; Send parameters D0/D1
+        move.w  d0,COMM4                        ; $00E388: $33C0 $00A1 $5128 - Write D0
+        move.w  d1,COMM5                        ; $00E38E: $33C1 $00A1 $512A - Write D1
+        move.w  #HANDSHAKE_READY,COMM6          ; $00E394: $33FC $0101 $00A1 $512C - Signal ready
+
+; --- BLOCKING WAIT 3 ---
+.wait_phase2:
+        tst.b   COMM6                           ; $00E39C: $4A39 $00A1 $512C - Test handshake
+        bne.s   .wait_phase2                    ; $00E3A2: $66F8             - Loop until cleared
+
+; Send data pointer
+        move.l  a0,COMM4                        ; $00E3A4: $23C8 $00A1 $5128 - Write A0 (COMM4+COMM5)
+        move.w  #HANDSHAKE_READY,COMM6          ; $00E3AA: $33FC $0101 $00A1 $512C - Signal ready
+        rts                                     ; $00E3B2: $4E75             - Return
 
 ; ============================================================================
 ; sh2_cmd_27 ($00E3B4) - Command $27 via COMM Registers (21 calls/frame)

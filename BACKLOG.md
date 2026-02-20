@@ -107,6 +107,14 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 **Approach:** Focus on simpler ones first: func_009, func_010, func_060-063. Skip func_001/002 (coordinators, size-critical).
 **Key files:** `disasm/sh2/src/`, [SH2_TRANSLATION_INTEGRATION.md](analysis/sh2-analysis/SH2_TRANSLATION_INTEGRATION.md)
 
+### B-013: Fix SH2 address errors in COMM_REGISTER_USAGE_ANALYSIS.md
+**Status:** OPEN
+**Why:** `analysis/optimization/COMM_REGISTER_USAGE_ANALYSIS.md` lists SH2 addresses for COMM1+ that are offset by 2 bytes (e.g., COMM1 listed as `$20004022` but the table entries starting at COMM1 shift by one register). Spotted during Oracle index build.
+**Acceptance:** All SH2 addresses in the register table verified against `analysis/COMM_REGISTERS_HARDWARE_ANALYSIS.md` and corrected. No other content changed.
+**Key files:** `analysis/optimization/COMM_REGISTER_USAGE_ANALYSIS.md`
+**Depends on:** Nothing
+**Priority note:** Low urgency — doc only, no code impact. Good first task for the Analyzer agent.
+
 ### B-012: Replace raw hex register addresses with symbolic names
 **Status:** DONE (2026-02-10)
 **Why:** Raw hex like `$00A15120` is unreadable; `COMM0_HI` is self-documenting. Critical for Track 1 work where COMM register logic must be clearly understood.

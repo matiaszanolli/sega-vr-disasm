@@ -2,7 +2,18 @@
 
 Agent briefing for Virtua Racing Deluxe 32X disassembly/reassembly project.
 
-**Last Updated**: February 10, 2026
+**Last Updated**: February 20, 2026
+
+## Agent Team
+
+This project uses a specialized agent team. See [agents/README.md](agents/README.md) for the full roster.
+
+**Task Manager** is the entry point for all game code work. **Always invoke it before modifying any file in `disasm/`, `disasm/sections/expansion_300000.asm`, or working on any BACKLOG item.** It warms up the Oracle, reads project state, agrees direction with the user, then orchestrates the other agents.
+
+- Invoke explicitly: `/task-manager` or `/task-manager <issue>`
+- Auto-trigger: whenever a session is about to touch game code
+
+**Oracle** is a persistent knowledge base (Opus model) that answers any question about hardware, architecture, COMM protocols, memory maps, and project history. It is warmed up by the Task Manager and its session ID stored in `analysis/agent-scratch/oracle/session_id.txt`. Any agent or the main session can query it via resume. **When uncertain about any hardware fact, address, or constraint — query the Oracle instead of guessing.**
 
 ## Build & Test
 
@@ -16,7 +27,7 @@ Build produces `build/vr_rebuild.32x`. Binary compatibility with the original RO
 
 ## Ground Rules — STRICTLY ENFORCED
 
-1. **Do Not Guess** — Use `docs/` (hardware manuals) and `analysis/` (architecture). Research first.
+1. **Do Not Guess** — Use `docs/` (hardware manuals) and `analysis/` (architecture). Query the Oracle. Research first.
 2. **Understand Before Modifying** — Never patch `dc.w` without understanding it. Disassemble and document first.
 3. **Use Available Tools** — Profiler at `tools/libretro-profiling/`, disassemblers `tools/m68k_disasm.py` and `tools/sh2_disasm.py`. Measure, don't assume.
 4. **Proper Assembly** — Modify assembly source, not raw binary. Convert `dc.w` to mnemonics when possible (see [KNOWN_ISSUES.md](KNOWN_ISSUES.md) for SH2 exceptions).

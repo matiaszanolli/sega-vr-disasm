@@ -103,5 +103,8 @@ tools/libretro-profiling/build_log.txt
 *.lds
 disasm/sections-mnemonic-backup-*/
 
+# Agent scratch space (ephemeral inter-agent communication, locks, scratchpads)
+analysis/agent-scratch/
+
 # Blog posts
 BLOG_*.md

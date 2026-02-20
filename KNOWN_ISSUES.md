@@ -153,7 +153,7 @@ COMM1 (`$A15122`/`$20004022`) has multiple system-wide roles in VRD:
 | **Frame swap** (68K) | `btst #0,COMM1_LO` | Checks SH2 state |
 | **VDP operations** (68K) | COMM1_LO bits 0 and 1 | Handshake signals |
 | **Race scene init** (68K) | `move.b #$04,COMM1_HI` | 2-player mode flag |
-| **Slave SH2 dispatcher** | Byte at `$20004022` | Polls for Slave work (non-zero = dispatch) |
+| **Slave SH2 dispatcher** | Byte at `$20004024` (COMM2_HI) | Polls for Slave work (non-zero = dispatch) |
 
 Writing arbitrary data (e.g., a height parameter) to COMM1 corrupts ALL of these signals simultaneously. If COMM1 must be used for parameter passing, protect it with:
 1. Disable 68K interrupts (`ori.w #$0700,sr`) to prevent V-INT from reading corrupted value
@@ -161,7 +161,7 @@ Writing arbitrary data (e.g., a height parameter) to COMM1 corrupts ALL of these
 3. Wait for SH2 to consume the parameter (handshake on a different register)
 4. Restore COMM1 before re-enabling interrupts
 
-**Note:** Even with interrupt protection on the 68K side, the Slave SH2 continuously polls COMM1 — writing to COMM1 may cause the Slave to misinterpret data as a work command.
+**Note:** The Slave SH2 polls COMM2_HI (`$20004024`), not COMM1. Writing to COMM2 (e.g., source pointer high byte) while Slave is in command_loop may cause spurious dispatch. (B-004 v5 is COMM1-safe but has a narrow COMM2 race window — not observed in testing.)
 
 ### CMDINT vs Other Interrupts
 Most interrupts (VRES, VINT, HINT, PWMINT) persist until explicitly cleared. CMDINT behaves differently:

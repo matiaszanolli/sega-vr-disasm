@@ -47,13 +47,13 @@ The 32X has **8 COMM registers** (COMM0-COMM7) at **2-byte (word) intervals**:
 
 | 68K Address | SH2 Address | Name  | VRD Usage (Current) |
 |-------------|-------------|-------|---------------------|
-| $A15120 | $20004020 | COMM0 | Command flag (hi byte) + code (lo byte) |
-| $A15122 | $20004022 | COMM1 | Height param (B-004) / Slave cmd byte (original) |
-| $A15124 | $20004024 | COMM2 | Source ptr hi (B-004) / Width (B-003) |
+| $A15120 | $20004020 | COMM0 | Trigger (HI) + dispatch index (LO); B-004 uses $2222 |
+| $A15122 | $20004022 | COMM1 | **System signal — do not write** (V-INT/scene-init/frame-swap handshake) |
+| $A15124 | $20004024 | COMM2 | **Slave cmd byte** (Sega calls this "COMM1") / Source ptr hi (B-004) / Width (B-003) |
 | $A15126 | $20004026 | COMM3 | Source ptr lo (B-004) / Height (B-003) |
 | $A15128 | $20004028 | COMM4 | Dest ptr hi (B-004) / Data ptr hi (B-003) |
 | $A1512A | $2000402A | COMM5 | Dest ptr lo (B-004) / Data ptr lo (B-003) |
-| $A1512C | $2000402C | COMM6 | Width (B-004) / Add value (B-003) / Handshake (original) |
+| $A1512C | $2000402C | COMM6 | Height (HI) + words-per-row (LO) (B-004) / Add value (B-003) / Handshake (original) |
 | $A1512E | $2000402E | COMM7 | Slave doorbell: $0027=cmd27 work (B-003), $0000=idle |
 
 **Access patterns:**
@@ -135,7 +135,7 @@ Based on disassembly of [sh2_communication.asm](../disasm/modules/68k/sh2/sh2_co
 |----------|----------|----------|-------|------------|
 | COMM0 hi | $A15120 | $20004020 | Command flag (68K→SH2) | ✅ Confirmed |
 | COMM0 lo | $A15121 | $20004021 | Command code ($22, $25, $27, etc.) | ✅ Confirmed |
-| COMM1 | $A15122 | $20004022 | **Slave command byte** - Slave polls this | ✅ Confirmed |
+| COMM2 | $A15124 | $20004024 | **Slave command byte** - Slave polls COMM2_HI (Sega calls this "COMM1") | ✅ Confirmed |
 | COMM3 | $A15126 | $20004026 | Slave status ("OVRN" marker) | ✅ Confirmed |
 | COMM4+5 | $A15128 | $20004028 | 32-bit data pointer (68K→SH2) | ✅ Confirmed |
 | COMM6 | $A1512C | $2000402C | Handshake flag ($0101 = ready) | ✅ Confirmed |
@@ -143,12 +143,12 @@ Based on disassembly of [sh2_communication.asm](../disasm/modules/68k/sh2/sh2_co
 
 **Slave COMM1 Protocol (✅ Disassembled):**
 
-The Slave SH2 runs a command dispatcher loop at SDRAM `$06000592`:
+The Slave SH2 runs a command dispatcher loop at SDRAM `$06000592`. **Naming note:** Sega's internal source calls the register at hardware address `$20004024` (our COMM2) "COMM1". This is Sega's convention — hardware COMM0 ($20004020) is the master command trigger, so their COMM1 starts at $20004024. All addresses below reflect hardware addresses.
 
 ```
-1. Read COMM1 byte ($20004022)
-2. If COMM1 == 0: No work → enter COMM7 doorbell check ($06000608)
-3. If COMM1 != 0: Dispatch to handler via jump table ($060005C8)
+1. Read COMM2_HI byte ($20004024) — Sega calls this "COMM1"
+2. If COMM2_HI == 0: No work → enter COMM7 doorbell check ($06000608)
+3. If COMM2_HI != 0: Dispatch to handler via jump table ($060005C8)
 4. Loop back to step 1
 ```
 
@@ -197,25 +197,28 @@ Bypasses Master SH2 entirely. 68K writes pixel parameters directly to COMM2-6, r
 - Slave code runs from SDRAM (PicoDrive cannot execute Slave code from expansion ROM)
 - **Files:** [code_e200.asm](../disasm/sections/code_e200.asm):328 (68K), [inline_slave_drain.asm](../disasm/sh2/expansion/inline_slave_drain.asm) (SH2)
 
-### B-004: Single-Shot sh2_send_cmd (Feb 2026)
+### B-004: Single-Shot sh2_send_cmd (Feb 2026) ✅ DONE
 
-Keeps Master SH2 dispatch but writes all params to COMM1-6 at once, eliminating 2 of 3 COMM6 handshake waits.
+Keeps Master SH2 dispatch but writes all params to COMM2-6 at once (COMM1 untouched), eliminating 2 of 3 COMM6 handshake waits. Tested: 189 32X frames in PicoDrive, no crash (2026-02-20).
 
 ```
 68K (sh2_send_cmd)               Master SH2 ($3010F0)
  │                                    │
  ├─ Wait COMM0_HI==0 ───────────────>│  Idle poll
- ├─ D1→COMM1, A0→COMM2:3            │
- ├─ A1→COMM4:5, D0→COMM6            │
- ├─ $22→COMM0_HI (trigger) ────────>│  Dispatch to handler
- ├─ RTS (immediate return)            ├─ Read COMM1,2:3,4:5,6 at once
+ ├─ A0→COMM2:3, A1→COMM4:5          │
+ ├─ D1→COMM6_HI, D0/2→COMM6_LO     │
+ ├─ $2222→COMM0 (trigger+index) ───>│  Dispatch to entry $22
+ ├─ Wait COMM0_LO==0 (params read)  ├─ Read COMM2:3, COMM4:5, COMM6 at once
+ ├─ Wait COMM0_HI==0 (done)         ├─ Signal params read: clr COMM0_LO
  │                                    ├─ Word-by-word 2D block copy
  │                                    ├─ func_084: clr.l COMM0 (done)
  │                                    └─ Return to dispatch loop
 ```
 
+- **COMM layout (v5, COMM1-safe)**: COMM0=$2222 (HI=trigger flag, LO=dispatch index $22); COMM2:3=A0; COMM4:5=A1; COMM6_HI=D1 (height); COMM6_LO=D0/2 (words/row); COMM1+COMM7=untouched
+- **Dispatch mechanism**: COMM0_HI polled for non-zero (trigger). COMM0_LO ($20004021) = index → shll2 → jump table at $06000780. Entry $22 at $06000808 → $023010F0.
 - **14 calls/frame**, ~170 cycles each (was ~300 with 3-phase)
-- Jump table entry at $020808 redirected to expansion $3010F0
+- Jump table entry at $020808 redirected to expansion $023010F0 (active since commit 7ba0150)
 - **Files:** [code_e200.asm](../disasm/sections/code_e200.asm):281 (68K), [cmd22_single_shot.asm](../disasm/sh2/expansion/cmd22_single_shot.asm) (SH2)
 
 See [MASTER_SLAVE_ANALYSIS.md](architecture/MASTER_SLAVE_ANALYSIS.md) for validated synchronization protocol details.

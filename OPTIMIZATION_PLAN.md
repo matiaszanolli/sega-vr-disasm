@@ -146,17 +146,18 @@ Each command follows a strict `submit → wait → continue` pattern:
 - Translation tool: label map (800 labels), PC-relative decoder, branch decoder with local labels
 - All translations verified byte-identical to original ROM (md5: `2d842a62085df8efba46053c5bea8868`)
 
-### v8.0 Single-Shot cmd_22 (February 2026) — BUILT, PENDING TEST
+### v8.0 Single-Shot cmd_22 (February 2026) — DONE ✅
 
-**Status:** Built and binary-verified (B-004, 2026-02-17). Awaiting PicoDrive emulator test.
+**Status:** COMPLETE and TESTED (B-004, 2026-02-20). 189 32X frames in PicoDrive, no crash.
 
-**What changed:** Replaced the 3-phase COMM6 handshake in `sh2_send_cmd` with a single-shot write. The 68K writes all 4 parameters (D1, A0, A1, D0) to COMM1-6 at once, triggers the Master SH2 via COMM0, and the Master dispatches to a new expansion ROM handler that reads everything in one shot.
+**What changed:** Replaced the 3-phase COMM6 handshake in `sh2_send_cmd` with a single-shot write. The 68K writes all 4 parameters to COMM2-6 at once (COMM1 untouched), triggers the Master SH2 via COMM0=$2222, and the Master dispatches to a new expansion ROM handler that reads everything in one shot.
 
 **Implementation:**
 - **68K sender** (code_e200.asm): 90-byte function → 50B single-shot writes + 40B NOP padding
-- **SH2 handler** (cmd22_single_shot at $3010F0): 60 bytes, reads COMM1-6, 2D block copy with $200 stride, calls func_084
-- **Jump table** (code_20200.asm): Entry $020808 redirected $06005198 → $023010F0
-- **COMM layout**: COMM1=D1, COMM2:3=A0, COMM4:5=A1, COMM6=D0, COMM7=untouched
+- **SH2 handler** (cmd22_single_shot at $3010F0): 60 bytes, reads COMM2-6, 2D block copy with $200 stride, calls func_084
+- **Jump table** (code_20200.asm): Entry $020808 redirected $06005198 → $023010F0 (active)
+- **COMM layout (v5, COMM1-safe)**: COMM0=$2222 (trigger=HI, index=LO), COMM2:3=A0, COMM4:5=A1, COMM6_HI=D1, COMM6_LO=D0/2, COMM1+COMM7=untouched
+- **Dispatch**: COMM0_HI ($20004020) = trigger flag (polled for non-zero); COMM0_LO ($20004021) = dispatch index (shll2 → jump table at $06000780)
 
 **Key discoveries:**
 1. Per-call-site analysis proved ALL 14 sh2_send_cmd callers pass stable pointers — the Feb 14 "buffer aliasing" diagnosis was wrong

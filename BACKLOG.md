@@ -35,21 +35,21 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 **Key files:** `disasm/sections/code_e200.asm`, `disasm/sections/code_20200.asm`
 
 ### B-004: Single-shot protocol for sh2_send_cmd (14 calls/frame)
-**Status:** IN PROGRESS (2026-02-17) — params-read signal fix applied, pending emulator test
+**Status:** DONE (2026-02-20) — tested in PicoDrive, 189 32X frames, no crash, game completes race and returns to menu normally.
 **Previous approach (REVERTED 2026-02-14):** Blanket async via general_queue_drain at $FFFC00 — failed due to 3-phase COMM multiplexing protocol constraints. Infrastructure preserved dormant at $301000.
-**Current approach:** In-place handler replacement at SDRAM $06005198 with "params read" signal. The 68K writes ALL four parameters (D1→COMM1, A0→COMM2:3, A1→COMM4:5, D0→COMM6) at once, triggers COMM0_LO=$22 + COMM0_HI=$01 (standard dispatch — COMM0_LO is the jump table index, entry $22→$06005198). Handler reads COMM1-6, then clears COMM0_LO to signal "params read." 68K waits for COMM0_LO==0 before returning. Block copy proceeds, func_084 clears COMM0_HI.
+**v5 (COMM1-safe) implementation:** COMM2:3=A0 (source ptr), COMM4:5=A1 (dest ptr), COMM6_HI=D1 (height), COMM6_LO=D0/2 (words/row). COMM1 and COMM7 untouched. Trigger: write $2222 to COMM0 word (HI=$22 trigger flag, LO=$22 dispatch index).
 **Root cause of earlier failures (black bar + crash):** COMM register clobber race. The original sh2_send_cmd was blocking (~150 cycles in 3 COMM6 waits), preventing other COMM-writing code from running. Our single-shot version returned instantly, and sh2_cmd_27 (21 calls/frame, writes COMM2-6) ran before the SH2 handler read the params, corrupting source/dest/width. The "params read" signal handshake closes this race window.
-**Discarded hypotheses:** (1) $06004448 COMM1_LO bit 1 corruption was irrelevant — $06004448 is cmd $01's handler, dispatch uses COMM0_LO not COMM0_HI. (2) "Second-level dispatcher" at $060008A0 is actually cmd $01's fixed handler, not a general dispatcher.
+**Dispatch mechanism:** COMM0_HI ($20004020) = trigger flag (polled for non-zero). COMM0_LO ($20004021) = dispatch index. Jump table base = $06000780; entry $22 at $06000808 → expansion ROM $023010F0. All original game commands use COMM0_LO=$01; our cmd uses $22.
 **Implementation:**
-- 68K: sh2_send_cmd at $E35A writes COMM1-6 params, triggers COMM0, waits for COMM0_LO==0
-- SH2: handler at $06005198 reads COMM1-6, clears COMM0_LO (signal), block copy, func_084
-- Jump table: entry at $020808 unchanged ($06005198) — direct dispatch via COMM0_LO index
+- 68K: sh2_send_cmd at $E35A writes COMM2-6 params, triggers COMM0=$2222, waits COMM0_LO==0 (params-read ack), then COMM0_HI==0 (done)
+- SH2: cmd22_single_shot at expansion ROM $023010F0 (60B) reads COMM2-6, clears COMM0_LO (ack), block copy, calls func_084
+- Jump table: entry at $020808 = $023010F0 (expansion ROM) — active since commit 7ba0150
 - COMM7 left UNTOUCHED (Slave doorbell reserved for B-003)
-**Cycle savings:** ~100 cycles/call × 14 calls/frame = ~1,400 cycles/frame (~1.1% of 68K budget). The params-read wait adds ~50 cycles but saves ~150 from eliminated COMM6 handshake phases.
-**Key files:** `disasm/sections/code_e200.asm`, `disasm/sections/code_24200.asm` (in-place handler)
+**Cycle savings:** Below profiler measurement noise in emulator (~1.4% of 68K budget, <1,800 cycles/frame estimated). Real savings TBD with hardware or more precise profiling.
+**Key files:** `disasm/sections/code_e200.asm`, `disasm/sh2/expansion/cmd22_single_shot.asm`
 
 ### B-005: Command batching (Track 2)
-**Status:** OPEN (blocked by B-004)
+**Status:** OPEN (B-004 unblocked 2026-02-20)
 **Why:** Reduce 35 submissions to ~3-5 batches for less per-command overhead.
 **Acceptance:** batch_copy_handler works, cmd_27 grouped. Profiler confirms further 68K reduction.
 **Key files:** expansion_300000.asm ($300500 batch_copy_handler)
@@ -121,6 +121,7 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 
 | ID | Description | Commit | Date |
 |----|-------------|--------|------|
+| B-004 | Single-shot cmd $22 (COMM1-safe v5, params-read signal) — 189 frames tested | 7ba0150 | 2026-02-20 |
 | B-003 | Async sh2_cmd_27 via COMM registers (bypasses Master SH2) | — | 2026-02-17 |
 | B-008 | RV bit profiling — NEVER set, expansion ROM safe (static analysis) | — | 2026-02-16 |
 | B-006 | Activate v4.0 parallel hooks — **PARTIAL**: Patch #2 needs revert (COMM7 collision crash) | 651a415 | 2026-02-10 |

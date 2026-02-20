@@ -329,14 +329,13 @@ general_queue_drain:
 ; ============================================================================
 ; CMD22 SINGLE-SHOT HANDLER: 0x3010F0 (SH2 address: 0x023010F0)
 ; ============================================================================
-; B-004 v2: COMM2-safe single-shot layout for cmd $22 (2D block copy).
-; Previous layout wrote A0 to COMM2:3, but Slave polls COMM2_HI as command
-; byte — A0's high byte ($06) triggered spurious Slave dispatch.
-; Fix: height (always < 224) in COMM2 → COMM2_HI=$00, Slave ignores.
-; A1 split across COMM1 (high, save/restore) + COMM6 (low).
+; B-004 v5 (COMM1-safe): Single-shot layout for cmd $22 (2D block copy).
+; 68K writes all params to COMM2-6, triggers COMM0=$2222, then waits
+; for COMM0_LO==0 (params read) then COMM0_HI==0 (copy done).
 ;
-; COMM layout: COMM2=D1(height), COMM3=D0(width), COMM4:5=A0(source),
-;              COMM1=A1_HI(dest high), COMM6=A1_LO(dest low)
+; COMM layout (v5): COMM0=$2222 (trigger+index), COMM2:3=A0 (src ptr),
+;              COMM4:5=A1 (dst ptr), COMM6_HI=D1 (height), COMM6_LO=D0/2 (words/row)
+; COMM1 UNTOUCHED (system signal register — V-INT/scene-init/Slave cmd byte).
 ; COMM7 UNTOUCHED (reserved for Slave doorbell).
 ;
 ; Jump table entry at $020808 redirected from $06005198 → $023010F0.

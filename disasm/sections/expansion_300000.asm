@@ -48,8 +48,8 @@
 ;   0x300C00-0x300FFF  queue_processor (ring buffer drain loop, 1KB reserved)
 ;   --- Track 1 Phase 3: General command async ---
 ;   0x301000-0x3010EF  general_queue_drain (240 bytes, COMM protocol replay)
-;   0x3010F0-0x30113B  cmd22_single_shot (76 bytes, single-shot 2D block copy)
-;   0x30113C-0x3FFFFF  Free space (remaining ~1019KB)
+;   0x3010F0-0x30115B  cmd22_single_shot (108 bytes, single-shot 2D block copy, B-004 v6-corrected)
+;   0x30115C-0x3FFFFF  Free space (remaining ~1019KB)
 ;
 ; Shared Data Structures (cache-through SDRAM, NOT in expansion ROM):
 ;   0x2203E000-0x2203E00F  Parameter block (16 bytes: R14, R7, R8, R5)
@@ -329,16 +329,21 @@ general_queue_drain:
 ; ============================================================================
 ; CMD22 SINGLE-SHOT HANDLER: 0x3010F0 (SH2 address: 0x023010F0)
 ; ============================================================================
-; B-004 v5 (COMM1-safe): Single-shot layout for cmd $22 (2D block copy).
-; 68K writes all params to COMM2-6, triggers COMM0=$2222, then waits
-; for COMM0_LO==0 (params read) then COMM0_HI==0 (copy done).
+; B-004 v6-corrected (COMM2_HI-safe + params-consumed handshake):
+;   Single-shot layout for cmd $22 (2D block copy).
 ;
-; COMM layout (v5): COMM0=$2222 (trigger+index), COMM2:3=A0 (src ptr),
-;              COMM4:5=A1 (dst ptr), COMM6_HI=D1 (height), COMM6_LO=D0/2 (words/row)
-; COMM1 UNTOUCHED (system signal register — V-INT/scene-init/Slave cmd byte).
-; COMM7 UNTOUCHED (reserved for Slave doorbell).
+; COMM layout:
+;   COMM0_HI=$01 (trigger, written last), COMM0_LO=$22 (dispatch index)
+;   COMM2_HI=$00 NEVER WRITTEN (Slave work-cmd poll byte — must stay zero)
+;   COMM2_LO=D0/2 (words/row), COMM3_HI=D1 (height, overwrites A0 top byte)
+;   COMM3_LO:COMM4=A0[23:0] (src ptr lower 3 bytes), COMM5:6=A1 (dst ptr)
+;   COMM1, COMM7 UNTOUCHED.
 ;
-; Jump table entry at $020808 redirected from $06005198 → $023010F0.
+; Handshake: SH2 clears COMM0_LO=$00 after reading params; 68K polls until $00.
+; A0 prefix: SH2 ORs $06000000 (SDRAM native). A1 prefix: SH2 ORs $04000000 (cached FB).
+; Completion: func_084 clears COMM0_HI=$00 (68K polls at next call start).
+;
+; Jump table entry at $020808 = $023010F0 (B-004, set in code_20200.asm).
 ;
 ; See: disasm/sh2/expansion/cmd22_single_shot.asm for source
 ;
@@ -347,7 +352,7 @@ cmd22_single_shot:
         include "sh2/generated/cmd22_single_shot.inc"
 
 ; ============================================================================
-; REMAINING EXPANSION ROM SPACE (from ~0x30113C)
+; REMAINING EXPANSION ROM SPACE (from ~0x30115C)
 ; ============================================================================
 ; Pad to $3F0000 (960KB) instead of $400000 (1MB) to avoid PicoDrive
 ; emulator bug triggered by ROM files > ~0x3F1F40 bytes.

@@ -23,15 +23,25 @@
         dc.w    $0020        ; $01C206
 
 ; ============================================================================
-; RESERVED OPTIMIZATION CODE AREA
+; VRD OPTIMIZATION CODE AREA
 ; File:  $01C208 - $01E1FF (8,184 bytes)
 ; 68K:   $89C208 - $89E1FF
 ;
-; Originally unused ($FF padding) in the retail ROM. Reserved for future
-; 68K optimization routines. Currently filled with $FF to match original.
+; Originally unused ($FF padding) in the retail ROM. Now repurposed for
+; 68K optimization and measurement routines.
 ;
-; Optimization modules are in disasm/modules/68k/optimization/ but NOT
-; included here until their hook points are activated.
+; Hook points:
+;   - V-INT vector ($78) redirected to fps_vint_wrapper at $89C208
+;   - code_200 work-path end JMPs to vint_epilogue at $89C208+offset
 ; ============================================================================
 
-        dcb.b   ($01E200-*),$FF
+vrd_opt_start:
+
+; --- FPS Counter (MUST be first - address $89C208 hardcoded in V-INT vector) ---
+        include "modules/68k/optimization/fps_vint_wrapper.asm"
+        include "modules/68k/optimization/fps_render.asm"
+
+vrd_opt_end:
+
+; --- Fill remaining space with $FF ---
+        dcb.b   ($01E200-vrd_opt_end),$FF

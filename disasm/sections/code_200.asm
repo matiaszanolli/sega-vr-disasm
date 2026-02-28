@@ -92,9 +92,9 @@
         dc.w    $4EF9        ; $0002A8
         dc.w    $0088        ; $0002AA
         dc.w    $0832        ; $0002AC
-        dc.w    $4EF9        ; $0002AE
-        dc.w    $0088        ; $0002B0
-        dc.w    $1684        ; $0002B2
+        dc.w    $4EF9        ; $0002AE - V-INT trampoline (Level 6)
+        dc.w    $0089        ; $0002B0 - → $0089C208 (fps_vint_wrapper)
+        dc.w    $C208        ; $0002B2
         dc.w    $4EF9        ; $0002B4
         dc.w    $0088        ; $0002B6
         dc.w    $0832        ; $0002B8
@@ -461,8 +461,7 @@ vint_handler:                           ; $001684
         addq.l  #1,$FFFFC964.w          ; Increment frame counter (Work RAM)
         ; ASYNC: Disabled entirely (no space for init code in 68K section)
         movem.l (sp)+,d0-d7/a0-a6       ; Restore 14 registers
-        move.w  #$2300,sr               ; Re-enable interrupts
-        rte                             ; Return from V-INT
+        jmp     vint_epilogue+$880000   ; Continue in optimization area (FPS update + render + RTE)
 
 .no_work:
         rte                             ; $16B0 - Early exit (state was 0)

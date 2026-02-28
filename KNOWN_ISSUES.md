@@ -25,6 +25,20 @@ Lessons learned across sessions. **Read this before modifying code.**
 - The disassembler may show these as `$2000(A0)` which is misleading
 - **Rule:** When translating dc.w with 3+ words, decode the addressing mode bits before choosing mnemonic syntax
 
+### vasm BSR.W — Displacement Off by +2 (Project-Wide Bug)
+vasm's `bsr.w` generates a displacement 2 bytes too large:
+- vasm computes: `target - (instr_addr + 2)` (wrong)
+- 68K executes: `(instr_addr + 4) + displacement` (PC base = instr_addr+4 for BSR.W)
+- Result: every `bsr.w` lands at `target+2` instead of `target`
+
+**Never use `bsr.w` in new code.** Alternatives:
+- `bsr.s label` — for targets within ±127 bytes (always correct, shorter)
+- `jsr label+$880000` — for cross-function calls to labels in the `org $01C200` section
+- `jsr label` — only when `label` is an absolute `equ` constant
+
+Root cause of B-007: `bsr.w fps_render` landed at `fps_render+2` ($FCE0 = Line-F
+trigger), causing a Line-F exception on every call instead of rendering.
+
 ### m68k_disasm.py Known Bugs
 The project disassembler (`tools/m68k_disasm.py`) has these confirmed issues:
 - **ASL/LSL:** Shift count field 000 means 8, not 0 (shows wrong count)
@@ -32,6 +46,7 @@ The project disassembler (`tools/m68k_disasm.py`) has these confirmed issues:
 - **CLR.W** ($4268): Decoded as CLR.B (size bits 01=word decoded as byte)
 - **DIVS.W** ($81Cx): Shown as "OR" (opcode line 8 misidentified)
 - **ADDQ** ($52xx): Sometimes shown as SUBQ
+- **BSR target address:** Computed incorrectly (uses wrong PC base)
 - **Multi-word instructions:** Extension words sometimes parsed as new opcodes
 
 **Rule:** Always verify disassembler output against ROM hex bytes for critical code.
@@ -399,12 +414,13 @@ Both produce the same result: handler returns to the dispatch loop. The differen
 **Root cause:** Multiple interacting issues. Patch #2 (COMM7 broadcast) was the primary cause, but reverting Patch #2 alone was insufficient — Patches #1+#3 together also produced the same crash. Likely causes: shadow_path_wrapper's COMM7 barrier deadlocks the Master (blocks waiting for Slave to clear COMM7), and/or parallel func_021 execution on both CPUs creates data races on shared output buffers.
 **Fix:** Full revert of all 3 patches. Original game code restored at $0203CC, $02046A, $0234C8.
 
-### FPS Counter Production Sampling Shows 00
-**Status:** Parked (diagnostic mode works, production mode broken)
-**Symptom:** Flip detection works — Test 1 showed counter incrementing (displayed 99). But production once-per-second sampling always produces `fps_value = 0`.
-**Confirmed working:** `fps_vint_tick` increments correctly (diagnostic showed 99), epilogue is reached, ROM encoding verified byte-perfect.
-**Likely cause:** Register corruption or addressing issue in the delta computation path (`fps_flip_counter - fps_flip_last → fps_value`).
-**Files:** [fps_vint_wrapper.asm](disasm/modules/68k/optimization/fps_vint_wrapper.asm)
+### FPS Counter — BSR.W Displacement Bug (FIXED, diagnostic mode)
+**Status:** Build-fixed. Pending emulator verification.
+**Root cause:** vasm `bsr.w fps_render` landed at `fps_render+2` (Line-F exception). fps_render never executed. Display showed 00 because nothing was ever drawn — not a RAM sweep or sampling bug.
+**Fix:** `jsr fps_render+$880000` in wrapper (both call sites); `bsr.s .render_fb` inside fps_render (both call sites).
+**Current mode:** Diagnostic — epilogue shows V-INT interval between work frames. Expected ~3 in race mode (one work frame per 3 V-INTs at 60 Hz = ~20 FPS).
+**Next step:** Verify non-zero display in PicoDrive, then replace diagnostic with production 60-V-INT window counter.
+**Files:** [fps_vint_wrapper.asm](disasm/modules/68k/optimization/fps_vint_wrapper.asm), [fps_render.asm](disasm/modules/68k/optimization/fps_render.asm)
 
 ---
 

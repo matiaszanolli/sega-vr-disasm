@@ -1,46 +1,68 @@
 ; ============================================================================
-; FPS V-INT Wrapper - Frame Rate Measurement via FS Bit Tracking
+; FPS V-INT Wrapper - Frame Rate Measurement via Frame Buffer Toggle
 ; Location: MUST be first module in optimization area ($89C208)
 ; ============================================================================
 ;
 ; PURPOSE
 ; -------
 ; Thin wrapper inserted before the original V-INT handler via vector redirect.
-; Renders cached FPS value on no-work frames.
+; Measures actual rendered FPS by counting frame buffer page flips per 60
+; V-INTs (1 second on NTSC). Renders cached FPS value on all frames.
 ;
 ; ARCHITECTURE
 ; ------------
-; ALL FPS logic runs in vint_epilogue (after handler completes).
-; Wrapper has ZERO cross-handler dependencies - just renders cached value.
-; This eliminates all state-lifetime bugs.
+; WRAPPER (every V-INT, pre-handler):
+;   - Increments fps_vint_tick (60 Hz time base)
+;   - Every 60 ticks: snapshots fps_work_frames → fps_value, resets counters
+;   - On no-work frames: calls fps_render to display cached value
+;   - Jumps to original V-INT handler
 ;
-; RAM LAYOUT (14 bytes at $FFFFF000-$FFFFF00D)
+; EPILOGUE (every work frame, post-handler via JMP from code_200.asm):
+;   - Detects frame buffer page flip by comparing $FFFFC80C against saved state
+;   - Only increments fps_work_frames when toggle bit CHANGED (= new frame)
+;   - Calls fps_render to display cached value
+;   - Returns from interrupt (RTE)
+;
+; WHY TOGGLE DETECTION:
+; The game has 6 different V-INT state handlers that flip $FFFFC80C bit 0
+; (states 24, 36, 48, 52, 56 and vdp_reg_write_32x_adapter_control).
+; Checking specific state values is fragile. Monitoring the actual toggle
+; bit catches ALL frame flips regardless of which state handler did it.
+; Non-flip work V-INTs (~40/sec) are correctly excluded.
+;
+; RAM LAYOUT (8 bytes at $FFFFC978-$FFFFC97F)
 ; ------------------------------------------------------------
-; $FFFFF000: fps_vint_tick    (word) - V-INT counter (0-59, 60 Hz time base)
-; $FFFFF002: fps_value        (word) - Current FPS for display (0-99)
-; $FFFFF004: fps_flip_counter (long) - Total buffer flip count
-; $FFFFF008: fps_flip_last    (long) - Last sampled flip count
-; $FFFFF00C: fps_fs_last      (word) - Last FS bit state (0 or 1)
+; $FFFFC978: fps_vint_tick    (word) - V-INT counter (0-59, 60 Hz time base)
+; $FFFFC97A: fps_work_frames  (word) - Frame flips in current 1-second window
+; $FFFFC97C: fps_value        (word) - Current FPS for display (0-99)
+; $FFFFC97E: fps_last_toggle  (word) - Last seen $FFFFC80C value (for change detection)
+;
+; ADDRESS ASSIGNMENT RATIONALE:
+; Previous location ($FFFFF000) was cleared by an unknown V-INT state handler
+; sweep. Constant-42 diagnostic confirmed epilogue fires and fps_render works,
+; but fps_vint_tick read 0 every frame. Moving to $FFFFC978 — adjacent to the
+; game frame counter ($FFFFC964) which provably survives the sweep. No game
+; code references $FFFFC978-$FFFFC97F (verified by full-ROM grep).
 ;
 ; CALLING CONVENTION
 ; ------------------
-; Called from: V-INT vector at ROM $000078 (redirected to $0089C208)
+; Called from: V-INT trampoline at ROM $0002AE (redirected to $0089C208)
 ; Parameters: None (interrupt context)
 ; Returns: Jumps to original V-INT handler
 ; Clobbers: Nothing
-; Cost: ~10 cycles work path, ~10 + fps_render cycles no-work path
+; Cost: ~14 cycles normal path, ~30 cycles snapshot path
 ;
 ; Related: fps_render.asm, vint_handler (code_200.asm)
 ; ============================================================================
 
 ; --- RAM variable addresses ---
-; Work RAM above game's highest usage ($FFFFEF00 = RANDOM_SEED)
-FPS_BASE         equ     $FFFFF000      ; Work RAM (above all game data)
-fps_vint_tick    equ     FPS_BASE+0     ; $FFFFF000: V-INT counter (word, 0-59)
-fps_value        equ     FPS_BASE+2     ; $FFFFF002: Current FPS display value (word)
-fps_flip_counter equ     FPS_BASE+4     ; $FFFFF004: Total buffer flip count (long)
-fps_flip_last    equ     FPS_BASE+8     ; $FFFFF008: Last sampled flip count (long)
-fps_fs_last      equ     FPS_BASE+12    ; $FFFFF00C: Last FS bit state (word)
+; SAFE ZONE: $FFFFC978 is near the game frame counter ($FFFFC964)
+; which provably survives V-INT state handler sweeps.
+FPS_BASE         equ     $FFFFC978      ; Work RAM (safe zone near game variables)
+fps_vint_tick    equ     FPS_BASE+0     ; $FFFFC978: V-INT counter (word, 0-59)
+fps_work_frames  equ     FPS_BASE+2     ; $FFFFC97A: Frame flip accumulator (word)
+fps_value        equ     FPS_BASE+4     ; $FFFFC97C: FPS display value (word, 0-99)
+fps_last_toggle  equ     FPS_BASE+6     ; $FFFFC97E: Last $FFFFC80C state (word)
 
 ; --- Original V-INT handler address ---
 ORIG_VINT        equ     $00881684      ; Original handler (68K CPU address)
@@ -49,12 +71,24 @@ fps_vint_wrapper:
         ; Increment V-INT counter (60 Hz time base)
         addq.w  #1,fps_vint_tick.w      ; Force absolute short addressing
 
+        ; Check if 1 second (60 V-INTs) has elapsed
+        cmpi.w  #60,fps_vint_tick.w
+        bne.s   .no_snapshot
+
+        ; 1-second snapshot: FPS = work frames counted in this window
+        move.w  fps_work_frames.w,fps_value.w
+        clr.w   fps_work_frames.w
+        clr.w   fps_vint_tick.w
+
+.no_snapshot:
         ; Check work gate (same flag the original handler checks)
         tst.w   $FFFFC87A.w
         bne.s   .work
 
         ; NO-WORK PATH: Render cached fps_value on idle frames
-        bsr.w   fps_render
+        ; jsr uses abs.l addressing (immune to vasm BSR.W +2 displacement bug).
+        ; fps_render is in org $01C200 section; +$880000 converts to 68K CPU address.
+        jsr     fps_render+$880000
 
 .work:
         jmp     ORIG_VINT              ; Jump to original V-INT handler
@@ -62,51 +96,32 @@ fps_vint_wrapper:
 ; ============================================================================
 ; V-INT Epilogue - Tail of the V-INT handler (jumped to from code_200.asm)
 ; ============================================================================
-; Runs after every work frame. Reads fps_vint_tick from wrapper (60 Hz time base).
-; Uses FS bit to detect actual buffer flips, samples every 60 V-INTs (1 second).
+; Runs after every work V-INT. Detects frame buffer page flips by comparing
+; $FFFFC80C against saved state — only counts actual new rendered frames.
 ;
-; This provides accurate FPS measurement at 60 Hz resolution, independent of
-; work frame frequency.
+; Entry: registers already restored by vint_handler before the JMP here.
+;        sr is at whatever level the handler left it.
 ; ============================================================================
 
 vint_epilogue:
         move.w  #$2700,sr               ; Keep interrupts disabled (prevent re-entry)
-        movem.l d0-d7/a0-a6,-(sp)       ; Save ALL registers (match original handler)
+        movem.l d0-d7/a0-a6,-(sp)       ; Save ALL registers
 
-        bsr.w   sh2_wait_queue_empty    ; Wait for SH2
-
-        ; === DETECT BUFFER FLIP ===
-        ; Read VRD's flip flag (toggled by fn_200_036 BCHG #0,$FFFFC80C)
-        ; More reliable than FBCTL polling
-        move.w  $FFFFC80C.w,d0          ; Read VRD flip flag
-        andi.w  #1,d0                   ; Isolate bit 0
-        cmp.w   fps_fs_last.w,d0        ; Compare to last known state
-        beq.s   .no_flip                ; Same = no flip
-        addq.l  #1,fps_flip_counter.w   ; Flip detected (address, not operand size)
+        ; Detect frame buffer toggle: compare current $C80C against saved state
+        ; 6 different state handlers flip bit 0 of $FFFFC80C on page flip.
+        ; Only increment fps_work_frames when the bit CHANGED (= new frame).
+        move.b  ($FFFFC80C).w,d0        ; D0 = current frame toggle bit
+        cmp.b   fps_last_toggle.w,d0    ; Same as last seen?
+        beq.s   .no_flip                ; Yes → not a new frame
+        move.b  d0,fps_last_toggle.w    ; Save new state
+        addq.w  #1,fps_work_frames.w    ; Count this frame buffer flip
 .no_flip:
-        move.w  d0,fps_fs_last.w        ; Always update last state
+        ; Render the FPS display
+        ; jsr uses abs.l addressing (immune to vasm BSR.W +2 displacement bug).
+        ; fps_render is in org $01C200 section; +$880000 converts to 68K CPU address.
+        jsr     fps_render+$880000
 
-        ; === SAMPLE EVERY 60 V-INTS (1 SECOND) ===
-        cmpi.w  #60,fps_vint_tick.w     ; Force absolute short addressing
-        blt.s   .render
-
-        ; Compute FPS = delta(flip_counter) over last second
-        move.l  fps_flip_counter.w,d0
-        sub.l   fps_flip_last.w,d0      ; Flips in sample window
-        move.w  d0,fps_value.w          ; Store for display
-        move.l  fps_flip_counter.w,fps_flip_last.w
-        subi.w  #60,fps_vint_tick.w     ; Force absolute short addressing
-
-.render:
-        ; DIAGNOSTIC: Display cumulative flip counter to verify detection works
-        move.l  fps_flip_counter.w,d0
-        move.w  #100,d1
-        divu    d1,d0
-        swap    d0                      ; Remainder in low word
-        move.w  d0,fps_value.w
-        bsr.w   fps_render              ; Render fps_value
-
-        movem.l (sp)+,d0-d7/a0-a6       ; Restore ALL 14 registers (match save)
+        movem.l (sp)+,d0-d7/a0-a6
         rte
 
 ; ============================================================================

@@ -2148,7 +2148,7 @@ $(SH2_CMD22_SINGLE_SHOT_BIN): $(SH2_CMD22_SINGLE_SHOT_SRC) | dirs
 	@echo "==> Assembling SH2: cmd22_single_shot..."
 	$(SH2_AS) $(SH2_ASFLAGS) -o $(BUILD_DIR)/sh2/cmd22_single_shot.o $<
 	$(SH2_OBJCOPY) -O binary $(BUILD_DIR)/sh2/cmd22_single_shot.o $@
-	@echo "    Output: $@ ($$(wc -c < $@) bytes, expected 64)"
+	@echo "    Output: $@ ($$(wc -c < $@) bytes, expected 108)"
 
 $(SH2_CMD22_SINGLE_SHOT_INC): $(SH2_CMD22_SINGLE_SHOT_BIN)
 	@mkdir -p $(SH2_GEN_DIR)

@@ -5,7 +5,7 @@
 ;
 ; PURPOSE
 ; -------
-; Renders the current FPS value (from fps_value at $FFFFF802) to both
+; Renders the current FPS value (from fps_value at $FFFFC97C) to both
 ; frame buffers using an embedded 4x5 pixel font.
 ;
 ; DISPLAY LAYOUT
@@ -54,7 +54,7 @@ fps_render:
 
         ; --- Get FPS value, clamp to 0-99, split into digits ---
         moveq   #0,d0
-        move.w  fps_value,d0            ; Read fps_value from RAM
+        move.w  fps_value.w,d0          ; Read fps_value from RAM (abs.w)
         cmpi.w  #99,d0                  ; Check if > 99
         bls.s   .fps_ok                 ; Branch if 0-99 (unsigned <=)
         move.w  #99,d0                  ; Clamp to 99
@@ -72,9 +72,9 @@ fps_render:
 
         ; --- Render to both frame buffers ---
         lea     MARS_FRAMEBUFFER,a1     ; FB0
-        bsr.w   .render_fb
+        bsr.s   .render_fb              ; bsr.s: no vasm BSR.W +2 displacement bug
         lea     MARS_OVERWRITE,a1       ; FB1
-        bsr.w   .render_fb
+        bsr.s   .render_fb              ; bsr.s: no vasm BSR.W +2 displacement bug
 
         ; --- Restore FM state ---
         btst    #15,d5                  ; Was FM=1 originally?

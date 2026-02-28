@@ -6,7 +6,8 @@
       "Bash(timeout 5s picodrive:*)",
       "Bash(./run_pc_profiling.sh:*)",
       "Bash(# Compare func_082 region \\($02438C = 148364 decimal, 50 bytes\\) dd if=build/vr_rebuild.32x bs=1 skip=148364 count=50)",
-      "Bash(sort:*)"
+      "Bash(sort:*)",
+      "Read(//mnt/data/src/32x-playground/**)"
     ]
   }
 }

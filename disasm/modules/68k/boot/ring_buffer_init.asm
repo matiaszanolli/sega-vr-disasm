@@ -40,12 +40,6 @@ ring_buffer_init:
         clr.l   (a0)+               ; Head = 0
         clr.l   (a0)                ; Tail = 0 (A0 now points to $2203F204)
 
-        ; Initialize FPS counter state (safe zone near game frame counter $FFFFC964)
-        ; Address layout: see fps_vint_wrapper.asm
-        clr.w   $FFFFC978           ; fps_vint_tick = 0
-        clr.w   $FFFFC97A           ; fps_work_frames = 0
-        clr.w   $FFFFC97C           ; fps_value = 0
-
         rts                         ; Return to caller
 
 ; ============================================================================

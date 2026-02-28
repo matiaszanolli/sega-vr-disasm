@@ -88,8 +88,8 @@ MARS_VDP_FBCTL      equ $A1518A        ; Frame Buffer Control (FS, VBLK, HBLK, P
 
 ; 32X Palette
 MARS_CRAM           equ $A15200        ; Color RAM base (256 words)
-MARS_CRAM_LAST2     equ $A153FC        ; CRAM[254] (used by FPS counter)
-MARS_CRAM_LAST1     equ $A153FE        ; CRAM[255] (used by FPS counter)
+MARS_CRAM_LAST2     equ $A153FC        ; CRAM[254]
+MARS_CRAM_LAST1     equ $A153FE        ; CRAM[255]
 
 ; 32X Frame Buffer (68K side)
 MARS_FRAMEBUFFER    equ $840000        ; Frame buffer base (128 KB)

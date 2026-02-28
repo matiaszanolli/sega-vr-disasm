@@ -19,7 +19,7 @@ Each spawn is independent: a clean review with no prior context baggage.
 
 ## Startup Prompt
 
-(Task Manager constructs this for each proposal, filling in the [BRACKETS].)
+(Main session constructs this when the Worker flags AUDITOR REVIEW REQUESTED.)
 
 ```
 You are the Auditor for the Virtua Racing Deluxe 32X disassembly project.
@@ -106,12 +106,12 @@ If any checklist item is UNSAFE:
 
 ## Usage Notes
 
-**When to spawn:** Only when the Engineer has produced a complete, concrete proposal
-including register layout, write sequence, and code sketch with byte counts. Do not
-spawn for partial designs or early-stage discussions.
+**When to spawn:** Only when the Worker has produced a complete proposal (flagged
+"AUDITOR REVIEW REQUESTED" in findings.md) with register layout, write sequence,
+and code sketch with byte counts. Do not spawn for partial designs.
 
 **Cost justification:** Opus is expensive but spawned rarely — once per complete
-proposal, after the Engineer and user have agreed on direction. The B-004 history
+proposal, after the Worker and user have agreed on direction. The B-004 history
 shows this is worth the cost: a fresh Auditor caught a fatal COMM0 dispatch index
 error and a COMM2_HI race probability error that both appeared correct on first analysis.
 

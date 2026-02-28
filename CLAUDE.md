@@ -2,26 +2,21 @@
 
 Agent briefing for Virtua Racing Deluxe 32X disassembly/reassembly project.
 
-**Last Updated**: February 22, 2026
+**Last Updated**: February 28, 2026
 
-## Agent Team
+## Agent Team (v3)
 
-This project uses a specialized agent team. See [agents/README.md](agents/README.md) for the full roster.
+Two agents. See [agents/README.md](agents/README.md) for details.
 
-**Task Manager** is the entry point for all game code work. **Always invoke it before modifying any file in `disasm/`, `disasm/sections/expansion_300000.asm`, or working on any BACKLOG item.** It spins up the Navigator, orients on the task, delegates to the Engineer, and manages the Auditor sign-off gate.
+**Worker** (Sonnet or Opus) does all technical work: research, code, build, test. Spawn directly — no intermediary. Use Opus for hard problems (B-004, B-006, novel COMM work), Sonnet for routine tasks.
 
-- Invoke explicitly: `/task-manager` or `/task-manager <issue>`
-- Auto-trigger: whenever a session is about to touch game code
+**Auditor** (Opus) is a focused safety reviewer. Spawned fresh per concrete COMM/SH2/expansion proposal only. Returns APPROVED or BLOCKED. Not needed for 68K-only, profiling, or doc work.
 
-**Navigator** (Haiku) is a fast, cheap lookup agent loaded with only `analysis/agent-scratch/oracle/index.md`. It answers "where is X?" → file + section. It never answers from memory and never summarizes. Session ID in `analysis/agent-scratch/navigator/session_id.txt`. Respawn freely if stale — it loads one file.
+**You are the task manager.** Pick a task from BACKLOG.md, spawn the Worker, review findings, spawn Auditor if flagged, approve/commit.
 
-**Engineer** (Sonnet) does all technical work: reads code, runs profiler, proposes patches, verifies encodings. It queries the Navigator for pointers and reads primary sources directly. Has KNOWN_ISSUES top-15 pitfalls baked in and must obtain Auditor sign-off before any COMM/SH2/expansion ROM implementation. **Must complete a Research Phase (read docs, build mental model, document root cause) before proposing any fix for bugs or unexplained behavior.**
+**Research-First Principle:** Before implementing any fix, read the relevant docs and build a mental model with citations. If a second attempt fails for related reasons, stop coding and read. Named anti-patterns: address shopping, circular investigation, modern platform assumptions, undocumented guessing — all banned.
 
-**Auditor** (Opus) is a focused safety reviewer. Spawned fresh per concrete proposal, never resumed. Returns APPROVED or BLOCKED with specific hazard and source citation.
-
-**Research-First Principle:** Before implementing any fix, the Engineer must read relevant documentation (`docs/`, `analysis/`) and build a mental model grounded in documented facts. The Task Manager enforces this via the Research Gate (Step 2.5). See [agents/README.md](agents/README.md) for details. Named anti-patterns: address shopping, circular investigation, modern platform assumptions, undocumented guessing — all banned.
-
-**index.md maintenance rule:** After any session where a new pitfall is discovered or a new architectural fact is established, update `analysis/agent-scratch/oracle/index.md` before closing. The Navigator is only as good as its index.
+**index.md maintenance rule:** After any session where a new pitfall is discovered or a new architectural fact is established, update `analysis/agent-scratch/oracle/index.md` before closing.
 
 ## Build & Test
 
@@ -35,7 +30,7 @@ Build produces `build/vr_rebuild.32x`. Binary compatibility with the original RO
 
 ## Ground Rules — STRICTLY ENFORCED
 
-1. **Do Not Guess** — Use `docs/` (hardware manuals) and `analysis/` (architecture). Query the Navigator for where to look, then read the primary source. Research first.
+1. **Do Not Guess** — Use `docs/` (hardware manuals) and `analysis/` (architecture). Use `analysis/agent-scratch/oracle/index.md` as a topic lookup table. Read the primary source. Research first.
 2. **Understand Before Modifying** — Never patch `dc.w` without understanding it. Disassemble and document first.
 3. **Use Available Tools** — Profiler at `tools/libretro-profiling/`, disassemblers `tools/m68k_disasm.py` and `tools/sh2_disasm.py`. Measure, don't assume.
 4. **Proper Assembly** — Modify assembly source, not raw binary. Convert `dc.w` to mnemonics when possible (see [KNOWN_ISSUES.md](KNOWN_ISSUES.md) for SH2 exceptions).

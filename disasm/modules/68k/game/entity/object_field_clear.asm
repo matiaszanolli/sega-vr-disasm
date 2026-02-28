@@ -18,9 +18,9 @@
 
 object_field_clear:
         tst.b   ($FFFFC31C).w                   ; $002EC6  flag active?
-        dc.w    $6722                           ; $002ECA  beq.s $002EEE → exit (past fn)
+        beq.s   object_visibility_enable        ; $002ECA  → exit (past fn)
         btst    #3,$00E5(A0)                    ; $002ECC  obj.flags bit 3 set?
-        dc.w    $671A                           ; $002ED2  beq.s $002EEE → exit (past fn)
+        beq.s   object_visibility_enable        ; $002ED2  → exit (past fn)
         moveq   #$00,D0                         ; $002ED4  D0 = 0
         move.w  D0,(A1)                         ; $002ED6  clear field $00
         move.w  D0,$0014(A1)                    ; $002ED8  clear field $14

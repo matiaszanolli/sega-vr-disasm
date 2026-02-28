@@ -29,7 +29,7 @@ set_camera_regs_to_invalid:
         tst.w   $00FF6114                       ; $009B62  test SH2 status
         beq.s   .set_remaining                  ; $009B68  if zero → set all remaining
         tst.w   ($FFFFC048).w                   ; $009B6A  test camera_state
-        dc.w    $6612                           ; $009B6E  bne.s past_module — fall through
+        bne.s   tire_animation_and_smoke_effect_counters ; $009B6E  → fall through to next module
 .set_remaining:
         move.w  D0,($FFFFC01E).w                ; $009B70  camera D = $FFFF
         move.w  D0,($FFFFC024).w                ; $009B74  camera E = $FFFF

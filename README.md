@@ -94,14 +94,14 @@ The expansion space at $300000+ is executed by SH2 processors only and already c
 
 ## Codebase Status
 
-### Disassembly & Translation (v6.0.0 — current)
-- **821 68K modules** organized across 17 categories + 15 game subcategories
-- **530 modules** fully translated to proper assembly mnemonics (5504 dc.w lines converted)
+### Disassembly & Translation (v6.1.0 — current)
+- **813 68K modules** organized across 17 categories + 15 game subcategories
+- **711 modules** fully translated to proper assembly mnemonics (5586 dc.w lines converted)
 - **92 SH2 functions** integrated into build system (86 .inc files)
 - **107 SH2 functions** mapped and symbolized
 - **503+ 68K functions** named and categorized
 - All translations verified **byte-identical** to original ROM
-- Automated translation tool with label resolution, PC-relative decoding, and branch support
+- Automated translation tool (Phases 1-2) + manual branch translation (Phase 3)
 
 ### Symbolic Hardening (v5.1.0 — complete)
 - **118+ modules** hardened with symbolic register names across all 17 categories

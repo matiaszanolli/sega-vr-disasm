@@ -36,7 +36,7 @@ object_state_disp_0031a6:
         dc.l    $00883250                       ; $0031DA  [28] → $003250 (past fn)
 ; --- state 8 handler ---
         tst.w   ($FFFFC04E).w                   ; $0031DE  timer active?
-        dc.w    $676C                           ; $0031E2  beq.s $003250 — no → exit
+        beq.s   load_object_pointer_clear_object_state ; $0031E2  timer off → exit to next fn
         movea.l ($FFFFC258).w,A1                ; $0031E4  A1 = object_ptr
         move.b  #$02,$0000(A1)                  ; $0031E8  set object type = 2
         move.b  #$03,$00FF6950                  ; $0031EE  VDP flag = 3

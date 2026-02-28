@@ -30,9 +30,9 @@ object_enable_fields_state_dispatch:
         move.w  D0,$003C(A1)                   ; $002A7E  field +$3C = 1
         move.w  D0,$0050(A1)                   ; $002A82  field +$50 = 1
         move.w  $008A(A0),D0                   ; $002A86  D0 = param_8a
-        dc.w    $6738                           ; $002A8A  beq.s $002AC4 → exit (past fn, state 0)
+        beq.s   entity_set_model_type0          ; $002A8A  state 0 → exit to entity_set_model_type0
         subq.w  #1,D0                           ; $002A8C  param_8a == 1?
-        dc.w    $671A                           ; $002A8E  beq.s $002AAA → exit (past fn, state 1)
+        beq.s   object_velocity_init_cond_clear ; $002A8E  state 1 → exit to next fn
         move.l  ($FFFFC74C).w,$0024(A1)        ; $002A90  A1+$24 = position from $C74C
         move.w  #$0001,$0064(A1)               ; $002A96  direction = 1 (default)
         tst.w   $008C(A0)                      ; $002A9C  velocity_x == 0?

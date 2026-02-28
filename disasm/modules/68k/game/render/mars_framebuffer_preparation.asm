@@ -16,7 +16,7 @@
 
 mars_framebuffer_preparation:
         lea     MARS_SYS_BASE,a4               ; $00270A: $49F9 $00A1 $5100 — MARS register base
-        dc.w    $6130                           ; BSR.S $002742 ; $002710: — call sub 1
+        bsr.s   vdp_fill_framebuffer+6          ; $002710: call sub 1 (entry at +6)
         jsr     vdp_fill_line_table_flat+8(pc); $4EBA $008C
         jsr     gfx_32x_framebuffer_palette_fill(pc); $4EBA $00C2
         moveq   #$01,d0                         ; $00271A: $7001 — buffer 1 select
@@ -27,8 +27,8 @@ mars_framebuffer_preparation:
         moveq   #$01,d2                         ; $002728: $7201 — buffer 1 second
 .write_fb:
         move.b  d0,$008B(a4)                   ; $00272A: $1940 $008B — select first framebuffer
-        dc.w    $6112                           ; BSR.S $002742 ; $00272E: — call sub 1
-        dc.w    $616E                           ; BSR.S $0027A0 ; $002730: — call sub 2
+        bsr.s   vdp_fill_framebuffer+6          ; $00272E: call sub 1 (entry at +6)
+        bsr.s   vdp_fill_line_table_flat+8      ; $002730: call sub 2 (entry at +8)
         jsr     gfx_32x_framebuffer_palette_fill(pc); $4EBA $00A6
         move.b  d2,$008B(a4)                   ; $002736: $1942 $008B — select second framebuffer
         rts                                     ; $00273A: $4E75

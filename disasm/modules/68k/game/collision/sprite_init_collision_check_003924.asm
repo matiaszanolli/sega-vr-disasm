@@ -33,6 +33,6 @@ sprite_init_collision_check_003924:
         moveq   #$03,D7                         ; $00396E  D7 = loop count (4 sprites)
         jsr     proximity_check_simple(pc); $4EBA $007A
         tst.b   ($FFFFC80F).w                   ; $003974  collision detected?
-        dc.w    $6702                           ; $003978  beq.s $00397C — no → fall through
+        beq.s   sprite_param_setup               ; $003978  no collision → fall through to next fn
         rts                                     ; $00397A
 

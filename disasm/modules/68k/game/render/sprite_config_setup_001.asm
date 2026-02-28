@@ -43,12 +43,12 @@ sprite_config_setup_001:
 ; --- copy position data ---
         lea     ($FFFFC260).w,A1                ; $004254  A1 → position_buf_a
         lea     $00FF6860,A2                    ; $004258  A2 → sprite pos slot A
-        dc.w    $6120               ; BSR.S   $004280    ; $00425E  copy position data
+        bsr.s   data_unpack_nibbles              ; $00425E  copy position data
         lea     ($FFFFC254).w,A1                ; $004260  A1 → position_buf_b
         lea     $00FF6870,A2                    ; $004264  A2 → sprite pos slot B
         cmpi.l  #$61000000,(A1)                 ; $00426A  buf_b == sentinel?
         beq.s   .advance_state                  ; $004270  yes → skip copy
-        dc.w    $610C               ; BSR.S   $004280    ; $004272  copy position data
+        bsr.s   data_unpack_nibbles              ; $004272  copy position data
 .advance_state:
         move.w  #$0040,($FFFFC25C).w            ; $004274  position_stride = $40
         addq.w  #4,($FFFFC07C).w                ; $00427A  input_state += 4

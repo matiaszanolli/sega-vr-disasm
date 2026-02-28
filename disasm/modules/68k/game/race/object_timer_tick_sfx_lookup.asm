@@ -38,7 +38,7 @@ object_timer_tick_sfx_lookup:
 .reload:
         move.b  #$04,($FFFFC305).w             ; $00357A  reload sub-counter = 4
         tst.w   ($FFFFC04E).w                  ; $003580  timer active?
-        dc.w    $6716                           ; $003584  beq.s $00359C → exit (past fn)
+        beq.s   clear_object_state_bytes        ; $003584  timer off → exit to next fn
         move.b  #$00,$00FF6940                 ; $003586  clear VDP flag A
         move.b  #$00,$00FF6950                 ; $00358E  clear VDP flag B
         addq.b  #4,($FFFFC305).w               ; $003596  advance sub-counter

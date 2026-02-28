@@ -32,7 +32,7 @@ object_timer_tick_sfx_lookup_field_clear:
 .reload:
         move.b  #$04,($FFFFC305).w             ; $003224  reload sub-counter = 4
         tst.w   ($FFFFC04E).w                  ; $00322A  timer active?
-        dc.w    $6720                           ; $00322E  beq.s $003250 → exit (past fn)
+        beq.s   load_object_pointer_clear_object_state ; $00322E  timer off → exit to next fn
         movea.l ($FFFFC258).w,A1               ; $003230  A1 = object pointer
         move.b  #$00,$0000(A1)                 ; $003234  clear object byte 0
         move.b  #$00,$00FF6940                 ; $00323A  clear VDP flag A

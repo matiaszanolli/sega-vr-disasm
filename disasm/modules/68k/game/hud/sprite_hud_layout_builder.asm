@@ -59,9 +59,9 @@ sprite_hud_layout_builder:
         subq.w  #6,A3                           ; $003CBA  rewind A3 (re-read same 3 words)
         dbra    D2,.build_sprite                ; $003CBC
         moveq   #$00,D0                         ; $003CC0
-        dc.w    $600A               ; bra.s   fn_2200_065_end  ; skip alternate exit
+        bra.s   vdp_sprite_pointer_setup_cond_disp_clear ; skip alternate exit, fall through
 ; --- alternate entry: conditional return --------------------------------------
         moveq   #$00,D0                         ; $003CC4
         move.w  ($FFFFC026).w,D0                ; $003CC6
-        dc.w    $6A02               ; bpl.s   fn_2200_065_end  ; positive → fall through
+        bpl.s   vdp_sprite_pointer_setup_cond_disp_clear ; $003CCA  positive → fall into next fn
         rts                                     ; $003CCC

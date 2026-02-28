@@ -28,7 +28,7 @@
 
 object_scoring_lap_advance_check:
         cmpi.w  #$FF9C,D0                       ; $008054  D0 >= -100?
-        dc.w    $6CAA                           ; $008058  bge.s $008004 — yes → return to caller
+        bge.s   object_pos_compare_flag_set     ; $008058  D0 >= -100 → return to caller
         addq.w  #1,$002E(A0)                    ; $00805A  position_counter++
         move.w  #$0497,$0008(A0)                ; $00805E  sprite_index = $0497
         move.w  $002C(A0),D1                    ; $008064  D1 = current_lap
@@ -45,7 +45,7 @@ object_scoring_lap_advance_check:
         move.b  ($FFFFC310).w,D0                ; $00808E  D0 = total_laps
         subq.b  #1,D0                           ; $008092  D0--
         cmp.b   $002D(A0),D0                    ; $008094  laps remaining?
-        dc.w    $6C14                           ; $008098  bge.s $0080AE — yes → done
+        bge.s   triple_guard_set_state_to_be    ; $008098  laps remaining → done
 ; --- all laps complete ---
         andi.w  #$BFFF,$0002(A0)                ; $00809A  clear score flag (bit 14)
         move.w  #$0000,($FFFFC04E).w            ; $0080A0  timer = 0

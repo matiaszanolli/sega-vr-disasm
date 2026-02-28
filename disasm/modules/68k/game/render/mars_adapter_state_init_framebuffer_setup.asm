@@ -42,11 +42,11 @@ mars_adapter_state_init_framebuffer_setup:
 ; --- Entry 2: alternate framebuffer init ---
         lea     MARS_SYS_BASE,a4               ; $0026C8: $49F9 $00A1 $5100 — MARS register base
         bclr    #0,$008B(a4)                   ; $0026CE: — select framebuffer 0
-        dc.w    $616C                           ; BSR.S $002742 ; $0026D4: — call sub 1
+        bsr.s   vdp_fill_framebuffer+6          ; $0026D4: call sub 1 (entry at +6)
         jsr     vdp_fill_line_table_flat+8(pc); $4EBA $00C8
         jsr     vdp_fill_pattern(pc)    ; $4EBA $0142
         bset    #0,$008B(a4)                   ; $0026DE: — select framebuffer 1
-        dc.w    $615C                           ; BSR.S $002742 ; $0026E4: — call sub 1
+        bsr.s   vdp_fill_framebuffer+6          ; $0026E4: call sub 1 (entry at +6)
         jsr     vdp_fill_line_table_flat+8(pc); $4EBA $00B8
         jsr     vdp_fill_pattern(pc)    ; $4EBA $0132
         bclr    #0,$008B(a4)                   ; $0026EE: — back to framebuffer 0

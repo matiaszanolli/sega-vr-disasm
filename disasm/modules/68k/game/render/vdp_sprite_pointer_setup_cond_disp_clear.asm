@@ -29,9 +29,9 @@ vdp_sprite_pointer_setup_cond_disp_clear:
         dbra    D1,.copy_ptrs                   ; $003CE8  loop
         move.w  ($FFFFC026).w,D1                ; $003CEC  D1 = race_phase
         cmpi.w  #$0007,D1                       ; $003CF0  phase < 7?
-        dc.w    $6D2C                           ; $003CF4  blt.s $003D22 — yes → done
+        blt.s   sfx_trigger_object_enable_fields ; $003CF4  phase < 7 → done (next fn)
         cmpi.w  #$0013,D1                       ; $003CF6  phase >= 19?
-        dc.w    $6C26                           ; $003CFA  bge.s $003D22 — yes → done
+        bge.s   sfx_trigger_object_enable_fields ; $003CFA  phase >= 19 → done (next fn)
 ; --- clear display enable fields ---
         moveq   #$00,D0                         ; $003CFC  D0 = 0
         lea     $00FF6128,A1                    ; $003CFE  A1 → display block

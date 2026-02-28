@@ -25,13 +25,13 @@
 
 object_param_8a_dispatch_002e34:
         move.w  $008A(A0),D0                    ; $002E34  D0 = param_8a
-        dc.w    $6744                           ; $002E38  beq.s $002E7E — param=0 → external
+        beq.s   object_velocity_init_002e7e     ; $002E38  param=0 → external handler
         subq.w  #1,D0                           ; $002E3A  D0 -= 1
-        dc.w    $6720                           ; $002E3C  beq.s $002E5E — param=1 → external
+        beq.s   object_velocity_init_002e5e     ; $002E3C  param=1 → external handler
         move.l  ($FFFFC760).w,$0024(A1)         ; $002E3E  obj1.field24 = $C760
         move.l  ($FFFFC760).w,$0128(A2)         ; $002E44  obj2.field128 = $C760
         move.w  #$0001,$0064(A1)                ; $002E4A  obj1.field64 = 1
         tst.w   $008C(A0)                       ; $002E50  velocity_x == 0?
-        dc.w    $6746                           ; $002E54  beq.s $002E9C — yes → external
+        beq.s   object_velocity_init_002e7e+30  ; $002E54  velocity=0 → rts in next fn
         move.w  #$0000,$0064(A1)                ; $002E56  obj1.field64 = 0 (moving)
         rts                                     ; $002E5C

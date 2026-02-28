@@ -54,10 +54,10 @@ lap_complete_check_062:
         move.b  ($FFFFC310).w,D0                 ; $007FAE  D0 = total_racers
         subq.b  #1,D0                            ; $007FB2  D0-- (last racer index)
         cmp.b   $002D(A0),D0                     ; $007FB4  D0 >= racer_index?
-        dc.w    $6C34               ; BGE.S   $007FEE    ; $007FB8  yes → external handler
+        bge.s   conditional_set_state_byte_object_cmp ; $007FB8  D0>=racer_index → handler
         bset    #5,($FFFFC30E).w                 ; $007FBA  race_flags |= bit 5
         btst    #5,($FFFFC80E).w                 ; $007FC0  race_ctrl bit 5?
-        dc.w    $6712               ; BEQ.S   $007FDA    ; $007FC6  no → next fn
+        beq.s   clear_object_flags_reset_state   ; $007FC6  bit clear → next fn
         ori.w   #$4000,$0002(A0)                 ; $007FC8  flags |= $4000 (race over)
         move.w  #$0050,($FFFFC04E).w             ; $007FCE  timer_countdown = 80
         clr.w   ($FFFFC8AA).w                    ; $007FD4  scene_state = 0

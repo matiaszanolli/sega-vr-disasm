@@ -55,7 +55,7 @@ scene_dispatch_track_data_setup:
         lea     $00FF6344,A1                    ; $00C936
         lea     $008957A0,A4                    ; $00C93C
         bsr.s   .setup_block                    ; $00C942
-        dc.w    $6168               ; bsr.s   $00C9AE             ; $00C944  post_dispatch
+        bsr.s   object_field_store_helper        ; $00C944  post_dispatch
         move.l  ($FFFFC754).w,$00FF6354             ; $00C946
 ; --- block 4: $FF6448 ---
         lea     $00FF6448,A1                    ; $00C94E
@@ -73,7 +73,7 @@ scene_dispatch_track_data_setup:
         bsr.s   .load_segment_alt_entry         ; $00C974
         lea     $00FF6114,A1                    ; $00C976
         bsr.s   .load_transform                 ; $00C97C
-        dc.w    $602E               ; bra.s   $00C9AE             ; $00C97E  post_dispatch
+        bra.s   object_field_store_helper        ; $00C97E  post_dispatch
 .load_transform:
         lea     $008956C8,A4                    ; $00C980  track_segment_alt_table
 .setup_block:

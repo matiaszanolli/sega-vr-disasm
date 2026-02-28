@@ -20,8 +20,8 @@ object_spawn_counter_table_setup:
         addq.b  #1,($FFFFA9E0).w                ; $0083CC: $5238 $A9E0 — increment counter
         lea     ($FFFFA9E3).w,a1                ; $0083D0: $43F8 $A9E3 — table base offset
         lea     ($FFFFA800).w,a2                ; $0083D4: $45F8 $A800 — object table base
-        dc.w    $601C                           ; BRA.S $0083F6 ; $0083D8: — branch to setup continuation
+        bra.s   dual_time_display_orch+18       ; $0083D8: → setup continuation (past dispatch)
         btst    #6,$0002(a0)                    ; $0083DA: $0828 $0006 $0002 — test object flag bit 6
-        dc.w    $6602                           ; BNE.S fn_8200_012_end ; $0083E0: — set → fall through
+        bne.s   dual_time_display_orch          ; $0083E0: set → fall through to next fn
         rts                                     ; $0083E2: $4E75 — clear → return
 

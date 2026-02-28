@@ -29,9 +29,9 @@ weighted_average_pos_clamp_0023dc:
         add.w   (A1),D1                         ; $0023F0  D1 += current value
         lsr.w   #1,D1                           ; $0023F2  D1 /= 2 (average)
         cmpi.w  #$21D0,D1                       ; $0023F4  D1 > max?
-        dc.w    $6E12                           ; $0023F8  bgt.s $00240C → external upper path
+        bgt.s   randomized_sound_param_00240c    ; $0023F8  → upper clamp path
         cmpi.w  #$1A5E,D1                       ; $0023FA  D1 > min?
-        dc.w    $6E10                           ; $0023FE  bgt.s $002410 → external store path
+        bgt.s   randomized_sound_param_00240c+4 ; $0023FE  → store path (cmp.w in next fn)
         move.w  #$1A5E,D1                       ; $002400  clamp D1 = min
         move.w  D1,(A1)                         ; $002404  store to position
         move.w  (A1),($FFFF8760).w              ; $002406  copy to output

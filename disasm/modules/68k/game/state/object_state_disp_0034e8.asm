@@ -35,7 +35,7 @@ object_state_disp_0034e8:
         dc.l    $008836C0                       ; $003520  [2C] → $0036C0 (past fn)
 ; --- inline handler (states $08-$14) ---
         tst.w   ($FFFFC04E).w                   ; $003524  timer active?
-        dc.w    $6772                           ; $003528  beq.s $00359C — no → exit
+        beq.s   clear_object_state_bytes        ; $003528  no → exit to next fn
         move.b  #$03,$00FF6950                  ; $00352A  VDP flag = 3
         move.b  #$01,$00FF6940                  ; $003532  VDP flag = 1
         addq.b  #4,($FFFFC305).w                ; $00353A  advance state by 4

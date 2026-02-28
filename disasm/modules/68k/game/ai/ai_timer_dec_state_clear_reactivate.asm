@@ -13,7 +13,7 @@
 ; ============================================================================
 
 ai_timer_dec_state_clear_reactivate:
-        dc.w    $6114                           ; BSR.S $00B990 ; $00B97A: — call sub
+        bsr.s   track_segment_load_031          ; $00B97A: call sub
         subq.b  #1,($FFFFC303).w               ; $00B97C: $5338 $C303 — decrement timer
         bne.s   .done                           ; $00B980: $660C — not zero → done
         move.b  #$00,($FFFFC064).w             ; $00B982: $11FC $0000 $C064 — timer expired: clear mode

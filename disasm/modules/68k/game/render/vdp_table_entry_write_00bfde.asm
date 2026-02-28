@@ -21,7 +21,7 @@ vdp_table_entry_write_00bfde:
         add.w   d0,d0                   ; $D040
         divu    #$001C,D0                       ; $00BFEA  D0.L / 28 → quot:rem
         cmpi.w  #$0005,D0                       ; $00BFEE  row >= 5?
-        dc.w    $6C2A                           ; $00BFF2  bge.s $00C01E → exit (past fn)
+        bge.s   advance_ai_state_machine_00c01e ; $00BFF2  row >= 5 → exit to next fn
         move.w  D0,D1                           ; $00BFF4  D1 = row (quotient)
         swap    D0                              ; $00BFF6  D0 = remainder (column)
         addq.w  #2,D0                           ; $00BFF8  column += 2

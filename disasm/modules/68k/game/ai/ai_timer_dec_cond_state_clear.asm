@@ -13,7 +13,7 @@
 ; ============================================================================
 
 ai_timer_dec_cond_state_clear:
-        dc.w    $612A                           ; BSR.S $00B990 ; $00B964: — call sub
+        bsr.s   track_segment_load_031          ; $00B964: call sub
         move.b  #$00,($FFFFC31C).w             ; $00B966: $11FC $0000 $C31C — clear AI active
         subq.b  #1,($FFFFC303).w               ; $00B96C: $5338 $C303 — decrement timer
         bne.s   .done                           ; $00B970: $6606 — not zero → done

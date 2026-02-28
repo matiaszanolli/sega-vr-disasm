@@ -62,6 +62,6 @@ collision_flag_check_054:
         jmp     conditional_return_on_state_match(pc); $4EFA $015A
 .check_mask:
         btst    #0,$0055(A0)                     ; $007D4C  collision_mask bit 0?
-        dc.w    $6602               ; BNE.S   $007D56    ; $007D52  yes → next fn
+        bne.s   object_drift_check_sfx_trigger  ; $007D52  collision_mask bit 0 set → next fn
 .done:
         rts                                     ; $007D54

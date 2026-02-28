@@ -33,7 +33,7 @@ controller_read_button_remap:
         dc.w    $0908                           ; $00179C  remap[7]: buttons 9,8
 ; --- code ---
         cmpi.b  #$0D,($FFFFC810).w             ; $00179E  P1 mode == $0D?
-        dc.w    $6630                           ; $0017A4  bne.s $0017D6 → exit (past fn)
+        bne.s   clear_input_state_flags         ; $0017A4  P1 mode mismatch → exit
         lea     ($FFFFC86C).w,A0                ; $0017A6  A0 → P1 controller state
         move.l  (A0),$00FF60D0                  ; $0017AA  copy state to VDP work
         lea     $00A10003,A1                    ; $0017B0  A1 → genesis controller port 1
@@ -42,6 +42,6 @@ controller_read_button_remap:
         jsr     joypad_read_hw(pc)      ; $4EBA $009E
         jsr     joypad_process+10(pc)   ; $4EBA $002A
         cmpi.b  #$0D,($FFFFC811).w             ; $0017C6  P2 mode == $0D?
-        dc.w    $6716                           ; $0017CC  beq.s $0017E4 → exit (past fn, P2 active)
+        beq.s   joypad_process                  ; $0017CC  P2 mode $0D → exit (P2 active)
         move.b  #$00,($FFFFC86E).w             ; $0017CE  clear P2 byte A (no P2)
         rts                                     ; $0017D4

@@ -42,7 +42,7 @@ camera_view_toggle_020:
         move.w  #$0000,($FFFFC0C8).w            ; $0088E2  view_active = 0
 ; --- check button state ---
         btst    #0,($FFFFC86C).w                ; $0088E8  button_state bit 0?
-        dc.w    $667E               ; BNE.S   $00896E    ; $0088EE  yes → exit (next fn)
+        bne.s   camera_state_disp_viewport_control ; $0088EE  yes → exit to next fn
         btst    #1,($FFFFC86C).w                ; $0088F0  button_state bit 1?
         dc.w    $6600,$00A0         ; BNE.W   $008998    ; $0088F6  yes → external handler
 ; --- compute view parameters from speed ---

@@ -56,7 +56,7 @@ gfx_3d_transform_setup_007:
         add.w   d6,d1                   ; $D246
         lea     $00(A3,D1.W),A3                 ; $008350  A3 += composite index
         cmpi.l  #$60000000,D5                   ; $008354  depth < $60000000?
-        dc.w    $6D0C               ; BLT.S   $008368    ; $00835A  yes → skip (next fn)
+        blt.s   three_way_value_comparison_router ; $00835A  depth < threshold → skip to next fn
         move.l  #$DDDD0DDD,(A4)                 ; $00835C  write sentinel to output
         moveq   #$01,D0                         ; $008362  D0 = 1 (visible)
         moveq   #$00,D1                         ; $008364  D1 = 0

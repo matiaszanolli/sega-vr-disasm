@@ -27,7 +27,7 @@ input_guard_cond_dec:
         move.w  $0024(A0),D0                    ; $008040  D0 = position A
         sub.w   $0026(A0),D0                    ; $008044  D0 = A - B (difference)
         cmpi.w  #$0064,D0                       ; $008048  difference <= 100?
-        dc.w    $6F06                           ; $00804C  ble.s past_module — fall through
+        ble.s   object_scoring_lap_advance_check ; $00804C  difference <= 100 → fall through
         subq.w  #1,$002E(A0)                    ; $00804E  decrement adjustment counter
 .done:
         rts                                     ; $008052

@@ -21,7 +21,7 @@
 
 scroll_pan_calc_vdp_write:
         btst    #3,($FFFFC313).w               ; $009064  bit 3 set?
-        dc.w    $6630                           ; $00906A  bne.s $00909C → exit (past fn)
+        bne.s   clear_heading                   ; $00906A  bit 3 set → exit to next fn
         move.w  $00CC(A0),D0                    ; $00906C  D0 = scroll source
         asr.w   #6,D0                           ; $009070  D0 >>= 6
         move.w  D0,($FFFF8002).w               ; $009072  VDP scroll B = D0

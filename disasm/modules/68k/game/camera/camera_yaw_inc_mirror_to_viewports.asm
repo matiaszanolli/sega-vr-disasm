@@ -16,7 +16,7 @@
 
 camera_yaw_inc_mirror_to_viewports:
         cmpi.w  #$EC0A,($FFFFC894).w            ; $008D12: $0C78 $EC0A $C894 — yaw at max?
-        dc.w    $6E1E                           ; BGT.S fn_8200_025_end ; $008D18: — exceeded → fall through
+        bgt.s   camera_value_store_full         ; $008D18: exceeded → fall through to next fn
         addi.w  #$0050,($FFFFC894).w            ; $008D1A: $0678 $0050 $C894 — increment yaw
         move.w  ($FFFFC894).w,($FFFFC0BE).w     ; $008D20: $31F8 $C894 $C0BE — mirror to viewport backup
         cmpi.w  #$E8E8,($FFFFC894).w            ; $008D26: $0C78 $E8E8 $C894 — threshold for SH2 update?

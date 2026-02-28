@@ -21,6 +21,6 @@ ai_table_lookup_cond_fall_through:
         lea     ($FFFFC200).w,a1                ; $00B2EC: $43F8 $C200 — AI table base
         lea     $00(a1,d3.w),a1                 ; $00B2F0: $43F1 $3000 — index into table
         cmpi.b  #$60,(a1)                       ; $00B2F4: $0C11 $0060 — entry < $60?
-        dc.w    $6D02                           ; BLT.S fn_a200_009_end ; $00B2F8: — yes → fall through
+        blt.s   bcd_time_update_010             ; $00B2F8: entry < $60 → fall through to next fn
         rts                                     ; $00B2FA: $4E75
 

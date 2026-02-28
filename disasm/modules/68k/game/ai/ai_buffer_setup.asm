@@ -24,22 +24,22 @@ ai_buffer_setup:
         lea     $00FF68D9,A1                    ; $00B11A  A1 → buffer A
         lea     ($FFFFC806).w,A2                ; $00B120  A2 → AI control A
         moveq   #$00,D3                         ; $00B124  D3 = 0
-        dc.w    $6036                           ; $00B126  bra.s $00B15E → shared handler
+        bra.s   sequence_data_byte_decoder      ; $00B126  → shared handler
 ; --- entry 2: standard setup A (duplicate) ---
         lea     $00FF68D9,A1                    ; $00B128  A1 → buffer A
         lea     ($FFFFC806).w,A2                ; $00B12E  A2 → AI control A
         moveq   #$00,D3                         ; $00B132  D3 = 0
-        dc.w    $6028                           ; $00B134  bra.s $00B15E → shared handler
+        bra.s   sequence_data_byte_decoder      ; $00B134  → shared handler
 ; --- entry 3: alternate setup B ---
         lea     $00FF6959,A1                    ; $00B136  A1 → buffer B
         lea     ($FFFFC813).w,A2                ; $00B13C  A2 → AI control B
         moveq   #$00,D3                         ; $00B140  D3 = 0
-        dc.w    $601A                           ; $00B142  bra.s $00B15E → shared handler
+        bra.s   sequence_data_byte_decoder      ; $00B142  → shared handler
 ; --- entry 4: conditional setup with param ---
         lea     $00FF68D9,A1                    ; $00B144  A1 → buffer A
         lea     ($FFFFC806).w,A2                ; $00B14A  A2 → AI control A
         move.w  ($FFFF902C).w,D3               ; $00B14E  D3 = AI parameter
         move.b  ($FFFFC30E).w,D0               ; $00B152  D0 = control flags
         andi.b  #$21,D0                         ; $00B156  mask bits 0 + 5
-        dc.w    $6702                           ; $00B15A  beq.s $00B15E → shared handler
+        beq.s   sequence_data_byte_decoder      ; $00B15A  no flags set → shared handler
         rts                                     ; $00B15C  flags set → early exit

@@ -14,7 +14,7 @@
 
 object_table_clear_loop:
         andi.w  #$0130,d0                       ; $005926: $0240 $0130 — mask status bits
-        dc.w    $66F8                           ; BNE.S $005924 ; $00592A: — bits set → branch back
+        bne.s   sh2_comm_check_cond_guard+28    ; $00592A: bits set → branch back to rts
         lea     ($FFFF9700).w,a0               ; $00592C: $41F8 $9700 — object table base
         moveq   #$07,d7                         ; $005930: $7E07 — 8 iterations
 .loop:

@@ -21,9 +21,9 @@ sh2_comm_check_cond_guard:
         btst    #7,($FFFFC81C).w                ; $005910: $0838 $0007 $C81C — check comm flag bit 7
         bne.s   .mask_check                     ; $005916: $6606 — set → mask check
         tst.w   ($FFFFC89C).w                   ; $005918: $4A78 $C89C — test SH2 comm state
-        dc.w    $6708                           ; BEQ.S fn_4200_038_end ; $00591C: — zero → fall through
+        beq.s   object_table_clear_loop         ; $00591C: zero → fall through (next fn)
 .mask_check:
         andi.w  #$0138,d0                       ; $00591E: $0240 $0138 — mask comm bits
-        dc.w    $6708                           ; BEQ.S fn_4200_038_end ; $005922: — zero → fall through
+        beq.s   object_table_clear_loop+6       ; $005922: zero → fall through (past mask_check)
         rts                                     ; $005924: $4E75
 

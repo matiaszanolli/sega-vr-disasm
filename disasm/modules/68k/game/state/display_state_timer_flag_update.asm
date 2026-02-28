@@ -24,7 +24,7 @@ display_state_timer_flag_update:
         move.b  #$BF,($FFFFC8A4).w             ; $008204  SFX = $BF
 .check_timer:
         tst.w   ($FFFFC04E).w                  ; $00820A  timer active?
-        dc.w    $6744                           ; $00820E  beq.s $008254 → exit (past fn, timer=0)
+        beq.s   table_lookup_object_field_to_race_state_byte+14 ; $00820E  timer=0 → exit (rts)
         moveq   #$00,D0                         ; $008210  D0 = 0 (default)
         subq.w  #1,($FFFFC04E).w               ; $008212  timer--
         beq.s   .write_flag                     ; $008216  zero → write flag (D0=0)
@@ -34,10 +34,10 @@ display_state_timer_flag_update:
 .write_flag:
         move.b  D0,$00FF6960                   ; $008222  write VDP display flag
         tst.b   ($FFFFC305).w                  ; $008228  sub-counter active?
-        dc.w    $6626                           ; $00822C  bne.s $008254 → exit (past fn)
+        bne.s   table_lookup_object_field_to_race_state_byte+14 ; $00822C  → exit (rts)
         cmpi.w  #$003C,($FFFFC04E).w          ; $00822E  timer == $3C?
-        dc.w    $661E                           ; $008234  bne.s $008254 → exit (past fn)
+        bne.s   table_lookup_object_field_to_race_state_byte+14 ; $008234  → exit (rts)
         btst    #1,$0002(A0)                   ; $008236  object bit 1 set?
-        dc.w    $6708                           ; $00823C  beq.s $008246 → exit (past fn)
+        beq.s   table_lookup_object_field_to_race_state_byte    ; $00823C  bit clear → fall through
         andi.w  #$FDFF,$0002(A0)               ; $00823E  clear bit 9 of field +$02
         rts                                     ; $008244

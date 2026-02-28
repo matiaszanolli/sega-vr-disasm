@@ -42,13 +42,13 @@ name_entry_color_palette_update:
         move.w  #$0003,D2                       ; $011A00  process 4 entries
 .process_color:
         move.w  (A1)+,D5                        ; $011A04  D5 = blue component
-        dc.w    $6154                           ; $011A06  bsr.s $011A5C (color_scale)
+        bsr.s   cursor_pos_clamp                ; $011A06  scale blue component
         move.w  D5,D3                           ; $011A08  D3 = scaled blue
         move.w  (A1)+,D5                        ; $011A0A  D5 = green component
-        dc.w    $614E                           ; $011A0C  bsr.s $011A5C (color_scale)
+        bsr.s   cursor_pos_clamp                ; $011A0C  scale green component
         move.w  D5,D4                           ; $011A0E  D4 = scaled green
         move.w  (A1)+,D5                        ; $011A10  D5 = red component
-        dc.w    $6148                           ; $011A12  bsr.s $011A5C (color_scale)
+        bsr.s   cursor_pos_clamp                ; $011A12  scale red component
         lsl.w   #5,D4                           ; $011A14  green << 5
         lsl.w   #8,D5                           ; $011A16  red << 8
         lsl.w   #2,D5                           ; $011A18  red << 10 total

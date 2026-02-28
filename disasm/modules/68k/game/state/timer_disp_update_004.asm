@@ -36,21 +36,21 @@ timer_disp_update_004:
         move.b  D1,(A1)+                        ; $0082A0  buf[0] = D1, A1++
         jsr     nibble_unpack(pc)       ; $4EBA $00F6
         move.w  ($FFFFC04E).w,D0                ; $0082A6  D0 = timer_countdown
-        dc.w    $673A               ; BEQ.S   $0082E6    ; $0082AA  zero → exit (RTS in write_status_code_to_ram)
+        beq.s   write_status_code_to_ram+6      ; $0082AA  zero → exit (rts in write_status_code_to_ram)
         moveq   #$00,D7                         ; $0082AC  D7 = 0
         subq.w  #1,($FFFFC04E).w                ; $0082AE  timer_countdown--
-        dc.w    $672C               ; BEQ.S   $0082E0    ; $0082B2  now zero → store D7 status
+        beq.s   write_status_code_to_ram        ; $0082B2  now zero → store D7 status
         btst    #2,($FFFFC8AB).w                ; $0082B4  scene_state bit 2?
         bne.s   .skip_d7                        ; $0082BA  yes → skip
         moveq   #$03,D7                         ; $0082BC  D7 = 3
 .skip_d7:
         tst.b   ($FFFFC305).w                   ; $0082BE  race_phase == 0?
-        dc.w    $6622               ; BNE.S   $0082E6    ; $0082C2  no → exit
+        bne.s   write_status_code_to_ram+6      ; $0082C2  no → exit (rts)
         tst.w   D0                              ; $0082C4  timer was negative?
-        dc.w    $6B1E               ; BMI.S   $0082E6    ; $0082C6  yes → exit
+        bmi.s   write_status_code_to_ram+6      ; $0082C6  yes → exit (rts)
         move.w  $0002(A0),D1                    ; $0082C8  D1 = obj.flags
         andi.w  #$0200,D1                       ; $0082CC  bit 9 set?
-        dc.w    $670E               ; BEQ.S   $0082E0    ; $0082D0  no → store D7 status
+        beq.s   write_status_code_to_ram        ; $0082D0  no → store D7 status
         andi.w  #$FDFF,$0002(A0)                ; $0082D2  clear bit 9 in flags
         move.w  #$0000,($FFFFC04E).w            ; $0082D8  timer_countdown = 0
         rts                                     ; $0082DE

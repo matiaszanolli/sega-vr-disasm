@@ -36,7 +36,7 @@ lap_disp_update_vdp_tile_write:
 .shift:
         lsl.w   #4,D0                           ; $00B5D8  D0 × 16
         tst.b   ($FFFFC305).w                  ; $00B5DA  sub-counter active?
-        dc.w    $6724                           ; $00B5DE  beq.s $00B604 → exit (past fn)
+        beq.s   ai_flag_setup_at_object_array   ; $00B5DE  sub-counter = 0 → exit to next fn
         subi.w  #$0010,D0                       ; $00B5E0  D0 -= $10
         lea     $00FF68D0,A1                    ; $00B5E4  A1 → VDP tile base
         lea     $00(A1,D0.W),A1                ; $00B5EA  A1 += offset

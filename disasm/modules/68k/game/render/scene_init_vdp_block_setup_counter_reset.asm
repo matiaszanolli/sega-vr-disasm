@@ -31,16 +31,16 @@ scene_init_vdp_block_setup_counter_reset:
         movea.l $00(A1,D0.W),A1                 ; $00CFE0  A1 = data[substate]
         movea.l A1,A3                           ; $00CFE4  A3 = save ptr
         lea     $00FF6178,A2                    ; $00CFE6  A2 → VDP buffer 1
-        dc.w    $61D4                           ; $00CFEC  bsr.s $00CFC2 — block_copy [1]
+        bsr.s   entity_heading_and_turn_rate_calculator+212 ; $00CFEC  block_copy [1]
         movea.l A3,A1                           ; $00CFEE  restore ptr
         lea     $00FF627C,A2                    ; $00CFF0  A2 → VDP buffer 2
-        dc.w    $61CA                           ; $00CFF6  bsr.s $00CFC2 — block_copy [2]
+        bsr.s   entity_heading_and_turn_rate_calculator+212 ; $00CFF6  block_copy [2]
         movea.l A3,A1                           ; $00CFF8  restore ptr
         lea     $00FF63A8,A2                    ; $00CFFA  A2 → VDP buffer 3
-        dc.w    $61C0                           ; $00D000  bsr.s $00CFC2 — block_copy [3]
+        bsr.s   entity_heading_and_turn_rate_calculator+212 ; $00D000  block_copy [3]
         movea.l A3,A1                           ; $00D002  restore ptr
         lea     $00FF64AC,A2                    ; $00D004  A2 → VDP buffer 4
-        dc.w    $60B6                           ; $00D00A  bra.s $00CFC2 — block_copy [4] (tail)
+        bra.s   entity_heading_and_turn_rate_calculator+212 ; $00D00A  block_copy [4] (tail)
 ; --- counter + scene init ---
         lea     ($FFFFC806).w,A1                ; $00D00C  A1 → counter block
         move.b  #$00,(A1)+                      ; $00D010  main = 0

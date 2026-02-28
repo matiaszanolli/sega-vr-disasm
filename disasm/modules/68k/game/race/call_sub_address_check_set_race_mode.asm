@@ -17,7 +17,7 @@ call_sub_address_check_set_race_mode:
         jsr     bcd_scoring_calc(pc)    ; $4EBA $6D24
         addq.w  #4,($FFFFC07C).w                ; $00453C: $5878 $C07C — advance input state
         cmpa.w  #$9000,a0                       ; $004540: $B0FC $9000 — check address
-        dc.w    $6610                           ; BNE.S fn_4200_005_end ; $004544: — mismatch → fall through
+        bne.s   set_flag_clear_sprite           ; $004544: mismatch → fall through to next fn
         move.b  #$AA,($FFFFC8A5).w              ; $004546: $11FC $00AA $C8A5 — set race mode = $AA
         move.b  #$00,$00FF6930                  ; $00454C: $13FC $0000 $00FF $6930 — clear SH2 byte
         rts                                     ; $004554: $4E75

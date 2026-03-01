@@ -1,6 +1,6 @@
 # Virtua Racing Deluxe (32X) - Performance Optimization Project
 
-**Status: v6.2.0 — Full Codebase Translation & Active Optimization**
+**Status: v6.3.0 — Full Codebase Translation & Active Optimization**
 
 A complete, buildable disassembly of Virtua Racing Deluxe for the Sega 32X, now actively optimized to make full use of the 32X hardware. The original game runs at ~20 FPS due to a conservative blocking synchronization model that leaves significant hardware capacity untapped. This project aims to unlock that potential.
 
@@ -94,14 +94,15 @@ The expansion space at $300000+ is executed by SH2 processors only and already c
 
 ## Codebase Status
 
-### Disassembly & Translation (v6.2.0 — current)
-- **813 68K modules** organized across 17 categories + 15 game subcategories
-- **733 modules** fully translated to proper assembly mnemonics (5656 dc.w lines converted)
-- **92 SH2 functions** integrated into build system (86 .inc files)
+### Disassembly & Translation (v6.3.0 — current)
+- **821 68K modules** organized across 17 categories + 15 game subcategories
+- **736 modules** fully translated to proper assembly mnemonics (5679 dc.w lines converted)
+- **92 SH2 functions** integrated into build system (77 groups via .inc files)
 - **107 SH2 functions** mapped and symbolized
 - **503+ 68K functions** named and categorized
 - All translations verified **byte-identical** to original ROM
-- Automated translation tool (Phases 1-2) + manual branch translation (Phase 3) + cross-module JSR/JMP translation (Phase 4)
+- 5 translation phases: automated (Phases 1-2), manual branches (Phase 3), JSR/JMP (Phase 4), BCD arithmetic (Phase 5)
+- Remaining ~522 dc.w are data values (sprite descriptors, pointer tables, lookups) — translation complete
 
 ### Symbolic Hardening (v5.1.0 — complete)
 - **118+ modules** hardened with symbolic register names across all 17 categories

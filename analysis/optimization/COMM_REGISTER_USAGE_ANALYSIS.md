@@ -13,13 +13,13 @@
 | Register | Address | SH2 Address | Size | Purpose |
 |----------|---------|-------------|------|---------|
 | **COMM0** | $00A15120 | $20004020 | word | Status/Control (command ready flag) |
-| **COMM1** | $00A15122 | $20004024 | word | Command dispatch type |
-| **COMM2** | $00A15124 | $20004028 | word | Work counter/status |
-| **COMM3** | $00A15126 | $2000402C | word | Slave "OVRN" marker |
-| **COMM4** | $00A15128 | $20004030 | long | **Parameter pointer (primary)** |
-| **COMM5** | $00A1512A | $20004034 | word | Status flags |
-| **COMM6** | $00A1512C | $20004038 | word | **Handshake/signal flag** |
-| **COMM7** | $00A1512E | $2000403C | word | Command type extension |
+| **COMM1** | $00A15122 | $20004022 | word | Command dispatch type |
+| **COMM2** | $00A15124 | $20004024 | word | Work counter/status |
+| **COMM3** | $00A15126 | $20004026 | word | Slave "OVRN" marker |
+| **COMM4** | $00A15128 | $20004028 | long | **Parameter pointer (primary)** |
+| **COMM5** | $00A1512A | $2000402A | word | Status flags |
+| **COMM6** | $00A1512C | $2000402C | word | **Handshake/signal flag** |
+| **COMM7** | $00A1512E | $2000402E | word | Command type extension |
 
 ---
 

@@ -91,25 +91,26 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 ## P3 — Code Quality
 
 ### B-010: Translate remaining 68K dc.w modules
-**Status:** DONE (Phase 1+2 complete)
+**Status:** DONE (Phases 1-5 complete)
 **Phase 1 (done):** Automated translation of non-PC-relative, non-branch dc.w lines — 3851 lines across 139 files.
 **Phase 2 (done):** Label map builder (800 labels from 771 included modules + section files) + PC-relative decoder (JSR/JMP/BSR/LEA d16(PC)) + branch decoder (Bcc.S/W, BRA, DBcc) with local label generation. 5504 total dc.w lines converted, 2722 remaining (data tables, complex addressing modes, unlabeled targets). 530 of 821 modules fully translated.
-**Build:** Byte-identical verified (md5: `2d842a62085df8efba46053c5bea8868`).
+**Phase 3 (done):** Manual branch translations — 82 Bcc/BRA/DBcc dc.w across 45 modules.
+**Phase 4 (done):** Manual JSR/JMP translations — 70 dc.w across 29 modules. 4 reverted (undefined labels outside build chain: FastCopy20, SetDisplayParams, unpack_tiles_vdp, zbus_request).
+**Phase 5 (done):** BCD arithmetic instructions — 23 ABCD/SBCD/ANDI-to-CCR/ORI-to-CCR dc.w across 3 modules.
+**Total:** 5679 dc.w converted, 736 of 821 modules fully translated. Remaining ~522 dc.w are data (sprite descriptors, pointer tables, lookup values, padding) — not translatable.
+**Build:** Byte-identical verified (md5: `eba54fc1e2768e26079b7db6ad0f0b69`).
 **Tool:** `python3 tools/translate_68k_modules.py --phase2 --batch disasm/modules/68k/`
 
-### B-011: Translate 17 remaining SH2 functions
-**Status:** OPEN (partially blocked — see [KNOWN_ISSUES.md](KNOWN_ISSUES.md))
-**Why:** 75/92 SH2 functions translated. 17 blocked by assembler padding.
-**Approach:** Focus on simpler ones first: func_009, func_010, func_060-063. Skip func_001/002 (coordinators, size-critical).
-**Key files:** `disasm/sh2/src/`, [SH2_TRANSLATION_INTEGRATION.md](analysis/sh2-analysis/SH2_TRANSLATION_INTEGRATION.md)
+### B-011: Translate remaining SH2 functions to mnemonics
+**Status:** MOSTLY DONE — reassess scope
+**Current state:** 77 function groups integrated into build via .inc generated includes. func_001/002 use `_short.asm` (raw `.short` hex) to bypass assembler padding. 8 function IDs (func_027, 028, 035, 056-059, 064) have no standalone source — likely combined into adjacent groups or are entry points within larger functions.
+**Remaining work:** Verify the 8 "missing" function IDs are accounted for in combined groups. Update stale SH2_TRANSLATION_INTEGRATION.md (dated Feb 5, claims 75/92).
+**Key files:** `disasm/sh2/src/`, `disasm/sh2/3d_engine/`, [SH2_TRANSLATION_INTEGRATION.md](analysis/sh2-analysis/SH2_TRANSLATION_INTEGRATION.md)
 
 ### B-013: Fix SH2 address errors in COMM_REGISTER_USAGE_ANALYSIS.md
-**Status:** OPEN
-**Why:** `analysis/optimization/COMM_REGISTER_USAGE_ANALYSIS.md` lists SH2 addresses for COMM1+ that are offset by 2 bytes (e.g., COMM1 listed as `$20004022` but the table entries starting at COMM1 shift by one register). Spotted during Oracle index build.
-**Acceptance:** All SH2 addresses in the register table verified against `analysis/COMM_REGISTERS_HARDWARE_ANALYSIS.md` and corrected. No other content changed.
+**Status:** DONE (2026-02-28)
+**Why:** SH2 addresses used ×4 spacing ($20004020, $20004024, $20004028...) instead of correct ×2 spacing ($20004020, $20004022, $20004024...). All 7 wrong addresses (COMM1-COMM7) corrected against hardware manual.
 **Key files:** `analysis/optimization/COMM_REGISTER_USAGE_ANALYSIS.md`
-**Depends on:** Nothing
-**Priority note:** Low urgency — doc only, no code impact. Good first task for the Analyzer agent.
 
 ### B-012: Replace raw hex register addresses with symbolic names
 **Status:** DONE (2026-02-10)
@@ -125,6 +126,7 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 
 | ID | Description | Commit | Date |
 |----|-------------|--------|------|
+| B-013 | Fix SH2 address errors in COMM_REGISTER_USAGE_ANALYSIS.md (7 addresses corrected) | — | 2026-02-28 |
 | B-004 | ~~Single-shot cmd $22 (COMM1-safe v5)~~ REVERTED — Slave COMM2_HI poll causes spurious dispatch in menus | — | 2026-02-20 |
 | B-003 | Async sh2_cmd_27 via COMM registers (bypasses Master SH2) | — | 2026-02-17 |
 | B-008 | RV bit profiling — NEVER set, expansion ROM safe (static analysis) | — | 2026-02-16 |

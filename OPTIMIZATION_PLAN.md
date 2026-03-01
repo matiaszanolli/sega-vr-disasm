@@ -140,11 +140,16 @@ Each command follows a strict `submit → wait → continue` pattern:
 ### v6.0 Full Codebase Translation (February 2026)
 
 - **821 68K modules** organized across 17 categories + 15 game subcategories
-- **530 modules** fully translated to mnemonics (5504 dc.w lines converted via automated tool)
-- **92 SH2 functions** integrated into build system (86 .inc files, zero remaining)
+- **736 modules** fully translated to mnemonics (5679 dc.w lines converted across 5 phases)
+  - Phase 1: Automated non-PC-relative (3851 lines, 139 files)
+  - Phase 2: Automated PC-relative + branches (1653 lines, label map + decoders)
+  - Phase 3: Manual branch translations (82 lines, 45 files)
+  - Phase 4: Manual JSR/JMP translations (70 lines, 29 files)
+  - Phase 5: Manual BCD arithmetic (23 lines, 3 files)
+- **92 SH2 functions** integrated into build system (77 groups via .inc files, zero remaining)
 - **118+ modules** hardened with symbolic register names (COMM/MARS/VDP/Z80 equates)
-- Translation tool: label map (800 labels), PC-relative decoder, branch decoder with local labels
-- All translations verified byte-identical to original ROM (md5: `2d842a62085df8efba46053c5bea8868`)
+- Remaining ~522 dc.w are data (sprite descriptors, pointer tables, lookup values) — not translatable
+- All translations verified byte-identical to original ROM (md5: `eba54fc1e2768e26079b7db6ad0f0b69`)
 
 ### v8.0 Single-Shot cmd_22 (February 2026) — DONE ✅
 

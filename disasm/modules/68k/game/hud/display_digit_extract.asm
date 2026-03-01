@@ -32,7 +32,7 @@ display_digit_extract:
         move.l  ($FFFFC254).w,($FFFFEEFC).w     ; copy camera_scroll → display
         lea     ($FFFFC200).w,a1                ; game_data source
         lea     ($FFFFEEE0).w,a2                ; display buffer dest
-        dc.w    $4EFA,$9446                      ; jmp data_copy(pc) → $004920
+        dc.w    $4EFA,$9446                      ; jmp FastCopy20(pc) → $004920
 ; --- entry 2: scroll_state → digit pair ---
         move.w  ($FFFFC050).w,d0                ; scroll_state
         bpl.s   .positive

@@ -79,5 +79,5 @@ ascii_character_to_tile_index_mapper_010674:
         adda.l  D0,A0                           ; $01070C  A0 = base + offset
         move.w  #$0018,D0                       ; $01070E  width = 24
         move.w  #$0028,D1                       ; $010712  height = 40
-        dc.w    $4EBA,$DC42         ; jsr     $00E35A(pc)  ; sh2_send_cmd
+        jsr     sh2_send_cmd(pc)        ; $4EBA $DC42
         rts                                     ; $01071A

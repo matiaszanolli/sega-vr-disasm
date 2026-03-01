@@ -37,19 +37,19 @@ name_entry_rendering_sh2_xfer:
         movea.l #$04004C74,A1                   ; $012090  dest
         move.w  #$0058,D0                       ; $012096  size = $58
         move.w  #$0010,D1                       ; $01209A  width = $10
-        dc.w    $4EBA,$C2BA                     ; $01209E  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $C2BA
 ; --- static DMA: display A ---
         movea.l #$06018900,A0                   ; $0120A2  source
         movea.l #$04019010,A1                   ; $0120A8  dest
         move.w  #$0120,D0                       ; $0120AE  size = $120
         move.w  #$0010,D1                       ; $0120B2  width = $10
-        dc.w    $4EBA,$C2A2                     ; $0120B6  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $C2A2
 ; --- static DMA: display B ---
         movea.l #$06019B00,A0                   ; $0120BA  source
         movea.l #$0401C010,A1                   ; $0120C0  dest
         move.w  #$0120,D0                       ; $0120C6  size = $120
         move.w  #$0010,D1                       ; $0120CA  width = $10
-        dc.w    $4EBA,$C28A                     ; $0120CE  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $C28A
 ; --- first sh2_cmd_27: ×4 table lookup ---
         moveq   #$00,D0                         ; $0120D2  clear D0
         tst.b   ($FFFFA01A).w                   ; $0120D4  active player flag
@@ -141,7 +141,7 @@ name_entry_rendering_sh2_xfer:
         movea.l ($FFFFA034).w,A1                ; $0121DC  A1 = VRAM dest
         move.w  #$0028,D0                       ; $0121E0  size = $28
         move.w  #$0060,D1                       ; $0121E4  width = $60
-        dc.w    $4EBA,$C170                     ; $0121E8  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $C170
         addq.w  #4,($FFFFC87E).w                ; $0121EC  advance game_state
         move.w  #$0020,$00FF0008                ; $0121F0  display mode = $0020
         rts                                     ; $0121F8

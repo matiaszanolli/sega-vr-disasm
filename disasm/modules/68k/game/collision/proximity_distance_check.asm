@@ -39,7 +39,7 @@ proximity_distance_check:
 .abs_y:
         cmpi.w  #$0040,d0              ; Y threshold = 64
         bge.s   .too_far                ; If >= 64, fail
-        dc.w    $4EFA,$000A             ; JMP zone_check_inner(PC) - chain to $AE0A
+        jmp     zone_check_inner(pc)    ; $4EFA $000A
 .too_far:
         moveq   #0,d0                   ; Return 0 (not in proximity)
         rts

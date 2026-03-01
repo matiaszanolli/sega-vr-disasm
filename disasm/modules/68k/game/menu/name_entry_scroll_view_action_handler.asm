@@ -39,14 +39,14 @@ name_entry_scroll_view_action_handler:
         movea.l #$0400E038,A1                   ; $011482  A1 = display dest
         move.w  #$00D8,D0                       ; $011488  size = $D8
         move.w  #$0010,D1                       ; $01148C  width = $10
-        dc.w    $4EBA,$CEC8                     ; $011490  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $CEC8
         movea.l #$26028000,A0                   ; $011494  A0 = VRAM scroll source
         move.l  ($FFFFA022).w,D0                ; $01149A  D0 = scroll position
         adda.l  D0,A0                           ; $01149E  A0 += scroll offset
         movea.l #$24010038,A1                   ; $0114A0  A1 = scroll dest
         move.w  #$00D8,D0                       ; $0114A6  size = $D8
         move.w  #$0050,D1                       ; $0114AA  width = $50
-        dc.w    $4EBA,$CEAA                     ; $0114AE  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $CEAA
         tst.l   ($FFFFA026).w                   ; $0114B2  velocity active?
         beq.w   .no_velocity                    ; $0114B6  no → check input
         move.l  ($FFFFA022).w,D0                ; $0114BA  D0 = scroll position

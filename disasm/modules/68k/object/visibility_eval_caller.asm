@@ -20,7 +20,7 @@ visibility_eval_caller:
         move.w  $30(a0),d1              ; D1 = position X (angle 1)
         move.w  $34(a0),d2              ; D2 = position Z (angle 2)
         move.b  #1,$55(a0)              ; Set visibility flag = 1 (testing)
-        dc.w    $4EBA,$F82C             ; JSR $73E8(PC) - angle pre-processing
+        jsr     track_data_index_calc_table_lookup(pc) ; $4EBA $F82C
         jsr     angle_normalize(pc)     ; BSP visibility test
         beq.s   .return                 ; If result = 0 (culled), return
         move.l  a2,$CE(a0)              ; Store BSP data pointer in object

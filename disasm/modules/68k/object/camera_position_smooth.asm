@@ -60,12 +60,12 @@ camera_position_smooth:
         move.w  #$01AB,d3              ; Trig scaling constant
         moveq   #12,d6                  ; Shift count
         move.w  d0,d2                   ; Save D0 for second trig call
-        dc.w    $4EBA,$1EE8             ; JSR trig_cos(PC) at $8F52
+        jsr     sine_cosine_quadrant_lookup+4(pc) ; $4EBA $1EE8
         muls.w  d3,d0                   ; D0 = cos * scale
         asr.l   d6,d0                   ; D0 >>= 12 (fixed-point)
         add.w   d0,$30(a0)             ; Position X += result
         move.w  d2,d0                   ; Restore angle
-        dc.w    $4EBA,$1ED6             ; JSR trig_sin(PC) at $8F4E
+        jsr     sine_cosine_quadrant_lookup(pc) ; $4EBA $1ED6
         muls.w  d3,d0                   ; D0 = sin * scale
         asr.l   d6,d0                   ; D0 >>= 12
         add.w   d0,$34(a0)             ; Position Y += result

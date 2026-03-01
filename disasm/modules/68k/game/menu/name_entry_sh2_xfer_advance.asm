@@ -20,7 +20,7 @@ name_entry_sh2_xfer_advance:
         dc.w    $1050                           ; $010200  move.b (a0),d0 — read name byte
         move.w  #$00A8,D0                       ; $010202  transfer size = $A8
         move.w  #$0010,D1                       ; $010206  width = $10
-        dc.w    $4EBA,$E14E                     ; $01020A  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $E14E
         movea.l #$06020000,A0                   ; $01020E  A0 = VRAM char source
         move.w  ($FFFFA022).w,D0                ; $010214  D0 = player index
         lsl.w   #7,D0                           ; $010218  D0 × 128
@@ -31,7 +31,7 @@ name_entry_sh2_xfer_advance:
         movea.l #$240310CC,A1                   ; $010224  A1 = VRAM destination
         move.w  #$0028,D0                       ; $01022A  transfer size = $28
         move.w  #$0010,D1                       ; $01022E  width = $10
-        dc.w    $4EBA,$E126                     ; $010232  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $E126
         addq.w  #4,($FFFFC87E).w                ; $010236  advance game_state
         move.w  #$0020,$00FF0008                ; $01023A  display mode = $0020
         rts                                     ; $010242

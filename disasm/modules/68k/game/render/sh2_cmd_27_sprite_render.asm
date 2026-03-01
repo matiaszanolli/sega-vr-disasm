@@ -36,7 +36,7 @@ sh2_cmd_27_sprite_render:
         move.w  $04(a1,d0.w),d0                 ; load sprite param
         move.w  #$0030,d1                       ; width = 48
         move.w  #$0010,d2                       ; height = 16
-        dc.w    $4EBA,$026A                      ; jsr sh2_cmd_27(pc) → $00E3B4
+        jsr     sh2_cmd_27(pc)          ; $4EBA $026A
 ; --- sprite 2: base address + ×72 stride ---
         moveq   #$00,d0
         tst.b   ($FFFFA027).w                   ; player_select active?
@@ -67,5 +67,5 @@ sh2_cmd_27_sprite_render:
 .wait_comm:
         tst.b   COMM0_HI                        ; COMM0 busy?
         bne.s   .wait_comm                       ; yes → wait
-        dc.w    $4EBA,$021A                      ; jsr sh2_cmd_27(pc) → $00E3B4
+        jsr     sh2_cmd_27(pc)          ; $4EBA $021A
         rts

@@ -36,7 +36,7 @@ sh2_handler_dispatch_scene_init:
         dbeq    d7,.search                      ; loop until match or exhausted
         move.l  $0058A4(pc,d1.w),$00FF0002      ; replace with new handler
         move.w  #$0020,$00FF0008                ; set SH2 command $0020
-        dc.w    $4EFA,$CFFE                      ; jmp game_init(pc) → $002890
+        jmp     mars_comm_write(pc)     ; $4EFA $CFFE
 ; --- match table: 4 handler addresses to detect ---
         dc.l    $00885618                        ; match 0
         dc.l    $00885308                        ; match 1
@@ -51,7 +51,7 @@ sh2_handler_dispatch_scene_init:
         move.b  #$00,$00FF69F0                  ; clear scene flag
         dc.w    $4EBA,$F0EC                      ; jsr SetDisplayParams(pc) → $0049AA
         addq.b  #4,($FFFFC8C5).w                ; advance state_counter by 4
-        dc.w    $4EFA,$CBAE                      ; jmp vint_init(pc) → $002474
+        jmp     set_flag_8507_80(pc)    ; $4EFA $CBAE
 ; --- entry 3: track init + control check ---
         dc.w    $4EBA,$12C0                      ; jsr track_init(pc) → $006B8A
         lea     ($FFFFA000).w,a4                ; scene_palette_base

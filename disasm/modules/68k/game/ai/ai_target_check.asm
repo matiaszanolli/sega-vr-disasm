@@ -35,7 +35,7 @@ ai_target_check:
         move.w  $A4(a0),d0              ; First slot index
         lsl.w   #8,d0                   ; Index * 256 (entity stride)
         lea     (a1,d0.w),a1            ; $43F1 $0000 — point to entity
-        dc.w    $4EBA,$00CA             ; JSR $ADC4(PC) - validate entity slot
+        jsr     proximity_distance_check(pc) ; $4EBA $00CA
         dc.w    $6616                   ; BNE.S +22 → $AD14 (chain to next function)
 
         ; --- Check second entity slot ---
@@ -43,7 +43,7 @@ ai_target_check:
         move.w  $A6(a0),d0              ; Second slot index
         lsl.w   #8,d0                   ; Index * 256 (entity stride)
         lea     (a1,d0.w),a1            ; $43F1 $0000 — point to entity
-        dc.w    $4EBA,$00B6             ; JSR $ADC4(PC) - validate entity slot
+        jsr     proximity_distance_check(pc) ; $4EBA $00B6
         dc.w    $6602                   ; BNE.S +2 → $AD14 (chain to next function)
 .return:
         rts

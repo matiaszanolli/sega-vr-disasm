@@ -52,7 +52,7 @@ name_entry_dual_scroll_view_action_handler:
         movea.l #$240100A0,A1                   ; $01164A  dest
         move.w  #$0080,D0                       ; $011650  size = $80
         move.w  #$0050,D1                       ; $011654  width = $50
-        dc.w    $4EBA,$CD00                     ; $011658  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $CD00
 ; --- apply P1 scroll velocity ---
         tst.l   ($FFFFA026).w                   ; $01165C  P1 velocity active?
         beq.w   .check_action_state             ; $011660  no → check input

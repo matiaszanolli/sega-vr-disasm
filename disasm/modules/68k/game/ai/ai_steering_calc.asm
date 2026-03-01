@@ -42,7 +42,7 @@ ai_steering_calc:
 .atan_lookup:
         ext.l   d0                      ; Sign-extend quotient
         movem.l d2/a1,-(sp)             ; Save registers
-        dc.w    $4EBA,$E7F6             ; BSR.W atan2_lookup ($8FC8)
+        jsr     atan2_calc(pc)          ; $4EBA $E7F6
         movem.l (sp)+,d2/a1             ; Restore registers
         tst.w   d2                      ; Check DY sign
         bge.s   .return                 ; If DY >= 0, angle is correct

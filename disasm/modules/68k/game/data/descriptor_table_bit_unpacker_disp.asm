@@ -38,7 +38,7 @@ descriptor_table_bit_unpacker_disp:
         movea.l $001608(PC,D1.W),A0             ; $0015F4  source pointer
         movea.l $00160C(PC,D1.W),A1             ; $0015F8  destination pointer
         movem.l D0/D2,-(A7)                     ; $0015FC  save loop state
-        dc.w    $4EBA,$FDB2         ; jsr     $0013B4(pc)  ; bit_unpack_loop
+        jsr     lzss_decompress(pc)     ; $4EBA $FDB2
         movem.l (A7)+,D0/D2                     ; $001604  restore loop state
 .skip_unpack:
         ror.l   #8,D0                           ; $001608  rotate to next byte

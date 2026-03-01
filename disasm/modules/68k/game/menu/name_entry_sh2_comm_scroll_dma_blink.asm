@@ -42,7 +42,7 @@ name_entry_sh2_comm_scroll_dma_blink:
         movea.l #$24010018,A1                   ; $0115FA  A1 = scroll dest
         move.w  #$0080,D0                       ; $011600  size = $80
         move.w  #$0050,D1                       ; $011604  width = $50
-        dc.w    $4EBA,$CD50                     ; $011608  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $CD50
         subq.w  #1,($FFFFA052).w                ; $01160C  decrement blink counter
         bcc.s   .render_scores                  ; $011610  no underflow → render
         move.w  #$0010,($FFFFA052).w            ; $011612  reset counter (16)

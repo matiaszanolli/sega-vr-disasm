@@ -73,7 +73,7 @@ physics_integration:
         neg.w   d0                      ; Negate for sine lookup convention
 
         ; --- Convert heading to X velocity component ---
-        dc.w    $4EBA,$E880             ; BSR.W sine_lookup ($8F52)
+        jsr     sine_cosine_quadrant_lookup+4(pc) ; $4EBA $E880
         muls.w  $6(a0),d0              ; Velocity = sin(heading) * speed
         asr.l   #8,d0                   ; Scale down (fixed-point >> 8)
         asr.w   #4,d0                   ; Further scale (>> 4)
@@ -82,7 +82,7 @@ physics_integration:
         ; --- Convert heading to Y velocity component ---
         move.w  $40(a0),d0              ; Reload heading
         neg.w   d0                      ; Negate for cosine lookup convention
-        dc.w    $4EBA,$E866             ; BSR.W cosine_lookup ($8F4E)
+        jsr     sine_cosine_quadrant_lookup(pc) ; $4EBA $E866
         muls.w  $6(a0),d0              ; Velocity = cos(heading) * speed
         asr.l   #8,d0                   ; Scale down (fixed-point >> 8)
         asr.w   #4,d0                   ; Further scale (>> 4)

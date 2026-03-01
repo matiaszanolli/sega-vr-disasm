@@ -78,4 +78,4 @@ entity_target_action:
         move.b  #$B2,($FFFFC8A4).w      ; $11FC $00B2 $C8A4 — set AI mode
         rts
 .too_close:
-        dc.w    $4EFA,$0116             ; JMP $AED8(PC) - chain to entity_directional_push
+        jmp     entity_directional_push(pc) ; $4EFA $0116

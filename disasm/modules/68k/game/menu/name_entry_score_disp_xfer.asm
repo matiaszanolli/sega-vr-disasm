@@ -23,12 +23,12 @@ name_entry_score_disp_xfer:
         movea.l #$0400D018,A1                   ; $0111BC  A1 = display dest 1
         move.w  #$0078,D0                       ; $0111C2  size = $78
         move.w  #$0018,D1                       ; $0111C6  width = $18
-        dc.w    $4EBA,$D18E                     ; $0111CA  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $D18E
         movea.l #$06019AC0,A0                   ; $0111CE  A0 = VRAM source (score area 2)
         movea.l #$0400D0A0,A1                   ; $0111D4  A1 = display dest 2
         move.w  #$0078,D0                       ; $0111DA  size = $78
         move.w  #$0018,D1                       ; $0111DE  width = $18
-        dc.w    $4EBA,$D176                     ; $0111E2  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $D176
         lea     $0403B048,A1                    ; $0111E6  A1 = time digit dest 1
         lea     ($FFFFA046).w,A2                ; $0111EC  A2 = BCD buffer 1
         jsr     lap_time_digit_renderer_b(pc); $4EBA $06E2
@@ -39,12 +39,12 @@ name_entry_score_disp_xfer:
         movea.l #$0401B010,A1                   ; $011208  A1 = UI dest 1
         move.w  #$0038,D0                       ; $01120E  size = $38
         move.w  #$0010,D1                       ; $011212  width = $10
-        dc.w    $4EBA,$D142                     ; $011216  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $D142
         movea.l #$06018C00,A0                   ; $01121A  A0 = UI element source (same)
         movea.l #$0401B098,A1                   ; $011220  A1 = UI dest 2
         move.w  #$0038,D0                       ; $011226  size = $38
         move.w  #$0010,D1                       ; $01122A  width = $10
-        dc.w    $4EBA,$D12A                     ; $01122E  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $D12A
         addq.w  #4,($FFFFC87E).w                ; $011232  advance game_state
         move.w  #$0018,$00FF0008                ; $011236  display mode = $0018
         rts                                     ; $01123E

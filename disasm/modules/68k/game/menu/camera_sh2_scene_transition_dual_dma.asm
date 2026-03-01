@@ -38,12 +38,12 @@ camera_sh2_scene_transition_dual_dma:
         movea.l #$04007010,A1                   ; $013C82  dest A
         move.w  #$0120,D0                       ; $013C88  size = $120
         move.w  #$0058,D1                       ; $013C8C  width = $58
-        dc.w    $4EBA,$A6C8                     ; $013C90  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $A6C8
         movea.l #$0601DFC0,A0                   ; $013C94  source B
         movea.l #$04013010,A1                   ; $013C9A  dest B
         move.w  #$0120,D0                       ; $013CA0  size = $120
         move.w  #$0058,D1                       ; $013CA4  width = $58
-        dc.w    $4EBA,$A6B0                     ; $013CA8  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $A6B0
         addq.w  #4,($FFFFC87E).w                ; $013CAC  advance game_state
         move.w  #$0020,$00FF0008                ; $013CB0  display mode = $0020
         rts                                     ; $013CB8

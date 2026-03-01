@@ -39,7 +39,7 @@ name_entry_sprite_update_anim:
         movea.l #$24014034,A1                   ; $0104B2  A1 = sprite dest
         move.w  #$00D8,D0                       ; $0104B8  size = $D8
         move.w  #$0050,D1                       ; $0104BC  width = $50
-        dc.w    $4EBA,$DE98                     ; $0104C0  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $DE98
         tst.w   ($FFFFA02E).w                   ; $0104C4  animation counter
         bpl.s   .render_chars                   ; $0104C8  positive → render
         move.b  #$01,($FFFFA02C).w              ; $0104CA  set blink active

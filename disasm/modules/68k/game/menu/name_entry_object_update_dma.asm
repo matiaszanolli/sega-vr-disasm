@@ -32,7 +32,7 @@ name_entry_object_update_dma:
         movea.l #$2400E030,A1                   ; $010370  A1 = display dest
         move.w  #$0080,D0                       ; $010376  size = $80
         move.w  #$0020,D1                       ; $01037A  width = $20
-        dc.w    $4EBA,$DFDA                     ; $01037E  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $DFDA
         lea     $2402F0C0,A1                    ; $010382  A1 = palette base
         lea     ($FFFFFA48).w,A2                ; $010388  A2 = name table base
         moveq   #$00,D0                         ; $01038C

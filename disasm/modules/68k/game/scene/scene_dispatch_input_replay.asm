@@ -52,10 +52,10 @@ scene_dispatch_input_replay:
         movea.l $00C52C(pc,d0.w),a1             ; load handler address
         jsr     (a1)                            ; call state handler
 ; --- post-dispatch calls ---
-        dc.w    $4EBA,$FB52                      ; jsr scene_logic(pc) → $00C070
-        dc.w    $4EBA,$F1B8                      ; jsr sprite_update(pc) → $00B6DA
-        dc.w    $4EBA,$F15E                      ; jsr object_update(pc) → $00B684
-        dc.w    $4EFA,$0138                      ; jmp frame_finalize(pc) → $00C662
+        jsr     display_list_builder(pc) ; $4EBA $FB52
+        jsr     animated_seq_player(pc) ; $4EBA $F1B8
+        jsr     object_update(pc)       ; $4EBA $F15E
+        jmp     scene_state_disp_race_init_phases(pc) ; $4EFA $0138
 ; --- jump table (4 entries) ---
         dc.l    $0088C542                        ; state 0 → external handler
         dc.l    $0088C544                        ; state 1 → external handler

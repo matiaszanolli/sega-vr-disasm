@@ -62,7 +62,7 @@ ascii_character_to_tile_index_mapper_012618:
 .send_cmd:
         move.w  #$000C,D0                       ; $012696  width = 12
         move.w  #$0010,D1                       ; $01269A  height = 16
-        dc.w    $4EBA,$BCBA         ; jsr     $00E35A(pc)  ; sh2_send_cmd
+        jsr     sh2_send_cmd(pc)        ; $4EBA $BCBA
 .done:
         addq.l  #8,A1                           ; $0126A2  advance string pointer
         rts                                     ; $0126A4

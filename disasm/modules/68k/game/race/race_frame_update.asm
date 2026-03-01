@@ -38,18 +38,18 @@ race_frame_update:
         move.w  d0,$0046(a0)                    ; clear display_scale
         move.w  d0,$004A(a0)                    ; clear object field +$4A
 ; --- 12 physics/update subroutine calls ---
-        dc.w    $4EBA,$1678                      ; jsr load_object_params(pc) → $0080CC
+        jsr     triple_guard_set_state_to_be(pc) ; $4EBA $1678
         dc.w    $4EBA,$1AF0                      ; jsr $008548(pc)
         dc.w    $4EBA,$2DA6                      ; jsr $009802(pc)
-        dc.w    $4EBA,$141A                      ; jsr obj_velocity_y(pc) → $007E7A
-        dc.w    $4EBA,$0534                      ; jsr calc_steering(pc) → $006F98
-        dc.w    $4EBA,$1270                      ; jsr obj_position_x(pc) → $007CD8
-        dc.w    $4EBA,$063E                      ; jsr angle_to_sine(pc) → $0070AA
-        dc.w    $4EBA,$06DA                      ; jsr $00714A(pc)
-        dc.w    $4EBA,$0BDA                      ; jsr $00764E(pc)
-        dc.w    $4EBA,$14D8                      ; jsr obj_velocity_x(pc) → $007F50
-        dc.w    $4EBA,$41C2                      ; jsr $00AC3E(pc)
-        dc.w    $4EBA,$30D4                      ; jsr $009B54(pc)
+        jsr     object_anim_timer_speed_clear(pc) ; $4EBA $141A
+        jsr     entity_pos_update(pc)   ; $4EBA $0534
+        jsr     tire_screech_sound_trigger_053(pc) ; $4EBA $1270
+        jsr     angle_to_sine(pc)       ; $4EBA $063E
+        jsr     object_link_copy_table_lookup(pc) ; $4EBA $06DA
+        jsr     calculate_object_heading_composite(pc) ; $4EBA $0BDA
+        jsr     object_heading_deviation_check_warning_flag(pc) ; $4EBA $14D8
+        jsr     effect_countdown(pc)    ; $4EBA $41C2
+        jsr     speed_modifier(pc)      ; $4EBA $30D4
 ; --- state dispatch via external jump table ---
         move.w  ($FFFFC8A0).w,d0                ; race_state (table index)
         movea.l $006AB4(pc,d0.w),a1             ; load handler from table at $006AB4

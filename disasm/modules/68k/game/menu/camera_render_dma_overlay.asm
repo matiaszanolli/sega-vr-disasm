@@ -40,19 +40,19 @@ camera_render_dma_overlay:
         movea.l #$04004C74,A1                   ; $013352  dest
         move.w  #$0058,D0                       ; $013358  size = $58
         move.w  #$0010,D1                       ; $01335C  width = $10
-        dc.w    $4EBA,$AFF8                     ; $013360  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $AFF8
 ; --- static DMA: main display ---
         movea.l #$0601AD00,A0                   ; $013364  source
         movea.l #$04009038,A1                   ; $01336A  dest
         move.w  #$0048,D0                       ; $013370  size = $48
         move.w  #$00A0,D1                       ; $013374  width = $A0
-        dc.w    $4EBA,$AFE0                     ; $013378  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $AFE0
 ; --- static DMA: bottom panel ---
         movea.l #$0601DA00,A0                   ; $01337C  source
         movea.l #$04015088,A1                   ; $013382  dest
         move.w  #$0098,D0                       ; $013388  size = $98
         move.w  #$0020,D1                       ; $01338C  width = $20
-        dc.w    $4EBA,$AFC8                     ; $013390  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $AFC8
 ; --- dynamic DMA: replay angle label ---
         lea     $0089ABEE,A0                    ; $013394  A0 = replay angle table
         move.w  ($FFFFA01A).w,D0                ; $01339A  D0 = replay_angle counter
@@ -62,7 +62,7 @@ camera_render_dma_overlay:
         movea.l #$04009088,A1                   ; $0133A6  dest
         move.w  #$0040,D0                       ; $0133AC  size = $40
         move.w  #$0010,D1                       ; $0133B0  width = $10
-        dc.w    $4EBA,$AFA4                     ; $0133B4  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $AFA4
 ; --- dynamic DMA: music track label ---
         lea     $0089ABFA,A0                    ; $0133B8  A0 = music track table
         move.w  ($FFFFA01C).w,D0                ; $0133BE  D0 = music_track counter
@@ -72,7 +72,7 @@ camera_render_dma_overlay:
         movea.l #$0400C088,A1                   ; $0133CA  dest
         move.w  #$0078,D0                       ; $0133D0  size = $78
         move.w  #$0010,D1                       ; $0133D4  width = $10
-        dc.w    $4EBA,$AF80                     ; $0133D8  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $AF80
 ; --- dynamic DMA: SFX A label ---
         lea     $0089AC7C,A0                    ; $0133DC  A0 = SFX A table
         move.w  ($FFFFA01E).w,D0                ; $0133E2  D0 = sfx_a counter
@@ -82,7 +82,7 @@ camera_render_dma_overlay:
         movea.l #$0400F088,A1                   ; $0133EE  dest
         move.w  #$0068,D0                       ; $0133F4  size = $68
         move.w  #$0010,D1                       ; $0133F8  width = $10
-        dc.w    $4EBA,$AF5C                     ; $0133FC  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $AF5C
 ; --- dynamic DMA: SFX B label ---
         lea     $0089ACBE,A0                    ; $013400  A0 = SFX B table
         move.w  ($FFFFA020).w,D0                ; $013406  D0 = sfx_b counter
@@ -92,7 +92,7 @@ camera_render_dma_overlay:
         movea.l #$04012088,A1                   ; $013412  dest
         move.w  #$0088,D0                       ; $013418  size = $88
         move.w  #$0010,D1                       ; $01341C  width = $10
-        dc.w    $4EBA,$AF38                     ; $013420  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $AF38
 ; --- conditional overlay via sh2_cmd_27 ---
         tst.w   ($FFFFA026).w                   ; $013424  blink toggle active?
         beq.s   .copy_palette                   ; $013428  no → palette

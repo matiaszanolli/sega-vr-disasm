@@ -27,14 +27,14 @@ name_entry_score_area_dma_xfer:
         movea.l #$0400D018,A1                   ; $011C92  A1 = display dest 1
         move.w  #$0078,D0                       ; $011C98  size = $78
         move.w  #$0018,D1                       ; $011C9C  width = $18
-        dc.w    $4EBA,$C6B8                     ; $011CA0  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $C6B8
         bra.w   .done                           ; $011CA4
 .rank0_alt:
         movea.l #$06010000,A0                   ; $011CA8  A0 = alt source
         movea.l #$0400D018,A1                   ; $011CAE  A1 = display dest 1
         move.w  #$0078,D0                       ; $011CB4  size = $78
         move.w  #$0018,D1                       ; $011CB8  width = $18
-        dc.w    $4EBA,$C69C                     ; $011CBC  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $C69C
         bra.w   .done                           ; $011CC0
 .check_rank1:
         cmpi.w  #$0002,($FFFFA04E).w            ; $011CC4  ranking == 2?
@@ -45,13 +45,13 @@ name_entry_score_area_dma_xfer:
         movea.l #$0400D0A0,A1                   ; $011CDA  A1 = display dest 2
         move.w  #$0078,D0                       ; $011CE0  size = $78
         move.w  #$0018,D1                       ; $011CE4  width = $18
-        dc.w    $4EBA,$C670                     ; $011CE8  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $C670
         bra.w   .done                           ; $011CEC
 .rank1_alt:
         movea.l #$06010000,A0                   ; $011CF0  A0 = alt source
         movea.l #$0400D0A0,A1                   ; $011CF6  A1 = display dest 2
         move.w  #$0078,D0                       ; $011CFC  size = $78
         move.w  #$0018,D1                       ; $011D00  width = $18
-        dc.w    $4EBA,$C654                     ; $011D04  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $C654
 .done:
         rts                                     ; $011D08

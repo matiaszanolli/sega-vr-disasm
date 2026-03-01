@@ -45,7 +45,7 @@ game_logic_init_state_dispatch:
         move.w  #$0020,$00FF0008                ; set SH2 command $0020
         move.l  #$0088FB98,$00FF0002            ; set SH2 handler address
         move.b  #$00,($FFFFC800).w              ; clear game_active
-        dc.w    $4EFA,$E128                      ; jmp game_init(pc) → $002890
+        jmp     mars_comm_write(pc)     ; $4EFA $E128
 ; --- dispatch entry point ---
         move.w  #$0001,($FFFFC048).w            ; camera_position = 1
         move.w  ($FFFFC07C).w,d0                ; input_state (table index)
@@ -60,7 +60,7 @@ game_logic_init_state_dispatch:
         move.b  #$01,($FFFFC800).w              ; set game_active
         move.w  #$0000,($FFFFC8AA).w            ; clear scene_state
         addq.w  #4,($FFFFC07C).w                ; advance to next state
-        dc.w    $4EFA,$6AC2                      ; jmp state_advance(pc) → $00B25E
+        jmp     bcd_scoring_calc(pc)    ; $4EFA $6AC2
 ; --- state 1: wait 40 frames then advance ---
         cmpi.w  #$0028,($FFFFC8AA).w            ; frame count = 40?
         bne.s   .state1_done

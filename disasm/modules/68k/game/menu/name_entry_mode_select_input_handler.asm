@@ -52,13 +52,13 @@ name_entry_mode_select_input_handler:
         movea.l #$0400E038,A1                   ; $011254  dest
         move.w  #$00D8,D0                       ; $01125A  size = $D8
         move.w  #$0010,D1                       ; $01125E  width = $10
-        dc.w    $4EBA,$D0F6                     ; $011262  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $D0F6
 ; --- SH2 DMA: scroll view ---
         movea.l #$06028000,A0                   ; $011266  source
         movea.l #$04010038,A1                   ; $01126C  dest
         move.w  #$00D8,D0                       ; $011272  size = $D8
         move.w  #$0050,D1                       ; $011276  width = $50
-        dc.w    $4EBA,$D0DE                     ; $01127A  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $D0DE
 ; --- time digit render ---
         lea     $0402C090,A1                    ; $01127E  dest for digits
         lea     ($FFFFA046).w,A2                ; $011284  A2 = time digit buffer
@@ -68,7 +68,7 @@ name_entry_mode_select_input_handler:
         movea.l #$0400C048,A1                   ; $011292  dest
         move.w  #$0038,D0                       ; $011298  size = $38
         move.w  #$0010,D1                       ; $01129C  width = $10
-        dc.w    $4EBA,$D0B8                     ; $0112A0  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $D0B8
 ; --- conditional: name display DMA (if $A042 == 0) ---
         tst.w   ($FFFFA042).w                   ; $0112A4  display mode active?
         bne.w   .check_action_state             ; $0112A8  yes → skip name DMA
@@ -76,17 +76,17 @@ name_entry_mode_select_input_handler:
         movea.l #$0401B030,A1                   ; $0112B2  dest A
         move.w  #$0080,D0                       ; $0112B8  size = $80
         move.w  #$0010,D1                       ; $0112BC  width = $10
-        dc.w    $4EBA,$D098                     ; $0112C0  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $D098
         movea.l #$0601AA00,A0                   ; $0112C4  source B
         movea.l #$0401B0D0,A1                   ; $0112CA  dest B
         move.w  #$0018,D0                       ; $0112D0  size = $18
         move.w  #$0010,D1                       ; $0112D4  width = $10
-        dc.w    $4EBA,$D080                     ; $0112D8  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $D080
         movea.l #$0601AB80,A0                   ; $0112DC  source C
         movea.l #$0401B100,A1                   ; $0112E2  dest C
         move.w  #$0018,D0                       ; $0112E8  size = $18
         move.w  #$0010,D1                       ; $0112EC  width = $10
-        dc.w    $4EBA,$D068                     ; $0112F0  bsr.w sh2_send_cmd ($00E35A)
+        jsr     sh2_send_cmd(pc)        ; $4EBA $D068
 ; --- action state machine ---
 .check_action_state:
         cmpi.w  #$0001,($FFFFA05C).w            ; $0112F4  action state == 1?

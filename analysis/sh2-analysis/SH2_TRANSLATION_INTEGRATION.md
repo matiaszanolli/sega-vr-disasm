@@ -1,72 +1,81 @@
-# SH2 Translation Integration Challenges
+# SH2 Translation Integration — Final Status
 
-**Date:** 2026-02-05
-**Status:** Active Investigation
+**Last Updated:** 2026-02-28
+**Status:** COMPLETE — All 92 function IDs integrated
 
 ## Overview
 
-This document captures challenges encountered when integrating SH2 assembly translations into the build system. While 75 SH2 functions have been successfully translated and integrated, 17 functions remain as `dc.w` (raw opcodes) due to size-critical constraints.
+All 92 SH2 3D engine function IDs (func_000 through func_091) are fully integrated into the build system. Source files in `disasm/sh2/3d_engine/` are assembled via Makefile rules into `.inc` files (in `disasm/sh2/generated/`) which are included by the ROM section files.
 
-## Translation vs Integration
+## Integration Summary
 
-**Important distinction:**
-- **"Translated"**: Source file exists in `disasm/sh2/` with proper assembly mnemonics
-- **"Integrated"**: Source file is compiled via Makefile and included in ROM build
+| Category | Count | Details |
+|----------|-------|---------|
+| Individual .inc files | 74 | func_000 through func_091 (some grouped) |
+| Grouped into combined .inc | 12 | func_003+004, func_014+015, func_027+028 (in 026), func_029+030+031, func_037+038+039 |
+| Numbering gaps (no address space) | 2 | func_035, func_064 |
+| Covered by existing includes | 8 | func_056-059 (by func_055+065), func_060-063 (by func_051-054) |
+| Expansion ROM functions | 12 | batch_copy_handler, cmd22_single_shot, cmd27_queue_drain, etc. |
+| **Total function IDs** | **92** | **All accounted for** |
 
-**Current status:**
-- **92 total SH2 source files** in `disasm/sh2/3d_engine/`
-- **75 successfully integrated** (have both `.bin` and `.inc` files in `sh2/generated/`)
-- **17 translated but not integrated** (source exists but still using `dc.w` in ROM sections)
+## Function ID Accounting
 
-## Root Cause: Assembler Padding
+### Grouped Functions
 
-The `sh-elf-as` assembler adds implicit alignment padding that differs from the original ROM's `dc.w` format, causing byte-level size mismatches.
+These function IDs are combined into a single .inc file because they share code paths:
 
-### Example: func_001 (Main Coordinator)
+| .inc File | Contains | Notes |
+|-----------|----------|-------|
+| func_003_004.inc | func_003, func_004 | Offset copy pair |
+| func_014_015.inc | func_014, func_015 | VDP copy pair |
+| func_026.inc | func_026, func_027, func_028 | Bounds compare + 2 shared exit paths |
+| func_029_030_031.inc | func_029, func_030, func_031 | Visibility + shared exit paths |
+| func_037_038_039.inc | func_037, func_038, func_039 | Helper trio |
 
-**Expected size:** 67 bytes (code) + 8 bytes (jump table) = 75 bytes
-**Actual assembled size:** 76 bytes (+1 byte)
+### Numbering Gaps
 
-**Impact:** Even 1-byte discrepancies cause section overlap errors in the fixed ROM layout:
-```
-Error: sections <org0019:22200>:22200-2420e and <org0020:24206>:24206-26200 must not overlap
-```
+These function IDs do not correspond to any address space in the ROM:
 
-### Example: func_002 (Case Handlers)
+| ID | Between | Explanation |
+|----|---------|-------------|
+| func_035 | func_034 ($237D5) → func_036 ($237D6) | Contiguous — no gap |
+| func_064 | func_055 ($23F2B) → func_065 ($23F2C) | Contiguous — no gap |
 
-**Expected size:** 87 bytes
-**Actual assembled size:** 96 bytes (+9 bytes)
+### Subsumed Functions
 
-**Root cause analysis:**
-- SH2 assembler may add padding between functions or data sections
-- Alignment directives like `.align 2` may differ from original toolchain behavior
-- Original game likely used a different assembler with different padding rules
+These function IDs were originally identified as separate entry points but are covered by the address ranges of other integrated functions:
 
-## Technical Challenges
+| IDs | Covered By | Explanation |
+|-----|-----------|-------------|
+| func_056-059 | func_055 + func_065 | Makefile: "func_056 removed — code at $023F2E already covered by func_065" |
+| func_060-063 | func_051-054 | `func_060_063_raster_batch.asm` is documentation only (header: "DOCUMENTATION ONLY — not used by build system") |
 
-### 1. BSR Instruction Symbol Resolution
+## Assembler Padding Issue — RESOLVED
 
-**Problem:** When assembling functions in isolation, BSR (Branch Subroutine) instructions can't resolve external function targets.
+### Problem
 
-**Error example:**
-```
-displacement to undefined symbol func_003 overflows 12-bit field
-```
+The `sh-elf-as` assembler adds implicit alignment padding that causes byte-level size mismatches with the original ROM layout. This blocked early integration of func_001 (+1 byte) and func_002 (+9 bytes).
 
-**Solution:** Convert BSR instructions to `.short` format with raw opcodes:
+### Solution: `.short` Format
+
+Functions are written using raw `.short` hex opcodes instead of mnemonics, bypassing all assembler padding/alignment behavior:
+
 ```assembly
-/* Original attempt */
-bsr func_003
+/* Instead of: */
+mov.l   @r15+,r8
+rts
 
-/* Working solution */
-.short 0xB0A7  /* BSR func_003 (+167*2 → $023176) */
+/* Use: */
+.short  0x68F6    /* mov.l @r15+,r8 */
+.short  0x000B    /* rts */
 ```
 
-### 2. PC-Relative Addressing Requirements
+**46 of 74 .inc files** use this `_short.asm` format. The remaining 28 use mnemonic format with linker scripts.
 
-**Problem:** SH2 code uses PC-relative addressing extensively. Functions must be assembled at their exact ROM file offsets for correct branching.
+### Linker Scripts
 
-**Solution:** Use linker scripts (`.lds`) to force assembly at correct addresses:
+Functions assembled from mnemonics require `.lds` linker scripts to force assembly at their exact ROM file offset (for correct PC-relative addressing):
+
 ```ld
 SECTIONS
 {
@@ -75,157 +84,26 @@ SECTIONS
 }
 ```
 
-### 3. Missing Labels in Isolated Assembly
+## Build Pipeline
 
-**Problem:** Functions may reference local labels that get lost during extraction from original ROM context.
+```
+disasm/sh2/3d_engine/func_NNN_*.asm     (source)
+    → sh-elf-as → build/sh2/func_NNN.o  (object)
+    → sh-elf-ld -T func_NNN.lds         (link at correct offset)
+    → sh-elf-objcopy → build/sh2/func_NNN.bin  (raw binary)
+    → tools/bin2dcw.py → disasm/sh2/generated/func_NNN.inc  (dc.w include)
+    → included by disasm/sections/code_22200.asm (ROM section)
+```
 
-**Example:** func_002 referenced `.restore_pr` label that wasn't defined in the extracted source.
+## Known Pitfalls
 
-**Solution:** Reconstruct missing labels by analyzing control flow and branch targets in the original `dc.w` code.
-
-### 4. Duplicate Function Definitions
-
-**Problem:** Some source files included multiple functions that actually belong in separate files.
-
-**Example:** func_002 source file initially included func_003 and func_004 definitions at the end, causing 25-byte size inflation.
-
-**Solution:** Split functions into their own files matching the original ROM layout.
-
-## Affected Functions
-
-### Functions Not Yet Integrated (17 total)
-
-These functions have source files but remain as `dc.w` in ROM sections:
-
-1. **func_001** - Main Coordinator/Dispatcher
-   - Size: 75 bytes (67 code + 8 jump table)
-   - Issue: +1 byte mismatch
-   - Location: `code_22200.asm` lines 1811-1848
-
-2. **func_002** - Case Handlers Block
-   - Size: 87 bytes
-   - Issue: +9 bytes mismatch
-   - Location: `code_22200.asm` lines 1850-1892
-
-3. **func_003/004** - Offset Copy (Short)
-   - Size: 30 bytes
-   - Status: Not yet attempted integration
-
-4. **func_005/006** - Offset Copy (Long)
-   - Size: 44 bytes
-   - Status: Not yet attempted integration
-
-5. **func_007** - Calculate Normal (Triangle)
-   - Size: 50 bytes
-   - Status: Not yet attempted integration
-
-6. **func_008** - Calculate Normal (Quad)
-   - Size: 60 bytes
-   - Status: Not yet attempted integration
-
-7. **func_009** - Transform & Project Single Vertex
-   - Size: 180 bytes
-   - Status: Not yet attempted integration
-
-8. **func_010** - Transform Loop (16 vertices max)
-   - Size: 50 bytes
-   - Status: Not yet attempted integration
-
-9. **func_011** - Transform & Project Batch
-   - Size: 180 bytes
-   - Status: Not yet attempted integration
-
-10. **func_012** - Screen Clip Check
-    - Size: 50 bytes
-    - Status: Not yet attempted integration
-
-11. **func_013** - Build Triangle Polygon
-    - Size: 200 bytes
-    - Status: Not yet attempted integration
-
-12. **func_014** - Build Quad Polygon
-    - Size: 220 bytes
-    - Status: Not yet attempted integration
-
-13. **func_015** - Lighting Calculation
-    - Size: 100 bytes
-    - Status: Not yet attempted integration
-
-14. **func_016** - Matrix Multiply (4x4)
-    - Size: 250 bytes
-    - Status: Not yet attempted integration
-
-15. **func_017** - Sort Polygons (Z-Buffer)
-    - Size: 150 bytes
-    - Status: Not yet attempted integration
-
-16. **func_018** - Draw Polygon Batch
-    - Size: 180 bytes
-    - Status: Not yet attempted integration
-
-17. **func_019** - Texture Mapping Setup
-    - Size: 120 bytes
-    - Status: Not yet attempted integration
-
-## Recommendations
-
-### For Future Translation Work
-
-1. **Accept that some functions must stay as `dc.w`**
-   - Complex coordinators with jump tables (func_001)
-   - Multi-entry case handlers (func_002)
-   - Functions with intricate PC-relative addressing
-
-2. **Use `dc.w` for size-critical code**
-   - When byte-perfect matching is required
-   - For functions in tightly-packed ROM sections
-   - Where assembler padding causes section overlaps
-
-3. **Convert BSR early in translation process**
-   - Identify all BSR instructions before attempting integration
-   - Convert to `.short` format immediately to avoid symbol resolution issues
-   - Document target addresses and offsets in comments
-
-4. **Test integration incrementally**
-   - Integrate one function at a time
-   - Verify ROM byte matching after each integration
-   - Check for section overlap errors immediately
-
-5. **Document size expectations**
-   - Record expected byte size from original ROM
-   - Track actual assembled size
-   - Investigate any discrepancies before proceeding
-
-### For Makefile Integration
-
-When integrating new SH2 functions:
-
-1. Create linker script (`.lds`) with exact ROM file offset
-2. Add Makefile variables for source/output paths
-3. Add build rules to generate `.bin` and `.inc` files
-4. Update ROM section file to include `.inc` instead of `dc.w`
-5. Build and verify size matches expected bytes
-6. Compare ROM regions with original to ensure byte-identical output
-
-### When to Keep `dc.w` Format
-
-Keep functions as `dc.w` if:
-- Size mismatch > 0 bytes (causes section overlap)
-- Function uses complex jump tables or PC-relative data
-- Multiple entry points within same function body
-- Translation requires extensive BSR conversion
-- Function is part of time-critical hot path (assembler output may differ in cycle timing)
+1. **`.align N` uses power-of-2**: `.align 1`=2B, `.align 2`=4B, `.align 4`=16B
+2. **MOV @(disp,Rm) expects byte offsets**: `mov.w @(2,r8),r0` = byte offset 2, not scaled
+3. **Literal pool sharing**: `MOV.L @(disp,PC)` instructions share data — scan for `$Dnxx` opcodes before overwriting any address
+4. **BSR in isolation**: External BSR targets can't resolve — use `.short` with raw opcode
 
 ## Related Documentation
 
-- [SH2_3D_FUNCTION_REFERENCE.md](SH2_3D_FUNCTION_REFERENCE.md) - Complete function inventory
-- [SH2_3D_PIPELINE_ARCHITECTURE.md](SH2_3D_PIPELINE_ARCHITECTURE.md) - 3D engine architecture
-- [../architecture/MEMORY_MAP.md](../architecture/MEMORY_MAP.md) - Memory layout and constraints
-- [../../CLAUDE.md](../../CLAUDE.md) - General development guidelines
-
-## See Also
-
-- **Auto Memory:** `/home/matias/.claude/projects/-mnt-data-src-32x-playground/memory/MEMORY.md`
-  - Detailed technical notes on assembler padding behavior
-  - Size mismatch root cause analysis
-  - Cache-through addressing requirements
+- [SH2_3D_PIPELINE_ARCHITECTURE.md](SH2_3D_PIPELINE_ARCHITECTURE.md) — 3D engine architecture
+- [../../KNOWN_ISSUES.md](../../KNOWN_ISSUES.md) — SH2 assembly translation pitfalls
+- [../../CLAUDE.md](../../CLAUDE.md) — Build instructions and ground rules

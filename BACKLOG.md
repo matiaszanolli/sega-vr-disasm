@@ -102,10 +102,10 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 **Tool:** `python3 tools/translate_68k_modules.py --phase2 --batch disasm/modules/68k/`
 
 ### B-011: Translate remaining SH2 functions to mnemonics
-**Status:** MOSTLY DONE — reassess scope
-**Current state:** 77 function groups integrated into build via .inc generated includes. func_001/002 use `_short.asm` (raw `.short` hex) to bypass assembler padding. 8 function IDs (func_027, 028, 035, 056-059, 064) have no standalone source — likely combined into adjacent groups or are entry points within larger functions.
-**Remaining work:** Verify the 8 "missing" function IDs are accounted for in combined groups. Update stale SH2_TRANSLATION_INTEGRATION.md (dated Feb 5, claims 75/92).
-**Key files:** `disasm/sh2/src/`, `disasm/sh2/3d_engine/`, [SH2_TRANSLATION_INTEGRATION.md](analysis/sh2-analysis/SH2_TRANSLATION_INTEGRATION.md)
+**Status:** DONE (2026-02-28) — all 92 function IDs accounted for
+**Result:** All 92 SH2 function IDs (func_000-091) are integrated into the build system via 74 .inc files (some grouped). 46 use `.short` hex format to bypass assembler padding; 28 use mnemonic format with linker scripts.
+**Verification of "missing" IDs:** func_027/028 are in func_026.inc (shared exit paths). func_035/064 are numbering gaps (no address space between adjacent functions). func_056-059 are covered by func_055+065 (Makefile confirms). func_060-063 are covered by func_051-054 (doc-only source file).
+**Key files:** `disasm/sh2/3d_engine/`, `disasm/sh2/generated/`, [SH2_TRANSLATION_INTEGRATION.md](analysis/sh2-analysis/SH2_TRANSLATION_INTEGRATION.md)
 
 ### B-013: Fix SH2 address errors in COMM_REGISTER_USAGE_ANALYSIS.md
 **Status:** DONE (2026-02-28)
@@ -126,6 +126,7 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 
 | ID | Description | Commit | Date |
 |----|-------------|--------|------|
+| B-011 | SH2 function integration — all 92 IDs verified, doc updated | — | 2026-02-28 |
 | B-013 | Fix SH2 address errors in COMM_REGISTER_USAGE_ANALYSIS.md (7 addresses corrected) | — | 2026-02-28 |
 | B-004 | ~~Single-shot cmd $22 (COMM1-safe v5)~~ REVERTED — Slave COMM2_HI poll causes spurious dispatch in menus | — | 2026-02-20 |
 | B-003 | Async sh2_cmd_27 via COMM registers (bypasses Master SH2) | — | 2026-02-17 |

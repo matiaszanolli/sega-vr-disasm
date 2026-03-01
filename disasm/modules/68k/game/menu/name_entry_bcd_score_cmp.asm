@@ -38,24 +38,24 @@ name_entry_bcd_score_cmp:
         addi.b  #$00,D0                         ; $011B98  clear extend flag
         move.b  $0003(A0),D0                    ; $011B9C  D0 = buffer digit [3]
         move.b  $0003(A1),D1                    ; $011BA0  D1 = working digit [3]
-        dc.w    $C101                           ; $011BA4  abcd d1,d0 — BCD add
+        abcd    d1,d0                           ; $C101 — BCD add
         move.b  D0,$0003(A0)                    ; $011BA6  store result [3]
         move.b  $0002(A0),D0                    ; $011BAA  D0 = buffer digit [2]
         move.b  $0002(A1),D1                    ; $011BAE  D1 = working digit [2]
-        dc.w    $C101                           ; $011BB2  abcd d1,d0 — BCD add with carry
+        abcd    d1,d0                           ; $C101 — BCD add with carry
         move.b  D0,D1                           ; $011BB4  save result
         andi.b  #$0F,D0                         ; $011BB6  mask low nibble
         move.b  D0,$0002(A0)                    ; $011BBA  store low nibble [2]
         lsr.b   #4,D1                           ; $011BBE  high nibble → low
         addi.b  #$00,D0                         ; $011BC0  clear extend flag
         move.b  $0001(A0),D0                    ; $011BC4  D0 = buffer digit [1]
-        dc.w    $C101                           ; $011BC8  abcd d1,d0 — BCD add carry
+        abcd    d1,d0                           ; $C101 — BCD add carry
         move.b  $0001(A1),D1                    ; $011BCA  D1 = working digit [1]
-        dc.w    $C101                           ; $011BCE  abcd d1,d0 — BCD add
+        abcd    d1,d0                           ; $C101 — BCD add
         bcc.w   .no_overflow                    ; $011BD0  no carry → check range
         addi.b  #$00,D0                         ; $011BD4  clear extend flag
         move.b  #$40,D1                         ; $011BD8  overflow → set minute carry
-        dc.w    $C101                           ; $011BDC  abcd d1,d0 — add 40 (BCD adjust)
+        abcd    d1,d0                           ; $C101 — add 40 (BCD adjust)
         move.b  #$01,D1                         ; $011BDE  D1 = 1 (carry to hours)
         bra.s   .store_digit1                   ; $011BE2
 .no_overflow:
@@ -64,15 +64,15 @@ name_entry_bcd_score_cmp:
         bcs.w   .store_digit1                   ; $011BEA  < 60 → store directly
         addi.b  #$00,D0                         ; $011BEE  clear extend flag
         move.b  #$60,D1                         ; $011BF2  subtract 60 (BCD adjust)
-        dc.w    $8101                           ; $011BF6  sbcd d1,d0 — BCD subtract
+        sbcd    d1,d0                           ; $8101 — BCD subtract
         move.b  #$01,D1                         ; $011BF8  carry to hours
 .store_digit1:
         move.b  D0,$0001(A0)                    ; $011BFC  store digit [1]
         addi.b  #$00,D0                         ; $011C00  clear extend flag
         move.b  (A0),D0                         ; $011C04  D0 = buffer digit [0]
-        dc.w    $C101                           ; $011C06  abcd d1,d0 — BCD add carry
+        abcd    d1,d0                           ; $C101 — BCD add carry
         move.b  (A1),D1                         ; $011C08  D1 = working digit [0]
-        dc.w    $C101                           ; $011C0A  abcd d1,d0 — BCD add
+        abcd    d1,d0                           ; $C101 — BCD add
         move.b  D0,(A0)                         ; $011C0C  store digit [0]
         addq.l  #4,A1                           ; $011C0E  next working entry
         dbra    D2,.bcd_loop                    ; $011C10

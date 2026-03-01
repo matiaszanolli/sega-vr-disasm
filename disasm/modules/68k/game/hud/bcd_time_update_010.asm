@@ -36,26 +36,26 @@ bcd_time_update_010:
 .clamp_ok:
         add.w   d0,d0                   ; $D040
         lea     $00899884,A3                    ; $00B320  A3 → BCD delta table (ROM)
-        dc.w    $023C,$00EF                     ; $00B326  ANDI #$EF,CCR — clear X flag
+        andi.b  #$EF,ccr                        ; $023C $00EF — clear X flag
         move.w  $00(A3,D0.W),D0                 ; $00B32A  D0 = BCD delta[index]
 ; --- subtract BCD delta from time buffer ---
         move.b  $0003(A1),D1                    ; $00B32E  D1 = frames digit
-        dc.w    $8300                           ; $00B332  SBCD D0,D1 — subtract frames
+        sbcd    d0,d1                           ; $8300 — subtract frames
         move.b  D1,$0003(A1)                    ; $00B334  store frames
         moveq   #$00,D2                         ; $00B338  D2 = 0
         move.b  $0002(A1),D1                    ; $00B33A  D1 = sec_lo digit
-        dc.w    $8302                           ; $00B33E  SBCD D2,D1 — subtract borrow
+        sbcd    d2,d1                           ; $8302 — subtract borrow
         andi.b  #$0F,D1                         ; $00B340  mask to BCD digit
         move.b  D1,$0002(A1)                    ; $00B344  store sec_lo
         move.b  $0001(A1),D1                    ; $00B348  D1 = sec_hi digit
-        dc.w    $8302                           ; $00B34C  SBCD D2,D1 — subtract borrow
+        sbcd    d2,d1                           ; $8302 — subtract borrow
         bcc.s   .no_borrow                      ; $00B34E  no borrow → skip
         subi.b  #$40,D1                         ; $00B350  adjust for BCD underflow
-        dc.w    $003C,$0010                     ; $00B354  ORI #$10,CCR — set X flag
+        ori.b   #$10,ccr                        ; $003C $0010 — set X flag
 .no_borrow:
         move.b  D1,$0001(A1)                    ; $00B358  store sec_hi
         move.b  (A1),D1                         ; $00B35C  D1 = minutes digit
-        dc.w    $8302                           ; $00B35E  SBCD D2,D1 — subtract borrow
+        sbcd    d2,d1                           ; $8302 — subtract borrow
         cmpi.b  #$59,D1                         ; $00B360  minutes > $59?
         ble.s   .store_min                      ; $00B364  no → store
         move.b  #$59,D1                         ; $00B366  clamp to 59 BCD

@@ -33,30 +33,30 @@ bcd_scoring_calc:
         move.b  (A1)+,D5                        ; $00B27A  param[2]
         swap    D5                              ; $00B27C  save in hi word
         move.b  (A1)+,D5                        ; $00B27E  param[3]
-        dc.w    $023C,$00EF                     ; $00B280  andi.b #$EF,CCR — clear extend
-        dc.w    $CD05                           ; $00B284  abcd D5,D6
+        andi.b  #$EF,ccr                        ; $023C $00EF — clear extend
+        abcd    d5,d6                           ; $CD05
         swap    D5                              ; $00B286
-        dc.w    $C505                           ; $00B288  abcd D5,D2
+        abcd    d5,d2                           ; $C505
         cmpi.b  #$10,D2                         ; $00B28A
         blt.s   .no_carry                       ; $00B28E
         subi.b  #$10,D2                         ; $00B290  subtract carry threshold
-        dc.w    $003C,$0010                     ; $00B294  ori.b #$10,CCR — set extend
+        ori.b   #$10,ccr                        ; $003C $0010 — set extend
 .no_carry:
-        dc.w    $C304                           ; $00B298  abcd D4,D1
+        abcd    d4,d1                           ; $C304
         bcc.s   .no_overflow_a                  ; $00B29A
-        dc.w    $C103                           ; $00B29C  abcd D3,D0
+        abcd    d3,d0                           ; $C103
         bcs.s   .saturate                       ; $00B29E  overflow → saturate
         addi.b  #$40,D1                         ; $00B2A0
         bra.s   .check_limit                    ; $00B2A4
 .no_overflow_a:
-        dc.w    $C103                           ; $00B2A6  abcd D3,D0
+        abcd    d3,d0                           ; $C103
         bcs.s   .saturate                       ; $00B2A8  overflow → saturate
 .check_limit:
         cmp.b   D7,D1                           ; $00B2AA  D1 < D7.lo ($60)?
         bcs.s   .next_iter                      ; $00B2AC  yes → continue
-        dc.w    $8307                           ; $00B2AE  sbcd D7,D1 (subtract threshold)
+        sbcd    d7,d1                           ; $8307 — subtract threshold
         swap    D7                              ; $00B2B0
-        dc.w    $C107                           ; $00B2B2  abcd D7,D0 (add carry to hi)
+        abcd    d7,d0                           ; $C107 — add carry to hi
         bcs.s   .saturate                       ; $00B2B4  overflow → saturate
         swap    D7                              ; $00B2B6
 .next_iter:

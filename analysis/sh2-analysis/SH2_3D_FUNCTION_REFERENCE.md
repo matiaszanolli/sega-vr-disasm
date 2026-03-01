@@ -2,7 +2,7 @@
 
 **Virtua Racing Deluxe - Complete Function Catalog**
 **Analysis Date**: January 6, 2026
-**Last Updated**: February 6, 2026 (v4.4.0 - Documentation paths corrected)
+**Last Updated**: February 28, 2026 (all 92 function IDs integrated into build system)
 
 ---
 
@@ -16,7 +16,7 @@ Comprehensive reference for all 109 functions in the SH2 3D rendering engine. Fu
 
 ```
 Total Functions: 109
-├── Fully Translated: 75 (with detailed annotations, byte-verified)
+├── Fully Integrated: 92 function IDs (74 .inc groups, all byte-verified)
 ├── Entry Points: 74
 ├── Coordinators: 31
 ├── Leaf Functions: 78
@@ -25,7 +25,7 @@ Total Functions: 109
 └── Hardware Functions (VDP/register access): 12
 ```
 
-**Translation Directory**: All 75 translated functions are in `disasm/modules/sh2/3d-engine/` with byte-accurate ROM verification.
+**Translation Directory**: All 92 function IDs are integrated into the build system via `disasm/sh2/3d_engine/` source files → `disasm/sh2/generated/` .inc files. See [SH2_TRANSLATION_INTEGRATION.md](SH2_TRANSLATION_INTEGRATION.md) for full accounting.
 
 **Coverage by section:**
 - `code_22200.asm`: 57 functions (main 3D engine core)
@@ -786,7 +786,7 @@ func_XXX:
 
 ### Translated Assembly Sources
 
-All 75 translated functions are spread across 36 assembly files in `disasm/modules/sh2/3d-engine/` (some files cover multiple related functions):
+All 92 function IDs are covered by source files in `disasm/sh2/3d_engine/` assembled into 74 .inc groups in `disasm/sh2/generated/` (some files cover multiple related functions):
 
 **Key Translation Files by Pipeline Stage:**
 

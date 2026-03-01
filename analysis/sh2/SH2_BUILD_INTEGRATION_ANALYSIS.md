@@ -1,8 +1,10 @@
 # SH2 Build Integration Analysis
 
+> **SUPERSEDED (2026-02-28):** All 92 SH2 function IDs are now fully integrated into the build system. This document was a planning draft from January 2026. For current integration status, see [SH2_TRANSLATION_INTEGRATION.md](../sh2-analysis/SH2_TRANSLATION_INTEGRATION.md).
+
 **Date:** 2026-01-31
 **Purpose:** Methodical plan for integrating translated SH2 functions into the build system
-**Status:** Draft for cross-validation
+**Status:** COMPLETE — all 92 function IDs integrated (see superseding doc above)
 
 ---
 

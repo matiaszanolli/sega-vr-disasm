@@ -3,7 +3,7 @@
 **Virtua Racing Deluxe - SH2 3D Engine**
 **ROM Region**: 0x23000-0x24000+ (several KB of highly optimized code)
 **Analysis Date**: January 6, 2026
-**Last Updated**: January 31, 2026 (53 functions translated with annotations)
+**Last Updated**: February 28, 2026 (all 92 function IDs integrated into build system)
 
 ---
 
@@ -13,7 +13,7 @@ The Virtua Racing Deluxe 3D engine consists of **109 functions** spanning 8KB of
 
 **Key Metrics:**
 - Total Functions: 109
-- **Fully Translated**: 53 functions with detailed annotations
+- **Fully Integrated**: All 92 function IDs (74 .inc groups + 12 expansion + 2 numbering gaps + 4 subsumed)
 - Direct Calls (BSR): 98
 - Indirect Calls (JSR): 20
 - Leaf Functions: 78

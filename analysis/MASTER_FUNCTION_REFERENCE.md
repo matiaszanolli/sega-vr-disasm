@@ -5,7 +5,7 @@
 > Regenerate after adding/editing module headers: `python3 tools/extract_function_docs.py`
 >
 > **799 68K entries** extracted from `disasm/modules/68k/` headers.
-> **SH2 functions** (92 total, 75 translated): see [SH2_3D_FUNCTION_REFERENCE.md](sh2-analysis/SH2_3D_FUNCTION_REFERENCE.md) — that document has pseudo-code, cycle estimates, and optimization notes not reproduced here.
+> **SH2 functions** (92 total, all integrated): see [SH2_3D_FUNCTION_REFERENCE.md](sh2-analysis/SH2_3D_FUNCTION_REFERENCE.md) — that document has pseudo-code, cycle estimates, and optimization notes not reproduced here. See also [SH2_TRANSLATION_INTEGRATION.md](sh2-analysis/SH2_TRANSLATION_INTEGRATION.md) for build integration details.
 > **Frame execution context**: see [SYSTEM_EXECUTION_FLOW.md](SYSTEM_EXECUTION_FLOW.md) — when/why each subsystem runs.
 > **Quick address lookup**: see [FUNCTION_QUICK_LOOKUP.md](FUNCTION_QUICK_LOOKUP.md) — flat sorted list, ctrl+F friendly.
 

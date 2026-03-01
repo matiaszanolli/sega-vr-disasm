@@ -1,7 +1,7 @@
 # Analysis Directory - VRD 32X Reverse Engineering
 
 **Project**: Virtua Racing Deluxe (Sega 32X) Disassembly & Optimization
-**Status**: Research complete, 75 SH2 functions integrated
+**Status**: Research complete, all 92 SH2 function IDs integrated
 **Last Updated**: 2026-02-06
 
 ---
@@ -147,7 +147,7 @@ Historical documents from completed investigations. Contains 60 archived files i
 ### Completed
 - 68K reverse-engineering (503+ functions documented across 17 module categories)
 - SH2 3D rendering pipeline (109 functions mapped)
-- **SH2 source translation (75 functions integrated into build system)**
+- **SH2 source translation (all 92 function IDs integrated into build system)**
 - Performance bottleneck identification (blocking sync = root cause)
 - 4MB ROM expansion implementation (1MB SH2 working space at $300000-$3FFFFF)
 - V-INT state machine analysis (all 16 states)
@@ -160,7 +160,7 @@ Historical documents from completed investigations. Contains 60 archived files i
 
 ### Documentation Updates (2026-02-06)
 - ✅ Fixed SH2 source directory paths (disasm/modules/sh2/3d-engine/)
-- ✅ Corrected module counts (17 68K modules, 75 SH2 functions)
+- ✅ Corrected module counts (17 68K module categories, 92 SH2 function IDs)
 - ✅ Enhanced SDRAM address warnings ($06000000 = emulator-only)
 - ✅ Added precise clock speed specifications (23.01 MHz for SH2)
 - ✅ Added timestamps to key reference documents

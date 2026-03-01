@@ -146,7 +146,7 @@ Each command follows a strict `submit → wait → continue` pattern:
   - Phase 3: Manual branch translations (82 lines, 45 files)
   - Phase 4: Manual JSR/JMP translations (70 lines, 29 files)
   - Phase 5: Manual BCD arithmetic (23 lines, 3 files)
-- **92 SH2 functions** integrated into build system (77 groups via .inc files, zero remaining)
+- **92 SH2 function IDs** fully accounted for (74 groups + 12 expansion + 3 gaps/merged via 89 .inc files)
 - **118+ modules** hardened with symbolic register names (COMM/MARS/VDP/Z80 equates)
 - Remaining ~522 dc.w are data (sprite descriptors, pointer tables, lookup values) — not translatable
 - All translations verified byte-identical to original ROM (md5: `eba54fc1e2768e26079b7db6ad0f0b69`)

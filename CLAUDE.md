@@ -70,14 +70,14 @@ $300000-$3FFFFF  1.0 MB  SH2 expansion space (~1KB used, 99.9% free)
 disasm/vrd.asm (entry point)
   → disasm/sections/*.asm (header + vectors + 12 code sections + data + SH2 + expansion)
     → disasm/modules/68k/*/*.asm (821 modules across 17 categories + 15 game subcategories)
-    → disasm/sh2/generated/*.inc (78 SH2 function includes)
+    → disasm/sh2/generated/*.inc (89 SH2 function includes)
   → build/vr_rebuild.32x (4MB ROM)
 ```
 
 ### Key Stats
 
-- **821 68K modules** (530 fully translated, 291 with remaining dc.w including data tables)
-- **All SH2 functions** integrated (92 functions via 86 .inc files, zero remaining)
+- **821 68K modules** (736 fully translated, 85 with remaining dc.w — all data, not code)
+- **All SH2 functions** integrated (92 function IDs via 89 .inc files, zero remaining)
 - **68K is THE bottleneck** — 100% utilization, ~60% wasted polling COMM registers
 - **Master SH2**: 0-36% util. **Slave SH2**: 78% util. **Baseline FPS**: ~20-24
 

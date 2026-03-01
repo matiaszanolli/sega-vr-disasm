@@ -56,7 +56,7 @@ picodrive build/vr_rebuild.32x
 │   │   └── shared/definitions.asm # Master symbol table (all HW register equates)
 │   ├── sh2/                       # SH2 functions + expansion code
 │   │   ├── 3d_engine/             # 92 SH2 3D pipeline functions
-│   │   ├── generated/             # 86 SH2 function includes
+│   │   ├── generated/             # 89 SH2 function includes
 │   │   └── expansion/             # SH2 expansion ROM code ($300000+)
 │   └── sh2_symbols.inc            # 107 SH2 function symbols
 │
@@ -97,7 +97,7 @@ The expansion space at $300000+ is executed by SH2 processors only and already c
 ### Disassembly & Translation (v6.3.0 — current)
 - **821 68K modules** organized across 17 categories + 15 game subcategories
 - **736 modules** fully translated to proper assembly mnemonics (5679 dc.w lines converted)
-- **92 SH2 functions** integrated into build system (77 groups via .inc files)
+- **92 SH2 function IDs** fully accounted for (74 .inc groups + 12 expansion + 2 numbering gaps + 4 subsumed)
 - **107 SH2 functions** mapped and symbolized
 - **503+ 68K functions** named and categorized
 - All translations verified **byte-identical** to original ROM

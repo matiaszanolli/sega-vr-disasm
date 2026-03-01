@@ -97,8 +97,13 @@ The opcode encoding stores a SCALED displacement (divided by the access size), b
 | COMM7 | $2000402E | 14 | `@(14,r8)` | — |
 
 ### All SH2 Functions Now Integrated
-All 92 SH2 3D engine functions (func_000 through func_091, with gaps for non-existent numbers)
-are integrated into the build system via `.inc` generated includes. Zero remaining.
+All 92 SH2 function IDs (func_000–func_091) are accounted for via 89 `.inc` files:
+- **74 function groups** in individual/combined `.inc` files (46 use `.short` format, 28 use mnemonics)
+- **12 expansion ROM** `.inc` files (batch_copy_handler, cmd22_single_shot, etc.)
+- **2 numbering gaps**: func_035 (no address space between func_034/036), func_064 (none between func_055/065)
+- **4 subsumed IDs**: func_056-059 covered by func_055+065 range
+- **4 doc-only IDs**: func_060-063 in `func_060_063_raster_batch.asm` (DOCUMENTATION ONLY, addresses covered by func_051-054)
+- **2 merged IDs**: func_027/028 are shared exit paths within func_026.inc
 
 ### Translation Checklist
 1. Test immediately after each function translation

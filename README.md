@@ -1,3 +1,5 @@
+**(NEW)** *Check my just completed dissassembly of **Aerobiz Supersonic** at* [https://github.com/matiaszanolli/aerobiz-disasm](https://github.com/matiaszanolli/aerobiz-disasm) 
+
 # Virtua Racing Deluxe (32X) - Performance Optimization Project
 
 **Status: v6.3.0 — Full Codebase Translation & Active Optimization**

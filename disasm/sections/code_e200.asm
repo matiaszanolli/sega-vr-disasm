@@ -304,10 +304,10 @@ sh2_send_cmd_wait:
 ; Size: 64 bytes code + 26 bytes NOP padding = 90 bytes ($00E35A-$00E3B3)
 ; ============================================================================
 sh2_send_cmd:
-; --- WAIT: Previous command complete ---
+; --- WAIT: Previous command complete (SH2 clears COMM0_HI after copy + COMM cleanup) ---
 .wait_ready:
-        tst.b   COMM0_HI                        ; $00E35A: $4A39 $00A1 $5120 - Poll: SH2 busy?
-        bne.s   .wait_ready                     ; $00E360: $66F8             - Loop until idle
+        tst.b   COMM0_HI                        ; $00E35A: $4A39 $00A1 $5120 - Poll: SH2 done?
+        bne.s   .wait_ready                     ; $00E360: $66F8             - Loop until $00
 
 ; --- WRITE PARAMS ---
         move.l  a0,COMM3                        ; $00E362: $23C8 $00A1 $5126 - COMM3:4 = A0 src ptr

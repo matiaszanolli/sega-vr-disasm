@@ -2215,6 +2215,16 @@ $00E118  SH2 Cmd 27 Sprite Render                          [Game / Render]
          Sends two sprite render commands to SH2 via sh2_cmd_27.
          mod:D0, D1, D2, D3, A0, A1 | calls:$00E3B4: sh2_cmd_27 (JSR PC-relative)
 
+$00E35A  sh2_send_cmd                                     [Sh2]
+         Single-shot 2D block copy via Master SH2 (B-004 v6-corrected). Waits COMM0_HI==0,
+         writes params to COMM2-6, triggers COMM0, waits COMM0_LO==0 (params-consumed).
+         in:A0=src, A1=dst, D0=width(bytes), D1=height | mod:none (D0 saved/restored)
+
+$00E3B4  sh2_cmd_27                                       [Sh2]
+         Cmd 27 pixel-add via COMM7 doorbell (fire-and-forget). Waits COMM7==0,
+         writes COMM2-6 params, sets COMM7=$0027, returns immediately.
+         in:A0=data_ptr, D0=width, D1=height, D2=add_value | mod:none
+
 $00E5AC  default_palette_color_data                        [Game / Render]
          Default Palette Color Data Static palette color data table.
 

@@ -98,6 +98,14 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 
 ## P3 — Code Quality
 
+### B-014: Extract inline dc.w code blocks from section files into modules
+**Status:** DONE (2026-03-09)
+**Why:** B-010 translated dc.w *inside* existing modules but never addressed dc.w *in section files* — code that was never extracted into modules at all. ~1,572 dc.w lines across 10 section files, including 500+ bytes of executable 68K code sitting inline.
+**Result:** Audited all 10 68K section files. Extracted 10 code blocks into properly named modules (2 boot, 2 ai, 1 entity, 1 physics, 2 render, 1 scene, 1 state). Annotated all remaining dc.w as data tables, RTS stubs, or cross-boundary code. No executable code remains inline in section files.
+**New modules:** exception_vector_trampolines, adapter_boot_entry, collision_avoidance_speed_calc, collision_avoidance_no_target, entity_type_dispatch_tables, conditional_update_check, entity_render_frame_orch, sprite_descriptors_and_palette_load, race_scene_init_vdp_mode, palette_scene_dispatch
+**Build:** Byte-identical verified (md5: `453bdcbb34331a96e01c001490031243`).
+**Module count:** 813 → 823 (corrected — prior count of 821 was inaccurate).
+
 ### B-010: Translate remaining 68K dc.w modules
 **Status:** DONE (Phases 1-5 complete)
 **Phase 1 (done):** Automated translation of non-PC-relative, non-branch dc.w lines — 3851 lines across 139 files.
@@ -141,6 +149,7 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 | B-003 | Async sh2_cmd_27 via COMM registers (bypasses Master SH2) | — | 2026-02-17 |
 | B-008 | RV bit profiling — NEVER set, expansion ROM safe (static analysis) | — | 2026-02-16 |
 | B-006 | Activate v4.0 parallel hooks — **PARTIAL**: Patch #2 needs revert (COMM7 collision crash) | 651a415 | 2026-02-10 |
+| B-014 | Extract inline dc.w code from section files → 10 new modules (813→823) | — | 2026-03-09 |
 | B-010 | dc.w→mnemonic Phases 1-5 (5679 lines, 736/821 modules fully translated) | — | 2026-02-28 |
 | B-012 | Symbolic register hardening batch 1 (6 sh2/vdp modules) | 3b347d3 | 2026-02-10 |
 | B-012 | Symbolic register hardening batch 2 (8 modules + COMM6 fix) | 350e346 | 2026-02-10 |

@@ -23,30 +23,7 @@
         include "modules/68k/game/physics/conditional_pos_subtract.asm"
         include "modules/68k/game/physics/conditional_speed_add.asm"
         include "modules/68k/game/physics/conditional_speed_subtract.asm"
-        dc.w    $7E00        ; $006D00
-        dc.w    $0838        ; $006D02
-        dc.w    $0002        ; $006D04
-        dc.w    $C313        ; $006D06
-        dc.w    $6702        ; $006D08
-        dc.w    $7E04        ; $006D0A
-        dc.w    $DE78        ; $006D0C
-        dc.w    $C8A0        ; $006D0E
-        dc.w    $DE78        ; $006D10
-        dc.w    $C8A0        ; $006D12
-        dc.w    $45F9        ; $006D14
-        dc.w    $00FF        ; $006D16
-        dc.w    $301A        ; $006D18
-        dc.w    $2272        ; $006D1A
-        dc.w    $7000        ; $006D1C
-        dc.w    $3238        ; $006D1E
-        dc.w    $C0BA        ; $006D20
-        dc.w    $3E19        ; $006D22
-        dc.w    $B251        ; $006D24
-        dc.w    $670C        ; $006D26
-        dc.w    $43E9        ; $006D28
-        dc.w    $0010        ; $006D2A
-        dc.w    $51CF        ; $006D2C
-        dc.w    $FFF6        ; $006D2E
+        include "modules/68k/game/physics/conditional_update_check.asm"
         include "modules/68k/object/position_adjust_helpers.asm"
         include "modules/68k/game/entity/object_pos_table_lookup.asm"
         include "modules/68k/game/state/position_table_lookup.asm"
@@ -64,6 +41,7 @@
         include "modules/68k/game/render/track_tile_object_display_list_builder.asm"
         include "modules/68k/game/render/object_geometry_visibility_collect.asm"
         include "modules/68k/game/track/track_data_index_calc_table_lookup.asm"
+; --- Track Segment Pointer Tables ($00742C-$00748A, 96 bytes) ---
         dc.w    $0094        ; $00742C
         dc.w    $C000        ; $00742E
         dc.w    $0097        ; $007430
@@ -160,6 +138,7 @@
         include "modules/68k/object/field_check_guard.asm"
         include "modules/68k/game/camera/object_camera_pos_update.asm"
         include "modules/68k/game/physics/object_timer_expire_speed_param_reset.asm"
+; --- Object flag handler data+code ($0081C0-$0081FE, crosses into code_8200) ---
         dc.w    $0A0A        ; $0081C0
         dc.w    $0E0A        ; $0081C2
         dc.w    $120A        ; $0081C4

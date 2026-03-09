@@ -41,7 +41,7 @@
         include "modules/68k/game/camera/camera_offset_setup.asm"
         include "modules/68k/game/camera/camera_param_init.asm"
         include "modules/68k/game/camera/camera_scroll_update.asm"
-        dc.w    $4E75        ; $008CCC
+        dc.w    $4E75        ; $008CCC — $4E75 = RTS stub (empty function placeholder)
         include "modules/68k/game/state/state_disp_reg_copy_handler.asm"
         include "modules/68k/game/state/counter_check_flag_8200.asm"
         include "modules/68k/game/camera/camera_yaw_inc_mirror_to_viewports.asm"
@@ -57,7 +57,7 @@
         include "modules/68k/math/sin_lookup.asm"
         include "modules/68k/math/cos_lookup.asm"
         include "modules/68k/math/sin_neg_lookup.asm"
-        dc.w    $4E75        ; $008FC6
+        dc.w    $4E75        ; $008FC6 — $4E75 = RTS stub (empty function placeholder)
         include "modules/68k/math/atan2_calc.asm"
         include "modules/68k/game/physics/heading_from_position.asm"
         include "modules/68k/game/render/scroll_pan_calc_vdp_write.asm"
@@ -85,6 +85,7 @@
         include "modules/68k/game/race/race_start_countdown_sequence.asm"
         include "modules/68k/game/race/race_param_block_load_table_pointer_setup.asm"
         include "modules/68k/game/physics/track_physics_param_table_loader.asm"
+; --- Track physics parameter data block ($00A1CA-$00A1FE, 54 bytes DATA) ---
         dc.w    $0093        ; $00A1CA
         dc.w    $925E        ; $00A1CC
         dc.w    $0093        ; $00A1CE

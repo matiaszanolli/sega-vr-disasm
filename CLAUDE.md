@@ -51,6 +51,7 @@ Build produces `build/vr_rebuild.32x`. Binary compatibility with the original RO
     - **Literal pool sharing**: `MOV.L @(disp,PC),Rn` instructions share literal pools. Before overwriting ANY address in SH2 code, scan the entire section for `$Dnxx` opcodes that resolve to it (see [KNOWN_ISSUES.md](KNOWN_ISSUES.md) §SH2 Literal Pool Sharing).
     - **Test patches in isolation**: Interacting patches hide root causes. Never combine multiple SH2 patches without testing each one alone first (proven in B-006: reverting Patch #2 alone was insufficient).
     - **Verify encodings**: Always verify assembled SH2 opcodes against original ROM bytes with `python3`. Subtle encoding errors (wrong register field, wrong displacement) are invisible until runtime.
+11. **COMM Offload Cost Model** — Synchronous COMM offload is **only viable when computation time >> handshake overhead × call count**. Each COMM round-trip costs ~200-500 68K cycles of polling + register I/O, and COMM0_HI is a global busy flag — every call waits for ALL prior COMM commands to finish. Small functions called frequently (e.g., `angle_normalize`: 8×/frame, ~1,500 cycles native) become **dramatically slower** under COMM dispatch (+23% total 68K time). For small functions, use batching (N inputs per COMM command) or async/pipelined approaches. See [OPTIMIZATION_PLAN.md](OPTIMIZATION_PLAN.md) §Track 4 cost model.
 
 ## Architecture
 
@@ -69,14 +70,14 @@ $300000-$3FFFFF  1.0 MB  SH2 expansion space (~1KB used, 99.9% free)
 ```
 disasm/vrd.asm (entry point)
   → disasm/sections/*.asm (header + vectors + 12 code sections + data + SH2 + expansion)
-    → disasm/modules/68k/*/*.asm (821 modules across 17 categories + 15 game subcategories)
+    → disasm/modules/68k/*/*.asm (823 modules across 17 categories + 15 game subcategories)
     → disasm/sh2/generated/*.inc (89 SH2 function includes)
   → build/vr_rebuild.32x (4MB ROM)
 ```
 
 ### Key Stats
 
-- **821 68K modules** (736 fully translated, 85 with remaining dc.w — all data, not code)
+- **823 68K modules** (736 fully translated, 87 with remaining dc.w — all data, not code)
 - **All SH2 functions** integrated (92 function IDs via 89 .inc files, zero remaining)
 - **68K is THE bottleneck** — 100% utilization, ~60% wasted polling COMM registers
 - **Master SH2**: 0-36% util. **Slave SH2**: 78% util. **Baseline FPS**: ~20-24
@@ -130,7 +131,7 @@ disasm/vrd.asm (entry point)
 | boot | Initialization, adapter init |
 | display | Display list, screen rendering |
 | frame | Frame management |
-| game | Game logic (674 functions, all documented and organized into subcategories) |
+| game | Game logic (682 functions, all documented and organized into subcategories) |
 | graphics | Graphics primitives |
 | hardware-regs | Hardware register access |
 | input | Controller I/O |
@@ -151,19 +152,19 @@ Game modules in `disasm/modules/68k/game/<subcategory>/`:
 
 | Subcategory | Count | Purpose |
 |-------------|-------|---------|
-| ai | 25 | AI behavior, steering, opponent logic |
+| ai | 27 | AI behavior, steering, opponent logic |
 | camera | 29 | Camera setup, positioning, scrolling |
 | collision | 23 | Collision detection, proximity checks |
 | data | 16 | Decompression, lookup tables |
-| entity | 34 | Entity/object management, spawning |
+| entity | 35 | Entity/object management, spawning |
 | hud | 28 | HUD, score display, digit rendering |
 | menu | 115 | Menu, name entry, mode selection, UI |
-| physics | 50 | Speed, acceleration, braking, tilt |
+| physics | 51 | Speed, acceleration, braking, tilt |
 | race | 50 | Race state, lap tracking, sound triggers |
-| render | 80 | Visibility, depth sort, VDP, DMA, sprites |
-| scene | 52 | Scene init, SH2 communication, transitions |
+| render | 82 | Visibility, depth sort, VDP, DMA, sprites |
+| scene | 53 | Scene init, SH2 communication, transitions |
 | sound | 67 | FM/PSG sound driver functions |
-| state | 101 | State dispatchers, counters, flags, timers |
+| state | 102 | State dispatchers, counters, flags, timers |
 | track | 4 | Track data, segment operations |
 
 ## Profiling Quick Start

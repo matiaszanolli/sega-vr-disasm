@@ -104,12 +104,13 @@
         include "modules/68k/game/menu/conditional_scene_transition_003ea2.asm"
         include "modules/68k/game/menu/conditional_scene_transition_003ec6.asm"
         include "modules/68k/game/render/scene_state_timer_vdp_output.asm"
-        dc.w    $4E75        ; $003F2C
+        dc.w    $4E75        ; $003F2C — $4E75 = RTS stub (empty function placeholder)
         include "modules/68k/game/render/render_slot_setup.asm"
         include "modules/68k/game/render/display_state_disp_004084.asm"
         include "modules/68k/game/physics/object_speed_ramp_up_state_advance.asm"
         include "modules/68k/game/state/check_timeout_60.asm"
         include "modules/68k/game/race/race_completion_check_lap_bit_tracking.asm"
+; --- Cross-boundary code ($0041E4-$0041FF, continues into code_4200) ---
         dc.w    $11FC        ; $0041E4
         dc.w    $0001        ; $0041E6
         dc.w    $C800        ; $0041E8

@@ -45,6 +45,7 @@
         include "modules/68k/game/menu/records_screen_init.asm"
         include "modules/68k/game/menu/records_screen_state_disp.asm"
         include "modules/68k/game/menu/name_entry_rendering_sh2_xfer.asm"
+; --- Sprite descriptor data ($0121FA-$0121FE, 6 bytes DATA) ---
         dc.w    $0401        ; $0121FA
         dc.w    $9010        ; $0121FC
         dc.w    $0401        ; $0121FE

@@ -44,6 +44,7 @@
         include "modules/68k/game/menu/i_o_port_config_backup_sh2_scene_reset.asm"
         include "modules/68k/game/menu/car_driver_selection_input_handler.asm"
         include "modules/68k/game/menu/table_entry_swap_by_index.asm"
+; --- Selection index data + code ($0141DC-$0141FE, 36 bytes DATA+CODE) ---
         dc.w    $0001        ; $0141DC
         dc.w    $0504        ; $0141DE
         dc.w    $0600        ; $0141E0

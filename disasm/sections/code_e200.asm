@@ -675,20 +675,7 @@ VDPRegManipulate:
 ;
 ; Uses: D0 (jump table index), A1 (target address)
 ; ============================================================================
-        dc.w    $4EB9        ; $00E90C
-        dc.w    $0088        ; $00E90E
-        dc.w    $2080        ; $00E910
-        dc.w    $3038        ; $00E912
-        dc.w    $C87E        ; $00E914
-        dc.w    $227B        ; $00E916
-        dc.w    $0004        ; $00E918
-        dc.w    $4ED1        ; $00E91A
-        dc.w    $0088        ; $00E91C
-        dc.w    $E93A        ; $00E91E
-        dc.w    $0088        ; $00E920
-        dc.w    $EDDA        ; $00E922
-        dc.w    $0088        ; $00E924
-        dc.w    $EEF2        ; $00E926
+        include "modules/68k/game/state/palette_scene_dispatch.asm"
 
 ; ============================================================================
 ; Function: Post-Dispatch Callback ($00E928-$00E938)

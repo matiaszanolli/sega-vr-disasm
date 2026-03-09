@@ -19,7 +19,7 @@
 ; Signal Values (COMM7):
 ;   0x0000 = Idle
 ;   0x0001 = Frame sync
-;   0x0016 = Vertex transform (func_021 parallel processing)
+;   0x0016 = Vertex transform (vertex_transform parallel processing)
 ;   0x0027 = Queue drain (cmd $27 async processing)
 ;
 ; Shared Counter Block (cache-through SDRAM):
@@ -35,10 +35,10 @@
 ;   0x300000-0x300027  Padding (40 bytes)
 ;   0x300028-0x30003F  handler_frame_sync (22 bytes)
 ;   0x300050-0x30007B  master_dispatch_hook (44 bytes)
-;   0x300100-0x30015F  func_021_optimized (96 bytes)
+;   0x300100-0x30015F  vertex_transform_optimized (96 bytes)
 ;   0x300200-0x30026F  slave_work_wrapper_v2 (112 bytes, updated for RAM counters)
 ;   0x300280-0x3002AB  slave_test_func (32 bytes, reduced - counter removed)
-;   0x300300-0x300325  func_021_original_relocated (36 bytes)
+;   0x300300-0x300325  vertex_transform_original_relocated (36 bytes)
 ;   0x300400-0x300450  shadow_path_wrapper (~80 bytes, added per-call barrier)
 ;   0x300500-0x300537  batch_copy_handler (~56 bytes)
 ;   0x300600-0x30067F  cmd27_queue_drain (128 bytes)
@@ -87,7 +87,7 @@ handler_frame_sync:
 ; ============================================================================
 ; Called by Master SH2 when dispatching a command from 68K.
 ; Writes COMM7=cmd for all commands EXCEPT 0x16 (vertex transform).
-; For cmd 0x16, the func_021 trampoline handles signaling AFTER params are ready.
+; For cmd 0x16, the vertex_transform trampoline handles signaling AFTER params are ready.
 ;
 ; Entry: R0 = command value (1-255)
 ; Preserved: R4 (context), R8 (COMM0 addr)
@@ -99,23 +99,23 @@ master_dispatch_hook:
         include "sh2/generated/master_dispatch_hook.inc"
 
 ; ============================================================================
-; PADDING TO func_021_optimized
+; PADDING TO vertex_transform_optimized
 ; ============================================================================
 ; Current position: 0x30006C (hook ends at 0x50 + 28 bytes)
 ; Pad to 0x300100 for nice alignment
         dcb.b   ($300100 - *), $FF
 
 ; ============================================================================
-; func_021_optimized: Coordinate Transform + Cull (with func_016 inlined)
+; vertex_transform_optimized: Coordinate Transform + Cull (with coord_transform inlined)
 ; Entry point: 0x300100 (SH2 address: 0x02300100) - 4-BYTE ALIGNED
 ; ============================================================================
-func_021_optimized:
-        include "sh2/generated/func_021_optimized.inc"
+vertex_transform_optimized:
+        include "sh2/generated/vertex_transform_optimized.inc"
 
 ; ============================================================================
 ; PADDING TO slave_work_wrapper
 ; ============================================================================
-; Current position: ~0x300160 (func_021_optimized is ~96 bytes)
+; Current position: ~0x300160 (vertex_transform_optimized is ~96 bytes)
 ; Pad to 0x300200 for nice alignment
         dcb.b   ($300200 - *), $FF
 
@@ -149,7 +149,7 @@ slave_work_wrapper:
 ; ============================================================================
 ; SLAVE TEST FUNCTION: 0x300280 (SH2 address: 0x02300280)
 ; ============================================================================
-; Reads parameters from shared memory at 0x2203E000, then calls func_021_optimized.
+; Reads parameters from shared memory at 0x2203E000, then calls vertex_transform_optimized.
 ; Adds 100 to COMM5 on successful return.
 ;
 ; Parameter block at 0x2203E000 (cache-through SDRAM, written by Master):
@@ -164,20 +164,20 @@ slave_test_func:
         include "sh2/generated/slave_test_func.inc"
 
 ; ============================================================================
-; ORIGINAL func_021 (RELOCATED FOR SHADOW PATH — FIXED)
+; ORIGINAL vertex_transform (RELOCATED FOR SHADOW PATH — FIXED)
 ; ============================================================================
 ; Relocated from ROM $0234C8 to enable shadow path instrumentation.
 ; FIXED: Replaced PC-relative BSR with absolute MOV.L+JSR because the
-; original BSR targets (func_016 at $023368, nested at $02350A) are in
+; original BSR targets (coord_transform at $023368, nested at $02350A) are in
 ; main ROM, unreachable by BSR from expansion ROM.
 ;
 ; Address: 0x300300 (SH2: 0x02300300)
 ; Size: 52 bytes (26 words, ends at 0x300333)
 ;
         dcb.b   ($300300 - *), $FF  ; Pad to 0x300300 (auto-sized)
-func_021_original_relocated:
+vertex_transform_original_relocated:
         dc.w    $4F22        ; $300300  STS.L PR,@-R15
-        dc.w    $D30A        ; $300302  MOV.L @(40,PC),R3 → func_016 addr
+        dc.w    $D30A        ; $300302  MOV.L @(40,PC),R3 → coord_transform addr
         dc.w    $430B        ; $300304  JSR @R3
         dc.w    $0009        ; $300306  NOP (delay slot)
         dc.w    $2F76        ; $300308  MOV.L R7,@-R15       ← LOOP TARGET
@@ -198,8 +198,8 @@ func_021_original_relocated:
         dc.w    $000B        ; $300326  RTS
         dc.w    $0009        ; $300328  NOP
         dc.w    $0009        ; $30032A  NOP (align to 4 bytes)
-        dc.w    $0202        ; $30032C  Literal: func_016 = 0x02023368 (high)
-        dc.w    $3368        ; $30032E  Literal: func_016 = 0x02023368 (low)
+        dc.w    $0202        ; $30032C  Literal: coord_transform = 0x02023368 (high)
+        dc.w    $3368        ; $30032E  Literal: coord_transform = 0x02023368 (low)
         dc.w    $0202        ; $300330  Literal: nested func = 0x0202350A (high)
         dc.w    $350A        ; $300332  Literal: nested func = 0x0202350A (low)
 
@@ -207,10 +207,10 @@ func_021_original_relocated:
 ; SHADOW PATH WRAPPER: 0x300400 (SH2: 0x02300400)
 ; ============================================================================
 ; Full instrumentation for shadow path (Option 3).
-; Called from func_021 jump at $0234C8.
+; Called from vertex_transform jump at $0234C8.
 ;
 ; Increments COMM6 (Master call counter), signals Slave via COMM7,
-; then calls relocated original func_021. Master uses original results,
+; then calls relocated original vertex_transform. Master uses original results,
 ; Slave works in parallel for timing measurement.
 ;
 ; Metrics:
@@ -237,7 +237,7 @@ shadow_path_wrapper:
 ;   SH2 clears COMM0_LO=$00 after reading params (handshake)
 ;
 ; Entry: R8 = $20004020 (COMM base); dispatched via jump table $06000814
-; Calls: decompressor at $06005058, func_084 at $060043F0
+; Calls: decompressor at $06005058, hw_init_short at $060043F0
 ; Size: 64 bytes (52 code + 12 pool)
 ;
 ; See: disasm/sh2/expansion/cmd25_single_shot.asm for source
@@ -333,7 +333,7 @@ general_queue_drain:
 ; CMD22 SINGLE-SHOT HANDLER: 0x3010F0 (SH2 address: 0x023010F0)
 ; ============================================================================
 ; Inline COMM cleanup protocol (Phase 2 optimization):
-;   Replaces func_084 JSR with inline byte/word-level COMM writes.
+;   Replaces hw_init_short JSR with inline byte/word-level COMM writes.
 ;   After copy, clears COMM1 + sets COMM1_LO bit 0, then clears COMM0_HI
 ;   via byte write (preserves COMM0_LO). Re-checks COMM0_LO:
 ;     $22 → re-dispatch internally (no dispatch loop round-trip)

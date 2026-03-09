@@ -1,45 +1,45 @@
 ; ============================================================================
 ; Code Section ($024206-$0261FF)
 ; Generated from ROM bytes - guaranteed accurate
-; Note: $024200-$024205 is part of func_074 (included in code_22200.asm)
+; Note: $024200-$024205 is part of block_copy_14_short (included in code_22200.asm)
 ; ============================================================================
 
         org     $024206
 
-; Literal pool for func_074 (padding and table base address)
+; Literal pool for block_copy_14_short (padding and table base address)
         dc.w    $0000        ; $024206: padding
         dc.w    $2202        ; $024208
         dc.w    $9D6C        ; $02420A
 ; ============================================================================
-; func_075: Byte Block Iterator (26 bytes: $02420C-$024225)
-; Iterates through byte array, calls func_074 for each non-zero element
+; block_iterator_short: Byte Block Iterator (26 bytes: $02420C-$024225)
+; Iterates through byte array, calls block_copy_14_short for each non-zero element
 ; ============================================================================
-        include "sh2/generated/func_075.inc"
-; Padding between func_075 and func_076
+        include "sh2/generated/block_iterator_short.inc"
+; Padding between block_iterator_short and vdp_pixel_write_short
         dc.w    $FFFF        ; $024226: sentinel/padding
 ; ============================================================================
-; func_076: VDP Pixel Write Loop (76 bytes: $024228-$024273)
+; vdp_pixel_write_short: VDP Pixel Write Loop (76 bytes: $024228-$024273)
 ; Initializes VDP and processes pixel data with coordinate unpacking
 ; ============================================================================
-        include "sh2/generated/func_076.inc"
+        include "sh2/generated/vdp_pixel_write_short.inc"
 ; ============================================================================
-; func_077: Value-Based Dispatch (46 bytes: $024274-$0242A1)
+; value_dispatch_short: Value-Based Dispatch (46 bytes: $024274-$0242A1)
 ; Reads dispatch byte, branches based on 0/0x80/positive/negative
 ; ============================================================================
-        include "sh2/generated/func_077.inc"
-; Literal pool for func_077 (addresses and constants)
+        include "sh2/generated/value_dispatch_short.inc"
+; Literal pool for value_dispatch_short (addresses and constants)
         dc.w    $1F00        ; $0242A2
         dc.w    $0600        ; $0242A4
         dc.w    $C0D5        ; $0242A6
         dc.w    $2400        ; $0242A8
         dc.w    $0000        ; $0242AA
 ; ============================================================================
-; func_078: Negative Value Fill Handler (40 bytes: $0242AC-$0242D3)
-; Called when func_077 dispatches negative value (BF at $024282)
+; negative_fill_short: Negative Value Fill Handler (40 bytes: $0242AC-$0242D3)
+; Called when value_dispatch_short dispatches negative value (BF at $024282)
 ; Fills buffer with incrementing pattern across 28 rows
 ; ============================================================================
-        include "sh2/generated/func_078.inc"
-; Literal pool for func_078
+        include "sh2/generated/negative_fill_short.inc"
+; Literal pool for negative_fill_short
         dc.w    $2000        ; $0242D4: pattern start high
         dc.w    $0100        ; $0242D6: increment value
         dc.w    $0800        ; $0242D8: row stride
@@ -47,12 +47,12 @@
         dc.w    $2400        ; $0242DC: base address high
         dc.w    $0000        ; $0242DE: base address low ($24000000)
 ; ============================================================================
-; func_079: Fill with Decrementing Pattern (20 bytes: $0242E0-$0242F3)
-; Called when func_077 dispatches 0x80 value (BT at $02427E)
+; fill_decrement_short: Fill with Decrementing Pattern (20 bytes: $0242E0-$0242F3)
+; Called when value_dispatch_short dispatches 0x80 value (BT at $02427E)
 ; Fills buffer with decrementing word pattern
 ; ============================================================================
-        include "sh2/generated/func_079.inc"
-; Literal pool for func_079
+        include "sh2/generated/fill_decrement_short.inc"
+; Literal pool for fill_decrement_short
         dc.w    $FF00        ; $0242F4: initial pattern
         dc.w    $0100        ; $0242F6: decrement value
         dc.w    $00E0        ; $0242F8: loop count (224)
@@ -60,11 +60,11 @@
         dc.w    $2400        ; $0242FC: destination high
         dc.w    $01C0        ; $0242FE: destination low ($240001C0)
 ; ============================================================================
-; func_080: Memory Clear (34 bytes: $024300-$024321)
+; memory_clear_short: Memory Clear (34 bytes: $024300-$024321)
 ; Clears two memory regions by writing zeros
 ; ============================================================================
-        include "sh2/generated/func_080.inc"
-; Literal pool for func_080
+        include "sh2/generated/memory_clear_short.inc"
+; Literal pool for memory_clear_short
         dc.w    $0000        ; $024322: padding
         dc.w    $0603        ; $024324: region1 end high (0x06033000)
         dc.w    $3000        ; $024326: region1 end low
@@ -75,11 +75,11 @@
         dc.w    $0000        ; $024330: region2 count high (0x000004C0)
         dc.w    $04C0        ; $024332: region2 count low
 ; ============================================================================
-; func_081: Multi-JSR Coordinator (52 bytes: $024334-$024367)
+; multi_jsr_short: Multi-JSR Coordinator (52 bytes: $024334-$024367)
 ; Calls 6 subroutines in sequence via JSR
 ; ============================================================================
-        include "sh2/generated/func_081.inc"
-; Literal pool for func_081 ($024368-$02438A)
+        include "sh2/generated/multi_jsr_short.inc"
+; Literal pool for multi_jsr_short ($024368-$02438A)
         dc.w    $0600        ; $024368: target 1 high ($06003348)
         dc.w    $3348        ; $02436A: target 1 low
         dc.w    $0600        ; $02436C: target 2 high ($0600441C)
@@ -99,11 +99,11 @@
         dc.w    $0600        ; $024388: target 6 high ($060043E0)
         dc.w    $43E0        ; $02438A: target 6 low
 ; ============================================================================
-; func_082: Multi-JSR Coordinator Alt (50 bytes: $02438C-$0243BD)
-; Similar to func_081 with different parameter setup
+; multi_jsr_alt_short: Multi-JSR Coordinator Alt (50 bytes: $02438C-$0243BD)
+; Similar to multi_jsr_short with different parameter setup
 ; ============================================================================
-        include "sh2/generated/func_082.inc"
-; Literal pool for func_082 ($0243BE-$0243DE)
+        include "sh2/generated/multi_jsr_alt_short.inc"
+; Literal pool for multi_jsr_alt_short ($0243BE-$0243DE)
         dc.w    $0000        ; $0243BE: padding
         dc.w    $0600        ; $0243C0: target 1 high ($06003348)
         dc.w    $3348        ; $0243C2: target 1 low
@@ -122,19 +122,19 @@
         dc.w    $0600        ; $0243DC: target 6 high ($060043E0)
         dc.w    $43E0        ; $0243DE: target 6 low
 ; ============================================================================
-; func_083: Poll Wait Loop (12 bytes: $0243E0-$0243EB)
+; poll_wait_short: Poll Wait Loop (12 bytes: $0243E0-$0243EB)
 ; Small polling loop waiting for condition
 ; ============================================================================
-        include "sh2/generated/func_083.inc"
-; Literal pool for func_083 ($0243EC)
+        include "sh2/generated/poll_wait_short.inc"
+; Literal pool for poll_wait_short ($0243EC)
         dc.w    $2000        ; $0243EC: poll addr high ($20004100)
         dc.w    $4100        ; $0243EE: poll addr low
 ; ============================================================================
-; func_084: Hardware Register Init (28 bytes: $0243F0-$02440B)
+; hw_init_short: Hardware Register Init (28 bytes: $0243F0-$02440B)
 ; Initializes hardware registers based on condition
 ; ============================================================================
-        include "sh2/generated/func_084.inc"
-; Literal pool for func_084 ($02440C-$02441A)
+        include "sh2/generated/hw_init_short.inc"
+; Literal pool for hw_init_short ($02440C-$02441A)
         dc.w    $2000        ; $02440C: control reg high ($20004000)
         dc.w    $4000        ; $02440E: control reg low
         dc.w    $2000        ; $024410: status reg high ($20004100)
@@ -144,35 +144,35 @@
         dc.w    $2000        ; $024418: output reg 2 high ($20004023)
         dc.w    $4023        ; $02441A: output reg 2 low
 ; ============================================================================
-; func_085: Poll Until Zero (12 bytes: $02441C-$024427)
+; poll_zero_short: Poll Until Zero (12 bytes: $02441C-$024427)
 ; Polling loop that waits until register reads 0, then stores R1
 ; ============================================================================
-        include "sh2/generated/func_085.inc"
-; Literal pool for func_085 ($024428)
+        include "sh2/generated/poll_zero_short.inc"
+; Literal pool for poll_zero_short ($024428)
         dc.w    $2000        ; $024428: register addr high ($20004024)
         dc.w    $4024        ; $02442A: register addr low
 ; ============================================================================
-; func_086: Clear Register (8 bytes: $02442C-$024433)
+; clear_reg_short: Clear Register (8 bytes: $02442C-$024433)
 ; Simple function that writes 0 to a register
 ; ============================================================================
-        include "sh2/generated/func_086.inc"
-; Literal pool for func_086 ($024434)
+        include "sh2/generated/clear_reg_short.inc"
+; Literal pool for clear_reg_short ($024434)
         dc.w    $2000        ; $024434: register addr high ($20004024)
         dc.w    $4024        ; $024436: register addr low
 ; ============================================================================
-; func_087: Poll Until Zero Alternate (12 bytes: $024438-$024443)
+; poll_zero_alt_short: Poll Until Zero Alternate (12 bytes: $024438-$024443)
 ; Polling loop that waits until register reads 0
 ; ============================================================================
-        include "sh2/generated/func_087.inc"
-; Literal pool for func_087 ($024444)
+        include "sh2/generated/poll_zero_alt_short.inc"
+; Literal pool for poll_zero_alt_short ($024444)
         dc.w    $2000        ; $024444: register addr high ($20004024)
         dc.w    $4024        ; $024446: register addr low
 ; ============================================================================
-; func_088: Structure Initialization (34 bytes: $024448-$024469)
+; struct_init_short: Structure Initialization (34 bytes: $024448-$024469)
 ; Initializes a structure with values from literal pool
 ; ============================================================================
-        include "sh2/generated/func_088.inc"
-; Literal pool for func_088 ($02446A-$02447E)
+        include "sh2/generated/struct_init_short.inc"
+; Literal pool for struct_init_short ($02446A-$02447E)
         dc.w    $FF80        ; $02446A: word constant
         dc.w    $2000        ; $02446C: base addr high ($20004000)
         dc.w    $4000        ; $02446E: base addr low
@@ -185,11 +185,11 @@
         dc.w    $2000        ; $02447C: control reg high ($20004023)
         dc.w    $4023        ; $02447E: control reg low
 ; ============================================================================
-; func_089: Poll and Branch with Loop (40 bytes: $024480-$0244A7)
+; poll_branch_short: Poll and Branch with Loop (40 bytes: $024480-$0244A7)
 ; Complex polling routine with embedded data and secondary loop
 ; ============================================================================
-        include "sh2/generated/func_089.inc"
-; Literal pool for func_089 ($0244A8-$0244B2)
+        include "sh2/generated/poll_branch_short.inc"
+; Literal pool for poll_branch_short ($0244A8-$0244B2)
         dc.w    $FF00        ; $0244A8: word constant
         dc.w    $0100        ; $0244AA: word constant
         dc.w    $00E0        ; $0244AC: word constant
@@ -197,21 +197,21 @@
         dc.w    $2400        ; $0244B0: buffer addr high ($240001C0)
         dc.w    $01C0        ; $0244B2: buffer addr low
 ; ============================================================================
-; func_090: Poll Wait with Flag Set (24 bytes: $0244B4-$0244CB)
+; poll_wait_2_short: Poll Wait with Flag Set (24 bytes: $0244B4-$0244CB)
 ; Polling loop that waits for condition, then sets/clears flag
 ; ============================================================================
-        include "sh2/generated/func_090.inc"
-; Literal pool for func_090 ($0244CC-$0244D2)
+        include "sh2/generated/poll_wait_2_short.inc"
+; Literal pool for poll_wait_2_short ($0244CC-$0244D2)
         dc.w    $2000        ; $0244CC: control reg high ($20004100)
         dc.w    $4100        ; $0244CE: control reg low
         dc.w    $0000        ; $0244D0: flag value high ($00008000)
         dc.w    $8000        ; $0244D2: flag value low
 ; ============================================================================
-; func_091: Poll and Copy (18 bytes: $0244D4-$0244E5)
+; poll_copy_short: Poll and Copy (18 bytes: $0244D4-$0244E5)
 ; Polling loop that waits for condition, then copies value
 ; ============================================================================
-        include "sh2/generated/func_091.inc"
-; Literal pool for func_091 ($0244E6-$0244EE)
+        include "sh2/generated/poll_copy_short.inc"
+; Literal pool for poll_copy_short ($0244E6-$0244EE)
         dc.w    $0000        ; $0244E6: padding
         dc.w    $2000        ; $0244E8: control reg high ($20004100)
         dc.w    $4100        ; $0244EA: control reg low

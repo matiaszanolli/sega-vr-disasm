@@ -2,7 +2,7 @@
 
 # Virtua Racing Deluxe (32X) - Performance Optimization Project
 
-**Status: v6.3.0 — Full Codebase Translation & Active Optimization**
+**Status: v7.0.0 — Descriptive SH2 Names & 3D Engine Analysis**
 
 A complete, buildable disassembly of Virtua Racing Deluxe for the Sega 32X, now actively optimized to make full use of the 32X hardware. The original game runs at ~20 FPS due to a conservative blocking synchronization model that leaves significant hardware capacity untapped. This project aims to unlock that potential.
 
@@ -57,7 +57,7 @@ picodrive build/vr_rebuild.32x
 │   │   ├── 68k/                   # 821 modularized 68K modules (17 categories + 15 game subcats)
 │   │   └── shared/definitions.asm # Master symbol table (all HW register equates)
 │   ├── sh2/                       # SH2 functions + expansion code
-│   │   ├── 3d_engine/             # 92 SH2 3D pipeline functions
+│   │   ├── 3d_engine/             # 92 SH2 functions (descriptive names)
 │   │   ├── generated/             # 89 SH2 function includes
 │   │   └── expansion/             # SH2 expansion ROM code ($300000+)
 │   └── sh2_symbols.inc            # 107 SH2 function symbols
@@ -96,15 +96,16 @@ The expansion space at $300000+ is executed by SH2 processors only and already c
 
 ## Codebase Status
 
-### Disassembly & Translation (v6.3.0 — current)
+### Disassembly & Translation (v7.0.0 — current)
 - **821 68K modules** organized across 17 categories + 15 game subcategories
 - **736 modules** fully translated to proper assembly mnemonics (5679 dc.w lines converted)
-- **92 SH2 function IDs** fully accounted for (74 .inc groups + 12 expansion + 2 numbering gaps + 4 subsumed)
-- **107 SH2 functions** mapped and symbolized
+- **92 SH2 functions** with descriptive names (`matrix_multiply`, `frustum_cull`, `span_filler`, etc.)
+- **107 SH2 entry points** mapped and symbolized across 89 .inc groups + 12 expansion
 - **503+ 68K functions** named and categorized
 - All translations verified **byte-identical** to original ROM
 - 5 translation phases: automated (Phases 1-2), manual branches (Phase 3), JSR/JMP (Phase 4), BCD arithmetic (Phase 5)
 - Remaining ~522 dc.w are data values (sprite descriptors, pointer tables, lookups) — translation complete
+- 3D engine algorithmically analyzed: flat shading, Bresenham edge interpolation, bounding box visibility
 
 ### Symbolic Hardening (v5.1.0 — complete)
 - **118+ modules** hardened with symbolic register names across all 17 categories
@@ -163,6 +164,8 @@ python3 analyze_pc_profile.py profile.csv
 | **COMM Protocol** | [68K_SH2_COMMUNICATION.md](analysis/68K_SH2_COMMUNICATION.md) (B-003/B-004/B-005 protocols) |
 | **68K Functions** | [68K_FUNCTION_REFERENCE.md](analysis/68K_FUNCTION_REFERENCE.md) (503+ functions) |
 | **SH2 3D Pipeline** | [SH2_3D_PIPELINE_ARCHITECTURE.md](analysis/sh2-analysis/SH2_3D_PIPELINE_ARCHITECTURE.md) |
+| **3D Engine Deep Dive** | [SH2_3D_ENGINE_DEEP_DIVE.md](analysis/sh2-analysis/SH2_3D_ENGINE_DEEP_DIVE.md) (algorithmic analysis) |
+| **Rendering Pipeline** | [RENDERING_PIPELINE.md](analysis/RENDERING_PIPELINE.md) (end-to-end V-INT → VDP) |
 | **Hardware Manual** | [32x-hardware-manual.md](docs/32x-hardware-manual.md) |
 | **Register Hazards** | [32X_REGISTERS.md](analysis/architecture/32X_REGISTERS.md) |
 

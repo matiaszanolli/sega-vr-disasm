@@ -418,6 +418,33 @@ The Master SH2 is either completely idle (0% with hooks off) or lightly loaded (
 
 **Constraint:** Cache-through addressing (`0x2203xxxx`) required for all shared data to prevent stale cache reads.
 
+#### Detailed Function Analysis (March 2026)
+
+**Tier 1 — Immediate offload (no data marshaling):**
+
+| Function | Address | Size | Input | Output | Data Access |
+|----------|---------|------|-------|--------|-------------|
+| `angle_normalize` | $00748C | 316B | D1, D2 (angles), A1 (ROM BSP ptr) | D0 (visibility) | ROM only |
+| `sine_cosine_quadrant_lookup` | $008F4E/$8F52 | 58B | D0 (angle) | D0 (sin/cos value) | ROM table at $930000 |
+
+Both are pure functions with register I/O and ROM-only data access. Can be reimplemented directly in SH2 expansion ROM. Combined: 5.5% of useful 68K work.
+
+**Tier 2 — Deferred (require entity data in shared SDRAM):**
+
+| Function | Address | Size | Data Dependency | Calls |
+|----------|---------|------|----------------|-------|
+| `physics_integration` | $00A666 | 144B | Entity struct @ Work RAM (+$06/+$30/+$34/+$40/+$54) | ai_steering, sin/cos |
+| `rotational_offset_calc` | $00764E | 84B | Entity struct @ Work RAM (+$1E/+$20/+$22/+$30/+$34/+$72/+$E2) | sin/cos ×2 |
+
+Both read/write entity data in 68K Work RAM ($FFxxxx), which SH2 cannot access. Offloading requires:
+1. 68K copies entity fields to SDRAM scratchpad
+2. Signal Master SH2 (CMDINT or COMM doorbell)
+3. SH2 computes + writes results to SDRAM
+4. 68K reads results back from SDRAM
+Combined: 4.8% of useful 68K work.
+
+**Implementation order:** Tier 1 first (angle_normalize → sine_cosine), then Tier 2 if additional gains needed.
+
 ---
 
 ### Track 5: VDP Polling Elimination ⬇️ MEDIUM-LOW

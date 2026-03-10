@@ -96,10 +96,10 @@ Master Sequencer ($00C200)
 ```asm
         DC.W    $41F8,$9000         ; LEA     $9000.W,A0      ; Object array base
         DC.W    $4EBA,$DFF6         ; JSR     $00A1FC(PC)     ; Clear objects
-        DC.W    $4EBA,$076A         ; JSR     loc_00C974(PC)  ; Init subsystem 1
-        DC.W    $4EBA,$0CFE         ; JSR     loc_00CF0C(PC)  ; Init subsystem 2
-        DC.W    $4EBA,$09F4         ; JSR     loc_00CC06(PC)  ; Init subsystem 3
-        DC.W    $4EBA,$0D98         ; JSR     loc_00CFAE(PC)  ; Init subsystem 4
+        DC.W    $4EBA,$076A         ; JSR     track_segment_init(PC)  ; Init subsystem 1
+        DC.W    $4EBA,$0CFE         ; JSR     scene_param_setup(PC)  ; Init subsystem 2
+        DC.W    $4EBA,$09F4         ; JSR     object_array_init_rom_tables(PC)  ; Init subsystem 3
+        DC.W    $4EBA,$0D98         ; JSR     scene_display_init(PC)  ; Init subsystem 4
 ```
 
 **State Initialization ($00C218):**
@@ -134,11 +134,11 @@ Master Sequencer ($00C200)
 ```asm
         DC.W    $31FC,$0080,$A000   ; MOVE.W  #$0080,$A000.W  ; Timer = 128 frames
 
-loc_00C28C:
+.frame_loop:
         DC.W    $4EB9,$0088,$2080   ; JSR     $00882080       ; Update system
         DC.W    $4EB9,$0088,$4998   ; JSR     $00884998       ; Process frame
         DC.W    $5378,$A000         ; SUBQ.W  #1,$A000.W      ; Decrement timer
-        DC.W    $66EE               ; BNE.S  loc_00C28C      ; Loop until 0
+        DC.W    $66EE               ; BNE.S  .frame_loop      ; Loop until 0
 ```
 
 **Pattern:** Busy-wait loop for ~2 seconds (128 frames @ 60fps)
@@ -150,9 +150,9 @@ loc_00C28C:
 **Purpose:** Wait for SH2 to signal ready
 
 ```asm
-loc_00C2C0:
+.wait_sh2:
         DC.W    $0839,$0000,$00A1,$5123 ; BTST    #0,$00A15123   ; Check COMM3 bit 0
-        DC.W    $67F6               ; BEQ.S  loc_00C2C0      ; Wait until set
+        DC.W    $67F6               ; BEQ.S  .wait_sh2      ; Wait until set
         DC.W    $08B9,$0000,$00A1,$5123 ; BCLR    #0,$00A15123   ; Clear handshake
 ```
 
@@ -205,9 +205,9 @@ Init → State 0 → State 4 → State 8 → State 12 → Loop/Exit
         DC.W    $3F38,$C86C         ; MOVE.W  $C86C.W,-(A7)   ; Save state
         DC.W    $31FC,$FF00,$C86C   ; MOVE.W  #$FF00,$C86C.W  ; Temp state
         DC.W    $0838,$0000,$C81C   ; BTST    #0,$C81C.W      ; Check debug
-        DC.W    $6606               ; BNE.S  loc_00C34C
+        DC.W    $6606               ; BNE.S  .skip_sfx
         DC.W    $4EB9,$0088,$88BE   ; JSR     $008888BE       ; Load scene data
-loc_00C34C:
+.skip_sfx:
         DC.W    $31DF,$C86C         ; MOVE.W  (A7)+,$C86C.W   ; Restore state
         DC.W    $4EB9,$0088,$58C8   ; JSR     $008858C8       ; Finalize
 ```
@@ -310,7 +310,7 @@ Bits 1-0: Lap count (0-3)
         DC.W    $1038,$C8F5         ; MOVE.B  $C8F5.W,D0      ; Load table index
         DC.W    $303B,$002E         ; MOVE.W  $2E(PC,D0.W),D0 ; Load frame target
         DC.W    $B078,$C080         ; CMP.W  $C080.W,D0      ; Compare with timeline
-        DC.W    $6624               ; BNE.S  loc_00C44A      ; Skip if not matched
+        DC.W    $6624               ; BNE.S  .done      ; Skip if not matched
 
         ; Match found - trigger action
         DC.W    $31FC,$0010,$C87E   ; MOVE.W  #$0010,$C87E.W  ; Change sequence
@@ -374,10 +374,10 @@ Bits 1-0: Lap count (0-3)
 
 ```asm
         DC.W    $0838,$0007,$C80E   ; BTST    #7,$C80E.W      ; Check sync flag
-        DC.W    $6608               ; BNE.S  loc_00C6B4      ; Still waiting
+        DC.W    $6608               ; BNE.S  .done      ; Still waiting
         DC.W    $3ABC,$8B00         ; MOVE.W  #$8B00,(A5)     ; Z80 command
         DC.W    $5838,$C8F4         ; ADDQ.B  #4,$C8F4.W      ; Next state
-loc_00C6B4:
+.done:
         DC.W    $4E75               ; RTS
 ```
 
@@ -463,11 +463,11 @@ loc_00C6B4:
         DC.W    $45F8,$9100         ; LEA     $9100.W,A2      ; Object array
         DC.W    $700E               ; MOVEQ   #$0E,D0         ; 15 iterations
 
-loc_00C794:
+.copy_sort_keys:
         DC.W    $3551,$00B6         ; MOVE.W  (A1),$00B6(A2)  ; Copy to offset $B6
         DC.W    $3559,$000A         ; MOVE.W  (A1)+,$000A(A2) ; Copy to offset $A
         DC.W    $45EA,$0100         ; LEA     $0100(A2),A2    ; Next object (+256)
-        DC.W    $51C8,$FFF2         ; DBRA    D0,loc_00C794   ; Loop
+        DC.W    $51C8,$FFF2         ; DBRA    D0,.copy_sort_keys   ; Loop
 ```
 
 **Pattern:** Copy speed values to 15 objects at $9100, $9200, ..., $9E00
@@ -517,9 +517,9 @@ loc_00C794:
 ```asm
         DC.W    $3038,$C080         ; MOVE.W  $C080.W,D0      ; Load timeline
         DC.W    $0C40,$03E3         ; CMPI.W  #$03E3,D0       ; Frame 995?
-        DC.W    $6D00,$00A8         ; BLT.W  loc_00C660      ; Skip if before
+        DC.W    $6D00,$00A8         ; BLT.W  countdown_done      ; Skip if before
         DC.W    $0C40,$03E3         ; CMPI.W  #$03E3,D0       ; Exact match?
-        DC.W    $6658               ; BNE.S  loc_00C618      ; Skip if after
+        DC.W    $6658               ; BNE.S  countdown_timer_update_anim_race_start      ; Skip if after
 ```
 
 **Countdown Start ($00C5C0):**
@@ -535,7 +535,7 @@ loc_00C794:
 ```asm
         DC.W    $5478,$C0C6         ; ADDQ.W  #2,$C0C6.W      ; Increment counter
         DC.W    $0C78,$0030,$C0C6   ; CMPI.W  #$0030,$C0C6.W  ; Max = 48?
-        DC.W    $6F06               ; BLE.S  loc_00C62A
+        DC.W    $6F06               ; BLE.S  .advance_zoom
         DC.W    $31FC,$0030,$C0C6   ; MOVE.W  #$0030,$C0C6.W  ; Clamp to 48
 ```
 
@@ -544,7 +544,7 @@ loc_00C794:
 ```asm
         DC.W    $0678,$0080,$C0B0   ; ADDI.W  #$0080,$C0B0.W  ; Zoom in
         DC.W    $0C78,$1000,$C0B0   ; CMPI.W  #$1000,$C0B0.W  ; Max zoom?
-        DC.W    $6F06               ; BLE.S  loc_00C63E
+        DC.W    $6F06               ; BLE.S  .check_prerace
         DC.W    $31FC,$1000,$C0B0   ; MOVE.W  #$1000,$C0B0.W  ; Clamp
 ```
 
@@ -552,7 +552,7 @@ loc_00C794:
 
 ```asm
         DC.W    $0C78,$0510,$C080   ; CMPI.W  #$0510,$C080.W  ; Frame 1296?
-        DC.W    $6D0C               ; BLT.S  loc_00C660      ; Skip if before
+        DC.W    $6D0C               ; BLT.S  countdown_done      ; Skip if before
         DC.W    $11FC,$0004,$C8F4   ; MOVE.B  #$0004,$C8F4.W  ; Start transition
 ```
 

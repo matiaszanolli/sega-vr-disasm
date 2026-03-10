@@ -276,7 +276,7 @@ $001B5E:  MOVE.W  #$6000,(A5)          ; Different DMA source
 **Operations:**
 ```asm
 $001A64:  MOVE.W  #$002C,$C87A.W       ; Set state to 44 (0x2C)
-$001A6A:  JMP     loc_0020C6(PC)       ; Jump to common handler
+$001A6A:  JMP     .call_driver(PC)       ; Jump to common handler
 ```
 
 **Analysis:**

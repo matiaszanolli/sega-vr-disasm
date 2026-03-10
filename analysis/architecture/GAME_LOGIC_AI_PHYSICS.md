@@ -162,7 +162,7 @@ Inverted/mirrored sine table for cosine lookup.
 ```asm
         DC.W    $3028,$0002         ; MOVE.W  $0002(A0),D0    ; Load control flags
         DC.W    $0240,$1000         ; ANDI.W  #$1000,D0       ; Check bit 12
-        DC.W    $671A               ; BEQ.S  loc_00A3B8      ; Skip if not set
+        DC.W    $671A               ; BEQ.S  effect_timer_mgmt      ; Skip if not set
         DC.W    $0268,$EFFF,$0002   ; ANDI.W  #$EFFF,$0002(A0) ; Clear bit 12
         DC.W    $7000               ; MOVEQ   #$00,D0
         DC.W    $3140,$000E         ; MOVE.W  D0,$000E(A0)    ; Clear effect
@@ -205,7 +205,7 @@ loc_00A3D4:
 
 ```asm
         DC.W    $4A68,$0014         ; TST.W  $0014(A0)        ; Check boost timer
-        DC.W    $6F0A               ; BLE.S  loc_00A3E8      ; Skip if expired
+        DC.W    $6F0A               ; BLE.S  speed_calculation      ; Skip if expired
         DC.W    $5368,$0014         ; SUBQ.W  #1,$0014(A0)    ; Decrement timer
         DC.W    $0668,$0738,$0016   ; ADDI.W  #$0738,$0016(A0) ; Add boost speed
 ```
@@ -253,7 +253,7 @@ loc_00A416:
 
 ```asm
         DC.W    $D168,$0006         ; ADD.W  D0,$0006(A0)     ; Update speed
-        DC.W    $6C04               ; BGE.S  loc_00A432       ; Check underflow
+        DC.W    $6C04               ; BGE.S  speed_interpolation       ; Check underflow
         DC.W    $4268,$0006         ; CLR.W  $0006(A0)        ; Clamp to 0
 ```
 
@@ -269,13 +269,13 @@ loc_00A416:
 
 ```asm
         DC.W    $0C78,$0001,$C8C8   ; CMPI.W  #$0001,$C8C8.W  ; Not lap 1?
-        DC.W    $6732               ; BEQ.S  loc_00A46E      ; Skip if lap 1
+        DC.W    $6732               ; BEQ.S  ai_opponent_select      ; Skip if lap 1
         DC.W    $0C68,$0059,$0004   ; CMPI.W  #$0059,$0004(A0) ; Speed > 89?
-        DC.W    $6D2A               ; BLT.S  loc_00A46E      ; Skip if too slow
+        DC.W    $6D2A               ; BLT.S  ai_opponent_select      ; Skip if too slow
         DC.W    $0C38,$0004,$C319   ; CMPI.B  #$0004,$C319.W  ; Game mode 4?
-        DC.W    $6622               ; BNE.S  loc_00A46E      ; Skip if wrong mode
+        DC.W    $6622               ; BNE.S  ai_opponent_select      ; Skip if wrong mode
         DC.W    $4A68,$0086         ; TST.W  $0086(A0)       ; Effect active?
-        DC.W    $661C               ; BNE.S  loc_00A46E      ; Skip if effect on
+        DC.W    $661C               ; BNE.S  ai_opponent_select      ; Skip if effect on
 ```
 
 **Required Conditions:**
@@ -320,21 +320,21 @@ loc_00A46A:
 ```asm
         DC.W    $3029,$0030         ; MOVE.W  $0030(A1),D0    ; Opponent X
         DC.W    $9068,$0030         ; SUB.W  $0030(A0),D0    ; Delta X
-        DC.W    $6A02               ; BPL.S  loc_00A4F8
+        DC.W    $6A02               ; BPL.S  .label_00A4F8
         DC.W    $4440               ; NEG.W  D0              ; |Delta X|
 
-loc_00A4F8:
+.label_00A4F8:
         DC.W    $3E29,$0034         ; MOVE.W  $0034(A1),D7    ; Opponent Y
         DC.W    $9E68,$0034         ; SUB.W  $0034(A0),D7    ; Delta Y
-        DC.W    $6A02               ; BPL.S  loc_00A504
+        DC.W    $6A02               ; BPL.S  .label_00A504
         DC.W    $4447               ; NEG.W  D7              ; |Delta Y|
 
-loc_00A504:
+.label_00A504:
         DC.W    $DE40               ; ADD.W  D0,D7           ; D7 = |ΔX| + |ΔY|
         DC.W    $3629,$0072         ; MOVE.W  $0072(A1),D3    ; Opponent Z
         DC.W    $9668,$0072         ; SUB.W  $0072(A0),D3    ; Delta Z (signed)
         DC.W    $3C03               ; MOVE.W  D3,D6
-        DC.W    $6A02               ; BPL.S  loc_00A514
+        DC.W    $6A02               ; BPL.S  .label_00A514
         DC.W    $4446               ; NEG.W  D6              ; D6 = |ΔZ|
 ```
 
@@ -353,11 +353,11 @@ loc_00A504:
 
 ```asm
         DC.W    $0C46,$0040         ; CMPI.W  #$0040,D6       ; Z distance < 64?
-        DC.W    $6C28               ; BGE.S  loc_00A55C      ; Skip if far
+        DC.W    $6C28               ; BGE.S  .label_00A55C      ; Skip if far
         DC.W    $7040               ; MOVEQ   #$40,D0         ; Base force = 64
         DC.W    $9046               ; SUB.W  D6,D0           ; Force = 64 - distance
         DC.W    $4A43               ; TST.W  D3              ; Check Z sign
-        DC.W    $6A02               ; BPL.S  loc_00A53E      ; Branch if ahead
+        DC.W    $6A02               ; BPL.S  .label_00A53E      ; Branch if ahead
         DC.W    $4440               ; NEG.W  D0              ; Reverse force
 ```
 
@@ -370,14 +370,14 @@ steering_force = (64 - Z_distance) × direction
 
 ```asm
         DC.W    $0C78,$001C,$C07A   ; CMPI.W  #$001C,$C07A.W  ; Track 28?
-        DC.W    $670A               ; BEQ.S  loc_00A550
+        DC.W    $670A               ; BEQ.S  .label_00A550
         DC.W    $D040               ; ADD.W  D0,D0           ; × 2
         DC.W    $3200               ; MOVE.W  D0,D1
         DC.W    $D040               ; ADD.W  D0,D0           ; × 4
         DC.W    $D041               ; ADD.W  D1,D0           ; × 5 total
-        DC.W    $6008               ; BRA.S  loc_00A558
+        DC.W    $6008               ; BRA.S  .label_00A558
 
-loc_00A550:
+.label_00A550:
         DC.W    $E540               ; ASL.W  #2,D0           ; × 4 (track 28)
         DC.W    $3200               ; MOVE.W  D0,D1
         DC.W    $E741               ; ASL.W  #3,D1           ; × 8
@@ -405,16 +405,16 @@ loc_00A550:
 ```asm
         DC.W    $3029,$0006         ; MOVE.W  $0006(A1),D0    ; Opponent speed
         DC.W    $9068,$0006         ; SUB.W  $0006(A0),D0    ; Speed delta
-        DC.W    $6C28               ; BGE.S  loc_00A606      ; Skip if slower
+        DC.W    $6C28               ; BGE.S  .label_00A606      ; Skip if slower
 
         DC.W    $0C47,$01E0         ; CMPI.W  #$01E0,D7       ; XY dist < 480?
-        DC.W    $6E22               ; BGT.S  loc_00A606
+        DC.W    $6E22               ; BGT.S  .label_00A606
         DC.W    $0C47,$0040         ; CMPI.W  #$0040,D7       ; XY dist > 64?
-        DC.W    $6F1C               ; BLE.S  loc_00A606
+        DC.W    $6F1C               ; BLE.S  .label_00A606
         DC.W    $0C46,$0030         ; CMPI.W  #$0030,D6       ; Z dist < 48?
-        DC.W    $6E16               ; BGT.S  loc_00A606
+        DC.W    $6E16               ; BGT.S  .label_00A606
         DC.W    $0C68,$0064,$0004   ; CMPI.W  #$0064,$0004(A0) ; Speed > 100?
-        DC.W    $6F0E               ; BLE.S  loc_00A606
+        DC.W    $6F0E               ; BLE.S  .label_00A606
 ```
 
 **Required Conditions (all must be true):**
@@ -512,10 +512,10 @@ loc_00A696:
         DC.W    $3438,$A002         ; MOVE.W  $A002.W,D2      ; Target Y
         DC.W    $3638,$A000         ; MOVE.W  $A000.W,D3      ; Target X
         DC.W    $4443               ; NEG.W  D3              ; Negate target X
-        DC.W    $4EBA,$00E8         ; JSR     loc_00A7A0(PC)  ; Trigonometry function
+        DC.W    $4EBA,$00E8         ; JSR     ai_steering_calc(PC)  ; Trigonometry function
 ```
 
-**Rotation Calculation (called function loc_00A7A0):**
+**Rotation Calculation (called function ai_steering_calc):**
 - Inputs: D0=Y, D1=X, D2=target_Y, D3=target_X
 - Outputs: D0 = rotated angle/velocity component
 - Uses sine/cosine tables from $00A2DA
@@ -576,14 +576,14 @@ Y_new = Y_old + (cos(rotation) × speed) >> 12
         DC.W    $43F2,$0000         ; LEA     $00(A2,D0.W),A1 ; A1 = opponent object
 
         DC.W    $3029,$00A4         ; MOVE.W  $00A4(A1),D0    ; Check linked opponent
-        DC.W    $6616               ; BNE.S  loc_00A5AC      ; Skip if exists
+        DC.W    $6616               ; BNE.S  .label_00A5AC      ; Skip if exists
         DC.W    $E148               ; LSL.W  #8,D0           ; × 256
         DC.W    $45F2,$0000         ; LEA     $00(A2,D0.W),A2 ; A2 = linked opponent
 
         DC.W    $302A,$0024         ; MOVE.W  $0024(A2),D0    ; Track position (A2)
         DC.W    $9069,$0024         ; SUB.W  $0024(A1),D0    ; Position delta
         DC.W    $0C40,$0004         ; CMPI.W  #$0004,D0       ; Within 4 units?
-        DC.W    $6E02               ; BGT.S  loc_00A5AC
+        DC.W    $6E02               ; BGT.S  .label_00A5AC
         DC.W    $43D2               ; LEA     (A2),A1         ; Switch to A2
 ```
 
@@ -604,10 +604,10 @@ Y_new = Y_old + (cos(rotation) × speed) >> 12
         DC.W    $3207               ; MOVE.W  D7,D1          ; XY distance
         DC.W    $E941               ; ASL.W  #4,D1          ; × 16
         DC.W    $B041               ; CMP.W  D1,D0          ; Compare threshold
-        DC.W    $6E18               ; BGT.S  loc_00A640     ; Skip if too close
+        DC.W    $6E18               ; BGT.S  .label_00A640     ; Skip if too close
 
         DC.W    $0C46,$0040         ; CMPI.W  #$0040,D6      ; Z distance < 64?
-        DC.W    $6C12               ; BGE.S  loc_00A640
+        DC.W    $6C12               ; BGE.S  .label_00A640
 ```
 
 **Draft Conditions:**
@@ -621,10 +621,10 @@ Y_new = Y_old + (cos(rotation) × speed) >> 12
         DC.W    $7040               ; MOVEQ   #$40,D0         ; Base boost = 64
         DC.W    $9046               ; SUB.W  D6,D0           ; Boost = 64 - Z_dist
         DC.W    $4A43               ; TST.W  D3              ; Check Z sign
-        DC.W    $6A02               ; BPL.S  loc_00A638
+        DC.W    $6A02               ; BPL.S  .label_00A638
         DC.W    $4440               ; NEG.W  D0              ; Reverse if behind
 
-loc_00A638:
+.label_00A638:
         DC.W    $D040               ; ADD.W  D0,D0           ; × 2
         DC.W    $D040               ; ADD.W  D0,D0           ; × 4 total
         DC.W    $D168,$0040         ; ADD.W  D0,$0040(A0)    ; Apply boost
@@ -638,34 +638,150 @@ steering += boost
 
 ---
 
+## Algorithm Deep Dives (from March 2026 source annotations)
+
+> **Note:** Code snippets elsewhere in this document use the pre-translation `dc.w` format.
+> The source modules now contain proper 68K mnemonics with inline comments.
+> See the source files directly for current code.
+
+### Force Integration Model (`entity_force_integration_and_speed_calc` at $009300)
+
+Per-frame physics pipeline applied to each entity. Source: [entity_force_integration_and_speed_calc.asm](../../disasm/modules/68k/game/physics/entity_force_integration_and_speed_calc.asm)
+
+```
+1. Clamp raw speed +$74 to [0, $4268] (max ~17000)
+2. Drag table lookup: index = speed >> 7 (two tables: road vs off-road)
+3. Gear multiplier: drag × gear_table[gear_index], then >> 5 (fixed-point normalize)
+4. Directional force: drag × force_direction(+$0E), then >> 7
+5. Friction: calc_speed(+$16) × 16, subtracted from accumulated force
+6. Air resistance: drag(+$10) × $71C0, then >> 7, subtracted
+7. If net force negative: DOUBLE the deceleration penalty (ADD.L D2,D2)
+8. Reset grip to $0100 (1.0 in 8.8 fixed-point)
+9. Speed overflow: if speed exceeds threshold → trigger sound $B1 (skid) or $B4 (brake)
+```
+
+**Fixed-point conventions:**
+- Drag coefficient: >> 7 (~1/128 scale)
+- Gear multiplier: >> 5 (~1/32 scale)
+- Directional force: >> 7
+- Grip: 8.8 format ($0100 = 1.0)
+
+### Drift Physics Model (`drift_physics_and_camera_offset_calc` at $009688)
+
+Three-variable interaction (speed, slope, steering). Source: [drift_physics_and_camera_offset_calc.asm](../../disasm/modules/68k/game/camera/drift_physics_and_camera_offset_calc.asm)
+
+```
+Phase 1: Drift rate from steering
+  drift = steer_vel(+$8E) / 16
+  remaining = $0497 - display_speed(+$06)
+  drift += (steer × remaining) / $0497   ; speed-scaled blend
+
+Phase 2: Low-speed sine correction (speed < $80)
+  angle = speed << 7 + $8000
+  drift = cosine(angle) × drift / 64 + drift  ; smooth onset
+
+Phase 3: Scale by speed
+  drift = drift × speed / 1024  (>> 10)
+
+Phase 4: Slope adjustment
+  If downhill (slope < 0): amplify cam_dist by |slope| factor
+
+Phase 5: Slide damping + heading snap-back
+  If heading_mirror(+$3C) within $222 of target(+$40):
+    4-frame snap with ±$12 clamp per frame
+```
+
+### AI 4-Band Approach Ramp (`ai_entity_main_update_orch` at $00A972)
+
+Distance-based speed control for spawning AI entities. Source: [ai_entity_main_update_orch.asm](../../disasm/modules/68k/game/ai/ai_entity_main_update_orch.asm)
+
+| Band | Condition | Speed | Purpose |
+|------|-----------|-------|---------|
+| 1 | dist > threshold | $0020 fixed | Slow approach from far away |
+| 2 | dist > mid | dist×3/16 + 8 | Proportional to distance |
+| 3 | dist > close | full target | Normal racing speed |
+| 4 | snapped | inherit | Position locked, full AI |
+
+Entity fields: slot index (+$AE), spawn timer (+$B0), trail (+$B8), decel (+$BC).
+
+### Track Boundary Collision (`track_boundary_collision_detection` at $00789C)
+
+Center + 4-point probe system. Source: [track_boundary_collision_detection.asm](../../disasm/modules/68k/game/collision/track_boundary_collision_detection.asm)
+
+```
+1. Center probe: find current tile from (x_pos, y_pos)
+   → tile_position_calc → angle_normalize
+   → Store tile ptr to +$CE (entity tile data[0])
+
+2. Probes 1-4: offset positions (front-left, front-right, rear-left, rear-right)
+   → For each: if SAME tile as center → fast boundary check only
+                if DIFFERENT tile → full tile lookup + boundary check
+   → Store collision flags to +$56, +$57, +$58, +$59
+   → Store tile ptrs to +$D2, +$D6, +$DA
+
+3. Combined result: OR all probe flags → +$55
+
+Optimization: tile comparison before expensive boundary check avoids
+redundant tile lookups when all probes land on the same road segment.
+```
+
+---
+
 ## Memory Map Summary
 
-### Object Structure Offsets
+### Object/Entity Structure Offsets (Consolidated)
 
-| Offset | Size | Purpose | Access Frequency |
-|--------|------|---------|------------------|
-| $0002 | word | Control flags | Every frame (bit 13, 12) |
-| $0004 | word | Speed index | Table lookups |
-| $0006 | word | Current speed | Every frame |
+Consolidated from 28 annotated source modules (March 2026). See individual module headers for usage context.
+
+| Offset | Size | Purpose | Primary Users |
+|--------|------|---------|---------------|
+| $0002 | word | Control flags (bits 12-13) | Timer management, AI selection |
+| $0004 | word | Speed | Force integration, drift physics, every frame |
+| $0006 | word | Display speed | Acceleration, drift scaling, render |
 | $0008 | word | Target speed | Speed calculations |
 | $000A | word | Lookup speed | Table writes |
-| $000E | word | Cooldown timer | Timer management |
-| $0014 | word | Boost timer (📋) | Boost detection |
-| $0016 | word | Modified speed | Acceleration |
+| $000C | word | Slope | Force integration (friction), drift (amplify downhill) |
+| $000E | word | Force direction | Force integration (directional drag param) |
+| $0010 | word | Drag field | Air resistance calc (coeff $71C0) |
+| $0014 | word | Boost timer | Boost detection, countdown |
+| $0016 | word | Calc speed | Friction scaling (×16 - speed) |
+| $001E | word | Target heading | Drift snap-back target |
 | $0024 | word | Track position | Opponent comparison |
-| $0030 | word | X position | Every frame |
-| $0034 | word | Y position | Every frame |
-| $003C | word | Previous rotation | Velocity smoothing |
-| $0040 | word | Current rotation | Steering |
-| $0054 | word | Frame counter | Step oscillation |
+| $0030 | word | X position | Every frame, collision probes |
+| $0034 | word | Y position | Every frame, collision probes |
+| $003C | word | Heading mirror | Drift physics output, velocity smoothing |
+| $0040 | word | Heading angle | Steering, AI rotation |
+| $0046 | word | Scale offset | Collision probe heading calc |
+| $0054 | word | Frame counter | Step oscillation (odd/even dithering) |
+| $0055-$0059 | bytes | Collision flags | Per-probe results (center, 4 directional) |
+| $005A | word | Trail X displacement | Camera follow distance |
+| $005C | word | Trail Y displacement | Camera follow distance |
+| $006A | word | Effect timer A | Timer management |
+| $006C | word | Effect timer B | Timer management |
 | $0072 | word | Z position (depth) | Distance calc |
-| $006A | word | Effect timer A (📋) | Timer management |
-| $006C | word | Effect timer B (📋) | Timer management |
+| $0074 | word | Raw speed | Force integration input |
+| $0076 | word | Camera distance | Drift slope adjustment |
+| $0078 | word | Grip (8.8 fixed) | Reset to $0100 (1.0) per frame |
+| $007A | word | Gear index | Drag table gear multiplier |
+| $0080 | word | Sound timer | Skid sound $B1 cooldown |
+| $0082 | word | Brake timer | Brake sound cooldown |
 | $0086 | word | Effect state | AI selection |
 | $008A | word | State index | Table lookups |
+| $008E | word | Steer velocity | Drift rate input (/16) |
+| $0090 | word | Drift rate | Computed drift per frame |
+| $0092 | word | Slide | Lateral slide accumulator |
 | $00A4 | word | Opponent ID | AI tracking |
 | $00A6 | word | Alternate opponent | Secondary AI |
+| $00AA | word | Drift accumulator | Heading snap-back |
+| $00AE | word | Slot index | Race table position |
+| $00B0 | word | Spawn timer | AI approach countdown |
+| $00B8 | word | Trail | AI position trail |
+| $00BC | word | Decel | AI deceleration param |
 | $00BE | word | AI mode | High-speed flag |
+| $00CE | long | Tile data ptr [0] | Center collision tile |
+| $00D2 | long | Tile data ptr [1] | Probe 1 collision tile |
+| $00D6 | long | Tile data ptr [2] | Probe 2 collision tile |
+| $00DA | long | Tile data ptr [3] | Probe 3 collision tile |
 
 ### Global Variables
 
@@ -773,6 +889,6 @@ This module calls:
 
 ---
 
-**Last Updated:** 2026-01-17
-**Status:** ✅ Complete architectural analysis
-**Module:** game_logic_3.asm (8KB, 229 functions, 48 JSR calls)
+**Last Updated:** 2026-03-10
+**Status:** Complete architectural analysis + algorithm deep dives from annotated source (March 2026)
+**Source modules:** `disasm/modules/68k/game/physics/`, `disasm/modules/68k/game/ai/`, `disasm/modules/68k/game/collision/`, `disasm/modules/68k/game/camera/`

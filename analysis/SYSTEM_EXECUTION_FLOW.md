@@ -146,33 +146,34 @@ Each call submits one 2D block-copy command. The 68K is fully blocked until the
 Master SH2 finishes the copy.
 
 ```
-68K side (sh2_send_cmd):
+68K side (sh2_send_cmd at $00E35A — B-004 v6-corrected):
     │
-    ├─ WAIT: tst.b $A15120 (COMM0_HI); bne.s .wait   ← WAIT #1: SH2 ready?
-    │        (spins until Master SH2 clears COMM0 from previous command)
+    ├─ WAIT: tst.b COMM0_HI; bne.s .wait_ready   ← WAIT #1: SH2 done?
+    │        (spins until Master SH2 clears COMM0_HI after previous copy + COMM cleanup)
     │
-    ├─ move.l A0, $A15124    COMM2:3 = source pointer (cache-through SDRAM addr)
-    ├─ move.l A1, $A15128    COMM4:5 = dest pointer
-    ├─ move.b D1, $A1512C    COMM6_HI = height (rows)
-    ├─ move.b D0, $A1512D    COMM6_LO = width/2 (word count)
+    ├─ move.l A0, COMM3         COMM3:4 = source pointer
+    ├─ move.l A1, COMM5         COMM5:6 = dest pointer
+    ├─ move.b D1, COMM2_HI      height (rows)
+    ├─ move.b D0, COMM2_LO      width/2 (word count)
+    ├─ move.b #$22, COMM0_LO    dispatch index (BEFORE trigger)
+    ├─ move.b #$01, COMM0_HI    trigger (LAST — Master SH2 sees this)
+    │                            → dispatches to cmd22_single_shot at $023010F0
     │
-    ├─ move.w #$0122,$A15120  COMM0: HI=$01 (dispatch idx), LO=$22 (cmd code)
-    │                         → triggers Master SH2 dispatch
-    │
-    ├─ WAIT: tst.b $A15121; bne.s .wait    ← WAIT #2: params consumed?
+    ├─ WAIT: tst.b COMM0_LO; bne.s .wait_consumed  ← WAIT #2: params read?
     │        (Master SH2 clears COMM0_LO after reading COMM2–6)
     │
-    └─ WAIT: tst.b $A15120; bne.s .wait    ← WAIT #3: copy complete?
-             (Master SH2 clears COMM0_HI after block copy finishes)
+    └─ RTS (return — SH2 continues copy in background)
+         WAIT #1 of the NEXT call serves as the completion barrier.
 
-Total blocking time per call: ~150+ cycles (3 COMM handshake waits)
-14 calls × ~150 cycles = ~2,100 cycles (~1.6% of 68K frame budget)
-Plus the Master SH2 execution time — 68K stalls for ALL of it.
+2 COMM handshake waits (down from 3 in original protocol).
+The SH2 clears COMM0_HI late (after copy + COMM1 cleanup), so WAIT #1 of
+the next sh2_send_cmd implicitly waits for the previous copy to complete.
 ```
 
-**B-004 optimization** (params-read signal, v5 applied): Removes WAIT #1 by
-writing all params before setting COMM0, and WAIT #2 is shortened to ~50 cycles.
-Net saving: ~100 cycles × 14 calls = ~1,400 cycles/frame.
+**B-004 optimization** (v6-corrected, DONE — verified 3600-frame autoplay):
+Reduced from 3 waits to 2 by having the SH2 clear COMM0_LO early (params
+consumed) and COMM0_HI late (copy complete). The 68K returns after WAIT #2,
+overlapping SH2 copy time with 68K game logic until the next sh2_send_cmd call.
 
 ### sh2_cmd_27 ($00E3B4) — 21 calls/frame, FIRE-AND-FORGET
 
@@ -318,12 +319,12 @@ Based on the above, here is where cycle savings can be found:
 | Optimization | Cycles/Frame | Status |
 |-------------|-------------|--------|
 | B-003: `sh2_cmd_27` fire-and-forget | ~3,000 saved | DONE |
-| B-004: `sh2_send_cmd` params-read signal | ~1,400 saved | IN PROGRESS |
-| B-005: Command batching (35→3 submissions) | TBD | OPEN |
-| B-006: Slave SH2 parallel vertex transform | ~15–20% gain | REVERTED (needs redesign) |
+| B-004: `sh2_send_cmd` single-shot (v6-corrected) | ~1,400 saved | DONE (verified 3600-frame autoplay) |
+| B-005: Fire-and-forget `sh2_send_cmd` | N/A | BLOCKED (COMM0_HI is frame sync barrier) |
+| B-006: Slave SH2 parallel vertex transform | ~15–20% gain | REVERTED (COMM7 namespace collision) |
 | B-009: FB write FIFO burst mode (2.4× raster) | TBD | OPEN |
 | Inline `angle_to_sine` (29 calls) | ~580 saved | Not started |
-| Eliminate COMM0 busy-wait between commands | ~2,100 → 0 | Needs B-005 first |
+| Eliminate COMM0 busy-wait between commands | ~2,100 → 0 | Blocked by B-005 |
 
 The architectural ceiling: **the 3-way COMM handshake per `sh2_send_cmd` call
 forces serialization of 68K and Master SH2**. Removing these waits (via async

@@ -107,7 +107,7 @@ Module Structure:
 **Algorithm:**
 
 ```asm
-loc_00839A:
+nibble_unpack:
         DC.W    $1214               ; MOVE.B  (A4),D1         ; Byte 0
         DC.W    $6110               ; BSR.S  loc_0083AE       ; Convert to 2 digits
         DC.W    $122C,$0001         ; MOVE.B  $0001(A4),D1    ; Byte 1
@@ -156,19 +156,19 @@ loc_0083AE:
 
 ```asm
         DC.W    $C8A4               ; AND.L  -(A4),D4        ; Check flag
-        DC.W    $6706               ; BEQ.S  loc_00820A
+        DC.W    $6706               ; BEQ.S  .check_timer
         DC.W    $11FC,$00BF,$C8A4   ; MOVE.B  #$00BF,$C8A4.W ; Set to $BF
 
-loc_00820A:
+.check_timer:
         DC.W    $4A78,$C04E         ; TST.W  $C04E.W         ; Check timer
-        DC.W    $6744               ; BEQ.S  loc_008254      ; Skip if zero
+        DC.W    $6744               ; BEQ.S  table_lookup_object_field_to_race_state_byte      ; Skip if zero
         DC.W    $7000               ; MOVEQ   #$00,D0
         DC.W    $5378,$C04E         ; SUBQ.W  #1,$C04E.W     ; Decrement display timer
-        DC.W    $670A               ; BEQ.S  loc_008222
+        DC.W    $670A               ; BEQ.S  .write_flag
         DC.W    $0838,$0002,$C8AB   ; BTST    #2,$C8AB.W     ; Check pause flag
-        DC.W    $6602               ; BNE.S  loc_008222
+        DC.W    $6602               ; BNE.S  .write_flag
         DC.W    $7001               ; MOVEQ   #$01,D0         ; D0 = 1 (running)
-loc_008222:
+.write_flag:
         DC.W    $13C0,$00FF,$6960   ; MOVE.B  D0,$00FF6960    ; Write display state
 ```
 
@@ -211,7 +211,7 @@ loc_008222:
 **Comparison Logic ($008334):**
 
 ```asm
-loc_008334:
+.compute_index:
         DC.W    $47F8,$FDAA         ; LEA     $FDAA.W,A3      ; Best time table base
         DC.W    $3238,$C89C         ; MOVE.W  $C89C.W,D1      ; Track number
         DC.W    $EB49               ; LSL.W  #5,D1           ; × 32
@@ -224,15 +224,15 @@ loc_008334:
         DC.W    $47F3,$1000         ; LEA     $00(A3,D1.W),A3 ; Index into table
 
         DC.W    $0C85,$6000,$0000   ; CMPI.L  #$60000000,D5   ; Check for invalid time
-        DC.W    $6D0C               ; BLT.S  loc_008368
+        DC.W    $6D0C               ; BLT.S  three_way_value_comparison_router
         DC.W    $28BC,$DDDD,$0DDD   ; MOVE.L  #$DDDD0DDD,(A4) ; Invalid marker
         DC.W    $7001               ; MOVEQ   #$01,D0
         DC.W    $7200               ; MOVEQ   #$00,D1
         DC.W    $4E75               ; RTS
 
-loc_008368:
+three_way_value_comparison_router:
         DC.W    $BA93               ; CMP.L  (A3),D5         ; Compare with best
-        DC.W    $6D0E               ; BLT.S  loc_00837A      ; Current < Best?
+        DC.W    $6D0E               ; BLT.S  object_state_assignment_00837a      ; Current < Best?
         DC.W    $6E1C               ; BGT.S  loc_00838A      ; Current > Best?
         DC.W    $28BC,$0000,$0000   ; MOVE.L  #$00000000,(A4) ; Tied
         DC.W    $720E               ; MOVEQ   #$0E,D1
@@ -286,7 +286,7 @@ Index = (Track# × 32) + Mode_Offset + (Lap# × 8) + Lap_Offset + Mode
         DC.W    $43F9,$00FF,$68F8   ; LEA     $00FF68F8,A1
         DC.W    $1340,$FFF9         ; MOVE.B  D0,-$0007(A1)   ; Write digit 1
         DC.W    $12C1               ; MOVE.B  D1,(A1)+        ; Write digit 2
-        DC.W    $4EBA,$00F6         ; JSR     loc_00839A(PC)  ; Convert remaining
+        DC.W    $4EBA,$00F6         ; JSR     nibble_unpack(PC)  ; Convert remaining
 ```
 
 **Output Format:**
@@ -310,16 +310,16 @@ Index = (Track# × 32) + Mode_Offset + (Lap# × 8) + Lap_Offset + Mode
 
 ```asm
         DC.W    $0828,$0006,$0002   ; BTST    #6,$0002(A0)    ; Check update flag
-        DC.W    $6602               ; BNE.S  loc_0083C6
+        DC.W    $6602               ; BNE.S  entity_flag_bit_test_guard
         DC.W    $4E75               ; RTS                     ; Skip if not set
 
-loc_0083C6:
+entity_flag_bit_test_guard:
         DC.W    $7000               ; MOVEQ   #$00,D0
         DC.W    $1038,$A9E0         ; MOVE.B  $A9E0.W,D0      ; Load lap counter
         DC.W    $5238,$A9E0         ; ADDQ.B  #1,$A9E0.W      ; Increment counter
         DC.W    $43F8,$A9E3         ; LEA     $A9E3.W,A1      ; Source data
         DC.W    $45F8,$A800         ; LEA     $A800.W,A2      ; Display buffer
-        DC.W    $601C               ; BRA.S  loc_0083F6      ; Process
+        DC.W    $601C               ; BRA.S  dual_time_display_orch      ; Process
 ```
 
 **Process:**
@@ -355,15 +355,15 @@ loc_0083C6:
 
 ```asm
         DC.W    $0828,$0006,$0002   ; BTST    #6,$0002(A0)    ; Check update flag
-        DC.W    $6742               ; BEQ.S  loc_0082A6      ; Skip if not set
+        DC.W    $6742               ; BEQ.S  .sub_0082A6      ; Skip if not set
         DC.W    $0268,$BFFF,$0002   ; ANDI.W  #$BFFF,$0002(A0); Clear update flag
         DC.W    $0828,$0001,$0002   ; BTST    #1,$0002(A0)    ; Check result flag
-        DC.W    $670E               ; BEQ.S  loc_008280
+        DC.W    $670E               ; BEQ.S  timer_disp_update_004
         DC.W    $31FC,$0000,$C04E   ; MOVE.W  #$0000,$C04E.W  ; Clear timer
         DC.W    $0268,$FDFF,$0002   ; ANDI.W  #$FDFF,$0002(A0); Clear result flag
         DC.W    $4E75               ; RTS
 
-loc_008280:
+timer_disp_update_004:
         DC.W    $4278,$C8AA         ; CLR.W  $C8AA.W         ; Clear game state
 ```
 

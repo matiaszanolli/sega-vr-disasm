@@ -1,34 +1,32 @@
 # Master Function Reference
 **Virtua Racing Deluxe — Complete 68K + SH2 Function Catalog**
+**Generated from**: `tools/extract_function_docs.py`
+**Total entries**: 806
 
-> **Auto-generated** from module header comments via `tools/extract_function_docs.py`.
-> Regenerate after adding/editing module headers: `python3 tools/extract_function_docs.py`
->
-> **799 68K entries** extracted from `disasm/modules/68k/` headers.
-> **SH2 functions** (92 total, all integrated): see [SH2_3D_FUNCTION_REFERENCE.md](sh2-analysis/SH2_3D_FUNCTION_REFERENCE.md) — that document has pseudo-code, cycle estimates, and optimization notes not reproduced here. See also [SH2_TRANSLATION_INTEGRATION.md](sh2-analysis/SH2_TRANSLATION_INTEGRATION.md) for build integration details.
-> **Frame execution context**: see [SYSTEM_EXECUTION_FLOW.md](SYSTEM_EXECUTION_FLOW.md) — when/why each subsystem runs.
-> **Quick address lookup**: see [FUNCTION_QUICK_LOOKUP.md](FUNCTION_QUICK_LOOKUP.md) — flat sorted list, ctrl+F friendly.
+> This document is auto-generated from module header comments.
+> For SH2 3D engine deep analysis see `analysis/sh2-analysis/SH2_3D_FUNCTION_REFERENCE.md`.
+> For frame-level execution flow see `analysis/SYSTEM_EXECUTION_FLOW.md`.
 
 ---
 
 ## Table of Contents
 
-- [Boot](#boot) (4 functions)
+- [Boot](#boot) (6 functions)
 - [Display](#display) (12 functions)
 - [Frame](#frame) (2 functions)
-- [Game / Ai](#game--ai) (25 functions)
+- [Game / Ai](#game--ai) (27 functions)
 - [Game / Camera](#game--camera) (29 functions)
 - [Game / Collision](#game--collision) (23 functions)
 - [Game / Data](#game--data) (16 functions)
-- [Game / Entity](#game--entity) (34 functions)
+- [Game / Entity](#game--entity) (35 functions)
 - [Game / Hud](#game--hud) (28 functions)
 - [Game / Menu](#game--menu) (115 functions)
-- [Game / Physics](#game--physics) (50 functions)
+- [Game / Physics](#game--physics) (51 functions)
 - [Game / Race](#game--race) (50 functions)
-- [Game / Render](#game--render) (80 functions)
-- [Game / Scene](#game--scene) (52 functions)
+- [Game / Render](#game--render) (82 functions)
+- [Game / Scene](#game--scene) (53 functions)
 - [Game / Sound](#game--sound) (67 functions)
-- [Game / State](#game--state) (101 functions)
+- [Game / State](#game--state) (102 functions)
 - [Game / Track](#game--track) (4 functions)
 - [Graphics](#graphics) (4 functions)
 - [Hardware Regs](#hardware-regs) (2 functions)
@@ -37,7 +35,7 @@
 - [Math](#math) (9 functions)
 - [Memory](#memory) (7 functions)
 - [Object](#object) (11 functions)
-- [Optimization](#optimization) (4 functions)
+- [Optimization](#optimization) (1 functions)
 - [Sh2](#sh2) (8 functions)
 - [Sound](#sound) (27 functions)
 - [Util](#util) (7 functions)
@@ -53,6 +51,22 @@
 Contains 68000 exception vectors and SEGA standard header. Pure dc.w for byte-perfect ROM rebuild. Critical Vectors: $000000-$000003: Initial SSP (Stack Pointer) = $01000000 $000004-$000007: Reset Vector (Initial PC) = $000003F0 $000078-$00007B: V-INT Handler = $00001684 $000072-$000073: H-INT Handler = $0000170A ROM Header ($000100-$0001FF): Console: "SEGA 32X U" Title: "(C)SEGA 1994.SEP" Domestic: "V.R.DX" Overseas: "V.R.DX" Serial: "GM MK-84601-00" Region: "U" (USA) Dependencies: None (this is the entry point)
 
 *Source: [rom_header.asm](disasm/modules/68k/boot/rom_header.asm)*
+
+---
+
+### Exception Vector Trampolines ($000200-$0003BE) ($000200–$0003BE, 446 bytes)
+
+63 JMP abs.l entries ($4EF9 + 32-bit address) that redirect exception vectors to their actual handlers in the main code region ($0088xxxx). Most point to $00880832 (generic exception handler); notable exceptions: $0002A2 → $0088170A (Level 6 V-INT handler) $0002AE → $00881684 (Level 4 H-INT handler) Followed by 35 NOPs ($4E71) padding $00037A-$0003BE.
+
+*Source: [exception_vector_trampolines.asm](disasm/modules/68k/boot/exception_vector_trampolines.asm)*
+
+---
+
+### 32X Adapter Boot Entry ($0003C0-$000511) ($0003C0–$000511, 337 bytes)
+
+Contains the MARS adapter initialization sequence: $0003C0-$0003CF: "MARS CHECK MODE " identification string $0003D0-$0003EF: 32X boot parameters (stack pointers, SH2 entry points) $0003F0-$0004D3: 68K-side adapter boot code (register setup, MARS handshake, VDP init, Z80 program load, jump to main) $0004D4-$0004E7: VDP register initialization data table (20 bytes) $0004E8-$000511: Z80 program data (42 bytes, loaded into Z80 RAM) WARNING: The MARS CHECK string at $0003C0 is verified by the 32X hardware during boot. Do not modify the first 16 bytes.
+
+*Source: [adapter_boot_entry.asm](disasm/modules/68k/boot/adapter_boot_entry.asm)*
 
 ---
 
@@ -287,6 +301,26 @@ Conditionally activates AI opponent targeting based on game mode, entity speed c
 - **Modifies**: D0 Fields accessed: A0+$04: Speed table index A0+$86: AI cooldown timer (set to 15 when triggered) A0+$BE: Opponent category flag (0=normal, 1=high-speed)
 - **RAM**: ($C8C8).W: Mode flag (skip if == 1) ($C319).W: Game state byte (require == 4) ($C8A4).W: AI behavior trigger (set to $B7)
 *Source: [ai_opponent_select.asm](disasm/modules/68k/game/ai/ai_opponent_select.asm)*
+
+---
+
+### collision_avoidance_speed_calc ($00A470–$00A664, 502 bytes)
+
+AI Collision Avoidance + Speed Calculation AI/physics function that computes entity speed and performs proximity-based collision avoidance. Reads entity fields for speed, position, heading, and applies graduated steering/braking responses based on distance thresholds. Structure: $A470-$A4AC: Speed calculation from entity field $24 + table lookup $A4AE-$A4B6: Proximity gate (bit 1 of $55(A0)) $A4B8-$A4E8: Target entity lookup via $A4(A0) index $A4EC-$A514: Manhattan distance computation (|dX|+|dY|, dZ) $A514-$A580: Avoidance steering with threshold-based response $A582-$A664: Secondary entity path with different thresholds Falls through to physics_integration at $A666 (no RTS in this block). Alternate no-target path at $A6F8 branches back to $A666.
+
+- **Entry**: A0 = entity pointer, A1 = target entity pointer (from caller)
+- **Modifies**: D0-D3, D6-D7, A0-A3 Called from: counter_guard ($006FFA) via BNE.W
+*Source: [collision_avoidance_speed_calc.asm](disasm/modules/68k/game/ai/collision_avoidance_speed_calc.asm)*
+
+---
+
+### collision_avoidance_no_target ($00A6F8–$00A79E, 168 bytes)
+
+AI Collision Avoidance (No-Target Path) Alternate path of collision_avoidance_speed_calc when entity has no target ($A4(A0) == 0 or target invalid). Computes Manhattan distance to nearest entity, applies braking and lateral steering if within thresholds. Reached via BEQ.W from collision_avoidance_speed_calc at $A4BC/$A4CE. Ends with BRA.W $A666 (back to physics_integration).
+
+- **Entry**: A0 = entity pointer (from collision_avoidance_speed_calc)
+- **Modifies**: D0-D3, D6-D7, A1
+*Source: [collision_avoidance_no_target.asm](disasm/modules/68k/game/ai/collision_avoidance_no_target.asm)*
 
 ---
 
@@ -1475,6 +1509,16 @@ Loads entity data from a RAM lookup table into entity entries, using a combined 
 
 ---
 
+### entity_type_dispatch_tables ($00A868–$00A8F6, 142 bytes)
+
+AI Position Tables + Entity Type Dispatcher Combined data tables and dispatcher for AI entity type routing. Data section ($A868-$A8DF): - Signed coordinate pair table (48 words): pre-computed position offsets for AI entity positioning, referenced by ai_entity_main_update_orch via LEA $00A868(PC),A1 - Group size table (6 words): 256,128,128,128,128,128 - Handler pointer table (3 longwords): addresses into ai_entity_main_update_orch ($A972, $AB88, $ABCE) Code section ($A8E0-$A8F6): Two-level jump table dispatch: reads entity type from $AE(A0), indexes into RAM table at ($C05C).W for secondary index, then reads longword handler address from ROM pointer table. Called from: entity_render_pipeline*.asm via JSR $00A8E0(PC)
+
+- **Entry**: A0 = entity pointer
+- **Modifies**: D0, A1
+*Source: [entity_type_dispatch_tables.asm](disasm/modules/68k/game/entity/entity_type_dispatch_tables.asm)*
+
+---
+
 ### Object State Return ($00A8F8–$00A970, 120 bytes)
 
 Computes or interpolates a position value for an entity. Two paths depending on whether A0+$04 (speed index) is nonzero: Path 1 (speed-based): speed * lookup_table[index] * 596, scaled by >>12 Result clamped to 0-17000, stored at A0+$74 Path 2 (interpolation): delta toward target*64, clamped +-1024/768 Result clamped to 0-16000, stored at A0+$74 and A0+$7E
@@ -1745,7 +1789,7 @@ Clears 16 display slots ($FF6800, stride $10), then if display_list_count ($C0FC
 
 ### Score/Stat Lookup and Accumulate ($00CEC2–$00CEEE, 44 bytes)
 
-Dual Entry Point Source: code_c200 Looks up a score or stat modifier from a PC-relative data table and adds it to an accumulator at $C0E8. Has two entry points for different object table bases (primary at $FFFF9000, alternate at $FFFF9F00). The lookup index is computed from: - A byte from $FEAD (primary) or $FEAE (alternate), sign-extended × 2 - Track index: ($C8CC × 2) + $C8CA = track × 10 Combined: index = 2 × sign_ext(byte) + track × 10 The data table is located at the start of entity_heading_and_turn_rate_calculator ($CEEE), accessed via PC-relative indexed read. The table words are interleaved with the code of entity_heading_and_turn_rate_calculator (a common compiled-code optimization). ENTRY POINTS score_stat_lookup_accum_dual   Primary:   A0=$FFFF9000, input from $FEAD c200_vertex_helper_shortb  Alternate: A0=$FFFF9F00, input from $FEAE MEMORY VARIABLES $FFFFFEAD  Input byte for primary entry (sign-extended) $FFFFFEAE  Input byte for alternate entry (sign-extended) $FFFFC8CA  Track × 2 (word, added to index) $FFFFC8CC  Track × 4 (word, doubled to track × 8) $FFFFC0E8  Accumulator (word, lookup value added to it)
+Dual Entry Point Source: code_c200 Looks up a score or stat modifier from a PC-relative data table and adds it to an accumulator at $C0E8. Has two entry points for different object table bases (primary at $FFFF9000, alternate at $FFFF9F00). The lookup index is computed from: - A byte from $FEAD (primary) or $FEAE (alternate), sign-extended × 2 - Track index: ($C8CC × 2) + $C8CA = track × 10 Combined: index = 2 × sign_ext(byte) + track × 10 The data table is located at the start of entity_heading_and_turn_rate_calculator ($CEEE), accessed via PC-relative indexed read. The table words are interleaved with the code of entity_heading_and_turn_rate_calculator (a common compiled-code optimization). ENTRY POINTS score_stat_lookup_accum_dual   Primary:   A0=$FFFF9000, input from $FEAD c200_func_020b  Alternate: A0=$FFFF9F00, input from $FEAE MEMORY VARIABLES $FFFFFEAD  Input byte for primary entry (sign-extended) $FFFFFEAE  Input byte for alternate entry (sign-extended) $FFFFC8CA  Track × 2 (word, added to index) $FFFFC8CC  Track × 4 (word, doubled to track × 8) $FFFFC0E8  Accumulator (word, lookup value added to it)
 
 - **Entry**: No register inputs (entry point selects configuration)
 - **Returns**: Accumulator updated with looked-up modifier
@@ -2420,10 +2464,10 @@ DMA transfer, palette setup, SH2 object configuration. Decrements rotation count
 
 ### Camera DMA Transfer (Data Prefix) ($012BFA–$012C9E, 164 bytes)
 
-Data prefix (144 bytes) containing sprite descriptors (6 entries at $012BFA, 24 bytes each) and palette pointer table (6 longword pointers at $012C72). Executable code at fn_12200_025_exec is minimal: DMA transfer, display mode $0020, advance game_state.
+Data prefix (144 bytes) containing 6 sprite reference longwords at $012BFA, followed by 6 sprite descriptors (16 bytes each) at $012C12, and a palette pointer table (6 longwords) at $012C72. Executable code at fn_12200_025_exec: MemoryInit, display mode, state advance.
 
 - **Modifies**: D0
-- **Calls**: $00E52C: dma_transfer
+- **Calls**: MemoryInit: memory initialization
 - **RAM**: $C87E: game_state (word, advanced by 4)
 *Source: [camera_dma_xfer.asm](disasm/modules/68k/game/menu/camera_dma_xfer.asm)*
 
@@ -2484,7 +2528,7 @@ Standings Screen Initialization Initializes the championship standings/results s
 
 ### Camera State Dispatcher (Data Prefix + Jump Table) ($013292–$013346, 180 bytes)
 
-Data prefix (128 bytes of object/sprite descriptors) + state dispatcher. Calls initialization ($00882080), then reads game_state ($C87E) to index a 3-entry PC-relative jump table: State 0 → $00893346 (camera_render_dma_overlay: camera render DMA) State 4 → $008934F0 (camera_menu_orch: camera menu orchestrator) State 8 → $00893824 (camera finalize) After dispatch returns: calls object_update, checks display bit 6, advances game_state if clear, then SH2 scene transition.
+Data prefix (128 bytes of object/sprite descriptors) + state dispatcher. Calls initialization ($00882080), then reads game_state ($C87E) to index a 3-entry PC-relative jump table: State 0 -> $00893346 (camera_render_dma_overlay) State 4 -> $008934F0 (camera_menu_orch+$28) State 8 -> $00893824 (sh2_scene_reset_cond_handler_by_player_2_flag) After dispatch returns: calls object_update, checks display bit 6, advances game_state if clear, then SH2 scene transition.
 
 - **Modifies**: D0, D4, A0, A1
 - **Calls**: $00B684: object_update $00882080: initialization $0088205E: SH2 scene transition
@@ -3265,6 +3309,14 @@ Conditional Speed Subtract Calls condition check at $006D00, then subtracts D0 f
 - **Object fields**: +$04 speed
 - **Confidence**: high
 *Source: [conditional_speed_subtract.asm](disasm/modules/68k/game/physics/conditional_speed_subtract.asm)*
+
+---
+
+### conditional_update_check ($006D00-$006D2E) ($006D00–$006D2E, 46 bytes)
+
+Conditional Update Check CODE: 48 bytes — BSR target called by conditional_pos_add, conditional_speed_add, conditional_pos_subtract, conditional_speed_subtract. Tests bit 2 of $C313, selects offset, adds from $C8A0 twice, builds address into $FF301A, and loops comparing entries. Falls through to return_zero_d1 ($006D30) on no match. BEQ.S to return_one_d1 ($006D34) on match.
+
+*Source: [conditional_update_check.asm](disasm/modules/68k/game/physics/conditional_update_check.asm)*
 
 ---
 
@@ -4709,6 +4761,14 @@ Entity Render Pipeline with VDP DMA Extended entity render pipeline with VDP reg
 
 ---
 
+### entity_render_frame_orch ($00617A-$0061FE) ($00617A–$0061FE, 132 bytes)
+
+Entity Render Frame Orchestrator CODE: 134 bytes — entity field clears, 21 BSR calls, flag tests Called after entity_render_pipeline_with_vdp_dma; orchestrates per-frame entity rendering by testing flags, clearing fields, and dispatching to 21 subsystems via BSR.
+
+*Source: [entity_render_frame_orch.asm](disasm/modules/68k/game/render/entity_render_frame_orch.asm)*
+
+---
+
 ### entity_render_pipeline_with_vdp_dma_2p_copy ($006240–$006496, 598 bytes)
 
 Entity Render Pipeline with VDP DMA + 2P Copy Multi-entry entity render pipeline with VDP register writes and DMA. Contains data table prefix (3 longword ROM addresses), 4 pipeline variants (full with palette, reduced, stripped, 2-player with MOVEM block copy), and 2-player object table duplication using 32x32-byte MOVEM transfers.
@@ -4849,16 +4909,6 @@ Tire Animation and Smoke Effect Counters Updates tire/wheel animation and smoke 
 - **Object fields**: +$04 speed, +$80-$86 tire timers, +$98-$9A smoke timers, +$BE direction index, +$E6-$E8 wheel timers
 - **Confidence**: high
 *Source: [tire_animation_and_smoke_effect_counters.asm](disasm/modules/68k/game/render/tire_animation_and_smoke_effect_counters.asm)*
-
----
-
-### depth_sort ($009DD6–$009E5A, 132 bytes)
-
-Depth Sort (Bubble Sort by Priority + Direction Tie-Break) Sorts a 16-element array of 4-byte entries using bubble sort. Primary key: word at entry+$00 (ascending = back-to-front). Tie-break: when keys are equal, compares x/y positions of the referenced objects based on camera direction quadrant (painter's algorithm ordering). 6 words of priority key pairs used elsewhere as lookup data.
-
-- **Entry**: A0 = sort array (16 entries × 4 bytes: word key + word obj_ptr)
-- **Modifies**: D0, D1, D2, D7, A0, A1, A2, A3 Object fields (via indirect pointers at entry+$02): +$1E: direction (used for quadrant computation) +$30: x_position +$34: y_position
-*Source: [depth_sort.asm](disasm/modules/68k/game/render/depth_sort.asm)*
 
 ---
 
@@ -5032,6 +5082,14 @@ Sends two sprite render commands to SH2 via sh2_cmd_27. First sprite: selects so
 
 ---
 
+### Sprite Descriptor Table + SH2 Palette Load ($00E19E-$00E1FE) ($00E19E–$00E1FE, 96 bytes)
+
+DATA ($E19E-$E1BA): 5 sprite descriptors (6 bytes each: flags, offset, id) CODE ($E1BC-$E1FE): sh2_palette_load — VDP CRAM init with nested loops Sets up VDP palette transfer ($8F02 auto-inc), writes 28 palette entries in an outer loop of 6 rows × inner loop of 8 colors, then fills 80 entries with $0000.
+
+*Source: [sprite_descriptors_and_palette_load.asm](disasm/modules/68k/game/render/sprite_descriptors_and_palette_load.asm)*
+
+---
+
 ### default_palette_color_data ($00E5AC–$00E5CE, 34 bytes)
 
 Default Palette Color Data Static palette color data table. Contains 12 CRAM color entries ($0EEE = white, $0000 = black) used as default/fallback palette. The RTS at end allows this to be called as a no-op initializer.
@@ -5093,6 +5151,16 @@ SH2 Multi-Panel Tile Renderer Data prefix (32 bytes: default palette color data,
 - **Calls**: $00E3B4 (sh2_cmd_27)
 - **Confidence**: high
 *Source: [sh2_multi_panel_tile_renderer.asm](disasm/modules/68k/game/render/sh2_multi_panel_tile_renderer.asm)*
+
+---
+
+### depth_sort
+
+Depth Sort (Selection Sort + Early Exit + Direction Tie-Break) Sorts a 16-element array of 4-byte entries using selection sort. Primary key: word at entry+$00 (ascending = back-to-front). Tie-break: when keys are equal, compares x/y positions of the referenced objects based on camera direction quadrant (painter's algorithm ordering). QW-4a: Early-exit optimization. D7 tracks whether any swaps occurred in the current outer pass. If no swaps: array is sorted, exit immediately. For nearly-sorted frame-to-frame data (typical in racing), this exits after 1-2 passes instead of 15, saving ~2000+ cycles/frame. Size budget: 2 × LEA→ADDQ saves 4 bytes, dispatch fall-through saves 2, DBEQ consolidation saves 2. Early-exit logic costs 8 bytes. Net: 0. 6 words of priority key pairs used elsewhere as lookup data.
+
+- **Entry**: A0 = sort array (16 entries × 4 bytes: word key + word obj_ptr)
+- **Modifies**: D0, D1, D2, D7, A0, A1, A2, A3 Object fields (via indirect pointers at entry+$02): +$1E: direction (used for quadrant computation) +$30: x_position +$34: y_position
+*Source: [depth_sort.asm](disasm/modules/68k/game/render/depth_sort.asm)*
 
 ---
 
@@ -5339,6 +5407,16 @@ Scene Command Dispatcher Data prefix with 5 BRA.W entries forming a scene comman
 
 ---
 
+### race_scene_init_vdp_mode ($00C0F0–$00C1FE, 272 bytes)
+
+Race Scene Init (VDP Mode Handler) Major scene initialization function for race/3D mode. Disables interrupts, configures VDP hardware, sets up COMM registers, calls multiple subsystems, loads ROM tables, and initializes state variables. Falls through to scene_init_orch at $C200 (no RTS in this block).
+
+- **Entry**: Called as scene handler when VDP flag ($FEB7) bit 7 is set. Pointer $0088C0F0 stored at $FF0002.
+- **Modifies**: D0-D1, A0, A2
+*Source: [race_scene_init_vdp_mode.asm](disasm/modules/68k/game/scene/race_scene_init_vdp_mode.asm)*
+
+---
+
 ### Scene Init Orchestrator ($00C200–$00C30A, 266 bytes)
 
 Master scene initialization — calls 9 setup subroutines, configures MARS VDP mode (240-line bitmap), sets SH2 interrupt control, initializes frame buffer, loads road geometry from ROM table, waits for SH2 ready signal via COMM1 bit 0, then sets up return address and clears stack.
@@ -5417,7 +5495,7 @@ Increments frame/scene counters, reads next input byte from replay buffer (split
 
 ### Scene Phase Timer ($00C544–$00C56A, 38 bytes)
 
-Setup Source: code_c200 Initializes a phase-based timer system that drives scene transitions. Reads the current state transition flag ($C8F5), computes an index, and looks up both a phase duration and a control mode from inline data tables located at the start of fn_c200_032. The phase system works as follows: 1. This function sets up the phase: duration counter in $C083, mode in $C0FC 2. c200_case_handlers_short (fn_c200_032) counts down the phase each frame 3. When the phase counter reaches zero, the timeline sub-counter advances DATA TABLES (defined in fn_c200_032, accessed via PC-relative indexing) scene_phase_timer_tick_data_tables  10 bytes at $C56A — frame counts per phase control_mode_table     9 words at $C574 — mode values (1-8, then 0) MEMORY VARIABLES $FFFFC082  Timeline sub-counter (word, incremented by 4 each phase start) $FFFFC083  Phase countdown byte (loaded from duration table) $FFFFC8F5  State transition flag (byte, read for phase index) $FFFFC0FC  Control mode (word, loaded from mode table) $00FF0008  Display control timer (word, set to $0034)
+Setup Source: code_c200 Initializes a phase-based timer system that drives scene transitions. Reads the current state transition flag ($C8F5), computes an index, and looks up both a phase duration and a control mode from inline data tables located at the start of fn_c200_032. The phase system works as follows: 1. This function sets up the phase: duration counter in $C083, mode in $C0FC 2. c200_func_002 (fn_c200_032) counts down the phase each frame 3. When the phase counter reaches zero, the timeline sub-counter advances DATA TABLES (defined in fn_c200_032, accessed via PC-relative indexing) scene_phase_timer_tick_data_tables  10 bytes at $C56A — frame counts per phase control_mode_table     9 words at $C574 — mode values (1-8, then 0) MEMORY VARIABLES $FFFFC082  Timeline sub-counter (word, incremented by 4 each phase start) $FFFFC083  Phase countdown byte (loaded from duration table) $FFFFC8F5  State transition flag (byte, read for phase index) $FFFFC0FC  Control mode (word, loaded from mode table) $00FF0008  Display control timer (word, set to $0034)
 
 - **Entry**: No register inputs
 - **Returns**: Phase timer configured from state flag
@@ -5625,7 +5703,7 @@ Set Handler $8926D2 Waits for SH2 idle (COMM0 clear), then resets game state and
 
 Contains three 16-word track-specific data tables followed by a scene state dispatcher. The dispatcher calls sound_command_dispatch_sound_driver_call for setup, then jumps to a handler based on the game state index at $C87E. A separate entry point handles post-dispatch completion: updates objects, checks display bit 6, and advances the state machine. DATA TABLES 3 tables x 16 words each (96 bytes total) $7FFF / $FFFF used as sentinel values for unused entries MEMORY VARIABLES $FFFFC87E  Game state index (word, used as jump table offset) $FFFFC80E  Display control flags (bit 6 tested)
 
-- **Entry**: scene_state_disp_track_data_tables → data tables (not executed directly) fn_12200_023_dispatch → scene state dispatcher fn_12200_023_complete → post-dispatch completion check
+- **Entry**: scene_state_disp_track_data_tables -> data tables (not executed directly) fn_12200_023_dispatch -> scene state dispatcher fn_12200_023_complete -> post-dispatch completion check
 - **Modifies**: D0, A1
 - **Calls**: sound_command_dispatch_sound_driver_call: scene setup object_update: object system update Jump table targets: State 0:  camera_demo_palette_sh2_setup State 4:  fn_12200_025_exec (mid-function DMA entry) State 8:  camera_selection_main_loop State 12: sh2_mode_disp_select_scene_by_track_mode
 *Source: [scene_state_disp_track_data_tables.asm](disasm/modules/68k/game/scene/scene_state_disp_track_data_tables.asm)*
@@ -5666,7 +5744,7 @@ Sets VDP update flag ($C80D), saves all registers, raises interrupt priority mas
 
 ### sequence_data_byte_decoder ($00B15E–$00B1B8, 90 bytes)
 
-Sequence Data Byte Decoder Decodes 3 bytes from sequence stream (A2) into display/sound format. Uses lookup tables at $00899884 and $0089980C to translate encoded byte values. Splits decoded bytes into high/low nibbles and writes to output buffer (A1). Shared subroutine at .loc_004C handles the nibble split.
+Sequence Data Byte Decoder Decodes 3 bytes from sequence stream (A2) into display/sound format. Uses lookup tables at $00899884 and $0089980C to translate encoded byte values. Splits decoded bytes into high/low nibbles and writes to output buffer (A1). Shared subroutine at .split_nibbles handles the nibble split.
 
 - **Entry**: D3 = output offset, A1 = output buffer, A2 = source stream
 - **Modifies**: D0, D1, D3, A0, A1, A2
@@ -7490,6 +7568,14 @@ Dispatches via 5-entry longword jump table indexed by state_dispatch_idx ($C87E)
 
 ---
 
+### palette_scene_dispatch ($00E90C-$00E926) ($00E90C–$00E926, 26 bytes)
+
+Palette Scene Dispatch CODE ($E90C-$E91A): JSR to init function, MOVE.W from ($C87E) index, MOVEA.L indexed (d0,PC) into A1, JMP (A1) DATA ($E91C-$E926): 3 longword handler pointers: Index 0: $0088E93A — sh2_geometry_transfer_and_palette_cycle_handler Index 4: $0088EDDA — sh2_scene_object_update_with_lookup_tables+$11C Index 8: $0088EEF2 — sh2_scene_object_update_with_lookup_tables+$234
+
+*Source: [palette_scene_dispatch.asm](disasm/modules/68k/game/state/palette_scene_dispatch.asm)*
+
+---
+
 ### State Dispatcher + Controller Init (Jump Table) ($0143C6–$0143FA, 52 bytes)
 
 Calls SH2 init ($882080), reads game_state ($C87E), dispatches via 3-entry longword jump table: State 0 → $008943E2 (controller poll + advance, within this fn) State 4 → $008943FA (external handler) State 8 → $00894400 (external handler) State 0 handler: polls controllers, calls $01440E, advances game_state, sets display mode $0020.
@@ -8017,32 +8103,6 @@ Identifies 68K access path to expansion ROM Location: Optimization area (code_1c
 
 - **Returns**: Nothing Clobbers: D0-D1, A0
 *Source: [bank_probe.asm](disasm/modules/68k/optimization/bank_probe.asm)*
-
----
-
-### FPS Marker Hook - Size-neutral palette+marker wrapper
-
-Location: Optimization area (code_1c200) Called from fn_200_041 in place of two PC-relative JSRs to palette copy routines at $0048D6 and $0048DA. Replaces 8 bytes (2x4-byte JSR d16,PC) with 8 bytes (6-byte JSR abs.l + 2-byte NOP). This function: 1. Calls the two original palette copy routines (preserving behavior) 2. Writes a minimal test marker to both frame buffers Context when called: - FM=0 (68K has frame buffer access, set by fn_200_041) - VBLK is active (confirmed by fn_200_041's busy-wait loop) - A1 = $00FF6E00 (palette data source in work RAM) - A2 = $00A15200 (CRAM base) Register contract: - A1, A2: passed through to palette routines (may be clobbered) - D0, A0: used as scratch for marker writes (saved/restored) - All other registers preserved Related: fn_200_041.asm, fps_vint_wrapper.asm
-
-*Source: [fps_marker_hook.asm](disasm/modules/68k/optimization/fps_marker_hook.asm)*
-
----
-
-### FPS Renderer - 2-Digit Frame Counter Display
-
-Location: Optimization area ($89C208+, after fps_vint_wrapper) Renders the current FPS value (from fps_value at $FFFFF802) to both frame buffers using an embedded 4x5 pixel font. DISPLAY LAYOUT 14x7 pixel box at top-left (rows 3-9, columns 2-15): - 1px black border (top/bottom/left/right) - 2 digits: tens at cols 4-7, ones at cols 10-13 - 2px spacer between digits (cols 8-9) RENDERING METHOD Uses a 16-entry nibble-to-pixels LUT: each 4-bit font row maps to a longword of 4 pixel bytes. One MOVE.L per digit per row = fast rendering. Palette: CRAM[254]=$0000 (black BG), CRAM[255]=$7FFF (white FG). FM BIT PROTOCOL Called from V-INT epilogue. FM is likely 1 (SH2 owns VDP). Saves/restores FM state, temporarily clearing FM for 68K FB access. LINE TABLE Entries are WORD offsets (per 32XDK wiki). Must double to get byte offset. CALLING CONVENTION Parameters: None (reads fps_value via symbol)
-
-- **Returns**: Nothing Clobbers: Nothing (all registers saved/restored) Cost: ~800 cycles (~0.6% of 68K frame budget)
-*Source: [fps_render.asm](disasm/modules/68k/optimization/fps_render.asm)*
-
----
-
-### FPS V-INT Wrapper - Frame Rate Measurement via FS Bit Tracking
-
-Location: MUST be first module in optimization area ($89C208) Thin wrapper inserted before the original V-INT handler via vector redirect. Renders cached FPS value on no-work frames. ARCHITECTURE ALL FPS logic runs in vint_epilogue (after handler completes). Wrapper has ZERO cross-handler dependencies - just renders cached value. This eliminates all state-lifetime bugs. RAM LAYOUT (14 bytes at $FFFFF000-$FFFFF00D) $FFFFF000: fps_vint_tick    (word) - V-INT counter (0-59, 60 Hz time base) $FFFFF002: fps_value        (word) - Current FPS for display (0-99) $FFFFF004: fps_flip_counter (long) - Total buffer flip count $FFFFF008: fps_flip_last    (long) - Last sampled flip count $FFFFF00C: fps_fs_last      (word) - Last FS bit state (0 or 1) CALLING CONVENTION Called from: V-INT vector at ROM $000078 (redirected to $0089C208) Parameters: None (interrupt context) Related: fps_render.asm, vint_handler (code_200.asm)
-
-- **Returns**: Jumps to original V-INT handler Clobbers: Nothing Cost: ~10 cycles work path, ~10 + fps_render cycles no-work path
-*Source: [fps_vint_wrapper.asm](disasm/modules/68k/optimization/fps_vint_wrapper.asm)*
 
 ---
 

@@ -132,6 +132,22 @@ hardware to clear the draw buffer before new frame rendering begins.
 Source: [SYSTEM_EXECUTION_FLOW.md §2](SYSTEM_EXECUTION_FLOW.md),
 [depth_sort.asm](../disasm/modules/68k/game/render/depth_sort.asm)
 
+### Multi-Panel Tile Rendering
+
+Split-screen and overlay panels are rendered via `sh2_multi_panel_tile_renderer` ($00F916)
+using `sh2_cmd_27` (Slave SH2, fire-and-forget). Source: [sh2_multi_panel_tile_renderer.asm](../disasm/modules/68k/game/render/sh2_multi_panel_tile_renderer.asm)
+
+**Tile address table** at ROM $00FB24 — each entry is 6 bytes (4-byte pointer + 2-byte param).
+Index calculation: `D0 × 6` via shifts (`D0*2, save, D0*4, add saved`).
+
+**Panel modes** (selected by flags at Work RAM offsets $A01B and $A01F):
+- Single panel: main viewport (default)
+- 2-panel: main + comparison view
+- 3-panel: main + comparison + stats overlay
+
+**Per-panel dimensions:** 48px wide × 16px tall tile blocks, submitted via `sh2_cmd_27`
+with panel-specific framebuffer destination offsets.
+
 ---
 
 ## 4. Command Submission (68K → SH2)
@@ -141,22 +157,28 @@ synchronization models.
 
 ### Path A: sh2_send_cmd — Blocking (Master SH2)
 
-14 calls/frame. Each submits a 2D block copy (cmd $22). The 68K is **fully blocked**
-until the Master SH2 finishes.
+14 calls/frame. Each submits a 2D block copy (cmd $22). Uses B-004 v6-corrected
+single-shot protocol — 2 waits instead of the original 3.
 
 ```
-68K (sh2_send_cmd at $00E35A):             Master SH2:
-─────────────────────────────────          ─────────────
-WAIT: COMM0_HI == 0 ← ← ← ← ← ← ← ←─── clears COMM0_HI after copy
-Write COMM2-6 (src, dst, dims)
-Write COMM0: HI=$01, LO=$22 ─────────────→ dispatch cmd $22
-WAIT: COMM0_LO == 0 ← ← ← ← ← ← ← ←─── clears COMM0_LO (params read)
-RTS                                        ... copies pixels ...
-                                           ... COMM cleanup ...
+68K (sh2_send_cmd at $00E35A):             Master SH2 (cmd22_single_shot):
+─────────────────────────────────          ─────────────────────────────────
+WAIT: COMM0_HI == 0 ← ← ← ← ← ← ← ←─── clears COMM0_HI after copy + cleanup
+Write COMM3:4 (src), COMM5:6 (dst)
+Write COMM2 (dims: height, width/2)
+Write COMM0_LO=$22 (dispatch index)
+Write COMM0_HI=$01 (trigger, LAST) ──────→ dispatch → cmd22_single_shot ($023010F0)
+WAIT: COMM0_LO == 0 ← ← ← ← ← ← ← ←─── SH2 clears COMM0_LO (params consumed)
+RTS (68K continues, SH2 copies)            ... block copy word-by-word ...
+                                           ... inline COMM1 cleanup ...
+                                           ... clear COMM0_HI (late) ...
+                                           ... re-dispatch check ...
 ```
 
-The first WAIT is the **10.84% 68K hotspot** — the 68K spin-waits for the Master SH2
-to finish the previous block copy before it can submit the next one.
+The first WAIT (`.wait_ready`) is the **10.84% 68K hotspot** — the 68K spin-waits
+for the Master SH2 to finish the previous copy + cleanup before submitting the next.
+This wait is an implicit frame synchronization barrier (B-005 proved removing it
+causes display corruption — 68K outruns SH2 copy, swaps frames before copies complete).
 
 ### Path B: sh2_cmd_27 — Fire-and-Forget (Slave SH2)
 

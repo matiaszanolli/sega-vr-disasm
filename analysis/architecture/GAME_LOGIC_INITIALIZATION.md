@@ -24,9 +24,9 @@ The game logic module implements a state-based initialization system using jump 
 ### Main Entry ($006200)
 
 ```asm
-        DC.W    $6702               ; $006200 BEQ.S  loc_006204
+        DC.W    $6702               ; $006200 BEQ.S  .dispatch
         DC.W    $7004               ; $006202 MOVEQ   #$04,D0
-loc_006204:
+.dispatch:
         DC.W    $227B,$003A         ; $006204 MOVEA.L $3A(PC,D0.W),A1
         DC.W    $4E91               ; $006208 JSR     (A1)
 ```
@@ -47,7 +47,7 @@ loc_006204:
 
 ```asm
         DC.W    $0C78,$0014,$C8AA   ; $00620A CMPI.W  #$0014,$C8AA.W
-        DC.W    $662C               ; $006210 BNE.S  loc_00623E
+        DC.W    $662C               ; $006210 BNE.S  .done
         DC.W    $11FC,$0000,$C800   ; $006212 MOVE.B  #$0000,$C800.W
         DC.W    $31F8,$C092,$C07A   ; $006218 MOVE.W  $C092.W,$C07A.W
         DC.W    $31FC,$0004,$C8AC   ; $00621E MOVE.W  #$0004,$C8AC.W
@@ -106,13 +106,13 @@ Note: Addresses appear encoded in the DC.W format and need adjustment based on b
         DC.W    $3140,$0044         ; MOVE.W  D0,$0044(A0)
         DC.W    $3140,$0046         ; MOVE.W  D0,$0046(A0)
         DC.W    $3140,$004A         ; MOVE.W  D0,$004A(A0)
-        DC.W    $4EBA,$0EE2         ; JSR     loc_00714A(PC)
-        DC.W    $4EBA,$13E2         ; JSR     loc_00764E(PC)
+        DC.W    $4EBA,$0EE2         ; JSR     object_link_copy_table_lookup(PC)
+        DC.W    $4EBA,$13E2         ; JSR     calculate_object_heading_composite(PC)
         DC.W    $4EBA,$2458         ; JSR     $0086C8(PC)
         DC.W    $4EBA,$CEB2         ; JSR     $003126(PC)
         DC.W    $4EBA,$CEE8         ; JSR     $003160(PC)
-        DC.W    $4EBA,$13A8         ; JSR     loc_007624(PC)
-        DC.W    $4EBA,$10CE         ; JSR     loc_00734E(PC)
+        DC.W    $4EBA,$13A8         ; JSR     conditional_object_velocity_negate(PC)
+        DC.W    $4EBA,$10CE         ; JSR     track_tile_object_display_list_builder(PC)
         DC.W    $11F8,$C304,$C30C   ; MOVE.B  $C304.W,$C30C.W
         DC.W    $4EB9,$0088,$6C88   ; JSR     $00886C88
         DC.W    $4EFA,$E71A         ; JMP     $0049AA(PC)
@@ -193,7 +193,7 @@ Note: Addresses appear encoded in the DC.W format and need adjustment based on b
         DC.W    $3140,$0044         ; MOVE.W  D0,$0044(A0)
         DC.W    $3140,$0046         ; MOVE.W  D0,$0046(A0)
         DC.W    $3140,$004A         ; MOVE.W  D0,$004A(A0)
-        DC.W    $4EBA,$1D82         ; JSR     loc_0080CC(PC)
+        DC.W    $4EBA,$1D82         ; JSR     triple_guard_set_state_to_be(PC)
         ... (17 more JSR calls)
         DC.W    $4EFA,$D424         ; JMP     $0037B6(PC)
 ```
@@ -250,7 +250,7 @@ Note: Addresses appear encoded in the DC.W format and need adjustment based on b
         DC.W    $49F8,$A000         ; LEA     $A000.W,A4
         DC.W    $41F8,$9000         ; LEA     $9000.W,A0
         DC.W    $11F8,$FEAF,$C30F   ; MOVE.B  $FEAF.W,$C30F.W
-        DC.W    $4EBA,$07A0         ; JSR     loc_006BBE(PC)
+        DC.W    $4EBA,$07A0         ; JSR     object_bitmask_table_lookup(PC)
         DC.W    $2168,$00B2,$0018   ; MOVE.L  $00B2(A0),$0018(A0)
         DC.W    $1228,$00E5         ; MOVE.B  $00E5(A0),D1
         DC.W    $0201,$0006         ; ANDI.B  #$0006,D1
@@ -440,11 +440,11 @@ Referenced via A0 (object pointer):
 ### Initialization Functions (Called by Multiple States)
 
 **Core Utilities (All States):**
-- `loc_00714A` - Called by states 0,1,2,3,6,7 (6/8 states)
-- `loc_00764E` - Called by states 0,1,2,3,6,7 (6/8 states)
+- `object_link_copy_table_lookup` - Called by states 0,1,2,3,6,7 (6/8 states)
+- `calculate_object_heading_composite` - Called by states 0,1,2,3,6,7 (6/8 states)
 
 **Display System (Most States):**
-- `loc_0080CC` - Called by states 1,2,3,6,7 (5/8 states)
+- `triple_guard_set_state_to_be` - Called by states 1,2,3,6,7 (5/8 states)
 - `$008548` - Called by states 1,2,3,6,7 (5/8 states)
 - `$00859A` - Called by states 1,3,6,7 (4/8 states)
 
@@ -457,10 +457,10 @@ Referenced via A0 (object pointer):
 
 **Object Management:**
 - `$00A350` - Called by states 1,3,6,7 (4/8 states)
-- `loc_008170` - Called by states 1,2,3,6,7 (5/8 states)
-- `loc_007E7A` - Called by states 1,2,3,6,7 (5/8 states)
-- `loc_006F98` - Called by states 1,2,3,6,7 (5/8 states)
-- `loc_007CD8` - Called by states 1,2,3,6,7 (5/8 states)
+- `object_timer_expire_speed_param_reset` - Called by states 1,2,3,6,7 (5/8 states)
+- `race_init_orch_005` - Called by states 1,2,3,6,7 (5/8 states)
+- `entity_pos_update` - Called by states 1,2,3,6,7 (5/8 states)
+- `tire_screech_sound_trigger_053` - Called by states 1,2,3,6,7 (5/8 states)
 
 **Rendering Pipeline:**
 - `$009CCE` - Called by states 1,2,3 (3/8 states)
@@ -563,7 +563,7 @@ Smart use of memory regions:
 The game state register $C8AA is checked after initialization:
 ```asm
 CMPI.W  #$0014,$C8AA.W  ; Check if game state = $14
-BNE.S  loc_00623E       ; Skip if not ready
+BNE.S  .done       ; Skip if not ready
 ```
 
 This links to the V-INT state machine documented in [VINT_STATE_HANDLERS.md](VINT_STATE_HANDLERS.md):

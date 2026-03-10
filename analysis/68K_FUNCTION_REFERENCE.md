@@ -1,5 +1,10 @@
 # 68K Function Reference
 
+> **SUPERSEDED (March 2026):** This document lists ~503 functions and is no longer the canonical reference.
+> Use **[MASTER_FUNCTION_REFERENCE.md](MASTER_FUNCTION_REFERENCE.md)** (799 entries, auto-generated from module headers)
+> and **[FUNCTION_QUICK_LOOKUP.md](FUNCTION_QUICK_LOOKUP.md)** (flat sorted index) instead.
+> This file is retained for its category organization, which differs from the auto-generated reference.
+
 Categorized reference for all named 68000 functions in Virtua Racing Deluxe.
 
 **Note:** Function names are inferred from behavior analysis, not original debug symbols.

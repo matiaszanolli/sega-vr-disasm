@@ -125,9 +125,9 @@ $012A40:  ; Pre-dispatcher
 
 **SH2 Command Submission** ($012260-$0122A0):
 ```asm
-loc_012260:  ; Wait for SH2 ready
+.wait_comm_ready:  ; Wait for SH2 ready
     TST.B   $00A15120
-    BNE.S   loc_012260
+    BNE.S   .wait_comm_ready
 
     ; Send command $2C (camera setup)
     MOVE.W  #$0101,$00A1512C    ; Size/flags
@@ -135,9 +135,9 @@ loc_012260:  ; Wait for SH2 ready
     MOVE.B  #$002C,$00A15121    ; Command $2C
     MOVE.B  #$0001,$00A15120    ; Trigger SH2
 
-loc_012288:  ; Wait for completion
+.wait_comm6_clear:  ; Wait for completion
     TST.B   $00A1512C
-    BNE.S   loc_012288
+    BNE.S   .wait_comm6_clear
 
     ; Second command
     MOVE.W  #$0018,$00A15128    ; Parameter
@@ -155,7 +155,7 @@ loc_012288:  ; Wait for completion
 $0128E8:  ; Initialize race start
     ; Load graphics data
     MOVEA.L #$0601xxxx,A0       ; Graphics source (SH2 SDRAM)
-    JSR     $00E316(PC)         ; Data transfer command ($25)
+    JSR     sh2_send_cmd_wait(PC) ; Data transfer command ($25)
 
     ; Set race parameters
     MOVE.B  $C817.W,$A019.W     ; Load track index
@@ -236,8 +236,8 @@ This is distinct from menu sounds ($A8, $A9) and game sounds ($8E).
 | Address | Purpose | Likely Module |
 |---------|---------|---------------|
 | `$00882080` | State machine dispatcher setup | Common utilities |
-| `$00E316` | SH2 data transfer command ($25) | Graphics module |
-| `$00E35A` | SH2 graphics command ($22) | Graphics module |
+| `$00E316` (`sh2_send_cmd_wait`) | SH2 data transfer command ($25) | Graphics module |
+| `$00E35A` (`sh2_send_cmd`) | SH2 graphics command ($22) | Graphics module |
 | `$0088204A` | Scene initialization | Scene management |
 | `$00884998` | Unknown setup | Setup utilities |
 | `$0088179E` | Input processing | Input handler |
@@ -291,9 +291,9 @@ This module provides **utility functions** called by other game logic modules. I
 
 **Graphics Command Submission** ($014222):
 ```asm
-loc_014222:  ; Wait for SH2
+.wait_first_row:  ; Wait for SH2
     TST.B   $00A15120
-    BNE.S   loc_014222
+    BNE.S   .wait_first_row
     ; ... (command submission follows same pattern as other modules)
 ```
 

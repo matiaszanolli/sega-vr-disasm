@@ -131,7 +131,7 @@ $011122:  ; Pre-dispatcher call
 **Grid Navigation Function** ($010838-$010972):
 
 ```asm
-loc_010838:  ; Handle D-pad input for character selection
+.pos_one_cursor:  ; Handle D-pad input for character selection
     MOVE.W  $C86C.W,D1          ; Load button state
 
     ; Check UP button
@@ -180,7 +180,7 @@ check_b_button:
 
 **Character Selection Logic** ($010960):
 ```asm
-loc_010960:
+.lookup:
     MOVE.W  $A026.W,D0          ; Load cursor position
     CMPI.W  #$0019,D0           ; Compare to 25 (last uppercase)
     BGT.W   use_direct_index
@@ -336,7 +336,7 @@ $0109AC:  ; Initialize name entry screen
 
 **Cursor Rendering** (graphics buffer updates):
 ```asm
-loc_010796:  ; Render cursor at character grid position
+name_entry_cursor_render:  ; Render cursor at character grid position
     ; (Function body reads character at position)
     ; Updates graphics buffers for P1/P2 split-screen
 ```
@@ -345,13 +345,13 @@ loc_010796:  ; Render cursor at character grid position
 
 **VRAM Clear** ($010A0A-$010A1A):
 ```asm
-loc_010A0A:  ; Clear VRAM for name entry screen
+.clear_vram:  ; Clear VRAM for name entry screen
     MOVE.L  #$60000002,(A5)     ; VDP write command
     MOVE.W  #$17FF,D1           ; 6144 words (12KB)
 
-loc_010A14:
+.clear_vram_loop:
     MOVE.L  D0,(A6)             ; Clear with zeros
-    DBRA    D1,loc_010A14
+    DBRA    D1,.clear_vram_loop
 ```
 
 **Graphics Initialization** ($0109F0-$010A06):
@@ -361,16 +361,16 @@ $0109F0:  ; Initialize character grid buffers
     LEA     $8480.W,A0          ; Buffer 1 start
     MOVEQ   #$1F,D1             ; 32 longwords
 
-loc_0109F6:
+.clear_ram_loop:
     MOVE.L  D0,(A0)+            ; Clear buffer 1
-    DBRA    D1,loc_0109F6
+    DBRA    D1,.clear_ram_loop
 
     LEA     $00FF7B80,A0        ; Buffer 2 start (larger buffer)
     MOVEQ   #$7F,D1             ; 128 longwords
 
-loc_010A04:
+.clear_ext_ram_loop:
     MOVE.L  D0,(A0)+            ; Clear buffer 2
-    DBRA    D1,loc_010A04
+    DBRA    D1,.clear_ext_ram_loop
 ```
 
 ---
@@ -517,7 +517,7 @@ State C+: Exit Name Entry
 |---------|---------|---------------|
 | `$00882080` | Pre-state-machine dispatcher | Common utilities |
 | `$00E52C` | Graphics setup (called in game_0e200.asm too) | Graphics module |
-| `$00E35A` | SH2 graphics command (2-param) | Graphics module |
+| `$00E35A` (`sh2_send_cmd`) | SH2 graphics command (2-param) | Graphics module |
 | `$00884998` | Unknown setup | Setup utilities |
 | `$0088179E` | Input processing | Input handler |
 | `$0088FB36` | Unknown function | TBD |

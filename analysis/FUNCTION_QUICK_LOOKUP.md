@@ -1,6 +1,6 @@
 # Function Quick Lookup
 **Virtua Racing Deluxe — LLM-Optimized Flat Reference**
-**Total entries**: 799 | Sorted by ROM address
+**Total entries**: 806 | Sorted by ROM address
 
 Format: `$ADDRESS  name  [category]  — description`
 
@@ -9,6 +9,12 @@ Format: `$ADDRESS  name  [category]  — description`
 ```
 $000000  ROM Header and Exception Vector Table ($000000-$0001FF)  [Boot]
          Contains 68000 exception vectors and SEGA standard header.
+
+$000200  Exception Vector Trampolines ($000200-$0003BE)    [Boot]
+         63 JMP abs.
+
+$0003C0  32X Adapter Boot Entry ($0003C0-$000511)          [Boot]
+         Contains the MARS adapter initialization sequence: $0003C0-$0003CF: "MARS CHECK MODE " identification string $0003D0-$0003EF: 32X boot parameters (...
 
 $000512  vdp_reg_table_load                                [Game / Render]
          VDP Register Table Load Data prefix ($000512-$0005A5) contains the game's internal identification strings: "MAIN Course.
@@ -1032,6 +1038,9 @@ $005EEA  entity_render_pipeline_with_vdp_dma               [Game / Render]
          Entity Render Pipeline with VDP DMA Extended entity render pipeline with VDP register writes and DMA transfers.
          in:A0 = entity base pointer | mod:D0, A0
 
+$00617A  entity_render_frame_orch ($00617A-$0061FE)        [Game / Render]
+         Entity Render Frame Orchestrator CODE: 134 bytes — entity field clears, 21 BSR calls, flag tests Called after entity_render_pipeline_with_vdp_dma; ...
+
 $006200  Object State Dispatcher + Scene Transition        [Game / Scene]
          Dispatches via 2-entry jump table at $006240 (BEQ selects D0=0 or D0=4 based on Z flag from caller).
          mod:D0, A1
@@ -1106,6 +1115,9 @@ $006CEC  conditional_speed_add                             [Game / Physics]
 $006CF6  conditional_speed_subtract                        [Game / Physics]
          Conditional Speed Subtract Calls condition check at $006D00, then subtracts D0 from A1+$04 (speed field) if condition is met (Z flag clear).
          in:D0 = adjustment value, A1 = entity pointer | mod:D0, A1
+
+$006D00  conditional_update_check ($006D00-$006D2E)        [Game / Physics]
+         Conditional Update Check CODE: 48 bytes — BSR target called by conditional_pos_add, conditional_speed_add, conditional_pos_subtract, conditional_sp...
 
 $006D30  Position Adjust Helpers                           [Object]
          Six tiny leaf functions for return values and position adjustment.
@@ -1660,10 +1672,6 @@ $009C9C  race_pos_sorting_and_rank_assignment              [Game / Race]
          Race Position Sorting and Rank Assignment Data tables (50 bytes) at start, then race position sorting logic.
          in:A0 = player entity pointer | mod:D0, D1, D2, D3, D4, D5, D6, D7, A0-A3
 
-$009DD6  depth_sort                                        [Game / Render]
-         Depth Sort (Bubble Sort by Priority + Direction Tie-Break) Sorts a 16-element array of 4-byte entries using bubble sort.
-         in:A0 = sort array (16 entries × 4 bytes: word key + word obj_p | mod:D0, D1, D2, D7, A0, A1, A2, A3 Object fi
-
 $009E5A  timer_decrement_and_rank_check_guard              [Game / State]
          Timer Decrement and Rank Check Guard Decrements timer +$A8 if nonzero.
          in:A0 = entity pointer | mod:A0
@@ -1703,9 +1711,17 @@ $00A434  AI Opponent Select                                [Game / Ai]
          Conditionally activates AI opponent targeting based on game mode, entity speed class, game state, and cooldown timer.
          in:A0 = object/entity pointer | mod:D0 Fields accessed: A0+$04: Speed table 
 
+$00A470  collision_avoidance_speed_calc                    [Game / Ai]
+         AI Collision Avoidance + Speed Calculation AI/physics function that computes entity speed and performs proximity-based collision avoidance.
+         in:A0 = entity pointer, A1 = target entity pointer (from caller | mod:D0-D3, D6-D7, A0-A3 Called from: counter
+
 $00A666  Physics Integration                               [Game / Physics]
          Computes distance to target, derives a steering factor, calls ai_steering_calc to get a target heading angle, then smoothly interpolates toward it.
          in:A0 = object/entity pointer ($A000).W = target X coordinate ( | mod:D0, D1, D2, D3, D6 | calls:ai_steering_calc ($A7A0), sine_lookup ($8F52), cosine_lookup
+
+$00A6F8  collision_avoidance_no_target                     [Game / Ai]
+         AI Collision Avoidance (No-Target Path) Alternate path of collision_avoidance_speed_calc when entity has no target ($A4(A0) == 0 or target invalid).
+         in:A0 = entity pointer (from collision_avoidance_speed_calc) | mod:D0-D3, D6-D7, A1
 
 $00A7A0  AI Steering Calculation                           [Game / Ai]
          Computes a steering angle from relative position deltas using an arctangent approximation.
@@ -1722,6 +1738,10 @@ $00A80A  Entity Table Load (Mode+Index Combined)           [Game / Entity]
 $00A83E  Bulk Table Copy (Two ROM Blocks to RAM)           [Game / Data]
          Copies two ROM data blocks to RAM during initialization: Block 1: 288 bytes from $00937E7E to ($FAD8).
          mod:D0, A1, A2
+
+$00A868  entity_type_dispatch_tables                       [Game / Entity]
+         AI Position Tables + Entity Type Dispatcher Combined data tables and dispatcher for AI entity type routing.
+         in:A0 = entity pointer | mod:D0, A1
 
 $00A8F8  Object State Return                               [Game / Entity]
          Computes or interpolates a position value for an entity.
@@ -1995,6 +2015,10 @@ $00C05C  Display List Builder                              [Game / Hud]
          Clears 16 display slots ($FF6800, stride $10), then if display_list_count ($C0FC) is nonzero, reads entries from a ROM offset table and populates s...
          mod:D0, D1, D2, D3, A1, A2
 
+$00C0F0  race_scene_init_vdp_mode                          [Game / Scene]
+         Race Scene Init (VDP Mode Handler) Major scene initialization function for race/3D mode.
+         in:Called as scene handler when VDP flag ($FEB7) bit 7 is set.  | mod:D0-D1, A0, A2
+
 $00C200  Scene Init Orchestrator                           [Game / Scene]
          Master scene initialization — calls 9 setup subroutines, configures MARS VDP mode (240-line bitmap), sets SH2 interrupt control, initializes frame ...
          in:(none — standalone orchestrator) | mod:D0, A0, A5 | calls:$00A1FC: race_state_read $00C974: track_segment_init $00CF0C
@@ -2215,15 +2239,8 @@ $00E118  SH2 Cmd 27 Sprite Render                          [Game / Render]
          Sends two sprite render commands to SH2 via sh2_cmd_27.
          mod:D0, D1, D2, D3, A0, A1 | calls:$00E3B4: sh2_cmd_27 (JSR PC-relative)
 
-$00E35A  sh2_send_cmd                                     [Sh2]
-         Single-shot 2D block copy via Master SH2 (B-004 v6-corrected). Waits COMM0_HI==0,
-         writes params to COMM2-6, triggers COMM0, waits COMM0_LO==0 (params-consumed).
-         in:A0=src, A1=dst, D0=width(bytes), D1=height | mod:none (D0 saved/restored)
-
-$00E3B4  sh2_cmd_27                                       [Sh2]
-         Cmd 27 pixel-add via COMM7 doorbell (fire-and-forget). Waits COMM7==0,
-         writes COMM2-6 params, sets COMM7=$0027, returns immediately.
-         in:A0=data_ptr, D0=width, D1=height, D2=add_value | mod:none
+$00E19E  Sprite Descriptor Table + SH2 Palette Load ($00E19E-$00E1FE)  [Game / Render]
+         DATA ($E19E-$E1BA): 5 sprite descriptors (6 bytes each: flags, offset, id) CODE ($E1BC-$E1FE): sh2_palette_load — VDP CRAM init with nested loops S...
 
 $00E5AC  default_palette_color_data                        [Game / Render]
          Default Palette Color Data Static palette color data table.
@@ -2231,6 +2248,9 @@ $00E5AC  default_palette_color_data                        [Game / Render]
 $00E5CE  sh2_split_screen_display_init                     [Game / Render]
          SH2 Split-Screen Display Initialization Scene initialization for split-screen modes.
          mod:D0, D1, D2, D3, D4, A0, A1, A5 | calls:$00E1BC (sh2_palette_load), $00E22C (sh2_graphics_cmd), $00E
+
+$00E90C  palette_scene_dispatch ($00E90C-$00E926)          [Game / State]
+         Palette Scene Dispatch CODE ($E90C-$E91A): JSR to init function, MOVE.
 
 $00E93A  sh2_geometry_transfer_and_palette_cycle_handler   [Game / Render]
          SH2 Geometry Transfer and Palette Cycle Handler Sends SH2 geometry and sprite data via sh2_send_cmd.
@@ -2494,15 +2514,15 @@ $0126D2  camera_replay_screen_init                         [Game / Menu]
 
 $0129E0  Scene State Dispatcher with Track Data Tables     [Game / Scene]
          Contains three 16-word track-specific data tables followed by a scene state dispatcher.
-         in:scene_state_disp_track_data_tables → data tables (not execut | mod:D0, A1 | calls:sound_command_dispatch_sound_driver_call: scene setup object
+         in:scene_state_disp_track_data_tables -> data tables (not execu | mod:D0, A1 | calls:sound_command_dispatch_sound_driver_call: scene setup object
 
 $012A72  Camera Demo Palette + SH2 Setup                   [Game / Menu]
          DMA transfer, palette setup, SH2 object configuration.
          mod:D0, D1, D7, A0, A1, A2 | calls:$00E52C: dma_transfer
 
 $012BFA  Camera DMA Transfer (Data Prefix)                 [Game / Menu]
-         Data prefix (144 bytes) containing sprite descriptors (6 entries at $012BFA, 24 bytes each) and palette pointer table (6 longword pointers at $012C...
-         mod:D0 | calls:$00E52C: dma_transfer
+         Data prefix (144 bytes) containing 6 sprite reference longwords at $012BFA, followed by 6 sprite descriptors (16 bytes each) at $012C12, and a pale...
+         mod:D0 | calls:MemoryInit: memory initialization
 
 $012C9E  camera_angle_increment_clamp                      [Game / Camera]
          Camera Angle Increment Clamp Adds a small increment ($10) to D0 if D0 ≤ $4000 (≤ 90° in 16-bit angle space).
@@ -3153,20 +3173,15 @@ $031680  Sound Master Flag                                 [Sound]
 ??????  Ring Buffer Initialization ($TBD)                 [Boot]
          Initializes the async command queue ring buffer in SDRAM.
 
+??????  depth_sort                                        [Game / Render]
+         Depth Sort (Selection Sort + Early Exit + Direction Tie-Break) Sorts a 16-element array of 4-byte entries using selection sort.
+         in:A0 = sort array (16 entries × 4 bytes: word key + word obj_p | mod:D0, D1, D2, D7, A0, A1, A2, A3 Object fi
+
 ??????  Hw Reg Init                                       [Hardware Regs]
          (no description)
 
 ??????  Bank Register Probe                               [Optimization]
          Identifies 68K access path to expansion ROM Location: Optimization area (code_1c200 section) The expansion ROM ($300000-$3FFFFF) contains 1MB of mo...
-
-??????  FPS Marker Hook - Size-neutral palette+marker wrapper  [Optimization]
-         Location: Optimization area (code_1c200) Called from fn_200_041 in place of two PC-relative JSRs to palette copy routines at $0048D6 and $0048DA.
-
-??????  FPS Renderer - 2-Digit Frame Counter Display      [Optimization]
-         Location: Optimization area ($89C208+, after fps_vint_wrapper) Renders the current FPS value (from fps_value at $FFFFF802) to both frame buffers us...
-
-??????  FPS V-INT Wrapper - Frame Rate Measurement via FS Bit Tracking  [Optimization]
-         Location: MUST be first module in optimization area ($89C208) Thin wrapper inserted before the original V-INT handler via vector redirect.
 
 ??????  Virtua Racing Deluxe - SH2 Code Section           [Sh2]
          Module: 68k/sh2/section_24200.

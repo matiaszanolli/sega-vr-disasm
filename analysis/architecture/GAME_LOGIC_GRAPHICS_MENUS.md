@@ -78,12 +78,12 @@ The module defines **6 main SH2 command submission functions** using COMM regist
 
 | Function Address | Purpose | COMM Registers Used | Command Code Register |
 |-----------------|---------|-------------------|---------------------|
-| `loc_00E316` | Data transfer (ROM→SH2) | $A15128 (addr), $A1512C (status) | $A15121 ($25) |
-| `loc_00E35A` | Graphics command (2 params) | $A15128, $A1512C | $A15121 ($22) |
-| `loc_00E3B4` | Sprite/tile command | $A15128, $A1512C | $A15121 ($27) |
-| `loc_00E406` | Extended command (3 params) | $A15128-$A1512C | $A15121 ($2F) |
-| `loc_00E4D4` | Text rendering command | Custom protocol | $A15121 ($21) |
-| `loc_00E316` (alt) | Palette upload | $A15128, $A1512C | $A15121 ($03) |
+| `sh2_send_cmd_wait` ($00E316) | Data transfer (ROM→SH2) | $A15128 (addr), $A1512C (status) | $A15121 ($25) |
+| `sh2_send_cmd` ($00E35A) | Graphics command (2 params) | $A15128, $A1512C | $A15121 ($22) |
+| `sh2_cmd_27` ($00E3B4) | Sprite/tile command | $A15128, $A1512C | $A15121 ($27) |
+| `sh2_cmd_2F` ($00E406) | Extended command (3 params) | $A15128-$A1512C | $A15121 ($2F) |
+| `DigitToASCII` | Text rendering command | Custom protocol | $A15121 ($21) |
+| `sh2_send_cmd_wait` ($00E316) (alt) | Palette upload | $A15128, $A1512C | $A15121 ($03) |
 
 ### Command Codes Documented
 
@@ -103,10 +103,10 @@ The module defines **6 main SH2 command submission functions** using COMM regist
 All SH2 commands follow this synchronization protocol:
 
 ```asm
-loc_00E316:  ; Example: Data Transfer Command ($25)
+sh2_send_cmd_wait:  ; Example: Data Transfer Command ($25)
     ; Wait for SH2 ready
     TST.B   $00A15120           ; Check SH2 busy flag
-    BNE.S   loc_00E316          ; Spin until clear
+    BNE.S   sh2_send_cmd_wait   ; Spin until clear
 
     ; Convert ROM address to SH2 address space
     ADDA.L  #$02000000,A0       ; ROM offset → SH2 address
@@ -120,9 +120,9 @@ loc_00E316:  ; Example: Data Transfer Command ($25)
     MOVE.B  #$0001,$00A15120    ; COMM0: Trigger SH2
 
     ; Wait for completion
-loc_00E342:
+.wait_consumed:
     TST.B   $00A1512C           ; Check completion flag
-    BNE.S   loc_00E342          ; Wait for SH2 acknowledgment
+    BNE.S   .wait_consumed      ; Wait for SH2 acknowledgment
 
     RTS
 ```
@@ -154,7 +154,7 @@ $00E93A:  ; State 0 - Initialize track selection
     MOVEA.L #$04012010,A1       ; Graphics data offset
     MOVE.W  #$0120,D0           ; Width: 288 pixels
     MOVE.W  #$0030,D1           ; Height: 48 lines
-    JSR     loc_00E35A(PC)      ; Submit graphics command ($22)
+    JSR     sh2_send_cmd(PC)    ; Submit graphics command ($22)
 
     ; Load track-specific palette
     MOVEQ   #$00,D0
@@ -187,11 +187,11 @@ use_p2_track:
 $00F44C:  ; State 0 - Initialize options menu
     CLR.W   D0
     MOVE.B  $A01B.W,D0          ; Load current option index
-    BSR.W   loc_00F88C          ; Render option selection
+    BSR.W   sync_wait_reset     ; Render option selection
 
     ; Check for input
     TST.W   $A024.W             ; Input state
-    BNE.W   loc_00F642          ; Handle input
+    BNE.W   multi_screen_palette_navigation_handler  ; Handle input
 
     MOVE.B  $A019.W,D0          ; Current selection
     MOVE.W  $C86C.W,D1          ; Button state
@@ -229,7 +229,7 @@ $00F44C:  ; State 0 - Initialize options menu
 ```asm
 $01017A:  ; State 0 - Display results
     CLR.W   D0
-    BSR.W   loc_00E52C          ; Initialize results UI
+    BSR.W   mem_init_buffers          ; Initialize results UI (unresolved)
     JSR     $00B684(PC)         ; Load race statistics
     BSR.W   $01071C             ; Render results screen
 
@@ -238,7 +238,7 @@ $01017A:  ; State 0 - Display results
     MOVEA.L #$2400C060,A1       ; SH2 frame buffer position
     MOVE.W  #$0038,D0           ; Width
     MOVE.W  #$0010,D1           ; Height
-    JSR     loc_00E35A(PC)      ; Submit to SH2
+    JSR     sh2_send_cmd(PC)    ; Submit to SH2
 
     ; Check for player 2 (split-screen results)
     BTST    #1,$A014.W          ; P2 active?
@@ -255,40 +255,40 @@ $01017A:  ; State 0 - Display results
 
 ## Graphics Data Loading System
 
-### VRAM Copy Function ($00E2F0)
+### VRAM Copy Function — vdp_block_load ($00E2F0)
 
 Fast VRAM fill/copy operation for initializing 32X frame buffer:
 
 ```asm
-loc_00E2F0:
+vdp_block_load:
     MOVE.L  #$60000002,(A5)     ; VDP write command
     MOVEQ   #$1B,D0             ; 28 blocks to copy
 
-loc_00E2F8:
+.row_loop:
     MOVE.W  #$001F,D1           ; 32 words per block
 
-loc_00E2FC:
+.copy_data:
     MOVE.L  (A0)+,(A6)          ; Copy data to VRAM
-    DBRA    D1,loc_00E2FC
+    DBRA    D1,.copy_data
 
     ; Fill with zeros
     MOVE.W  #$001F,D1
-loc_00E306:
+.write_zeros:
     MOVE.L  #$00000000,(A6)     ; Clear next section
-    DBRA    D1,loc_00E306
+    DBRA    D1,.write_zeros
 
-    DBRA    D0,loc_00E2F8
+    DBRA    D0,.row_loop
     RTS
 ```
 
 **Purpose**: Initialize 32X frame buffer with graphics patterns, used during scene transitions.
 
-### Tile/Sprite Border Rendering ($00E22C)
+### Tile/Sprite Border Rendering — sh2_graphics_cmd ($00E22C)
 
 Draws decorative borders around UI elements:
 
 ```asm
-loc_00E22C:  ; Draw bordered rectangle
+sh2_graphics_cmd:  ; Draw bordered rectangle
     ; Input: D0 = pattern index (0-3)
     ;        D1 = X coord (tiles)
     ;        D2 = Y coord (tiles)
@@ -336,36 +336,36 @@ Renders race time in MM:SS.MS format:
 $00E466:  ; Render time display
     MOVE.B  (A2)+,D1            ; Read minutes
     ANDI.W  #$000F,D1           ; Extract digit
-    BSR.W   loc_00E4BC          ; Render digit tile
+    BSR.W   DigitToASCII        ; Render digit tile
     ADDQ.L  #8,A1               ; Advance position
 
     MOVE.W  #$000A,D1           ; Colon character
-    BSR.W   loc_00E4BC
+    BSR.W   DigitToASCII
     ADDQ.L  #8,A1
 
     MOVE.B  (A2)+,D2            ; Read seconds
-    BSR.W   loc_00E4A0          ; Render 2-digit number
+    BSR.W   ByteProcessLoop     ; Render 2-digit number
 
     MOVE.W  #$000B,D1           ; Decimal point
-    BSR.W   loc_00E4BC
+    BSR.W   DigitToASCII
     ADDQ.L  #8,A1
 
     MOVE.B  (A2)+,D1            ; Read centiseconds
     ANDI.W  #$000F,D1
-    BSR.W   loc_00E4BC
+    BSR.W   DigitToASCII
     ADDQ.L  #8,A1
 
     MOVE.B  (A2)+,D2            ; Read milliseconds
-    BSR.W   loc_00E4A0
+    BSR.W   ByteProcessLoop
     RTS
 ```
 
-### Digit Tile Renderer ($00E4BC)
+### Digit Tile Renderer — DigitToASCII ($00E4BC)
 
 Converts numeric digit to tile index:
 
 ```asm
-loc_00E4BC:  ; Render single digit
+DigitToASCII:  ; Render single digit
     ; Input: D1 = digit (0-9) or special char (10=:, 11=.)
     ; Uses global tile base offset stored in D0
 

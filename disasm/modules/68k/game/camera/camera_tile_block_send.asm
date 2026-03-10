@@ -18,12 +18,12 @@ camera_tile_block_send:
         MOVEQ   #$00,D0                         ; $0126AC
         ANDI.W  #$0003,D5                       ; $0126AE
         TST.W  D5                               ; $0126B2
-        BEQ.S  .loc_001C                        ; $0126B4
+        BEQ.S  .add_offset                       ; $0126B4
         SUBQ.W  #1,D5                           ; $0126B6
-.loc_0012:
+.acc_stride:
         ADDI.L  #$00000380,D0                   ; $0126B8
-        DBRA    D5,.loc_0012                    ; $0126BE
-.loc_001C:
+        DBRA    D5,.acc_stride                  ; $0126BE
+.add_offset:
         ADDA.L  D0,A0                           ; $0126C2
         MOVE.W  #$0038,D0                       ; $0126C4
         MOVE.W  #$0010,D1                       ; $0126C8

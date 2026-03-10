@@ -73,18 +73,18 @@ entity_render_pipeline_with_2_player_dispatch:
         MOVE.L  $00B2(A0),$0018(A0)             ; $006858
         MOVE.B  $00E5(A0),D1                    ; $00685E
         ANDI.B  #$06,D1                         ; $006862
-        BEQ.S  .loc_00F4                        ; $006866
+        BEQ.S  .use_stored_pos                        ; $006866
         MOVE.L  (-14580).W,$0018(A0)            ; $006868
-.loc_00F4:
+.use_stored_pos:
         MOVE.W  (-16262).W,D0                   ; $00686E
         MOVEA.L $0068A8(PC,D0.W),A1             ; $006872
         JSR     (A1)                            ; $006876
         jsr     object_heading_deviation_check_warning_flag+8(pc); $4EBA $168A
-.loc_0102:
+.heading_and_flags:
         jsr     heading_from_position(pc); $4EBA $27C2
         jsr     object_flag_process_cond_clear+6(pc); $4EBA $19DA
         jsr     race_start_countdown_sequence(pc); $4EBA $363A
-.loc_010E:
+.distance_and_render:
         jsr     obj_distance_calc(pc)   ; $4EBA $0D74
         jsr     object_visibility_collector(pc); $4EBA $0918
         jsr     camera_param_calc(pc)   ; $4EBA $C0F2
@@ -96,20 +96,20 @@ entity_render_pipeline_with_2_player_dispatch:
         DC.W    $0088                           ; $0068A8
         BVC.S  $006874                          ; $0068AA
         DC.W    $0088                           ; $0068AC
-        BPL.S  .loc_0102                        ; $0068AE
+        BPL.S  .heading_and_flags                        ; $0068AE
         DC.W    $0088                           ; $0068B0
-        BVS.S  .loc_0178                        ; $0068B2
+        BVS.S  .steering_update                        ; $0068B2
         DC.W    $0088                           ; $0068B4
-        BVS.S  .loc_010E                        ; $0068B6
+        BVS.S  .distance_and_render                        ; $0068B6
         DC.W    $0088                           ; $0068B8
-        BPL.S  .loc_017C                        ; $0068BA
+        BPL.S  .physics_update                        ; $0068BA
         DC.W    $0088                           ; $0068BC
         BPL.S  $0068F8                          ; $0068BE
         DC.W    $0088                           ; $0068C0
-        BMI.S  .loc_014E                        ; $0068C2
+        BMI.S  .full_pipeline                        ; $0068C2
         DC.W    $0088                           ; $0068C4
-        BVS.S  .loc_0198                        ; $0068C6
-.loc_014E:
+        BVS.S  .pos_and_ai                        ; $0068C6
+.full_pipeline:
         jsr     camera_state_selector(pc); $4EBA $4EA6
         MOVEQ   #$00,D0                         ; $0068CC
         MOVE.W  D0,$0044(A0)                    ; $0068CE
@@ -121,9 +121,9 @@ entity_render_pipeline_with_2_player_dispatch:
         jsr     object_timer_expire_speed_param_reset(pc); $4EBA $1888
         jsr     field_check_guard(pc)   ; $4EBA $17E0
         jsr     timer_decrement_multi(pc); $4EBA $1C58
-.loc_0178:
+.steering_update:
         jsr     steering_input_processing_and_velocity_update+6(pc); $4EBA $2C06
-.loc_017C:
+.physics_update:
         jsr     entity_force_integration_and_speed_calc+18(pc); $4EBA $2A1A
         jsr     entity_speed_clamp(pc)  ; $4EBA $3216
         jsr     entity_speed_acceleration_and_braking(pc); $4EBA $2882
@@ -131,7 +131,7 @@ entity_render_pipeline_with_2_player_dispatch:
         jsr     drift_physics_and_camera_offset_calc(pc); $4EBA $2D80
         jsr     suspension_steering_damping(pc); $4EBA $2EF6
         jsr     object_anim_timer_speed_clear+6(pc); $4EBA $156A
-.loc_0198:
+.pos_and_ai:
         jsr     entity_pos_update(pc)   ; $4EBA $0684
         jsr     multi_flag_test(pc)     ; $4EBA $13C0
         jsr     ai_opponent_select(pc)  ; $4EBA $3B18
@@ -158,9 +158,9 @@ entity_render_pipeline_with_2_player_dispatch:
         jsr     timer_decrement_multi(pc); $4EBA $1BD6
         jsr     steering_input_processing_and_velocity_update+6(pc); $4EBA $2B84
         CMPI.W  #$0004,(-15764).W               ; $006978
-        BEQ.S  .loc_020A                        ; $00697E
+        BEQ.S  .skip_force_integration                        ; $00697E
         jsr     entity_force_integration_and_speed_calc+18(pc); $4EBA $2990
-.loc_020A:
+.skip_force_integration:
         jsr     entity_speed_clamp(pc)  ; $4EBA $318C
         jsr     entity_speed_acceleration_and_braking(pc); $4EBA $27F8
         jsr     suspension_steering_damping(pc); $4EBA $2E74
@@ -168,11 +168,11 @@ entity_render_pipeline_with_2_player_dispatch:
         jsr     angle_to_sine(pc)       ; $4EBA $0714
         jsr     collision_response_surface_tracking+278(pc); $4EBA $0E7C
         SUBQ.W  #1,(-16340).W                   ; $00699C
-        BGT.S  .loc_023A                        ; $0069A0
+        BGT.S  .countdown_done                        ; $0069A0
         MOVE.W  #$0000,(-16340).W               ; $0069A2
         MOVE.W  #$0000,$0074(A0)                ; $0069A8
         MOVE.W  (-16244).W,(-16262).W           ; $0069AE
-.loc_023A:
+.countdown_done:
         jsr     proximity_trigger(pc)   ; $4EBA $34B8
         jsr     entity_speed_guard+4(pc); $4EBA $1294
         jsr     object_link_copy_table_lookup(pc); $4EBA $078C
@@ -204,7 +204,7 @@ entity_render_pipeline_with_2_player_dispatch:
         jsr     tilt_adjust(pc)         ; $4EBA $2BFA
         jsr     obj_state_return(pc)    ; $4EBA $3ED0
         BTST    #4,(-15602).W                   ; $006A2A
-        BEQ.S  .loc_02BE                        ; $006A30
+        BEQ.S  .done                        ; $006A30
         MOVE.W  (-16244).W,(-16262).W           ; $006A32
-.loc_02BE:
+.done:
         RTS                                     ; $006A38

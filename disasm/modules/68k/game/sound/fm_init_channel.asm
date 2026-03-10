@@ -16,11 +16,11 @@
 
 fm_init_channel:
         BTST    #4,(A5)                         ; $030C8A
-        BNE.S  .loc_0016                        ; $030C8E
+        BNE.S  .skip                             ; $030C8E
         BTST    #2,(A5)                         ; $030C90
-        BNE.S  .loc_0016                        ; $030C94
+        BNE.S  .skip                            ; $030C94
         MOVEQ   #$28,D0                         ; $030C96
         MOVE.B  $0001(A5),D1                    ; $030C98
         DC.W    $6000,$001C         ; BRA.W  $030CBA; $030C9C
-.loc_0016:
+.skip:
         RTS                                     ; $030CA0

@@ -21,16 +21,16 @@ tile_decompressor_setup:
         MOVEM.L D0/D1/D2/D3/D4/D5/D6/D7/A0/A1/A3/A4/A5,-(A7); $0010F4
         LEA     $008811B8,A3                    ; $0010F8
         LEA     VDP_DATA,A4                    ; $0010FE
-        BRA.S  .loc_001C                        ; $001104
+        BRA.S  .load_tile_header                 ; $001104
         MOVEM.L D0/D1/D2/D3/D4/D5/D6/D7/A0/A1/A3/A4/A5,-(A7); $001106
         LEA     $008811CE,A3                    ; $00110A
-.loc_001C:
+.load_tile_header:
         LEA     $00FF7E00,A1                    ; $001110
         MOVE.W  (A0)+,D2                        ; $001116
         LSL.W  #1,D2                            ; $001118
-        BCC.S  .loc_002C                        ; $00111A
+        BCC.S  .build_index                      ; $00111A
         ADDA.W  #$000A,A3                       ; $00111C
-.loc_002C:
+.build_index:
         LSL.W  #2,D2                            ; $001120
         MOVEA.W D2,A5                           ; $001122
         MOVEQ   #$08,D3                         ; $001124

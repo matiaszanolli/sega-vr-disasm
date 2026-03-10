@@ -18,13 +18,13 @@ fm_write_cond:
         DC.W    $6620               ; BNE.S  $030CF4; $030CD2
         ADD.B  $0001(A5),D0                     ; $030CD4
         LEA     $00A04000,A0                    ; $030CD8
-.loc_0012:
+.wait_busy_reg:
         BTST    #7,(A0)                         ; $030CDE
-        BNE.S  .loc_0012                        ; $030CE2
+        BNE.S  .wait_busy_reg                        ; $030CE2
         MOVE.B  D0,(A0)                         ; $030CE4
         NOP                                     ; $030CE6
-.loc_001C:
+.wait_busy_data:
         BTST    #7,(A0)                         ; $030CE8
-        BNE.S  .loc_001C                        ; $030CEC
+        BNE.S  .wait_busy_data                        ; $030CEC
         MOVE.B  D1,$0001(A0)                    ; $030CEE
         RTS                                     ; $030CF2

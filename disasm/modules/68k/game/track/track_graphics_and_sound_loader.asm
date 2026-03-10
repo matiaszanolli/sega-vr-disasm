@@ -37,9 +37,9 @@ track_graphics_and_sound_loader:
         LEA     $0089B73C,A1                    ; $00C80A
         LEA     (-598).W,A2                     ; $00C810
         MOVEQ   #$35,D7                         ; $00C814
-.loc_0054:
+.copy_palette_loop:
         MOVE.L  (A1)+,(A2)+                     ; $00C816
-        DBRA    D7,.loc_0054                    ; $00C818
+        DBRA    D7,.copy_palette_loop                    ; $00C818
         MOVEQ   #$00,D0                         ; $00C81C
         MOVE.B  D0,(-347).W                     ; $00C81E
         MOVE.B  D0,(-346).W                     ; $00C822
@@ -54,24 +54,24 @@ track_graphics_and_sound_loader:
         MOVE.B  #$FF,(-348).W                   ; $00C84A
         MOVE.B  #$00,(-14299).W                 ; $00C850
         JMP     $0088A83E                       ; $00C856
-.loc_009A:
+.display_list_init:
         MOVEQ   #$00,D1                         ; $00C85C
         LEA     $00FF6000,A1                    ; $00C85E
         JSR     $00884836                       ; $00C864
         JMP     $0088483E                       ; $00C86A
-        BSR.S  .loc_009A                        ; $00C870
+        BSR.S  .display_list_init                        ; $00C870
         MOVE.W  (-14132).W,D0                   ; $00C872
         LEA     $00895488,A1                    ; $00C876
         MOVEA.L $00(A1,D0.W),A1                 ; $00C87C
         TST.B  (-14321).W                       ; $00C880
-        BEQ.S  .loc_00E4                        ; $00C884
+        BEQ.S  .load_overlay_gfx                        ; $00C884
         LEA     $00895560,A1                    ; $00C886
         MOVEA.L $00(A1,D0.W),A1                 ; $00C88C
         LEA     $00FF6330,A2                    ; $00C890
         JSR     $00884920                       ; $00C896
         LEA     $008954F4,A1                    ; $00C89C
         MOVEA.L $00(A1,D0.W),A1                 ; $00C8A2
-.loc_00E4:
+.load_overlay_gfx:
         LEA     $00FF6100,A2                    ; $00C8A6
         JSR     $00884920                       ; $00C8AC
         MOVE.W  (A1)+,(-16300).W                ; $00C8B2

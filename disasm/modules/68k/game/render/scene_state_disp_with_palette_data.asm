@@ -37,19 +37,19 @@ scene_state_disp_with_palette_data:
         DC.W    $3DED                           ; $00D7E8
         DC.W    $7FFF                           ; $00D7EA
         DC.W    $7FFF                           ; $00D7EC
-.loc_003C:
+.palette_data_2:
         DC.W    $7FFF                           ; $00D7EE
         DC.W    $7FFF                           ; $00D7F0
         DC.W    $6337                           ; $00D7F2
         DC.W    $6737                           ; $00D7F4
         BMI.S  $00D850                          ; $00D7F6
         DC.W    $6F79                           ; $00D7F8
-        BMI.S  .loc_0080                        ; $00D7FA
+        BMI.S  .scene_config_table_a                        ; $00D7FA
         DC.W    $6B37                           ; $00D7FC
-        BLE.S  .loc_00A6                        ; $00D7FE
+        BLE.S  .scene_config_table_b                        ; $00D7FE
         DC.W    $6F79                           ; $00D800
         DC.W    $739A                           ; $00D802
-        BSR.S  .loc_003C                        ; $00D804
+        BSR.S  .palette_data_2                        ; $00D804
         DC.W    $7FFF                           ; $00D806
         DC.W    $1D4A                           ; $00D808
         DC.W    $4B3A                           ; $00D80A
@@ -60,10 +60,10 @@ scene_state_disp_with_palette_data:
         DC.W    $29A8                           ; $00D814
         DC.W    $4670                           ; $00D816
         DC.W    $6337                           ; $00D818
-.loc_0068:
+.palette_data_3:
         NEG.W  D5                               ; $00D81A
         SUBQ.B  #8,$6212(A3)                    ; $00D81C
-        BGT.S  .loc_0068                        ; $00D820
+        BGT.S  .palette_data_3                        ; $00D820
         DC.W    $7FFF                           ; $00D822
         BTST    D1,(A7)+                        ; $00D824
         DC.W    $7FFF                           ; $00D826
@@ -71,7 +71,7 @@ scene_state_disp_with_palette_data:
         DC.W    $033E                           ; $00D82A
         DC.W    $63FF                           ; $00D82C
         BCLR    D0,$0086(A7)                    ; $00D82E
-.loc_0080:
+.scene_config_table_a:
         ORI.B  #$70,D0                          ; $00D832
         BTST    D0,(A0)                         ; $00D836
         BTST    D1,D0                           ; $00D838
@@ -87,7 +87,7 @@ scene_state_disp_with_palette_data:
         DC.W    $0000                           ; $00D852
         BCHG    D0,(A0)                         ; $00D854
         DC.W    $02C0                           ; $00D856
-.loc_00A6:
+.scene_config_table_b:
         ORI.B  #$00,D0                          ; $00D858
         DC.W    $0000                           ; $00D85C
         BCLR    D0,D0                           ; $00D85E

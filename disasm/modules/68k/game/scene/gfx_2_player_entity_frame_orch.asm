@@ -21,9 +21,9 @@ gfx_2_player_entity_frame_orch:
         MOVE.L  $00B2(A0),$0018(A0)             ; $0064A8
         MOVE.B  $00E5(A0),D1                    ; $0064AE
         ANDI.B  #$06,D1                         ; $0064B2
-        BEQ.S  .loc_0028                        ; $0064B6
+        BEQ.S  .skip_alt_position                        ; $0064B6
         MOVE.L  (-14580).W,$0018(A0)            ; $0064B8
-.loc_0028:
+.skip_alt_position:
         MOVE.W  (-16262).W,D0                   ; $0064BE
         lea     entity_render_pipeline_jump_table(pc),a1; $43FA $00D8
         MOVEA.L $00(A1,D0.W),A1                 ; $0064C6
@@ -54,18 +54,18 @@ gfx_2_player_entity_frame_orch:
         LEA     (-16384).W,A2                   ; $00652C
         LEA     (-18432).W,A1                   ; $006530
         MOVEQ   #$1F,D7                         ; $006534
-.loc_00A0:
+.copy_p1_to_p2_loop:
         MOVEM.L (A2)+,D0/D1/D2/D3/D4/D5/D6/A3   ; $006536
         MOVEM.L D0/D1/D2/D3/D4/D5/D6/A3,-(A1)   ; $00653A
-        DBRA    D7,.loc_00A0                    ; $00653E
+        DBRA    D7,.copy_p1_to_p2_loop                    ; $00653E
         MOVE.L  (-13960).W,(-13968).W           ; $006542
         LEA     (-20480).W,A1                   ; $006548
         LEA     (-15360).W,A2                   ; $00654C
         MOVEQ   #$1F,D7                         ; $006550
-.loc_00BC:
+.copy_p2_to_p1_loop:
         MOVEM.L (A1)+,D0/D1/D2/D3/D4/D5/D6/A3   ; $006552
         MOVEM.L D0/D1/D2/D3/D4/D5/D6/A3,-(A2)   ; $006556
-        DBRA    D7,.loc_00BC                    ; $00655A
+        DBRA    D7,.copy_p2_to_p1_loop                    ; $00655A
         LEA     (-28672).W,A0                   ; $00655E
         LEA     (-24832).W,A1                   ; $006562
         jsr     dual_time_display_orch+52(pc); $4EBA $1EB0

@@ -61,9 +61,9 @@ track_physics_param_table_loader:
         DC.W    $43FA,$003A         ; LEA     $00A1CA(PC),A1; $00A18E
         ADD.W   D0,D0                           ; $00A192
         TST.B  (-15601).W                       ; $00A194
-        BEQ.S  .loc_00E8                        ; $00A198
+        BEQ.S  .load_timing                        ; $00A198
         ADDQ.W  #4,D0                           ; $00A19A
-.loc_00E8:
+.load_timing:
         MOVE.L  $00(A1,D0.W),(-15748).W         ; $00A19C
         LEA     (-1032).W,A1                    ; $00A1A2
         MOVE.W  (-14136).W,D1                   ; $00A1A6

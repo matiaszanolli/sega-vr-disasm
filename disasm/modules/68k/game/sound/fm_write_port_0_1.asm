@@ -19,13 +19,13 @@ fm_write_port_0_1:
         BCLR    #2,D2                           ; $030CF8
         ADD.B   D2,D0                           ; $030CFC
         LEA     $00A04000,A0                    ; $030CFE
-.loc_0010:
+.wait_busy_reg:
         BTST    #7,(A0)                         ; $030D04
-        BNE.S  .loc_0010                        ; $030D08
+        BNE.S  .wait_busy_reg                        ; $030D08
         MOVE.B  D0,$0002(A0)                    ; $030D0A
         NOP                                     ; $030D0E
-.loc_001C:
+.wait_busy_data:
         BTST    #7,(A0)                         ; $030D10
-        BNE.S  .loc_001C                        ; $030D14
+        BNE.S  .wait_busy_data                        ; $030D14
         MOVE.B  D1,$0003(A0)                    ; $030D16
         RTS                                     ; $030D1A

@@ -13,9 +13,9 @@
 
 camera_angle_decrement_clamp:
         CMPI.W  #$C000,D0                       ; $012CB0
-        BLT.S  .loc_0010                        ; $012CB4
+        BLT.S  .done                        ; $012CB4
         SUBI.W  #$0010,D0                       ; $012CB6
-        BRA.S  .loc_0010                        ; $012CBA
+        BRA.S  .done                        ; $012CBA
         SUBI.W  #$0040,D0                       ; $012CBC
-.loc_0010:
+.done:
         RTS                                     ; $012CC0

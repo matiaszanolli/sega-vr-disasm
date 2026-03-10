@@ -13,20 +13,20 @@
 ; ============================================================================
 
 race_track_overlay_config:
-        BSR.S  .loc_0036                        ; $00CA9A
-        JMP     .loc_0130(PC)                   ; $00CA9C
-        BSR.S  .loc_0036                        ; $00CAA0
+        BSR.S  .load_overlay_data                        ; $00CA9A
+        JMP     .configure_display_entry(PC)                   ; $00CA9C
+        BSR.S  .load_overlay_data                        ; $00CAA0
         MOVE.W  #$004E,$00FF6744                ; $00CAA2
         MOVE.W  (-14136).W,D0                   ; $00CAAA
-        BEQ.W  .loc_0130                        ; $00CAAE
+        BEQ.W  .configure_display_entry                        ; $00CAAE
         CMPI.W  #$0001,D0                       ; $00CAB2
-        BNE.S  .loc_002A                        ; $00CAB6
+        BNE.S  .set_hud_width_50                        ; $00CAB6
         MOVE.W  #$0050,$00FF6744                ; $00CAB8
-        JMP     .loc_0130(PC)                   ; $00CAC0
-.loc_002A:
+        JMP     .configure_display_entry(PC)                   ; $00CAC0
+.set_hud_width_50:
         MOVE.W  #$0050,$00FF6744                ; $00CAC4
-        JMP     .loc_0130(PC)                   ; $00CACC
-.loc_0036:
+        JMP     .configure_display_entry(PC)                   ; $00CACC
+.load_overlay_data:
         MOVE.W  (-14132).W,D0                   ; $00CAD0
         LEA     $00898C68,A1                    ; $00CAD4
         MOVE.L  $00(A1,D0.W),$00FF6858          ; $00CADA
@@ -69,7 +69,7 @@ race_track_overlay_config:
         MOVEA.L $00(A1,D0.W),A1                 ; $00CB70
         LEA     $00FF654C,A2                    ; $00CB74
         JSR     $00884920                       ; $00CB7A
-        BRA.S  .loc_0130                        ; $00CB80
+        BRA.S  .configure_display_entry                        ; $00CB80
         DC.W    $0088                           ; $00CB82
         exg     d5,a6                   ; $CB8E
         DC.W    $0088                           ; $00CB86
@@ -94,7 +94,7 @@ race_track_overlay_config:
         DC.W    $0000                           ; $00CBC0
         DC.W    $0800                           ; $00CBC2
         ORI.W  #$2229,$59D6(A3)                 ; $00CBC4
-.loc_0130:
+.configure_display_entry:
         MOVE.W  (-14176).W,D0                   ; $00CBCA
         LSL.W  #2,D0                            ; $00CBCE
         LEA     $00895668,A1                    ; $00CBD0
@@ -106,7 +106,7 @@ race_track_overlay_config:
         MOVE.W  (A1)+,$000E(A2)                 ; $00CBEE
         MOVE.L  (A1),$0010(A2)                  ; $00CBF2
         BTST    #7,(-600).W                     ; $00CBF6
-        BEQ.S  .loc_016A                        ; $00CBFC
+        BEQ.S  .done                        ; $00CBFC
         ADDI.W  #$0020,$0002(A2)                ; $00CBFE
-.loc_016A:
+.done:
         RTS                                     ; $00CC04

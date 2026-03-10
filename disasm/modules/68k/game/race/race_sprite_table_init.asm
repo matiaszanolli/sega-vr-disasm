@@ -46,19 +46,19 @@ race_sprite_table_init:
         LEA     (-15872).W,A1                   ; $00D122
         LEA     $00FF68D8,A3                    ; $00D126
         MOVEQ   #$04,D7                         ; $00D12C
-.loc_00A4:
+.nibble_unpack_loop:
         jsr     word_to_nibble_unpacker(pc); $4EBA $E30C
         LEA     $0004(A1),A1                    ; $00D132
         LEA     $0010(A3),A3                    ; $00D136
-        DBRA    D7,.loc_00A4                    ; $00D13A
+        DBRA    D7,.nibble_unpack_loop                    ; $00D13A
         MOVEQ   #-$01,D1                        ; $00D13E
         MOVEQ   #$04,D7                         ; $00D140
         MOVE.L  (-15788).W,D0                   ; $00D142
         LEA     (-15872).W,A1                   ; $00D146
-.loc_00C0:
+.palette_search_loop:
         ADDQ.W  #1,D1                           ; $00D14A
         CMP.L  (A1)+,D0                         ; $00D14C
-        DBEQ    D7,.loc_00C0                    ; $00D14E
+        DBEQ    D7,.palette_search_loop                    ; $00D14E
         LSL.W  #4,D1                            ; $00D152
         LEA     $00FF68D0,A1                    ; $00D154
         LEA     $00(A1,D1.W),A1                 ; $00D15A

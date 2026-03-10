@@ -19,9 +19,9 @@ psg_set_pos_silence:
         CLR.B  $000C(A5)                        ; $030FAA
         DC.W    $6000,$FF7E         ; BRA.W  $030F2E; $030FAE
         BTST    #2,(A5)                         ; $030FB2
-        BNE.S  .loc_0024                        ; $030FB6
+        BNE.S  .done                        ; $030FB6
         MOVE.B  $0001(A5),D0                    ; $030FB8
         ORI.B  #$1F,D0                          ; $030FBC
         MOVE.B  D0,PSG                    ; $030FC0
-.loc_0024:
+.done:
         RTS                                     ; $030FC6

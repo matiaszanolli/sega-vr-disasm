@@ -16,10 +16,10 @@
 randomized_timer_decrement_a:
         MOVE.W  #$1E00,D1                       ; $002294
         CMP.W  (A1),D1                          ; $002298
-        BNE.S  .loc_0012                        ; $00229A
+        BNE.S  .store                        ; $00229A
         jsr     random_number_gen(pc)   ; $4EBA $26D0
         ANDI.W  #$000F,D0                       ; $0022A0
         SUB.W   D0,D1                           ; $0022A4
-.loc_0012:
+.store:
         MOVE.W  D1,(A1)                         ; $0022A6
         RTS                                     ; $0022A8

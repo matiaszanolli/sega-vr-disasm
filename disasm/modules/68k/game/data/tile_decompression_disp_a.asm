@@ -16,16 +16,16 @@
 
 tile_decompression_disp_a:
         MOVEQ   #$03,D2                         ; $0014BE
-.loc_0002:
+.next_job:
         MOVEQ   #$00,D1                         ; $0014C0
         MOVE.B  D0,D1                           ; $0014C2
-        BEQ.S  .loc_001A                        ; $0014C4
+        BEQ.S  .skip_job                        ; $0014C4
         LSL.W  #3,D1                            ; $0014C6
         lea     tile_decompression_disp_b(pc),a0; $41FA $0016
         MOVE.L  -$08(A0,D1.W),(A5)              ; $0014CC
         MOVEA.L -$04(A0,D1.W),A0                ; $0014D0
         jsr     tile_decompressor_setup(pc); $4EBA $FC1E
-.loc_001A:
+.skip_job:
         ROR.L  #8,D0                            ; $0014D8
-        DBRA    D2,.loc_0002                    ; $0014DA
+        DBRA    D2,.next_job                    ; $0014DA
         RTS                                     ; $0014DE

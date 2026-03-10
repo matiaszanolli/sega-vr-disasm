@@ -26,17 +26,17 @@ bcd_nibble_subtractor:
         MOVE.B  $0001(A4),D1                    ; $00B49C
         MOVE.B  $0005(A4),D0                    ; $00B4A0
         SBCD    D0,D1                           ; $00B4A4
-        BCC.S  .loc_0038                        ; $00B4A6
+        BCC.S  .no_borrow                        ; $00B4A6
         SUBI.B  #$40,D1                         ; $00B4A8
         ORI.B   #$10,CCR                        ; $00B4AC
-.loc_0038:
+.no_borrow:
         MOVE.B  D1,$0001(A4)                    ; $00B4B0
         MOVE.B  (A4),D1                         ; $00B4B4
         MOVE.B  $0004(A4),D0                    ; $00B4B6
         SBCD    D0,D1                           ; $00B4BA
         CMPI.B  #$59,D1                         ; $00B4BC
-        BLE.S  .loc_004E                        ; $00B4C0
+        BLE.S  .store_result                        ; $00B4C0
         MOVE.B  #$59,D1                         ; $00B4C2
-.loc_004E:
+.store_result:
         MOVE.B  D1,(A4)                         ; $00B4C6
         RTS                                     ; $00B4C8

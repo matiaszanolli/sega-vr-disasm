@@ -16,9 +16,9 @@
 
 sequence_fade_rate_set:
         CMPI.B  #$02,$0038(A6)                  ; $031666
-        BEQ.W  .loc_0018                        ; $03166C
+        BEQ.W  .done                        ; $03166C
         MOVE.B  #$01,$0038(A6)                  ; $031670
         MOVE.B  (A4)+,$003A(A6)                 ; $031676
         MOVE.B  (A4)+,$003B(A6)                 ; $03167A
-.loc_0018:
+.done:
         RTS                                     ; $03167E

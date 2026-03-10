@@ -49,9 +49,9 @@ display_state_disp_004084:
         LEA     (A0),A1                         ; $0040C6
         MOVE.B  #$01,(-14336).W                 ; $0040C8
         CMPI.W  #$FFFF,(-16304).W               ; $0040CE
-        BNE.S  .loc_0058                        ; $0040D4
+        BNE.S  .init_display                        ; $0040D4
         MOVE.W  #$0000,(-16304).W               ; $0040D6
-.loc_0058:
+.init_display:
         MOVE.B  #$00,$00FF6960                  ; $0040DC
         MOVE.B  #$00,$00FF6930                  ; $0040E4
         MOVE.B  #$00,$00FF6970                  ; $0040EC

@@ -55,16 +55,16 @@ records_viewer_main_loop:
         MOVE.W  #$0110,D0                       ; $012254
         MOVE.W  #$0010,D1                       ; $012258
         DC.W    $4EBA,$C0FC         ; JSR     $00E35A(PC); $01225C
-.loc_0060:
+.wait_comm_ready:
         TST.B  COMM0_HI                        ; $012260
-        BNE.S  .loc_0060                        ; $012266
+        BNE.S  .wait_comm_ready                        ; $012266
         MOVE.W  #$0101,COMM6                ; $012268
         MOVE.W  #$A000,COMM4                ; $012270
         MOVE.B  #$2C,COMM0_LO                  ; $012278
         MOVE.B  #$01,COMM0_HI                  ; $012280
-.loc_0088:
+.wait_comm6_clear:
         TST.B  COMM6                        ; $012288
-        BNE.S  .loc_0088                        ; $01228E
+        BNE.S  .wait_comm6_clear                        ; $01228E
         MOVE.W  #$0018,COMM4                ; $012290
         MOVE.W  #$0101,COMM6                ; $012298
         MOVEA.L #$06018580,A0                   ; $0122A0
@@ -100,7 +100,7 @@ records_viewer_main_loop:
         MOVE.W  #$0008,D1                       ; $01230C
         DC.W    $4EBA,$C048         ; JSR     $00E35A(PC); $012310
         TST.L  (-24538).W                       ; $012314
-        BEQ.W  .loc_015A                        ; $012318
+        BEQ.W  .check_state                        ; $012318
         MOVE.L  (-24528).W,D1                   ; $01231C
         MOVE.L  (-24538).W,D2                   ; $012320
         ADD.L   D2,D1                           ; $012324
@@ -109,28 +109,28 @@ records_viewer_main_loop:
         ADD.L   D2,D1                           ; $01232E
         MOVE.L  D1,(-24524).W                   ; $012330
         SUBQ.W  #1,(-24534).W                   ; $012334
-        BCC.W  .loc_02FE                        ; $012338
+        BCC.W  .frame_end                        ; $012338
         TST.L  (-24538).W                       ; $01233C
-        BPL.S  .loc_0146                        ; $012340
+        BPL.S  .scroll_negative                        ; $012340
         ADDQ.W  #1,(-24532).W                   ; $012342
-.loc_0146:
+.scroll_negative:
         CLR.L  (-24538).W                       ; $012346
         MOVE.L  #$0402A060,(-24528).W           ; $01234A
         MOVE.L  #$0402A020,(-24524).W           ; $012352
-.loc_015A:
+.check_state:
         CMPI.W  #$0001,(-24520).W               ; $01235A
-        BEQ.W  .loc_02CE                        ; $012360
+        BEQ.W  .state_confirming                        ; $012360
         CMPI.W  #$0002,(-24520).W               ; $012364
-        BEQ.W  .loc_02E4                        ; $01236A
+        BEQ.W  .state_transitioning                        ; $01236A
         JSR     $0088179E                       ; $01236E
         MOVE.W  (-14228).W,D1                   ; $012374
         BTST    #4,D1                           ; $012378
-        BEQ.S  .loc_0180                        ; $01237C
-        BRA.S  .loc_0186                        ; $01237E
-.loc_0180:
+        BEQ.S  .check_a_button                        ; $01237C
+        BRA.S  .confirm_exit                        ; $01237E
+.check_a_button:
         BTST    #7,D1                           ; $012380
-        BEQ.S  .loc_01B4                        ; $012384
-.loc_0186:
+        BEQ.S  .check_dpad_up                        ; $012384
+.confirm_exit:
         MOVE.B  #$A8,(-14172).W                 ; $012386
         MOVE.W  #$0002,(-24520).W               ; $01238C
         MOVE.B  #$01,(-14327).W                 ; $012392
@@ -138,96 +138,96 @@ records_viewer_main_loop:
         BSET    #7,(-14322).W                   ; $01239E
         MOVE.B  #$01,(-14334).W                 ; $0123A4
         JSR     $0088205E                       ; $0123AA
-        BRA.W  .loc_02FE                        ; $0123B0
-.loc_01B4:
+        BRA.W  .frame_end                        ; $0123B0
+.check_dpad_up:
         BTST    #2,D1                           ; $0123B4
-        BEQ.S  .loc_01E8                        ; $0123B8
+        BEQ.S  .check_dpad_down                        ; $0123B8
         MOVE.B  #$A9,(-14172).W                 ; $0123BA
         TST.B  (-24551).W                       ; $0123C0
-        BEQ.S  .loc_01CE                        ; $0123C4
+        BEQ.S  .check_repeat_delay_up                        ; $0123C4
         SUBQ.B  #1,(-24551).W                   ; $0123C6
-        BRA.W  .loc_02FE                        ; $0123CA
-.loc_01CE:
+        BRA.W  .frame_end                        ; $0123CA
+.check_repeat_delay_up:
         TST.B  (-24550).W                       ; $0123CE
-        BNE.S  .loc_01DE                        ; $0123D2
+        BNE.S  .set_repeat_delay_up                        ; $0123D2
         MOVE.B  #$02,(-24551).W                 ; $0123D4
-        BRA.W  .loc_02FE                        ; $0123DA
-.loc_01DE:
+        BRA.W  .frame_end                        ; $0123DA
+.set_repeat_delay_up:
         MOVE.B  #$04,(-24551).W                 ; $0123DE
-        BRA.W  .loc_02FE                        ; $0123E4
-.loc_01E8:
+        BRA.W  .frame_end                        ; $0123E4
+.check_dpad_down:
         BTST    #3,D1                           ; $0123E8
-        BEQ.S  .loc_0222                        ; $0123EC
+        BEQ.S  .check_dpad_right                        ; $0123EC
         MOVE.B  #$A9,(-14172).W                 ; $0123EE
         TST.B  (-24550).W                       ; $0123F4
-        BNE.S  .loc_020A                        ; $0123F8
+        BNE.S  .check_repeat_delay_down                        ; $0123F8
         CMPI.B  #$02,(-24551).W                 ; $0123FA
-        BGE.S  .loc_021A                        ; $012400
+        BGE.S  .clear_repeat_counter                        ; $012400
         ADDQ.B  #1,(-24551).W                   ; $012402
-        BRA.W  .loc_02FE                        ; $012406
-.loc_020A:
+        BRA.W  .frame_end                        ; $012406
+.check_repeat_delay_down:
         CMPI.B  #$04,(-24551).W                 ; $01240A
-        BGE.S  .loc_021A                        ; $012410
+        BGE.S  .clear_repeat_counter                        ; $012410
         ADDQ.B  #1,(-24551).W                   ; $012412
-        BRA.W  .loc_02FE                        ; $012416
-.loc_021A:
+        BRA.W  .frame_end                        ; $012416
+.clear_repeat_counter:
         CLR.B  (-24551).W                       ; $01241A
-        BRA.W  .loc_02FE                        ; $01241E
-.loc_0222:
+        BRA.W  .frame_end                        ; $01241E
+.check_dpad_right:
         BTST    #0,D1                           ; $012422
-        BEQ.S  .loc_024A                        ; $012426
+        BEQ.S  .check_dpad_left                        ; $012426
         TST.B  (-24550).W                       ; $012428
-        BEQ.W  .loc_02FE                        ; $01242C
+        BEQ.W  .frame_end                        ; $01242C
         MOVE.B  #$A9,(-14172).W                 ; $012430
         MOVE.B  (-24551).W,(-24548).W           ; $012436
         MOVE.B  (-24549).W,(-24551).W           ; $01243C
         CLR.B  (-24550).W                       ; $012442
-        BRA.W  .loc_02FE                        ; $012446
-.loc_024A:
+        BRA.W  .frame_end                        ; $012446
+.check_dpad_left:
         BTST    #1,D1                           ; $01244A
-        BEQ.S  .loc_0274                        ; $01244E
+        BEQ.S  .check_scroll_up                        ; $01244E
         TST.B  (-24550).W                       ; $012450
-        BNE.W  .loc_02FE                        ; $012454
+        BNE.W  .frame_end                        ; $012454
         MOVE.B  #$A9,(-14172).W                 ; $012458
         MOVE.B  (-24551).W,(-24549).W           ; $01245E
         MOVE.B  (-24548).W,(-24551).W           ; $012464
         MOVE.B  #$01,(-24550).W                 ; $01246A
-        BRA.W  .loc_02FE                        ; $012470
-.loc_0274:
+        BRA.W  .frame_end                        ; $012470
+.check_scroll_up:
         LSR.W  #8,D1                            ; $012474
         BTST    #6,D1                           ; $012476
-        BEQ.S  .loc_02AA                        ; $01247A
+        BEQ.S  .check_scroll_down                        ; $01247A
         TST.W  (-24532).W                       ; $01247C
-        BEQ.W  .loc_02FE                        ; $012480
+        BEQ.W  .frame_end                        ; $012480
         MOVE.L  #$00000400,(-24538).W           ; $012484
         MOVE.W  #$0007,(-24534).W               ; $01248C
         SUBQ.W  #1,(-24532).W                   ; $012492
         SUBI.L  #$00002000,(-24528).W           ; $012496
         SUBI.L  #$00002000,(-24524).W           ; $01249E
-        BRA.W  .loc_02FE                        ; $0124A6
-.loc_02AA:
+        BRA.W  .frame_end                        ; $0124A6
+.check_scroll_down:
         BTST    #5,D1                           ; $0124AA
-        BEQ.W  .loc_02FE                        ; $0124AE
+        BEQ.W  .frame_end                        ; $0124AE
         CMPI.W  #$000F,(-24532).W               ; $0124B2
-        BGE.W  .loc_02FE                        ; $0124B8
+        BGE.W  .frame_end                        ; $0124B8
         MOVE.L  #$FFFFFC00,(-24538).W           ; $0124BC
         MOVE.W  #$0007,(-24534).W               ; $0124C4
-        BRA.W  .loc_02FE                        ; $0124CA
-.loc_02CE:
+        BRA.W  .frame_end                        ; $0124CA
+.state_confirming:
         JSR     $0088FB36                       ; $0124CE
         BTST    #6,(-14322).W                   ; $0124D4
-        BNE.S  .loc_02FE                        ; $0124DA
+        BNE.S  .frame_end                        ; $0124DA
         CLR.W  (-24520).W                       ; $0124DC
-        BRA.W  .loc_02FE                        ; $0124E0
-.loc_02E4:
+        BRA.W  .frame_end                        ; $0124E0
+.state_transitioning:
         JSR     $0088FB36                       ; $0124E4
         BTST    #7,(-14322).W                   ; $0124EA
-        BNE.S  .loc_02FE                        ; $0124F0
+        BNE.S  .frame_end                        ; $0124F0
         CLR.W  (-24520).W                       ; $0124F2
         ADDQ.W  #4,(-14210).W                   ; $0124F6
-        BRA.W  .loc_0302                        ; $0124FA
-.loc_02FE:
+        BRA.W  .set_frame_timing                        ; $0124FA
+.frame_end:
         SUBQ.W  #4,(-14210).W                   ; $0124FE
-.loc_0302:
+.set_frame_timing:
         MOVE.W  #$0018,$00FF0008                ; $012502
         RTS                                     ; $01250A

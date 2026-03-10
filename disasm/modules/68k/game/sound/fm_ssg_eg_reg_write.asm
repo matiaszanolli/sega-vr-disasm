@@ -17,12 +17,12 @@
 fm_ssg_eg_reg_write:
         lea     fm_reg_table_channel_pause(pc),a1; $43FA $001A
         MOVEQ   #$03,D3                         ; $031578
-.loc_0006:
+.next_op:
         MOVE.B  (A1)+,D0                        ; $03157A
         MOVE.B  (A4)+,D1                        ; $03157C
         jsr     fm_cond_write_with_bus(pc); $4EBA $F722
         MOVE.B  (A1)+,D0                        ; $031582
         MOVEQ   #$1F,D1                         ; $031584
         jsr     fm_cond_write_with_bus(pc); $4EBA $F71A
-        DBRA    D3,.loc_0006                    ; $03158A
+        DBRA    D3,.next_op                    ; $03158A
         RTS                                     ; $03158E

@@ -14,9 +14,9 @@
 scroll_pos_decrement:
         MOVE.W  (A1),D0                         ; $014872
         CMP.W  (A2),D0                          ; $014874
-        BEQ.S  .loc_0008                        ; $014876
+        BEQ.S  .sub_step                        ; $014876
         MOVE.W  D0,(A2)                         ; $014878
-.loc_0008:
+.sub_step:
         SUBI.W  #$0010,(A2)                     ; $01487A
         MOVE.W  (A2),(A1)                       ; $01487E
         RTS                                     ; $014880

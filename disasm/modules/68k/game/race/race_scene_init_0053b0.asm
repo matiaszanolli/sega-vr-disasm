@@ -26,9 +26,9 @@ race_scene_init_0053b0:
         MOVEQ   #$00,D1                         ; $0053DA
         MOVE.B  (-330).W,D0                     ; $0053DC
         CMPI.B  #$05,D0                         ; $0053E0
-        BCS.S  .loc_0038                        ; $0053E4
+        BCS.S  .track_index_valid                        ; $0053E4
         MOVEQ   #$00,D0                         ; $0053E6
-.loc_0038:
+.track_index_valid:
         MOVE.B  (-331).W,D1                     ; $0053E8
         MOVE.B  #$01,(-14323).W                 ; $0053EC
         jsr     game_mode_track_config(pc); $4EBA $7DA8
@@ -57,9 +57,9 @@ race_scene_init_0053b0:
         jsr     scene_init_sh2_buffer_clear_loop(pc); $4EBA $7924
         MOVE.B  #$00,(-15596).W                 ; $005470
         BTST    #0,(-14312).W                   ; $005476
-        BEQ.S  .loc_00D4                        ; $00547C
+        BEQ.S  .skip_p1_flag                        ; $00547C
         MOVE.B  #$01,(-15596).W                 ; $00547E
-.loc_00D4:
+.skip_p1_flag:
         MOVEQ   #$00,D0                         ; $005484
         jsr     scene_camera_init(pc)   ; $4EBA $77EC
         jsr     track_graphics_and_sound_loader+174(pc); $4EBA $73E4
@@ -99,9 +99,9 @@ race_scene_init_0053b0:
         MOVE.B  #$02,(-14326).W                 ; $00552A
         BSET    #6,(-14322).W                   ; $005530
         MOVE.B  #$01,(-14334).W                 ; $005536
-.loc_018C:
+.wait_sh2_ready:
         BTST    #0,COMM1_LO                    ; $00553C
-        BEQ.S  .loc_018C                        ; $005544
+        BEQ.S  .wait_sh2_ready                        ; $005544
         BCLR    #0,COMM1_LO                    ; $005546
         MOVE.B  #$9B,(-14171).W                 ; $00554E
         JSR     $00882080                       ; $005554

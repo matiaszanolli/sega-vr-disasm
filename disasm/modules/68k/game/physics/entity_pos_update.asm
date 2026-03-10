@@ -16,9 +16,9 @@
 
 entity_pos_update:
         TST.W  $0062(A0)                        ; $006F98
-        BNE.S  .loc_003E                        ; $006F9C
+        BNE.S  .alternate_mode                        ; $006F9C
         TST.W  $0092(A0)                        ; $006F9E
-        BGT.S  .loc_0036                        ; $006FA2
+        BGT.S  .special_param_path                        ; $006FA2
         MOVE.W  $003C(A0),D0                    ; $006FA4
         ADD.W  $0096(A0),D0                     ; $006FA8
         MOVE.W  D0,$0040(A0)                    ; $006FAC
@@ -30,10 +30,10 @@ entity_pos_update:
         MOVE.W  D3,$0030(A0)                    ; $006FC2
         MOVE.W  D4,$0034(A0)                    ; $006FC6
         jmp     collision_response_surface_tracking(pc); $4EFA $0734
-.loc_0036:
+.special_param_path:
         jsr     counter_guard(pc)       ; $4EBA $002A
         jmp     collision_response_surface_tracking+278(pc); $4EFA $0842
-.loc_003E:
+.alternate_mode:
         jsr     camera_position_smooth(pc); $4EBA $0030
         jmp     collision_response_surface_tracking+278(pc); $4EFA $083A
         MOVEQ   #$0C,D6                         ; $006FDE

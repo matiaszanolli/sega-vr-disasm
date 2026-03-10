@@ -19,7 +19,7 @@ fm_sequence_data_reader:
         MOVEQ   #$00,D6                         ; $0302EE
         MOVE.B  $000A(A5),D0                    ; $0302F0
         ANDI.W  #$007F,D0                       ; $0302F4
-        BEQ.S  .loc_0050                        ; $0302F8
+        BEQ.S  .add_base_freq                        ; $0302F8
         DC.W    $41FA,$263A         ; LEA     $032936(PC),A0; $0302FA
         SUBQ.W  #1,D0                           ; $0302FE
         LSL.W  #2,D0                            ; $030300
@@ -28,7 +28,7 @@ fm_sequence_data_reader:
         MOVE.B  $0026(A5),D0                    ; $030308
         ADDQ.B  #1,$0026(A5)                    ; $03030C
         MOVE.B  $00(A0,D0.W),D6                 ; $030310
-        BPL.S  .loc_0046                        ; $030314
+        BPL.S  .apply_multiplier                        ; $030314
         CMPI.B  #$80,D6                         ; $030316
         DC.W    $673C               ; BEQ.S  $030358; $03031A
         CMPI.B  #$81,D6                         ; $03031C
@@ -39,17 +39,17 @@ fm_sequence_data_reader:
         DC.W    $6748               ; BEQ.S  $030376; $03032C
         CMPI.B  #$84,D6                         ; $03032E
         DC.W    $674A               ; BEQ.S  $03037E; $030332
-.loc_0046:
+.apply_multiplier:
         EXT.W   D6                              ; $030334
         MOVE.B  $0003(A5),D0                    ; $030336
         EXT.W   D0                              ; $03033A
         MULU    D0,D6                           ; $03033C
-.loc_0050:
+.add_base_freq:
         MOVE.W  $001E(A5),D0                    ; $03033E
         ADD.W   D0,D6                           ; $030342
         ADD.W  $0010(A5),D6                     ; $030344
         TST.B  $000A(A5)                        ; $030348
-        BPL.S  .loc_0064                        ; $03034C
+        BPL.S  .done                        ; $03034C
         ADD.W  $001C(A5),D6                     ; $03034E
-.loc_0064:
+.done:
         RTS                                     ; $030352

@@ -26,19 +26,19 @@ gfx_32x_framebuffer_palette_fill:
         LEA     $00A15186,A2                    ; $0027E2
         LEA     $00A15188,A3                    ; $0027E8
         MOVE.W  #$2000,D1                       ; $0027EE
-        BSR.S  .loc_001E                        ; $0027F2
+        BSR.S  .fill_range                        ; $0027F2
         MOVE.W  #$F000,D1                       ; $0027F4
-.loc_001E:
+.fill_range:
         MOVE.W  #$000F,D7                       ; $0027F8
         MOVE.W  #$0101,D0                       ; $0027FC
         MOVE.W  #$0100,D2                       ; $002800
         MOVE.W  #$00FF,$0084(A4)                ; $002804
-.loc_0030:
+.fill_entry_loop:
         MOVE.W  D1,(A2)                         ; $00280A
         MOVE.W  D0,(A3)                         ; $00280C
-.loc_0034:
+.wait_fill_done:
         BTST    #1,$008B(A4)                    ; $00280E
-        BNE.S  .loc_0034                        ; $002814
+        BNE.S  .wait_fill_done                        ; $002814
         ADD.W   D2,D1                           ; $002816
-        DBRA    D7,.loc_0030                    ; $002818
+        DBRA    D7,.fill_entry_loop                    ; $002818
         RTS                                     ; $00281C

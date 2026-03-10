@@ -15,26 +15,26 @@
 ; ============================================================================
 
 sh2_multi_param_command_send:
-.loc_0000:
+.wait_comm_ready:
         TST.B  COMM0_HI                        ; $012FE4
-        BNE.S  .loc_0000                        ; $012FEA
+        BNE.S  .wait_comm_ready                        ; $012FEA
         MOVE.L  A1,COMM4                    ; $012FEC
         MOVE.W  #$0101,COMM6                ; $012FF2
         MOVE.B  #$21,COMM0_LO                  ; $012FFA
         MOVE.B  #$01,COMM0_HI                  ; $013002
-.loc_0026:
+.wait_ack_param_2:
         TST.B  COMM6                        ; $01300A
-        BNE.S  .loc_0026                        ; $013010
+        BNE.S  .wait_ack_param_2                        ; $013010
         MOVE.W  D0,COMM4                    ; $013012
         MOVE.W  D1,COMM5                    ; $013018
         MOVE.W  #$0101,COMM6                ; $01301E
         TST.B  COMM6                        ; $013026
-        BNE.S  .loc_0026                        ; $01302C
+        BNE.S  .wait_ack_param_2                        ; $01302C
         MOVE.W  D2,COMM4                    ; $01302E
         MOVE.W  #$0101,COMM6                ; $013034
-.loc_0058:
+.wait_ack_param_4:
         TST.B  COMM6                        ; $01303C
-        BNE.S  .loc_0058                        ; $013042
+        BNE.S  .wait_ack_param_4                        ; $013042
         MOVE.L  A0,COMM4                    ; $013044
         MOVE.W  #$0101,COMM6                ; $01304A
         RTS                                     ; $013052

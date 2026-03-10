@@ -20,17 +20,17 @@ sh2_split_screen_display_init:
         MOVE.B  (-343).W,(-24547).W             ; $00E5D2
         MOVE.B  (-335).W,(-24551).W             ; $00E5D8
         BCLR    #7,(-600).W                     ; $00E5DE
-        BRA.S  .loc_0048                        ; $00E5E4
+        BRA.S  .shared_init                      ; $00E5E4
         CLR.B  (-24545).W                       ; $00E5E6
         MOVE.B  (-343).W,(-24547).W             ; $00E5EA
         MOVE.B  (-335).W,(-24551).W             ; $00E5F0
         BSET    #7,(-600).W                     ; $00E5F6
-        BRA.S  .loc_0048                        ; $00E5FC
+        BRA.S  .shared_init                      ; $00E5FC
         MOVE.B  #$01,(-24545).W                 ; $00E5FE
         MOVE.B  (-342).W,(-24547).W             ; $00E604
         BCLR    #7,(-600).W                     ; $00E60A
         MOVE.B  (-334).W,(-24551).W             ; $00E610
-.loc_0048:
+.shared_init:
         MOVE.W  #$002C,$00FF0008                ; $00E616
         MOVE.W  #$002C,(-14214).W               ; $00E61E
         BCLR    #6,(-14219).W                   ; $00E624
@@ -44,19 +44,19 @@ sh2_split_screen_display_init:
         MOVEQ   #$00,D0                         ; $00E656
         LEA     (-31616).W,A0                   ; $00E658
         MOVEQ   #$1F,D1                         ; $00E65C
-.loc_0090:
+.clear_score_loop:
         MOVE.L  D0,(A0)+                        ; $00E65E
-        DBRA    D1,.loc_0090                    ; $00E660
+        DBRA    D1,.clear_score_loop                    ; $00E660
         LEA     $00FF7B80,A0                    ; $00E664
         MOVEQ   #$7F,D1                         ; $00E66A
-.loc_009E:
+.clear_display_loop:
         MOVE.L  D0,(A0)+                        ; $00E66C
-        DBRA    D1,.loc_009E                    ; $00E66E
+        DBRA    D1,.clear_display_loop                    ; $00E66E
         MOVE.L  #$60000002,(A5)                 ; $00E672
         MOVE.W  #$17FF,D1                       ; $00E678
-.loc_00AE:
+.clear_vram_loop:
         MOVE.L  D0,(A6)                         ; $00E67C
-        DBRA    D1,.loc_00AE                    ; $00E67E
+        DBRA    D1,.clear_vram_loop                    ; $00E67E
         JSR     $008849AA                       ; $00E682
         CLR.W  (-14208).W                       ; $00E688
         CLR.W  (-14206).W                       ; $00E68C
@@ -73,9 +73,9 @@ sh2_split_screen_display_init:
         MOVE.W  #$0001,(-24544).W               ; $00E6C6
         LEA     $00FF1000,A0                    ; $00E6CC
         MOVE.W  #$037F,D0                       ; $00E6D2
-.loc_0108:
+.clear_tilemap_loop:
         CLR.L  (A0)+                            ; $00E6D6
-        DBRA    D0,.loc_0108                    ; $00E6D8
+        DBRA    D0,.clear_tilemap_loop                    ; $00E6D8
         MOVE.W  #$0001,D0                       ; $00E6DC
         MOVE.W  #$0001,D1                       ; $00E6E0
         MOVE.W  #$0001,D2                       ; $00E6E4
@@ -98,18 +98,18 @@ sh2_split_screen_display_init:
         LEA     $008BA220,A1                    ; $00E734
         MOVEA.L (A1),A1                         ; $00E73A
         MOVE.W  #$007F,D0                       ; $00E73C
-.loc_0172:
+.copy_palette_loop:
         MOVE.W  (A1)+,(A0)+                     ; $00E740
-        DBRA    D0,.loc_0172                    ; $00E742
+        DBRA    D0,.copy_palette_loop                    ; $00E742
         LEA     $00FF6E00,A0                    ; $00E746
         ADDA.L  #$00000160,A0                   ; $00E74C
         LEA     $0088E88C,A1                    ; $00E752
         MOVE.W  #$003F,D0                       ; $00E758
-.loc_018E:
+.copy_overlay_palette_loop:
         MOVE.W  (A1)+,D1                        ; $00E75C
         BSET    #15,D1                          ; $00E75E
         MOVE.W  D1,(A0)+                        ; $00E762
-        DBRA    D0,.loc_018E                    ; $00E764
+        DBRA    D0,.copy_overlay_palette_loop                    ; $00E764
         LEA     $000E9680,A0                    ; $00E768
         MOVEA.L #$06038000,A1                   ; $00E76E
         DC.W    $4EBA,$FBA0         ; JSR     $00E316(PC); $00E774
@@ -147,16 +147,16 @@ sh2_split_screen_display_init:
         MOVE.B  #$00,$00FF60D4                  ; $00E846
         LEA     $00FF6100,A0                    ; $00E84E
         MOVE.W  #$007F,D0                       ; $00E854
-.loc_028A:
+.clear_sprite_table_loop:
         CLR.L  (A0)+                            ; $00E858
         CLR.L  (A0)+                            ; $00E85A
         CLR.L  (A0)+                            ; $00E85C
         CLR.L  (A0)+                            ; $00E85E
         CLR.L  (A0)+                            ; $00E860
-        DBRA    D0,.loc_028A                    ; $00E862
-.loc_0298:
+        DBRA    D0,.clear_sprite_table_loop                    ; $00E862
+.wait_comm_ready:
         TST.B  COMM0_HI                        ; $00E866
-        BNE.S  .loc_0298                        ; $00E86C
+        BNE.S  .wait_comm_ready                        ; $00E86C
         CLR.B  COMM1_HI                        ; $00E86E
         CLR.B  COMM1_LO                        ; $00E874
         MOVE.B  #$03,COMM0_LO                  ; $00E87A

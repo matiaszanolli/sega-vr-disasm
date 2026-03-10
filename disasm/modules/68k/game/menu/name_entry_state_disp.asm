@@ -68,10 +68,10 @@ name_entry_state_disp:
         DC.W    $7FFF                           ; $0110A4
         DC.W    $7FFF                           ; $0110A6
         DC.W    $7FFF                           ; $0110A8
-.loc_006C:
+.data_pattern_loop_1:
         NEG.W  D5                               ; $0110AA
         SUBQ.B  #8,$6212(A3)                    ; $0110AC
-        BGT.S  .loc_006C                        ; $0110B0
+        BGT.S  .data_pattern_loop_1                        ; $0110B0
         DC.W    $7FFF                           ; $0110B2
         DC.W    $0E9A                           ; $0110B4
         DC.W    $7FFF                           ; $0110B6
@@ -83,10 +83,10 @@ name_entry_state_disp:
         DC.W    $0010                           ; $0110C2
         MOVE.B  $294E(A7),(A2)                  ; $0110C4
         DC.W    $3DED                           ; $0110C8
-.loc_008C:
+.data_pattern_loop_2:
         NEG.W  D5                               ; $0110CA
         SUBQ.B  #8,$6212(A3)                    ; $0110CC
-        BGT.S  .loc_008C                        ; $0110D0
+        BGT.S  .data_pattern_loop_2                        ; $0110D0
         DC.W    $7FFF                           ; $0110D2
         BTST    D1,(A7)+                        ; $0110D4
         DC.W    $7FFF                           ; $0110D6
@@ -162,7 +162,7 @@ name_entry_state_disp:
         DC.W    $188A                           ; $011190
         jsr     object_update(pc)       ; $4EBA $A4F0
         BTST    #6,(-14322).W                   ; $011196
-        BNE.S  .loc_0164                        ; $01119C
+        BNE.S  .done                        ; $01119C
         ADDQ.W  #4,(-14210).W                   ; $01119E
-.loc_0164:
+.done:
         RTS                                     ; $0111A2

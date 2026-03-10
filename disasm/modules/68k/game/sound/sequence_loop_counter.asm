@@ -18,9 +18,9 @@ sequence_loop_counter:
         MOVE.B  (A4)+,D0                        ; $031510
         MOVE.B  (A4)+,D1                        ; $031512
         TST.B  $2A(A5,D0.W)                     ; $031514
-        BNE.S  .loc_0010                        ; $031518
+        BNE.S  .decrement                        ; $031518
         MOVE.B  D1,$2A(A5,D0.W)                 ; $03151A
-.loc_0010:
+.decrement:
         SUBQ.B  #1,$2A(A5,D0.W)                 ; $03151E
         DC.W    $66DE               ; BNE.S  $031502; $031522
         ADDQ.W  #2,A4                           ; $031524

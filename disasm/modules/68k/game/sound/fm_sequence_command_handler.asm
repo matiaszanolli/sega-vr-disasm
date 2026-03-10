@@ -28,9 +28,9 @@ fm_sequence_command_handler:
         DC.W    $60A2               ; BRA.S  $030306; $030362
         BSET    #1,(A5)                         ; $030364
         TST.B  $0001(A5)                        ; $030368
-        BMI.S  .loc_001A                        ; $03036C
+        BMI.S  .reinit_volume                        ; $03036C
         DC.W    $6000,$091A         ; BRA.W  $030C8A; $03036E
-.loc_001A:
+.reinit_volume:
         DC.W    $6000,$0C3E         ; BRA.W  $030FB2; $030372
         MOVE.B  $01(A0,D0.W),$0026(A5)          ; $030376
         DC.W    $6088               ; BRA.S  $030306; $03037C
@@ -41,12 +41,12 @@ fm_sequence_command_handler:
         lea     fm_reg_table_state_disp(pc),a1; $43FA $003C
         LEA     $0020(A6),A2                    ; $030392
         TST.B  $000E(A6)                        ; $030396
-        BEQ.S  .loc_0048                        ; $03039A
+        BEQ.S  .select_panning_table                        ; $03039A
         LEA     $0028(A6),A2                    ; $03039C
-.loc_0048:
+.select_panning_table:
         MOVEQ   #$03,D5                         ; $0303A0
         jsr     z80_bus_wait(pc)        ; $4EBA $0978
-.loc_004E:
+.write_operator_loop:
         MOVE.W  D6,D1                           ; $0303A6
         MOVE.W  (A2)+,D0                        ; $0303A8
         ADD.W   D0,D1                           ; $0303AA
@@ -57,6 +57,6 @@ fm_sequence_command_handler:
         MOVE.B  D3,D1                           ; $0303B6
         MOVE.B  (A1)+,D0                        ; $0303B8
         jsr     fm_write_cond+12(pc)    ; $4EBA $091C
-        DBRA    D5,.loc_004E                    ; $0303BE
+        DBRA    D5,.write_operator_loop                    ; $0303BE
         MOVE.W  #$0000,Z80_BUSREQ                ; $0303C2
         RTS                                     ; $0303CA

@@ -20,29 +20,29 @@ camera_animation_state_disp:
         JMP     (A1)                            ; $00B7F8
         MOVEQ   #$00,D2                         ; $00B7FA
         MOVE.B  (-15614).W,D2                   ; $00B7FC
-        BRA.S  .loc_0056                        ; $00B800
+        BRA.S  .update_state                        ; $00B800
         MOVEQ   #$00,D0                         ; $00B802
         MOVE.B  (-15614).W,D0                   ; $00B804
         MOVE.W  D0,D2                           ; $00B808
         TST.B  (-15599).W                       ; $00B80A
-        BEQ.S  .loc_003C                        ; $00B80E
+        BEQ.S  .increment_phase                        ; $00B80E
         SUBQ.W  #4,D0                           ; $00B810
         SUBQ.W  #1,(-16312).W                   ; $00B812
         TST.W  D0                               ; $00B816
-        BGE.S  .loc_0056                        ; $00B818
+        BGE.S  .update_state                        ; $00B818
         MOVE.B  #$00,(-15599).W                 ; $00B81A
         MOVE.W  #$0001,(-16312).W               ; $00B820
         MOVEQ   #$04,D0                         ; $00B826
-        BRA.S  .loc_0056                        ; $00B828
-.loc_003C:
+        BRA.S  .update_state                        ; $00B828
+.increment_phase:
         ADDQ.W  #4,D0                           ; $00B82A
         ADDQ.W  #1,(-16312).W                   ; $00B82C
         CMPI.W  #$0010,D0                       ; $00B830
-        BLT.S  .loc_0056                        ; $00B834
+        BLT.S  .update_state                        ; $00B834
         MOVE.B  #$01,(-15599).W                 ; $00B836
         MOVE.W  #$0002,(-16312).W               ; $00B83C
         MOVEQ   #$08,D0                         ; $00B842
-.loc_0056:
+.update_state:
         MOVE.B  D0,(-15614).W                   ; $00B844
         ADD.W   D2,D2                           ; $00B848
         ADD.W   D2,D2                           ; $00B84A
@@ -97,20 +97,20 @@ camera_animation_state_disp:
         MOVE.W  D0,(-16300).W                   ; $00B8C4
         MOVE.B  #$00,(-15588).W                 ; $00B8C8
         SUBQ.B  #1,(-15613).W                   ; $00B8CE
-        BNE.W  .loc_0174                        ; $00B8D2
+        BNE.W  .done                        ; $00B8D2
         MOVE.B  #$00,(-16284).W                 ; $00B8D6
         MOVE.L  (-14512).W,$0010(A2)            ; $00B8DC
         TST.W  $008A(A0)                        ; $00B8E2
-        BNE.S  .loc_0100                        ; $00B8E6
+        BNE.S  .after_position_set                        ; $00B8E6
         MOVE.L  (-14556).W,$0010(A2)            ; $00B8E8
-.loc_0100:
+.after_position_set:
         MOVEQ   #$00,D2                         ; $00B8EE
         MOVE.L  (-14552).W,D1                   ; $00B8F0
-        BEQ.S  .loc_0114                        ; $00B8F4
+        BEQ.S  .after_secondary_set                        ; $00B8F4
         MOVE.L  D1,$0024(A2)                    ; $00B8F6
         MOVE.L  (-14548).W,$0038(A2)            ; $00B8FA
         MOVEQ   #$01,D2                         ; $00B900
-.loc_0114:
+.after_secondary_set:
         MOVE.W  D2,$0014(A2)                    ; $00B902
         MOVE.W  D2,$0028(A2)                    ; $00B906
         MOVE.W  #$0001,(-16308).W               ; $00B90A
@@ -126,11 +126,11 @@ camera_animation_state_disp:
         MOVE.W  #$0000,$0050(A2)                ; $00B938
         MOVEA.L (-14528).W,A1                   ; $00B93E
         CMPA.L  #$00000000,A1                   ; $00B942
-        BEQ.S  .loc_0174                        ; $00B948
+        BEQ.S  .done                        ; $00B948
         MOVE.W  (A1)+,$0052(A2)                 ; $00B94A
         MOVE.W  (A1)+,$0054(A2)                 ; $00B94E
         MOVE.W  (A1),$0056(A2)                  ; $00B952
         MOVE.W  #$0001,$0050(A2)                ; $00B956
         MOVE.L  (-14544).W,$0060(A2)            ; $00B95C
-.loc_0174:
+.done:
         RTS                                     ; $00B962

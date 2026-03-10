@@ -19,17 +19,17 @@ tile_block_dma_setup:
         LEA     $00FF301A,A3                    ; $006C5C
         LEA     $00FF3002,A4                    ; $006C62
         MOVEQ   #$05,D5                         ; $006C68
-.loc_0024:
+.group_loop:
         MOVEQ   #$01,D6                         ; $006C6A
-.loc_0026:
+.row_loop:
         MOVE.L  A2,(A3)+                        ; $006C6C
         MOVE.W  (A1),D7                         ; $006C6E
         MOVE.W  (A1)+,(A2)+                     ; $006C70
-.loc_002C:
+.copy_row_loop:
         jsr     triple_memory_copy+88(pc); $4EBA $DCAE
-        DBRA    D7,.loc_002C                    ; $006C76
-        DBRA    D6,.loc_0026                    ; $006C7A
+        DBRA    D7,.copy_row_loop                    ; $006C76
+        DBRA    D6,.row_loop                    ; $006C7A
         MOVE.L  A2,(A4)+                        ; $006C7E
-        DBRA    D5,.loc_0024                    ; $006C80
+        DBRA    D5,.group_loop                    ; $006C80
         MOVEA.L (A7)+,A4                        ; $006C84
         RTS                                     ; $006C86

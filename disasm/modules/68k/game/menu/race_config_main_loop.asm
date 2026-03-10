@@ -40,7 +40,7 @@ race_config_main_loop:
         MOVE.W  #$0010,D1                       ; $013D0C
         DC.W    $4EBA,$A648         ; JSR     $00E35A(PC); $013D10
         BTST    #2,(-14312).W                   ; $013D14
-        BNE.S  .loc_0088                        ; $013D1A
+        BNE.S  .skip_p1_car_preview                        ; $013D1A
         LEA     $0089AA12,A0                    ; $013D1C
         CLR.W  D0                               ; $013D22
         MOVE.B  (-366).W,D0                     ; $013D24
@@ -51,9 +51,9 @@ race_config_main_loop:
         MOVE.W  #$0048,D0                       ; $013D36
         MOVE.W  #$0010,D1                       ; $013D3A
         DC.W    $4EBA,$A61A         ; JSR     $00E35A(PC); $013D3E
-.loc_0088:
+.skip_p1_car_preview:
         BTST    #3,(-14312).W                   ; $013D42
-        BNE.S  .loc_00B6                        ; $013D48
+        BNE.S  .skip_p2_car_preview                        ; $013D48
         LEA     $0089AA12,A0                    ; $013D4A
         CLR.W  D0                               ; $013D50
         MOVE.B  (-365).W,D0                     ; $013D52
@@ -64,15 +64,15 @@ race_config_main_loop:
         MOVE.W  #$0048,D0                       ; $013D64
         MOVE.W  #$0010,D1                       ; $013D68
         DC.W    $4EBA,$A5EC         ; JSR     $00E35A(PC); $013D6C
-.loc_00B6:
+.skip_p2_car_preview:
         LEA     (-382).W,A2                     ; $013D70
         LEA     $0089AA2E,A3                    ; $013D74
         CLR.W  D4                               ; $013D7A
         MOVE.W  #$0004,D3                       ; $013D7C
         BTST    #0,(-14312).W                   ; $013D80
-        BEQ.S  .loc_00D2                        ; $013D86
+        BEQ.S  .p1_tile_loop                        ; $013D86
         MOVE.W  #$0007,D3                       ; $013D88
-.loc_00D2:
+.p1_tile_loop:
         MOVEA.L $00(A3,D4.W),A0                 ; $013D8C
         MOVE.W  $08(A3,D4.W),D0                 ; $013D90
         MOVEA.L $04(A3,D4.W),A4                 ; $013D94
@@ -82,40 +82,40 @@ race_config_main_loop:
         ADD.W   D1,D1                           ; $013D9E
         MOVEA.L $00(A4,D1.W),A1                 ; $013DA0
         BTST    #0,(-14312).W                   ; $013DA4
-        BNE.S  .loc_0112                        ; $013DAA
+        BNE.S  .p1_tile_send                        ; $013DAA
         CMPA.L  #$06017780,A0                   ; $013DAC
-        BNE.S  .loc_0112                        ; $013DB2
+        BNE.S  .p1_tile_send                        ; $013DB2
         MOVEA.L #$06017500,A0                   ; $013DB4
         MOVE.W  #$0018,D0                       ; $013DBA
         CMPI.W  #$0004,D1                       ; $013DBE
-        BLE.W  .loc_0112                        ; $013DC2
+        BLE.W  .p1_tile_send                        ; $013DC2
         ADDA.L  #$00000020,A1                   ; $013DC6
-.loc_0112:
+.p1_tile_send:
         MOVE.W  #$0008,D1                       ; $013DCC
         DC.W    $4EBA,$A588         ; JSR     $00E35A(PC); $013DD0
         ADDI.W  #$000A,D4                       ; $013DD4
-        DBRA    D3,.loc_00D2                    ; $013DD8
+        DBRA    D3,.p1_tile_loop                    ; $013DD8
         TST.W  (-24544).W                       ; $013DDC
-        BEQ.S  .loc_0142                        ; $013DE0
+        BEQ.S  .skip_p1_input                        ; $013DE0
         MOVE.W  #$0000,D0                       ; $013DE2
         BTST    #0,(-14312).W                   ; $013DE6
-        BEQ.S  .loc_0138                        ; $013DEC
+        BEQ.S  .p1_input_mode_set                        ; $013DEC
         MOVE.W  #$0001,D0                       ; $013DEE
-.loc_0138:
+.p1_input_mode_set:
         MOVEQ   #$00,D1                         ; $013DF2
         LEA     (-24551).W,A0                   ; $013DF4
         DC.W    $6100,$03F0         ; BSR.W  $0141EA; $013DF8
-.loc_0142:
+.skip_p1_input:
         BTST    #3,(-14312).W                   ; $013DFC
-        BNE.W  .loc_01E2                        ; $013E02
+        BNE.W  .skip_p2_tiles                        ; $013E02
         LEA     (-374).W,A2                     ; $013E06
         LEA     $0089AA2E,A3                    ; $013E0A
         CLR.W  D4                               ; $013E10
         MOVE.W  #$0004,D3                       ; $013E12
         BTST    #1,(-14312).W                   ; $013E16
-        BEQ.S  .loc_0168                        ; $013E1C
+        BEQ.S  .p2_tile_loop                        ; $013E1C
         MOVE.W  #$0007,D3                       ; $013E1E
-.loc_0168:
+.p2_tile_loop:
         MOVEA.L $00(A3,D4.W),A0                 ; $013E22
         MOVE.W  $08(A3,D4.W),D0                 ; $013E26
         MOVEA.L $04(A3,D4.W),A4                 ; $013E2A
@@ -125,41 +125,41 @@ race_config_main_loop:
         ADD.W   D1,D1                           ; $013E34
         MOVEA.L $00(A4,D1.W),A1                 ; $013E36
         BTST    #1,(-14312).W                   ; $013E3A
-        BNE.S  .loc_01A8                        ; $013E40
+        BNE.S  .p2_tile_send                        ; $013E40
         CMPA.L  #$06017780,A0                   ; $013E42
-        BNE.S  .loc_01A8                        ; $013E48
+        BNE.S  .p2_tile_send                        ; $013E48
         MOVEA.L #$06017500,A0                   ; $013E4A
         MOVE.W  #$0018,D0                       ; $013E50
         CMPI.W  #$0004,D1                       ; $013E54
-        BLE.W  .loc_01A8                        ; $013E58
+        BLE.W  .p2_tile_send                        ; $013E58
         ADDA.L  #$00000020,A1                   ; $013E5C
-.loc_01A8:
+.p2_tile_send:
         ADDA.L  #$0000C000,A1                   ; $013E62
         MOVE.W  #$0008,D1                       ; $013E68
         DC.W    $4EBA,$A4EC         ; JSR     $00E35A(PC); $013E6C
         ADDI.W  #$000A,D4                       ; $013E70
-        DBRA    D3,.loc_0168                    ; $013E74
+        DBRA    D3,.p2_tile_loop                    ; $013E74
         TST.W  (-24542).W                       ; $013E78
-        BEQ.S  .loc_01E2                        ; $013E7C
+        BEQ.S  .skip_p2_tiles                        ; $013E7C
         MOVE.W  #$0000,D0                       ; $013E7E
         BTST    #1,(-14312).W                   ; $013E82
-        BEQ.S  .loc_01D4                        ; $013E88
+        BEQ.S  .p2_input_mode_set                        ; $013E88
         MOVE.W  #$0001,D0                       ; $013E8A
-.loc_01D4:
+.p2_input_mode_set:
         MOVE.L  #$0000C000,D1                   ; $013E8E
         LEA     (-24550).W,A0                   ; $013E94
         DC.W    $6100,$0350         ; BSR.W  $0141EA; $013E98
-.loc_01E2:
+.skip_p2_tiles:
         CMPI.W  #$0001,(-24540).W               ; $013E9C
-        BEQ.W  .loc_0288                        ; $013EA2
+        BEQ.W  .state_confirm_p1                        ; $013EA2
         CMPI.W  #$0002,(-24540).W               ; $013EA6
-        BEQ.W  .loc_029E                        ; $013EAC
+        BEQ.W  .state_confirm_p2                        ; $013EAC
         JSR     $0088179E                       ; $013EB0
         CLR.W  D0                               ; $013EB6
         BTST    #0,(-14312).W                   ; $013EB8
-        BEQ.S  .loc_020A                        ; $013EBE
+        BEQ.S  .p1_input_port_set                        ; $013EBE
         MOVE.W  #$0001,D0                       ; $013EC0
-.loc_020A:
+.p1_input_port_set:
         MOVE.W  (-14228).W,D1                   ; $013EC4
         CLR.W  D2                               ; $013EC8
         CLR.W  D3                               ; $013ECA
@@ -171,9 +171,9 @@ race_config_main_loop:
         bsr.w   car_driver_selection_input_handler; $6100 $00FE
         CLR.W  D0                               ; $013EE4
         BTST    #1,(-14312).W                   ; $013EE6
-        BEQ.S  .loc_0238                        ; $013EEC
+        BEQ.S  .p2_input_port_set                        ; $013EEC
         MOVE.W  #$0001,D0                       ; $013EEE
-.loc_0238:
+.p2_input_port_set:
         MOVE.W  (-14226).W,D1                   ; $013EF2
         MOVE.W  #$0001,D2                       ; $013EF6
         CLR.W  D3                               ; $013EFA
@@ -184,29 +184,29 @@ race_config_main_loop:
         LEA     (-24542).W,A4                   ; $013F0C
         bsr.w   car_driver_selection_input_handler; $6100 $00CE
         TST.W  (-24546).W                       ; $013F14
-        BEQ.W  .loc_02B8                        ; $013F18
+        BEQ.W  .rewind_state                        ; $013F18
         MOVE.B  #$01,(-14327).W                 ; $013F1C
         MOVE.B  #$01,(-14326).W                 ; $013F22
         BSET    #7,(-14322).W                   ; $013F28
         MOVE.B  #$01,(-14334).W                 ; $013F2E
         JSR     $0088205E                       ; $013F34
         MOVE.W  #$0002,(-24540).W               ; $013F3A
-        BRA.S  .loc_02BC                        ; $013F40
-.loc_0288:
+        BRA.S  .set_frame_timer                        ; $013F40
+.state_confirm_p1:
         JSR     $0088FB36                       ; $013F42
         BTST    #6,(-14322).W                   ; $013F48
-        BNE.S  .loc_02B8                        ; $013F4E
+        BNE.S  .rewind_state                        ; $013F4E
         CLR.W  (-24540).W                       ; $013F50
-        BRA.W  .loc_02B8                        ; $013F54
-.loc_029E:
+        BRA.W  .rewind_state                        ; $013F54
+.state_confirm_p2:
         JSR     $0088FB36                       ; $013F58
         BTST    #7,(-14322).W                   ; $013F5E
-        BNE.S  .loc_02B8                        ; $013F64
+        BNE.S  .rewind_state                        ; $013F64
         CLR.W  (-24540).W                       ; $013F66
         ADDQ.W  #4,(-14210).W                   ; $013F6A
-        BRA.W  .loc_02BC                        ; $013F6E
-.loc_02B8:
+        BRA.W  .set_frame_timer                        ; $013F6E
+.rewind_state:
         SUBQ.W  #4,(-14210).W                   ; $013F72
-.loc_02BC:
+.set_frame_timer:
         MOVE.W  #$0018,$00FF0008                ; $013F76
         RTS                                     ; $013F7E

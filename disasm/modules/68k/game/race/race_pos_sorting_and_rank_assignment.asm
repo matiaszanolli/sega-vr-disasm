@@ -47,7 +47,7 @@ race_pos_sorting_and_rank_assignment:
         MOVE.W  A1,(A3)+                        ; $009CF4
         LEA     $0100(A1),A1                    ; $009CF6
         MOVEQ   #$0E,D2                         ; $009CFA
-.loc_0060:
+.build_sort_keys_loop:
         MOVE.W  $0024(A1),(A2)+                 ; $009CFC
         MOVE.W  A1,(A2)+                        ; $009D00
         MOVE.W  $002C(A1),D0                    ; $009D02
@@ -56,7 +56,7 @@ race_pos_sorting_and_rank_assignment:
         MOVE.W  D0,(A3)+                        ; $009D0C
         MOVE.W  A1,(A3)+                        ; $009D0E
         LEA     $0100(A1),A1                    ; $009D10
-        DBRA    D2,.loc_0060                    ; $009D14
+        DBRA    D2,.build_sort_keys_loop                    ; $009D14
         LEA     (-24508).W,A0                   ; $009D18
         jsr     depth_sort+12(pc)       ; $4EBA $00C4
         LEA     (-24576).W,A0                   ; $009D20
@@ -65,7 +65,7 @@ race_pos_sorting_and_rank_assignment:
         MOVE.L  $003C(A0),-$0004(A0)            ; $009D2C
         MOVE.L  (A0),$0040(A0)                  ; $009D32
         MOVEQ   #$0F,D2                         ; $009D36
-.loc_009C:
+.extract_sort_keys_loop:
         MOVEA.W $0002(A0),A3                    ; $009D38
         MOVE.W  -$0002(A0),D0                   ; $009D3C
         LSR.W  #8,D0                            ; $009D40
@@ -76,45 +76,45 @@ race_pos_sorting_and_rank_assignment:
         ANDI.W  #$000F,D0                       ; $009D50
         MOVE.W  D0,$00A6(A3)                    ; $009D54
         LEA     $0004(A0),A0                    ; $009D58
-        DBRA    D2,.loc_009C                    ; $009D5C
+        DBRA    D2,.extract_sort_keys_loop                    ; $009D5C
         LEA     (-24576).W,A0                   ; $009D60
         MOVEQ   #$01,D1                         ; $009D64
         MOVEQ   #$0F,D2                         ; $009D66
-.loc_00CC:
+.assign_ranks_loop:
         MOVEA.W $0002(A0),A2                    ; $009D68
         MOVE.W  D1,$002A(A2)                    ; $009D6C
         LEA     $0004(A0),A0                    ; $009D70
         ADDQ.W  #1,D1                           ; $009D74
-        DBRA    D2,.loc_00CC                    ; $009D76
+        DBRA    D2,.assign_ranks_loop                    ; $009D76
         LEA     (-28672).W,A0                   ; $009D7A
         MOVE.B  $002B(A0),(-15612).W            ; $009D7E
         CMP.W  $00A6(A0),D6                     ; $009D84
-        BEQ.S  .loc_00F6                        ; $009D88
+        BEQ.S  .check_position_change                        ; $009D88
         CMP.W  $00A4(A0),D7                     ; $009D8A
-        BNE.S  .loc_0136                        ; $009D8E
+        BNE.S  .done                        ; $009D8E
         MOVE.W  D7,D6                           ; $009D90
-.loc_00F6:
+.check_position_change:
         MOVE.W  $0004(A0),D1                    ; $009D92
         MOVE.B  $00E5(A0),D2                    ; $009D96
         LSL.W  #8,D6                            ; $009D9A
         LEA     $00(A0,D6.W),A0                 ; $009D9C
         SUB.W  $0004(A0),D1                     ; $009DA0
-        BPL.S  .loc_010C                        ; $009DA4
+        BPL.S  .abs_speed_diff                        ; $009DA4
         NEG.W  D1                               ; $009DA6
-.loc_010C:
+.abs_speed_diff:
         CMPI.W  #$0014,D1                       ; $009DA8
-        BLE.S  .loc_0136                        ; $009DAC
+        BLE.S  .done                        ; $009DAC
         CMPI.W  #$0004,(-14180).W               ; $009DAE
-        BNE.S  .loc_0126                        ; $009DB4
+        BNE.S  .trigger_sound                        ; $009DB4
         MOVE.B  $00E5(A0),D1                    ; $009DB6
         EOR.B   D1,D2                           ; $009DBA
         ANDI.B  #$06,D2                         ; $009DBC
-        BNE.S  .loc_0136                        ; $009DC0
-.loc_0126:
+        BNE.S  .done                        ; $009DC0
+.trigger_sound:
         MOVE.W  $00C2(A0),D0                    ; $009DC2
         LSR.W  #4,D0                            ; $009DC6
         ADD.W  (-14132).W,D0                    ; $009DC8
         MOVE.B  $009DD6(PC,D0.W),(-14172).W     ; $009DCC
-.loc_0136:
+.done:
         MOVEA.L (A7)+,A0                        ; $009DD2
         RTS                                     ; $009DD4

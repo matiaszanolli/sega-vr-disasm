@@ -28,21 +28,21 @@ framebuffer_auto_fill_clear:
         ORI.L  #$81048F02,D0                    ; $00064E
         MOVEM.L D0/D1/D7/A1,-(A7)               ; $000654
         LEA     MARS_VDP_MODE,A1                    ; $000658
-.loc_0020:
+.wait_fb_access:
         BCLR    #7,-$0080(A1)                   ; $00065E
-        BNE.S  .loc_0020                        ; $000664
+        BNE.S  .wait_fb_access                        ; $000664
         MOVE.W  #$00FF,D7                       ; $000666
         MOVEQ   #$00,D0                         ; $00066A
         MOVEQ   #$00,D1                         ; $00066C
         MOVE.W  #$00FF,$0004(A1)                ; $00066E
-.loc_0036:
+.fill_loop:
         MOVE.W  D1,$0006(A1)                    ; $000674
         MOVE.W  D0,$0008(A1)                    ; $000678
         NOP                                     ; $00067C
-.loc_0040:
+.wait_fill_done:
         BTST    #1,$000B(A1)                    ; $00067E
-        BNE.S  .loc_0040                        ; $000684
+        BNE.S  .wait_fill_done                        ; $000684
         ADDI.W  #$0100,D1                       ; $000686
-        DBRA    D7,.loc_0036                    ; $00068A
+        DBRA    D7,.fill_loop                    ; $00068A
         MOVEM.L (A7)+,D0/D1/D7/A1               ; $00068E
         RTS                                     ; $000692

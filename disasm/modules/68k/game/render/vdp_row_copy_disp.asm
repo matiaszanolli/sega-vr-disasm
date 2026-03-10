@@ -31,10 +31,10 @@ vdp_row_copy_disp:
         MOVE.B  D0,D0                           ; $001636
         MOVE    #$2700,SR                       ; $001638
         MOVEQ   #$03,D2                         ; $00163C
-.loc_002E:
+.next_job:
         MOVEQ   #$00,D1                         ; $00163E
         MOVE.B  D0,D1                           ; $001640
-        BEQ.S  .loc_0050                        ; $001642
+        BEQ.S  .skip_empty_job                        ; $001642
         MULU    #$000C,D1                       ; $001644
         MOVEM.L D0/D1/D2,-(A7)                  ; $001648
         LEA     $00166C(PC,D1.W),A0             ; $00164C
@@ -44,8 +44,8 @@ vdp_row_copy_disp:
         MOVEA.L -(A0),A0                        ; $001656
         jsr     vdp_data_fill(pc)       ; $4EBA $FA6A
         MOVEM.L (A7)+,D0/D1/D2                  ; $00165C
-.loc_0050:
+.skip_empty_job:
         ROR.L  #8,D0                            ; $001660
-        DBRA    D2,.loc_002E                    ; $001662
+        DBRA    D2,.next_job                    ; $001662
         MOVE    #$2300,SR                       ; $001666
         RTS                                     ; $00166A

@@ -22,9 +22,9 @@ race_result_with_leaderboard_update:
         MOVE.W  $002C(A0),D0                    ; $0035BA
         ADDQ.W  #1,D0                           ; $0035BE
         CMP.B  (-15600).W,D0                    ; $0035C0
-        BNE.S  .loc_0018                        ; $0035C4
+        BNE.S  .not_last_car                        ; $0035C4
         MOVE.B  #$02,(-15608).W                 ; $0035C6
-.loc_0018:
+.not_last_car:
         MOVE.B  #$03,$00FF6950                  ; $0035CC
         MOVEA.W (-16266).W,A2                   ; $0035D4
         MOVEQ   #$00,D0                         ; $0035D8
@@ -57,7 +57,7 @@ race_result_with_leaderboard_update:
         MOVE.L  (A2),D0                         ; $00363C
         MOVE.L  #$222E070C,$00FF6948            ; $00363E
         CMP.L  (-15788).W,D0                    ; $003648
-        BGE.S  .loc_00FC                        ; $00364C
+        BGE.S  .set_result_flags                        ; $00364C
         MOVE.L  D0,(-15788).W                   ; $00364E
         MOVEQ   #$00,D1                         ; $003652
         MOVE.W  $002C(A0),D1                    ; $003654
@@ -75,7 +75,7 @@ race_result_with_leaderboard_update:
         ADD.W   D2,D1                           ; $003682
         LEA     $00(A1,D1.W),A1                 ; $003684
         CMP.L  (A1),D0                          ; $003688
-        BGE.S  .loc_00FC                        ; $00368A
+        BGE.S  .set_result_flags                        ; $00368A
         MOVE.L  #$222E0508,$00FF6948            ; $00368C
         MOVE.L  D0,(A1)+                        ; $003696
         MOVE.L  (-15760).W,(A1)+                ; $003698
@@ -84,7 +84,7 @@ race_result_with_leaderboard_update:
         LEA     $00FF68E8,A2                    ; $0036A6
         MOVE.L  (A1)+,(A2)+                     ; $0036AC
         MOVE.L  (A1),(A2)                       ; $0036AE
-.loc_00FC:
+.set_result_flags:
         MOVE.B  #$01,$00FF6940                  ; $0036B0
         BTST    #5,(-15602).W                   ; $0036B8
         DC.W    $6708               ; BEQ.S  $0036C8; $0036BE

@@ -13,8 +13,8 @@
 
 byte_iterator:
         MOVE.W  #$0002,D2                       ; $01260A
-.loc_0004:
+.next_byte:
         MOVE.B  (A2)+,D1                        ; $01260E
         DC.W    $6106               ; BSR.S  $012618; $012610
-        DBRA    D2,.loc_0004                    ; $012612
+        DBRA    D2,.next_byte                    ; $012612
         RTS                                     ; $012616

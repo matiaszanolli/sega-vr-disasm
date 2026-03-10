@@ -17,17 +17,17 @@
 
 psg_sequence_tick:
         TST.B  $000A(A5)                        ; $030ECE
-        BEQ.S  .loc_003E                        ; $030ED2
+        BEQ.S  .done                        ; $030ED2
         BTST    #1,(A5)                         ; $030ED4
-        BNE.S  .loc_003E                        ; $030ED8
+        BNE.S  .done                        ; $030ED8
         BTST    #2,(A5)                         ; $030EDA
-        BNE.S  .loc_003E                        ; $030EDE
+        BNE.S  .done                        ; $030EDE
         jsr     fm_sequence_data_reader(pc); $4EBA $F40C
         MOVE.B  $0001(A5),D0                    ; $030EE4
         CMPI.B  #$E0,D0                         ; $030EE8
-        BNE.S  .loc_0024                        ; $030EEC
+        BNE.S  .write_psg_regs                        ; $030EEC
         MOVE.B  #$C0,D0                         ; $030EEE
-.loc_0024:
+.write_psg_regs:
         MOVE.W  D6,D1                           ; $030EF2
         ANDI.B  #$0F,D1                         ; $030EF4
         OR.B    D1,D0                           ; $030EF8
@@ -35,5 +35,5 @@ psg_sequence_tick:
         ANDI.B  #$3F,D6                         ; $030EFC
         MOVE.B  D0,PSG                    ; $030F00
         MOVE.B  D6,PSG                    ; $030F06
-.loc_003E:
+.done:
         RTS                                     ; $030F0C

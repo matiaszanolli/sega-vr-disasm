@@ -17,9 +17,9 @@
 object_pos_copy_with_render_flags:
         MOVEQ   #$00,D0                         ; $003010
         TST.W  $00C0(A0)                        ; $003012
-        BEQ.S  .loc_000A                        ; $003016
+        BEQ.S  .set_flags                        ; $003016
         MOVEQ   #$01,D0                         ; $003018
-.loc_000A:
+.set_flags:
         MOVE.W  D0,$0118(A2)                    ; $00301A
         MOVE.W  D0,$012C(A2)                    ; $00301E
         MOVE.W  D0,$0140(A2)                    ; $003022

@@ -57,10 +57,10 @@ records_scene_state_disp:
         DC.W    $7FFF                           ; $0100EA
         DC.W    $7FFF                           ; $0100EC
         DC.W    $7FFF                           ; $0100EE
-.loc_006C:
+.data_pattern_loop_1:
         NEG.W  D5                               ; $0100F0
         SUBQ.B  #8,$6212(A3)                    ; $0100F2
-        BGT.S  .loc_006C                        ; $0100F6
+        BGT.S  .data_pattern_loop_1                        ; $0100F6
         DC.W    $7FFF                           ; $0100F8
         DC.W    $0E9A                           ; $0100FA
         DC.W    $7FFF                           ; $0100FC
@@ -71,10 +71,10 @@ records_scene_state_disp:
         DC.W    $0010                           ; $010108
         MOVE.B  $294E(A7),(A2)                  ; $01010A
         DC.W    $3DED                           ; $01010E
-.loc_008C:
+.data_pattern_loop_2:
         NEG.W  D5                               ; $010110
         SUBQ.B  #8,$6212(A3)                    ; $010112
-        BGT.S  .loc_008C                        ; $010116
+        BGT.S  .data_pattern_loop_2                        ; $010116
         DC.W    $7FFF                           ; $010118
         DC.W    $0E9A                           ; $01011A
         DC.W    $7FFF                           ; $01011C
@@ -103,7 +103,7 @@ records_scene_state_disp:
         SUBI.L  #$008905DE,-(A2)                ; $010162
         jsr     object_update(pc)       ; $4EBA $B51A
         BTST    #6,(-14322).W                   ; $01016C
-        BNE.S  .loc_00F4                        ; $010172
+        BNE.S  .done                        ; $010172
         ADDQ.W  #4,(-14210).W                   ; $010174
-.loc_00F4:
+.done:
         RTS                                     ; $010178

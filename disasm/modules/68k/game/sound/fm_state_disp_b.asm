@@ -16,10 +16,10 @@ fm_state_disp_b:
         DC.W    $601C               ; BRA.S  $030408; $0303EA
         DC.W    $601A               ; BRA.S  $030408; $0303EC
         BTST    #1,(A5)                         ; $0303EE
-        BNE.S  .loc_0018                        ; $0303F2
+        BNE.S  .muted                        ; $0303F2
         MOVEQ   #$00,D0                         ; $0303F4
         MOVE.B  $0028(A5),D0                    ; $0303F6
         LSL.W  #1,D0                            ; $0303FA
         JMP     $030400(PC,D0.W)                ; $0303FC
-.loc_0018:
+.muted:
         RTS                                     ; $030400

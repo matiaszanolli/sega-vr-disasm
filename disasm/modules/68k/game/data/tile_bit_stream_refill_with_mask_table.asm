@@ -16,15 +16,15 @@
 ; ============================================================================
 
 tile_bit_stream_refill_with_mask_table:
-        BEQ.S  .loc_0012                        ; $00136E
+        BEQ.S  .reset_bit_count                        ; $00136E
         LSR.W  D7,D1                            ; $001370
         MOVE.W  A5,D0                           ; $001372
         ADD.W   D0,D0                           ; $001374
         AND.W  $001382(PC,D0.W),D1              ; $001376
         ADD.W   D3,D1                           ; $00137A
         MOVE.W  A5,D0                           ; $00137C
-        BRA.S  .loc_0036                        ; $00137E
-.loc_0012:
+        BRA.S  .refill_check                        ; $00137E
+.reset_bit_count:
         MOVEQ   #$10,D6                         ; $001380
         DC.W    $60D8               ; BRA.S  $00135C; $001382
         ORI.B  #$03,D1                          ; $001384
@@ -40,12 +40,12 @@ tile_bit_stream_refill_with_mask_table:
         DC.W    $3FFF                           ; $00139E
         DC.W    $7FFF                           ; $0013A0
         DC.W    $FFFF                           ; $0013A2
-.loc_0036:
+.refill_check:
         SUB.W   D0,D6                           ; $0013A4
         CMPI.W  #$0009,D6                       ; $0013A6
-        BCC.S  .loc_0044                        ; $0013AA
+        BCC.S  .done                        ; $0013AA
         ADDQ.W  #8,D6                           ; $0013AC
         ASL.W  #8,D5                            ; $0013AE
         MOVE.B  (A0)+,D5                        ; $0013B0
-.loc_0044:
+.done:
         RTS                                     ; $0013B2

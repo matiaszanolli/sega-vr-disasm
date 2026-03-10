@@ -26,9 +26,9 @@ game_mode_transition_init:
         ANDI.B  #$FC,MARS_VDP_MODE+1                  ; $014278
         JSR     $0088268C                       ; $014280
         MOVE.W  #$0100,Z80_BUSREQ                ; $014286
-.loc_002C:
+.wait_z80_bus:
         BTST    #0,Z80_BUSREQ                    ; $01428E
-        BNE.S  .loc_002C                        ; $014296
+        BNE.S  .wait_z80_bus                        ; $014296
         MOVE.W  (-14220).W,D4                   ; $014298
         BSET    #4,D4                           ; $01429C
         MOVE.W  D4,(A5)                         ; $0142A0
@@ -47,10 +47,10 @@ game_mode_transition_init:
         MOVE.W  #$9780,(A5)                     ; $0142D8
         MOVE.L  #$60000082,(A5)                 ; $0142DC
         MOVE.W  #$0000,(A6)                     ; $0142E2
-.loc_0084:
+.wait_dma_nametable_a:
         MOVE.W  (A5),D7                         ; $0142E6
         ANDI.W  #$0002,D7                       ; $0142E8
-        BNE.S  .loc_0084                        ; $0142EC
+        BNE.S  .wait_dma_nametable_a                        ; $0142EC
         MOVE.W  #$8F02,(A5)                     ; $0142EE
         MOVE.W  (-14220).W,(A5)                 ; $0142F2
         MOVE.W  (-14220).W,D4                   ; $0142F6
@@ -61,10 +61,10 @@ game_mode_transition_init:
         MOVE.W  #$9780,(A5)                     ; $01430A
         MOVE.L  #$40000083,(A5)                 ; $01430E
         MOVE.W  #$0000,(A6)                     ; $014314
-.loc_00B6:
+.wait_dma_sprite_table:
         MOVE.W  (A5),D7                         ; $014318
         ANDI.W  #$0002,D7                       ; $01431A
-        BNE.S  .loc_00B6                        ; $01431E
+        BNE.S  .wait_dma_sprite_table                        ; $01431E
         MOVE.W  #$8F02,(A5)                     ; $014320
         MOVE.W  (-14220).W,(A5)                 ; $014324
         MOVE.W  #$0000,Z80_BUSREQ                ; $014328

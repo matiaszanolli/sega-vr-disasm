@@ -13,9 +13,9 @@
 
 timer_decrement_and_rank_check_guard:
         TST.W  $00A8(A0)                        ; $009E5A
-        BEQ.S  .loc_000A                        ; $009E5E
+        BEQ.S  .timer_zero                        ; $009E5E
         SUBQ.W  #1,$00A8(A0)                    ; $009E60
-.loc_000A:
+.timer_zero:
         CMPI.W  #$0002,$002A(A0)                ; $009E64
         DC.W    $670C               ; BEQ.S  $009E78; $009E6A
         RTS                                     ; $009E6C

@@ -33,9 +33,9 @@ vdp_dma_transfer_setup:
         MOVE.W  (-14208).W,(A6)                 ; $001B2A
         MOVE.W  (-14206).W,(A6)                 ; $001B2E
         MOVE.W  #$0100,Z80_BUSREQ                ; $001B32
-.loc_0026:
+.wait_z80_bus_a:
         BTST    #0,Z80_BUSREQ                    ; $001B3A
-        BNE.S  .loc_0026                        ; $001B42
+        BNE.S  .wait_z80_bus_a                        ; $001B42
         MOVE.W  (-14220).W,D4                   ; $001B44
         BSET    #4,D4                           ; $001B48
         MOVE.W  D4,(A5)                         ; $001B4C
@@ -60,9 +60,9 @@ vdp_dma_transfer_setup:
         jmp     controller_read_button_remap+16(pc); $4EFA $FBF8
         MOVE.W  (A5),D0                         ; $001BA8
         MOVE.W  #$0100,Z80_BUSREQ                ; $001BAA
-.loc_009E:
+.wait_z80_bus_b:
         BTST    #0,Z80_BUSREQ                    ; $001BB2
-        BNE.S  .loc_009E                        ; $001BBA
+        BNE.S  .wait_z80_bus_b                        ; $001BBA
         MOVE.W  (-14220).W,D4                   ; $001BBC
         BSET    #4,D4                           ; $001BC0
         MOVE.W  D4,(A5)                         ; $001BC4

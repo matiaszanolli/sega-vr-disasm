@@ -23,9 +23,9 @@
 ai_entity_main_update_orch:
         jsr     race_mode_flag_set(pc)  ; $4EBA $034C
         TST.W  (-16306).W                       ; $00A976
-        BNE.S  .loc_000E                        ; $00A97A
+        BNE.S  .after_countdown                        ; $00A97A
         SUBQ.W  #1,(-16306).W                   ; $00A97C
-.loc_000E:
+.after_countdown:
         CLR.W  (-16346).W                       ; $00A980
         CLR.B  (-15610).W                       ; $00A984
         jsr     sprite_hud_layout_builder+84(pc); $4EBA $92F4
@@ -45,7 +45,7 @@ ai_entity_main_update_orch:
         MOVE.W  D2,D4                           ; $00A9B6
         SUB.W  $0034(A0),D4                     ; $00A9B8
         CMPI.W  #$0002,D4                       ; $00A9BC
-        BGE.S  .loc_00A8                        ; $00A9C0
+        BGE.S  .dist_check_close                        ; $00A9C0
         MOVE.W  D1,$0030(A0)                    ; $00A9C2
         MOVE.W  D2,$0034(A0)                    ; $00A9C6
         MOVEQ   #$00,D0                         ; $00A9CA
@@ -68,16 +68,16 @@ ai_entity_main_update_orch:
         MOVE.W  #$0078,$00B0(A0)                ; $00AA0C
         CLR.W  (-16306).W                       ; $00AA12
         jmp     entity_force_integration_and_speed_calc+18(pc); $4EFA $E8FA
-.loc_00A8:
+.dist_check_close:
         CMPI.W  #$0080,D4                       ; $00AA1A
-        BGT.S  .loc_00C0                        ; $00AA1E
+        BGT.S  .dist_check_medium                        ; $00AA1E
         MOVE.W  D1,(-24574).W                   ; $00AA20
         MOVE.W  D2,(-24572).W                   ; $00AA24
         MOVE.W  #$0020,(-24570).W               ; $00AA28
-        BRA.W  .loc_0136                        ; $00AA2E
-.loc_00C0:
+        BRA.W  .compute_steering                        ; $00AA2E
+.dist_check_medium:
         CMPI.W  #$0180,D4                       ; $00AA32
-        BGT.S  .loc_00E6                        ; $00AA36
+        BGT.S  .dist_check_far                        ; $00AA36
         MOVE.W  D1,(-24574).W                   ; $00AA38
         MOVE.W  D2,(-24572).W                   ; $00AA3C
         SUBI.W  #$0040,(-24572).W               ; $00AA40
@@ -88,10 +88,10 @@ ai_entity_main_update_orch:
         ADD.W   D3,D0                           ; $00AA4E
         ADDQ.W  #8,D0                           ; $00AA50
         MOVE.W  D0,(-24570).W                   ; $00AA52
-        BRA.S  .loc_0136                        ; $00AA56
-.loc_00E6:
+        BRA.S  .compute_steering                        ; $00AA56
+.dist_check_far:
         CMPI.W  #$0400,D4                       ; $00AA58
-        BGT.S  .loc_010E                        ; $00AA5C
+        BGT.S  .dist_very_far                        ; $00AA5C
         MOVE.W  D1,(-24574).W                   ; $00AA5E
         ADD.W  D5,(-24574).W                    ; $00AA62
         MOVE.W  D2,(-24572).W                   ; $00AA66
@@ -101,8 +101,8 @@ ai_entity_main_update_orch:
         ADD.W   D0,D0                           ; $00AA74
         ADDI.W  #$0020,D0                       ; $00AA76
         MOVE.W  D0,(-24570).W                   ; $00AA7A
-        BRA.S  .loc_0136                        ; $00AA7E
-.loc_010E:
+        BRA.S  .compute_steering                        ; $00AA7E
+.dist_very_far:
         MOVE.W  D1,(-24574).W                   ; $00AA80
         ADD.W  D5,(-24574).W                    ; $00AA84
         MOVE.W  D2,(-24572).W                   ; $00AA88
@@ -111,11 +111,11 @@ ai_entity_main_update_orch:
         ASR.W  #4,D0                            ; $00AA94
         ADDI.W  #$0064,D0                       ; $00AA96
         CMPI.W  #$00C8,D0                       ; $00AA9A
-        BLE.S  .loc_0132                        ; $00AA9E
+        BLE.S  .clamp_speed_max                        ; $00AA9E
         MOVE.W  #$00C8,D0                       ; $00AAA0
-.loc_0132:
+.clamp_speed_max:
         MOVE.W  D0,(-24570).W                   ; $00AAA4
-.loc_0136:
+.compute_steering:
         MOVE.W  $0034(A0),D0                    ; $00AAA8
         MOVE.W  $0030(A0),D1                    ; $00AAAC
         NEG.W  D1                               ; $00AAB0
@@ -126,22 +126,22 @@ ai_entity_main_update_orch:
         MOVE.W  D0,(-24568).W                   ; $00AAC0
         SUB.W  $003C(A0),D0                     ; $00AAC4
         CMPI.W  #$0140,D0                       ; $00AAC8
-        BLE.S  .loc_0160                        ; $00AACC
+        BLE.S  .clamp_steer_max                        ; $00AACC
         MOVE.W  #$0140,D0                       ; $00AACE
-.loc_0160:
+.clamp_steer_max:
         CMPI.W  #$FEC0,D0                       ; $00AAD2
-        BGE.S  .loc_016A                        ; $00AAD6
+        BGE.S  .clamp_steer_min                        ; $00AAD6
         MOVE.W  #$FEC0,D0                       ; $00AAD8
-.loc_016A:
+.clamp_steer_min:
         ADD.W  D0,$003C(A0)                     ; $00AADC
         MOVE.W  $003C(A0),D3                    ; $00AAE0
-        BPL.S  .loc_0176                        ; $00AAE4
+        BPL.S  .heading_abs                        ; $00AAE4
         NEG.W  D3                               ; $00AAE6
-.loc_0176:
+.heading_abs:
         CMPI.W  #$0100,D3                       ; $00AAE8
-        BGE.S  .loc_0180                        ; $00AAEC
+        BGE.S  .apply_steering                        ; $00AAEC
         CLR.W  $003C(A0)                        ; $00AAEE
-.loc_0180:
+.apply_steering:
         MOVE.W  D0,$008E(A0)                    ; $00AAF2
         MOVE.W  D0,$0090(A0)                    ; $00AAF6
         ADD.W   D0,D0                           ; $00AAFA
@@ -160,25 +160,25 @@ ai_entity_main_update_orch:
         MOVE.W  D0,(-24570).W                   ; $00AB24
         SUB.W  $0006(A0),D0                     ; $00AB28
         CMPI.W  #$002F,D0                       ; $00AB2C
-        BLE.S  .loc_01C4                        ; $00AB30
+        BLE.S  .clamp_accel_max                        ; $00AB30
         MOVE.W  #$002F,D0                       ; $00AB32
-.loc_01C4:
+.clamp_accel_max:
         CMPI.W  #$FFB0,D0                       ; $00AB36
-        BGE.S  .loc_01CE                        ; $00AB3A
+        BGE.S  .clamp_accel_min                        ; $00AB3A
         MOVE.W  #$FFB0,D0                       ; $00AB3C
-.loc_01CE:
+.clamp_accel_min:
         ADD.W  D0,$0006(A0)                     ; $00AB40
         jsr     entity_speed_clamp(pc)  ; $4EBA $EFCC
         MOVE.W  $0004(A0),D0                    ; $00AB48
         ASL.W  #5,D0                            ; $00AB4C
         CMPI.W  #$11F8,D0                       ; $00AB4E
-        BLE.S  .loc_01E6                        ; $00AB52
+        BLE.S  .clamp_shift_max                        ; $00AB52
         MOVE.W  #$11F8,D0                       ; $00AB54
-.loc_01E6:
+.clamp_shift_max:
         CMPI.W  #$0000,D0                       ; $00AB58
-        BGE.S  .loc_01F0                        ; $00AB5C
+        BGE.S  .clamp_shift_min                        ; $00AB5C
         MOVE.W  #$0000,D0                       ; $00AB5E
-.loc_01F0:
+.clamp_shift_min:
         SUB.W  D0,$00BC(A0)                     ; $00AB62
         MOVE.W  $0040(A0),D0                    ; $00AB66
         NEG.W  D0                               ; $00AB6A
@@ -196,42 +196,42 @@ ai_entity_main_update_orch:
         SWAP    D0                              ; $00AB96
         MOVE.W  D0,(-16346).W                   ; $00AB98
         CMPI.W  #$0014,(-16346).W               ; $00AB9C
-        BNE.S  .loc_023C                        ; $00ABA2
+        BNE.S  .spawn_timer_tick                        ; $00ABA2
         MOVE.W  #$0000,$008A(A0)                ; $00ABA4
         DC.W    $4EBA,$F650         ; JSR     $00A1FC(PC); $00ABAA
-.loc_023C:
+.spawn_timer_tick:
         SUBQ.W  #1,$00B0(A0)                    ; $00ABAE
-        BNE.S  .loc_0258                        ; $00ABB2
+        BNE.S  .return_state                        ; $00ABB2
         CLR.B  $00FF6970                        ; $00ABB4
         LEA     (-16292).W,A1                   ; $00ABBA
         MOVE.W  $00AE(A0),D0                    ; $00ABBE
         ADD.W   D0,D0                           ; $00ABC2
         MOVE.W  #$0003,$00(A1,D0.W)             ; $00ABC4
-.loc_0258:
+.return_state:
         jmp     obj_state_return(pc)    ; $4EFA $FD2C
         LEA     (-16292).W,A1                   ; $00ABCE
         MOVEQ   #$00,D0                         ; $00ABD2
         MOVE.W  $00AE(A0),D1                    ; $00ABD4
         ADD.W   D1,D1                           ; $00ABD8
-.loc_0268:
+.scan_lower_slots:
         CMP.W  D1,D0                            ; $00ABDA
-        BGE.S  .loc_027A                        ; $00ABDC
+        BGE.S  .scan_upper_slots                        ; $00ABDC
         CMPI.W  #$0001,$00(A1,D1.W)             ; $00ABDE
         DC.W    $6700,$FD12         ; BEQ.W  $00A8F8; $00ABE4
         ADDQ.W  #2,D0                           ; $00ABE8
-        BRA.S  .loc_0268                        ; $00ABEA
-.loc_027A:
+        BRA.S  .scan_lower_slots                        ; $00ABEA
+.scan_upper_slots:
         MOVE.W  $00AE(A0),D0                    ; $00ABEC
         ADDQ.W  #1,D0                           ; $00ABF0
         ADD.W   D0,D0                           ; $00ABF2
-.loc_0282:
+.scan_upper_loop:
         CMPI.W  #$0008,D0                       ; $00ABF4
-        BGE.S  .loc_0296                        ; $00ABF8
+        BGE.S  .retire_entity                        ; $00ABF8
         CMPI.W  #$0004,$00(A1,D0.W)             ; $00ABFA
         DC.W    $6700,$FCF6         ; BEQ.W  $00A8F8; $00AC00
         ADDQ.W  #2,D0                           ; $00AC04
-        BRA.S  .loc_0282                        ; $00AC06
-.loc_0296:
+        BRA.S  .scan_upper_loop                        ; $00AC06
+.retire_entity:
         ORI.W  #$4000,$0002(A0)                 ; $00AC08
         MOVE.W  #$0050,(-16306).W               ; $00AC0E
         LEA     (-16292).W,A1                   ; $00AC14

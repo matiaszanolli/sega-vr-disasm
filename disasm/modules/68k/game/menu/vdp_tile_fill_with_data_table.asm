@@ -33,16 +33,16 @@ vdp_tile_fill_with_data_table:
         DC.W    $0401                           ; $012FBA
         MOVE    SR,$39(A3,D0.W)                 ; $012FBC
         MOVE.W  #$0100,D4                       ; $012FC0
-.loc_0028:
+.row_loop:
         MOVE.W  D0,D6                           ; $012FC4
         BCLR    #15,D6                          ; $012FC6
         BSET    #14,D6                          ; $012FCA
         MOVE.W  D6,(A5)                         ; $012FCE
         MOVE.W  #$0003,(A5)                     ; $012FD0
         MOVE.W  D1,D5                           ; $012FD4
-.loc_003A:
+.col_loop:
         MOVE.W  D3,(A6)                         ; $012FD6
-        DBRA    D5,.loc_003A                    ; $012FD8
+        DBRA    D5,.col_loop                    ; $012FD8
         ADD.L   D4,D0                           ; $012FDC
-        DBRA    D2,.loc_0028                    ; $012FDE
+        DBRA    D2,.row_loop                    ; $012FDE
         RTS                                     ; $012FE2

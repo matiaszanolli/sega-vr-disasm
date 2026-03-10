@@ -46,22 +46,22 @@ player_entity_frame_update:
         MOVE.B  (-15612).W,(-15604).W           ; $005D78
         MOVE.W  (-14176).W,D0                   ; $005D7E
         BTST    #7,(-14308).W                   ; $005D82
-        BEQ.S  .loc_0084                        ; $005D88
+        BEQ.S  .mode_selected                        ; $005D88
         MOVEQ   #$04,D0                         ; $005D8A
-.loc_0084:
+.mode_selected:
         MOVEA.L $005DC8(PC,D0.W),A1             ; $005D8C
         JSR     (A1)                            ; $005D90
         CMPI.W  #$0014,(-14166).W               ; $005D92
-        BNE.S  .loc_00BE                        ; $005D98
+        BNE.S  .done                        ; $005D98
         MOVE.B  #$00,(-14336).W                 ; $005D9A
         MOVE.W  (-16238).W,(-16262).W           ; $005DA0
         MOVE.W  #$0004,(-14164).W               ; $005DA6
         TST.W  (-14180).W                       ; $005DAC
-        BEQ.S  .loc_00B0                        ; $005DB0
+        BEQ.S  .skip_2p_timer                        ; $005DB0
         MOVE.W  #$0020,(-14164).W               ; $005DB2
-.loc_00B0:
+.skip_2p_timer:
         BTST    #7,(-14308).W                   ; $005DB8
-        BEQ.S  .loc_00BE                        ; $005DBE
+        BEQ.S  .done                        ; $005DBE
         MOVE.W  #$0020,(-14164).W               ; $005DC0
-.loc_00BE:
+.done:
         RTS                                     ; $005DC6

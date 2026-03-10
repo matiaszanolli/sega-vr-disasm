@@ -13,9 +13,9 @@
 
 camera_angle_increment_clamp:
         CMPI.W  #$4000,D0                       ; $012C9E
-        BGT.S  .loc_0010                        ; $012CA2
+        BGT.S  .done                        ; $012CA2
         ADDI.W  #$0010,D0                       ; $012CA4
-        BRA.S  .loc_0010                        ; $012CA8
+        BRA.S  .done                        ; $012CA8
         ADDI.W  #$0040,D0                       ; $012CAA
-.loc_0010:
+.done:
         RTS                                     ; $012CAE

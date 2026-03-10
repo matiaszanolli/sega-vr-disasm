@@ -21,17 +21,17 @@
 
 fm_sequence_process_orch:
         TST.B  $000A(A5)                        ; $03029E
-        BEQ.W  .loc_004E                        ; $0302A2
+        BEQ.W  .done                        ; $0302A2
         BTST    #1,(A5)                         ; $0302A6
-        BNE.W  .loc_004E                        ; $0302AA
+        BNE.W  .done                        ; $0302AA
         BTST    #2,(A5)                         ; $0302AE
-        BNE.W  .loc_004E                        ; $0302B2
+        BNE.W  .done                        ; $0302B2
         jsr     fm_sequence_data_reader(pc); $4EBA $0036
         TST.B  $000F(A6)                        ; $0302BA
-        BEQ.S  .loc_002C                        ; $0302BE
+        BEQ.S  .write_freq_regs                        ; $0302BE
         CMPI.B  #$02,$0001(A5)                  ; $0302C0
         DC.W    $6700,$00C6         ; BEQ.W  $03038E; $0302C6
-.loc_002C:
+.write_freq_regs:
         MOVE.W  D6,D1                           ; $0302CA
         LSR.W  #8,D1                            ; $0302CC
         MOVE.B  #$A4,D0                         ; $0302CE
@@ -41,5 +41,5 @@ fm_sequence_process_orch:
         MOVE.B  #$A0,D0                         ; $0302DC
         jsr     fm_write_cond(pc)       ; $4EBA $09EA
         MOVE.W  #$0000,Z80_BUSREQ                ; $0302E4
-.loc_004E:
+.done:
         RTS                                     ; $0302EC

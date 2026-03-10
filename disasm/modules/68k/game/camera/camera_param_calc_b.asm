@@ -16,9 +16,9 @@
 camera_param_calc_b:
         MOVE.L  (-14556).W,$0024(A1)            ; $002ADE
         TST.W  $008A(A0)                        ; $002AE4
-        BEQ.S  .loc_0012                        ; $002AE8
+        BEQ.S  .load_speed                        ; $002AE8
         MOVE.L  (-14512).W,$0024(A1)            ; $002AEA
-.loc_0012:
+.load_speed:
         MOVE.W  $0030(A0),D0                    ; $002AF0
         MOVE.W  D0,$0016(A1)                    ; $002AF4
         MOVE.W  (-16300).W,$0004(A1)            ; $002AF8

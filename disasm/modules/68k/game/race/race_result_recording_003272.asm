@@ -60,7 +60,7 @@ race_result_recording_003272:
         MOVE.L  #$222E070C,$00FF6948            ; $00330A
         MOVE.B  #$00,(-15605).W                 ; $003314
         CMP.L  (-15788).W,D0                    ; $00331A
-        BGE.S  .loc_00EA                        ; $00331E
+        BGE.S  .set_complete                        ; $00331E
         MOVE.L  D0,(-15788).W                   ; $003320
         MOVEQ   #$00,D0                         ; $003324
         LEA     $00FF68D1,A1                    ; $003326
@@ -75,7 +75,7 @@ race_result_recording_003272:
         MOVE.B  #$01,(A2)                       ; $003348
         MOVE.L  #$222DFB7C,$00FF6948            ; $00334C
         MOVE.B  #$01,(-15605).W                 ; $003356
-.loc_00EA:
+.set_complete:
         MOVE.B  #$01,$00FF6940                  ; $00335C
         MOVE.B  (-14165).W,D0                   ; $003364
         ANDI.B  #$03,D0                         ; $003368

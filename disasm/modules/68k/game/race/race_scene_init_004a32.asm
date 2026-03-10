@@ -31,9 +31,9 @@ race_scene_init_004a32:
         MOVE.B  (-347).W,D0                     ; $004A70
         MOVE.B  (-335).W,D1                     ; $004A74
         BTST    #7,(-600).W                     ; $004A78
-        BEQ.S  .loc_0052                        ; $004A7E
+        BEQ.S  .after_car_select                        ; $004A7E
         MOVE.B  (-346).W,D0                     ; $004A80
-.loc_0052:
+.after_car_select:
         JSR     $0088D19C                       ; $004A84
         MOVE.B  (-14135).W,D0                   ; $004A8A
         ADDQ.B  #1,D0                           ; $004A8E
@@ -59,21 +59,21 @@ race_scene_init_004a32:
         JSR     $0088CD92                       ; $004AFA
         MOVE.B  #$00,(-15596).W                 ; $004B00
         BTST    #0,(-14312).W                   ; $004B06
-        BEQ.S  .loc_00E2                        ; $004B0C
+        BEQ.S  .skip_2p_flag                        ; $004B0C
         MOVE.B  #$01,(-15596).W                 ; $004B0E
-.loc_00E2:
+.skip_2p_flag:
         MOVEQ   #$00,D0                         ; $004B14
         JSR     $0088CC74                       ; $004B16
         jsr     track_graphics_and_sound_loader+174(pc); $4EBA $7D52
         jsr     vdp_reg_table_copy(pc)  ; $4EBA $7E94
         TST.B  (-343).W                         ; $004B24
-        BEQ.S  .loc_00FC                        ; $004B28
+        BEQ.S  .skip_vdp_slot_config                        ; $004B28
         jsr     vdp_slot_activation_config_a(pc); $4EBA $7F20
-.loc_00FC:
+.skip_vdp_slot_config:
         BTST    #7,(-600).W                     ; $004B2E
-        BEQ.S  .loc_010E                        ; $004B34
+        BEQ.S  .skip_replay_overlay                        ; $004B34
         MOVE.L  #$0403131C,$00FF69B4            ; $004B36
-.loc_010E:
+.skip_replay_overlay:
         JSR     $0088D054                       ; $004B40
         JSR     $0088CA9A                       ; $004B46
         MOVE.B  #$05,(-15600).W                 ; $004B4C
@@ -81,9 +81,9 @@ race_scene_init_004a32:
         MOVEQ   #$18,D0                         ; $004B58
         MOVEQ   #-$01,D1                        ; $004B5A
         TST.W  (-14180).W                       ; $004B5C
-        BEQ.S  .loc_0132                        ; $004B60
+        BEQ.S  .skip_demo_adjust                        ; $004B60
         MOVEQ   #$00,D1                         ; $004B62
-.loc_0132:
+.skip_demo_adjust:
         JSR     $0088CDD2                       ; $004B64
         JSR     $0088CD4C                       ; $004B6A
         jsr     entity_table_load_mode(pc); $4EBA $5C98
@@ -98,9 +98,9 @@ race_scene_init_004a32:
         MOVE.W  #$C9A0,(-14144).W               ; $004B9C
         MOVE.B  #$02,(-14326).W                 ; $004BA2
         BTST    #3,(-14322).W                   ; $004BA8
-        BEQ.S  .loc_0184                        ; $004BAE
+        BEQ.S  .skip_split_dma                        ; $004BAE
         JSR     $0088D0F6                       ; $004BB0
-.loc_0184:
+.skip_split_dma:
         jsr     sh2_handler_dispatch_scene_init+98(pc); $4EBA $0D10
         jsr     sh2_comm_check_cond_guard(pc); $4EBA $0D4C
         jsr     race_entity_update_loop(pc); $4EBA $0D7C
@@ -119,11 +119,11 @@ race_scene_init_004a32:
         BSET    #6,(-14322).W                   ; $004C06
         MOVE.B  #$01,(-14334).W                 ; $004C0C
         BTST    #7,(-600).W                     ; $004C12
-        BEQ.S  .loc_01F0                        ; $004C18
+        BEQ.S  .wait_sh2_ready                        ; $004C18
         MOVE.B  #$01,$00FF60D4                  ; $004C1A
-.loc_01F0:
+.wait_sh2_ready:
         BTST    #0,COMM1_LO                    ; $004C22
-        BEQ.S  .loc_01F0                        ; $004C2A
+        BEQ.S  .wait_sh2_ready                        ; $004C2A
         BCLR    #0,COMM1_LO                    ; $004C2C
         MOVE.W  #$0102,(-14168).W               ; $004C34
         BTST    #3,(-14322).W                   ; $004C3A
@@ -132,9 +132,9 @@ race_scene_init_004a32:
         MOVE.W  #$0000,(-30832).W               ; $004C46
         lea     state_disp_004cb8(pc),a1; $43FA $006A
         BTST    #0,(-14325).W                   ; $004C50
-        BNE.S  .loc_022C                        ; $004C56
+        BNE.S  .skip_sound_lookup                        ; $004C56
         MOVE.B  $00(A1,D0.W),(-14171).W         ; $004C58
-.loc_022C:
+.skip_sound_lookup:
         jsr     sound_command_dispatch_sound_driver_call(pc); $4EBA $D420
         jsr     wait_for_vblank(pc)     ; $4EBA $FD34
         DC.W    $4EBA,$D586         ; JSR     $0021EE(PC); $004C66

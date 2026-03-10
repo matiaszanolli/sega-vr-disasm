@@ -29,14 +29,14 @@ sprite_strip_renderer_via_sh2_cmd_27:
         MOVE.W  #$0050,D0                       ; $014216
         MOVE.W  #$0007,D1                       ; $01421A
         MOVE.W  #$003C,D2                       ; $01421E
-.loc_0022:
+.wait_first_row:
         TST.B  COMM0_HI                        ; $014222
-        BNE.S  .loc_0022                        ; $014228
+        BNE.S  .wait_first_row                        ; $014228
         jsr     sh2_cmd_27(pc)          ; $4EBA $A188
         SUB.W   D4,D3                           ; $01422E
-        BCS.W  .loc_0060                        ; $014230
+        BCS.W  .done                        ; $014230
         ADDQ.W  #1,D4                           ; $014234
-.loc_0036:
+.next_row:
         MOVE.B  D4,D2                           ; $014236
         ADD.W   D2,D2                           ; $014238
         ADD.W   D2,D2                           ; $01423A
@@ -45,11 +45,11 @@ sprite_strip_renderer_via_sh2_cmd_27:
         MOVE.W  #$0050,D0                       ; $014242
         MOVE.W  #$0007,D1                       ; $014246
         MOVE.W  #$0040,D2                       ; $01424A
-.loc_004E:
+.wait_next_row:
         TST.B  COMM0_HI                        ; $01424E
-        BNE.S  .loc_004E                        ; $014254
+        BNE.S  .wait_next_row                        ; $014254
         jsr     sh2_cmd_27(pc)          ; $4EBA $A15C
         ADDQ.W  #1,D4                           ; $01425A
-        DBRA    D3,.loc_0036                    ; $01425C
-.loc_0060:
+        DBRA    D3,.next_row                    ; $01425C
+.done:
         RTS                                     ; $014260

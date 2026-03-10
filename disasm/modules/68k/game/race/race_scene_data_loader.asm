@@ -56,11 +56,11 @@ race_scene_data_loader:
         lea     track_graphics_and_sound_loader(pc),a1; $43FA $0036
         LEA     (-28416).W,A2                   ; $00C78E
         MOVEQ   #$0E,D0                         ; $00C792
-.loc_00DE:
+.copy_sort_keys:
         MOVE.W  (A1),$00B6(A2)                  ; $00C794
         MOVE.W  (A1)+,$000A(A2)                 ; $00C798
         LEA     $0100(A2),A2                    ; $00C79C
-        DBRA    D0,.loc_00DE                    ; $00C7A0
+        DBRA    D0,.copy_sort_keys                    ; $00C7A0
         MOVE.L  #$0088C7E0,(-15744).W           ; $00C7A4
         LEA     $0093C0EC,A0                    ; $00C7AC
         MOVEA.W (-14144).W,A1                   ; $00C7B2

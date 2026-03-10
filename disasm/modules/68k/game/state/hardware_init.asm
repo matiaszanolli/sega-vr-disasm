@@ -33,9 +33,9 @@ hardware_init:
         MOVE    #$2700,SR                       ; $000C82
         MOVE.W  #$0100,Z80_BUSREQ                ; $000C86
         MOVE.W  #$0100,Z80_RESET                ; $000C8E
-.loc_0026:
+.wait_z80_bus:
         BTST    #0,Z80_BUSREQ                    ; $000C96
-        BNE.S  .loc_0026                        ; $000C9E
+        BNE.S  .wait_z80_bus                        ; $000C9E
         LEA     Z80_RAM,A1                    ; $000CA0
         MOVE.B  #$F3,(A1)+                      ; $000CA6
         MOVE.B  #$F3,(A1)+                      ; $000CAA
@@ -77,9 +77,9 @@ hardware_init:
         LEA     (-13920).W,A1                   ; $000D22
         MOVEQ   #$00,D1                         ; $000D26
         MOVE.W  #$0D57,D7                       ; $000D28
-.loc_00BC:
+.clear_ram_loop:
         MOVE.L  D1,(A1)+                        ; $000D2C
-        DBRA    D7,.loc_00BC                    ; $000D2E
+        DBRA    D7,.clear_ram_loop                    ; $000D2E
         MOVE.B  $00A10001,D0                    ; $000D32
         MOVE.B  D0,(-4348).W                    ; $000D38
         BTST    #7,D0                           ; $000D3C

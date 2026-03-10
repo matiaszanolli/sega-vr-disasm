@@ -33,19 +33,19 @@ race_config_screen_init:
         MOVEQ   #$00,D0                         ; $0138A4
         LEA     (-31616).W,A0                   ; $0138A6
         MOVEQ   #$1F,D1                         ; $0138AA
-.loc_0048:
+.clear_score_loop:
         MOVE.L  D0,(A0)+                        ; $0138AC
-        DBRA    D1,.loc_0048                    ; $0138AE
+        DBRA    D1,.clear_score_loop                    ; $0138AE
         LEA     $00FF7B80,A0                    ; $0138B2
         MOVEQ   #$7F,D1                         ; $0138B8
-.loc_0056:
+.clear_display_loop:
         MOVE.L  D0,(A0)+                        ; $0138BA
-        DBRA    D1,.loc_0056                    ; $0138BC
+        DBRA    D1,.clear_display_loop                    ; $0138BC
         MOVE.L  #$60000002,(A5)                 ; $0138C0
         MOVE.W  #$17FF,D1                       ; $0138C6
-.loc_0066:
+.clear_vram_loop:
         MOVE.L  D0,(A6)                         ; $0138CA
-        DBRA    D1,.loc_0066                    ; $0138CC
+        DBRA    D1,.clear_vram_loop                    ; $0138CC
         JSR     $008849AA                       ; $0138D0
         CLR.W  (-14208).W                       ; $0138D6
         CLR.W  (-14206).W                       ; $0138DA
@@ -62,9 +62,9 @@ race_config_screen_init:
         MOVE.W  #$0001,(-24540).W               ; $013914
         LEA     $00FF1000,A0                    ; $01391A
         MOVE.W  #$037F,D0                       ; $013920
-.loc_00C0:
+.clear_tilemap_loop:
         CLR.L  (A0)+                            ; $013924
-        DBRA    D0,.loc_00C0                    ; $013926
+        DBRA    D0,.clear_tilemap_loop                    ; $013926
         MOVE.W  #$0001,D0                       ; $01392A
         MOVE.W  #$0001,D1                       ; $01392E
         MOVE.W  #$0001,D2                       ; $013932
@@ -80,20 +80,20 @@ race_config_screen_init:
         LEA     $00893A88,A1                    ; $013964
         ADDQ.L  #2,A0                           ; $01396A
         MOVE.W  #$002E,D0                       ; $01396C
-.loc_010C:
+.copy_palette_a_loop:
         MOVE.W  (A1)+,D1                        ; $013970
         BSET    #15,D1                          ; $013972
         MOVE.W  D1,(A0)+                        ; $013976
-        DBRA    D0,.loc_010C                    ; $013978
+        DBRA    D0,.copy_palette_a_loop                    ; $013978
         LEA     $00FF6E00,A0                    ; $01397C
         ADDA.L  #$00000140,A0                   ; $013982
         LEA     $00893B06,A1                    ; $013988
         MOVE.W  #$005F,D0                       ; $01398E
-.loc_012E:
+.copy_palette_b_loop:
         MOVE.W  (A1)+,D1                        ; $013992
         BSET    #15,D1                          ; $013994
         MOVE.W  D1,(A0)+                        ; $013998
-        DBRA    D0,.loc_012E                    ; $01399A
+        DBRA    D0,.copy_palette_b_loop                    ; $01399A
         LEA     $00FF6E00,A0                    ; $01399E
         ADDA.L  #$00000080,A0                   ; $0139A4
         MOVE.W  #$0000,(A0)                     ; $0139AA
@@ -105,22 +105,22 @@ race_config_screen_init:
         DC.W    $4EBA,$A94A         ; JSR     $00E316(PC); $0139CA
         LEA     $000F30D0,A0                    ; $0139CE
         BTST    #2,(-14312).W                   ; $0139D4
-        BNE.S  .loc_018C                        ; $0139DA
+        BNE.S  .p1_tile_selected                        ; $0139DA
         LEA     $000F1DB0,A0                    ; $0139DC
         BTST    #0,(-14312).W                   ; $0139E2
-        BEQ.S  .loc_018C                        ; $0139E8
+        BEQ.S  .p1_tile_selected                        ; $0139E8
         LEA     $000F2710,A0                    ; $0139EA
-.loc_018C:
+.p1_tile_selected:
         MOVEA.L #$06017CC0,A1                   ; $0139F0
         DC.W    $4EBA,$A91E         ; JSR     $00E316(PC); $0139F6
         LEA     $000F30D0,A0                    ; $0139FA
         BTST    #3,(-14312).W                   ; $013A00
-        BNE.S  .loc_01B8                        ; $013A06
+        BNE.S  .p2_tile_selected                        ; $013A06
         LEA     $000F1DB0,A0                    ; $013A08
         BTST    #1,(-14312).W                   ; $013A0E
-        BEQ.S  .loc_01B8                        ; $013A14
+        BEQ.S  .p2_tile_selected                        ; $013A14
         LEA     $000F2710,A0                    ; $013A16
-.loc_01B8:
+.p2_tile_selected:
         MOVEA.L #$0601DFC0,A1                   ; $013A1C
         DC.W    $4EBA,$A8F2         ; JSR     $00E316(PC); $013A22
         CLR.B  (-24551).W                       ; $013A26

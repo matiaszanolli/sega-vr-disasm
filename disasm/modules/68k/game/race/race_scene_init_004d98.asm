@@ -55,13 +55,13 @@ race_scene_init_004d98:
         jsr     track_graphics_and_sound_loader+174(pc); $4EBA $7A14
         jsr     vdp_reg_table_init_multi_entry_loader(pc); $4EBA $7B80
         TST.B  (-337).W                         ; $004E62
-        BEQ.S  .loc_00D4                        ; $004E66
+        BEQ.S  .skip_vdp_slot_b                        ; $004E66
         jsr     vdp_slot_activation_config_b(pc); $4EBA $7BFC
-.loc_00D4:
+.skip_vdp_slot_b:
         TST.B  (-336).W                         ; $004E6C
-        BEQ.S  .loc_00DE                        ; $004E70
+        BEQ.S  .skip_vdp_slot_c                        ; $004E70
         jsr     vdp_slot_activation_config_c(pc); $4EBA $7C0C
-.loc_00DE:
+.skip_vdp_slot_c:
         JSR     $0088D450                       ; $004E76
         JSR     $0088D08A                       ; $004E7C
         jsr     race_track_overlay_config+164(pc); $4EBA $7CBA
@@ -80,21 +80,21 @@ race_scene_init_004d98:
         JSR     $0088CECC                       ; $004EBC
         MOVE.B  #$00,(-15596).W                 ; $004EC2
         BTST    #1,(-14312).W                   ; $004EC8
-        BEQ.S  .loc_013E                        ; $004ECE
+        BEQ.S  .skip_p2_flag                        ; $004ECE
         MOVE.B  #$01,(-15596).W                 ; $004ED0
-.loc_013E:
+.skip_p2_flag:
         LEA     (-16384).W,A2                   ; $004ED6
         LEA     (-18432).W,A1                   ; $004EDA
         MOVEQ   #$1F,D7                         ; $004EDE
-.loc_0148:
+.copy_obj_table_loop:
         MOVEM.L (A2)+,D0/D1/D2/D3/D4/D5/D6/A3   ; $004EE0
         MOVEM.L D0/D1/D2/D3/D4/D5/D6/A3,-(A1)   ; $004EE4
-        DBRA    D7,.loc_0148                    ; $004EE8
+        DBRA    D7,.copy_obj_table_loop                    ; $004EE8
         MOVE.B  #$00,(-15596).W                 ; $004EEC
         BTST    #0,(-14312).W                   ; $004EF2
-        BEQ.S  .loc_0168                        ; $004EF8
+        BEQ.S  .skip_p1_flag                        ; $004EF8
         MOVE.B  #$01,(-15596).W                 ; $004EFA
-.loc_0168:
+.skip_p1_flag:
         MOVE.B  (-337).W,(-15601).W             ; $004F00
         jsr     track_physics_param_table_loader+144(pc); $4EBA $523C
         LEA     (-28672).W,A0                   ; $004F0A
@@ -116,18 +116,18 @@ race_scene_init_004d98:
         MOVE.W  #$0000,(-30832).W               ; $004F60
         lea     state_disp_004cb8(pc),a1; $43FA $FD50
         BTST    #0,(-14325).W                   ; $004F6A
-        BNE.S  .loc_01E0                        ; $004F70
+        BNE.S  .skip_sound_cmd_1                        ; $004F70
         MOVE.B  $00(A1,D0.W),(-14171).W         ; $004F72
-.loc_01E0:
+.skip_sound_cmd_1:
         JSR     $00882080                       ; $004F78
         JSR     $00884998                       ; $004F7E
         MOVE.W  (-14136).W,D0                   ; $004F84
         MOVE.W  #$0000,(-30880).W               ; $004F88
         lea     state_disp_005020(pc),a1; $43FA $0090
         BTST    #0,(-14325).W                   ; $004F92
-        BNE.S  .loc_0208                        ; $004F98
+        BNE.S  .skip_sound_cmd_2                        ; $004F98
         MOVE.B  $00(A1,D0.W),(-14171).W         ; $004F9A
-.loc_0208:
+.skip_sound_cmd_2:
         JSR     $00882080                       ; $004FA0
         JSR     $00884998                       ; $004FA6
         DC.W    $4EBA,$D240         ; JSR     $0021EE(PC); $004FAC
@@ -139,11 +139,11 @@ race_scene_init_004d98:
         BSET    #6,(-14322).W                   ; $004FCC
         MOVE.B  #$01,(-14334).W                 ; $004FD2
         BTST    #7,(-600).W                     ; $004FD8
-        BEQ.S  .loc_0250                        ; $004FDE
+        BEQ.S  .wait_sh2_ready                        ; $004FDE
         MOVE.B  #$01,$00FF60D4                  ; $004FE0
-.loc_0250:
+.wait_sh2_ready:
         BTST    #0,COMM1_LO                    ; $004FE8
-        BEQ.S  .loc_0250                        ; $004FF0
+        BEQ.S  .wait_sh2_ready                        ; $004FF0
         BCLR    #0,COMM1_LO                    ; $004FF2
         MOVE.W  #$0104,(-14168).W               ; $004FFA
         MOVE.L  #$00885024,$00FF0002            ; $005000

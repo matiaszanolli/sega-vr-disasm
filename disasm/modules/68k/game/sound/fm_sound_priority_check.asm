@@ -21,16 +21,16 @@ fm_sound_priority_check:
         MOVE.B  D0,D1                           ; $030544
         CLR.B  (A1)                             ; $030546
         SUBI.B  #$81,D0                         ; $030548
-        BCS.S  .loc_002A                        ; $03054C
+        BCS.S  .discard_command                        ; $03054C
         ANDI.W  #$007F,D0                       ; $03054E
         MOVE.B  $00(A0,D0.W),D2                 ; $030552
         CMP.B  D3,D2                            ; $030556
-        BCS.S  .loc_002A                        ; $030558
+        BCS.S  .discard_command                        ; $030558
         MOVE.B  D2,D3                           ; $03055A
         MOVE.B  D1,$0009(A6)                    ; $03055C
-.loc_002A:
+.discard_command:
         TST.B  D3                               ; $030560
-        BMI.S  .loc_0032                        ; $030562
+        BMI.S  .done                        ; $030562
         MOVE.B  D3,$0000(A6)                    ; $030564
-.loc_0032:
+.done:
         RTS                                     ; $030568

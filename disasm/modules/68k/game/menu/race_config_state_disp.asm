@@ -37,9 +37,9 @@ race_config_state_disp:
         DC.W    $56B5                           ; $013AB2
         SPL     (A6)                            ; $013AB4
         DC.W    $5EF7                           ; $013AB6
-        BLS.S  .loc_004A                        ; $013AB8
+        BLS.S  .data_palette_block                        ; $013AB8
         DC.W    $6739                           ; $013ABA
-.loc_0034:
+.data_color_ramp:
         BMI.S  $013B18                          ; $013ABC
         DC.W    $7FFF                           ; $013ABE
         DC.W    $739C                           ; $013AC0
@@ -51,7 +51,7 @@ race_config_state_disp:
         DC.W    $7F55                           ; $013ACC
         DC.W    $7F13                           ; $013ACE
         MOVEQ   #-$71,D7                        ; $013AD0
-.loc_004A:
+.data_palette_block:
         DC.W    $7F75                           ; $013AD2
         DC.W    $7F76                           ; $013AD4
         MOVE.L  D3,(A4)                         ; $013AD6
@@ -65,7 +65,7 @@ race_config_state_disp:
         MOVE.W  D4,(A2)+                        ; $013AE8
         DC.W    $7FFF                           ; $013AEA
         DC.W    $7FFF                           ; $013AEC
-        BCS.S  .loc_0034                        ; $013AEE
+        BCS.S  .data_color_ramp                        ; $013AEE
         DC.W    $7FFF                           ; $013AF0
         DC.W    $7FFF                           ; $013AF2
         DC.W    $7FFF                           ; $013AF4
@@ -100,7 +100,7 @@ race_config_state_disp:
         DC.W    $7FFF                           ; $013B34
         DC.W    $7FFF                           ; $013B36
         DC.W    $7FFF                           ; $013B38
-.loc_00B2:
+.data_sentinel_block:
         DC.W    $7FFF                           ; $013B3A
         DC.W    $7FFF                           ; $013B3C
         DC.W    $0000                           ; $013B3E
@@ -124,7 +124,7 @@ race_config_state_disp:
         DC.W    $7FFF                           ; $013B64
         DC.W    $7714                           ; $013B66
         DC.W    $6EF1                           ; $013B68
-        BNE.S  .loc_00B2                        ; $013B6A
+        BNE.S  .data_sentinel_block                        ; $013B6A
         ADDQ.L  #7,$7FFF(A3)                    ; $013B6C
         DC.W    $7FFF                           ; $013B70
         DC.W    $7FFF                           ; $013B72
@@ -140,10 +140,10 @@ race_config_state_disp:
         DC.W    $29A8                           ; $013B88
         DC.W    $4670                           ; $013B8A
         DC.W    $6337                           ; $013B8C
-.loc_0106:
+.data_pattern_loop:
         NEG.W  D5                               ; $013B8E
         SUBQ.B  #8,$6212(A3)                    ; $013B90
-        BGT.S  .loc_0106                        ; $013B94
+        BGT.S  .data_pattern_loop                        ; $013B94
         DC.W    $7FFF                           ; $013B96
         BTST    D1,(A7)+                        ; $013B98
         DC.W    $7FFF                           ; $013B9A
@@ -180,9 +180,9 @@ race_config_state_disp:
         DC.W    $3F80                           ; $013BE4
         CLR.W  D0                               ; $013BE6
         BTST    #0,(-14312).W                   ; $013BE8
-        BEQ.S  .loc_016C                        ; $013BEE
+        BEQ.S  .p1_flag_set                        ; $013BEE
         MOVE.W  #$0001,D0                       ; $013BF0
-.loc_016C:
+.p1_flag_set:
         MOVE.W  #$00FF,D3                       ; $013BF4
         LEA     (-366).W,A0                     ; $013BF8
         LEA     (-382).W,A1                     ; $013BFC
@@ -190,9 +190,9 @@ race_config_state_disp:
         bsr.w   car_driver_selection_input_handler; $6100 $03DA
         CLR.W  D0                               ; $013C08
         BTST    #1,(-14312).W                   ; $013C0A
-        BEQ.S  .loc_018E                        ; $013C10
+        BEQ.S  .p2_flag_set                        ; $013C10
         MOVE.W  #$0001,D0                       ; $013C12
-.loc_018E:
+.p2_flag_set:
         MOVE.W  #$00FF,D3                       ; $013C16
         LEA     (-365).W,A0                     ; $013C1A
         LEA     (-374).W,A1                     ; $013C1E

@@ -21,21 +21,21 @@ proximity_check_simple:
         MOVE.W  $0034(A0),D4                    ; $0039F8
         MOVE.W  $0032(A0),D5                    ; $0039FC
         SUB.W  (A1),D2                          ; $003A00
-        BPL.S  .loc_001A                        ; $003A02
+        BPL.S  .x_positive                        ; $003A02
         NEG.W  D2                               ; $003A04
-.loc_001A:
+.x_positive:
         CMP.W  D1,D2                            ; $003A06
         DC.W    $6E34               ; BGT.S  $003A3E; $003A08
         SUB.W  $0002(A1),D5                     ; $003A0A
-        BPL.S  .loc_0026                        ; $003A0E
+        BPL.S  .y_positive                        ; $003A0E
         NEG.W  D5                               ; $003A10
-.loc_0026:
+.y_positive:
         CMP.W  D3,D5                            ; $003A12
         DC.W    $6E28               ; BGT.S  $003A3E; $003A14
         SUB.W  $0004(A1),D4                     ; $003A16
-        BPL.S  .loc_0032                        ; $003A1A
+        BPL.S  .z_positive                        ; $003A1A
         NEG.W  D4                               ; $003A1C
-.loc_0032:
+.z_positive:
         CMP.W  D1,D4                            ; $003A1E
         DC.W    $6E1C               ; BGT.S  $003A3E; $003A20
         MOVE.W  #$0001,$0000(A2)                ; $003A22

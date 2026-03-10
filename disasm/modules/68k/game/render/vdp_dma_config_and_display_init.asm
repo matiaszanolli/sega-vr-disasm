@@ -14,9 +14,9 @@
 
 vdp_dma_config_and_display_init:
         MOVE.W  #$0100,Z80_BUSREQ                ; $00D1D4
-.loc_0008:
+.wait_z80_bus_1:
         BTST    #0,Z80_BUSREQ                    ; $00D1DC
-        BNE.S  .loc_0008                        ; $00D1E4
+        BNE.S  .wait_z80_bus_1                        ; $00D1E4
         MOVE.W  (-14220).W,D4                   ; $00D1E6
         BSET    #4,D4                           ; $00D1EA
         MOVE.W  D4,(A5)                         ; $00D1EE
@@ -25,19 +25,19 @@ vdp_dma_config_and_display_init:
         MOVE.W  #$9780,(A5)                     ; $00D1FA
         MOVE.L  #$60000082,(A5)                 ; $00D1FE
         MOVE.W  #$0000,(A6)                     ; $00D204
-.loc_0034:
+.wait_dma_fill:
         MOVE.W  (A5),D7                         ; $00D208
         ANDI.W  #$0002,D7                       ; $00D20A
-        BNE.S  .loc_0034                        ; $00D20E
+        BNE.S  .wait_dma_fill                        ; $00D20E
         MOVE.W  #$8F02,(A5)                     ; $00D210
         MOVE.W  (-14220).W,(A5)                 ; $00D214
         MOVE.W  #$0000,Z80_BUSREQ                ; $00D218
         MOVEQ   #$07,D0                         ; $00D220
         JSR     $008814BE                       ; $00D222
         MOVE.W  #$0100,Z80_BUSREQ                ; $00D228
-.loc_005C:
+.wait_z80_bus_2:
         BTST    #0,Z80_BUSREQ                    ; $00D230
-        BNE.S  .loc_005C                        ; $00D238
+        BNE.S  .wait_z80_bus_2                        ; $00D238
         MOVE.W  (-14220).W,D4                   ; $00D23A
         BSET    #4,D4                           ; $00D23E
         MOVE.W  D4,(A5)                         ; $00D242
@@ -54,9 +54,9 @@ vdp_dma_config_and_display_init:
         MOVE.L  $00(A0,D0.W),D0                 ; $00D276
         JSR     $008815EA                       ; $00D27A
         MOVE.W  #$0100,Z80_BUSREQ                ; $00D280
-.loc_00B4:
+.wait_z80_bus_3:
         BTST    #0,Z80_BUSREQ                    ; $00D288
-        BNE.S  .loc_00B4                        ; $00D290
+        BNE.S  .wait_z80_bus_3                        ; $00D290
         MOVE.W  (-14220).W,D4                   ; $00D292
         BSET    #4,D4                           ; $00D296
         MOVE.W  D4,(A5)                         ; $00D29A
@@ -77,7 +77,7 @@ vdp_dma_config_and_display_init:
         MOVEQ   #$00,D0                         ; $00D2DE
         MOVEQ   #-$08,D1                        ; $00D2E0
         TST.B  (-14321).W                       ; $00D2E2
-        BEQ.S  .loc_0156                        ; $00D2E6
+        BEQ.S  .skip_split_screen                        ; $00D2E6
         MOVEQ   #$00,D0                         ; $00D2E8
         MOVEQ   #$00,D1                         ; $00D2EA
         LEA     $00FF1400,A1                    ; $00D2EC
@@ -91,11 +91,11 @@ vdp_dma_config_and_display_init:
         JSR     $008848D2                       ; $00D31C
         MOVE.W  #$8B03,(A5)                     ; $00D322
         bsr.w   scene_init_vdp_dma_setup_track_param_load+62; $6100 $0112
-.loc_0156:
+.skip_split_screen:
         MOVE.W  #$0100,Z80_BUSREQ                ; $00D32A
-.loc_015E:
+.wait_z80_bus_4:
         BTST    #0,Z80_BUSREQ                    ; $00D332
-        BNE.S  .loc_015E                        ; $00D33A
+        BNE.S  .wait_z80_bus_4                        ; $00D33A
         MOVE.W  (-14220).W,D4                   ; $00D33C
         BSET    #4,D4                           ; $00D340
         MOVE.W  D4,(A5)                         ; $00D344
@@ -108,19 +108,19 @@ vdp_dma_config_and_display_init:
         MOVE.W  (-14220).W,(A5)                 ; $00D364
         MOVE.W  #$0000,Z80_BUSREQ                ; $00D368
         BTST    #3,(-14322).W                   ; $00D370
-        BEQ.S  .loc_0206                        ; $00D376
+        BEQ.S  .set_scroll_regs                        ; $00D376
         MOVEQ   #$00,D1                         ; $00D378
         MOVE.L  #$000000B0,D2                   ; $00D37A
         MOVEQ   #$1B,D7                         ; $00D380
         LEA     $00FF1A50,A1                    ; $00D382
-.loc_01B4:
+.split_row_loop:
         JSR     $0088485E                       ; $00D388
         ADDA.L  D2,A1                           ; $00D38E
-        DBRA    D7,.loc_01B4                    ; $00D390
+        DBRA    D7,.split_row_loop                    ; $00D390
         MOVE.W  #$0100,Z80_BUSREQ                ; $00D394
-.loc_01C8:
+.wait_z80_bus_5:
         BTST    #0,Z80_BUSREQ                    ; $00D39C
-        BNE.S  .loc_01C8                        ; $00D3A4
+        BNE.S  .wait_z80_bus_5                        ; $00D3A4
         MOVE.W  (-14220).W,D4                   ; $00D3A6
         BSET    #4,D4                           ; $00D3AA
         MOVE.W  D4,(A5)                         ; $00D3AE
@@ -132,7 +132,7 @@ vdp_dma_config_and_display_init:
         MOVE.W  (-14218).W,(A5)                 ; $00D3CA
         MOVE.W  (-14220).W,(A5)                 ; $00D3CE
         MOVE.W  #$0000,Z80_BUSREQ                ; $00D3D2
-.loc_0206:
+.set_scroll_regs:
         MOVE.W  #$FFFC,(-14208).W               ; $00D3DA
         MOVE.W  D1,(-14206).W                   ; $00D3E0
         MOVE.W  D0,(-32768).W                   ; $00D3E4

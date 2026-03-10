@@ -12,7 +12,7 @@
 
 conditional_speed_subtract:
         DC.W    $6108               ; BSR.S  $006D00; $006CF6
-        BEQ.S  .loc_0008                        ; $006CF8
+        BEQ.S  .done                        ; $006CF8
         SUB.W  D0,$0004(A1)                     ; $006CFA
-.loc_0008:
+.done:
         RTS                                     ; $006CFE

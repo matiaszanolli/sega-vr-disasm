@@ -22,23 +22,23 @@
 
 fm_operator_reg_write:
         MOVEA.L $0030(A6),A1                    ; $03124A
-        BEQ.S  .loc_000A                        ; $03124E
+        BEQ.S  .use_channel_data                        ; $03124E
         MOVEA.L $0020(A5),A1                    ; $031250
-.loc_000A:
+.use_channel_data:
         MOVE.B  (A4),D3                         ; $031254
         ADDA.W  #$0009,A0                       ; $031256
         lea     fm_operator_reg_write+78(pc),a2; $45FA $003C
         MOVEQ   #$03,D6                         ; $03125E
-.loc_0016:
+.operator_loop:
         MOVE.B  (A1)+,D1                        ; $031260
         MOVE.B  (A2)+,D0                        ; $031262
         BTST    #7,D3                           ; $031264
-        BEQ.S  .loc_0028                        ; $031268
+        BEQ.S  .skip_operator                        ; $031268
         BSET    #7,D1                           ; $03126A
         jsr     fm_cond_write_with_bus(pc); $4EBA $FA32
-.loc_0028:
+.skip_operator:
         LSL.W  #1,D3                            ; $031272
-        DBRA    D6,.loc_0016                    ; $031274
+        DBRA    D6,.operator_loop                    ; $031274
         MOVE.B  (A4)+,D1                        ; $031278
         MOVEQ   #$22,D0                         ; $03127A
         jsr     fm_write_wrapper(pc)    ; $4EBA $FA3C

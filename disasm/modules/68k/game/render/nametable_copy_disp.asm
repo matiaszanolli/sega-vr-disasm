@@ -23,10 +23,10 @@ nametable_copy_disp:
         ORI.B  #$00,D0                          ; $001556
         ORI.B  #$00,D0                          ; $00155A
         MOVEQ   #$03,D2                         ; $00155E
-.loc_0012:
+.next_job:
         MOVEQ   #$00,D0                         ; $001560
         MOVE.B  D1,D0                           ; $001562
-        BEQ.S  .loc_002C                        ; $001564
+        BEQ.S  .skip_empty_job                        ; $001564
         MULU    #$000A,D0                       ; $001566
         LEA     $001586(PC,D0.W),A0             ; $00156A
         MOVE.W  -(A0),D0                        ; $00156E
@@ -34,8 +34,8 @@ nametable_copy_disp:
         MOVE.L  -(A0),D3                        ; $001572
         MOVEA.L D3,A0                           ; $001574
         jsr     tile_decompressor_engine+72(pc); $4EBA $FCBE
-.loc_002C:
+.skip_empty_job:
         ROR.L  #8,D1                            ; $00157A
-        DBRA    D2,.loc_0012                    ; $00157C
+        DBRA    D2,.next_job                    ; $00157C
         MOVE    #$2300,SR                       ; $001580
         RTS                                     ; $001584

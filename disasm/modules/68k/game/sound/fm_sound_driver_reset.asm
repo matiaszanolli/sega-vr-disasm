@@ -25,9 +25,9 @@ fm_sound_driver_reset:
         jsr     fm_write_wrapper(pc)    ; $4EBA $011A
         MOVEA.L A6,A0                           ; $030BA2
         MOVE.W  #$00E3,D0                       ; $030BA4
-.loc_0018:
+.clear_full_loop:
         CLR.L  (A0)+                            ; $030BA8
-        DBRA    D0,.loc_0018                    ; $030BAA
+        DBRA    D0,.clear_full_loop                    ; $030BAA
         MOVE.B  #$80,$0009(A6)                  ; $030BAE
         jsr     fm_key_off_volume_zero(pc); $4EBA $FF9A
         DC.W    $6000,$040E         ; BRA.W  $030FC8; $030BB8
@@ -37,9 +37,9 @@ fm_sound_driver_reset:
         MOVEA.L A6,A0                           ; $030BC4
         MOVE.B  $0000(A6),D1                    ; $030BC6
         MOVE.W  #$0087,D0                       ; $030BCA
-.loc_003E:
+.clear_partial_loop:
         CLR.L  (A0)+                            ; $030BCE
-        DBRA    D0,.loc_003E                    ; $030BD0
+        DBRA    D0,.clear_partial_loop                    ; $030BD0
         MOVE.B  D1,$0000(A6)                    ; $030BD4
         MOVE.B  #$80,$0009(A6)                  ; $030BD8
         RTS                                     ; $030BDE

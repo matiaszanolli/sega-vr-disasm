@@ -56,19 +56,19 @@ camera_replay_screen_init:
         MOVEQ   #$00,D0                         ; $012732
         LEA     (-31616).W,A0                   ; $012734
         MOVEQ   #$1F,D1                         ; $012738
-.loc_0068:
+.clear_score_loop:
         MOVE.L  D0,(A0)+                        ; $01273A
-        DBRA    D1,.loc_0068                    ; $01273C
+        DBRA    D1,.clear_score_loop                    ; $01273C
         LEA     $00FF7B80,A0                    ; $012740
         MOVEQ   #$7F,D1                         ; $012746
-.loc_0076:
+.clear_display_loop:
         MOVE.L  D0,(A0)+                        ; $012748
-        DBRA    D1,.loc_0076                    ; $01274A
+        DBRA    D1,.clear_display_loop                    ; $01274A
         MOVE.L  #$60000002,(A5)                 ; $01274E
         MOVE.W  #$17FF,D1                       ; $012754
-.loc_0086:
+.clear_vram_loop:
         MOVE.L  D0,(A6)                         ; $012758
-        DBRA    D1,.loc_0086                    ; $01275A
+        DBRA    D1,.clear_vram_loop                    ; $01275A
         JSR     $008849AA                       ; $01275E
         CLR.W  (-14208).W                       ; $012764
         CLR.W  (-14206).W                       ; $012768
@@ -80,12 +80,12 @@ camera_replay_screen_init:
         CLR.L  (-24540).W                       ; $012786
         CLR.W  (-24536).W                       ; $01278A
         BTST    #7,(-600).W                     ; $01278E
-        BEQ.S  .loc_00DA                        ; $012794
+        BEQ.S  .skip_replay_adjust                        ; $012794
         CMPI.B  #$05,(-14313).W                 ; $012796
-        BNE.S  .loc_00DA                        ; $01279C
+        BNE.S  .skip_replay_adjust                        ; $01279C
         MOVE.L  #$FFFFFFFC,(-24540).W           ; $01279E
         MOVE.W  #$0037,(-24536).W               ; $0127A6
-.loc_00DA:
+.skip_replay_adjust:
         JSR     $008849AA                       ; $0127AC
         MOVE.W  #$0001,(-24518).W               ; $0127B2
         MOVE.L  #$008BB4FC,(-13972).W           ; $0127B8
@@ -95,9 +95,9 @@ camera_replay_screen_init:
         MOVE.B  #$01,(-14334).W                 ; $0127D2
         LEA     $00FF1000,A0                    ; $0127D8
         MOVE.W  #$037F,D0                       ; $0127DE
-.loc_0110:
+.clear_tilemap_loop:
         CLR.L  (A0)+                            ; $0127E2
-        DBRA    D0,.loc_0110                    ; $0127E4
+        DBRA    D0,.clear_tilemap_loop                    ; $0127E4
         MOVE.W  #$0001,D0                       ; $0127E8
         MOVE.W  #$0001,D1                       ; $0127EC
         MOVE.W  #$0001,D2                       ; $0127F0
@@ -118,27 +118,27 @@ camera_replay_screen_init:
         ADDA.L  #$00000120,A0                   ; $012838
         LEA     $008929E0,A1                    ; $01283E
         MOVE.W  #$000F,D0                       ; $012844
-.loc_0176:
+.copy_palette_a_loop:
         MOVE.W  (A1)+,D1                        ; $012848
         MOVE.W  D1,(A0)+                        ; $01284A
-        DBRA    D0,.loc_0176                    ; $01284C
+        DBRA    D0,.copy_palette_a_loop                    ; $01284C
         LEA     $00FF6E00,A0                    ; $012850
         ADDA.L  #$000001A0,A0                   ; $012856
         LEA     $00892A00,A1                    ; $01285C
         MOVE.W  #$001F,D0                       ; $012862
-.loc_0194:
+.copy_palette_b_loop:
         MOVE.W  (A1)+,D1                        ; $012866
         MOVE.W  D1,(A0)+                        ; $012868
-        DBRA    D0,.loc_0194                    ; $01286A
+        DBRA    D0,.copy_palette_b_loop                    ; $01286A
         LEA     $000EA840,A0                    ; $01286E
         MOVEA.L #$06038000,A1                   ; $012874
         DC.W    $4EBA,$BA9A         ; JSR     $00E316(PC); $01287A
         BTST    #3,(-14312).W                   ; $01287E
-        BNE.S  .loc_01BC                        ; $012884
+        BNE.S  .replay_split_viewport                        ; $012884
         TST.B  (-14309).W                       ; $012886
-        BNE.S  .loc_01E0                        ; $01288A
-        BRA.S  .loc_021E                        ; $01288C
-.loc_01BC:
+        BNE.S  .replay_dual_viewport                        ; $01288A
+        BRA.S  .after_viewport_setup                        ; $01288C
+.replay_split_viewport:
         MOVEA.L #$06038000,A0                   ; $01288E
         ADDA.L  #$00000070,A0                   ; $012894
         MOVE.W  #$0037,D0                       ; $01289A
@@ -146,8 +146,8 @@ camera_replay_screen_init:
         MOVE.W  #$FFC0,D2                       ; $0128A2
         MOVE.W  #$0150,D3                       ; $0128A6
         JSR     $0088E406                       ; $0128AA
-        BRA.S  .loc_021E                        ; $0128B0
-.loc_01E0:
+        BRA.S  .after_viewport_setup                        ; $0128B0
+.replay_dual_viewport:
         MOVEA.L #$06038000,A0                   ; $0128B2
         MOVE.W  #$006F,D0                       ; $0128B8
         MOVE.W  #$0048,D1                       ; $0128BC
@@ -161,7 +161,7 @@ camera_replay_screen_init:
         MOVE.W  #$FFC0,D2                       ; $0128E2
         MOVE.W  #$0150,D3                       ; $0128E6
         JSR     $0088E406                       ; $0128EA
-.loc_021E:
+.after_viewport_setup:
         LEA     $000EB790,A0                    ; $0128F0
         MOVEA.L #$0603DE80,A1                   ; $0128F6
         DC.W    $4EBA,$BA18         ; JSR     $00E316(PC); $0128FC
@@ -173,13 +173,13 @@ camera_replay_screen_init:
         MOVE.W  #$0000,(-24524).W               ; $01291E
         MOVE.W  #$0013,(-24522).W               ; $012924
         TST.B  (-14309).W                       ; $01292A
-        BEQ.W  .loc_0276                        ; $01292E
+        BEQ.W  .camera_mode_ok                        ; $01292E
         CMPI.B  #$02,(-24551).W                 ; $012932
-        BEQ.S  .loc_0276                        ; $012938
+        BEQ.S  .camera_mode_ok                        ; $012938
         CMPI.B  #$04,(-24551).W                 ; $01293A
-        BEQ.S  .loc_0276                        ; $012940
+        BEQ.S  .camera_mode_ok                        ; $012940
         MOVE.B  #$02,(-24551).W                 ; $012942
-.loc_0276:
+.camera_mode_ok:
         JSR     $0088204A                       ; $012948
         ANDI.B  #$FC,MARS_VDP_MODE+1                  ; $01294E
         ORI.B  #$01,MARS_VDP_MODE+1                   ; $012956
@@ -194,21 +194,21 @@ camera_replay_screen_init:
         MOVE.B  #$81,(-14171).W                 ; $012994
         LEA     $00FF6100,A0                    ; $01299A
         MOVE.W  #$007F,D0                       ; $0129A0
-.loc_02D2:
+.clear_sprite_table_loop:
         CLR.L  (A0)+                            ; $0129A4
         CLR.L  (A0)+                            ; $0129A6
         CLR.L  (A0)+                            ; $0129A8
         CLR.L  (A0)+                            ; $0129AA
         CLR.L  (A0)+                            ; $0129AC
-        DBRA    D0,.loc_02D2                    ; $0129AE
-.loc_02E0:
+        DBRA    D0,.clear_sprite_table_loop                    ; $0129AE
+.wait_comm_ready:
         TST.B  COMM0_HI                        ; $0129B2
-        BNE.S  .loc_02E0                        ; $0129B8
+        BNE.S  .wait_comm_ready                        ; $0129B8
         CLR.B  COMM1_HI                        ; $0129BA
         CLR.B  COMM1_LO                        ; $0129C0
         MOVE.B  #$03,COMM0_LO                  ; $0129C6
         MOVE.B  #$01,COMM0_HI                  ; $0129CE
-.loc_0304:
+.wait_cmd_done:
         TST.B  COMM0_HI                        ; $0129D6
-        BNE.S  .loc_0304                        ; $0129DC
+        BNE.S  .wait_cmd_done                        ; $0129DC
         RTS                                     ; $0129DE

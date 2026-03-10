@@ -39,30 +39,30 @@ scene_menu_init_and_input_handler:
         LEA     $0010(A0),A0                    ; $00BACC
         jmp     clear_state_copy_scroll_data_object(pc); $4EFA $0208
         BTST    #6,(-14322).W                   ; $00BAD4
-        BNE.W  .loc_01BC                        ; $00BADA
+        BNE.W  .return                        ; $00BADA
         TST.W  (-16256).W                       ; $00BADE
-        BNE.W  .loc_012A                        ; $00BAE2
+        BNE.W  .process_transition_timer                        ; $00BAE2
         CMPI.B  #$0D,(-14320).W                 ; $00BAE6
-        BNE.S  .loc_00B0                        ; $00BAEC
+        BNE.S  .check_auto_start                        ; $00BAEC
         MOVE.B  (-14225).W,D0                   ; $00BAEE
         MOVE.B  #$01,(-14309).W                 ; $00BAF2
         BTST    #7,D0                           ; $00BAF8
-        BNE.S  .loc_00DE                        ; $00BAFC
+        BNE.S  .start_pressed                        ; $00BAFC
         MOVE.B  #$00,(-14309).W                 ; $00BAFE
         MOVE.B  (-14227).W,D0                   ; $00BB04
         BTST    #7,D0                           ; $00BB08
-        BNE.S  .loc_00DE                        ; $00BB0C
-.loc_00B0:
+        BNE.S  .start_pressed                        ; $00BB0C
+.check_auto_start:
         TST.B  (-15608).W                       ; $00BB0E
-        BEQ.W  .loc_01BC                        ; $00BB12
+        BEQ.W  .return                        ; $00BB12
         MOVE.B  #$F0,(-14302).W                 ; $00BB16
         MOVE.B  #$01,(-14327).W                 ; $00BB1C
         MOVE.B  #$02,(-14326).W                 ; $00BB22
         BSET    #7,(-14322).W                   ; $00BB28
         MOVE.B  #$01,(-14334).W                 ; $00BB2E
         MOVE.W  #$0001,(-16256).W               ; $00BB34
-        BRA.S  .loc_012A                        ; $00BB3A
-.loc_00DE:
+        BRA.S  .process_transition_timer                        ; $00BB3A
+.start_pressed:
         OR.B   (-14228).W,D0                    ; $00BB3C
         MOVE.B  #$01,(-14327).W                 ; $00BB40
         MOVE.B  #$4B,(-14326).W                 ; $00BB46
@@ -71,22 +71,22 @@ scene_menu_init_and_input_handler:
         MOVE.W  #$0002,(-16256).W               ; $00BB58
         MOVE.W  #$0038,(-24342).W               ; $00BB5E
         TST.W  (-24336).W                       ; $00BB64
-        BNE.S  .loc_011E                        ; $00BB68
+        BNE.S  .skip_sound_trigger                        ; $00BB68
         MOVE.W  #$0001,(-24336).W               ; $00BB6A
         MOVE.B  #$9D,(-31478).W                 ; $00BB70
         MOVE.B  #$F0,(-14302).W                 ; $00BB76
-.loc_011E:
+.skip_sound_trigger:
         TST.W  (-24332).W                       ; $00BB7C
-        BNE.S  .loc_012A                        ; $00BB80
+        BNE.S  .process_transition_timer                        ; $00BB80
         MOVE.W  #$003C,(-24332).W               ; $00BB82
-.loc_012A:
+.process_transition_timer:
         TST.W  (-24332).W                       ; $00BB88
-        BEQ.S  .loc_0138                        ; $00BB8C
+        BEQ.S  .check_fade_done                        ; $00BB8C
         SUBQ.W  #1,(-24332).W                   ; $00BB8E
-        BGT.W  .loc_01BC                        ; $00BB92
-.loc_0138:
+        BGT.W  .return                        ; $00BB92
+.check_fade_done:
         BTST    #7,(-14322).W                   ; $00BB96
-        BNE.W  .loc_01BC                        ; $00BB9C
+        BNE.W  .return                        ; $00BB9C
         MOVEQ   #$00,D0                         ; $00BBA0
         MOVE.W  D0,(-14208).W                   ; $00BBA2
         MOVE.W  D0,(-14206).W                   ; $00BBA6
@@ -100,19 +100,19 @@ scene_menu_init_and_input_handler:
         ASL.W  #4,D0                            ; $00BBD4
         LEA     $00(A0,D0.W),A0                 ; $00BBD6
         CMPI.W  #$0002,(-16256).W               ; $00BBDA
-        BEQ.S  .loc_01B6                        ; $00BBE0
+        BEQ.S  .dispatch_scene_command                        ; $00BBE0
         CMPI.B  #$10,$0000(A0)                  ; $00BBE2
-        BNE.S  .loc_01BC                        ; $00BBE8
+        BNE.S  .return                        ; $00BBE8
         MOVE.L  #$00894262,$00FF0002            ; $00BBEA
         ADDQ.B  #1,(-330).W                     ; $00BBF4
         CMPI.B  #$04,(-330).W                   ; $00BBF8
-        BLE.S  .loc_01B6                        ; $00BBFE
+        BLE.S  .dispatch_scene_command                        ; $00BBFE
         CLR.B  (-330).W                         ; $00BC00
         ADDQ.B  #1,(-331).W                     ; $00BC04
         CMPI.B  #$02,(-331).W                   ; $00BC08
-        BLE.S  .loc_01B6                        ; $00BC0E
+        BLE.S  .dispatch_scene_command                        ; $00BC0E
         CLR.B  (-331).W                         ; $00BC10
-.loc_01B6:
+.dispatch_scene_command:
         JMP     $00882890                       ; $00BC14
-.loc_01BC:
+.return:
         RTS                                     ; $00BC1A

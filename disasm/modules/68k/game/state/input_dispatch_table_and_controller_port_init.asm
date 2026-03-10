@@ -82,17 +82,17 @@ input_dispatch_table_and_controller_port_init:
         LEA     (-364).W,A1                     ; $00175C
         lea     controller_read_button_remap+8(pc),a3; $47FA $0034
         BTST    #0,(-14312).W                   ; $001764
-        BNE.S  .loc_00BE                        ; $00176A
+        BNE.S  .domestic_profile                        ; $00176A
         lea     controller_read_button_remap(pc),a3; $47FA $0020
-.loc_00BE:
-        JSR     .loc_00D2(PC)                   ; $001770
+.domestic_profile:
+        JSR     .copy_profile(PC)                   ; $001770
         lea     controller_read_button_remap+8(pc),a3; $47FA $0020
         BTST    #1,(-14312).W                   ; $001778
-        BNE.S  .loc_00D2                        ; $00177E
+        BNE.S  .copy_profile                        ; $00177E
         lea     controller_read_button_remap(pc),a3; $47FA $000C
-.loc_00D2:
+.copy_profile:
         MOVEQ   #$07,D7                         ; $001784
-.loc_00D4:
+.copy_loop:
         MOVE.B  (A3)+,(A1)+                     ; $001786
-        DBRA    D7,.loc_00D4                    ; $001788
+        DBRA    D7,.copy_loop                    ; $001788
         RTS                                     ; $00178C

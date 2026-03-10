@@ -14,9 +14,9 @@
 scroll_pos_increment:
         MOVE.W  (A1),D0                         ; $014862
         CMP.W  (A2),D0                          ; $014864
-        BEQ.S  .loc_0008                        ; $014866
+        BEQ.S  .add_step                        ; $014866
         MOVE.W  D0,(A2)                         ; $014868
-.loc_0008:
+.add_step:
         ADDI.W  #$0010,(A2)                     ; $01486A
         MOVE.W  (A2),(A1)                       ; $01486E
         RTS                                     ; $014870

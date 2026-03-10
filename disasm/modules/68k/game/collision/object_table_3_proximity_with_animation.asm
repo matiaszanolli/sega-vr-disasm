@@ -26,21 +26,21 @@ object_table_3_proximity_with_animation:
         LEA     $00FF663C,A2                    ; $003B3A
         MOVE.W  #$0C80,D1                       ; $003B40
         MOVEQ   #$02,D7                         ; $003B44
-.loc_001E:
+.check_next_object:
         MOVE.W  $0030(A0),D2                    ; $003B46
         MOVE.W  $0034(A0),D4                    ; $003B4A
         SUB.W  (A1),D2                          ; $003B4E
-        BPL.S  .loc_002C                        ; $003B50
+        BPL.S  .x_positive                        ; $003B50
         NEG.W  D2                               ; $003B52
-.loc_002C:
+.x_positive:
         CMP.W  D1,D2                            ; $003B54
-        BGT.S  .loc_0076                        ; $003B56
+        BGT.S  .not_in_range                        ; $003B56
         SUB.W  $0004(A1),D4                     ; $003B58
-        BPL.S  .loc_0038                        ; $003B5C
+        BPL.S  .z_positive                        ; $003B5C
         NEG.W  D4                               ; $003B5E
-.loc_0038:
+.z_positive:
         CMP.W  D1,D4                            ; $003B60
-        BGT.S  .loc_0076                        ; $003B62
+        BGT.S  .not_in_range                        ; $003B62
         MOVE.W  #$0001,$0000(A2)                ; $003B64
         MOVE.L  (A1)+,$0002(A2)                 ; $003B6A
         MOVE.W  (A1)+,$0006(A2)                 ; $003B6E
@@ -50,20 +50,20 @@ object_table_3_proximity_with_animation:
         MOVE.W  (-16376).W,D0                   ; $003B7C
         ADDQ.W  #1,D0                           ; $003B80
         CMPI.W  #$000C,D0                       ; $003B82
-        BNE.S  .loc_0064                        ; $003B86
+        BNE.S  .wrap_frame_counter                        ; $003B86
         MOVE.W  #$0000,D0                       ; $003B88
-.loc_0064:
+.wrap_frame_counter:
         MOVE.W  D0,(-16376).W                   ; $003B8C
         LSR.W  #1,D0                            ; $003B90
         ADD.W   D0,D0                           ; $003B92
         ADD.W   D0,D0                           ; $003B94
         MOVE.L  $00(A1,D0.W),$0010(A2)          ; $003B96
-        BRA.S  .loc_0084                        ; $003B9C
-.loc_0076:
+        BRA.S  .check_second_pass                        ; $003B9C
+.not_in_range:
         LEA     $000E(A1),A1                    ; $003B9E
-        DBRA    D7,.loc_001E                    ; $003BA2
+        DBRA    D7,.check_next_object                    ; $003BA2
         MOVE.W  #$0000,$0000(A2)                ; $003BA6
-.loc_0084:
+.check_second_pass:
         MOVE.W  (-14180).W,D1                   ; $003BAC
         CMPI.W  #$0001,D1                       ; $003BB0
         DC.W    $6672               ; BNE.S  $003C28; $003BB4
@@ -76,21 +76,21 @@ object_table_3_proximity_with_animation:
         MOVE.W  $0034(A0),D4                    ; $003BD0
         MOVE.W  $0032(A0),D5                    ; $003BD4
         SUB.W  (A1),D2                          ; $003BD8
-        BPL.S  .loc_00B6                        ; $003BDA
+        BPL.S  .x2_positive                        ; $003BDA
         NEG.W  D2                               ; $003BDC
-.loc_00B6:
+.x2_positive:
         CMP.W  D1,D2                            ; $003BDE
         DC.W    $6E38               ; BGT.S  $003C1A; $003BE0
         SUB.W  $0002(A1),D5                     ; $003BE2
-        BPL.S  .loc_00C2                        ; $003BE6
+        BPL.S  .y_positive                        ; $003BE6
         NEG.W  D5                               ; $003BE8
-.loc_00C2:
+.y_positive:
         CMP.W  D3,D5                            ; $003BEA
         DC.W    $6E2C               ; BGT.S  $003C1A; $003BEC
         SUB.W  $0004(A1),D4                     ; $003BEE
-        BPL.S  .loc_00CE                        ; $003BF2
+        BPL.S  .z2_positive                        ; $003BF2
         NEG.W  D4                               ; $003BF4
-.loc_00CE:
+.z2_positive:
         CMP.W  D1,D4                            ; $003BF6
         DC.W    $6E20               ; BGT.S  $003C1A; $003BF8
         MOVE.W  #$0001,$0000(A2)                ; $003BFA

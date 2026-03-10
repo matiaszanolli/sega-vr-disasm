@@ -17,37 +17,37 @@
 
 lateral_drift_velocity_processing_00987e:
         MOVE.W  (-16384).W,D0                   ; $00987E
-        BPL.S  .loc_0008                        ; $009882
+        BPL.S  .abs_steering_done               ; $009882
         NEG.W  D0                               ; $009884
-.loc_0008:
+.abs_steering_done:
         MULS    $0010(A0),D0                    ; $009886
         ASR.W  #8,D0                            ; $00988A
         MOVE.W  $0078(A0),D1                    ; $00988C
         SUB.W   D0,D1                           ; $009890
         CMPI.W  #$007F,D1                       ; $009892
-        BGE.S  .loc_001C                        ; $009896
+        BGE.S  .clamp_grip_lower                ; $009896
         MOVEQ   #$7F,D1                         ; $009898
-.loc_001C:
+.clamp_grip_lower:
         MOVE.W  D1,$0078(A0)                    ; $00989A
         CLR.B  (-15589).W                       ; $00989E
         MOVE.W  $0092(A0),D0                    ; $0098A2
         ADD.W  $0062(A0),D0                     ; $0098A6
-        BNE.W  .loc_00D2                        ; $0098AA
+        BNE.W  .natural_damping                 ; $0098AA
         MOVE.W  $004C(A0),D0                    ; $0098AE
         MOVE.W  D0,D1                           ; $0098B2
-        BPL.S  .loc_003A                        ; $0098B4
+        BPL.S  .abs_slip_done                   ; $0098B4
         NEG.W  D1                               ; $0098B6
-.loc_003A:
+.abs_slip_done:
         CMPI.W  #$0037,D1                       ; $0098B8
-        BLE.W  .loc_00D2                        ; $0098BC
+        BLE.W  .natural_damping                 ; $0098BC
         MOVE.W  $0094(A0),D1                    ; $0098C0
-        BPL.S  .loc_004A                        ; $0098C4
+        BPL.S  .abs_lateral_done                ; $0098C4
         NEG.W  D1                               ; $0098C6
-.loc_004A:
+.abs_lateral_done:
         EXT.L   D0                              ; $0098C8
         DIVS    (-16146).W,D0                   ; $0098CA
         CMP.W  (-16144).W,D1                    ; $0098CE
-        BGT.S  .loc_0074                        ; $0098D2
+        BGT.S  .high_velocity_slide             ; $0098D2
         MOVE.W  #$0200,D2                       ; $0098D4
         SUB.W  $0078(A0),D2                     ; $0098D8
         MULS    D2,D0                           ; $0098DC
@@ -56,8 +56,8 @@ lateral_drift_velocity_processing_00987e:
         MOVE.W  $0094(A0),D0                    ; $0098E4
         ASR.W  #1,D0                            ; $0098E8
         MOVE.W  D0,$0096(A0)                    ; $0098EA
-        BRA.W  .loc_012A                        ; $0098EE
-.loc_0074:
+        BRA.W  .done                            ; $0098EE
+.high_velocity_slide:
         MOVE.B  #$01,(-15589).W                 ; $0098F2
         ASR.W  #2,D0                            ; $0098F8
         MOVE.W  D0,D1                           ; $0098FA
@@ -66,62 +66,62 @@ lateral_drift_velocity_processing_00987e:
         ADD.W  D0,$0094(A0)                     ; $009900
         MOVE.W  $0094(A0),D0                    ; $009904
         MOVE.W  D0,D1                           ; $009908
-        BPL.S  .loc_0090                        ; $00990A
+        BPL.S  .abs_vel_for_spin                ; $00990A
         NEG.W  D1                               ; $00990C
-.loc_0090:
+.abs_vel_for_spin:
         MOVE.W  D0,$0096(A0)                    ; $00990E
         MULS    (-16138).W,D0                   ; $009912
         ASR.L  #8,D0                            ; $009916
         SUB.W  D0,$003C(A0)                     ; $009918
         CMP.W  (-16142).W,D1                    ; $00991C
-        BLT.W  .loc_012A                        ; $009920
+        BLT.W  .done                            ; $009920
         MOVE.W  $006A(A0),D2                    ; $009924
         ADD.W  $008C(A0),D2                     ; $009928
-        BNE.W  .loc_012A                        ; $00992C
+        BNE.W  .done                            ; $00992C
         MOVE.W  #$2000,D2                       ; $009930
         TST.W  $0094(A0)                        ; $009934
-        BMI.S  .loc_00C0                        ; $009938
+        BMI.S  .spinout_flag_selected           ; $009938
         MOVE.W  #$1000,D2                       ; $00993A
-.loc_00C0:
+.spinout_flag_selected:
         MOVE.B  #$B2,(-14172).W                 ; $00993E
         OR.W   D2,$0002(A0)                     ; $009944
         CLR.B  (-15589).W                       ; $009948
-        BRA.W  .loc_012A                        ; $00994C
-.loc_00D2:
+        BRA.W  .done                            ; $00994C
+.natural_damping:
         MOVE.W  $0094(A0),D0                    ; $009950
         MOVE.W  D0,D1                           ; $009954
-        BMI.S  .loc_00E6                        ; $009956
+        BMI.S  .negative_vel                    ; $009956
         CMPI.W  #$0100,D0                       ; $009958
-        BGT.S  .loc_00F0                        ; $00995C
+        BGT.S  .apply_drag                      ; $00995C
         MOVE.W  #$0100,D0                       ; $00995E
-        BRA.S  .loc_00F0                        ; $009962
-.loc_00E6:
+        BRA.S  .apply_drag                      ; $009962
+.negative_vel:
         CMPI.W  #$FF00,D0                       ; $009964
-        BLT.S  .loc_00F0                        ; $009968
+        BLT.S  .apply_drag                      ; $009968
         MOVE.W  #$FF00,D0                       ; $00996A
-.loc_00F0:
+.apply_drag:
         MOVE.W  D0,D1                           ; $00996E
         MULS    (-16140).W,D0                   ; $009970
         ASR.L  #8,D0                            ; $009974
         SUB.W  D0,$0094(A0)                     ; $009976
         MOVE.W  $0094(A0),D2                    ; $00997A
         EOR.W   D2,D0                           ; $00997E
-        BPL.S  .loc_0108                        ; $009980
+        BPL.S  .check_zero_crossing             ; $009980
         CLR.W  $0094(A0)                        ; $009982
-.loc_0108:
+.check_zero_crossing:
         MOVE.W  $0094(A0),D0                    ; $009986
         MOVE.W  D0,$0096(A0)                    ; $00998A
         TST.W  D1                               ; $00998E
-        BGE.S  .loc_0118                        ; $009990
+        BGE.S  .signs_normalized                ; $009990
         NEG.W  D0                               ; $009992
         NEG.W  D1                               ; $009994
-.loc_0118:
+.signs_normalized:
         CMP.W  D0,D1                            ; $009996
-        BLT.S  .loc_012A                        ; $009998
+        BLT.S  .done                            ; $009998
         TST.W  D0                               ; $00999A
-        BLT.S  .loc_012A                        ; $00999C
+        BLT.S  .done                            ; $00999C
         CMPI.W  #$000F,D0                       ; $00999E
-        BGT.S  .loc_012A                        ; $0099A2
+        BGT.S  .done                            ; $0099A2
         CLR.W  $0094(A0)                        ; $0099A4
-.loc_012A:
+.done:
         RTS                                     ; $0099A8

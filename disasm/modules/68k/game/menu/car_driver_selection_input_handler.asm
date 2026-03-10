@@ -18,140 +18,140 @@
 
 car_driver_selection_input_handler:
         TST.W  D3                               ; $013FE0
-        BNE.W  .loc_016C                        ; $013FE2
+        BNE.W  .update_graphics                        ; $013FE2
         BTST    #7,D1                           ; $013FE6
-        BNE.W  .loc_015C                        ; $013FEA
+        BNE.W  .start_pressed                        ; $013FEA
         MOVE.B  D1,D3                           ; $013FEE
         ANDI.B  #$60,D3                         ; $013FF0
-        BNE.W  .loc_0126                        ; $013FF4
+        BNE.W  .button_ab_confirm                        ; $013FF4
         BTST    #4,D1                           ; $013FF8
-        BNE.W  .loc_014C                        ; $013FFC
+        BNE.W  .button_c_toggle                        ; $013FFC
         BTST    #0,D1                           ; $014000
-        BEQ.S  .loc_003E                        ; $014004
+        BEQ.S  .check_down                        ; $014004
         TST.W  (A4)                             ; $014006
-        BEQ.W  .loc_0082                        ; $014008
+        BEQ.W  .check_left                        ; $014008
         MOVE.B  #$A9,(-14172).W                 ; $01400C
         SUBQ.B  #1,(A3)                         ; $014012
-        BCC.W  .loc_01AC                        ; $014014
+        BCC.W  .done                        ; $014014
         CLR.B  (A3)                             ; $014018
-        BRA.W  .loc_01AC                        ; $01401A
-.loc_003E:
+        BRA.W  .done                        ; $01401A
+.check_down:
         BTST    #1,D1                           ; $01401E
-        BEQ.S  .loc_0082                        ; $014022
+        BEQ.S  .check_left                        ; $014022
         TST.W  (A4)                             ; $014024
-        BEQ.W  .loc_0082                        ; $014026
+        BEQ.W  .check_left                        ; $014026
         MOVE.B  #$A9,(-14172).W                 ; $01402A
         ADDQ.B  #1,(A3)                         ; $014030
         MOVE.B  (A3),D3                         ; $014032
         MOVE.B  #$04,D4                         ; $014034
         TST.W  D0                               ; $014038
-        BEQ.S  .loc_0060                        ; $01403A
+        BEQ.S  .use_default_max                        ; $01403A
         MOVE.B  #$07,D4                         ; $01403C
-.loc_0060:
+.use_default_max:
         CMP.B  D4,D3                            ; $014040
-        BLE.W  .loc_0068                        ; $014042
+        BLE.W  .check_max_car_index                        ; $014042
         MOVE.B  D4,(A3)                         ; $014046
-.loc_0068:
+.check_max_car_index:
         LEA     (-24549).W,A4                   ; $014048
         TST.W  D2                               ; $01404C
-        BEQ.S  .loc_0074                        ; $01404E
+        BEQ.S  .use_player1_slot                        ; $01404E
         LEA     (-24548).W,A4                   ; $014050
-.loc_0074:
+.use_player1_slot:
         MOVE.B  (A3),D0                         ; $014054
         CMP.B  (A4),D0                          ; $014056
-        BLT.W  .loc_01AC                        ; $014058
+        BLT.W  .done                        ; $014058
         MOVE.B  D0,(A4)                         ; $01405C
-        BRA.W  .loc_01AC                        ; $01405E
-.loc_0082:
+        BRA.W  .done                        ; $01405E
+.check_left:
         BTST    #2,D1                           ; $014062
-        BEQ.S  .loc_00D2                        ; $014066
+        BEQ.S  .check_right                        ; $014066
         MOVE.B  #$A9,(-14172).W                 ; $014068
         TST.W  (A4)                             ; $01406E
-        BNE.W  .loc_00A2                        ; $014070
+        BNE.W  .left_with_ready                        ; $014070
         SUBQ.B  #1,(A0)                         ; $014074
-        BCC.W  .loc_016C                        ; $014076
+        BCC.W  .update_graphics                        ; $014076
         MOVE.B  #$06,(A0)                       ; $01407A
-        BRA.W  .loc_016C                        ; $01407E
-.loc_00A2:
+        BRA.W  .update_graphics                        ; $01407E
+.left_with_ready:
         LEA     (-24549).W,A4                   ; $014082
         TST.W  D2                               ; $014086
-        BEQ.S  .loc_00AE                        ; $014088
+        BEQ.S  .left_use_p1_slot                        ; $014088
         LEA     (-24548).W,A4                   ; $01408A
-.loc_00AE:
+.left_use_p1_slot:
         bsr.w   table_entry_swap_by_index; $6100 $00FE
         SUBQ.B  #1,(A4)                         ; $014092
         MOVE.B  (A4),D3                         ; $014094
         CMP.B  (A3),D3                          ; $014096
-        BGE.W  .loc_00CA                        ; $014098
+        BGE.W  .left_clamp_done                        ; $014098
         MOVE.B  #$04,(A4)                       ; $01409C
         TST.W  D0                               ; $0140A0
-        BEQ.W  .loc_00CA                        ; $0140A2
+        BEQ.W  .left_clamp_done                        ; $0140A2
         MOVE.B  #$07,(A4)                       ; $0140A6
-.loc_00CA:
+.left_clamp_done:
         bsr.w   table_entry_swap_by_index; $6100 $00E2
-        BRA.W  .loc_01AC                        ; $0140AE
-.loc_00D2:
+        BRA.W  .done                        ; $0140AE
+.check_right:
         BTST    #3,D1                           ; $0140B2
-        BEQ.W  .loc_01AC                        ; $0140B6
+        BEQ.W  .done                        ; $0140B6
         MOVE.B  #$A9,(-14172).W                 ; $0140BA
         TST.W  (A4)                             ; $0140C0
-        BNE.W  .loc_00F6                        ; $0140C2
+        BNE.W  .right_with_ready                        ; $0140C2
         ADDQ.B  #1,(A0)                         ; $0140C6
         CMPI.B  #$06,(A0)                       ; $0140C8
-        BLE.W  .loc_016C                        ; $0140CC
+        BLE.W  .update_graphics                        ; $0140CC
         CLR.B  (A0)                             ; $0140D0
-        BRA.W  .loc_016C                        ; $0140D2
-.loc_00F6:
+        BRA.W  .update_graphics                        ; $0140D2
+.right_with_ready:
         LEA     (-24549).W,A4                   ; $0140D6
         TST.W  D2                               ; $0140DA
-        BEQ.S  .loc_0102                        ; $0140DC
+        BEQ.S  .right_use_p1_slot                        ; $0140DC
         LEA     (-24548).W,A4                   ; $0140DE
-.loc_0102:
+.right_use_p1_slot:
         bsr.w   table_entry_swap_by_index; $6100 $00AA
         ADDQ.B  #1,(A4)                         ; $0140E6
         MOVE.B  #$04,D3                         ; $0140E8
         TST.W  D0                               ; $0140EC
-        BEQ.W  .loc_0116                        ; $0140EE
+        BEQ.W  .right_clamp_max                        ; $0140EE
         MOVE.B  #$07,D3                         ; $0140F2
-.loc_0116:
+.right_clamp_max:
         CMP.B  (A4),D3                          ; $0140F6
-        BGE.W  .loc_011E                        ; $0140F8
+        BGE.W  .right_clamp_done                        ; $0140F8
         MOVE.B  (A3),(A4)                       ; $0140FC
-.loc_011E:
+.right_clamp_done:
         bsr.w   table_entry_swap_by_index; $6100 $008E
-        BRA.W  .loc_01AC                        ; $014102
-.loc_0126:
+        BRA.W  .done                        ; $014102
+.button_ab_confirm:
         CMPI.B  #$06,(A0)                       ; $014106
-        BNE.W  .loc_01AC                        ; $01410A
+        BNE.W  .done                        ; $01410A
         TST.W  (A4)                             ; $01410E
-        BNE.W  .loc_01AC                        ; $014110
+        BNE.W  .done                        ; $014110
         MOVE.W  #$0001,(A4)                     ; $014114
         CLR.B  (A3)                             ; $014118
         LEA     (-24549).W,A4                   ; $01411A
         TST.W  D2                               ; $01411E
-        BEQ.S  .loc_0146                        ; $014120
+        BEQ.S  .confirm_use_p1_slot                        ; $014120
         LEA     (-24548).W,A4                   ; $014122
-.loc_0146:
+.confirm_use_p1_slot:
         CLR.B  (A4)                             ; $014126
-        BRA.W  .loc_01AC                        ; $014128
-.loc_014C:
+        BRA.W  .done                        ; $014128
+.button_c_toggle:
         CLR.W  (A4)                             ; $01412C
         MOVE.W  #$0007,D0                       ; $01412E
-.loc_0152:
+.copy_saved_loop:
         MOVE.B  (A1)+,(A2)+                     ; $014132
-        DBRA    D0,.loc_0152                    ; $014134
-        BRA.W  .loc_01AC                        ; $014138
-.loc_015C:
+        DBRA    D0,.copy_saved_loop                    ; $014134
+        BRA.W  .done                        ; $014138
+.start_pressed:
         MOVE.B  #$A8,(-14172).W                 ; $01413C
         MOVE.W  #$0001,(-24546).W               ; $014142
-        BRA.W  .loc_01AC                        ; $014148
-.loc_016C:
+        BRA.W  .done                        ; $014148
+.update_graphics:
         CMPI.B  #$06,(A0)                       ; $01414C
-        BNE.S  .loc_017C                        ; $014150
+        BNE.S  .load_car_graphics                        ; $014150
         MOVEA.L A2,A3                           ; $014152
         MOVE.W  #$0007,D2                       ; $014154
-        BRA.W  .loc_01A6                        ; $014158
-.loc_017C:
+        BRA.W  .copy_graphics_loop                        ; $014158
+.load_car_graphics:
         CLR.W  D3                               ; $01415C
         MOVE.B  (A0),D3                         ; $01415E
         ADD.W   D3,D3                           ; $014160
@@ -161,12 +161,12 @@ car_driver_selection_input_handler:
         LEA     $00(A3,D3.W),A3                 ; $01416C
         MOVE.W  #$0004,D2                       ; $014170
         TST.W  D0                               ; $014174
-        BEQ.S  .loc_01A6                        ; $014176
+        BEQ.S  .copy_graphics_loop                        ; $014176
         LEA     $0089ABBE,A3                    ; $014178
         LEA     $00(A3,D3.W),A3                 ; $01417E
         MOVE.W  #$0007,D2                       ; $014182
-.loc_01A6:
+.copy_graphics_loop:
         MOVE.B  (A3)+,(A1)+                     ; $014186
-        DBRA    D2,.loc_01A6                    ; $014188
-.loc_01AC:
+        DBRA    D2,.copy_graphics_loop                    ; $014188
+.done:
         RTS                                     ; $01418C

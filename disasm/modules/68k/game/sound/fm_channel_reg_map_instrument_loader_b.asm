@@ -36,35 +36,35 @@ fm_channel_reg_map_instrument_loader_b:
         MOVE.B  (A1)+,D7                        ; $0307B2
         SUBQ.B  #1,D7                           ; $0307B4
         MOVEQ   #$30,D6                         ; $0307B6
-.loc_002C:
+.channel_init_loop:
         MOVEQ   #$00,D3                         ; $0307B8
         MOVE.B  $0001(A1),D3                    ; $0307BA
         MOVE.B  D3,D4                           ; $0307BE
-        BMI.S  .loc_0048                        ; $0307C0
+        BMI.S  .psg_channel                     ; $0307C0
         SUBQ.W  #2,D3                           ; $0307C2
         LSL.W  #2,D3                            ; $0307C4
         lea     fm_channel_pointer_table_sfx_loader(pc),a5; $4BFA $008A
         MOVEA.L $00(A5,D3.W),A5                 ; $0307CA
         BSET    #2,(A5)                         ; $0307CE
-        BRA.S  .loc_006E                        ; $0307D2
-.loc_0048:
+        BRA.S  .clear_struct                    ; $0307D2
+.psg_channel:
         LSR.W  #3,D3                            ; $0307D4
         MOVEA.L $030852(PC,D3.W),A5             ; $0307D6
         BSET    #2,(A5)                         ; $0307DA
         CMPI.B  #$C0,D4                         ; $0307DE
-        BNE.S  .loc_006E                        ; $0307E2
+        BNE.S  .clear_struct                    ; $0307E2
         MOVE.B  D4,D0                           ; $0307E4
         ORI.B  #$1F,D0                          ; $0307E6
         MOVE.B  D0,$00C00011                    ; $0307EA
         BCHG    #5,D0                           ; $0307F0
         MOVE.B  D0,$00C00011                    ; $0307F4
-.loc_006E:
+.clear_struct:
         MOVEA.L $030872(PC,D3.W),A5             ; $0307FA
         MOVEA.L A5,A2                           ; $0307FE
         MOVEQ   #$0B,D0                         ; $030800
-.loc_0076:
+.clear_loop:
         CLR.L  (A2)+                            ; $030802
-        DBRA    D0,.loc_0076                    ; $030804
+        DBRA    D0,.clear_loop                   ; $030804
         MOVE.L  D1,$0020(A5)                    ; $030808
         MOVE.W  (A1)+,(A5)                      ; $03080C
         MOVE.B  D5,$0002(A5)                    ; $03080E
@@ -76,16 +76,16 @@ fm_channel_reg_map_instrument_loader_b:
         MOVE.B  #$01,$000E(A5)                  ; $030820
         MOVE.B  D6,$000D(A5)                    ; $030826
         TST.B  D4                               ; $03082A
-        BMI.S  .loc_00A8                        ; $03082C
+        BMI.S  .skip_default_panning            ; $03082C
         MOVE.B  #$C0,$0027(A5)                  ; $03082E
-.loc_00A8:
-        DBRA    D7,.loc_002C                    ; $030834
+.skip_default_panning:
+        DBRA    D7,.channel_init_loop            ; $030834
         TST.B  $0250(A6)                        ; $030838
-        BPL.S  .loc_00B8                        ; $03083C
+        BPL.S  .check_0310                      ; $03083C
         BSET    #2,$0340(A6)                    ; $03083E
-.loc_00B8:
+.check_0310:
         TST.B  $0310(A6)                        ; $030844
-        BPL.S  .loc_00C4                        ; $030848
+        BPL.S  .done                            ; $030848
         BSET    #2,$0370(A6)                    ; $03084A
-.loc_00C4:
+.done:
         RTS                                     ; $030850

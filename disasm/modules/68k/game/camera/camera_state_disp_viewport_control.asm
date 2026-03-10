@@ -17,37 +17,37 @@ camera_state_disp_viewport_control:
         MOVE.W  (-14112).W,D0                   ; $00896E
         ADD.W   D0,D0                           ; $008972
         CMPI.W  #$0400,D0                       ; $008974
-        BLE.S  .loc_0010                        ; $008978
+        BLE.S  .clamp_accel                     ; $008978
         MOVE.W  #$0400,D0                       ; $00897A
-.loc_0010:
+.clamp_accel:
         MOVE.W  D0,(-14112).W                   ; $00897E
         ADD.W  (-14120).W,D0                    ; $008982
         CMPI.W  #$7800,D0                       ; $008986
-        BLE.S  .loc_0022                        ; $00898A
+        BLE.S  .clamp_scroll_max                ; $00898A
         MOVE.W  #$7800,D0                       ; $00898C
-.loc_0022:
+.clamp_scroll_max:
         MOVE.W  D0,(-14120).W                   ; $008990
         DC.W    $6000,$FF6A         ; BRA.W  $008900; $008994
         MOVE.W  (-14112).W,D0                   ; $008998
         ADD.W   D0,D0                           ; $00899C
         CMPI.W  #$0400,D0                       ; $00899E
-        BLE.S  .loc_003A                        ; $0089A2
+        BLE.S  .clamp_decel                     ; $0089A2
         MOVE.W  #$0400,D0                       ; $0089A4
-.loc_003A:
+.clamp_decel:
         MOVE.W  D0,(-14112).W                   ; $0089A8
         NEG.W  D0                               ; $0089AC
         ADD.W  (-14120).W,D0                    ; $0089AE
         CMPI.W  #$0500,D0                       ; $0089B2
-        BGE.S  .loc_004E                        ; $0089B6
+        BGE.S  .clamp_scroll_min                ; $0089B6
         MOVE.W  #$0500,D0                       ; $0089B8
-.loc_004E:
+.clamp_scroll_min:
         MOVE.W  D0,(-14120).W                   ; $0089BC
         DC.W    $6000,$FF3E         ; BRA.W  $008900; $0089C0
         BTST    #4,(-14227).W                   ; $0089C4
-        BEQ.S  .loc_006A                        ; $0089CA
+        BEQ.S  .setup_viewport                  ; $0089CA
         BCHG    #2,(-15597).W                   ; $0089CC
         BCLR    #4,(-15597).W                   ; $0089D2
-.loc_006A:
+.setup_viewport:
         MOVE.W  #$00C0,(-16184).W               ; $0089D8
         MOVE.W  #$0100,$00FF60CC                ; $0089DE
         MOVE.W  (-14118).W,(-16210).W           ; $0089E6
@@ -71,32 +71,32 @@ camera_state_disp_viewport_control:
         BTST    #2,D0                           ; $008A2A
         DC.W    $6600,$014C         ; BNE.W  $008B7C; $008A2E
         CMPI.W  #$00E0,$001C(A0)                ; $008A32
-        BLE.S  .loc_00FA                        ; $008A38
+        BLE.S  .check_override                  ; $008A38
         ANDI.B  #$02,D0                         ; $008A3A
         DC.W    $6600,$013C         ; BNE.W  $008B7C; $008A3E
         MOVE.W  $0024(A0),D0                    ; $008A42
         CMPI.W  #$0042,D0                       ; $008A46
-        BCS.S  .loc_00FA                        ; $008A4A
+        BCS.S  .check_override                  ; $008A4A
         CMPI.W  #$0048,D0                       ; $008A4C
-        BCC.S  .loc_00FA                        ; $008A50
+        BCC.S  .check_override                  ; $008A50
         lea     state_handler_table_init+52(pc),a1; $43FA $0108
         BTST    #2,(-15597).W                   ; $008A56
-        BEQ.S  .loc_00F4                        ; $008A5C
+        BEQ.S  .use_default_table               ; $008A5C
         lea     state_handler_table_init+68(pc),a1; $43FA $010C
-.loc_00F4:
+.use_default_table:
         LEA     (-16198).W,A2                   ; $008A62
-        BRA.S  .loc_0164                        ; $008A66
-.loc_00FA:
+        BRA.S  .entry_found                     ; $008A66
+.check_override:
         BTST    #4,(-15597).W                   ; $008A68
-        BEQ.S  .loc_0108                        ; $008A6E
+        BEQ.S  .load_state_table                ; $008A6E
         MOVEA.L (-15736).W,A1                   ; $008A70
-        BRA.S  .loc_0164                        ; $008A74
-.loc_0108:
+        BRA.S  .entry_found                     ; $008A74
+.load_state_table:
         MOVEQ   #$00,D0                         ; $008A76
         BTST    #2,(-15597).W                   ; $008A78
-        BEQ.S  .loc_0114                        ; $008A7E
+        BEQ.S  .select_entry                    ; $008A7E
         MOVEQ   #$04,D0                         ; $008A80
-.loc_0114:
+.select_entry:
         LEA     $00FF301A,A1                    ; $008A82
         ADD.W  (-14176).W,D0                    ; $008A88
         ADD.W  (-14176).W,D0                    ; $008A8C
@@ -106,41 +106,41 @@ camera_state_disp_viewport_control:
         MOVE.W  $0034(A0),D1                    ; $008A9C
         MOVE.W  #$0640,D6                       ; $008AA0
         MOVE.W  (A1)+,D7                        ; $008AA4
-.loc_0138:
+.search_loop:
         MOVE.W  $0000(A1),D2                    ; $008AA6
         MOVE.W  $0004(A1),D4                    ; $008AAA
         MOVE.W  D2,D3                           ; $008AAE
         SUB.W   D0,D3                           ; $008AB0
-        BPL.S  .loc_0148                        ; $008AB2
+        BPL.S  .abs_x_dist                     ; $008AB2
         NEG.W  D3                               ; $008AB4
-.loc_0148:
+.abs_x_dist:
         CMP.W  D6,D3                            ; $008AB6
-        BGT.S  .loc_0158                        ; $008AB8
+        BGT.S  .next_entry                      ; $008AB8
         MOVE.W  D4,D3                           ; $008ABA
         SUB.W   D1,D3                           ; $008ABC
-        BPL.S  .loc_0154                        ; $008ABE
+        BPL.S  .abs_y_dist                     ; $008ABE
         NEG.W  D3                               ; $008AC0
-.loc_0154:
+.abs_y_dist:
         CMP.W  D6,D3                            ; $008AC2
-        BLE.S  .loc_0164                        ; $008AC4
-.loc_0158:
+        BLE.S  .entry_found                     ; $008AC4
+.next_entry:
         LEA     $0010(A1),A1                    ; $008AC6
-        DBRA    D7,.loc_0138                    ; $008ACA
+        DBRA    D7,.search_loop                 ; $008ACA
         jmp     state_handler_table_init+84(pc); $4EFA $00AC
-.loc_0164:
+.entry_found:
         BCLR    #3,(-15597).W                   ; $008AD2
         CMPA.L  (-15736).W,A1                   ; $008AD8
-        BEQ.S  .loc_0186                        ; $008ADC
+        BEQ.S  .same_entry                      ; $008ADC
         MOVE.L  A1,(-15736).W                   ; $008ADE
         MOVE.W  $0006(A1),(-16128).W            ; $008AE2
         MOVE.W  $0008(A1),(-16126).W            ; $008AE8
         MOVE.W  $000A(A1),(-16124).W            ; $008AEE
-.loc_0186:
+.same_entry:
         MOVE.W  $000E(A1),D2                    ; $008AF4
         BTST    #15,D2                          ; $008AF8
-        BEQ.S  .loc_0196                        ; $008AFC
+        BEQ.S  .check_flag_bit                  ; $008AFC
         BSET    #3,(-15597).W                   ; $008AFE
-.loc_0196:
+.check_flag_bit:
         ANDI.W  #$7FFF,D2                       ; $008B04
         MOVE.L  (A1)+,(A2)+                     ; $008B08
         MOVE.L  (A1)+,(A2)+                     ; $008B0A

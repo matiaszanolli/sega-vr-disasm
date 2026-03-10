@@ -17,94 +17,94 @@
 tire_animation_and_smoke_effect_counters:
         MOVE.W  $0080(A0),D1                    ; $009B82
         CMPI.W  #$0007,D1                       ; $009B86
-        BGT.S  .loc_0014                        ; $009B8A
+        BGT.S  .tire_timer_exceeded              ; $009B8A
         MOVE.W  $0082(A0),D1                    ; $009B8C
         CMPI.W  #$0007,D1                       ; $009B90
-        BLE.S  .loc_001C                        ; $009B94
-.loc_0014:
+        BLE.S  .check_brake_timer               ; $009B94
+.tire_timer_exceeded:
         MOVEQ   #$0F,D0                         ; $009B96
         SUB.W   D1,D0                           ; $009B98
         MOVE.W  D0,(-16372).W                   ; $009B9A
-.loc_001C:
+.check_brake_timer:
         MOVE.W  $0084(A0),D0                    ; $009B9E
-        BEQ.S  .loc_0030                        ; $009BA2
+        BEQ.S  .check_speed_for_smoke           ; $009BA2
         CMPI.W  #$000A,D0                       ; $009BA4
-        BGT.S  .loc_0030                        ; $009BA8
+        BGT.S  .check_speed_for_smoke           ; $009BA8
         MOVEQ   #$0A,D1                         ; $009BAA
         SUB.W   D0,D1                           ; $009BAC
         MOVE.W  D1,(-16360).W                   ; $009BAE
-.loc_0030:
+.check_speed_for_smoke:
         CMPI.W  #$0014,$0004(A0)                ; $009BB2
-        BLE.S  .loc_007A                        ; $009BB8
+        BLE.S  .speed_too_low_smoke             ; $009BB8
         MOVE.W  $0098(A0),D0                    ; $009BBA
-        BEQ.S  .loc_0056                        ; $009BBE
+        BEQ.S  .left_smoke_inactive             ; $009BBE
         ADDQ.W  #1,(-16354).W                   ; $009BC0
         ANDI.W  #$0003,(-16354).W               ; $009BC4
         CMPI.W  #$0078,$0004(A0)                ; $009BCA
-        BGT.S  .loc_005C                        ; $009BD0
+        BGT.S  .check_right_smoke                ; $009BD0
         ADDQ.W  #4,(-16354).W                   ; $009BD2
-        BRA.S  .loc_005C                        ; $009BD6
-.loc_0056:
+        BRA.S  .check_right_smoke               ; $009BD6
+.left_smoke_inactive:
         MOVE.W  #$FFFF,(-16354).W               ; $009BD8
-.loc_005C:
+.check_right_smoke:
         MOVE.W  $009A(A0),D1                    ; $009BDE
-        BEQ.S  .loc_0080                        ; $009BE2
+        BEQ.S  .right_smoke_inactive             ; $009BE2
         ADDQ.W  #1,(-16348).W                   ; $009BE4
         ANDI.W  #$0003,(-16348).W               ; $009BE8
         CMPI.W  #$0078,$0004(A0)                ; $009BEE
-        BGT.S  .loc_0086                        ; $009BF4
+        BGT.S  .check_speed_for_wheels           ; $009BF4
         ADDQ.W  #4,(-16348).W                   ; $009BF6
-        BRA.S  .loc_0086                        ; $009BFA
-.loc_007A:
+        BRA.S  .check_speed_for_wheels           ; $009BFA
+.speed_too_low_smoke:
         MOVE.W  #$FFFF,(-16354).W               ; $009BFC
-.loc_0080:
+.right_smoke_inactive:
         MOVE.W  #$FFFF,(-16348).W               ; $009C02
-.loc_0086:
+.check_speed_for_wheels:
         CMPI.W  #$0014,$0004(A0)                ; $009C08
-        BLE.S  .loc_00D0                        ; $009C0E
+        BLE.S  .speed_too_low_wheels             ; $009C0E
         MOVE.W  $00E6(A0),D0                    ; $009C10
-        BEQ.S  .loc_00AC                        ; $009C14
+        BEQ.S  .left_wheel_inactive             ; $009C14
         ADDQ.W  #1,(-16370).W                   ; $009C16
         ANDI.W  #$0003,(-16370).W               ; $009C1A
         CMPI.W  #$0078,$0004(A0)                ; $009C20
-        BGT.S  .loc_00B2                        ; $009C26
+        BGT.S  .check_right_wheel                ; $009C26
         ADDQ.W  #4,(-16370).W                   ; $009C28
-        BRA.S  .loc_00B2                        ; $009C2C
-.loc_00AC:
+        BRA.S  .check_right_wheel               ; $009C2C
+.left_wheel_inactive:
         MOVE.W  #$FFFF,(-16370).W               ; $009C2E
-.loc_00B2:
+.check_right_wheel:
         MOVE.W  $00E8(A0),D1                    ; $009C34
-        BEQ.S  .loc_00D6                        ; $009C38
+        BEQ.S  .right_wheel_inactive             ; $009C38
         ADDQ.W  #1,(-16368).W                   ; $009C3A
         ANDI.W  #$0003,(-16368).W               ; $009C3E
         CMPI.W  #$0078,$0004(A0)                ; $009C44
-        BGT.S  .loc_00DC                        ; $009C4A
+        BGT.S  .direction_dispatch               ; $009C4A
         ADDQ.W  #4,(-16368).W                   ; $009C4C
-        BRA.S  .loc_00DC                        ; $009C50
-.loc_00D0:
+        BRA.S  .direction_dispatch              ; $009C50
+.speed_too_low_wheels:
         MOVE.W  #$FFFF,(-16370).W               ; $009C52
-.loc_00D6:
+.right_wheel_inactive:
         MOVE.W  #$FFFF,(-16368).W               ; $009C58
-.loc_00DC:
+.direction_dispatch:
         MOVE.W  $00BE(A0),D0                    ; $009C5E
         ADD.W   D0,D0                           ; $009C62
         JMP     $009C68(PC,D0.W)                ; $009C64
-        BRA.S  .loc_00EA                        ; $009C68
-        BRA.S  .loc_0102                        ; $009C6A
-.loc_00EA:
+        BRA.S  .direction_forward                ; $009C68
+        BRA.S  .direction_rear                  ; $009C6A
+.direction_forward:
         CMPI.W  #$0007,$0086(A0)                ; $009C6C
-        BLE.S  .loc_0118                        ; $009C72
+        BLE.S  .done                            ; $009C72
         MOVEQ   #$0F,D1                         ; $009C74
         SUB.W  $0086(A0),D1                     ; $009C76
         ADD.W   D1,D1                           ; $009C7A
         MOVE.W  $009C9C(PC,D1.W),(-16366).W     ; $009C7C
-        BRA.S  .loc_0118                        ; $009C82
-.loc_0102:
+        BRA.S  .done                             ; $009C82
+.direction_rear:
         CMPI.W  #$0000,$0086(A0)                ; $009C84
-        BLE.S  .loc_0118                        ; $009C8A
+        BLE.S  .done                            ; $009C8A
         MOVEQ   #$0F,D1                         ; $009C8C
         SUB.W  $0086(A0),D1                     ; $009C8E
         ADD.W   D1,D1                           ; $009C92
         MOVE.W  $009CAE(PC,D1.W),(-16366).W     ; $009C94
-.loc_0118:
+.done:
         RTS                                     ; $009C9A

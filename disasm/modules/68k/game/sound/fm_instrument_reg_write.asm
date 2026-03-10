@@ -32,21 +32,21 @@ fm_instrument_reg_write:
         MOVE.B  (A4)+,D0                        ; $0312C6
         MOVE.B  D0,$000B(A5)                    ; $0312C8
         BTST    #2,(A5)                         ; $0312CC
-        BNE.W  .loc_009C                        ; $0312D0
+        BNE.W  .done                            ; $0312D0
         MOVEA.L $0030(A6),A1                    ; $0312D4
         TST.B  $000E(A6)                        ; $0312D8
-        BEQ.S  .loc_0034                        ; $0312DC
+        BEQ.S  .instr_ptr_ready                 ; $0312DC
         MOVEA.L $0020(A5),A1                    ; $0312DE
-        BMI.S  .loc_0034                        ; $0312E2
+        BMI.S  .instr_ptr_ready                 ; $0312E2
         MOVEA.L $0034(A6),A1                    ; $0312E4
-.loc_0034:
+.instr_ptr_ready:
         SUBQ.W  #1,D0                           ; $0312E8
-        BMI.S  .loc_0042                        ; $0312EA
+        BMI.S  .skip_advance                    ; $0312EA
         MOVE.W  #$0019,D1                       ; $0312EC
-.loc_003C:
+.advance_to_instrument:
         ADDA.W  D1,A1                           ; $0312F0
-        DBRA    D0,.loc_003C                    ; $0312F2
-.loc_0042:
+        DBRA    D0,.advance_to_instrument        ; $0312F2
+.skip_advance:
         jsr     z80_bus_wait(pc)        ; $4EBA $FA24
         MOVE.B  (A1)+,D1                        ; $0312FA
         MOVE.B  D1,$0025(A5)                    ; $0312FC
@@ -55,27 +55,27 @@ fm_instrument_reg_write:
         jsr     fm_write_cond(pc)       ; $4EBA $F9C4
         lea     fm_reg_table_vibrato_setup(pc),a2; $45FA $00BE
         MOVEQ   #$13,D3                         ; $03130E
-.loc_005C:
+.operator_reg_loop:
         MOVE.B  (A2)+,D0                        ; $031310
         MOVE.B  (A1)+,D1                        ; $031312
         jsr     fm_write_cond(pc)       ; $4EBA $F9B6
-        DBRA    D3,.loc_005C                    ; $031318
+        DBRA    D3,.operator_reg_loop            ; $031318
         MOVEQ   #$03,D5                         ; $03131C
         ANDI.W  #$0007,D4                       ; $03131E
         MOVE.B  $031352(PC,D4.W),D4             ; $031322
         MOVE.B  $0009(A5),D3                    ; $031326
-.loc_0076:
+.tl_operator_loop:
         MOVE.B  (A2)+,D0                        ; $03132A
         MOVE.B  (A1)+,D1                        ; $03132C
         LSR.B  #1,D4                            ; $03132E
-        BCC.S  .loc_0080                        ; $031330
+        BCC.S  .write_tl                        ; $031330
         ADD.B   D3,D1                           ; $031332
-.loc_0080:
+.write_tl:
         jsr     fm_write_cond(pc)       ; $4EBA $F996
-        DBRA    D5,.loc_0076                    ; $031338
+        DBRA    D5,.tl_operator_loop             ; $031338
         MOVE.B  #$B4,D0                         ; $03133C
         MOVE.B  $0027(A5),D1                    ; $031340
         jsr     fm_write_cond(pc)       ; $4EBA $F986
         MOVE.W  #$0000,Z80_BUSREQ                ; $031348
-.loc_009C:
+.done:
         RTS                                     ; $031350

@@ -27,35 +27,35 @@ object_table_sprite_param_update:
         MOVE.W  (-14132).W,D0                   ; $0036EE
         MOVEA.L $00(A3,D0.W),A3                 ; $0036F2
         MOVEQ   #$0E,D7                         ; $0036F6
-.loc_001A:
+.object_loop:
         MOVEQ   #$00,D5                         ; $0036F8
         MOVEQ   #$00,D6                         ; $0036FA
         MOVEQ   #$00,D0                         ; $0036FC
         MOVE.B  $00C1(A0),D0                    ; $0036FE
-        BEQ.W  .loc_00B2                        ; $003702
+        BEQ.W  .store_output                    ; $003702
         MOVEQ   #$01,D5                         ; $003706
         MOVEQ   #$01,D6                         ; $003708
         TST.B  (-28444).W                       ; $00370A
-        BNE.S  .loc_0038                        ; $00370E
+        BNE.S  .check_ghost_flag                ; $00370E
         TST.B  (-15588).W                       ; $003710
-        BEQ.S  .loc_0048                        ; $003714
-.loc_0038:
+        BEQ.S  .check_type                      ; $003714
+.check_ghost_flag:
         BTST    #3,$00E5(A0)                    ; $003716
-        BEQ.S  .loc_0056                        ; $00371C
-.loc_0040:
+        BEQ.S  .check_type                      ; $00371C
+.set_invisible:
         MOVEQ   #$00,D5                         ; $00371E
         MOVEQ   #$00,D6                         ; $003720
-        BRA.W  .loc_00B2                        ; $003722
-.loc_0048:
+        BRA.W  .store_output                    ; $003722
+.check_type:
         BTST    #3,(-28443).W                   ; $003726
-        BEQ.S  .loc_0056                        ; $00372C
+        BEQ.S  .lookup_sprite                   ; $00372C
         TST.B  $00E4(A0)                        ; $00372E
-        BNE.S  .loc_0040                        ; $003732
-.loc_0056:
+        BNE.S  .set_invisible                   ; $003732
+.lookup_sprite:
         CMPI.W  #$0001,D0                       ; $003734
-        BEQ.S  .loc_005E                        ; $003738
+        BEQ.S  .compute_positions               ; $003738
         MOVEQ   #$00,D6                         ; $00373A
-.loc_005E:
+.compute_positions:
         ADD.W   D0,D0                           ; $00373C
         ADD.W   D0,D0                           ; $00373E
         ADD.W  $00C2(A0),D0                     ; $003740
@@ -81,7 +81,7 @@ object_table_sprite_param_update:
         MOVE.W  $00C4(A0),D0                    ; $003786
         ASR.W  #3,D0                            ; $00378A
         MOVE.W  D0,$0030(A1)                    ; $00378C
-.loc_00B2:
+.store_output:
         MOVE.W  $0030(A0),$0002(A1)             ; $003790
         MOVE.W  $0034(A0),$0006(A1)             ; $003796
         MOVE.W  D5,$0000(A1)                    ; $00379C
@@ -89,5 +89,5 @@ object_table_sprite_param_update:
         MOVE.W  D6,$0028(A1)                    ; $0037A4
         LEA     $0100(A0),A0                    ; $0037A8
         LEA     $003C(A1),A1                    ; $0037AC
-        DBRA    D7,.loc_001A                    ; $0037B0
+        DBRA    D7,.object_loop                 ; $0037B0
         RTS                                     ; $0037B4

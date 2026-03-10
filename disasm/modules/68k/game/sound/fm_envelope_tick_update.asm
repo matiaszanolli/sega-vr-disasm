@@ -26,41 +26,41 @@ fm_envelope_tick_update:
         MOVE.B  #$01,$0006(A6)                  ; $030A8E
         LEA     $0040(A6),A5                    ; $030A94
         TST.B  (A5)                             ; $030A98
-        BPL.S  .loc_0026                        ; $030A9A
+        BPL.S  .dac_done                        ; $030A9A
         ADDQ.B  #4,$0009(A5)                    ; $030A9C
-        BPL.S  .loc_0022                        ; $030AA0
+        BPL.S  .dac_write                       ; $030AA0
         BCLR    #7,(A5)                         ; $030AA2
-        BRA.S  .loc_0026                        ; $030AA6
-.loc_0022:
+        BRA.S  .dac_done                        ; $030AA6
+.dac_write:
         jsr     z80_sound_write(pc)     ; $4EBA $034A
-.loc_0026:
+.dac_done:
         LEA     $0070(A6),A5                    ; $030AAC
         MOVEQ   #$05,D7                         ; $030AB0
-.loc_002C:
+.fm_channel_loop:
         TST.B  (A5)                             ; $030AB2
-        BPL.S  .loc_0040                        ; $030AB4
+        BPL.S  .fm_next_channel                 ; $030AB4
         ADDQ.B  #1,$0009(A5)                    ; $030AB6
-        BPL.S  .loc_003C                        ; $030ABA
+        BPL.S  .fm_write                        ; $030ABA
         BCLR    #7,(A5)                         ; $030ABC
-        BRA.S  .loc_0040                        ; $030AC0
-.loc_003C:
+        BRA.S  .fm_next_channel                 ; $030AC0
+.fm_write:
         jsr     fm_tl_scaling_table_volume_reg_writer+8(pc); $4EBA $0896
-.loc_0040:
+.fm_next_channel:
         ADDA.W  #$0030,A5                       ; $030AC6
-        DBRA    D7,.loc_002C                    ; $030ACA
+        DBRA    D7,.fm_channel_loop              ; $030ACA
         MOVEQ   #$02,D7                         ; $030ACE
-.loc_004A:
+.psg_channel_loop:
         TST.B  (A5)                             ; $030AD0
-        BPL.S  .loc_0068                        ; $030AD2
+        BPL.S  .psg_next_channel                ; $030AD2
         ADDQ.B  #1,$0009(A5)                    ; $030AD4
         CMPI.B  #$10,$0009(A5)                  ; $030AD8
-        BCS.S  .loc_0060                        ; $030ADE
+        BCS.S  .psg_write                       ; $030ADE
         BCLR    #7,(A5)                         ; $030AE0
-        BRA.S  .loc_0068                        ; $030AE4
-.loc_0060:
+        BRA.S  .psg_next_channel                ; $030AE4
+.psg_write:
         MOVE.B  $0009(A5),D6                    ; $030AE6
         jsr     psg_volume_envelope_proc+82(pc); $4EBA $0474
-.loc_0068:
+.psg_next_channel:
         ADDA.W  #$0030,A5                       ; $030AEE
-        DBRA    D7,.loc_004A                    ; $030AF2
+        DBRA    D7,.psg_channel_loop             ; $030AF2
         RTS                                     ; $030AF6

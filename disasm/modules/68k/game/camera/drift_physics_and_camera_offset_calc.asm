@@ -27,7 +27,7 @@ drift_physics_and_camera_offset_calc:
         ADD.W   D1,D0                           ; $00969C
         MOVE.W  D0,$0090(A0)                    ; $00969E
         CMPI.W  #$0080,$0004(A0)                ; $0096A2
-        BGE.S  .loc_003E                        ; $0096A8
+        BGE.S  .apply_speed_scale               ; $0096A8
         MOVE.W  D0,D2                           ; $0096AA
         MOVE.W  $0004(A0),D0                    ; $0096AC
         LSL.W  #7,D0                            ; $0096B0
@@ -37,75 +37,75 @@ drift_physics_and_camera_offset_calc:
         MULS    $0090(A0),D0                    ; $0096BE
         ASR.L  #6,D0                            ; $0096C2
         ADD.W   D2,D0                           ; $0096C4
-.loc_003E:
+.apply_speed_scale:
         MULS    $0004(A0),D0                    ; $0096C6
         MOVEQ   #$0A,D2                         ; $0096CA
         ASR.L  D2,D0                            ; $0096CC
         MOVE.W  $0076(A0),D2                    ; $0096CE
         MOVE.W  $000C(A0),D3                    ; $0096D2
-        BPL.S  .loc_0054                        ; $0096D6
+        BPL.S  .after_slope_adjust              ; $0096D6
         ADD.W   D3,D3                           ; $0096D8
         SUB.W   D3,D2                           ; $0096DA
-.loc_0054:
+.after_slope_adjust:
         MULS    D2,D0                           ; $0096DC
         ASR.L  #8,D0                            ; $0096DE
         TST.W  $0092(A0)                        ; $0096E0
-        BLE.S  .loc_006A                        ; $0096E4
+        BLE.S  .after_slide_scale               ; $0096E4
         MOVE.W  #$0028,D1                       ; $0096E6
         SUB.W  $0092(A0),D1                     ; $0096EA
         MULS    D1,D0                           ; $0096EE
         ASR.L  #5,D0                            ; $0096F0
-.loc_006A:
+.after_slide_scale:
         MOVE.W  D0,D2                           ; $0096F2
         MOVE.W  D0,D1                           ; $0096F4
         ASR.W  #1,D1                            ; $0096F6
         ADD.W   D1,D0                           ; $0096F8
         TST.B  (-15589).W                       ; $0096FA
-        BEQ.S  .loc_007C                        ; $0096FE
+        BEQ.S  .update_heading                  ; $0096FE
         ASR.W  #1,D2                            ; $009700
         ADD.W   D2,D0                           ; $009702
-.loc_007C:
+.update_heading:
         ADD.W  D0,$003C(A0)                     ; $009704
         MOVE.W  $003C(A0),D0                    ; $009708
         SUB.W  $001E(A0),D0                     ; $00970C
-        BPL.S  .loc_008C                        ; $009710
+        BPL.S  .heading_abs_diff                ; $009710
         NEG.W  D0                               ; $009712
-.loc_008C:
+.heading_abs_diff:
         CMPI.W  #$0222,D0                       ; $009714
-        BGE.S  .loc_00C0                        ; $009718
+        BGE.S  .reset_snap_counter              ; $009718
         ADDQ.W  #1,(-16382).W                   ; $00971A
         CMPI.W  #$0004,(-16382).W               ; $00971E
-        BLT.S  .loc_00C4                        ; $009724
+        BLT.S  .calc_trail_delta                ; $009724
         MOVE.W  $001E(A0),D0                    ; $009726
         SUB.W  $0040(A0),D0                     ; $00972A
         CMPI.W  #$0012,D0                       ; $00972E
-        BLE.S  .loc_00B0                        ; $009732
+        BLE.S  .clamp_snap_high                 ; $009732
         MOVE.W  #$0012,D0                       ; $009734
-.loc_00B0:
+.clamp_snap_high:
         CMPI.W  #$FFEE,D0                       ; $009738
-        BGE.S  .loc_00BA                        ; $00973C
+        BGE.S  .apply_snap                      ; $00973C
         MOVE.W  #$FFEE,D0                       ; $00973E
-.loc_00BA:
+.apply_snap:
         ADD.W  D0,$003C(A0)                     ; $009742
-        BRA.S  .loc_00C4                        ; $009746
-.loc_00C0:
+        BRA.S  .calc_trail_delta                ; $009746
+.reset_snap_counter:
         CLR.W  (-16382).W                       ; $009748
-.loc_00C4:
+.calc_trail_delta:
         MOVE.W  $005C(A0),D0                    ; $00974C
         SUB.W  $005A(A0),D0                     ; $009750
         MOVE.W  $0090(A0),D1                    ; $009754
-        BPL.S  .loc_00D6                        ; $009758
+        BPL.S  .trail_signs_ok                  ; $009758
         NEG.W  D0                               ; $00975A
         NEG.W  D1                               ; $00975C
-.loc_00D6:
+.trail_signs_ok:
         CMPI.W  #$0190,D0                       ; $00975E
-        BLE.S  .loc_00E0                        ; $009762
+        BLE.S  .clamp_trail_high                ; $009762
         MOVE.W  #$0190,D0                       ; $009764
-.loc_00E0:
+.clamp_trail_high:
         CMPI.W  #$FFCE,D0                       ; $009768
-        BGE.S  .loc_00EA                        ; $00976C
+        BGE.S  .clamp_trail_low_done            ; $00976C
         MOVE.W  #$FFCE,D0                       ; $00976E
-.loc_00EA:
+.clamp_trail_low_done:
         LSL.W  #4,D0                            ; $009772
         MOVE.W  D0,D2                           ; $009774
         ADD.W   D0,D0                           ; $009776
@@ -134,35 +134,35 @@ drift_physics_and_camera_offset_calc:
         NEG.W  D1                               ; $0097AA
         LSL.W  #4,D1                            ; $0097AC
         CMPI.W  #$0040,D1                       ; $0097AE
-        BLE.S  .loc_0130                        ; $0097B2
+        BLE.S  .clamp_slope_high                ; $0097B2
         MOVE.W  #$0040,D1                       ; $0097B4
-.loc_0130:
+.clamp_slope_high:
         CMPI.W  #$FFF0,D1                       ; $0097B8
-        BGE.S  .loc_013A                        ; $0097BC
+        BGE.S  .clamp_slope_low_done            ; $0097BC
         MOVE.W  #$FFF0,D1                       ; $0097BE
-.loc_013A:
+.clamp_slope_low_done:
         ADD.W   D1,D0                           ; $0097C2
         CMPI.W  #$0040,D0                       ; $0097C4
-        BGE.S  .loc_0144                        ; $0097C8
+        BGE.S  .clamp_dist_min                  ; $0097C8
         MOVEQ   #$40,D0                         ; $0097CA
-.loc_0144:
+.clamp_dist_min:
         CMP.W  (-16152).W,D0                    ; $0097CC
-        BLE.S  .loc_014E                        ; $0097D0
+        BLE.S  .clamp_dist_max                  ; $0097D0
         MOVE.W  (-16152).W,D0                   ; $0097D2
-.loc_014E:
+.clamp_dist_max:
         TST.W  $00AA(A0)                        ; $0097D6
-        BLE.S  .loc_0158                        ; $0097DA
+        BLE.S  .check_drift_accum               ; $0097DA
         SUBQ.W  #8,$00AA(A0)                    ; $0097DC
-.loc_0158:
+.check_drift_accum:
         CMPI.W  #$0050,$00AA(A0)                ; $0097E0
-        BGT.S  .loc_0174                        ; $0097E6
+        BGT.S  .set_cam_dist                    ; $0097E6
         MOVE.W  $0076(A0),D1                    ; $0097E8
         SUB.W   D0,D1                           ; $0097EC
         CMPI.W  #$000C,D1                       ; $0097EE
-        BLE.S  .loc_0174                        ; $0097F2
+        BLE.S  .set_cam_dist                    ; $0097F2
         SUBI.W  #$000C,$0076(A0)                ; $0097F4
-        BRA.S  .loc_0178                        ; $0097FA
-.loc_0174:
+        BRA.S  .done                            ; $0097FA
+.set_cam_dist:
         MOVE.W  D0,$0076(A0)                    ; $0097FC
-.loc_0178:
+.done:
         RTS                                     ; $009800

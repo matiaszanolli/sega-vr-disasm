@@ -27,69 +27,69 @@ fm_note_off_handler:
         BCLR    #7,(A5)                         ; $031418
         BCLR    #4,(A5)                         ; $03141C
         TST.B  $0001(A5)                        ; $031420
-        BMI.S  .loc_001C                        ; $031424
+        BMI.S  .psg_silence                     ; $031424
         TST.B  $0008(A6)                        ; $031426
-        BMI.W  .loc_00C0                        ; $03142A
+        BMI.W  .done                            ; $03142A
         jsr     fm_init_channel(pc)     ; $4EBA $F85A
-        BRA.S  .loc_0020                        ; $031432
-.loc_001C:
+        BRA.S  .check_multi_channel             ; $031432
+.psg_silence:
         jsr     psg_set_pos_silence+16(pc); $4EBA $FB7C
-.loc_0020:
+.check_multi_channel:
         TST.B  $000E(A6)                        ; $031438
-        BPL.W  .loc_00C0                        ; $03143C
+        BPL.W  .done                            ; $03143C
         CLR.B  $0000(A6)                        ; $031440
         MOVEQ   #$00,D0                         ; $031444
         MOVE.B  $0001(A5),D0                    ; $031446
-        BMI.S  .loc_008A                        ; $03144A
+        BMI.S  .psg_related                     ; $03144A
         lea     fm_channel_pointer_table_sfx_loader(pc),a0; $41FA $F404
         MOVEA.L A5,A3                           ; $031450
         CMPI.B  #$04,D0                         ; $031452
-        BNE.S  .loc_0050                        ; $031456
+        BNE.S  .resolve_fm_channel              ; $031456
         TST.B  $0340(A6)                        ; $031458
-        BPL.S  .loc_0050                        ; $03145C
+        BPL.S  .resolve_fm_channel              ; $03145C
         LEA     $0340(A6),A5                    ; $03145E
         MOVEA.L $0034(A6),A1                    ; $031462
-        BRA.S  .loc_0060                        ; $031466
-.loc_0050:
+        BRA.S  .clear_keyoff_set_mute           ; $031466
+.resolve_fm_channel:
         SUBQ.B  #2,D0                           ; $031468
         LSL.B  #2,D0                            ; $03146A
         MOVEA.L $00(A0,D0.W),A5                 ; $03146C
         TST.B  (A5)                             ; $031470
-        BPL.S  .loc_0070                        ; $031472
+        BPL.S  .restore_a5                      ; $031472
         MOVEA.L $0030(A6),A1                    ; $031474
-.loc_0060:
+.clear_keyoff_set_mute:
         BCLR    #2,(A5)                         ; $031478
         BSET    #1,(A5)                         ; $03147C
         MOVE.B  $000B(A5),D0                    ; $031480
         jsr     fm_instrument_reg_write+52(pc); $4EBA $FE62
-.loc_0070:
+.restore_a5:
         MOVEA.L A3,A5                           ; $031488
         CMPI.B  #$02,$0001(A5)                  ; $03148A
-        BNE.S  .loc_00C0                        ; $031490
+        BNE.S  .done                            ; $031490
         TST.B  $000F(A6)                        ; $031492
-        BNE.S  .loc_00C0                        ; $031496
+        BNE.S  .done                            ; $031496
         MOVEQ   #$00,D1                         ; $031498
         MOVEQ   #$27,D0                         ; $03149A
         jsr     fm_write_wrapper(pc)    ; $4EBA $F81C
-        BRA.S  .loc_00C0                        ; $0314A0
-.loc_008A:
+        BRA.S  .done                            ; $0314A0
+.psg_related:
         LEA     $0370(A6),A0                    ; $0314A2
         TST.B  (A0)                             ; $0314A6
-        BPL.S  .loc_009E                        ; $0314A8
+        BPL.S  .resolve_psg_from_table          ; $0314A8
         CMPI.B  #$E0,D0                         ; $0314AA
-        BEQ.S  .loc_00A8                        ; $0314AE
+        BEQ.S  .clear_psg_keyoff                ; $0314AE
         CMPI.B  #$C0,D0                         ; $0314B0
-        BEQ.S  .loc_00A8                        ; $0314B4
-.loc_009E:
+        BEQ.S  .clear_psg_keyoff                ; $0314B4
+.resolve_psg_from_table:
         lea     fm_channel_pointer_table_sfx_loader(pc),a0; $41FA $F39A
         LSR.B  #3,D0                            ; $0314BA
         MOVEA.L $00(A0,D0.W),A0                 ; $0314BC
-.loc_00A8:
+.clear_psg_keyoff:
         BCLR    #2,(A0)                         ; $0314C0
         BSET    #1,(A0)                         ; $0314C4
         CMPI.B  #$E0,$0001(A0)                  ; $0314C8
-        BNE.S  .loc_00C0                        ; $0314CE
+        BNE.S  .done                            ; $0314CE
         MOVE.B  $0025(A0),PSG             ; $0314D0
-.loc_00C0:
+.done:
         ADDQ.W  #8,A7                           ; $0314D8
         RTS                                     ; $0314DA

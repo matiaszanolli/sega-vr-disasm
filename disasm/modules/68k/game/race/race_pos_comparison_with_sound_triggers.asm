@@ -26,8 +26,8 @@ race_pos_comparison_with_sound_triggers:
         MOVEQ   #$02,D2                         ; $0087FE
         MOVEQ   #$01,D3                         ; $008800
         CMP.W  D0,D1                            ; $008802
-        BGT.S  .loc_0076                        ; $008804
-        BNE.S  .loc_0072                        ; $008806
+        BGT.S  .p2_ahead                        ; $008804
+        BNE.S  .p1_ahead                        ; $008806
         MOVE.W  $001E(A0),D0                    ; $008808
         NEG.W  D0                               ; $00880C
         MOVE.W  D0,D2                           ; $00880E
@@ -55,39 +55,39 @@ race_pos_comparison_with_sound_triggers:
         MOVEQ   #$02,D2                         ; $00884C
         MOVEQ   #$01,D3                         ; $00884E
         CMP.L  D4,D0                            ; $008850
-        BGT.S  .loc_0076                        ; $008852
-.loc_0072:
+        BGT.S  .p2_ahead                        ; $008852
+.p1_ahead:
         MOVEQ   #$01,D2                         ; $008854
         MOVEQ   #$02,D3                         ; $008856
-.loc_0076:
+.p2_ahead:
         CMP.W  $002A(A0),D2                     ; $008858
-        BEQ.S  .loc_00D2                        ; $00885C
+        BEQ.S  .store_ranks                        ; $00885C
         MOVE.W  $0004(A0),D4                    ; $00885E
         SUB.W  $0004(A2),D4                     ; $008862
-        BPL.S  .loc_0088                        ; $008866
+        BPL.S  .speed_diff_abs                        ; $008866
         NEG.W  D4                               ; $008868
-.loc_0088:
+.speed_diff_abs:
         CMPI.W  #$0014,D4                       ; $00886A
-        BLE.S  .loc_00D2                        ; $00886E
+        BLE.S  .store_ranks                        ; $00886E
         MOVE.W  $0004(A0),D4                    ; $008870
         ADD.W  $0004(A2),D4                     ; $008874
         CMPI.W  #$0064,D4                       ; $008878
-        BLE.S  .loc_00D2                        ; $00887C
+        BLE.S  .store_ranks                        ; $00887C
         CMPI.W  #$0004,(-14180).W               ; $00887E
-        BNE.S  .loc_00B0                        ; $008884
+        BNE.S  .try_sound_cc                        ; $008884
         MOVE.B  $00E5(A0),D1                    ; $008886
         EOR.B   D1,D2                           ; $00888A
         ANDI.B  #$06,D2                         ; $00888C
-        BNE.S  .loc_00D2                        ; $008890
-.loc_00B0:
+        BNE.S  .store_ranks                        ; $008890
+.try_sound_cc:
         MOVE.B  #$CC,(-14172).W                 ; $008892
         CMPI.W  #$0001,(-14136).W               ; $008898
-        BEQ.S  .loc_00D2                        ; $00889E
+        BEQ.S  .store_ranks                        ; $00889E
         MOVE.B  #$CF,(-14172).W                 ; $0088A0
         CMPI.W  #$0002,(-14136).W               ; $0088A6
-        BEQ.S  .loc_00D2                        ; $0088AC
+        BEQ.S  .store_ranks                        ; $0088AC
         MOVE.B  #$B3,(-14172).W                 ; $0088AE
-.loc_00D2:
+.store_ranks:
         MOVE.W  D2,$002A(A0)                    ; $0088B4
         MOVE.W  D3,$002A(A2)                    ; $0088B8
         RTS                                     ; $0088BC

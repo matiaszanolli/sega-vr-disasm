@@ -31,64 +31,64 @@ fm_panning_init_channel_stereo_setup:
         DIVU    D0,D0                           ; $03047C
         DIVU    D0,D0                           ; $03047E
         NEGX.B D0                               ; $030480
-        BMI.S  .loc_0052                        ; $030482
+        BMI.S  .restore_all_panning             ; $030482
         MOVEQ   #$02,D2                         ; $030484
         MOVE.B  #$B4,D0                         ; $030486
         MOVEQ   #$00,D1                         ; $03048A
         jsr     z80_bus_wait(pc)        ; $4EBA $088E
-.loc_0024:
+.center_panning_loop:
         jsr     fm_write_cond+12(pc)    ; $4EBA $0846
         jsr     fm_write_port_0_1+10(pc); $4EBA $0868
         ADDQ.B  #1,D0                           ; $030498
-        DBRA    D2,.loc_0024                    ; $03049A
+        DBRA    D2,.center_panning_loop          ; $03049A
         MOVEQ   #$02,D2                         ; $03049E
         MOVEQ   #$28,D0                         ; $0304A0
-.loc_0036:
+.keyon_loop:
         MOVE.B  D2,D1                           ; $0304A2
         jsr     fm_write_cond+12(pc)    ; $4EBA $0832
         ADDQ.B  #4,D1                           ; $0304A8
         jsr     fm_write_cond+12(pc)    ; $4EBA $082C
-        DBRA    D2,.loc_0036                    ; $0304AE
+        DBRA    D2,.keyon_loop                   ; $0304AE
         MOVE.W  #$0000,Z80_BUSREQ                ; $0304B2
         DC.W    $6000,$0B0C         ; BRA.W  $030FC8; $0304BA
-.loc_0052:
+.restore_all_panning:
         CLR.B  $0007(A6)                        ; $0304BE
         MOVEQ   #$30,D3                         ; $0304C2
         LEA     $0040(A6),A5                    ; $0304C4
         MOVEQ   #$06,D4                         ; $0304C8
         jsr     z80_bus_wait(pc)        ; $4EBA $0850
-.loc_0062:
+.fm_main_loop:
         BTST    #7,(A5)                         ; $0304CE
-        BEQ.S  .loc_007A                        ; $0304D2
+        BEQ.S  .fm_main_next                    ; $0304D2
         BTST    #2,(A5)                         ; $0304D4
-        BNE.S  .loc_007A                        ; $0304D8
+        BNE.S  .fm_main_next                    ; $0304D8
         MOVE.B  #$B4,D0                         ; $0304DA
         MOVE.B  $0027(A5),D1                    ; $0304DE
         jsr     fm_write_cond(pc)       ; $4EBA $07E8
-.loc_007A:
+.fm_main_next:
         ADDA.W  D3,A5                           ; $0304E6
-        DBRA    D4,.loc_0062                    ; $0304E8
+        DBRA    D4,.fm_main_loop                 ; $0304E8
         LEA     $0220(A6),A5                    ; $0304EC
         MOVEQ   #$02,D4                         ; $0304F0
-.loc_0086:
+.fm_sfx_loop:
         BTST    #7,(A5)                         ; $0304F2
-        BEQ.S  .loc_009E                        ; $0304F6
+        BEQ.S  .fm_sfx_next                     ; $0304F6
         BTST    #2,(A5)                         ; $0304F8
-        BNE.S  .loc_009E                        ; $0304FC
+        BNE.S  .fm_sfx_next                     ; $0304FC
         MOVE.B  #$B4,D0                         ; $0304FE
         MOVE.B  $0027(A5),D1                    ; $030502
         jsr     fm_write_cond(pc)       ; $4EBA $07C4
-.loc_009E:
+.fm_sfx_next:
         ADDA.W  D3,A5                           ; $03050A
-        DBRA    D4,.loc_0086                    ; $03050C
+        DBRA    D4,.fm_sfx_loop                  ; $03050C
         LEA     $0340(A6),A5                    ; $030510
         BTST    #7,(A5)                         ; $030514
-        BEQ.S  .loc_00C0                        ; $030518
+        BEQ.S  .release_z80                     ; $030518
         BTST    #2,(A5)                         ; $03051A
-        BNE.S  .loc_00C0                        ; $03051E
+        BNE.S  .release_z80                     ; $03051E
         MOVE.B  #$B4,D0                         ; $030520
         MOVE.B  $0027(A5),D1                    ; $030524
         jsr     fm_write_cond(pc)       ; $4EBA $07A2
-.loc_00C0:
+.release_z80:
         MOVE.W  #$0000,Z80_BUSREQ                ; $03052C
         RTS                                     ; $030534

@@ -20,37 +20,37 @@ vdp_reg_table_load:
         MOVEA.L A1,A0                           ; $000516
         DC.W    $6E69                           ; $000518
         MOVEQ   #$69,D2                         ; $00051A
-        BSR.S  .loc_0078                        ; $00051C
+        BSR.S  .ascii_pad_1                     ; $00051C
         MOVE.L  -(A6),D0                        ; $00051E
         MOVEA.L (A3),A0                         ; $000520
         DC.W    $6563                           ; $000522
         DC.W    $7572                           ; $000524
-        BVS.S  .loc_008A                        ; $000526
+        BVS.S  .ascii_pad_2                     ; $000526
         DC.W    $7920                           ; $000528
         DC.W    $5072                           ; $00052A
         DC.W    $6F67                           ; $00052C
         MOVEQ   #$61,D1                         ; $00052E
-        BLT.S  .loc_0040                        ; $000530
+        BLT.S  .ascii_copyright                 ; $000530
         MOVE.L  -(A0),D0                        ; $000532
         MOVE.L  -(A0),D0                        ; $000534
         MOVE.L  -(A0),D0                        ; $000536
         MOVE.L  -(A0),D0                        ; $000538
         MOVEA.L D3,A0                           ; $00053A
-        BSR.S  .loc_009E                        ; $00053C
+        BSR.S  .ascii_pad_3                     ; $00053C
         MOVEQ   #$72,D2                         ; $00053E
-        BVS.S  .loc_0094                        ; $000540
+        BVS.S  .save_regs                       ; $000540
         DC.W    $6765                           ; $000542
         MOVEA.L (A6),A0                         ; $000544
-        BCS.S  .loc_00A8                        ; $000546
+        BCS.S  .init_reg_counter                ; $000546
         DC.W    $7369                           ; $000548
-        BLE.S  .loc_00A8                        ; $00054A
+        BLE.S  .init_reg_counter                ; $00054A
         MOVE.L  -(A0),D0                        ; $00054C
         MOVE.L  -(A0),D0                        ; $00054E
         DC.W    $436F                           ; $000550
-.loc_0040:
+.ascii_copyright:
         MOVEQ   #$79,D0                         ; $000552
         MOVEQ   #$69,D1                         ; $000554
-        BEQ.S  .loc_00AE                        ; $000556
+        BEQ.S  .write_reg                       ; $000556
         MOVEQ   #$20,D2                         ; $000558
         SUBQ.W  #1,D5                           ; $00055A
         DC.W    $4741                           ; $00055C
@@ -73,7 +73,7 @@ vdp_reg_table_load:
         MOVE.L  -(A0),D0                        ; $000584
         MOVE.L  -(A0),D0                        ; $000586
         MOVE.L  -(A0),D0                        ; $000588
-.loc_0078:
+.ascii_pad_1:
         MOVE.L  -(A0),D0                        ; $00058A
         MOVE.L  -(A0),D0                        ; $00058C
         MOVE.L  -(A0),D0                        ; $00058E
@@ -83,26 +83,26 @@ vdp_reg_table_load:
         ADDQ.W  #1,A7                           ; $000596
         DC.W    $4D20                           ; $000598
         ADDQ.W  #3,-(A5)                        ; $00059A
-.loc_008A:
+.ascii_pad_2:
         MOVEQ   #$73,D1                         ; $00059C
         DC.W    $696F               ; DC.W    $696F; $00059E
-        BGT.S  .loc_00B0                        ; $0005A0
+        BGT.S  .add_reg_increment               ; $0005A0
         MOVE.W  $3000(A6),-(A0)                 ; $0005A2
-.loc_0094:
+.save_regs:
         MOVEM.L D0/D1/A1,-(A7)                  ; $0005A6
         LEA     VDP_CTRL,A1                    ; $0005AA
-.loc_009E:
+.ascii_pad_3:
         MOVE.W  (A1),D0                         ; $0005B0
         MOVE.W  #$8000,D0                       ; $0005B2
         MOVE.W  #$0100,D1                       ; $0005B6
-.loc_00A8:
+.init_reg_counter:
         MOVE.W  #$0012,D7                       ; $0005BA
-.loc_00AC:
+.read_table_byte:
         MOVE.B  (A0)+,D0                        ; $0005BE
-.loc_00AE:
+.write_reg:
         MOVE.W  D0,(A1)                         ; $0005C0
-.loc_00B0:
+.add_reg_increment:
         ADD.W   D1,D0                           ; $0005C2
-        DBRA    D7,.loc_00AC                    ; $0005C4
+        DBRA    D7,.read_table_byte             ; $0005C4
         MOVEM.L (A7)+,D0/D1/A1                  ; $0005C8
         RTS                                     ; $0005CC

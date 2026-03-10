@@ -17,28 +17,28 @@ entity_render_pipeline_jump_table:
         DC.W    $0088                           ; $00659C
         DC.W    $65BC               ; BCS.S  $00655C; $00659E
         DC.W    $0088                           ; $0065A0
-        BVC.S  .loc_000C                        ; $0065A2
+        BVC.S  .jt_entry_2                        ; $0065A2
         DC.W    $0088                           ; $0065A4
-        BNE.S  .loc_0036                        ; $0065A6
-.loc_000C:
+        BNE.S  .variant_a_physics                        ; $0065A6
+.jt_entry_2:
         DC.W    $0088                           ; $0065A8
         DC.W    $66B4               ; BNE.S  $006560; $0065AA
         DC.W    $0088                           ; $0065AC
-        BEQ.S  .loc_002E                        ; $0065AE
+        BEQ.S  .variant_a_display                        ; $0065AE
         DC.W    $0088                           ; $0065B0
         BEQ.S  $0065CC                          ; $0065B2
         DC.W    $0088                           ; $0065B4
         BEQ.S  $006632                          ; $0065B6
         DC.W    $0088                           ; $0065B8
-        BNE.S  .loc_0056                        ; $0065BA
+        BNE.S  .variant_a_speed                        ; $0065BA
         jsr     camera_state_selector(pc); $4EBA $51B2
         MOVEQ   #$00,D0                         ; $0065C0
         MOVE.W  D0,$0044(A0)                    ; $0065C2
         MOVE.W  D0,$0046(A0)                    ; $0065C6
-.loc_002E:
+.variant_a_display:
         MOVE.W  D0,$004A(A0)                    ; $0065CA
         jsr     tire_squeal_check_2p(pc); $4EBA $2040
-.loc_0036:
+.variant_a_physics:
         jsr     speed_degrade_calc(pc)  ; $4EBA $1FC6
         jsr     effect_timer_mgmt(pc)   ; $4EBA $3D78
         jsr     object_timer_expire_speed_param_reset(pc); $4EBA $1B94
@@ -47,7 +47,7 @@ entity_render_pipeline_jump_table:
         jsr     steering_input_processing_and_velocity_update+6(pc); $4EBA $2F12
         jsr     entity_force_integration_and_speed_calc+18(pc); $4EBA $2D26
         jsr     entity_speed_clamp(pc)  ; $4EBA $3522
-.loc_0056:
+.variant_a_speed:
         jsr     entity_speed_acceleration_and_braking(pc); $4EBA $2B8E
         jsr     tilt_adjust(pc)         ; $4EBA $3026
         jsr     drift_physics_and_camera_offset_calc(pc); $4EBA $308C
@@ -77,9 +77,9 @@ entity_render_pipeline_jump_table:
         jsr     timer_decrement_multi(pc); $4EBA $1EEA
         jsr     steering_input_processing_and_velocity_update+6(pc); $4EBA $2E98
         CMPI.W  #$0004,(-15764).W               ; $006664
-        BEQ.S  .loc_00D4                        ; $00666A
+        BEQ.S  .variant_b_skip_force                        ; $00666A
         jsr     entity_force_integration_and_speed_calc+18(pc); $4EBA $2CA4
-.loc_00D4:
+.variant_b_skip_force:
         jsr     entity_speed_clamp(pc)  ; $4EBA $34A0
         jsr     entity_speed_acceleration_and_braking(pc); $4EBA $2B0C
         jsr     suspension_steering_damping(pc); $4EBA $3188
@@ -87,11 +87,11 @@ entity_render_pipeline_jump_table:
         jsr     angle_to_sine(pc)       ; $4EBA $0A28
         jsr     collision_response_surface_tracking+278(pc); $4EBA $1190
         SUBQ.W  #1,(-16340).W                   ; $006688
-        BGT.S  .loc_0104                        ; $00668C
+        BGT.S  .variant_b_finalize                        ; $00668C
         MOVE.W  #$0000,(-16340).W               ; $00668E
         MOVE.W  #$0000,$0074(A0)                ; $006694
         MOVE.W  (-16244).W,(-16262).W           ; $00669A
-.loc_0104:
+.variant_b_finalize:
         jsr     entity_speed_guard+4(pc); $4EBA $15AC
         jsr     object_link_copy_table_lookup(pc); $4EBA $0AA4
         jsr     rotational_offset_calc(pc); $4EBA $0FA4
@@ -120,7 +120,7 @@ entity_render_pipeline_jump_table:
         jsr     tilt_adjust(pc)         ; $4EBA $2F1A
         jsr     obj_state_return(pc)    ; $4EBA $41F0
         BTST    #4,(-15602).W                   ; $00670A
-        BEQ.S  .loc_017C                        ; $006710
+        BEQ.S  .variant_c_done                        ; $006710
         MOVE.W  (-16244).W,(-16262).W           ; $006712
-.loc_017C:
+.variant_c_done:
         RTS                                     ; $006718

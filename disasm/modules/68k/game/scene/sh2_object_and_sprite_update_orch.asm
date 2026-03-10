@@ -20,22 +20,22 @@ sh2_object_and_sprite_update_orch:
         jsr     MemoryInit(pc)          ; $4EBA $0858
         jsr     object_update(pc)       ; $4EBA $D9AC
         jsr     animated_seq_player+10(pc); $4EBA $D9FE
-.loc_000E:
+.wait_comm_ready:
         TST.B  COMM0_HI                        ; $00DCDE
-        BNE.S  .loc_000E                        ; $00DCE4
+        BNE.S  .wait_comm_ready                 ; $00DCE4
         MOVEA.L #$06037000,A0                   ; $00DCE6
         MOVEA.L #$24018010,A1                   ; $00DCEC
         MOVE.W  #$0120,D0                       ; $00DCF2
         MOVE.W  #$0030,D1                       ; $00DCF6
         DC.W    $6100,$065E         ; BSR.W  $00E35A; $00DCFA
         BTST    #7,(-600).W                     ; $00DCFE
-        BNE.W  .loc_006C                        ; $00DD04
+        BNE.W  .send_sprite_data                ; $00DD04
         MOVEA.L #$0603A600,A0                   ; $00DD08
         MOVEQ   #$00,D3                         ; $00DD0E
         MOVE.W  #$0004,D4                       ; $00DD10
-.loc_0044:
+.overlay_loop:
         BTST    D3,(-4345).W                    ; $00DD14
-        BEQ.S  .loc_0066                        ; $00DD18
+        BEQ.S  .next_overlay                    ; $00DD18
         LEA     $0088DEB6,A1                    ; $00DD1A
         MOVE.W  D3,D0                           ; $00DD20
         ADD.W   D0,D0                           ; $00DD22
@@ -44,10 +44,10 @@ sh2_object_and_sprite_update_orch:
         MOVE.W  #$0010,D0                       ; $00DD2A
         MOVE.W  #$0010,D1                       ; $00DD2E
         DC.W    $6100,$0626         ; BSR.W  $00E35A; $00DD32
-.loc_0066:
+.next_overlay:
         ADDQ.W  #1,D3                           ; $00DD36
-        DBRA    D4,.loc_0044                    ; $00DD38
-.loc_006C:
+        DBRA    D4,.overlay_loop                ; $00DD38
+.send_sprite_data:
         MOVEA.L #$0603B600,A0                   ; $00DD3C
         MOVEA.L #$24014010,A1                   ; $00DD42
         MOVE.W  #$0120,D0                       ; $00DD48
@@ -69,9 +69,9 @@ sh2_object_and_sprite_update_orch:
         ADD.W   D0,D0                           ; $00DD78
         ADDA.L  D0,A2                           ; $00DD7A
         BTST    #7,(-600).W                     ; $00DD7C
-        BEQ.W  .loc_00BC                        ; $00DD82
+        BEQ.W  .use_text_addr                   ; $00DD82
         LEA     $0088DECA,A2                    ; $00DD86
-.loc_00BC:
+.use_text_addr:
         jsr     ByteProcessLoop(pc)     ; $4EBA $06D8
         LEA     $240348E8,A1                    ; $00DD90
         LEA     (-1464).W,A2                    ; $00DD96
@@ -93,9 +93,9 @@ sh2_object_and_sprite_update_orch:
         ADDQ.W  #4,D0                           ; $00DDBC
         ADDA.L  D0,A2                           ; $00DDBE
         BTST    #7,(-600).W                     ; $00DDC0
-        BEQ.W  .loc_0100                        ; $00DDC6
+        BEQ.W  .use_text_addr_2                 ; $00DDC6
         LEA     $0088DECA,A2                    ; $00DDCA
-.loc_0100:
+.use_text_addr_2:
         jsr     ByteProcessLoop(pc)     ; $4EBA $0694
         MOVEQ   #$00,D0                         ; $00DDD4
         MOVE.B  (-24551).W,D0                   ; $00DDD6
@@ -108,46 +108,46 @@ sh2_object_and_sprite_update_orch:
         MOVE.W  $04(A1,D0.W),D0                 ; $00DDEC
         MOVE.W  #$0030,D1                       ; $00DDF0
         MOVE.W  #$0010,D2                       ; $00DDF4
-.loc_0128:
+.wait_comm_ready_2:
         TST.B  COMM0_HI                        ; $00DDF8
-        BNE.S  .loc_0128                        ; $00DDFE
+        BNE.S  .wait_comm_ready_2               ; $00DDFE
         bsr.w   sh2_cmd_27              ; $6100 $05B2
         MOVE.W  #$0018,$00FF0008                ; $00DE04
         CMPI.W  #$0001,(-24532).W               ; $00DE0C
-        BEQ.W  .loc_0198                        ; $00DE12
+        BEQ.W  .check_fade_done                 ; $00DE12
         CMPI.W  #$0002,(-24532).W               ; $00DE16
-        BEQ.W  .loc_01A8                        ; $00DE1C
+        BEQ.W  .check_fade_complete             ; $00DE1C
         MOVE.W  (-14228).W,D1                   ; $00DE20
         ANDI.B  #$E0,D1                         ; $00DE24
-        BNE.S  .loc_0170                        ; $00DE28
+        BNE.S  .begin_fadeout                    ; $00DE28
         MOVE.W  (-14228).W,D1                   ; $00DE2A
         ANDI.B  #$10,D1                         ; $00DE2E
-        BNE.S  .loc_016C                        ; $00DE32
+        BNE.S  .set_exit_flag                   ; $00DE32
         SUBQ.W  #8,(-14210).W                   ; $00DE34
-        BRA.W  .loc_01C0                        ; $00DE38
-.loc_016C:
+        BRA.W  .finish                          ; $00DE38
+.set_exit_flag:
         ST      (-24552).W                      ; $00DE3C
-.loc_0170:
+.begin_fadeout:
         MOVE.B  #$A8,(-14172).W                 ; $00DE40
         MOVE.B  #$01,(-14327).W                 ; $00DE46
         MOVE.B  #$01,(-14326).W                 ; $00DE4C
         BSET    #7,(-14322).W                   ; $00DE52
         MOVE.B  #$01,(-14334).W                 ; $00DE58
         MOVE.W  #$0002,(-24532).W               ; $00DE5E
-        BRA.W  .loc_01BC                        ; $00DE64
-.loc_0198:
+        BRA.W  .dec_timer                       ; $00DE64
+.check_fade_done:
         BTST    #6,(-14322).W                   ; $00DE68
-        BNE.S  .loc_01BC                        ; $00DE6E
+        BNE.S  .dec_timer                       ; $00DE6E
         CLR.W  (-24532).W                       ; $00DE70
-        BRA.W  .loc_01BC                        ; $00DE74
-.loc_01A8:
+        BRA.W  .dec_timer                       ; $00DE74
+.check_fade_complete:
         BTST    #7,(-14322).W                   ; $00DE78
-        BNE.S  .loc_01BC                        ; $00DE7E
+        BNE.S  .dec_timer                       ; $00DE7E
         CLR.W  (-24532).W                       ; $00DE80
         ADDQ.W  #4,(-14210).W                   ; $00DE84
-        BRA.W  .loc_01C0                        ; $00DE88
-.loc_01BC:
+        BRA.W  .finish                          ; $00DE88
+.dec_timer:
         SUBQ.W  #8,(-14210).W                   ; $00DE8C
-.loc_01C0:
+.finish:
         MOVE.B  #$01,(-14303).W                 ; $00DE90
         RTS                                     ; $00DE96

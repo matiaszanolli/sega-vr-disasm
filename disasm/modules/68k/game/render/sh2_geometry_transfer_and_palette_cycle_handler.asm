@@ -26,12 +26,12 @@ sh2_geometry_transfer_and_palette_cycle_handler:
         DC.W    $4EBA,$F9F2         ; JSR     $00E35A(PC); $00E966
         MOVEQ   #$00,D0                         ; $00E96A
         TST.B  (-24550).W                       ; $00E96C
-        BNE.S  .loc_003E                        ; $00E970
+        BNE.S  .use_secondary_palette             ; $00E970
         MOVE.B  (-24551).W,D0                   ; $00E972
-        BRA.S  .loc_0042                        ; $00E976
-.loc_003E:
+        BRA.S  .palette_selected                 ; $00E976
+.use_secondary_palette:
         MOVE.B  (-24546).W,D0                   ; $00E978
-.loc_0042:
+.palette_selected:
         MOVE.W  D0,D1                           ; $00E97C
         ADD.W  D1,D1                           ; $00E97E
         ADD.W  D1,D1                           ; $00E980
@@ -39,27 +39,27 @@ sh2_geometry_transfer_and_palette_cycle_handler:
         LEA     $0088EACE,A1                    ; $00E988
         MOVEA.L $00(A1,D1.W),A1                 ; $00E98E
         MOVE.W  #$007F,D1                       ; $00E992
-.loc_005C:
+.copy_palette_word:
         MOVE.W  (A1)+,(A0)+                     ; $00E996
-        DBRA    D1,.loc_005C                    ; $00E998
+        DBRA    D1,.copy_palette_word              ; $00E998
         LEA     $0088EAC2,A0                    ; $00E99C
         ADD.W  D0,D0                           ; $00E9A2
         ADD.W  D0,D0                           ; $00E9A4
         MOVEA.L $00(A0,D0.W),A0                 ; $00E9A6
         MOVE.L  (-24556).W,D0                   ; $00E9AA
         JSR     (A0)                            ; $00E9AE
-.loc_0076:
+.wait_ack:
         BTST    #1,COMM1_LO                     ; $00E9B0: Poll ack bit
-        BEQ.S  .loc_0076                        ; $00E9B8
+        BEQ.S  .wait_ack                        ; $00E9B8
         BCLR    #1,COMM1_LO                     ; $00E9BA: Clear ack bit
         LEA     $00FF60C8,A1                    ; $00E9C2: Source buffer
         LEA     MARS_FIFO,A2                    ; $00E9C8: FIFO register
         MOVE.W  #$0043,D7                       ; $00E9CE: 68 words
-.loc_0098:
+.fifo_transfer:
         BTST    #7,MARS_DREQ_CTRL+1             ; $00E9D2: Wait FIFO not full
-        BNE.S  .loc_0098                        ; $00E9DA
+        BNE.S  .fifo_transfer                   ; $00E9DA
         MOVE.W  (A1)+,(A2)                      ; $00E9DC
-        DBRA    D7,.loc_0098                    ; $00E9DE
+        DBRA    D7,.fifo_transfer               ; $00E9DE
         MOVE.L  (-24556).W,D0                   ; $00E9E2
         ADDI.L  #$00000080,D0                   ; $00E9E6
         ANDI.L  #$0000FFFF,D0                   ; $00E9EC
@@ -69,64 +69,64 @@ sh2_geometry_transfer_and_palette_cycle_handler:
         bsr.w   MemoryInit              ; $6100 $FB2E
         JSR     $0088179E                       ; $00EA00
         TST.W  (-24544).W                       ; $00EA06
-        BNE.W  .loc_017A                        ; $00EA0A
+        BNE.W  .done                             ; $00EA0A
         MOVE.B  (-24551).W,D0                   ; $00EA0E
         MOVE.W  (-14228).W,D1                   ; $00EA12
         BTST    #3,D1                           ; $00EA16
-        BEQ.S  .loc_0108                        ; $00EA1A
+        BEQ.S  .check_left                       ; $00EA1A
         MOVE.B  #$A9,(-14172).W                 ; $00EA1C
         TST.B  (-24550).W                       ; $00EA22
-        BEQ.W  .loc_00FA                        ; $00EA26
+        BEQ.W  .right_primary                    ; $00EA26
         CMPI.B  #$01,D0                         ; $00EA2A
-        BGE.S  .loc_0104                        ; $00EA2E
-        BRA.W  .loc_0100                        ; $00EA30
-.loc_00FA:
+        BGE.S  .right_wrap                       ; $00EA2E
+        BRA.W  .right_increment                  ; $00EA30
+.right_primary:
         CMPI.B  #$02,D0                         ; $00EA34
-        BGE.S  .loc_0104                        ; $00EA38
-.loc_0100:
+        BGE.S  .right_wrap                       ; $00EA38
+.right_increment:
         ADDQ.B  #1,D0                           ; $00EA3A
-        BRA.S  .loc_0176                        ; $00EA3C
-.loc_0104:
+        BRA.S  .store_selection                  ; $00EA3C
+.right_wrap:
         CLR.B  D0                               ; $00EA3E
-        BRA.S  .loc_0176                        ; $00EA40
-.loc_0108:
+        BRA.S  .store_selection                  ; $00EA40
+.check_left:
         BTST    #2,D1                           ; $00EA42
-        BEQ.S  .loc_0130                        ; $00EA46
+        BEQ.S  .check_down                       ; $00EA46
         MOVE.B  #$A9,(-14172).W                 ; $00EA48
         TST.B  D0                               ; $00EA4E
-        BLE.S  .loc_011C                        ; $00EA50
+        BLE.S  .left_at_min                      ; $00EA50
         SUBQ.B  #1,D0                           ; $00EA52
-        BRA.S  .loc_0176                        ; $00EA54
-.loc_011C:
+        BRA.S  .store_selection                  ; $00EA54
+.left_at_min:
         TST.B  (-24550).W                       ; $00EA56
-        BEQ.W  .loc_012A                        ; $00EA5A
+        BEQ.W  .left_wrap_primary                ; $00EA5A
         MOVE.B  #$01,D0                         ; $00EA5E
-        BRA.S  .loc_0176                        ; $00EA62
-.loc_012A:
+        BRA.S  .store_selection                  ; $00EA62
+.left_wrap_primary:
         MOVE.B  #$02,D0                         ; $00EA64
-        BRA.S  .loc_0176                        ; $00EA68
-.loc_0130:
+        BRA.S  .store_selection                  ; $00EA68
+.check_down:
         BTST    #0,D1                           ; $00EA6A
-        BEQ.W  .loc_0152                        ; $00EA6E
+        BEQ.W  .check_up                         ; $00EA6E
         TST.B  (-24550).W                       ; $00EA72
-        BEQ.S  .loc_0176                        ; $00EA76
+        BEQ.S  .store_selection                  ; $00EA76
         MOVE.B  #$A9,(-14172).W                 ; $00EA78
         CLR.B  (-24550).W                       ; $00EA7E
         MOVE.B  D0,(-24547).W                   ; $00EA82
         MOVE.B  (-24546).W,D0                   ; $00EA86
-        BRA.S  .loc_0176                        ; $00EA8A
-.loc_0152:
+        BRA.S  .store_selection                  ; $00EA8A
+.check_up:
         BTST    #1,D1                           ; $00EA8C
-        BEQ.W  .loc_0176                        ; $00EA90
+        BEQ.W  .store_selection                  ; $00EA90
         CMPI.B  #$01,(-24550).W                 ; $00EA94
-        BGE.S  .loc_0176                        ; $00EA9A
+        BGE.S  .store_selection                  ; $00EA9A
         MOVE.B  #$A9,(-14172).W                 ; $00EA9C
         MOVE.B  #$01,(-24550).W                 ; $00EAA2
         MOVE.B  D0,(-24546).W                   ; $00EAA8
         MOVE.B  (-24547).W,D0                   ; $00EAAC
-.loc_0176:
+.store_selection:
         MOVE.B  D0,(-24551).W                   ; $00EAB0
-.loc_017A:
+.done:
         ADDQ.W  #4,(-14210).W                   ; $00EAB4
         MOVE.W  #$0020,$00FF0008                ; $00EAB8
         RTS                                     ; $00EAC0

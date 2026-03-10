@@ -28,9 +28,9 @@
 
 standings_screen_init:
         MOVE.B  #$00,(-24551).W                 ; $013054
-        BRA.W  .loc_0010                        ; $01305A
+        BRA.W  .begin_init                        ; $01305A
         MOVE.B  #$04,(-24551).W                 ; $01305E
-.loc_0010:
+.begin_init:
         MOVE.W  #$002C,$00FF0008                ; $013064
         MOVE.W  #$002C,(-14214).W               ; $01306C
         BCLR    #6,(-14219).W                   ; $013072
@@ -44,19 +44,19 @@ standings_screen_init:
         MOVEQ   #$00,D0                         ; $0130A4
         LEA     (-31616).W,A0                   ; $0130A6
         MOVEQ   #$1F,D1                         ; $0130AA
-.loc_0058:
+.clear_ram_loop:
         MOVE.L  D0,(A0)+                        ; $0130AC
-        DBRA    D1,.loc_0058                    ; $0130AE
+        DBRA    D1,.clear_ram_loop                    ; $0130AE
         LEA     $00FF7B80,A0                    ; $0130B2
         MOVEQ   #$7F,D1                         ; $0130B8
-.loc_0066:
+.clear_ext_ram_loop:
         MOVE.L  D0,(A0)+                        ; $0130BA
-        DBRA    D1,.loc_0066                    ; $0130BC
+        DBRA    D1,.clear_ext_ram_loop                    ; $0130BC
         MOVE.L  #$60000002,(A5)                 ; $0130C0
         MOVE.W  #$17FF,D1                       ; $0130C6
-.loc_0076:
+.clear_vram_loop:
         MOVE.L  D0,(A6)                         ; $0130CA
-        DBRA    D1,.loc_0076                    ; $0130CC
+        DBRA    D1,.clear_vram_loop                    ; $0130CC
         JSR     $008849AA                       ; $0130D0
         CLR.W  (-14208).W                       ; $0130D6
         CLR.W  (-14206).W                       ; $0130DA
@@ -73,9 +73,9 @@ standings_screen_init:
         MOVE.W  #$0001,(-24536).W               ; $013114
         LEA     $00FF1000,A0                    ; $01311A
         MOVE.W  #$037F,D0                       ; $013120
-.loc_00D0:
+.clear_tilemap:
         CLR.L  (A0)+                            ; $013124
-        DBRA    D0,.loc_00D0                    ; $013126
+        DBRA    D0,.clear_tilemap                    ; $013126
         MOVE.W  #$0001,D0                       ; $01312A
         MOVE.W  #$0001,D1                       ; $01312E
         MOVE.W  #$0001,D2                       ; $013132
@@ -91,11 +91,11 @@ standings_screen_init:
         ADDA.L  #$00000160,A0                   ; $013164
         LEA     $00893292,A1                    ; $01316A
         MOVE.W  #$003F,D0                       ; $013170
-.loc_0120:
+.copy_palette_loop:
         MOVE.W  (A1)+,D1                        ; $013174
         BSET    #15,D1                          ; $013176
         MOVE.W  D1,(A0)+                        ; $01317A
-        DBRA    D0,.loc_0120                    ; $01317C
+        DBRA    D0,.copy_palette_loop                    ; $01317C
         LEA     $00FF6E00,A0                    ; $013180
         ADDA.L  #$00000020,A0                   ; $013186
         MOVE.W  #$0000,(A0)                     ; $01318C

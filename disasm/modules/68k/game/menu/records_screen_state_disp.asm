@@ -42,9 +42,9 @@ records_screen_state_disp:
         DC.W    $56B5                           ; $011F62
         DC.W    $7FFF                           ; $011F64
         DC.W    $5EF7                           ; $011F66
-        BLS.S  .loc_004A                        ; $011F68
+        BLS.S  .data_004A                        ; $011F68
         DC.W    $7FFF                           ; $011F6A
-        BMI.S  .loc_0090                        ; $011F6C
+        BMI.S  .data_0090                        ; $011F6C
         DC.W    $6F7B                           ; $011F6E
         DC.W    $7FFF                           ; $011F70
         DC.W    $7FFF                           ; $011F72
@@ -55,7 +55,7 @@ records_screen_state_disp:
         DC.W    $7FFF                           ; $011F7C
         DC.W    $7FFF                           ; $011F7E
         DC.W    $7FFF                           ; $011F80
-.loc_004A:
+.data_004A:
         DC.W    $7FFF                           ; $011F82
         DC.W    $7FFF                           ; $011F84
         DC.W    $7FFF                           ; $011F86
@@ -64,19 +64,19 @@ records_screen_state_disp:
         DC.W    $7FFF                           ; $011F8C
         DC.W    $7FFF                           ; $011F8E
         DC.W    $7FFF                           ; $011F90
-.loc_005A:
+.data_005A:
         DC.W    $7FFF                           ; $011F92
         DC.W    $7FFF                           ; $011F94
         DC.W    $6337                           ; $011F96
         DC.W    $6737                           ; $011F98
         BMI.S  $011FF4                          ; $011F9A
         DC.W    $6F79                           ; $011F9C
-.loc_0066:
+.data_0066:
         NEG.W  D5                               ; $011F9E
         SUBQ.B  #8,$6212(A3)                    ; $011FA0
-        BGT.S  .loc_0066                        ; $011FA4
+        BGT.S  .data_0066                        ; $011FA4
         DC.W    $739A                           ; $011FA6
-        BSR.S  .loc_005A                        ; $011FA8
+        BSR.S  .data_005A                        ; $011FA8
         DC.W    $7FFF                           ; $011FAA
         DC.W    $7FFF                           ; $011FAC
         DC.W    $7FFF                           ; $011FAE
@@ -91,7 +91,7 @@ records_screen_state_disp:
         ADDQ.B  #4,D0                           ; $011FC0
         BCLR    D0,D0                           ; $011FC2
         ANDI.B  #$0E,D0                         ; $011FC4
-.loc_0090:
+.data_0090:
         DC.W    $0014                           ; $011FC8
         DC.W    $1CFB                           ; $011FCA
         DC.W    $7FFF                           ; $011FCC
@@ -123,19 +123,19 @@ records_screen_state_disp:
         MOVE.L  A6,$7FFF(A4)                    ; $01200A
         DC.W    $0000                           ; $01200E
         RTE                                     ; $012010
-.loc_00DA:
+.data_00DA:
         DC.W    $6739                           ; $012012
         DC.W    $7FFF                           ; $012014
         DC.W    $6337                           ; $012016
         DC.W    $6737                           ; $012018
         BMI.S  $012074                          ; $01201A
         DC.W    $6F79               ; DC.W    $6F79; $01201C
-        BMI.S  .loc_011E                        ; $01201E
+        BMI.S  .dispatch                        ; $01201E
         DC.W    $6B37                           ; $012020
-        BLE.S  .loc_0144                        ; $012022
+        BLE.S  .check_state_advance                        ; $012022
         DC.W    $6F79               ; DC.W    $6F79; $012024
         DC.W    $739A                           ; $012026
-        BSR.S  .loc_00DA                        ; $012028
+        BSR.S  .data_00DA                        ; $012028
         DC.W    $7FFF                           ; $01202A
         DC.W    $7FFF                           ; $01202C
         DC.W    $7FFF                           ; $01202E
@@ -146,10 +146,10 @@ records_screen_state_disp:
         DC.W    $29A8                           ; $012038
         DC.W    $4670                           ; $01203A
         DC.W    $6337                           ; $01203C
-.loc_0106:
+.data_0106:
         NEG.W  D5                               ; $01203E
         SUBQ.B  #8,$6212(A3)                    ; $012040
-        BGT.S  .loc_0106                        ; $012044
+        BGT.S  .data_0106                        ; $012044
         DC.W    $7FFF                           ; $012046
         BTST    D1,(A7)+                        ; $012048
         DC.W    $7FFF                           ; $01204A
@@ -158,7 +158,7 @@ records_screen_state_disp:
         DC.W    $7FFF                           ; $012050
         DC.W    $7FFF                           ; $012052
         DC.W    $7FFF                           ; $012054
-.loc_011E:
+.dispatch:
         JSR     $00882080                       ; $012056
         MOVE.W  (-14210).W,D0                   ; $01205C
         MOVEA.L $012066(PC,D0.W),A1             ; $012060
@@ -171,8 +171,8 @@ records_screen_state_disp:
         MOVE.L  A4,-(A2)                        ; $012070
         jsr     object_update(pc)       ; $4EBA $9610
         BTST    #6,(-14322).W                   ; $012076
-.loc_0144:
-        BNE.S  .loc_014A                        ; $01207C
+.check_state_advance:
+        BNE.S  .done                        ; $01207C
         ADDQ.W  #4,(-14210).W                   ; $01207E
-.loc_014A:
+.done:
         RTS                                     ; $012082

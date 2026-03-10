@@ -22,40 +22,40 @@ tile_bit_stream_unpacker:
         MOVE.W  A3,D3                           ; $0012F4
         MOVE.B  D4,D1                           ; $0012F6
         ADD.B   D1,D1                           ; $0012F8
-        BCC.S  .loc_0012                        ; $0012FA
+        BCC.S  .test_bit_14                        ; $0012FA
         SUBQ.W  #1,D6                           ; $0012FC
         BTST    D6,D5                           ; $0012FE
-        BEQ.S  .loc_0012                        ; $001300
+        BEQ.S  .test_bit_14                        ; $001300
         ORI.W  #$8000,D3                        ; $001302
-.loc_0012:
+.test_bit_14:
         ADD.B   D1,D1                           ; $001306
-        BCC.S  .loc_0020                        ; $001308
+        BCC.S  .test_bit_13                        ; $001308
         SUBQ.W  #1,D6                           ; $00130A
         BTST    D6,D5                           ; $00130C
-        BEQ.S  .loc_0020                        ; $00130E
+        BEQ.S  .test_bit_13                        ; $00130E
         ADDI.W  #$4000,D3                       ; $001310
-.loc_0020:
+.test_bit_13:
         ADD.B   D1,D1                           ; $001314
-        BCC.S  .loc_002E                        ; $001316
+        BCC.S  .test_bit_12                        ; $001316
         SUBQ.W  #1,D6                           ; $001318
         BTST    D6,D5                           ; $00131A
-        BEQ.S  .loc_002E                        ; $00131C
+        BEQ.S  .test_bit_12                        ; $00131C
         ADDI.W  #$2000,D3                       ; $00131E
-.loc_002E:
+.test_bit_12:
         ADD.B   D1,D1                           ; $001322
-        BCC.S  .loc_003C                        ; $001324
+        BCC.S  .test_bit_11                        ; $001324
         SUBQ.W  #1,D6                           ; $001326
         BTST    D6,D5                           ; $001328
-        BEQ.S  .loc_003C                        ; $00132A
+        BEQ.S  .test_bit_11                        ; $00132A
         ORI.W  #$1000,D3                        ; $00132C
-.loc_003C:
+.test_bit_11:
         ADD.B   D1,D1                           ; $001330
-        BCC.S  .loc_004A                        ; $001332
+        BCC.S  .handle_boundary                        ; $001332
         SUBQ.W  #1,D6                           ; $001334
         BTST    D6,D5                           ; $001336
-        BEQ.S  .loc_004A                        ; $001338
+        BEQ.S  .handle_boundary                        ; $001338
         ORI.W  #$0800,D3                        ; $00133A
-.loc_004A:
+.handle_boundary:
         MOVE.W  D5,D1                           ; $00133E
         MOVE.W  D6,D7                           ; $001340
         SUB.W  A5,D7                            ; $001342

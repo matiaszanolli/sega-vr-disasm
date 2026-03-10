@@ -18,34 +18,34 @@
 fm_special_channel_cleanup:
         LEA     $0340(A6),A5                    ; $0309F2
         TST.B  (A5)                             ; $0309F6
-        BPL.S  .loc_0032                        ; $0309F8
+        BPL.S  .cleanup_noise                   ; $0309F8
         BCLR    #7,(A5)                         ; $0309FA
         BTST    #2,(A5)                         ; $0309FE
-        BNE.S  .loc_0032                        ; $030A02
+        BNE.S  .cleanup_noise                   ; $030A02
         jsr     fm_init_channel+12(pc)  ; $4EBA $0290
         LEA     $0100(A6),A5                    ; $030A08
         BCLR    #2,(A5)                         ; $030A0C
         BSET    #1,(A5)                         ; $030A10
         TST.B  (A5)                             ; $030A14
-        BPL.S  .loc_0032                        ; $030A16
+        BPL.S  .cleanup_noise                   ; $030A16
         MOVEA.L $0030(A6),A1                    ; $030A18
         MOVE.B  $000B(A5),D0                    ; $030A1C
         jsr     fm_instrument_reg_write+52(pc); $4EBA $08C6
-.loc_0032:
+.cleanup_noise:
         LEA     $0370(A6),A5                    ; $030A24
         TST.B  (A5)                             ; $030A28
-        BPL.S  .loc_0068                        ; $030A2A
+        BPL.S  .done                            ; $030A2A
         BCLR    #7,(A5)                         ; $030A2C
         BTST    #2,(A5)                         ; $030A30
-        BNE.S  .loc_0068                        ; $030A34
+        BNE.S  .done                            ; $030A34
         jsr     psg_set_pos_silence+22(pc); $4EBA $0580
         LEA     $01F0(A6),A5                    ; $030A3A
         BCLR    #2,(A5)                         ; $030A3E
         BSET    #1,(A5)                         ; $030A42
         TST.B  (A5)                             ; $030A46
-        BPL.S  .loc_0068                        ; $030A48
+        BPL.S  .done                            ; $030A48
         CMPI.B  #$E0,$0001(A5)                  ; $030A4A
-        BNE.S  .loc_0068                        ; $030A50
+        BNE.S  .done                            ; $030A50
         MOVE.B  $0025(A5),PSG             ; $030A52
-.loc_0068:
+.done:
         RTS                                     ; $030A5A

@@ -44,9 +44,9 @@ scene_param_adjustment_and_dma_upload:
         CLR.W  D0                               ; $00DAE2
         MOVE.B  (-24551).W,D0                   ; $00DAE4
         TST.B  (-24537).W                       ; $00DAE8
-        BEQ.W  .loc_0064                        ; $00DAEC
+        BEQ.W  .palette_index_ready                        ; $00DAEC
         MOVE.B  (-24539).W,D0                   ; $00DAF0
-.loc_0064:
+.palette_index_ready:
         ADD.W   D0,D0                           ; $00DAF4
         MOVE.W  D0,D1                           ; $00DAF6
         ADD.W   D0,D0                           ; $00DAF8
@@ -61,110 +61,110 @@ scene_param_adjustment_and_dma_upload:
         MOVE.W  (-14226).W,D1                   ; $00DB22
         LSR.L  #8,D1                            ; $00DB26
         BTST    #7,D1                           ; $00DB28
-        BEQ.W  .loc_01CE                        ; $00DB2C
+        BEQ.W  .write_back_params                        ; $00DB2C
         BTST    #5,D1                           ; $00DB30
-        BNE.W  .loc_0174                        ; $00DB34
+        BNE.W  .extended_axis_mode                        ; $00DB34
         BTST    #0,D1                           ; $00DB38
-        BEQ.S  .loc_00CA                        ; $00DB3C
+        BEQ.S  .check_y_dec                        ; $00DB3C
         MOVE.W  (-24548).W,D0                   ; $00DB3E
         bsr.w   positive_velocity_step_small_inc; $6100 $0168
         CMPI.W  #$02F0,D0                       ; $00DB46
-        BLT.W  .loc_00C2                        ; $00DB4A
+        BLT.W  .store_y_inc                        ; $00DB4A
         MOVE.W  #$02F0,D0                       ; $00DB4E
-.loc_00C2:
+.store_y_inc:
         MOVE.W  D0,(-24548).W                   ; $00DB52
-        BRA.W  .loc_01CE                        ; $00DB56
-.loc_00CA:
+        BRA.W  .write_back_params                        ; $00DB56
+.check_y_dec:
         BTST    #1,D1                           ; $00DB5A
-        BEQ.S  .loc_00EC                        ; $00DB5E
+        BEQ.S  .check_x_inc                        ; $00DB5E
         MOVE.W  (-24548).W,D0                   ; $00DB60
         bsr.w   negative_velocity_step_small_dec; $6100 $0158
         CMPI.W  #$FBFE,D0                       ; $00DB68
-        BGT.W  .loc_00E4                        ; $00DB6C
+        BGT.W  .store_y_dec                        ; $00DB6C
         MOVE.W  #$FBFE,D0                       ; $00DB70
-.loc_00E4:
+.store_y_dec:
         MOVE.W  D0,(-24548).W                   ; $00DB74
-        BRA.W  .loc_01CE                        ; $00DB78
-.loc_00EC:
+        BRA.W  .write_back_params                        ; $00DB78
+.check_x_inc:
         BTST    #3,D1                           ; $00DB7C
-        BEQ.S  .loc_010E                        ; $00DB80
+        BEQ.S  .check_x_dec                        ; $00DB80
         MOVE.W  (-24550).W,D0                   ; $00DB82
         bsr.w   positive_velocity_step_small_inc; $6100 $0124
         CMPI.W  #$0120,D0                       ; $00DB8A
-        BLT.W  .loc_0106                        ; $00DB8E
+        BLT.W  .store_x_inc                        ; $00DB8E
         MOVE.W  #$0120,D0                       ; $00DB92
-.loc_0106:
+.store_x_inc:
         MOVE.W  D0,(-24550).W                   ; $00DB96
-        BRA.W  .loc_01CE                        ; $00DB9A
-.loc_010E:
+        BRA.W  .write_back_params                        ; $00DB9A
+.check_x_dec:
         BTST    #2,D1                           ; $00DB9E
-        BEQ.S  .loc_0130                        ; $00DBA2
+        BEQ.S  .check_z_inc                        ; $00DBA2
         MOVE.W  (-24550).W,D0                   ; $00DBA4
         bsr.w   negative_velocity_step_small_dec; $6100 $0114
         CMPI.W  #$FEE0,D0                       ; $00DBAC
-        BGT.W  .loc_0128                        ; $00DBB0
+        BGT.W  .store_x_dec                        ; $00DBB0
         MOVE.W  #$FEE0,D0                       ; $00DBB4
-.loc_0128:
+.store_x_dec:
         MOVE.W  D0,(-24550).W                   ; $00DBB8
-        BRA.W  .loc_01CE                        ; $00DBBC
-.loc_0130:
+        BRA.W  .write_back_params                        ; $00DBBC
+.check_z_inc:
         BTST    #6,D1                           ; $00DBC0
-        BEQ.S  .loc_0152                        ; $00DBC4
+        BEQ.S  .check_z_dec                        ; $00DBC4
         MOVE.W  (-24546).W,D0                   ; $00DBC6
         bsr.w   positive_velocity_step_small_inc; $6100 $00E0
         CMPI.W  #$0460,D0                       ; $00DBCE
-        BLT.W  .loc_014A                        ; $00DBD2
+        BLT.W  .store_z_inc                        ; $00DBD2
         MOVE.W  #$0460,D0                       ; $00DBD6
-.loc_014A:
+.store_z_inc:
         MOVE.W  D0,(-24546).W                   ; $00DBDA
-        BRA.W  .loc_01CE                        ; $00DBDE
-.loc_0152:
+        BRA.W  .write_back_params                        ; $00DBDE
+.check_z_dec:
         BTST    #4,D1                           ; $00DBE2
-        BEQ.S  .loc_01CE                        ; $00DBE6
+        BEQ.S  .write_back_params                        ; $00DBE6
         MOVE.W  (-24546).W,D0                   ; $00DBE8
         bsr.w   negative_velocity_step_small_dec; $6100 $00D0
         CMPI.W  #$0050,D0                       ; $00DBF0
-        BGT.W  .loc_016C                        ; $00DBF4
+        BGT.W  .store_z_dec                        ; $00DBF4
         MOVE.W  #$0050,D0                       ; $00DBF8
-.loc_016C:
+.store_z_dec:
         MOVE.W  D0,(-24546).W                   ; $00DBFC
-        BRA.W  .loc_01CE                        ; $00DC00
-.loc_0174:
+        BRA.W  .write_back_params                        ; $00DC00
+.extended_axis_mode:
         BTST    #0,D1                           ; $00DC04
-        BEQ.S  .loc_018A                        ; $00DC08
+        BEQ.S  .check_ext_dec_a                        ; $00DC08
         MOVE.W  (-24544).W,D0                   ; $00DC0A
         bsr.w   positive_velocity_step_small_inc+12; $6100 $00A8
         MOVE.W  D0,(-24544).W                   ; $00DC12
-        BRA.W  .loc_01CE                        ; $00DC16
-.loc_018A:
+        BRA.W  .write_back_params                        ; $00DC16
+.check_ext_dec_a:
         BTST    #1,D1                           ; $00DC1A
-        BEQ.S  .loc_01A0                        ; $00DC1E
+        BEQ.S  .check_ext_inc_b                        ; $00DC1E
         MOVE.W  (-24544).W,D0                   ; $00DC20
         bsr.w   negative_velocity_step_small_dec+12; $6100 $00A4
         MOVE.W  D0,(-24544).W                   ; $00DC28
-        BRA.W  .loc_01CE                        ; $00DC2C
-.loc_01A0:
+        BRA.W  .write_back_params                        ; $00DC2C
+.check_ext_inc_b:
         BTST    #3,D1                           ; $00DC30
-        BEQ.S  .loc_01B6                        ; $00DC34
+        BEQ.S  .check_ext_dec_b                        ; $00DC34
         MOVE.W  (-24542).W,D0                   ; $00DC36
         bsr.w   positive_velocity_step_small_inc+12; $6100 $007C
         MOVE.W  D0,(-24542).W                   ; $00DC3E
-        BRA.W  .loc_01CE                        ; $00DC42
-.loc_01B6:
+        BRA.W  .write_back_params                        ; $00DC42
+.check_ext_dec_b:
         BTST    #2,D1                           ; $00DC46
-        BEQ.S  .loc_01CE                        ; $00DC4A
+        BEQ.S  .write_back_params                        ; $00DC4A
         MOVE.W  (-24542).W,D0                   ; $00DC4C
         bsr.w   negative_velocity_step_small_dec+12; $6100 $0078
         MOVE.W  D0,(-24542).W                   ; $00DC54
-        BRA.W  .loc_01CE                        ; $00DC58
+        BRA.W  .write_back_params                        ; $00DC58
         NOP                                     ; $00DC5C
-.loc_01CE:
+.write_back_params:
         CLR.W  D0                               ; $00DC5E
         MOVE.B  (-24551).W,D0                   ; $00DC60
         TST.B  (-24537).W                       ; $00DC64
-        BEQ.W  .loc_01E0                        ; $00DC68
+        BEQ.W  .writeback_index_ready                        ; $00DC68
         MOVE.B  (-24539).W,D0                   ; $00DC6C
-.loc_01E0:
+.writeback_index_ready:
         ADD.W   D0,D0                           ; $00DC70
         MOVE.W  D0,D1                           ; $00DC72
         ADD.W   D0,D0                           ; $00DC74

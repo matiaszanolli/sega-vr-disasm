@@ -30,20 +30,20 @@ directional_collision_probe:
         jsr     track_data_index_calc_table_lookup(pc); $4EBA $F8EA
         MOVE.L  A1,(A4)                         ; $007B00
         jsr     angle_normalize(pc)     ; $4EBA $F988
-        BNE.S  .loc_0042                        ; $007B06
+        BNE.S  .forward_hit                        ; $007B06
         MOVE.L  #$00000000,(A4)                 ; $007B08
         MOVE.L  #$00000000,$0004(A4)            ; $007B0E
-        BRA.S  .loc_005A                        ; $007B16
-.loc_0042:
+        BRA.S  .probe_adjacent                        ; $007B16
+.forward_hit:
         MOVE.L  A2,$0004(A4)                    ; $007B18
         jsr     plane_eval(pc)          ; $4EBA $FAAA
-        BLE.S  .loc_005A                        ; $007B20
+        BLE.S  .probe_adjacent                        ; $007B20
         MOVE.W  $00C6(A0),D2                    ; $007B22
         EXT.L   D2                              ; $007B26
         ADD.L   D2,D1; $007B28
         ASR.L  #1,D1                            ; $007B2A
         MOVE.W  D1,$00C6(A0)                    ; $007B2C
-.loc_005A:
+.probe_adjacent:
         LEA     $07FF(A3),A3                    ; $007B30
         MOVE.B  (A3)+,D1                        ; $007B34
         EXT.W   D1                              ; $007B36
@@ -53,27 +53,27 @@ directional_collision_probe:
         ADD.W  $0034(A0),D2                     ; $007B40
         jsr     track_data_index_calc_table_lookup(pc); $4EBA $F8A2
         MOVE.L  (A4),D0                         ; $007B48
-        BEQ.S  .loc_008E                        ; $007B4A
+        BEQ.S  .adjacent_new_tile                        ; $007B4A
         CMPA.L  D0,A1                           ; $007B4C
-        BNE.S  .loc_008E                        ; $007B4E
+        BNE.S  .adjacent_new_tile                        ; $007B4E
         MOVEA.L A1,A3                           ; $007B50
         MOVEA.L $0004(A4),A1                    ; $007B52
         jsr     angle_normalize+168(pc) ; $4EBA $F9DC
-        BNE.S  .loc_0092                        ; $007B5A
+        BNE.S  .adjacent_normalized                        ; $007B5A
         MOVEA.L A3,A1                           ; $007B5C
         jsr     angle_normalize+24(pc)  ; $4EBA $F944
-        BRA.S  .loc_0092                        ; $007B62
-.loc_008E:
+        BRA.S  .adjacent_normalized                        ; $007B62
+.adjacent_new_tile:
         jsr     angle_normalize(pc)     ; $4EBA $F926
-.loc_0092:
+.adjacent_normalized:
         jsr     plane_eval(pc)          ; $4EBA $FA5E
-        BLE.S  .loc_00A6                        ; $007B6C
+        BLE.S  .center_probe                        ; $007B6C
         MOVE.W  $00C8(A0),D2                    ; $007B6E
         EXT.L   D2                              ; $007B72
         ADD.L   D2,D1; $007B74
         ASR.L  #1,D1                            ; $007B76
         MOVE.W  D1,$00C8(A0)                    ; $007B78
-.loc_00A6:
+.center_probe:
         MOVE.W  $0030(A0),D1                    ; $007B7C
         MOVE.W  $0034(A0),D2                    ; $007B80
         MOVE.B  #$01,$0055(A0)                  ; $007B84

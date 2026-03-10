@@ -56,21 +56,21 @@ fm_channel_pointer_table_sfx_loader:
         MOVE.B  (A1)+,D7                        ; $0308B0
         SUBQ.B  #1,D7                           ; $0308B2
         MOVEQ   #$30,D6                         ; $0308B4
-.loc_0064:
+.channel_loop:
         MOVE.B  $0001(A1),D4                    ; $0308B6
-        BMI.S  .loc_0076                        ; $0308BA
+        BMI.S  .noise_channel                   ; $0308BA
         BSET    #2,$0100(A6)                    ; $0308BC
         LEA     $0340(A6),A5                    ; $0308C2
-        BRA.S  .loc_0080                        ; $0308C6
-.loc_0076:
+        BRA.S  .setup_channel                   ; $0308C6
+.noise_channel:
         BSET    #2,$01F0(A6)                    ; $0308C8
         LEA     $0370(A6),A5                    ; $0308CE
-.loc_0080:
+.setup_channel:
         MOVEA.L A5,A2                           ; $0308D2
         MOVEQ   #$0B,D0                         ; $0308D4
-.loc_0084:
+.clear_loop:
         CLR.L  (A2)+                            ; $0308D6
-        DBRA    D0,.loc_0084                    ; $0308D8
+        DBRA    D0,.clear_loop                  ; $0308D8
         MOVE.W  (A1)+,(A5)                      ; $0308DC
         MOVE.B  D5,$0002(A5)                    ; $0308DE
         MOVEQ   #$00,D0                         ; $0308E2
@@ -81,20 +81,20 @@ fm_channel_pointer_table_sfx_loader:
         MOVE.B  #$01,$000E(A5)                  ; $0308F0
         MOVE.B  D6,$000D(A5)                    ; $0308F6
         TST.B  D4                               ; $0308FA
-        BMI.S  .loc_00B2                        ; $0308FC
+        BMI.S  .skip_panning                    ; $0308FC
         MOVE.B  #$C0,$0027(A5)                  ; $0308FE
-.loc_00B2:
-        DBRA    D7,.loc_0064                    ; $030904
+.skip_panning:
+        DBRA    D7,.channel_loop                ; $030904
         TST.B  $0250(A6)                        ; $030908
-        BPL.S  .loc_00C2                        ; $03090C
+        BPL.S  .check_ch_0310                   ; $03090C
         BSET    #2,$0340(A6)                    ; $03090E
-.loc_00C2:
+.check_ch_0310:
         TST.B  $0310(A6)                        ; $030914
-        BPL.S  .loc_00E2                        ; $030918
+        BPL.S  .done                            ; $030918
         BSET    #2,$0370(A6)                    ; $03091A
         ORI.B  #$1F,D4                          ; $030920
         MOVE.B  D4,PSG                    ; $030924
         BCHG    #5,D4                           ; $03092A
         MOVE.B  D4,PSG                    ; $03092E
-.loc_00E2:
+.done:
         RTS                                     ; $030934

@@ -28,7 +28,7 @@ proximity_check_with_sine_billboard:
         MOVE.W  (-14110).W,D0                   ; $00388A
         ANDI.W  #$1FFF,D0                       ; $00388E
         MOVE.W  D0,$0020(A2)                    ; $003892
-        BSR.S  .loc_005A                        ; $003896
+        BSR.S  .check_proximity                        ; $003896
         LEA     $0028(A2),A2                    ; $003898
         MOVE.W  (-14110).W,D0                   ; $00389C
         LSL.W  #8,D0                            ; $0038A0
@@ -39,28 +39,28 @@ proximity_check_with_sine_billboard:
         MOVE.W  D0,$0020(A2)                    ; $0038B0
         MOVE.W  #$0000,$0000(A2)                ; $0038B4
         MOVE.W  #$0000,$0010(A2)                ; $0038BA
-.loc_005A:
+.check_proximity:
         MOVE.W  $0030(A0),D2                    ; $0038C0
         MOVE.W  $0034(A0),D4                    ; $0038C4
         MOVE.W  $0032(A0),D5                    ; $0038C8
         SUB.W  (A1),D2                          ; $0038CC
-        BPL.S  .loc_006C                        ; $0038CE
+        BPL.S  .x_positive                        ; $0038CE
         NEG.W  D2                               ; $0038D0
-.loc_006C:
+.x_positive:
         CMP.W  D1,D2                            ; $0038D2
-        BGT.S  .loc_00BC                        ; $0038D4
+        BGT.S  .out_of_range                        ; $0038D4
         SUB.W  $0002(A1),D5                     ; $0038D6
-        BPL.S  .loc_0078                        ; $0038DA
+        BPL.S  .y_positive                        ; $0038DA
         NEG.W  D5                               ; $0038DC
-.loc_0078:
+.y_positive:
         CMP.W  D3,D5                            ; $0038DE
-        BGT.S  .loc_00BC                        ; $0038E0
+        BGT.S  .out_of_range                        ; $0038E0
         SUB.W  $0004(A1),D4                     ; $0038E2
-        BPL.S  .loc_0084                        ; $0038E6
+        BPL.S  .z_positive                        ; $0038E6
         NEG.W  D4                               ; $0038E8
-.loc_0084:
+.z_positive:
         CMP.W  D1,D4                            ; $0038EA
-        BGT.S  .loc_00BC                        ; $0038EC
+        BGT.S  .out_of_range                        ; $0038EC
         MOVE.W  #$0002,$0000(A2)                ; $0038EE
         MOVE.L  (A1)+,$0002(A2)                 ; $0038F4
         MOVE.W  (A1)+,$0006(A2)                 ; $0038F8
@@ -73,5 +73,5 @@ proximity_check_with_sine_billboard:
         MOVE.W  (A1)+,$001E(A2)                 ; $003916
         MOVE.W  (A1)+,$0022(A2)                 ; $00391A
         MOVE.L  (A1)+,$0024(A2)                 ; $00391E
-.loc_00BC:
+.out_of_range:
         RTS                                     ; $003922

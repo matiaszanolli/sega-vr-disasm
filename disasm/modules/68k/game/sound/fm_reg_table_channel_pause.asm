@@ -31,32 +31,32 @@ fm_reg_table_channel_pause:
         MOVEA.L A5,A3                           ; $03159E
         LEA     $0040(A6),A5                    ; $0315A0
         BTST    #7,(A5)                         ; $0315A4
-        BEQ.S  .loc_0022                        ; $0315A8
+        BEQ.S  .fm_loop_init                    ; $0315A8
         BCLR    #7,(A5)                         ; $0315AA
         BSET    #0,(A5)                         ; $0315AE
-.loc_0022:
+.fm_loop_init:
         MOVEQ   #$05,D4                         ; $0315B2
-.loc_0024:
+.fm_loop:
         ADDA.W  D3,A5                           ; $0315B4
         BTST    #7,(A5)                         ; $0315B6
-        BEQ.S  .loc_0042                        ; $0315BA
+        BEQ.S  .next_fm                         ; $0315BA
         BCLR    #7,(A5)                         ; $0315BC
         BSET    #0,(A5)                         ; $0315C0
         MOVE.B  #$B4,D0                         ; $0315C4
         MOVEQ   #$00,D1                         ; $0315C8
         jsr     fm_cond_write_with_bus(pc); $4EBA $F6D6
         jsr     fm_init_channel(pc)     ; $4EBA $F6BA
-.loc_0042:
-        DBRA    D4,.loc_0024                    ; $0315D2
+.next_fm:
+        DBRA    D4,.fm_loop                     ; $0315D2
         MOVEQ   #$02,D4                         ; $0315D6
-.loc_0048:
+.psg_loop:
         ADDA.W  D3,A5                           ; $0315D8
         BTST    #7,(A5)                         ; $0315DA
-        BEQ.S  .loc_005C                        ; $0315DE
+        BEQ.S  .next_psg                        ; $0315DE
         BCLR    #7,(A5)                         ; $0315E0
         BSET    #0,(A5)                         ; $0315E4
         jsr     psg_set_pos_silence+16(pc); $4EBA $F9C8
-.loc_005C:
-        DBRA    D4,.loc_0048                    ; $0315EC
+.next_psg:
+        DBRA    D4,.psg_loop                    ; $0315EC
         MOVEA.L A3,A5                           ; $0315F0
         RTS                                     ; $0315F2

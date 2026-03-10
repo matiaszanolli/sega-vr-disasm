@@ -35,7 +35,7 @@ dual_time_display_orch:
         ADD.W   D0,D0                           ; $008412
         jmp     ai_param_lookup_threshold_check_00b398+36(pc); $4EFA $2FA6
         BTST    #6,$0002(A0)                    ; $008418
-        BEQ.S  .loc_0088                        ; $00841E
+        BEQ.S  .p1_check_countdown                ; $00841E
         ANDI.W  #$BFFF,$0002(A0)                ; $008420
         CLR.W  (-14166).W                       ; $008426
         LEA     (-22528).W,A2                   ; $00842A
@@ -43,10 +43,10 @@ dual_time_display_orch:
         MOVEQ   #$00,D1                         ; $008432
         MOVE.B  (-22048).W,D1                   ; $008434
         jsr     time_array_entry_comparison(pc); $4EBA $00BA
-        BEQ.S  .loc_0062                        ; $00843C
+        BEQ.S  .p1_format_time                  ; $00843C
         MOVE.W  #$0000,(-16306).W               ; $00843E
-        BRA.S  .loc_00A6                        ; $008444
-.loc_0062:
+        BRA.S  .check_p2                        ; $008444
+.p1_format_time:
         ANDI.W  #$BFFF,$0002(A1)                ; $008446
         jsr     fixed_point_threshold_state_marker(pc); $4EBA $00C0
         LEA     $00FF68F8,A1                    ; $008450
@@ -55,20 +55,20 @@ dual_time_display_orch:
         MOVE.B  D1,(A1)+                        ; $008462
         jsr     nibble_unpack(pc)       ; $4EBA $FF34
         LEA     (-24832).W,A1                   ; $008468
-.loc_0088:
+.p1_check_countdown:
         TST.W  (-16306).W                       ; $00846C
-        BEQ.S  .loc_00A6                        ; $008470
+        BEQ.S  .check_p2                        ; $008470
         MOVEQ   #$00,D7                         ; $008472
         SUBQ.W  #1,(-16306).W                   ; $008474
-        BEQ.S  .loc_00A0                        ; $008478
+        BEQ.S  .p1_set_status                   ; $008478
         BTST    #2,(-14165).W                   ; $00847A
-        BNE.S  .loc_00A0                        ; $008480
+        BNE.S  .p1_set_status                   ; $008480
         MOVEQ   #$03,D7                         ; $008482
-.loc_00A0:
+.p1_set_status:
         MOVE.B  D7,$00FF68F0                    ; $008484
-.loc_00A6:
+.check_p2:
         BTST    #6,$0002(A1)                    ; $00848A
-        BEQ.S  .loc_00F0                        ; $008490
+        BEQ.S  .p2_check_countdown              ; $008490
         ANDI.W  #$BFFF,$0002(A1)                ; $008492
         CLR.W  (-14166).W                       ; $008498
         LEA     (-22288).W,A2                   ; $00849C
@@ -76,26 +76,26 @@ dual_time_display_orch:
         MOVEQ   #$00,D1                         ; $0084A4
         MOVE.B  (-22047).W,D1                   ; $0084A6
         jsr     time_array_entry_comparison(pc); $4EBA $0048
-        BEQ.S  .loc_00D4                        ; $0084AE
+        BEQ.S  .p2_format_time                  ; $0084AE
         MOVE.W  #$0000,(-18514).W               ; $0084B0
-        BRA.S  .loc_010E                        ; $0084B6
-.loc_00D4:
+        BRA.S  .done                            ; $0084B6
+.p2_format_time:
         jsr     fixed_point_threshold_state_marker(pc); $4EBA $0054
         LEA     $00FF68F8,A1                    ; $0084BC
         MOVE.L  #$04034070,-$0004(A1)           ; $0084C2
         MOVE.B  D0,-$0007(A1)                   ; $0084CA
         MOVE.B  D1,(A1)+                        ; $0084CE
         jsr     nibble_unpack(pc)       ; $4EBA $FEC8
-.loc_00F0:
+.p2_check_countdown:
         TST.W  (-18514).W                       ; $0084D4
-        BEQ.S  .loc_010E                        ; $0084D8
+        BEQ.S  .done                            ; $0084D8
         MOVEQ   #$00,D7                         ; $0084DA
         SUBQ.W  #1,(-18514).W                   ; $0084DC
-        BEQ.S  .loc_0108                        ; $0084E0
+        BEQ.S  .p2_set_status                   ; $0084E0
         BTST    #2,(-14165).W                   ; $0084E2
-        BNE.S  .loc_0108                        ; $0084E8
+        BNE.S  .p2_set_status                   ; $0084E8
         MOVEQ   #$03,D7                         ; $0084EA
-.loc_0108:
+.p2_set_status:
         MOVE.B  D7,$00FF68F0                    ; $0084EC
-.loc_010E:
+.done:
         RTS                                     ; $0084F2

@@ -21,33 +21,33 @@ fm_channel_resume_panning:
         MOVEA.L A5,A3                           ; $0315F4
         LEA     $0040(A6),A5                    ; $0315F6
         BTST    #0,(A5)                         ; $0315FA
-        BEQ.S  .loc_0020                        ; $0315FE
+        BEQ.S  .fm_loop_init                    ; $0315FE
         BSET    #7,(A5)                         ; $031600
         BCLR    #0,(A5)                         ; $031604
         MOVE.B  #$B4,D0                         ; $031608
         MOVE.B  $0027(A5),D1                    ; $03160C
         jsr     fm_cond_write_with_bus(pc); $4EBA $F690
-.loc_0020:
+.fm_loop_init:
         MOVEQ   #$05,D4                         ; $031614
-.loc_0022:
+.fm_loop:
         ADDA.W  D3,A5                           ; $031616
         BTST    #0,(A5)                         ; $031618
-        BEQ.S  .loc_003E                        ; $03161C
+        BEQ.S  .next_fm                         ; $03161C
         BSET    #7,(A5)                         ; $03161E
         BCLR    #0,(A5)                         ; $031622
         MOVE.B  #$B4,D0                         ; $031626
         MOVE.B  $0027(A5),D1                    ; $03162A
         jsr     fm_cond_write_with_bus(pc); $4EBA $F672
-.loc_003E:
-        DBRA    D4,.loc_0022                    ; $031632
+.next_fm:
+        DBRA    D4,.fm_loop                     ; $031632
         MOVEQ   #$02,D4                         ; $031636
-.loc_0044:
+.psg_loop:
         ADDA.W  D3,A5                           ; $031638
         BTST    #0,(A5)                         ; $03163A
-        BEQ.S  .loc_0054                        ; $03163E
+        BEQ.S  .next_psg                        ; $03163E
         BSET    #7,(A5)                         ; $031640
         BCLR    #0,(A5)                         ; $031644
-.loc_0054:
-        DBRA    D4,.loc_0044                    ; $031648
+.next_psg:
+        DBRA    D4,.psg_loop                    ; $031648
         MOVEA.L A3,A5                           ; $03164C
         RTS                                     ; $03164E

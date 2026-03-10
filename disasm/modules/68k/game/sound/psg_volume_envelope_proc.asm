@@ -17,11 +17,11 @@
 
 psg_volume_envelope_proc:
         TST.B  $000B(A5)                        ; $030F0E
-        BEQ.W  .loc_0072                        ; $030F12
+        BEQ.W  .done                            ; $030F12
         MOVE.B  $0009(A5),D6                    ; $030F16
         MOVEQ   #$00,D0                         ; $030F1A
         MOVE.B  $000B(A5),D0                    ; $030F1C
-        BEQ.S  .loc_0052                        ; $030F20
+        BEQ.S  .write_volume                    ; $030F20
         DC.W    $41FA,$1AD6         ; LEA     $0329FA(PC),A0; $030F22
         SUBQ.W  #1,D0                           ; $030F26
         LSL.W  #2,D0                            ; $030F28
@@ -30,7 +30,7 @@ psg_volume_envelope_proc:
         MOVE.B  $000C(A5),D0                    ; $030F30
         ADDQ.B  #1,$000C(A5)                    ; $030F34
         MOVE.B  $00(A0,D0.W),D0                 ; $030F38
-        BPL.S  .loc_0048                        ; $030F3C
+        BPL.S  .add_delta                       ; $030F3C
         CMPI.B  #$83,D0                         ; $030F3E
         DC.W    $674C               ; BEQ.S  $030F90; $030F42
         CMPI.B  #$81,D0                         ; $030F44
@@ -39,20 +39,20 @@ psg_volume_envelope_proc:
         DC.W    $6752               ; BEQ.S  $030FA2; $030F4E
         CMPI.B  #$80,D0                         ; $030F50
         DC.W    $6754               ; BEQ.S  $030FAA; $030F54
-.loc_0048:
+.add_delta:
         ADD.W   D0,D6                           ; $030F56
         CMPI.B  #$10,D6                         ; $030F58
-        BCS.S  .loc_0052                        ; $030F5C
+        BCS.S  .write_volume                    ; $030F5C
         MOVEQ   #$0F,D6                         ; $030F5E
-.loc_0052:
+.write_volume:
         BTST    #1,(A5)                         ; $030F60
-        BNE.S  .loc_0072                        ; $030F64
+        BNE.S  .done                            ; $030F64
         BTST    #2,(A5)                         ; $030F66
-        BNE.S  .loc_0072                        ; $030F6A
+        BNE.S  .done                            ; $030F6A
         BTST    #4,(A5)                         ; $030F6C
         DC.W    $6610               ; BNE.S  $030F82; $030F70
         OR.B   $0001(A5),D6                     ; $030F72
         ADDI.B  #$10,D6                         ; $030F76
         MOVE.B  D6,PSG                    ; $030F7A
-.loc_0072:
+.done:
         RTS                                     ; $030F80

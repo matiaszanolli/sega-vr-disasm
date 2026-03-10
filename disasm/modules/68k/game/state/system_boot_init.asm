@@ -36,7 +36,7 @@ system_boot_init:
         LEA     $00FF0000,A0                    ; $0006BC
         MOVE.W  #$07FF,D7                       ; $0006C2
         MOVEQ   #$00,D0                         ; $0006C6
-.loc_000C:
+.clear_wram_loop:
         MOVE.L  D0,(A0)+                        ; $0006C8
         MOVE.L  D0,(A0)+                        ; $0006CA
         MOVE.L  D0,(A0)+                        ; $0006CC
@@ -45,20 +45,20 @@ system_boot_init:
         MOVE.L  D0,(A0)+                        ; $0006D2
         MOVE.L  D0,(A0)+                        ; $0006D4
         MOVE.L  D0,(A0)+                        ; $0006D6
-        DBRA    D7,.loc_000C                    ; $0006D8
+        DBRA    D7,.clear_wram_loop                    ; $0006D8
         MOVE.W  #$0000,$1200(A5)                ; $0006DC
         MOVEQ   #$0A,D7                         ; $0006E2
-.loc_0028:
-        DBRA    D7,.loc_0028                    ; $0006E4
+.startup_delay:
+        DBRA    D7,.startup_delay                    ; $0006E4
         LEA     MARS_SYS_BASE,A1                    ; $0006E8
         MOVEQ   #$00,D0                         ; $0006EE
         MOVE.L  D0,$0020(A1)                    ; $0006F0
         MOVE.L  D0,$0024(A1)                    ; $0006F4
         MOVE.B  #$03,$5101(A5)                  ; $0006F8
         MOVEA.L $00880000,A7                    ; $0006FE
-.loc_0048:
+.wait_adapter_free:
         BCLR    #7,(A1)                         ; $000704
-        BNE.S  .loc_0048                        ; $000708
+        BNE.S  .wait_adapter_free                        ; $000708
         MOVEQ   #$00,D0                         ; $00070A
         MOVE.W  D0,$0002(A1)                    ; $00070C
         MOVE.W  D0,$0004(A1)                    ; $000710
@@ -71,24 +71,24 @@ system_boot_init:
         MOVE.W  D0,$0038(A1)                    ; $00072C
         MOVE.W  D0,$0080(A1)                    ; $000730
         MOVE.W  D0,$0082(A1)                    ; $000734
-.loc_007C:
+.wait_fb_access:
         BCLR    #0,$008B(A1)                    ; $000738
-        BNE.S  .loc_007C                        ; $00073E
+        BNE.S  .wait_fb_access                        ; $00073E
         bsr.w   framebuffer_auto_fill_clear+22; $6100 $FF12
-.loc_0088:
+.wait_fb_flip:
         BSET    #0,$008B(A1)                    ; $000744
-        BEQ.S  .loc_0088                        ; $00074A
+        BEQ.S  .wait_fb_flip                        ; $00074A
         bsr.w   framebuffer_auto_fill_clear+22; $6100 $FF06
         BCLR    #0,$008B(A1)                    ; $000750
         bsr.w   gfx_32x_cram_fill       ; $6100 $FF3C
         MOVE.W  #$0040,D0                       ; $00075A
         MOVE.L  $0020(A1),D1                    ; $00075E
         CMPI.L  #$53514552,D1                   ; $000762
-        BEQ.W  .loc_0140                        ; $000768
+        BEQ.W  .set_carry_flag                        ; $000768
         MOVE.W  #$0080,D0                       ; $00076C
         MOVE.L  $0020(A1),D1                    ; $000770
         CMPI.L  #$53444552,D1                   ; $000774
-        BEQ.W  .loc_0140                        ; $00077A
+        BEQ.W  .set_carry_flag                        ; $00077A
         MOVE.L  #$008802A2,($0070).W            ; $00077E
         MOVE.W  #$0002,D0                       ; $000786
         MOVEQ   #$00,D1                         ; $00078A
@@ -97,26 +97,26 @@ system_boot_init:
         LSL.W  #8,D2                            ; $000794
         OR.W    D2,D1                           ; $000796
         BTST    #15,D1                          ; $000798
-        BNE.S  .loc_00EC                        ; $00079C
+        BNE.S  .check_bit6_warm                        ; $00079C
         BTST    #6,D1                           ; $00079E
-        BEQ.W  .loc_0140                        ; $0007A2
-        BRA.S  .loc_00F4                        ; $0007A6
-.loc_00EC:
+        BEQ.W  .set_carry_flag                        ; $0007A2
+        BRA.S  .verify_checksum                        ; $0007A6
+.check_bit6_warm:
         BTST    #6,D1                           ; $0007A8
-        BNE.W  .loc_0140                        ; $0007AC
-.loc_00F4:
+        BNE.W  .set_carry_flag                        ; $0007AC
+.verify_checksum:
         MOVEQ   #$20,D0                         ; $0007B0
         LEA     $00880000,A0                    ; $0007B2
         MOVE.W  $018E(A0),D6                    ; $0007B8
         TST.W  D6                               ; $0007BC
-        BEQ.W  .loc_0114                        ; $0007BE
-.loc_0106:
+        BEQ.W  .checksum_passed                        ; $0007BE
+.wait_checksum_reply:
         MOVE.W  $0028(A1),D2                    ; $0007C2
         CMPI.W  #$0000,D2                       ; $0007C6
-        BEQ.S  .loc_0106                        ; $0007CA
+        BEQ.S  .wait_checksum_reply                        ; $0007CA
         CMP.W  D6,D2                            ; $0007CC
-        BNE.S  .loc_0140                        ; $0007CE
-.loc_0114:
+        BNE.S  .set_carry_flag                        ; $0007CE
+.checksum_passed:
         MOVEQ   #$00,D0                         ; $0007D0
         MOVE.L  D0,$0028(A1)                    ; $0007D2
         MOVE.L  D0,$002C(A1)                    ; $0007D6
@@ -124,44 +124,44 @@ system_boot_init:
         MOVEA.L #$FFFFFFC0,A6                   ; $0007DC
         MOVEM.L (A6),D0/D3/D4/D5/D6/D7/A0/A1/A2/A3/A4/A5/A6; $0007E2
         MOVE    #$0000,CCR                      ; $0007E6
-        BRA.S  .loc_0144                        ; $0007EA
+        BRA.S  .check_boot_type                        ; $0007EA
         LEA     MARS_SYS_BASE,A1                    ; $0007EC
         MOVE.W  D0,$0006(A1)                    ; $0007F2
         MOVE.W  #$8000,D0                       ; $0007F6
-        BRA.S  .loc_0144                        ; $0007FA
-.loc_0140:
+        BRA.S  .check_boot_type                        ; $0007FA
+.set_carry_flag:
         MOVE    #$0001,CCR                      ; $0007FC
-.loc_0144:
-        BCS.S  .loc_016E                        ; $000800
+.check_boot_type:
+        BCS.S  .warm_boot_path                        ; $000800
         LEA     COMM0,A0                    ; $000802
-.loc_014C:
+.wait_master_ok:
         CMPI.L  #$4D5F4F4B,(A0)                 ; $000808
-        BNE.S  .loc_014C                        ; $00080E
-.loc_0154:
+        BNE.S  .wait_master_ok                        ; $00080E
+.wait_slave_ok:
         CMPI.L  #$535F4F4B,$0004(A0)            ; $000810
-        BNE.S  .loc_0154                        ; $000818
+        BNE.S  .wait_slave_ok                        ; $000818
         MOVE.L  #$00000000,(A0)                 ; $00081A
         BTST    #15,D0                          ; $000820
-        BNE.S  .loc_017C                        ; $000824
-        BRA.W  .loc_03CC                        ; $000826
-.loc_016E:
+        BNE.S  .cold_boot_setup                        ; $000824
+        BRA.W  .normal_boot                        ; $000826
+.warm_boot_path:
         BTST    #5,D0                           ; $00082A
         DC.W    $6600,$0678         ; BNE.W  $000EA8; $00082E
         NOP                                     ; $000832
         NOP                                     ; $000834
-        BRA.S  .loc_016E                        ; $000836
-.loc_017C:
+        BRA.S  .warm_boot_path                        ; $000836
+.cold_boot_setup:
         LEA     MARS_SYS_BASE,A4                    ; $000838
         BTST    #0,$0001(A4)                    ; $00083E
-        BEQ.S  .loc_01AA                        ; $000844
+        BEQ.S  .load_bootstrap                        ; $000844
         BTST    #1,$0001(A4)                    ; $000846
-        BNE.S  .loc_01EC                        ; $00084C
+        BNE.S  .full_cold_boot                        ; $00084C
         LEA     $00A10000,A5                    ; $00084E
         MOVEA.L #$FFFFFFC0,A4                   ; $000854
         MOVE.W  #$0F3C,D7                       ; $00085A
         LEA     $008806E4,A1                    ; $00085E
         JMP     (A1)                            ; $000864
-.loc_01AA:
+.load_bootstrap:
         MOVE.L  #$00000000,COMM4            ; $000866
         LEA     $00880894,A0                    ; $000870
         LEA     $00FF0000,A1                    ; $000876
@@ -179,29 +179,29 @@ system_boot_init:
         LEA     $0088084E,A0                    ; $00089A
         ADDA.L  #$00880000,A0                   ; $0008A0
         JMP     (A0)                            ; $0008A6
-.loc_01EC:
+.full_cold_boot:
         MOVE.W  #$1000,D7                       ; $0008A8
-.loc_01F0:
+.wait_vres_handshake:
         CMPI.L  #$56524553,COMM6            ; $0008AC
-        DBEQ    D7,.loc_01F0                    ; $0008B6
-        BEQ.W  .loc_02FA                        ; $0008BA
+        DBEQ    D7,.wait_vres_handshake                    ; $0008B6
+        BEQ.W  .vres_boot_path                        ; $0008BA
         jsr     mars_regs_init_13(pc)   ; $4EBA $1D7E
         ORI.B  #$03,MARS_SYS_INTMASK+1                   ; $0008C2
         LEA     COMM0,A0                    ; $0008CA
-.loc_0214:
+.wait_master_ok_2:
         CMPI.L  #$4D5F4F4B,(A0)                 ; $0008D0
-        BNE.S  .loc_0214                        ; $0008D6
-.loc_021C:
+        BNE.S  .wait_master_ok_2                        ; $0008D6
+.wait_slave_ok_2:
         CMPI.L  #$535F4F4B,$0004(A0)            ; $0008D8
-        BNE.S  .loc_021C                        ; $0008E0
+        BNE.S  .wait_slave_ok_2                        ; $0008E0
         MOVE.L  #$00000000,(A0)                 ; $0008E2
         MOVE    SR,-(A7)                        ; $0008E8
         MOVE    #$2700,SR                       ; $0008EA
         MOVE.W  #$0100,Z80_BUSREQ                ; $0008EE
         MOVE.W  #$0100,Z80_RESET                ; $0008F6
-.loc_0242:
+.wait_z80_bus_1:
         BTST    #0,Z80_BUSREQ                    ; $0008FE
-        BNE.S  .loc_0242                        ; $000906
+        BNE.S  .wait_z80_bus_1                        ; $000906
         LEA     Z80_RAM,A1                    ; $000908
         MOVE.B  #$F3,(A1)+                      ; $00090E
         MOVE.B  #$F3,(A1)+                      ; $000912
@@ -241,23 +241,23 @@ system_boot_init:
         SUBI.B  #$20,D0                         ; $000980
         MOVE.B  D0,PSG                    ; $000984
         MOVE.W  #$0100,Z80_BUSREQ                ; $00098A
-.loc_02D6:
+.wait_z80_bus_snd_1:
         BTST    #0,Z80_BUSREQ                    ; $000992
-        BNE.S  .loc_02D6                        ; $00099A
+        BNE.S  .wait_z80_bus_snd_1                        ; $00099A
         LEA     SRAM_BANK0,A1                    ; $00099C
         TST.B  (A1)                             ; $0009A2
         MOVEQ   #$00,D0                         ; $0009A4
         JSR     ($00C0).W                       ; $0009A6
         MOVE.W  #$0000,Z80_BUSREQ                ; $0009AA
         jmp     system_boot_init+1198(pc); $4EFA $01B6
-.loc_02FA:
+.vres_boot_path:
         MOVE    SR,-(A7)                        ; $0009B6
         MOVE    #$2700,SR                       ; $0009B8
         MOVE.W  #$0100,Z80_BUSREQ                ; $0009BC
         MOVE.W  #$0100,Z80_RESET                ; $0009C4
-.loc_0310:
+.wait_z80_bus_2:
         BTST    #0,Z80_BUSREQ                    ; $0009CC
-        BNE.S  .loc_0310                        ; $0009D4
+        BNE.S  .wait_z80_bus_2                        ; $0009D4
         LEA     Z80_RAM,A1                    ; $0009D6
         MOVE.B  #$F3,(A1)+                      ; $0009DC
         MOVE.B  #$F3,(A1)+                      ; $0009E0
@@ -297,9 +297,9 @@ system_boot_init:
         SUBI.B  #$20,D0                         ; $000A4E
         MOVE.B  D0,PSG                    ; $000A52
         MOVE.W  #$0100,Z80_BUSREQ                ; $000A58
-.loc_03A4:
+.wait_z80_bus_snd_2:
         BTST    #0,Z80_BUSREQ                    ; $000A60
-        BNE.S  .loc_03A4                        ; $000A68
+        BNE.S  .wait_z80_bus_snd_2                        ; $000A68
         LEA     SRAM_BANK0,A1                    ; $000A6A
         TST.B  (A1)                             ; $000A70
         MOVEQ   #$00,D0                         ; $000A72
@@ -307,14 +307,14 @@ system_boot_init:
         MOVE.W  #$0000,Z80_BUSREQ                ; $000A78
         jsr     mars_regs_init_13(pc)   ; $4EBA $1BBC
         jmp     system_boot_init+1198(pc); $4EFA $00E4
-.loc_03CC:
+.normal_boot:
         MOVE    SR,-(A7)                        ; $000A88
         MOVE    #$2700,SR                       ; $000A8A
         MOVE.W  #$0100,Z80_BUSREQ                ; $000A8E
         MOVE.W  #$0100,Z80_RESET                ; $000A96
-.loc_03E2:
+.wait_z80_bus_3:
         BTST    #0,Z80_BUSREQ                    ; $000A9E
-        BNE.S  .loc_03E2                        ; $000AA6
+        BNE.S  .wait_z80_bus_3                        ; $000AA6
         LEA     Z80_RAM,A1                    ; $000AA8
         MOVE.B  #$F3,(A1)+                      ; $000AAE
         MOVE.B  #$F3,(A1)+                      ; $000AB2
@@ -354,9 +354,9 @@ system_boot_init:
         SUBI.B  #$20,D0                         ; $000B20
         MOVE.B  D0,PSG                    ; $000B24
         MOVE.W  #$0100,Z80_BUSREQ                ; $000B2A
-.loc_0476:
+.wait_z80_bus_snd_3:
         BTST    #0,Z80_BUSREQ                    ; $000B32
-        BNE.S  .loc_0476                        ; $000B3A
+        BNE.S  .wait_z80_bus_snd_3                        ; $000B3A
         LEA     SRAM_BANK0,A1                    ; $000B3C
         TST.B  (A1)                             ; $000B42
         MOVEQ   #$00,D0                         ; $000B44
@@ -366,7 +366,7 @@ system_boot_init:
         LEA     VDP_DATA,A6                    ; $000B5A
         LEA     VDP_CTRL,A5                    ; $000B60
         jsr     hardware_init+16(pc)    ; $4EBA $0118
-        JSR     .loc_058C(PC)                   ; $000B6A
+        JSR     .wait_dma_idle(PC)                   ; $000B6A
         jsr     register_restore_from_table(pc); $4EBA $00EA
         LEA     VDP_DATA,A6                    ; $000B72
         LEA     VDP_CTRL,A5                    ; $000B78
@@ -374,9 +374,9 @@ system_boot_init:
         MOVE    #$2700,SR                       ; $000B80
         MOVE.W  #$0100,Z80_BUSREQ                ; $000B84
         MOVE.W  #$0100,Z80_RESET                ; $000B8C
-.loc_04D8:
+.wait_z80_bus_4:
         BTST    #0,Z80_BUSREQ                    ; $000B94
-        BNE.S  .loc_04D8                        ; $000B9C
+        BNE.S  .wait_z80_bus_4                        ; $000B9C
         LEA     Z80_RAM,A1                    ; $000B9E
         MOVE.B  #$F3,(A1)+                      ; $000BA4
         MOVE.B  #$F3,(A1)+                      ; $000BA8
@@ -422,10 +422,10 @@ system_boot_init:
         JSR     $00880FBE                       ; $000C32
         MOVE.L  #$00894262,$00FF0002            ; $000C38
         JMP     $00FF0000                       ; $000C42
-.loc_058C:
+.wait_dma_idle:
         NOP                                     ; $000C48
         NOP                                     ; $000C4A
         MOVE.W  VDP_CTRL,D0                    ; $000C4C
         BTST    #1,D0                           ; $000C52
-        BNE.S  .loc_058C                        ; $000C56
+        BNE.S  .wait_dma_idle                        ; $000C56
         RTS                                     ; $000C58

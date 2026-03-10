@@ -28,46 +28,46 @@ psg_channel_proc:
         DC.W    $043C                           ; $030E34
         DC.W    $047C                           ; $030E36
         SUBQ.B  #1,$000E(A5)                    ; $030E38
-        BNE.S  .loc_002E                        ; $030E3C
+        BNE.S  .timer_active                    ; $030E3C
         BCLR    #4,(A5)                         ; $030E3E
         jsr     psg_channel_proc+62(pc) ; $4EBA $001A
         jsr     psg_channel_proc+162(pc); $4EBA $007A
         DC.W    $6000,$00CA         ; BRA.W  $030F16; $030E4A
-.loc_002E:
+.timer_active:
         jsr     fm_channel_timer_check(pc); $4EBA $F3CA
         jsr     psg_volume_envelope_proc(pc); $4EBA $00BA
         jsr     sound_timer_check(pc)   ; $4EBA $F3EA
         DC.W    $6000,$0072         ; BRA.W  $030ECE; $030E5A
         BCLR    #1,(A5)                         ; $030E5E
         MOVEA.L $0004(A5),A4                    ; $030E62
-.loc_0046:
+.parse_loop:
         MOVEQ   #$00,D5                         ; $030E66
         MOVE.B  (A4)+,D5                        ; $030E68
         CMPI.B  #$E0,D5                         ; $030E6A
-        BCS.S  .loc_0056                        ; $030E6E
+        BCS.S  .not_special                     ; $030E6E
         jsr     psg_freq_table_special_command_disp+180(pc); $4EBA $0222
-        BRA.S  .loc_0046                        ; $030E74
-.loc_0056:
+        BRA.S  .parse_loop                      ; $030E74
+.not_special:
         TST.B  D5                               ; $030E76
-        BPL.S  .loc_006A                        ; $030E78
+        BPL.S  .rest_duration                   ; $030E78
         jsr     psg_channel_proc+114(pc); $4EBA $0016
         MOVE.B  (A4)+,D5                        ; $030E7E
         TST.B  D5                               ; $030E80
-        BPL.S  .loc_006A                        ; $030E82
+        BPL.S  .rest_duration                   ; $030E82
         SUBQ.W  #1,A4                           ; $030E84
         DC.W    $6000,$F34A         ; BRA.W  $0301D2; $030E86
-.loc_006A:
+.rest_duration:
         DC.W    $4EBA,$F326         ; JSR     $0301B2(PC); $030E8A
         DC.W    $6000,$F342         ; BRA.W  $0301D2; $030E8E
         SUBI.B  #$81,D5                         ; $030E92
-        BCS.S  .loc_0090                        ; $030E96
+        BCS.S  .out_of_range                    ; $030E96
         ADD.B  $0008(A5),D5                     ; $030E98
         ANDI.W  #$007F,D5                       ; $030E9C
         LSL.W  #1,D5                            ; $030EA0
         lea     psg_freq_table_special_command_disp(pc),a0; $41FA $013C
         MOVE.W  $00(A0,D5.W),$0010(A5)          ; $030EA6
         DC.W    $6000,$F324         ; BRA.W  $0301D2; $030EAC
-.loc_0090:
+.out_of_range:
         BSET    #1,(A5)                         ; $030EB0
         MOVE.W  #$FFFF,$0010(A5)                ; $030EB4
         DC.W    $4EBA,$F316         ; JSR     $0301D2(PC); $030EBA

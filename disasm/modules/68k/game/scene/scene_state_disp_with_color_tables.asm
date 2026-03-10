@@ -38,19 +38,19 @@ scene_state_disp_with_color_tables:
         DC.W    $3DED                           ; $00F3D2
         DC.W    $7FFF                           ; $00F3D4
         DC.W    $7FFF                           ; $00F3D6
-.loc_003C:
+.color_table_2:
         DC.W    $7FFF                           ; $00F3D8
         DC.W    $7FFF                           ; $00F3DA
         DC.W    $77BA                           ; $00F3DC
         DC.W    $7BBC                           ; $00F3DE
         DC.W    $779A                           ; $00F3E0
         DC.W    $77BC                           ; $00F3E2
-        BMI.S  .loc_0080                        ; $00F3E4
+        BMI.S  .scene_dispatch                        ; $00F3E4
         DC.W    $6B37                           ; $00F3E6
-        BLE.S  .loc_00A6                        ; $00F3E8
+        BLE.S  .check_fade                        ; $00F3E8
         DC.W    $6F79               ; DC.W    $6F79; $00F3EA
         DC.W    $739A                           ; $00F3EC
-        BSR.S  .loc_003C                        ; $00F3EE
+        BSR.S  .color_table_2                        ; $00F3EE
         DC.W    $7FFF                           ; $00F3F0
         DC.W    $7FFF                           ; $00F3F2
         DC.W    $7FFF                           ; $00F3F4
@@ -61,10 +61,10 @@ scene_state_disp_with_color_tables:
         DC.W    $7F7A                           ; $00F3FE
         DC.W    $7FDE                           ; $00F400
         DC.W    $7F9B                           ; $00F402
-.loc_0068:
+.color_table_3:
         NEG.W  D5                               ; $00F404
         SUBQ.B  #8,$6212(A3)                    ; $00F406
-        BGT.S  .loc_0068                        ; $00F40A
+        BGT.S  .color_table_3                        ; $00F40A
         DC.W    $7FFF                           ; $00F40C
         BTST    D1,(A7)+                        ; $00F40E
         DC.W    $7FFF                           ; $00F410
@@ -73,7 +73,7 @@ scene_state_disp_with_color_tables:
         DC.W    $7FFF                           ; $00F416
         DC.W    $7FFF                           ; $00F418
         DC.W    $7FFF                           ; $00F41A
-.loc_0080:
+.scene_dispatch:
         JSR     $00882080                       ; $00F41C
         MOVE.W  (-14210).W,D0                   ; $00F422
         MOVEA.L $00F42C(PC,D0.W),A1             ; $00F426
@@ -86,9 +86,9 @@ scene_state_disp_with_color_tables:
         DC.W    $F85C                           ; $00F436
         jsr     object_update(pc)       ; $4EBA $C24A
         BTST    #6,(-14322).W                   ; $00F43C
-.loc_00A6:
-        BNE.S  .loc_00AE                        ; $00F442
+.check_fade:
+        BNE.S  .done                        ; $00F442
         ADDQ.W  #4,(-14210).W                   ; $00F444
         NOP                                     ; $00F448
-.loc_00AE:
+.done:
         RTS                                     ; $00F44A

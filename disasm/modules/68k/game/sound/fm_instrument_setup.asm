@@ -39,7 +39,7 @@ fm_instrument_setup:
         ADDQ.W  #6,A4                           ; $030648
         MOVEQ   #$00,D7                         ; $03064A
         MOVE.B  $0002(A3),D7                    ; $03064C
-        BEQ.S  .loc_00AC                        ; $030650
+        BEQ.S  .setup_psg                       ; $030650
         SUBQ.B  #1,D7                           ; $030652
         MOVE.B  #$C0,D1                         ; $030654
         MOVE.B  $0004(A3),D4                    ; $030658
@@ -47,7 +47,7 @@ fm_instrument_setup:
         MOVE.B  #$01,D5                         ; $03065E
         LEA     $0040(A6),A1                    ; $030662
         lea     fm_channel_reg_map_instrument_loader_b(pc),a2; $45FA $0124
-.loc_004E:
+.fm_channel_loop:
         BSET    #7,(A1)                         ; $03066A
         MOVE.B  (A2)+,$0001(A1)                 ; $03066E
         MOVE.B  D4,$0002(A1)                    ; $030672
@@ -60,14 +60,14 @@ fm_instrument_setup:
         MOVE.L  D0,$0004(A1)                    ; $030688
         MOVE.W  (A4)+,$0008(A1)                 ; $03068C
         ADDA.W  D6,A1                           ; $030690
-        DBRA    D7,.loc_004E                    ; $030692
+        DBRA    D7,.fm_channel_loop             ; $030692
         CMPI.B  #$07,$0002(A3)                  ; $030696
-        BNE.S  .loc_008C                        ; $03069C
+        BNE.S  .not_dac_mode                    ; $03069C
         MOVEQ   #$2B,D0                         ; $03069E
         MOVEQ   #$00,D1                         ; $0306A0
         jsr     fm_write_wrapper(pc)    ; $4EBA $0616
-        BRA.S  .loc_00AC                        ; $0306A6
-.loc_008C:
+        BRA.S  .setup_psg                       ; $0306A6
+.not_dac_mode:
         MOVEQ   #$28,D0                         ; $0306A8
         MOVEQ   #$06,D1                         ; $0306AA
         jsr     fm_write_wrapper(pc)    ; $4EBA $060C
@@ -76,14 +76,14 @@ fm_instrument_setup:
         jsr     z80_bus_wait(pc)        ; $4EBA $0662
         jsr     fm_write_port_0_1+10(pc); $4EBA $0640
         MOVE.W  #$0000,Z80_BUSREQ                ; $0306C0
-.loc_00AC:
+.setup_psg:
         MOVEQ   #$00,D7                         ; $0306C8
         MOVE.B  $0003(A3),D7                    ; $0306CA
-        BEQ.S  .loc_00EE                        ; $0306CE
+        BEQ.S  .check_effects                   ; $0306CE
         SUBQ.B  #1,D7                           ; $0306D0
         LEA     $0190(A6),A1                    ; $0306D2
         lea     fm_channel_reg_map_instrument_loader_b+8(pc),a2; $45FA $00BC
-.loc_00BE:
+.psg_channel_loop:
         BSET    #7,(A1)                         ; $0306DA
         MOVE.B  (A2)+,$0001(A1)                 ; $0306DE
         MOVE.B  D4,$0002(A1)                    ; $0306E2
@@ -97,56 +97,56 @@ fm_instrument_setup:
         MOVE.B  (A4)+,$000A(A1)                 ; $0306FC
         MOVE.B  (A4)+,$000B(A1)                 ; $030700
         ADDA.W  D6,A1                           ; $030704
-        DBRA    D7,.loc_00BE                    ; $030706
-.loc_00EE:
+        DBRA    D7,.psg_channel_loop             ; $030706
+.check_effects:
         LEA     $0220(A6),A1                    ; $03070A
         MOVEQ   #$05,D7                         ; $03070E
-.loc_00F4:
+.effect_loop:
         TST.B  (A1)                             ; $030710
-        BPL.W  .loc_0116                        ; $030712
+        BPL.W  .next_effect                     ; $030712
         MOVEQ   #$00,D0                         ; $030716
         MOVE.B  $0001(A1),D0                    ; $030718
-        BMI.S  .loc_0108                        ; $03071C
+        BMI.S  .calc_psg_offset                 ; $03071C
         SUBQ.B  #2,D0                           ; $03071E
         LSL.B  #2,D0                            ; $030720
-        BRA.S  .loc_010A                        ; $030722
-.loc_0108:
+        BRA.S  .lookup_pointer                  ; $030722
+.calc_psg_offset:
         LSR.B  #3,D0                            ; $030724
-.loc_010A:
+.lookup_pointer:
         lea     fm_channel_pointer_table_sfx_loader(pc),a0; $41FA $012A
         MOVEA.L $00(A0,D0.W),A0                 ; $03072A
         BSET    #2,(A0)                         ; $03072E
-.loc_0116:
+.next_effect:
         ADDA.W  D6,A1                           ; $030732
-        DBRA    D7,.loc_00F4                    ; $030734
+        DBRA    D7,.effect_loop                 ; $030734
         TST.W  $0340(A6)                        ; $030738
-        BPL.S  .loc_0128                        ; $03073C
+        BPL.S  .check_sfx_0370                  ; $03073C
         BSET    #2,$0100(A6)                    ; $03073E
-.loc_0128:
+.check_sfx_0370:
         TST.W  $0370(A6)                        ; $030744
-        BPL.S  .loc_0134                        ; $030748
+        BPL.S  .fm_init_loop                    ; $030748
         BSET    #2,$01F0(A6)                    ; $03074A
-.loc_0134:
+.fm_init_loop:
         LEA     $0070(A6),A5                    ; $030750
         MOVEQ   #$05,D4                         ; $030754
-.loc_013A:
+.fm_init_next:
         BTST    #2,(A5)                         ; $030756
-        BNE.S  .loc_0144                        ; $03075A
+        BNE.S  .skip_fm_init                    ; $03075A
         jsr     fm_init_channel(pc)     ; $4EBA $052C
-.loc_0144:
+.skip_fm_init:
         ADDA.W  D6,A5                           ; $030760
-        DBRA    D4,.loc_013A                    ; $030762
+        DBRA    D4,.fm_init_next                ; $030762
         MOVEQ   #$02,D4                         ; $030766
-.loc_014C:
+.psg_init_loop:
         BTST    #2,(A5)                         ; $030768
-        BNE.S  .loc_0156                        ; $03076C
+        BNE.S  .skip_psg_init                   ; $03076C
         jsr     psg_set_pos_silence+16(pc); $4EBA $0842
-.loc_0156:
+.skip_psg_init:
         ADDA.W  D6,A5                           ; $030772
-        DBRA    D4,.loc_014C                    ; $030774
+        DBRA    D4,.psg_init_loop               ; $030774
         BTST    #2,$01F0(A6)                    ; $030778
-        BNE.S  .loc_016C                        ; $03077E
+        BNE.S  .done                            ; $03077E
         MOVE.B  #$FF,PSG                  ; $030780
-.loc_016C:
+.done:
         ADDQ.W  #4,A7                           ; $030788
         RTS                                     ; $03078A

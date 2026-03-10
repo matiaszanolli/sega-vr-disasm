@@ -48,12 +48,12 @@ name_entry_screen_init:
         SUBQ.W  #3,(A0)+                        ; $01098A
         SUBQ.W  #4,(A2)+                        ; $01098C
         BSR.S  $0109F2                          ; $01098E
-        BLS.S  .loc_0082                        ; $010990
+        BLS.S  .clear_ram_loop                        ; $010990
         BCS.S  $0109FA                          ; $010992
         BEQ.S  $0109FE                          ; $010994
-        BVS.S  .loc_008E                        ; $010996
-        BMI.S  .loc_0092                        ; $010998
-        BLT.S  .loc_0096                        ; $01099A
+        BVS.S  .clear_ext_ram                        ; $010996
+        BMI.S  .clear_ext_done                        ; $010998
+        BLT.S  .clear_vram                        ; $01099A
         BLE.S  $010A0E                          ; $01099C
         DC.W    $7172                           ; $01099E
         DC.W    $7374                           ; $0109A0
@@ -76,22 +76,22 @@ name_entry_screen_init:
         MOVEQ   #$00,D0                         ; $0109EE
         LEA     (-31616).W,A0                   ; $0109F0
         MOVEQ   #$1F,D1                         ; $0109F4
-.loc_0082:
+.clear_ram_loop:
         MOVE.L  D0,(A0)+                        ; $0109F6
-        DBRA    D1,.loc_0082                    ; $0109F8
+        DBRA    D1,.clear_ram_loop                    ; $0109F8
         LEA     $00FF7B80,A0                    ; $0109FC
-.loc_008E:
+.clear_ext_ram:
         MOVEQ   #$7F,D1                         ; $010A02
-.loc_0090:
+.clear_ext_ram_loop:
         MOVE.L  D0,(A0)+                        ; $010A04
-.loc_0092:
-        DBRA    D1,.loc_0090                    ; $010A06
-.loc_0096:
+.clear_ext_done:
+        DBRA    D1,.clear_ext_ram_loop                    ; $010A06
+.clear_vram:
         MOVE.L  #$60000002,(A5)                 ; $010A0A
         MOVE.W  #$17FF,D1                       ; $010A10
-.loc_00A0:
+.clear_vram_loop:
         MOVE.L  D0,(A6)                         ; $010A14
-        DBRA    D1,.loc_00A0                    ; $010A16
+        DBRA    D1,.clear_vram_loop                    ; $010A16
         JSR     $008849AA                       ; $010A1A
         CLR.W  (-14208).W                       ; $010A20
         CLR.W  (-14206).W                       ; $010A24
@@ -108,9 +108,9 @@ name_entry_screen_init:
         MOVE.W  #$0001,(-24484).W               ; $010A5E
         LEA     $00FF1000,A0                    ; $010A64
         MOVE.W  #$037F,D0                       ; $010A6A
-.loc_00FA:
+.clear_tilemap:
         CLR.L  (A0)+                            ; $010A6E
-        DBRA    D0,.loc_00FA                    ; $010A70
+        DBRA    D0,.clear_tilemap                    ; $010A70
         MOVE.W  #$0001,D0                       ; $010A74
         MOVE.W  #$0001,D1                       ; $010A78
         MOVE.W  #$0001,D2                       ; $010A7C
@@ -126,23 +126,23 @@ name_entry_screen_init:
         ADDA.L  #$00000160,A0                   ; $010AAE
         LEA     $00891062,A1                    ; $010AB4
         MOVE.W  #$003F,D0                       ; $010ABA
-.loc_014A:
+.copy_palette_loop:
         MOVE.W  (A1)+,D1                        ; $010ABE
         BSET    #15,D1                          ; $010AC0
         MOVE.W  D1,(A0)+                        ; $010AC4
-        DBRA    D0,.loc_014A                    ; $010AC6
+        DBRA    D0,.copy_palette_loop                    ; $010AC6
         BTST    #4,(-14322).W                   ; $010ACA
-        BEQ.W  .loc_0182                        ; $010AD0
+        BEQ.W  .skip_ext_palette                        ; $010AD0
         LEA     $00FF6E00,A0                    ; $010AD4
         ADDA.L  #$00000180,A0                   ; $010ADA
         LEA     $008910E2,A1                    ; $010AE0
         MOVE.W  #$000F,D0                       ; $010AE6
-.loc_0176:
+.copy_palette_ext_loop:
         MOVE.W  (A1)+,D1                        ; $010AEA
         BSET    #15,D1                          ; $010AEC
         MOVE.W  D1,(A0)+                        ; $010AF0
-        DBRA    D0,.loc_0176                    ; $010AF2
-.loc_0182:
+        DBRA    D0,.copy_palette_ext_loop                    ; $010AF2
+.skip_ext_palette:
         LEA     $000EC980,A0                    ; $010AF6
         MOVEA.L #$06018000,A1                   ; $010AFC
         DC.W    $4EBA,$D812         ; JSR     $00E316(PC); $010B02
@@ -153,11 +153,11 @@ name_entry_screen_init:
         MOVEA.L #$06018C00,A1                   ; $010B1C
         DC.W    $4EBA,$D7F2         ; JSR     $00E316(PC); $010B22
         BTST    #4,(-14322).W                   ; $010B26
-        BEQ.W  .loc_01CC                        ; $010B2C
+        BEQ.W  .skip_3p_tiles                        ; $010B2C
         LEA     $000ECAB0,A0                    ; $010B30
         MOVEA.L #$06018F80,A1                   ; $010B36
         DC.W    $4EBA,$D7D8         ; JSR     $00E316(PC); $010B3C
-.loc_01CC:
+.skip_3p_tiles:
         LEA     $000EBB40,A0                    ; $010B40
         MOVEA.L #$0601AD00,A1                   ; $010B46
         DC.W    $4EBA,$D7C8         ; JSR     $00E316(PC); $010B4C
@@ -167,13 +167,13 @@ name_entry_screen_init:
         MOVEQ   #$00,D0                         ; $010B60
         MOVE.B  (-335).W,D0                     ; $010B62
         BTST    #5,(-14322).W                   ; $010B66
-        BEQ.W  .loc_0200                        ; $010B6C
+        BEQ.W  .check_3p_mode                        ; $010B6C
         MOVE.B  (-334).W,D0                     ; $010B70
-.loc_0200:
+.check_3p_mode:
         BTST    #4,(-14322).W                   ; $010B74
-        BEQ.W  .loc_020E                        ; $010B7A
+        BEQ.W  .lookup_tile_table                        ; $010B7A
         MOVE.B  (-333).W,D0                     ; $010B7E
-.loc_020E:
+.lookup_tile_table:
         ADD.L   D0,D0                           ; $010B82
         ADD.L   D0,D0                           ; $010B84
         LEA     $0089103E,A0                    ; $010B86
@@ -183,13 +183,13 @@ name_entry_screen_init:
         MOVEQ   #$00,D0                         ; $010B9A
         MOVE.B  (-347).W,D0                     ; $010B9C
         BTST    #5,(-14322).W                   ; $010BA0
-        BEQ.W  .loc_023A                        ; $010BA6
+        BEQ.W  .check_3p_track                        ; $010BA6
         MOVE.B  (-345).W,D0                     ; $010BAA
-.loc_023A:
+.check_3p_track:
         BTST    #4,(-14322).W                   ; $010BAE
-        BEQ.W  .loc_0248                        ; $010BB4
+        BEQ.W  .lookup_track_table                        ; $010BB4
         MOVE.B  (-341).W,D0                     ; $010BB8
-.loc_0248:
+.lookup_track_table:
         ADD.L   D0,D0                           ; $010BBC
         ADD.L   D0,D0                           ; $010BBE
         LEA     $0089104A,A0                    ; $010BC0
@@ -214,13 +214,13 @@ name_entry_screen_init:
         MOVE.B  (-344).W,D0                     ; $010C2E
         LEA     $00891102,A0                    ; $010C32
         BTST    #5,(-14322).W                   ; $010C38
-        BNE.S  .loc_02E2                        ; $010C3E
+        BNE.S  .have_score_table                        ; $010C3E
         MOVE.B  (-340).W,D0                     ; $010C40
         LEA     $00891112,A0                    ; $010C44
         BTST    #4,(-14322).W                   ; $010C4A
-        BNE.S  .loc_02E2                        ; $010C50
+        BNE.S  .have_score_table                        ; $010C50
         MOVE.B  #$00,D0                         ; $010C52
-.loc_02E2:
+.have_score_table:
         ADD.W   D0,D0                           ; $010C56
         ADD.W   D0,D0                           ; $010C58
         MOVE.L  $00(A0,D0.W),(-24534).W         ; $010C5A
@@ -229,7 +229,7 @@ name_entry_screen_init:
         LEA     (-24506).W,A0                   ; $010C6A
         LEA     (-15872).W,A1                   ; $010C6E
         MOVE.W  #$0013,D2                       ; $010C72
-.loc_0302:
+.bcd_accum_loop:
         ADDI.B  #$00,D0                         ; $010C76
         MOVE.B  $0003(A0),D0                    ; $010C7A
         MOVE.B  $0003(A1),D1                    ; $010C7E
@@ -247,21 +247,21 @@ name_entry_screen_init:
         ABCD    D1,D0                           ; $010CA6
         MOVE.B  $0001(A1),D1                    ; $010CA8
         ABCD    D1,D0                           ; $010CAC
-        BCC.W  .loc_034E                        ; $010CAE
+        BCC.W  .no_carry                        ; $010CAE
         ADDI.B  #$00,D0                         ; $010CB2
         MOVE.B  #$40,D1                         ; $010CB6
         ABCD    D1,D0                           ; $010CBA
         MOVE.B  #$01,D1                         ; $010CBC
-        BRA.S  .loc_0366                        ; $010CC0
-.loc_034E:
+        BRA.S  .store_minutes                        ; $010CC0
+.no_carry:
         CLR.B  D1                               ; $010CC2
         CMPI.B  #$60,D0                         ; $010CC4
-        BCS.W  .loc_0366                        ; $010CC8
+        BCS.W  .store_minutes                        ; $010CC8
         ADDI.B  #$00,D0                         ; $010CCC
         MOVE.B  #$60,D1                         ; $010CD0
         SBCD    D1,D0                           ; $010CD4
         MOVE.B  #$01,D1                         ; $010CD6
-.loc_0366:
+.store_minutes:
         MOVE.B  D0,$0001(A0)                    ; $010CDA
         ADDI.B  #$00,D0                         ; $010CDE
         MOVE.B  (A0),D0                         ; $010CE2
@@ -270,55 +270,55 @@ name_entry_screen_init:
         ABCD    D1,D0                           ; $010CE8
         MOVE.B  D0,(A0)                         ; $010CEA
         ADDQ.L  #4,A1                           ; $010CEC
-        DBRA    D2,.loc_0302                    ; $010CEE
+        DBRA    D2,.bcd_accum_loop                    ; $010CEE
         TST.L  (-24506).W                       ; $010CF2
-        BNE.S  .loc_038C                        ; $010CF6
+        BNE.S  .score_valid                        ; $010CF6
         MOVE.L  #$CCCC0CCC,(-24506).W           ; $010CF8
-.loc_038C:
+.score_valid:
         LEA     (-15872).W,A0                   ; $010D00
         MOVE.W  #$0013,D0                       ; $010D04
-.loc_0394:
+.find_empty_slot:
         TST.L  (A0)                             ; $010D08
-        BEQ.W  .loc_03A2                        ; $010D0A
+        BEQ.W  .fill_empty_slots                        ; $010D0A
         ADDQ.L  #4,A0                           ; $010D0E
-        DBRA    D0,.loc_0394                    ; $010D10
-        BRA.S  .loc_03AC                        ; $010D14
-.loc_03A2:
+        DBRA    D0,.find_empty_slot                    ; $010D10
+        BRA.S  .check_rank_limit                        ; $010D14
+.fill_empty_slots:
         MOVE.L  #$CCCC0CCC,(A0)+                ; $010D16
-        DBRA    D0,.loc_03A2                    ; $010D1C
-.loc_03AC:
+        DBRA    D0,.fill_empty_slots                    ; $010D1C
+.check_rank_limit:
         MOVE.W  #$0000,(-24510).W               ; $010D20
         LEA     (-15872).W,A0                   ; $010D26
         MOVE.L  $0010(A0),D0                    ; $010D2A
         CMPI.L  #$CCCC0CCC,D0                   ; $010D2E
-        BNE.S  .loc_03C8                        ; $010D34
+        BNE.S  .find_best_score                        ; $010D34
         MOVE.W  #$0001,(-24510).W               ; $010D36
-.loc_03C8:
+.find_best_score:
         MOVEQ   #$00,D2                         ; $010D3C
         MOVE.L  D2,(-24546).W                   ; $010D3E
         LEA     (-15872).W,A0                   ; $010D42
         MOVE.L  #$60000000,D0                   ; $010D46
         MOVE.W  #$0013,D3                       ; $010D4C
-.loc_03DC:
+.rank_scan_loop:
         MOVE.L  (A0)+,D1                        ; $010D50
-        BEQ.S  .loc_03F2                        ; $010D52
+        BEQ.S  .rank_next                        ; $010D52
         CMPI.L  #$CCCC0CCC,D1                   ; $010D54
-        BEQ.S  .loc_03F2                        ; $010D5A
+        BEQ.S  .rank_next                        ; $010D5A
         CMP.L  D1,D0                            ; $010D5C
-        BLE.S  .loc_03F2                        ; $010D5E
+        BLE.S  .rank_next                        ; $010D5E
         MOVE.L  D1,D0                           ; $010D60
         MOVE.L  D2,(-24546).W                   ; $010D62
-.loc_03F2:
+.rank_next:
         ADDI.L  #$00000D80,D2                   ; $010D66
-        DBRA    D3,.loc_03DC                    ; $010D6C
-.loc_03FC:
+        DBRA    D3,.rank_scan_loop                    ; $010D6C
+.wait_comm_ready:
         TST.B  COMM0_HI                        ; $010D70
-        BNE.S  .loc_03FC                        ; $010D76
+        BNE.S  .wait_comm_ready                        ; $010D76
         MOVE.L  #$06020000,COMM4            ; $010D78
         MOVE.B  #$26,COMM0_LO                  ; $010D82
         MOVE.B  #$01,COMM0_HI                  ; $010D8A
         BTST    #4,(-14322).W                   ; $010D92
-        BNE.W  .loc_050A                        ; $010D98
+        BNE.W  .init_3p_mode                        ; $010D98
         MOVEA.L #$0601AD00,A0                   ; $010D9C
         MOVEA.L #$06028000,A1                   ; $010DA2
         MOVE.W  #$0028,D0                       ; $010DA8
@@ -328,7 +328,7 @@ name_entry_screen_init:
         MOVEQ   #$00,D3                         ; $010DB8
         MOVEQ   #$00,D4                         ; $010DBA
         MOVE.W  #$0013,D5                       ; $010DBC
-.loc_044C:
+.render_scores_loop:
         MOVEA.L #$06028030,A1                   ; $010DC0
         ADDA.L  D3,A1                           ; $010DC6
         ADDI.L  #$00000D80,D3                   ; $010DC8
@@ -337,27 +337,27 @@ name_entry_screen_init:
         ADDQ.L  #4,D4                           ; $010DD4
         MOVE.W  #$00D8,D2                       ; $010DD6
         jsr     lap_time_digit_renderer_c(pc); $4EBA $0B66
-        DBRA    D5,.loc_044C                    ; $010DDE
+        DBRA    D5,.render_scores_loop                    ; $010DDE
         CMPI.L  #$61000000,(-15788).W           ; $010DE2
-        BEQ.W  .loc_0506                        ; $010DEA
+        BEQ.W  .skip_to_finalize                        ; $010DEA
         LEA     (-15872).W,A2                   ; $010DEE
         MOVE.L  #$60000000,D1                   ; $010DF2
         CLR.W  D3                               ; $010DF8
         MOVE.W  #$0001,D2                       ; $010DFA
         MOVE.W  #$0013,D4                       ; $010DFE
-.loc_048E:
+.find_best_entry:
         MOVE.L  (A2)+,D0                        ; $010E02
         CMPI.L  #$CCCC0CCC,D0                   ; $010E04
-        BEQ.S  .loc_04A0                        ; $010E0A
+        BEQ.S  .next_score_entry                        ; $010E0A
         CMP.L  D1,D0                            ; $010E0C
-        BCC.S  .loc_04A0                        ; $010E0E
+        BCC.S  .next_score_entry                        ; $010E0E
         MOVE.L  D0,D1                           ; $010E10
         MOVE.W  D2,D3                           ; $010E12
-.loc_04A0:
+.next_score_entry:
         ADDQ.W  #1,D2                           ; $010E14
-        DBRA    D4,.loc_048E                    ; $010E16
+        DBRA    D4,.find_best_entry                    ; $010E16
         TST.W  D3                               ; $010E1A
-        BEQ.S  .loc_04E0                        ; $010E1C
+        BEQ.S  .no_highlight                        ; $010E1C
         MOVEA.L #$06028030,A0                   ; $010E1E
         SUBQ.W  #1,D3                           ; $010E24
         ANDI.L  #$0000FFFF,D3                   ; $010E26
@@ -375,7 +375,7 @@ name_entry_screen_init:
         MOVE.W  #$0008,D2                       ; $010E46
         MOVE.W  #$00D8,D3                       ; $010E4A
         JSR     $0088E406                       ; $010E4E
-.loc_04E0:
+.no_highlight:
         MOVEA.L #$06019D00,A0                   ; $010E54
         MOVEA.L #$06028088,A1                   ; $010E5A
         ADDA.L  (-24546).W,A1                   ; $010E60
@@ -384,9 +384,9 @@ name_entry_screen_init:
         MOVE.W  #$00D8,D2                       ; $010E6C
         ADDI.L  #$00000D80,D3                   ; $010E70
         jsr     sh2_command_sender+40(pc); $4EBA $0C20
-.loc_0506:
-        BRA.W  .loc_0654                        ; $010E7A
-.loc_050A:
+.skip_to_finalize:
+        BRA.W  .finalize_display                        ; $010E7A
+.init_3p_mode:
         MOVEA.L #$0601AD00,A0                   ; $010E7E
         MOVEA.L #$06028000,A1                   ; $010E84
         MOVE.W  #$0028,D0                       ; $010E8A
@@ -396,7 +396,7 @@ name_entry_screen_init:
         MOVEQ   #$00,D3                         ; $010E9A
         MOVEQ   #$00,D4                         ; $010E9C
         MOVE.W  #$0013,D5                       ; $010E9E
-.loc_052E:
+.render_3p_scores_loop:
         MOVEA.L #$06028030,A1                   ; $010EA2
         ADDA.L  D3,A1                           ; $010EA8
         ADDI.L  #$00000800,D3                   ; $010EAA
@@ -405,25 +405,25 @@ name_entry_screen_init:
         ADDQ.L  #4,D4                           ; $010EB6
         MOVE.W  #$0080,D2                       ; $010EB8
         jsr     lap_time_digit_renderer_c(pc); $4EBA $0A84
-        DBRA    D5,.loc_052E                    ; $010EC0
+        DBRA    D5,.render_3p_scores_loop                    ; $010EC0
         LEA     (-15872).W,A2                   ; $010EC4
         MOVE.L  #$60000000,D1                   ; $010EC8
         CLR.W  D3                               ; $010ECE
         MOVE.W  #$0001,D2                       ; $010ED0
         MOVE.W  #$0013,D4                       ; $010ED4
-.loc_0564:
+.find_best_3p:
         MOVE.L  (A2)+,D0                        ; $010ED8
         CMPI.L  #$CCCC0CCC,D0                   ; $010EDA
-        BEQ.S  .loc_0576                        ; $010EE0
+        BEQ.S  .next_3p_entry                        ; $010EE0
         CMP.L  D1,D0                            ; $010EE2
-        BCC.S  .loc_0576                        ; $010EE4
+        BCC.S  .next_3p_entry                        ; $010EE4
         MOVE.L  D0,D1                           ; $010EE6
         MOVE.W  D2,D3                           ; $010EE8
-.loc_0576:
+.next_3p_entry:
         ADDQ.W  #1,D2                           ; $010EEA
-        DBRA    D4,.loc_0564                    ; $010EEC
+        DBRA    D4,.find_best_3p                    ; $010EEC
         TST.W  D3                               ; $010EF0
-        BEQ.S  .loc_05AA                        ; $010EF2
+        BEQ.S  .no_3p_highlight                        ; $010EF2
         MOVEA.L #$06028000,A0                   ; $010EF4
         SUBQ.W  #1,D3                           ; $010EFA
         ANDI.L  #$0000FFFF,D3                   ; $010EFC
@@ -435,7 +435,7 @@ name_entry_screen_init:
         MOVE.W  #$0008,D2                       ; $010F10
         MOVE.W  #$0080,D3                       ; $010F14
         JSR     $0088E406                       ; $010F18
-.loc_05AA:
+.no_3p_highlight:
         bsr.w   name_entry_bcd_score_cmp; $6100 $0C4A
         MOVEA.L #$2601AD00,A0                   ; $010F22
         MOVEA.L #$26032000,A1                   ; $010F28
@@ -446,7 +446,7 @@ name_entry_screen_init:
         MOVEQ   #$00,D3                         ; $010F3E
         MOVEQ   #$00,D4                         ; $010F40
         MOVE.W  #$0013,D5                       ; $010F42
-.loc_05D2:
+.render_3p_page2_loop:
         MOVEA.L #$06032030,A1                   ; $010F46
         ADDA.L  D3,A1                           ; $010F4C
         ADDI.L  #$00000800,D3                   ; $010F4E
@@ -455,25 +455,25 @@ name_entry_screen_init:
         ADDQ.L  #4,D4                           ; $010F5A
         MOVE.W  #$0080,D2                       ; $010F5C
         jsr     lap_time_digit_renderer_c(pc); $4EBA $09E0
-        DBRA    D5,.loc_05D2                    ; $010F64
+        DBRA    D5,.render_3p_page2_loop                    ; $010F64
         LEA     (-15872).W,A2                   ; $010F68
         MOVE.L  #$60000000,D1                   ; $010F6C
         CLR.W  D3                               ; $010F72
         MOVE.W  #$0001,D2                       ; $010F74
         MOVE.W  #$0013,D4                       ; $010F78
-.loc_0608:
+.find_best_page2:
         MOVE.L  (A2)+,D0                        ; $010F7C
         CMPI.L  #$CCCC0CCC,D0                   ; $010F7E
-        BEQ.S  .loc_061A                        ; $010F84
+        BEQ.S  .next_page2_entry                        ; $010F84
         CMP.L  D1,D0                            ; $010F86
-        BCC.S  .loc_061A                        ; $010F88
+        BCC.S  .next_page2_entry                        ; $010F88
         MOVE.L  D0,D1                           ; $010F8A
         MOVE.W  D2,D3                           ; $010F8C
-.loc_061A:
+.next_page2_entry:
         ADDQ.W  #1,D2                           ; $010F8E
-        DBRA    D4,.loc_0608                    ; $010F90
+        DBRA    D4,.find_best_page2                    ; $010F90
         TST.W  D3                               ; $010F94
-        BEQ.S  .loc_064E                        ; $010F96
+        BEQ.S  .no_page2_highlight                        ; $010F96
         MOVEA.L #$06032000,A0                   ; $010F98
         SUBQ.W  #1,D3                           ; $010F9E
         ANDI.L  #$0000FFFF,D3                   ; $010FA0
@@ -485,9 +485,9 @@ name_entry_screen_init:
         MOVE.W  #$0008,D2                       ; $010FB4
         MOVE.W  #$0080,D3                       ; $010FB8
         JSR     $0088E406                       ; $010FBC
-.loc_064E:
+.no_page2_highlight:
         JSR     $0088204A                       ; $010FC2
-.loc_0654:
+.finalize_display:
         MOVE.B  #$01,(-14303).W                 ; $010FC8
         ANDI.B  #$FC,MARS_VDP_MODE+1                  ; $010FCE
         ORI.B  #$01,MARS_VDP_MODE+1                   ; $010FD6
@@ -499,11 +499,11 @@ name_entry_screen_init:
         MOVE.W  #$0000,(-14210).W               ; $010FFE
         MOVE.L  #$00891166,$00FF0002            ; $011004
         BTST    #4,(-14322).W                   ; $01100E
-        BNE.W  .loc_06C2                        ; $011014
+        BNE.W  .set_handler                        ; $011014
         MOVE.L  #$00891142,$00FF0002            ; $011018
         BTST    #5,(-14322).W                   ; $011022
-        BNE.W  .loc_06C2                        ; $011028
+        BNE.W  .set_handler                        ; $011028
         MOVE.L  #$00891122,$00FF0002            ; $01102C
-.loc_06C2:
+.set_handler:
         MOVE.B  #$8E,(-14171).W                 ; $011036
         RTS                                     ; $01103C

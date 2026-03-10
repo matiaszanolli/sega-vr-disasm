@@ -22,17 +22,17 @@ sh2_display_and_palette_init:
         CLR.B  (-24540).W                       ; $00D48A
         MOVE.B  (-347).W,(-24551).W             ; $00D48E
         BTST    #7,(-600).W                     ; $00D494
-        BEQ.S  .loc_0048                        ; $00D49A
+        BEQ.S  .mode_selected                        ; $00D49A
         MOVE.B  (-346).W,(-24551).W             ; $00D49C
-        BRA.S  .loc_0048                        ; $00D4A2
+        BRA.S  .mode_selected                        ; $00D4A2
         MOVE.B  #$01,(-24540).W                 ; $00D4A4
         MOVE.B  (-345).W,(-24551).W             ; $00D4AA
         MOVE.B  (-344).W,(-24538).W             ; $00D4B0
-        BRA.S  .loc_0048                        ; $00D4B6
+        BRA.S  .mode_selected                        ; $00D4B6
         MOVE.B  (-341).W,(-24551).W             ; $00D4B8
         MOVE.B  (-340).W,(-24538).W             ; $00D4BE
         MOVE.B  #$02,(-24540).W                 ; $00D4C4
-.loc_0048:
+.mode_selected:
         MOVE.W  #$002C,$00FF0008                ; $00D4CA
         MOVE.W  #$002C,(-14214).W               ; $00D4D2
         BCLR    #6,(-14219).W                   ; $00D4D8
@@ -46,29 +46,29 @@ sh2_display_and_palette_init:
         LEA     $0088D832,A0                    ; $00D50A
         LEA     $00FF2000,A1                    ; $00D510
         MOVE.W  #$0004,D0                       ; $00D516
-.loc_0098:
+.copy_table_data:
         MOVE.W  (A0)+,(A1)+                     ; $00D51A
         MOVE.W  (A0)+,(A1)+                     ; $00D51C
         MOVE.W  (A0)+,(A1)+                     ; $00D51E
         MOVE.W  (A0)+,(A1)+                     ; $00D520
         MOVE.W  (A0)+,(A1)+                     ; $00D522
-        DBRA    D0,.loc_0098                    ; $00D524
+        DBRA    D0,.copy_table_data                    ; $00D524
         MOVEQ   #$00,D0                         ; $00D528
         LEA     (-31616).W,A0                   ; $00D52A
         MOVEQ   #$1F,D1                         ; $00D52E
-.loc_00AE:
+.clear_buffer_a:
         MOVE.L  D0,(A0)+                        ; $00D530
-        DBRA    D1,.loc_00AE                    ; $00D532
+        DBRA    D1,.clear_buffer_a                    ; $00D532
         LEA     $00FF7B80,A0                    ; $00D536
         MOVEQ   #$7F,D1                         ; $00D53C
-.loc_00BC:
+.clear_buffer_b:
         MOVE.L  D0,(A0)+                        ; $00D53E
-        DBRA    D1,.loc_00BC                    ; $00D540
+        DBRA    D1,.clear_buffer_b                    ; $00D540
         MOVE.L  #$60000002,(A5)                 ; $00D544
         MOVE.W  #$17FF,D1                       ; $00D54A
-.loc_00CC:
+.clear_vram:
         MOVE.L  D0,(A6)                         ; $00D54E
-        DBRA    D1,.loc_00CC                    ; $00D550
+        DBRA    D1,.clear_vram                    ; $00D550
         JSR     $008849AA                       ; $00D554
         CLR.W  (-14208).W                       ; $00D55A
         CLR.W  (-14206).W                       ; $00D55E
@@ -85,36 +85,36 @@ sh2_display_and_palette_init:
         MOVE.W  #$0001,(-24532).W               ; $00D598
         LEA     $00FF1000,A0                    ; $00D59E
         MOVE.W  #$037F,D0                       ; $00D5A4
-.loc_0126:
+.clear_work_buffer:
         CLR.L  (A0)+                            ; $00D5A8
-        DBRA    D0,.loc_0126                    ; $00D5AA
+        DBRA    D0,.clear_work_buffer                    ; $00D5AA
         DC.W    $4EBA,$0C0C         ; JSR     $00E1BC(PC); $00D5AE
         BCLR    #7,MARS_VDP_MODE+1                    ; $00D5B2
         LEA     $00FF6E00,A0                    ; $00D5BA
         ADDA.L  #$00000160,A0                   ; $00D5C0
         LEA     $0088D7B2,A1                    ; $00D5C6
         MOVE.W  #$003F,D0                       ; $00D5CC
-.loc_014E:
+.copy_palette_with_priority:
         MOVE.W  (A1)+,D1                        ; $00D5D0
         BSET    #15,D1                          ; $00D5D2
         MOVE.W  D1,(A0)+                        ; $00D5D6
-        DBRA    D0,.loc_014E                    ; $00D5D8
+        DBRA    D0,.copy_palette_with_priority                    ; $00D5D8
         LEA     $000E8000,A0                    ; $00D5DC
         MOVEA.L #$06037000,A1                   ; $00D5E2
         DC.W    $6100,$0D2C         ; BSR.W  $00E316; $00D5E8
         BTST    #7,(-600).W                     ; $00D5EC
-        BEQ.S  .loc_018A                        ; $00D5F2
-.loc_0172:
+        BEQ.S  .skip_overlay_cmd                        ; $00D5F2
+.wait_comm_ready:
         TST.B  COMM0_HI                        ; $00D5F4
-        BNE.S  .loc_0172                        ; $00D5FA
+        BNE.S  .wait_comm_ready                        ; $00D5FA
         MOVE.B  #$2E,COMM0_LO                  ; $00D5FC
         MOVE.B  #$01,COMM0_HI                  ; $00D604
-.loc_018A:
+.skip_overlay_cmd:
         LEA     $000E8C00,A0                    ; $00D60C
         MOVEA.L #$0603D100,A1                   ; $00D612
         DC.W    $6100,$0CFC         ; BSR.W  $00E316; $00D618
         TST.B  (-24540).W                       ; $00D61C
-        BNE.W  .loc_01EE                        ; $00D620
+        BNE.W  .split_screen_path                        ; $00D620
         LEA     $000E8A00,A0                    ; $00D624
         MOVEA.L #$0603B600,A1                   ; $00D62A
         DC.W    $6100,$0CE4         ; BSR.W  $00E316; $00D630
@@ -130,8 +130,8 @@ sh2_display_and_palette_init:
         jsr     sh2_graphics_cmd(pc)    ; $4EBA $0BCC
         LEA     $00FF1000,A0                    ; $00D662
         jsr     sh2_load_data(pc)       ; $4EBA $0C86
-        BRA.W  .loc_0254                        ; $00D66C
-.loc_01EE:
+        BRA.W  .graphics_loaded                        ; $00D66C
+.split_screen_path:
         LEA     $000E8E10,A0                    ; $00D670
         MOVEA.L #$0603B600,A1                   ; $00D676
         DC.W    $6100,$0C98         ; BSR.W  $00E316; $00D67C
@@ -154,17 +154,17 @@ sh2_display_and_palette_init:
         jsr     sh2_graphics_cmd(pc)    ; $4EBA $0B62
         LEA     $00FF1000,A0                    ; $00D6CC
         jsr     sh2_load_data(pc)       ; $4EBA $0C1C
-.loc_0254:
+.graphics_loaded:
         CLR.B  (-24537).W                       ; $00D6D6
         MOVEQ   #$00,D0                         ; $00D6DA
         MOVEQ   #$00,D1                         ; $00D6DC
         MOVE.B  (-335).W,D0                     ; $00D6DE
-        BEQ.S  .loc_026E                        ; $00D6E2
+        BEQ.S  .offset_done                        ; $00D6E2
         SUBQ.W  #1,D0                           ; $00D6E4
-.loc_0264:
+.accumulate_offset:
         ADDI.L  #$000003C0,D1                   ; $00D6E6
-        DBRA    D0,.loc_0264                    ; $00D6EC
-.loc_026E:
+        DBRA    D0,.accumulate_offset                    ; $00D6EC
+.offset_done:
         ADDQ.L  #4,D1                           ; $00D6F0
         MOVE.L  D1,(-24536).W                   ; $00D6F2
         JSR     $0088204A                       ; $00D6F6
@@ -178,32 +178,32 @@ sh2_display_and_palette_init:
         MOVE.W  #$0000,(-14210).W               ; $00D72C
         MOVE.L  #$0088D864,$00FF0002            ; $00D732
         TST.B  (-24540).W                       ; $00D73C
-        BEQ.S  .loc_02CA                        ; $00D740
+        BEQ.S  .dispatch_table_set                        ; $00D740
         MOVE.L  #$0088D888,$00FF0002            ; $00D742
-.loc_02CA:
+.dispatch_table_set:
         MOVE.B  #$00,$00FF60D4                  ; $00D74C
         BTST    #7,(-600).W                     ; $00D754
-        BEQ.W  .loc_02E4                        ; $00D75A
+        BEQ.W  .overlay_flag_set                        ; $00D75A
         MOVE.B  #$01,$00FF60D4                  ; $00D75E
-.loc_02E4:
+.overlay_flag_set:
         LEA     $00FF6100,A0                    ; $00D766
         MOVE.W  #$007F,D0                       ; $00D76C
-.loc_02EE:
+.clear_display_list:
         CLR.L  (A0)+                            ; $00D770
         CLR.L  (A0)+                            ; $00D772
         CLR.L  (A0)+                            ; $00D774
         CLR.L  (A0)+                            ; $00D776
         CLR.L  (A0)+                            ; $00D778
-        DBRA    D0,.loc_02EE                    ; $00D77A
-.loc_02FC:
+        DBRA    D0,.clear_display_list                    ; $00D77A
+.wait_sh2_ready:
         TST.B  COMM0_HI                        ; $00D77E
-        BNE.S  .loc_02FC                        ; $00D784
+        BNE.S  .wait_sh2_ready                        ; $00D784
         CLR.B  COMM1_HI                        ; $00D786
         CLR.B  COMM1_LO                        ; $00D78C
         MOVE.B  #$03,COMM0_LO                  ; $00D792
         MOVE.B  #$01,COMM0_HI                  ; $00D79A
-.loc_0320:
+.wait_sh2_ack:
         TST.B  COMM0_HI                        ; $00D7A2
-        BNE.S  .loc_0320                        ; $00D7A8
+        BNE.S  .wait_sh2_ack                        ; $00D7A8
         MOVE.B  #$81,(-14171).W                 ; $00D7AA
         RTS                                     ; $00D7B0

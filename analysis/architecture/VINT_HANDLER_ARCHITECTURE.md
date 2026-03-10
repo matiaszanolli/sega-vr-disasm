@@ -108,26 +108,36 @@ The handler brackets its work with interrupt disable/enable to prevent re-entry.
 
 ---
 
-## Performance Characteristics (📋 Estimated)
+## Performance Characteristics (✅ PC Profiling, March 2026)
 
 ### Timing
 
 | Metric | Value | Notes |
 |--------|-------|-------|
 | Frame period | 16.67 ms | 60 Hz NTSC |
-| Cycles/frame | ~128,000 | 7.67 MHz ÷ 60 Hz |
-| MOVEM save | ~120 cycles | 8 + 8×14 regs (D0-D7/A0-A6, not A7) |
-| MOVEM restore | ~120 cycles | 8 + 8×14 regs |
+| Cycles/frame | 127,987 | Measured (68K at 100.1% utilization) |
+| V-blank period | ~4,500 cycles | ~20 scanlines × ~225 cycles/scanline |
+| MOVEM save | ~120 cycles | 15 regs (D0-D7/A0-A6) |
+| MOVEM restore | ~120 cycles | 15 regs |
 | Handler overhead | ~300 cycles | Entry/exit bookkeeping |
-| Handler budget | ~127,700 cycles | 99.8% of frame |
+
+### 68K Time Breakdown (PC profiling, March 2026)
+
+| Category | % of 68K Time | Cycles/TV Frame | Notes |
+|----------|--------------|-----------------|-------|
+| **V-blank spin-wait** | **49.4%** | **~63,225** | `TST.W + BNE.S` loop at `$FF0010`/`$FF0014` |
+| COMM overhead | 10.8% | ~13,822 | COMM polling (reduced by B-003/B-004/B-005) |
+| Useful work | 39.8% | ~50,939 | Physics, AI, render prep, cmd_27 waits |
+
+The V-blank spin loop runs ~12,000–14,000 iterations per TV frame while waiting for V-INT to fire. This is **unavoidable at current FPS** — it reflects the 68K being idle between game frames. See [VBLANK_PERFORMANCE_ANALYSIS.md](VBLANK_PERFORMANCE_ANALYSIS.md) for full analysis including the STOP instruction opportunity and FPS model implications.
 
 ### Handler Requirements
 
 Each state handler must:
-1. Complete within one frame (~127K cycles max)
-2. Return via RTS (not RTE—wrapper handles that)
+1. Complete within V-blank period (~4,500 cycles)
+2. Return via RTS (not RTE — wrapper handles that)
 3. Not modify `$FFC87A` (could cause unexpected re-dispatch)
-4. Preserve any registers not saved by wrapper (none—all D0-D7/A0-A6 saved)
+4. Preserve any registers not saved by wrapper (none — all D0-D7/A0-A6 saved)
 
 ---
 
@@ -162,12 +172,14 @@ state_handler_5:
 
 ## Related Documentation
 
-- [VINT_STATE_HANDLERS.md](VINT_STATE_HANDLERS.md) - Detailed per-state disassembly
+- [VBLANK_PERFORMANCE_ANALYSIS.md](VBLANK_PERFORMANCE_ANALYSIS.md) - **V-blank profiling, STOP instruction, FPS model** (March 2026)
+- [VINT_STATE_HANDLERS.md](VINT_STATE_HANDLERS.md) - Detailed per-state disassembly and cycle estimates
 - [STATE_MACHINES.md](STATE_MACHINES.md) - Game state machines ($FFC87E, etc.)
 - [../../disasm/modules/68k/main-loop/vint_handler.asm](../../disasm/modules/68k/main-loop/vint_handler.asm) - Source disassembly
+- [../../disasm/modules/68k/frame/wait_for_vblank.asm](../../disasm/modules/68k/frame/wait_for_vblank.asm) - The spin-wait (STOP candidate)
 
 ---
 
 **Document Status:** Architectural overview
 **Confidence:** Mixed (see markers)
-**Last Updated:** 2026-01-23
+**Last Updated:** 2026-03-10 (Performance Characteristics updated with PC profiling data)

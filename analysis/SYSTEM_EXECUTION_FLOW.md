@@ -40,26 +40,26 @@ COMM registers ($A15120–$A1512E on 68K / $20004020–$2000402E on SH2):
 
 ## 1. V-INT Handler ($001684)
 
-Fires at the start of every vertical blank (~60 Hz).
+Fires at the start of every vertical blank (~60 Hz). Total overhead: ~300 cycles (excluding state handler). V-blank period: ~4,500 cycles. The 68K spends **49.4% of all cycles** waiting for this interrupt to fire — see [VBLANK_PERFORMANCE_ANALYSIS.md](architecture/VBLANK_PERFORMANCE_ANALYSIS.md).
 
 ```
-V-INT fires
+V-INT fires  (V-blank period: ~4,500 cycles available)
     │
     ├─ TST.W $FFC87A        ; Any pending state work?
-    ├─ BEQ → RTE            ; No → exit immediately (fast path)
+    ├─ BEQ → RTE            ; No → exit immediately (fast path, ~12 cycles)
     │
     ├─ SR = $2700           ; Disable all interrupts
-    ├─ MOVEM.L → stack      ; Save D0–D7 / A0–A6 (56 bytes)
+    ├─ MOVEM.L → stack      ; Save D0–D7 / A0–A6 (~120 cycles, 15 regs)
     │
     ├─ D0 = [$FFC87A]       ; Load dispatch state (pre-multiplied ×4)
-    ├─ [$FFC87A] = 0        ; Clear (acknowledge)
+    ├─ [$FFC87A] = 0        ; Clear — wait_for_vblank spin exits here
     │
     ├─ A1 = jmp_table[D0]   ; Load handler from table at ROM $0016B2
-    ├─ JSR (A1)             ; Call state handler (see table below)
+    ├─ JSR (A1)             ; Call state handler (~24–1,600 cycles, see table)
     │
     ├─ [$FFC964] += 1       ; Increment global frame counter
     │
-    ├─ MOVEM.L ← stack      ; Restore all registers
+    ├─ MOVEM.L ← stack      ; Restore all registers (~120 cycles)
     ├─ SR = $2300           ; Re-enable interrupts (H-INT allowed)
     └─ RTE
 ```

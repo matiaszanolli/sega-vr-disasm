@@ -203,7 +203,7 @@ With accurate frame-boundary detection, proper instrumentation, and architectura
 | $00E342 | ~~`sh2_wait_response`~~ | **REMOVED (B-005):** Slot overwritten by NOP padding |
 | $00E22C | `sh2_graphics_cmd` | Graphics command submission (14 calls) |
 | $00E35A | `sh2_send_cmd` | **B-004:** Single-shot cmd $22 (~170 cycles, 14 calls/frame) |
-| $00E3B4 | `sh2_cmd_27` | **B-003:** Fire-and-forget via COMM7 (~50 cycles, 21 calls/frame) |
+| $00E3B4 | `sh2_cmd_27` | **B-003:** Direct Slave via COMM7 (~50 cyc submit, but 21.7% useful work in COMM7 waits — **Track A target**) |
 | $002890 | `sh2_comm_sync` | COMM register synchronization |
 | $0028C2 | `VDPSyncSH2` | VDP/SH2 sync coordination |
 
@@ -218,26 +218,32 @@ With accurate frame-boundary detection, proper instrumentation, and architectura
 
 *Note: This table documents the original 68K→SH2 protocol. v4.0 adds COMM7/COMM5 for Master→Slave offload signaling.*
 
-## Potential Optimization Strategies
+## Optimization Strategies
 
-1. **Command Queue Buffering**: Pre-build next frame's command list while current frame renders
-2. **Async Submission**: Remove blocking wait, poll completion in main loop
-3. **Slave SH2 Utilization**: Partition polygon workload between Master/Slave ✅ **Operational** (vertex transform offload)
-4. **Speculative Execution**: Allow 68K game logic to proceed during render
+### Completed (Tracks 1-2, February–March 2026)
 
----
+| Strategy | Result | FPS Impact |
+|----------|--------|------------|
+| B-003: Async cmd_27 (Slave COMM7 doorbell) | Command overhead reduced | 0% |
+| B-004: Single-shot cmd_22 (expansion ROM) | 3-phase → 1-phase handshake | 0% |
+| B-005: Single-shot cmd_25 (scene init) | Decompressor wrapped | 0% |
+| B-006: Parallel hooks (dual-SH2 rendering) | **REVERTED** — COMM7 namespace collision | 0% |
 
-## Implementation Progress (v4.0 - January 2026)
+**Lesson:** Command protocol optimization saved ~8,150 cycles/frame but 0% FPS gain. The 68K is 100% utilized on non-command work. Saved time absorbed into V-blank polling.
 
-**Slave SH2 parallelization infrastructure complete (baseline tag: `v4.0-baseline`):**
+### Active (Tracks A-B, targeting 30 FPS)
 
-- ✅ **Infrastructure ready**: `vertex_transform_optimized` at $300100, `slave_work_wrapper` at $300200
-- ✅ **Expansion ROM**: 1MB area at $300000-$3FFFFF with optimized code
-- ✅ **Parameter design**: Shared memory at 0x2203E000 (cache-through SDRAM for coherency)
-- ⏳ **Not yet activated**: Current ROM uses original vertex_transform, Slave remains idle
-- See [MASTER_SLAVE_ANALYSIS.md](architecture/MASTER_SLAVE_ANALYSIS.md) for details
+1. **Track A — cmd_27 Queue Decoupling** (B-015): Use idle Master SH2 as fast DMA proxy. 68K writes params to COMM, Master copies to SDRAM ring buffer, Slave processes from SDRAM independently. Eliminates 21.7% of useful work (~33,000 cycles/game frame). The current COMM7 wait is Slave processing time (~1,580 cyc/entry × 21 entries). With Master as proxy: ~10-30 cyc/entry.
 
-**Next step**: Activate parallel processing by connecting infrastructure (Slave PC redirect + vertex_transform trampoline).
+2. **Track B — Batched Work Offload** (B-016): Accumulate pure-math inputs (angle_normalize, physics, trig) during frame, send as batch to Master SH2, wait once for results. Eliminates ~12% of useful work (~18,000 cycles/game frame). Synchronous offload proven anti-productive (angle_normalize added 23% overhead) — batching is the only viable approach.
+
+3. **Track C — Pipeline Overlap** (stretch goal): Double-buffered command lists for frame N/N+1 overlap. Required for 60 FPS but very high risk. Research only until 30 FPS achieved.
+
+**30 FPS path:** Track A (-21.7%) + Track B (-12.3%) = -34% useful work → crosses the 3→2 TV frame threshold.
+
+### Historical/Dormant
+
+- **v4.0 parallel processing infrastructure** (January 2026): `vertex_transform_optimized` at $300100, `slave_work_wrapper` at $300200. Expansion ROM ready (1MB at $300000). **Dormant** — B-006 activation failed due to namespace collision. If dual-SH2 rendering is revisited, needs completely new approach.
 
 **Note on frame rate:** VR's rendering speed is highly variable (~15-30 FPS) depending on scene complexity. The "~20 FPS" figure is an average; actual frame time depends on polygon count, track geometry, and number of visible cars.
 
@@ -251,5 +257,5 @@ Earlier bottleneck analysis with specific VDP wait loop addresses archived to:
 ---
 
 *Generated: January 2026*
-*Updated: January 30, 2026 (Slave command dispatcher disassembled, 66.5% idle confirmed)*
-*Status: Architectural analysis complete, Slave SH2 infrastructure ready for activation*
+*Updated: March 10, 2026 (Tracks A/B/C defined, 30 FPS path identified, cmd_27 waits = 21.7% dominant lever)*
+*Status: Architectural analysis complete. Command protocol optimized (0% FPS gain). Next: Track A (cmd_27 queue decoupling) + Track B (batched offload).*

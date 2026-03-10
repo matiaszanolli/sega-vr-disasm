@@ -2,7 +2,7 @@
 
 # Virtua Racing Deluxe (32X) - Performance Optimization Project
 
-**Status: v7.0.0 — Descriptive SH2 Names & 3D Engine Analysis**
+**Status: v8.0.0 — Optimization Roadmap Reassessed (30 FPS target)**
 
 A complete, buildable disassembly of Virtua Racing Deluxe for the Sega 32X, now actively optimized to make full use of the 32X hardware. The original game runs at ~20 FPS due to a conservative blocking synchronization model that leaves significant hardware capacity untapped. This project aims to unlock that potential.
 
@@ -13,26 +13,31 @@ A complete, buildable disassembly of Virtua Racing Deluxe for the Sega 32X, now 
 The original game leaves most of its hardware idle:
 
 ```
-CPU Utilization (profiled):
+CPU Utilization (profiled, March 2026):
   68000:       ████████████████████ 100%   ← Saturated (bottleneck)
   Master SH2:  ░░░░░░░░░░░░░░░░░░░░   0%   ← Completely idle
-  Slave SH2:   ██████░░░░░░░░░░░░░░  33%   ← 67% wasted in idle loop
+  Slave SH2:   ████████████░░░░░░░░  66%   ← 34% wasted in idle loop
+
+68K time breakdown:
+  49.4%  V-blank sync polling (unavoidable frame barrier)
+  10.8%  SH2 command overhead (reduced 64% by B-003/B-004/B-005)
+  39.8%  Useful game logic — physics, AI, rendering prep
 ```
 
-The 68K spends **~60% of its cycles blocked**, polling COMM registers while waiting for SH2 acknowledgment — 35 times per frame. Meanwhile, the Master SH2 does nothing and the Slave SH2 wastes two-thirds of its time in a delay loop.
+The biggest remaining lever: the 68K spends **21.7% of its useful work** polling COMM7 while waiting for the Slave SH2 to process each of 21 pixel fill entries per frame. The Master SH2 (0% utilization) can eliminate these waits entirely.
 
 ## The Goal
 
-Restructure the command pipeline to eliminate blocking waits, batch commands, and distribute work across all three CPUs:
+Offload 68K work to the idle Master SH2 via two strategies:
 
-| Track | Strategy | Expected Gain |
-|-------|----------|---------------|
-| 68K Blocking Relief | Async commands via SH2 interrupt queue | +46-67% FPS |
-| Command Batching | Reduce 35 submissions/frame to ~3 | +10-20% FPS |
-| Pipeline Overlap | Build frame N+1 while SH2 renders frame N | +15-30% FPS |
-| 68K Work Offload | Move physics/trig to idle Master SH2 | +5-15% FPS |
+| Track | Strategy | Expected FPS Gain | Status |
+|-------|----------|-------------------|--------|
+| **A** | **cmd_27 queue via Master SH2** | **+21.7% useful work freed** | **OPEN (B-015)** |
+| **B** | **Batched offload: angle/physics/trig** | **+12.3% useful work freed** | **OPEN (B-016)** |
+| C | Pipeline overlap (frame N+1 during N) | Large (stretch goal) | Research only |
 
-**Target: 60 FPS** (from ~20-24 FPS baseline)
+**Primary target: 30 FPS** — Tracks A+B together save ~34% of useful work, crossing the 3→2 TV frame threshold.
+**Stretch goal: 60 FPS** — Requires Track C (pipeline overlap).
 
 See [OPTIMIZATION_PLAN.md](OPTIMIZATION_PLAN.md) for the full strategy and [BACKLOG.md](BACKLOG.md) for the task queue.
 
@@ -54,7 +59,7 @@ picodrive build/vr_rebuild.32x
 │   ├── vrd.asm                    # Main build file
 │   ├── sections/                  # Buildable section sources
 │   ├── modules/
-│   │   ├── 68k/                   # 821 modularized 68K modules (17 categories + 15 game subcats)
+│   │   ├── 68k/                   # 823 modularized 68K modules (17 categories + 15 game subcats)
 │   │   └── shared/definitions.asm # Master symbol table (all HW register equates)
 │   ├── sh2/                       # SH2 functions + expansion code
 │   │   ├── 3d_engine/             # 92 SH2 functions (descriptive names)
@@ -97,11 +102,11 @@ The expansion space at $300000+ is executed by SH2 processors only and already c
 ## Codebase Status
 
 ### Disassembly & Translation (v7.0.0 — current)
-- **821 68K modules** organized across 17 categories + 15 game subcategories
+- **823 68K modules** organized across 17 categories + 15 game subcategories
 - **736 modules** fully translated to proper assembly mnemonics (5679 dc.w lines converted)
 - **92 SH2 functions** with descriptive names (`matrix_multiply`, `frustum_cull`, `span_filler`, etc.)
 - **107 SH2 entry points** mapped and symbolized across 89 .inc groups + 12 expansion
-- **503+ 68K functions** named and categorized
+- **806 functions** documented in [MASTER_FUNCTION_REFERENCE.md](analysis/MASTER_FUNCTION_REFERENCE.md)
 - All translations verified **byte-identical** to original ROM
 - 5 translation phases: automated (Phases 1-2), manual branches (Phase 3), JSR/JMP (Phase 4), BCD arithmetic (Phase 5)
 - Remaining ~522 dc.w are data values (sprite descriptors, pointer tables, lookups) — translation complete
@@ -131,10 +136,11 @@ The expansion space at $300000+ is executed by SH2 processors only and already c
 |---------|----------|
 | 68K is the sole bottleneck | 100.1% utilization, 127,987 cycles/frame |
 | SH2 optimization alone yields 0% FPS gain | 66.6% Slave reduction → unchanged FPS |
-| ~60% of 68K time is wasted polling | 35 blocking handshakes per frame (pre-optimization baseline) |
-| Command overhead reduced 64% | B-003/B-004/B-005: ~9,450 → ~3,430 cycles/frame |
-| Master SH2 is completely idle | 60 cycles/frame (0.0% utilization) |
-| Slave idle time repurposed (B-003) | Was 66.5% idle at $0600060A, now processes cmd27 pixel work |
+| 49.4% of 68K time is V-blank sync | PC profiling March 2026 — unavoidable frame barrier |
+| 21.7% of useful work is cmd_27 COMM7 waits | Biggest remaining lever (Track A target) |
+| Command overhead reduced 64% | B-003/B-004/B-005: ~12,000 → ~3,850 cycles/frame |
+| Master SH2 is completely idle | 0 cycles/frame with hooks disabled (0.0% utilization) |
+| 30 FPS achievable via Tracks A+B | -21.7% (cmd_27 queue) + -12.3% (batched offload) = -34% useful work |
 
 ## Custom Profiler
 
@@ -162,7 +168,7 @@ python3 analyze_pc_profile.py profile.csv
 | **Bottleneck Analysis** | [ARCHITECTURAL_BOTTLENECK_ANALYSIS.md](analysis/ARCHITECTURAL_BOTTLENECK_ANALYSIS.md) |
 | **68K Profiling** | [68K_BOTTLENECK_ANALYSIS.md](analysis/profiling/68K_BOTTLENECK_ANALYSIS.md) |
 | **COMM Protocol** | [68K_SH2_COMMUNICATION.md](analysis/68K_SH2_COMMUNICATION.md) (B-003/B-004/B-005 protocols) |
-| **68K Functions** | [68K_FUNCTION_REFERENCE.md](analysis/68K_FUNCTION_REFERENCE.md) (503+ functions) |
+| **All Functions** | [MASTER_FUNCTION_REFERENCE.md](analysis/MASTER_FUNCTION_REFERENCE.md) (806 entries, auto-generated) |
 | **SH2 3D Pipeline** | [SH2_3D_PIPELINE_ARCHITECTURE.md](analysis/sh2-analysis/SH2_3D_PIPELINE_ARCHITECTURE.md) |
 | **3D Engine Deep Dive** | [SH2_3D_ENGINE_DEEP_DIVE.md](analysis/sh2-analysis/SH2_3D_ENGINE_DEEP_DIVE.md) (algorithmic analysis) |
 | **Rendering Pipeline** | [RENDERING_PIPELINE.md](analysis/RENDERING_PIPELINE.md) (end-to-end V-INT → VDP) |
@@ -191,7 +197,8 @@ You must provide your own legal ROM dump:
 | Z80 CPU | Sound processing |
 | ROM Size | 4 MB (4,194,304 bytes) with 1MB expansion |
 | Original Frame Rate | ~20 FPS (blocking sync bottleneck) |
-| Target Frame Rate | 60 FPS |
+| Primary Target | 30 FPS (Tracks A+B: cmd_27 queue + batched offload) |
+| Stretch Goal | 60 FPS (Track C: pipeline overlap) |
 
 ## Support
 

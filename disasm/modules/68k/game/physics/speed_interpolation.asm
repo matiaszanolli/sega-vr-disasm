@@ -3,8 +3,8 @@
 ; ROM Range: $00A3EA-$00A432 (74 bytes)
 ; ============================================================================
 ; Gradually adjusts speed toward a target value read from a lookup table.
-; The delta is divided by 103 for smooth interpolation, then clamped to
-; system-defined acceleration bounds stored in RAM.
+; The delta is approximately divided by 103 using (x*644)>>16 for smooth
+; interpolation, then clamped to system-defined acceleration bounds in RAM.
 ;
 ; Entry: A0 = object/entity pointer
 ; Uses: D0, D1, A1
@@ -24,8 +24,8 @@ speed_interpolation:
         add.w   d0,d0                   ; Word offset (index * 2)
         move.w  (a1,d0.w),d1            ; $3231 $0000 — read target speed from table
         sub.w   $16(a0),d1              ; Delta = target - current speed
-        ext.l   d1                      ; Sign-extend to long for division
-        divs.w  #$0067,d1               ; Divide by 103 (gradual interpolation)
+        muls.w  #$0284,d1               ; Approx divide by 103: (x*644)>>16 ≈ x/101.8
+        swap    d1                       ; Extract result from high word
         move.w  $8(a0),d0               ; Load secondary speed field
         sub.w   $6(a0),d0               ; Remaining = secondary - accumulated
         cmp.w   ($FFFFC0F8).w,d1        ; $B278 $C0F8 — check upper acceleration limit

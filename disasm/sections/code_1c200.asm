@@ -34,4 +34,7 @@
 ; included here until their hook points are activated.
 ; ============================================================================
 
+; --- S-1: LOD culling enhanced sprite param update (relocated from code_2200) ---
+        include "modules/68k/game/render/object_table_sprite_param_update.asm"
+
         dcb.b   ($01E200-*),$FF

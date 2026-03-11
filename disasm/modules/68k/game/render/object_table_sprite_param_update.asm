@@ -1,10 +1,11 @@
 ; ============================================================================
-; object_table_sprite_param_update — Object Table Sprite Parameter Update
-; ROM Range: $0036DE-$0037B6 (216 bytes)
+; object_table_sprite_param_update_impl — Object Table Sprite Parameter Update
+; Originally at $0036DE-$0037B6. Relocated to code_1c200 for LOD expansion.
 ; ============================================================================
 ; Iterates through 15 objects (D7=$0E), reading sprite type from entity
 ; +$C1 and computing render parameters for the SH2 3D pipeline.
 ; For each object with non-zero type:
+;   0. LOD culling: skip SH2 rendering if entity is far from player (S-1)
 ;   1. Checks visibility (ghost mode, flag bit 3 at +$E5)
 ;   2. Looks up sprite definition from ROM table ($008958E4 + car_index)
 ;   3. Doubles type ID and adds +$C2 as sub-index
@@ -20,7 +21,7 @@
 ; Uses: D0, D5, D6, D7, A0, A1, A3
 ; ============================================================================
 
-object_table_sprite_param_update:
+object_table_sprite_param_update_impl:
         LEA     (-28416).W,A0                   ; $0036DE
         LEA     $00FF6218,A1                    ; $0036E2
         LEA     $008958E4,A3                    ; $0036E8
@@ -33,9 +34,28 @@ object_table_sprite_param_update:
         MOVEQ   #$00,D0                         ; $0036FC
         MOVE.B  $00C1(A0),D0                    ; $0036FE
         BEQ.W  .store_output                    ; $003702
-        MOVEQ   #$01,D5                         ; $003706
-        MOVEQ   #$01,D6                         ; $003708
-        TST.B  (-28444).W                       ; $00370A
+; --- LOD distance culling (S-1): skip SH2 rendering for far entities ---
+; Bounding-box test: if entity is beyond $0600 (1536) units from
+; player on either axis, mark invisible. Reduces Slave SH2 polygon count.
+; Player position: $FF9030 (X) / $FF9034 (Y) = entity base $FF9000 + $30/$34.
+        move.w  $0030(A0),d5                    ; entity X position
+        sub.w   (-28624).w,d5                   ; dX = entity_X - player_X
+        bpl.s   .lod_abs_x
+        neg.w   d5                              ; |dX|
+.lod_abs_x:
+        cmpi.w  #$0600,d5                       ; X axis beyond LOD threshold?
+        bgt.s   .set_invisible                  ; yes → cull (D5=D6=0)
+        move.w  $0034(A0),d5                    ; entity Y position
+        sub.w   (-28620).w,d5                   ; dY = entity_Y - player_Y
+        bpl.s   .lod_abs_y
+        neg.w   d5                              ; |dY|
+.lod_abs_y:
+        cmpi.w  #$0600,d5                       ; Y axis beyond LOD threshold?
+        bgt.s   .set_invisible                  ; yes → cull (D5=D6=0)
+; --- entity is close enough: mark visible ---
+        MOVEQ   #$01,D5
+        MOVEQ   #$01,D6
+        TST.B  (-28444).W                       ; ghost mode check
         BNE.S  .check_ghost_flag                ; $00370E
         TST.B  (-15588).W                       ; $003710
         BEQ.S  .check_type                      ; $003714
@@ -45,7 +65,7 @@ object_table_sprite_param_update:
 .set_invisible:
         MOVEQ   #$00,D5                         ; $00371E
         MOVEQ   #$00,D6                         ; $003720
-        BRA.W  .store_output                    ; $003722
+        BRA.S  .store_output
 .check_type:
         BTST    #3,(-28443).W                   ; $003726
         BEQ.S  .lookup_sprite                   ; $00372C
@@ -56,8 +76,7 @@ object_table_sprite_param_update:
         BEQ.S  .compute_positions               ; $003738
         MOVEQ   #$00,D6                         ; $00373A
 .compute_positions:
-        ADD.W   D0,D0                           ; $00373C
-        ADD.W   D0,D0                           ; $00373E
+        LSL.W   #2,D0                           ; D0 *= 4 (sprite type → longword index)
         ADD.W  $00C2(A0),D0                     ; $003740
         MOVE.L  $00(A3,D0.W),$0010(A1)          ; $003744
         MOVE.W  (-16156).W,D0                   ; $00374A

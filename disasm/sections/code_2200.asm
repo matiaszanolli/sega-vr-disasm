@@ -78,7 +78,11 @@
         include "modules/68k/game/state/clear_object_state_bytes.asm"
         include "modules/68k/game/race/race_result_with_leaderboard_update.asm"
         include "modules/68k/game/state/calc_state_from_flags_2.asm"
-        include "modules/68k/game/render/object_table_sprite_param_update.asm"
+; Trampoline: implementation relocated to code_1c200 for LOD culling expansion (S-1)
+; Padded to original 216 bytes to preserve PC-relative offsets in subsequent functions.
+object_table_sprite_param_update:
+        jmp     $00880000+object_table_sprite_param_update_impl  ; 6 bytes
+        dcb.b   210,$FF                         ; padding to 216 bytes
         include "modules/68k/game/collision/object_proximity_check_jump_table_dispatch.asm"
         include "modules/68k/game/state/conditional_return_on_disp_flag.asm"
         include "modules/68k/game/collision/proximity_check_with_sine_billboard.asm"

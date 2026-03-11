@@ -14,8 +14,13 @@
 ;   7. Calls z80_bus_vdp_init for final VDP/sound setup
 ;   8. Fills CRAM with initial palette (64 entries of color $0E)
 ;   9. Copies one of two dispatch loop variants to RAM ($FF0000):
-;      - $000F92: Normal dispatch (game_tick + frame wait loop)
+;      - $000F92: Normal dispatch (game_tick + STOP until V-INT)
 ;      - $000FAA: Alternate dispatch (alternate_tick + flag sync)
+;
+; SELF-MODIFYING CODE: $FF0008 is the immediate operand of the MOVE.W
+; at $FF0006. Game handlers write to $FF0008 to select V-INT dispatch
+; state (e.g., $0004=common, $0018=fb_toggle, $0054=race render).
+; The MOVE.W position at $FF0006 must NOT be moved.
 ;
 ; Uses: D0, D1, D4, D6, D7, A0, A1, A5
 ; RAM:
@@ -144,11 +149,11 @@ vdp_display_init:
         NOP                                     ; $000F90
 .normal_dispatch_loop:
         JSR     $00894262                       ; $000F92
-        MOVE.W  #$0004,(-14214).W               ; $000F98
-        MOVE    #$2300,SR                       ; $000F9E
-.wait_frame:
-        TST.W  (-14214).W                       ; $000FA2
-        BNE.S  .wait_frame                        ; $000FA6
+        MOVE.W  #$0004,(-14214).W               ; $000F98: V-INT state (self-modified via $FF0008)
+        stop    #$2300                          ; $000F9E: halt until V-INT (level 6 > 3)
+        nop                                     ; $000FA2: padding (was TST.W spin loop)
+        nop                                     ; $000FA4: padding
+        nop                                     ; $000FA6: padding
         BRA.S  .normal_dispatch_loop                        ; $000FA8
 .alt_dispatch_loop:
         JSR     $00884CBC                       ; $000FAA

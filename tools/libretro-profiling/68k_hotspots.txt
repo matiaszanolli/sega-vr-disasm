@@ -1,23 +1,23 @@
 # 68K Hotspots - Top 20 PCs by cycle share
 # Format: PC [Region] (share%) function_name
 
- 1. 0x00FF0010 [WRAM    ] (51.21%) WRAM_code
- 2. 0x0088E360 [ROM-68K ] (11.19%) Sprite Descriptor Table + SH2 Palette...
+ 1. 0x00FF0010 [WRAM    ] (51.89%) WRAM_code
+ 2. 0x0088E360 [ROM-68K ] (10.52%) Sprite Descriptor Table + SH2 Palette...
  3. 0x0089461C [ROM-68K ] ( 1.07%) Menu Tile Copy to VDP (Block Transfer)
  4. 0x0089461A [ROM-68K ] ( 0.95%) Menu Tile Copy to VDP (Block Transfer)
- 5. 0x0088A68C [ROM-68K ] ( 0.38%) Physics Integration
+ 5. 0x0088A68C [ROM-68K ] ( 0.39%) Physics Integration
  6. 0x0088A404 [ROM-68K ] ( 0.37%) Speed Interpolation (Table-Based with...
  7. 0x0088A6C2 [ROM-68K ] ( 0.35%) Physics Integration
  8. 0x0088A7B8 [ROM-68K ] ( 0.33%) AI Steering Calculation
- 9. 0x008B0D2C [ROM-SH2 ] ( 0.30%) Z80 Bus Wait
-10. 0x008B0D24 [ROM-SH2 ] ( 0.26%) Z80 Bus Wait
-11. 0x00892E3C [ROM-68K ] ( 0.23%) camera_selection_main_loop
-12. 0x008875CC [ROM-68K ] ( 0.20%) Plane Evaluation Pair
-13. 0x008849A2 [ROM-68K ] ( 0.20%) Wait For V-Blank
-14. 0x008874F2 [ROM-68K ] ( 0.19%) Angle Normalization and Visibility Fu...
-15. 0x008945B2 [ROM-68K ] ( 0.19%) Palette Fade 003
-16. 0x00888F64 [ROM-68K ] ( 0.19%) sine_cosine_quadrant_lookup
-17. 0x0088751C [ROM-68K ] ( 0.19%) Angle Normalization and Visibility Fu...
-18. 0x00888F58 [ROM-68K ] ( 0.18%) sine_cosine_quadrant_lookup
-19. 0x00889B2A [ROM-68K ] ( 0.18%) Entity Speed Clamp
-20. 0x00887698 [ROM-68K ] ( 0.17%) rotational_offset_calc
+ 9. 0x008B0D2C [ROM-SH2 ] ( 0.29%) Z80 Bus Wait
+10. 0x008B0D24 [ROM-SH2 ] ( 0.25%) Z80 Bus Wait
+11. 0x008875CC [ROM-68K ] ( 0.20%) Plane Evaluation Pair
+12. 0x008849A2 [ROM-68K ] ( 0.20%) Wait For V-Blank
+13. 0x008874F2 [ROM-68K ] ( 0.19%) Angle Normalization and Visibility Fu...
+14. 0x0088751C [ROM-68K ] ( 0.19%) Angle Normalization and Visibility Fu...
+15. 0x00888F64 [ROM-68K ] ( 0.19%) sine_cosine_quadrant_lookup
+16. 0x008945B2 [ROM-68K ] ( 0.19%) Palette Fade 003
+17. 0x00888F58 [ROM-68K ] ( 0.18%) sine_cosine_quadrant_lookup
+18. 0x00889B2A [ROM-68K ] ( 0.18%) Entity Speed Clamp
+19. 0x00887698 [ROM-68K ] ( 0.17%) rotational_offset_calc
+20. 0x008874C0 [ROM-68K ] ( 0.16%) Angle Normalization and Visibility Fu...

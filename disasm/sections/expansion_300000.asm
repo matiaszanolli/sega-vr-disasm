@@ -48,8 +48,8 @@
 ;   0x300C00-0x300FFF  queue_processor (ring buffer drain loop, 1KB reserved)
 ;   --- Track 1 Phase 3: General command async ---
 ;   0x301000-0x3010EF  general_queue_drain (240 bytes, COMM protocol replay)
-;   0x3010F0-0x301177  cmd22_single_shot (136 bytes, inline COMM cleanup + re-dispatch)
-;   0x301178-0x3FFFFF  Free space (remaining ~1019KB)
+;   0x3010F0-0x30119F  cmd22_single_shot (176 bytes, longword copy + inline COMM cleanup)
+;   0x3011A0-0x3FFFFF  Free space (remaining ~1019KB)
 ;
 ; Shared Data Structures (cache-through SDRAM, NOT in expansion ROM):
 ;   0x2203E000-0x2203E00F  Parameter block (16 bytes: R14, R7, R8, R5)
@@ -349,7 +349,7 @@ cmd22_single_shot:
         include "sh2/generated/cmd22_single_shot.inc"
 
 ; ============================================================================
-; REMAINING EXPANSION ROM SPACE (from ~0x301178)
+; REMAINING EXPANSION ROM SPACE (from ~0x3011A0)
 ; ============================================================================
 ; Pad to $3F0000 (960KB) instead of $400000 (1MB) to avoid PicoDrive
 ; emulator bug triggered by ROM files > ~0x3F1F40 bytes.

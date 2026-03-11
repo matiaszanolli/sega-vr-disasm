@@ -1,7 +1,7 @@
 /*
  * cmd22_single_shot — Single-Shot 2D Block Copy Handler (cmd $22)
  * Expansion ROM Address: $3010F0 (SH2: $023010F0)
- * Size: 136 bytes (122 bytes code + 14 bytes literal pool)
+ * Size: 176 bytes (162 bytes code + 14 bytes literal pool)
  *
  * Inline COMM cleanup protocol (Phase 2 optimization):
  *   Replaces func_084 JSR with inline byte/word-level COMM writes.
@@ -18,6 +18,15 @@
  *   The dispatch loop is just: poll COMM0_HI → read COMM0_LO → JSR handler
  *   → BRA poll. Since cmd22 does inline COMM cleanup, there is no external
  *   func_084 race to worry about.
+ *
+ * Longword optimization (Phase 3):
+ *   When both source and destination addresses are longword-aligned AND the
+ *   word count per row is even, the inner copy loop uses 32-bit MOV.L
+ *   transfers instead of 16-bit MOV.W. This halves the loop iteration count,
+ *   saving ~2.5 SH2 cycles per word pair in instruction overhead.
+ *   Falls back to 16-bit word copy for unaligned addresses or odd widths.
+ *   Even width guarantees R3 (auto-incremented source) stays 4-byte aligned
+ *   across row boundaries (each row consumes width×2 bytes = multiple of 4).
  *
  * COMM Register Layout (68K write order, SH2 read perspective, R8 = $20004020):
  *   COMM0_HI (offset 0):  $01 — trigger (written LAST by 68K)
@@ -39,36 +48,46 @@
  *
  * Register Mapping:
  *   R0 = scratch (all @(disp,R8) reads/writes go through R0); final: A1 dest base
- *   R1 = Words per row (from COMM2_LO = D0/2)
+ *   R1 = Words per row (from COMM2_LO = D0/2); halved for longword path
  *   R2 = Height / row count (from COMM3_HI = D1)
  *   R3 = Source pointer (A0 reconstructed: $06 | COMM3_LO:COMM4)
  *   R4 = A0[15:0] temp; current dest pointer within row (inner loop)
- *   R5 = A1[31:16] temp; words remaining in current row (inner loop)
+ *   R5 = A1[31:16] temp; alignment check scratch; words/longwords remaining (inner loop)
  *   R6 = A1[15:0] temp during param read; Row stride ($0200) during copy
- *   R7 = Word being copied / prefix constant temp
- *   R8 = 1 during copy (clobbers COMM base); reloaded to $20004020 after copy
+ *   R7 = Word/longword being copied / alignment check scratch / prefix constant temp
+ *   R8 = COMM base during param read; unused during copy; reloaded after copy
  *
  * PC-relative alignment notes:
  *   NOP at offset 34: .a0_prefix MOV.L at offset 36 (36%4=0 ✓)
  *   .a1_prefix MOV.L at offset 48 (48%4=0 ✓)
- *   NOP at offset 78: .comm_base MOV.L at offset 80 (80%4=0 ✓)
+ *   NOP at offset 118: .comm_base MOV.L at offset 120 (120%4=0 ✓)
  *
  * Pool layout (offsets from function start, base=$3010F0):
- *   offset 122 ($30116A): .stride     = $0200 (2 bytes)
- *   offset 124 ($30116C): .comm_base  = $20004020 (4 bytes)
- *   offset 128 ($301170): .a0_prefix  = $06000000 (4 bytes)
- *   offset 132 ($301174): .a1_prefix  = $04000000 (4 bytes)
- *   Total pool: 14 bytes → grand total: 136 bytes
+ *   offset 162 ($301192): .stride     = $0200 (2 bytes)
+ *   offset 164 ($301194): .comm_base  = $20004020 (4 bytes)
+ *   offset 168 ($301198): .a0_prefix  = $06000000 (4 bytes)
+ *   offset 172 ($30119C): .a1_prefix  = $04000000 (4 bytes)
+ *   Total pool: 14 bytes → grand total: 176 bytes
  *
  * Algorithm:
  *   do {
  *     read ALL params from COMM2-6 into registers, THEN clear COMM0_LO
  *     reconstruct A0 ($06xxxxxx), A1 ($04xxxxxx)
- *     for (row = 0; row < height; row++) {
- *       dest = base;
- *       for (word = 0; word < width; word++)
- *         *dest++ = *src++;
- *       base += 0x200;
+ *     if (both aligned && even width) {
+ *       width /= 2;  // longwords per row
+ *       for (row = 0; row < height; row++) {
+ *         dest = base;
+ *         for (lw = 0; lw < width; lw++)
+ *           *(long*)dest++ = *(long*)src++;  // 32-bit
+ *         base += 0x200;
+ *       }
+ *     } else {
+ *       for (row = 0; row < height; row++) {
+ *         dest = base;
+ *         for (word = 0; word < width; word++)
+ *           *dest++ = *src++;  // 16-bit
+ *         base += 0x200;
+ *       }
  *     }
  *     reload R8 = COMM base
  *     COMM1 cleanup (clear + set bit 0)
@@ -112,86 +131,118 @@ cmd22_single_shot:
     /* === ALIGNMENT NOP: offset 34 → .a0_prefix MOV.L at offset 36 (36%4=0 ✓) === */
     /* offset 34 */ nop
 
-    /* offset 36 */ mov.l   @(.a0_prefix,pc),r7 /* R7=$06000000 [PC=base+40, target=base+128, disp=88/4=22 ✓] */
-    /* offset 38 */ or      r7,r3               /* R3 = $06xxxxxx (A0: SDRAM native) */
+    /* offset 36 */ mov.l   @(.a0_prefix,pc),r7 /* R7=$06000000 */
+    /* offset 38 */ or      r7,r3               /* R3 = $06xxxxxx (A0: ROM native read) */
 
     /* === A1 RECONSTRUCTION: mask top byte, apply $04 prefix === */
     /* offset 40 */ shll16  r5                  /* R5 = A1[31:16] << 16 */
     /* offset 42 */ or      r6,r5               /* R5 = A1 raw (R6=A1[15:0] from offset 24) */
     /* offset 44 */ shll8   r5                  /* R5 <<= 8 (shift top byte out) */
     /* offset 46 */ shlr8   r5                  /* R5 >>= 8 (top byte now $00) */
-    /* offset 48 */ mov.l   @(.a1_prefix,pc),r7 /* R7=$04000000 [PC=base+52, target=base+132, disp=80/4=20 ✓] */
+    /* offset 48 */ mov.l   @(.a1_prefix,pc),r7 /* R7=$04000000 */
     /* offset 50 */ or      r7,r5               /* R5 = $04xxxxxx (A1: cached framebuffer) */
     /* offset 52 */ mov     r5,r0               /* R0 = A1 dest base (loop uses R0) */
 
-    /* === BLOCK COPY SETUP === */
-    /* offset 54 */ mov.w   @(.stride,pc),r6    /* R6=$0200 [PC=base+58, target=base+122, disp=64/2=32 ✓] */
-    /* offset 56 */ mov     #1,r8               /* R8 = 1 (loop constant; clobbers COMM base) */
+    /* === ALIGNMENT + WIDTH CHECK ===                                             */
+    /* Test: both addresses 4-byte aligned AND words/row is even.                  */
+    /* Method: shift width left 1 (bit 0 → bit 1), OR with src|dest, test bit 1.  */
+    /* If any source has bit 1 set, falls back to safe 16-bit word copy.           */
+    /* offset 54 */ mov     r1,r7               /* R7 = words/row */
+    /* offset 56 */ shll    r7                  /* R7 <<= 1 (width bit 0 → bit 1) */
+    /* offset 58 */ or      r3,r7               /* R7 |= src address */
+    /* offset 60 */ or      r0,r7               /* R7 |= dest address */
+    /* offset 62 */ mov     #2,r5               /* R5 = 2 (test mask for bit 1) */
+    /* offset 64 */ tst     r5,r7               /* T = ((result & 2) == 0)? */
+    /* offset 66 */ bt      .long_setup         /* T=1 → aligned + even width → longword path */
 
-    /* === OUTER LOOP: Row Iterator === */
-.row_loop:
-    /* offset 58 */ mov     r0,r4               /* R4 = dest row start */
-    /* offset 60 */ mov     r1,r5               /* R5 = words per row */
-
-    /* === INNER LOOP: Word Copy === */
+    /* === WORD COPY PATH (16-bit, handles all cases) === */
+    /* offset 68 */ mov.w   @(.stride,pc),r6    /* R6=$0200 (row stride) */
+.word_row_loop:
+    /* offset 70 */ mov     r0,r4               /* R4 = dest row start */
+    /* offset 72 */ mov     r1,r5               /* R5 = words per row */
 .copy_word:
-    /* offset 62 */ mov.w   @r3+,r7             /* R7 = *src++; read word */
-    /* offset 64 */ mov.w   r7,@r4              /* *dest = R7; write word */
-    /* offset 66 */ dt      r5                  /* R5-- and test zero */
-    /* offset 68 */ bf/s    .copy_word          /* Branch if words remain */
-    /* offset 70 */ add     #2,r4               /* [delay slot] dest += 2 */
+    /* offset 74 */ mov.w   @r3+,r7             /* R7 = *src++; read word */
+    /* offset 76 */ mov.w   r7,@r4              /* *dest = R7; write word */
+    /* offset 78 */ dt      r5                  /* R5-- and test zero */
+    /* offset 80 */ bf/s    .copy_word          /* Branch if words remain */
+    /* offset 82 */ add     #2,r4               /* [delay slot] dest += 2 */
 
-    /* === ROW COMPLETE === */
-    /* offset 72 */ dt      r2                  /* R2-- (row counter) */
-    /* offset 74 */ bf/s    .row_loop           /* Branch if rows remain */
-    /* offset 76 */ add     r6,r0               /* [delay slot] dest base += stride */
+    /* === ROW COMPLETE (word path) === */
+    /* offset 84 */ dt      r2                  /* R2-- (row counter) */
+    /* offset 86 */ bf/s    .word_row_loop      /* Branch if rows remain */
+    /* offset 88 */ add     r6,r0               /* [delay slot] dest base += stride */
+
+    /* offset 90 */ bra     .cleanup            /* Jump to completion */
+    /* offset 92 */ nop                         /* [delay slot] */
+
+    /* === LONGWORD COPY PATH (32-bit, for aligned + even-width) === */
+.long_setup:
+    /* offset 94 */ shlr    r1                  /* R1 = words/2 = longwords per row */
+    /* offset 96 */ mov.w   @(.stride,pc),r6    /* R6=$0200 (row stride) */
+.long_row_loop:
+    /* offset 98 */ mov     r0,r4               /* R4 = dest row start */
+    /* offset 100 */ mov    r1,r5               /* R5 = longwords per row */
+.copy_long:
+    /* offset 102 */ mov.l  @r3+,r7             /* R7 = *src++ (32-bit read) */
+    /* offset 104 */ mov.l  r7,@r4              /* *dest = R7 (32-bit write) */
+    /* offset 106 */ dt     r5                  /* R5-- and test zero */
+    /* offset 108 */ bf/s   .copy_long          /* Branch if longwords remain */
+    /* offset 110 */ add    #4,r4               /* [delay slot] dest += 4 */
+
+    /* === ROW COMPLETE (longword path) === */
+    /* offset 112 */ dt     r2                  /* R2-- (row counter) */
+    /* offset 114 */ bf/s   .long_row_loop      /* Branch if rows remain */
+    /* offset 116 */ add    r6,r0               /* [delay slot] dest base += stride */
+
+    /* === Fall through to cleanup === */
 
     /* === COMPLETION: Race-safe inline cleanup + re-dispatch === */
-    /* === ALIGNMENT NOP: offset 78 → .comm_base MOV.L at offset 80 (80%4=0 ✓) === */
-    /* offset 78 */ nop
+.cleanup:
+    /* === ALIGNMENT NOP: offset 118 → .comm_base MOV.L at offset 120 (120%4=0 ✓) === */
+    /* offset 118 */ nop
 
-    /* Reload COMM base (clobbered to 1 by copy loop) */
-    /* offset 80 */ mov.l   @(.comm_base,pc),r8 /* R8=$20004020 [PC=base+84, target=base+124, disp=40/4=10 ✓] */
+    /* Reload COMM base (clobbered during param read / copy setup) */
+    /* offset 120 */ mov.l  @(.comm_base,pc),r8 /* R8=$20004020 */
 
     /* === COMM1 cleanup (func_084 equivalent) === */
-    /* offset 82 */ mov     #0,r0               /* R0 = 0 */
-    /* offset 84 */ mov.w   r0,@(2,r8)          /* COMM1_HI:LO = $0000 (word write at offset 2) */
-    /* offset 86 */ mov.b   @(3,r8),r0          /* R0 = COMM1_LO (just cleared = 0) */
-    /* offset 88 */ or      #1,r0               /* R0 |= 1 (set bit 0: "command done") */
-    /* offset 90 */ mov.b   r0,@(3,r8)          /* COMM1_LO = 1 */
+    /* offset 122 */ mov    #0,r0               /* R0 = 0 */
+    /* offset 124 */ mov.w  r0,@(2,r8)          /* COMM1_HI:LO = $0000 (word write at offset 2) */
+    /* offset 126 */ mov.b  @(3,r8),r0          /* R0 = COMM1_LO (just cleared = 0) */
+    /* offset 128 */ or     #1,r0               /* R0 |= 1 (set bit 0: "command done") */
+    /* offset 130 */ mov.b  r0,@(3,r8)          /* COMM1_LO = 1 */
 
     /* === Clear COMM0_HI via byte write — preserves COMM0_LO === */
-    /* offset 92 */ mov     #0,r0               /* R0 = 0 */
-    /* offset 94 */ mov.b   r0,@(0,r8)          /* COMM0_HI = 0 (byte write only!) */
+    /* offset 132 */ mov    #0,r0               /* R0 = 0 */
+    /* offset 134 */ mov.b  r0,@(0,r8)          /* COMM0_HI = 0 (byte write only!) */
 
     /* === Race-safe re-check: 68K may have written COMM0_LO during cleanup === */
-    /* offset 96 */ mov.b   @(1,r8),r0          /* R0 = COMM0_LO */
-    /* offset 98 */ cmp/eq  #0x22,r0            /* Is it another cmd22? */
-    /* offset 100 */ bt     .param_read         /* Yes → re-dispatch [disp=(2-104)/2=-51 ✓] */
-    /* offset 102 */ tst    r0,r0               /* Is COMM0_LO zero? */
-    /* offset 104 */ bf     .other_cmd          /* Non-zero → different command [disp=(112-108)/2=2 ✓] */
+    /* offset 136 */ mov.b  @(1,r8),r0          /* R0 = COMM0_LO */
+    /* offset 138 */ cmp/eq #0x22,r0            /* Is it another cmd22? */
+    /* offset 140 */ bt     .param_read         /* Yes → re-dispatch */
+    /* offset 142 */ tst    r0,r0               /* Is COMM0_LO zero? */
+    /* offset 144 */ bf     .other_cmd          /* Non-zero → different command */
 
     /* === CLEAN EXIT: Truly idle, COMM0_HI already cleared above === */
-    /* offset 106 */ lds.l  @r15+,pr            /* Restore PR */
-    /* offset 108 */ rts                        /* Return to dispatch loop */
-    /* offset 110 */ nop                        /* [delay slot] */
+    /* offset 146 */ lds.l  @r15+,pr            /* Restore PR */
+    /* offset 148 */ rts                        /* Return to dispatch loop */
+    /* offset 150 */ nop                        /* [delay slot] */
 
 .other_cmd:
     /* === OTHER COMMAND: COMM0_HI was cleared above, restore trigger for dispatch loop === */
-    /* offset 112 */ mov    #1,r0               /* R0 = 1 */
-    /* offset 114 */ mov.b  r0,@(0,r8)          /* COMM0_HI = $01 (dispatch loop will read COMM0_LO) */
-    /* offset 116 */ lds.l  @r15+,pr            /* Restore PR */
-    /* offset 118 */ rts                        /* Return to dispatch loop */
-    /* offset 120 */ nop                        /* [delay slot] */
+    /* offset 152 */ mov    #1,r0               /* R0 = 1 */
+    /* offset 154 */ mov.b  r0,@(0,r8)          /* COMM0_HI = $01 (dispatch loop will read COMM0_LO) */
+    /* offset 156 */ lds.l  @r15+,pr            /* Restore PR */
+    /* offset 158 */ rts                        /* Return to dispatch loop */
+    /* offset 160 */ nop                        /* [delay slot] */
 
 /* === LITERAL POOL ===
- * Code ends at offset 122 (61 instructions × 2B = 122B).
+ * Code ends at offset 162 (81 instructions × 2B = 162B).
  * Pool (14 bytes):
- *   offset 122 ($30116A): .stride     = $0200 (2 bytes)
- *   offset 124 ($30116C): .comm_base  = $20004020 (4 bytes)
- *   offset 128 ($301170): .a0_prefix  = $06000000 (4 bytes)
- *   offset 132 ($301174): .a1_prefix  = $04000000 (4 bytes)
- * Total: 122 + 14 = 136 bytes
+ *   offset 162 ($301192): .stride     = $0200 (2 bytes)
+ *   offset 164 ($301194): .comm_base  = $20004020 (4 bytes)
+ *   offset 168 ($301198): .a0_prefix  = $06000000 (4 bytes)
+ *   offset 172 ($30119C): .a1_prefix  = $04000000 (4 bytes)
+ * Total: 162 + 14 = 176 bytes
  */
 .align 1
 .stride:
@@ -204,6 +255,6 @@ cmd22_single_shot:
 .a1_prefix:
     .long   0x04000000              /* Cached framebuffer write prefix (dst) */
 
-/* Total: 122 bytes code + 14 bytes pool = 136 bytes */
+/* Total: 162 bytes code + 14 bytes pool = 176 bytes */
 
 .global cmd22_single_shot

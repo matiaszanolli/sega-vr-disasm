@@ -429,6 +429,40 @@ Both produce the same result: handler returns to the dispatch loop. The differen
 
 ---
 
+## 68K Section Packing — Hardcoded Absolute Address Jump Tables
+
+### Adding Bytes to code_6200 or code_A200 Breaks Jump Tables
+
+Both `code_6200` ($6200-$81FF) and `code_A200` ($A200-$C1FF) are **exactly packed to their 8192-byte section boundaries**. Adding even a single byte overflows into the next section. More critically, both sections contain jump tables with **hardcoded absolute addresses** that break when any preceding code shifts:
+
+**code_6200** — `object_type_dispatch.asm`:
+```asm
+MOVEA.L $007A52(PC,D0.W),A1    ; load handler from table
+JMP     (A1)
+DC.W    $0088                   ; high word of $00887A8A
+MOVEQ   #-$76,D5               ; MOVEQ byte = $8A = low byte of address
+; ... 14 entries using DC.W $0088 + MOVEQ trick for longword addresses
+```
+The DC.W+MOVEQ pairs form absolute 68K CPU addresses. When code shifts, the PC-relative offset `$007A52(PC,D0.W)` still points at the right table location, but the table VALUES are absolute addresses that must match the functions they point to. Since those functions also shifted, the addresses are now wrong.
+
+**code_A200** — `entity_type_dispatch_tables.asm`:
+```asm
+entity_type_handler_ptr_table:
+    dc.l    $0088A972   ; → ai_entity_main_update_orch
+    dc.l    $0088AB88   ; → ai_entity_main_update_orch+$216
+    dc.l    $0088ABCE   ; → ai_entity_main_update_orch+$25C
+```
+These are raw absolute addresses. Making them label-based (`dc.l label+$00880000`) works within the section, but **cross-section absolute JSR/JMP references** from other sections also target code_A200 addresses. Those JSRs don't auto-adjust when code shifts.
+
+**Proven crash (2026-03-12):** Adding 6 bytes (MULU #$AAAB + SWAP) to entity_pos_update in code_6200 caused a 3D engine crash in attract mode. Adding 6 bytes to speed_interpolation in code_A200 also crashed. Both were reverted.
+
+**Rule:** Never add or remove bytes in code_6200 or code_A200. Only modify constant values within existing instructions (same opcode, same size). To add new behavior, either:
+1. Modify DATA (lookup table values) instead of CODE
+2. Find a section with free space for the new logic
+3. Replace an existing instruction with an equal-size alternative
+
+---
+
 ## 68K Section Space Constraints
 
 ### $00E200-$010200 Has 0 Bytes Free

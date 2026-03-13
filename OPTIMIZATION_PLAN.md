@@ -1,7 +1,7 @@
 # Virtua Racing 32X — Optimization Strategy
 
-**Version:** v9.0 (new opportunities + phased roadmap)
-**Last Updated:** March 12, 2026
+**Version:** v9.1 (S-4b speed compensation analysis)
+**Last Updated:** March 13, 2026
 **Baseline:** ~20 FPS (3 TV frames per game frame, measured)
 **Primary Target:** 30 FPS (2 TV frames per game frame)
 **Stretch Goal:** 60 FPS (requires pipeline overlap — see Phase 3)
@@ -168,19 +168,34 @@ The game takes 3 TV frames per game frame because states 0 and 4 each consume a 
 | `cascaded_frame_counter.asm` | Scale sub-tick reset | `$C4→$A6` (90 ticks at 30 FPS = 3 sec) |
 | `ai_timer_inc.asm` | Scale sub-tick reset | `$C4→$A6` |
 
-**Pending — target speed scaling:** Entity cruising speed is still 1.5× too fast because the speed lookup table target is unscaled. Adding `MULU.W #$AAAB` to scale the target by 2/3 requires +6 bytes, but both candidate sections are packed to exact boundaries:
-- code_6200 ($6200-$81FF): Contains `object_type_dispatch.asm` with hardcoded absolute addresses in a DC.W+MOVEQ jump table. Adding bytes shifts subsequent modules, breaking the jump table.
-- code_A200 ($A200-$C1FF): Contains `entity_type_dispatch_tables.asm` with hardcoded DC.L absolute addresses. Cross-section JSR absolute references also target this region.
+**Pending — target speed scaling:** Entity cruising speed is still 1.5× too fast. `entity_pos_update` reads speed from entity field A0+$06, multiplies by sin/cos for position delta. At 30 FPS, this runs 1.5× per second → entities move 1.5× too far per second.
 
-**Candidate fix:** Scale the speed lookup table DATA values by 2/3 (at file offset $19DA4, referenced via `LEA $00899DA4,A1`). This requires zero code changes. Needs verification of table boundaries and that no other code depends on the original values.
+Adding inline scaling (MULU #$AAAB + SWAP, 6 bytes) is impossible — both code_6200 and code_A200 are packed to exact section boundaries with hardcoded absolute address jump tables that break when code shifts (see KNOWN_ISSUES.md §Section Packing). Proven crash in attract mode.
+
+**Primary approach — scale speed lookup table DATA by 2/3:**
+- Table: 384 word entries at file offset $19DA4 (CPU $00899DA4), in section code_18200
+- Referenced only by `speed_interpolation` via `LEA $00899DA4,A1`
+- Zero code changes, zero section size impact
+- Math: table_value × 2/3 → entity converges to lower speed → at 1.5× frame rate, movement/sec = (2/3 × target) × 30 = target × 20 = original
+- The smoothing multiplier ($0284→$01AD) is INDEPENDENT — it controls convergence RATE, not the target value. Both scalings are needed and don't double-apply.
+- **Caveat:** Entity speed (A0+$06) is also written by `entity_force_integration_and_speed_calc`, `entity_speed_acceleration_and_braking`, etc. These non-table code paths won't be scaled by this approach. Verify during testing whether non-table speeds cause visible issues.
+
+**Alternative approach — scale D2 in entity_pos_update+70 callers:**
+- The inner sub at `entity_pos_update+70` ($006FDE) is called from just 2 sites (entity_pos_update line 28, ai_entity_main_update_orch line 208). Both load D2 from A0+$06 just before calling.
+- A wrapper that scales D2 before calling +70 would catch ALL speed sources, not just the table.
+- Requires finding free space in a section reachable from both call sites, or restructuring the call to fit.
+
+**Not viable:** Scaling inside entity_pos_update itself (code_6200 packed), scaling inside speed_interpolation (code_A200 packed).
 
 ### Phase 1 Critical Path
 
 ```
 S-4 (state merge → 30 FPS) ✓ DONE
-  → S-4b (speed compensation) — constant scaling DONE, target speed scaling PENDING
-  → Test in PicoDrive: verify game speed with current partial compensation
-  → Complete target speed scaling (data table approach)
+  → S-4b constant scaling ✓ DONE (decel, smoothing, timers)
+  → S-4b target speed scaling ← NEXT: scale 384-entry speed table in code_18200
+     Option A: Multiply all dc.w values at $19DA4 by 2/3 (data-only, safest)
+     Option B: Wrap entity_pos_update+70 with D2 scaling (code, catches all speed sources)
+  → Test in PicoDrive: verify 3D engine stability + game speed correctness
 ```
 
 ---

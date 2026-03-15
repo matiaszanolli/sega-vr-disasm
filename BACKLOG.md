@@ -36,13 +36,16 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 **Key files:** `disasm/sections/code_2200.asm`, `disasm/modules/68k/game/state/state_disp_005020.asm`, `disasm/modules/68k/game/scene/frame_update_orch_005070.asm`
 **References:** [OPTIMIZATION_PLAN.md](OPTIMIZATION_PLAN.md) §A-1, [analysis/FRAME_RATE_ARCHITECTURE.md](analysis/FRAME_RATE_ARCHITECTURE.md)
 
-### A-2: 60 FPS Rendering (Third Frame Swap)
-**Status:** OPEN
+### A-2: 60 FPS Rendering
+**Status:** BLOCKED — two hardware constraints discovered
 **Priority:** P1 — next step toward 60 FPS
-**Why:** Add block-copy + swap to state 0, displaying the previous frame's interpolated render before the new DMA. This gives 3 frame swaps per 3 TV frames = 60 FPS. SH2 budget: 3 × ~300K = 78% of 3 TV frames — same as original 20 FPS utilization.
-**Blocker:** Trampoline space — only 24 bytes free. Need ~80 bytes for state 0 block-copy + swap code. Must find additional ROM space (second trampoline or NOP padding reuse).
-**Key files:** `disasm/sections/code_2200.asm`, `disasm/modules/68k/game/state/state_disp_005020.asm`
-**References:** [OPTIMIZATION_PLAN.md](OPTIMIZATION_PLAN.md) §A-2
+**Why:** Display 3 unique rendered frames per game frame = 60 FPS with 20 FPS game logic.
+**Blockers (both must be solved):**
+1. **FS swap must happen during VBlank** — writing FS outside VBlank is deferred to next VBlank. Our inline `bchg` in the main loop collides with state 8's V-INT swap. Need a V-INT handler mechanism for mid-frame swaps (without resetting `$C87E`).
+2. **Re-DMA does not trigger SH2 re-render** — calling `mars_dma_xfer_vdp_fill` a second time sends data but the SH2 doesn't re-render. Corruption diagnostic confirmed zero visual effect. The SH2's render trigger mechanism inside handler `$060008A0` is not fully understood.
+**Space:** SOLVED — code relocated to `code_1c200.asm` expansion area (7,936 bytes free).
+**Key files:** `disasm/modules/68k/optimization/camera_interpolation_60fps.asm`, `disasm/sections/code_1c200.asm`
+**References:** [OPTIMIZATION_PLAN.md](OPTIMIZATION_PLAN.md) §A-2, [KNOWN_ISSUES.md](KNOWN_ISSUES.md) §Camera Interpolation
 
 ### S-4: Merge $C87E States 0+4 (Phase 1 — 30 FPS)
 **Status:** REVERTED (2026-03-14) — superseded by A-1 camera interpolation

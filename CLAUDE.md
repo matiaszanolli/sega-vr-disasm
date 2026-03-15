@@ -79,8 +79,9 @@ disasm/vrd.asm (entry point)
 
 - **823 68K modules** (736 fully translated, 87 with remaining dc.w — all data, not code)
 - **All SH2 functions** integrated (92 function IDs via 89 .inc files, zero remaining)
-- **Display FPS**: ~40 (camera interpolation, 2 swaps per 3 TV frames). Game logic at 20 FPS.
-- **Master SH2**: 0-36% util. **Slave SH2**: 52% (2 renders/3 TV frames). **Target**: 60 FPS
+- **Display FPS**: ~40 (camera interpolation, stable frame pacing). Game logic at 20 FPS.
+- **Master SH2**: 0-36% util. **Slave SH2**: 79% (1 render/3 TV frames). **Target**: 60 FPS
+- **60 FPS blockers**: FS swap requires VBlank timing; re-DMA doesn't trigger SH2 re-render
 
 ### Critical Constraint: Expansion ROM ($300000+)
 

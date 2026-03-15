@@ -1,7 +1,7 @@
 # Virtua Racing 32X — Optimization Strategy
 
-**Version:** v11.0 (40 FPS achieved — camera interpolation rendering)
-**Last Updated:** March 14, 2026
+**Version:** v12.0 (documentation remediation complete — 60 FPS blockers identified)
+**Last Updated:** March 15, 2026
 **Baseline:** ~40 FPS (2 frame swaps per 3 TV frames, camera interpolation)
 **Primary Target:** 60 FPS (3 frame swaps per 3 TV frames)
 **Approach:** Fixed 20 FPS game tick + variable-rate rendering via camera interpolation
@@ -112,7 +112,9 @@ The old model assumed 1 render per game frame. With camera interpolation, multip
 
 **SH2 budget for 60 FPS:** 3 × ~300K = ~900K / 1,149K = **78%** — tight but feasible (same as original 20 FPS single-render utilization).
 
-**Key insight (revised):** FPS improves by adding SH2 render passes with interpolated camera data. The 68K drives the pipeline — sending block copies and swapping frame buffers. SH2 workload reduction (Phase 2) provides headroom but is NOT required for 60 FPS.
+**Key insight (revised):** Display FPS can exceed game logic FPS by adding block-copy + frame swap passes. However, two hardware constraints limit this:
+1. **FS writes outside VBlank are deferred** — frame buffer swaps MUST happen inside V-INT handlers, not in the main loop (hardware manual page 35)
+2. **Re-DMA does not trigger SH2 re-render** — calling `mars_dma_xfer_vdp_fill` twice per frame sends data but the SH2 handler doesn't re-render. The render trigger mechanism inside `$060008A0` is not yet understood.
 
 ---
 
@@ -324,33 +326,31 @@ NEW: Huffman renderer analysis — required to unlock S-5/S-9 alternatives
 
 ---
 
-## Phase 3 — 60 FPS (A-2: Third Render Per Game Frame)
+## Phase 3 — 60 FPS (A-2: BLOCKED — Two Hardware Constraints)
 
-**Now within reach.** SH2 renders in <1 TV frame already (~0.78 TV frames). Three renders per 3 TV frames = 78% utilization — the same as the original 20 FPS single-render utilization.
+**Status:** BLOCKED pending resolution of two fundamental issues discovered during implementation.
 
-### A-2: 60 FPS Rendering
+### A-2: 60 FPS Rendering — Blockers
 
-**Concept:** Add block-copy + swap to state 0 (before DMA). At state 0, the SDRAM still contains the previous frame's interpolated render (from state 4's re-DMA). Block-copy it to the framebuffer and swap, displaying a third frame per game cycle.
+**Blocker 1: FS swap deferred to VBlank (HARDWARE CONSTRAINT)**
 
-**Flow:**
-```
-State 0 (TV1): block-copy prev-interp → swap C → snapshot → DMA camera N → SH2 renders (A)
-State 4 (TV2): block-copy A → swap A → interp → re-DMA → SH2 renders (B)
-State 8 (TV3): block-copy B → swap B (existing)
-Result: 3 swaps / 3 TV frames = 60 FPS
-```
+Per the corrected 32X Hardware Manual (page 35): writing the FS bit during active display is deferred to the next VBlank. Our inline `bchg #0,$A1518B` in state 4's main loop writes during active display — the swap is queued to the same VBlank where state 8's V-INT handler does its own swap. Two swaps at the same VBlank cancel out.
 
-**Requirements:**
-1. ~80 bytes of 68K code for state 0 block-copy + swap (2× sh2_send_cmd + toggle)
-2. Trampoline space — only 24 bytes free at `object_table_sprite_param_update`. Need alternative location.
-3. SH2 must consistently finish each render within 1 TV frame (currently 0.78 — 22% margin)
+**Solution direction:** Frame swaps must happen inside V-INT handlers (during VBlank). Need a custom V-INT handler that swaps FS WITHOUT resetting `$C87E` to 0. The existing `vdp_dma_frame_swap_037` resets `$C87E`, which would restart the game frame prematurely.
 
-**Space options:**
-- Find another trampoline-able function in the ROM
-- Repurpose 26-byte NOP padding at sh2_send_cmd ($00E39A)
-- Compress existing trampoline code to free bytes
+**Blocker 2: Re-DMA does not trigger SH2 re-render (UNKNOWN MECHANISM)**
 
-**Risk:** Low-Medium. SH2 has sufficient budget. Main risk is finding code space and ensuring the third frame swap doesn't confuse the existing `vdp_dma_frame_swap_037` mechanism (which resets `$C87E`).
+Calling `mars_dma_xfer_vdp_fill` a second time per frame sends FIFO data to the SH2 (no hang, ACK received), but produces zero visual effect. Confirmed by corruption diagnostic: inverting the camera buffer before re-DMA shows no screen change. Profiling shows zero SH2 cycle increase. The SH2 Master handler at `$060008A0` has 11 subroutine calls, but the internal render trigger mechanism is not yet understood.
+
+**Solution direction:** Requires deep SH2 reverse engineering of handler `$060008A0` and its 11 callees. Alternative: write a custom SH2 command handler in expansion ROM that reads camera updates from COMM registers and calls the render pipeline directly, bypassing the FIFO/DREQ mechanism.
+
+### What IS Working (A-1, 40 FPS)
+
+The block-copy + frame swap infrastructure is functional. State 4 copies rendered SDRAM content to the framebuffer and the game displays at a stable ~40 FPS (confirmed smooth by visual testing). The camera snapshot + averaging pipeline works. Code relocated to `code_1c200.asm` expansion area with 7,936 bytes available.
+
+### Code Space: SOLVED
+
+All interpolation code relocated from the 210-byte trampoline to `code_1c200.asm` ($01C300+). Trampoline in `code_2200.asm` reduced to thin JMP relays (18 bytes used, 198 bytes free).
 
 ### Architectural Changes (for future optimization beyond A-2)
 

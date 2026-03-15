@@ -463,19 +463,35 @@ These are raw absolute addresses. Making them label-based (`dc.l label+$00880000
 
 ---
 
-## Camera Interpolation (40 FPS) — Implementation Notes
+## Camera Interpolation — Implementation Notes
 
 ### vasm `dcb.b (label_expr),val` Does Not Work
 When using `dcb.b (object_table_sprite_param_update+216-*),$FF` to compute padding dynamically, vasm evaluates `*` as the address BEFORE the code between the label and the `dcb.b`, producing incorrect padding. **Always use hardcoded byte counts** for `dcb.b` padding after trampoline code.
 
-### Trampoline Space Constraint
-The `object_table_sprite_param_update` trampoline in `code_2200.asm` has **24 bytes free** of 210 available (after 6-byte JMP). The 40 FPS implementation uses 186 bytes (46 snapshot + 38 interp + 102 epilogue). 60 FPS requires ~80 more bytes — must find additional ROM space.
-
 ### State Dispatcher Coverage Gap
 Only `state_disp_005020` (active racing) is hooked for camera snapshot in state 0. The other 4 race dispatchers (`004cb8` pre-race, `005308` post-race, `005586` attract, `005618` replay) call `mars_dma_xfer_vdp_fill` directly without snapshots. Similarly, only `frame_update_orch_005070` (state 4 of `005020`) is hooked for the interpolation epilogue. Non-racing modes and other race phases still run at 20 FPS.
 
-### Frame Swap Without CMD INT
-The state 4 mid-frame swap toggles the FS bit (`bchg #0,$00A1518B`) and tracking flag (`bchg #0,($C80C).w`) but does NOT send CMD INT to the SH2. The original `vdp_dma_frame_swap_037` does `bclr #7,MARS_SYS_INTCTL` + wait + `bset #7` around the swap. Omitting CMD INT works in testing but could cause the SH2 to render to the displayed buffer in edge cases. Monitor for tearing artifacts.
+### FS Swap Must Happen During VBlank (CRITICAL — Discovered March 2026)
+Per the corrected 32X Hardware Manual (page 35): **"Swapping the Frame Buffer is allowed during V Blank (VBLK = 1) or when in Blank mode. However, writing the FS bit is always allowed, and when written during display, swapping is done at the next VBlank."**
+
+This means writing FS outside VBlank is DEFERRED to the next VBlank. Our inline `bchg #0,$A1518B` in state 4's main loop writes during active display — the swap is deferred to the same VBlank where state 8's `vdp_dma_frame_swap_037` does its own swap. The two swaps cancel each other out at the same VBlank boundary.
+
+**Rule:** Frame buffer swaps MUST happen inside V-INT handlers (which run during VBlank), not in the main loop. The original game does this correctly — `vdp_dma_frame_swap_037` runs as a V-INT handler.
+
+### Re-DMA Does NOT Trigger SH2 Re-Render
+Calling `mars_dma_xfer_vdp_fill` a second time within the same game frame sends FIFO data to the SH2, but produces **zero visual effect**. Confirmed by corruption diagnostic: inverting camera buffer + re-DMA = no screen change. The SH2 receives the data (no hang) but does not re-render. Root cause under investigation — likely the SH2 handler's internal state prevents re-entry within the same frame.
+
+### Documentation Remediation (March 2026)
+~238 errors were found and fixed across 25 documentation files (76 in SEGA PDF transcriptions, 162 in analysis documents). The most dangerous errors:
+- DREQ register bit positions wrong (68S at bit 0 instead of bit 2)
+- SH2 memory map SDRAM/ROM swapped
+- Adapter Control Register shifted 8 bits
+- $06000000 falsely labeled "emulator-only"
+- FS/FM bit confusion across 20+ analysis files
+- VDP register function names wrong (registers 19-23)
+- NTSC/PAL Hz swapped
+
+**Rule:** Never trust the markdown docs without cross-referencing the original PDF. When in doubt, read the PDF.
 
 ---
 

@@ -428,7 +428,7 @@ Camera interpolation rendering — fixed 20 FPS game tick + 40 FPS display via 2
 - `state_disp_005020` state 0: `jsr camera_snapshot_wrapper(pc)` replaces `jsr mars_dma_xfer_vdp_fill(pc)`
 - `frame_update_orch_005070`: tail-jumps to `state4_epilogue` instead of inline state advance
 
-### 9.2 Per-Game-Frame Flow
+### 9.2 Per-Game-Frame Flow (Current — Effective 40 FPS)
 
 ```
 State 0 (TV frame 1):
@@ -438,16 +438,19 @@ State 0 (TV frame 1):
 State 4 (TV frame 2):
   [existing work: sound, controller, counters, AI, render pipeline]
   state4_epilogue:
-    1. Block-copy SDRAM→framebuffer (2× sh2_send_cmd, same params as geometry transfer)
-    2. COMM1_LO bit 0 check → bchg FS bit → swap (displays camera N render)
-    3. camera_avg_and_redma: average prev/curr → $FF6100 → mars_dma_xfer_vdp_fill
-    → SH2 receives averaged camera, renders to SDRAM
+    1. Block-copy SDRAM→framebuffer (2× sh2_send_cmd)
+    2. COMM1_LO bit 0 check → bchg FS bit (NOTE: deferred to VBlank — see §9.4)
+    3. camera_avg_and_redma called but re-DMA has no render effect (see §9.4)
 
 State 8 (TV frame 3):
   [existing work: render orch, HUD, sprites, object update]
   sh2_geometry_transfer: block-copy SDRAM→framebuffer (existing)
-  V-INT $54 → vdp_dma_frame_swap_037: swap (displays interpolated render)
+  V-INT $54 → vdp_dma_frame_swap_037: swap during VBlank (effective)
 ```
+
+**Note:** The state 4 block-copy writes to the framebuffer, and state 8's V-INT swap
+displays it. The stable 40 FPS feel comes from consistent frame pacing, not from
+displaying two distinct rendered frames per game frame.
 
 ### 9.3 What Does NOT Change
 
@@ -459,12 +462,13 @@ State 8 (TV frame 3):
 - Collision detection — unchanged
 - HUD updates — 20 FPS (speed/position display updates between ticks)
 
-### 9.4 Known Limitations
+### 9.4 Known Limitations and Hardware Constraints
 
-- **Dispatcher coverage:** Only `state_disp_005020` (active racing) is hooked. Other 4 dispatchers (`004cb8` pre-race, `005308` post-race, `005586` attract, `005618` replay) run at original 20 FPS.
-- **Trampoline space:** 24 bytes remaining — insufficient for 60 FPS without additional ROM space.
-- **Camera-only interpolation:** The averaged camera produces smooth panning but entity positions update at 20 FPS. In a driving game this is imperceptible since the camera follows the player.
-- **Frame swap without CMD INT:** The state 4 swap uses `bchg` on the FS bit without sending CMD INT to the SH2. Testing shows this works but may need CMD INT for proper SH2 buffer tracking in edge cases.
+- **FS swap deferred to VBlank (CRITICAL):** Per 32X Hardware Manual page 35: "writing the FS bit is always allowed, and when written during display, swapping is done at the next VBlank." Our state 4 inline `bchg #0,$A1518B` writes during active display — the swap is deferred to the same VBlank where state 8's V-INT handler does its own swap. The two cancel out. Frame swaps MUST happen inside V-INT handlers (during VBlank).
+- **Re-DMA does not trigger SH2 re-render:** Calling `mars_dma_xfer_vdp_fill` a second time per frame sends FIFO data (confirmed: no hang, ACK received) but produces zero visual change. Corruption diagnostic (inverting $FF6100) confirmed zero effect. Profiling shows zero SH2 cycle increase. The SH2 handler's internal render trigger is not yet understood.
+- **Dispatcher coverage:** Only `state_disp_005020` (active racing) is hooked. Other 4 dispatchers run at original 20 FPS.
+- **Code space:** SOLVED — relocated to `code_1c200.asm` expansion area (7,936 bytes available).
+- **Camera-only interpolation:** Averaged camera produces smooth panning but entity positions update at 20 FPS. Imperceptible in a driving game since the camera follows the player.
 
 ---
 

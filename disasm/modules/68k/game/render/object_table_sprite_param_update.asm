@@ -1,11 +1,12 @@
 ; ============================================================================
 ; object_table_sprite_param_update_impl — Object Table Sprite Parameter Update
-; Originally at $0036DE-$0037B6. Relocated to code_1c200 for LOD expansion.
+; ROM Range: $0036DE-$0037B6 (216 bytes)
+; Originally at code_2200. Relocated to code_1c200 (trampoline space reused
+; by A-1/A-2 camera interpolation code).
 ; ============================================================================
 ; Iterates through 15 objects (D7=$0E), reading sprite type from entity
 ; +$C1 and computing render parameters for the SH2 3D pipeline.
 ; For each object with non-zero type:
-;   0. LOD culling: skip SH2 rendering if entity is far from player (S-1)
 ;   1. Checks visibility (ghost mode, flag bit 3 at +$E5)
 ;   2. Looks up sprite definition from ROM table ($008958E4 + car_index)
 ;   3. Doubles type ID and adds +$C2 as sub-index
@@ -34,26 +35,7 @@ object_table_sprite_param_update_impl:
         MOVEQ   #$00,D0                         ; $0036FC
         MOVE.B  $00C1(A0),D0                    ; $0036FE
         BEQ.W  .store_output                    ; $003702
-; --- LOD distance culling (S-1): skip SH2 rendering for far entities ---
-; Bounding-box test: if entity is beyond $0600 (1536) units from
-; player on either axis, mark invisible. Reduces Slave SH2 polygon count.
-; Player position: $FF9030 (X) / $FF9034 (Y) = entity base $FF9000 + $30/$34.
-        move.w  $0030(A0),d5                    ; entity X position
-        sub.w   (-28624).w,d5                   ; dX = entity_X - player_X
-        bpl.s   .lod_abs_x
-        neg.w   d5                              ; |dX|
-.lod_abs_x:
-        cmpi.w  #$0600,d5                       ; X axis beyond LOD threshold?
-        bgt.s   .set_invisible                  ; yes → cull (D5=D6=0)
-        move.w  $0034(A0),d5                    ; entity Y position
-        sub.w   (-28620).w,d5                   ; dY = entity_Y - player_Y
-        bpl.s   .lod_abs_y
-        neg.w   d5                              ; |dY|
-.lod_abs_y:
-        cmpi.w  #$0600,d5                       ; Y axis beyond LOD threshold?
-        bgt.s   .set_invisible                  ; yes → cull (D5=D6=0)
-; --- entity is close enough: mark visible ---
-        MOVEQ   #$01,D5
+        MOVEQ   #$01,D5                         ; $003706
         MOVEQ   #$01,D6
         TST.B  (-28444).W                       ; ghost mode check
         BNE.S  .check_ghost_flag                ; $00370E

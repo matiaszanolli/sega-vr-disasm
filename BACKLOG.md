@@ -38,7 +38,7 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 
 ### A-2: 60 FPS Rendering
 **Status:** BLOCKED — two hardware constraints discovered
-**Priority:** P1 — next step toward 60 FPS
+**Priority:** P0 — must resolve before any other optimization work
 **Why:** Display 3 unique rendered frames per game frame = 60 FPS with 20 FPS game logic.
 **Blockers (both must be solved):**
 1. **FS swap must happen during VBlank** — writing FS outside VBlank is deferred to next VBlank. Our inline `bchg` in the main loop collides with state 8's V-INT swap. Need a V-INT handler mechanism for mid-frame swaps (without resetting `$C87E`).

@@ -326,9 +326,9 @@ NEW: Huffman renderer analysis — required to unlock S-5/S-9 alternatives
 
 ---
 
-## Phase 3 — 60 FPS (A-2: BLOCKED — Two Hardware Constraints)
+## Phase 3 — 60 FPS (A-2: BLOCKED — P0 Priority)
 
-**Status:** BLOCKED pending resolution of two fundamental issues discovered during implementation.
+**Status:** BLOCKED — P0 priority. These two hardware constraints must be resolved before any other optimization work.
 
 ### A-2: 60 FPS Rendering — Blockers
 

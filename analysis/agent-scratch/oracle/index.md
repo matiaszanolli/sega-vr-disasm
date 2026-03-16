@@ -155,6 +155,11 @@ Gradient strips:   ROM $025E3C = smooth color ramps (palette 32-253), 112 bytes
                    ROM $0286D4 = dithering/edge masks, 112 bytes
                    Both match func_065's 14×8 copy block size
 FIFO batching:     NOT feasible (B-009) — func_065 writes SDRAM not framebuffer
+S-6 coord_transform: DONE (March 2026) — inlined at all 4 call sites via expansion ROM
+                   Phase A: func_021 → expansion $3011E0 (96B), trampoline $0234C8
+                   Phase B: func_017-019 state machine → expansion $301300 (388B), 6 JMP trampolines
+                   Savings: ~19,200 cyc/frame (~5% Slave SH2), coord_transform 17% → ~12%
+                   Technique: full block relocation + inline + BSR→MOV.L+JSR for external calls
 V-blank sync:      51.89% of 68K time (STOP instruction at $FF000C — main loop)
 Main loop:         At $FF0000 (Work RAM, self-modifying JSR + STOP #$2300)
 $C87E state mach:  Adaptive — V-INT checks COMM1 bit 0 (SH2 done). If set, resets
@@ -163,6 +168,18 @@ LOD culling (S-1): DEAD END — entity descriptors at $0600C344 unused during ra
                    68K LOD culling at $0036DE works, but patches data nobody reads
                    Racing uses Huffman renderer ($06004AD0) with $0600C800 (stride $10)
 QW-5 DIVS→MULS:   IMPLEMENTED — speed_interpolation divs #$67 → muls #$01AD + swap (2/3 scaled for S-4b)
+
+A-2 BLOCKERS (researched March 16, 2026):
+  Blocker 1 (FS swap timing): SOLVABLE — V-INT handlers run during VBlank, FS writes
+    take effect immediately. Create swap-only V-INT handler (~50B), hook via jump table.
+    No $C87E reset, no COMM1 check. One swap per TV frame = 60 FPS.
+  Blocker 2 (re-DMA no re-render): REQUIRES R-001 — SH2 render pipeline at $060008A0
+    is frame-synchronous (one render per game frame). Handler dispatched via COMM0 →
+    jump table $06000780 entry $01. Needs disassembly to identify render trigger subroutines
+    and re-entry prevention mechanism. ROM offset $208A0 in code_20200.asm.
+
+Expansion ROM (post S-6): Free from $301490 (~1,018 KB, 99.8%)
+  Active: $300500 (B-005), $300700 (B-003), $3010F0 (B-004), $3011E0 (S-6A), $301300 (S-6B)
 ```
 
 ### SH2 Dispatch Architecture (Traced March 2026, corrected March 12)
@@ -461,6 +478,10 @@ $020476: NOP
 | Section packing constraint (code_6200, code_A200) | KNOWN_ISSUES.md §Section Packing | OPTIMIZATION_PLAN.md §S-4b |
 | Speed lookup table (384 entries, $19DA4, only ref = speed_interpolation) | disasm/sections/code_18200.asm (lines 3464+) | disasm/modules/68k/game/physics/speed_interpolation.asm |
 | entity_pos_update call sites (15+) and D2 load from A0+$06 | disasm/modules/68k/game/physics/entity_pos_update.asm line 25 | entity_render_pipeline*.asm, ai_entity_main_update_orch.asm |
+| S-6 coord_transform inlining (expansion ROM relocation) | disasm/sh2/expansion/coord_transform_batched.inc | KNOWN_ISSUES.md §SH2 State Machine Relocation |
+| A-2 Blocker 1 (FS swap timing, V-INT solution) | OPTIMIZATION_PLAN.md §A-2 Blocker 1 | docs/32x-hardware-manual.md (page 35) |
+| A-2 Blocker 2 (SH2 render trigger at $060008A0) | OPTIMIZATION_PLAN.md §A-2 Blocker 2 | disasm/sections/code_20200.asm (offset $208A0) |
+| SH2 Master cmd $01 handler ($060008A0) — render trigger | disasm/sections/code_20200.asm (offset $208A0) | analysis/68K_SH2_COMMUNICATION.md |
 
 ---
 

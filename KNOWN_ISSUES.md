@@ -310,6 +310,25 @@ for addr in range(section_start, section_end, 2):
 
 **Rule:** Before placing a literal at any address, scan the entire section for `$Dnxx` opcodes that resolve to that address.
 
+### Successful Pattern: SH2 State Machine Relocation via Expansion ROM (S-6)
+
+When SH2 functions are tightly coupled (cross-function branching, shared delay slots, state machine semantics), individual call-site modification is infeasible. Instead, **relocate the entire block** to expansion ROM:
+
+1. Copy the full state machine block (e.g., func_017-019, 278 bytes) to expansion ROM
+2. Inline the target function (e.g., coord_transform) at each BSR call site within the block
+3. Convert external BSR calls (to functions outside the block) to `MOV.L literal,Rn` + `JSR @Rn` (uses shared literal pool)
+4. Recalculate ALL branch displacements within the relocated block
+5. Place JMP trampolines at each original entry point (6 bytes each: `MOV.L @(disp,PC),Rn` + `JMP @Rn` + literal)
+6. Verify: 3600-frame PicoDrive autoplay
+
+**Key constraints:**
+- Expansion ROM is SH2-executable only — use `dc.w` raw opcodes, never 68K mnemonics
+- Branch displacement recalculation is error-prone — verify every `BT`/`BF`/`BRA`/`BSR` target manually
+- Literal pools must be placed at even addresses after the code block (`.align 2`)
+- External function calls via `JSR @Rn` can share a single literal pool entry
+
+**Proven in S-6 (March 2026):** func_017-019 relocated to expansion $301300 (388B), coord_transform inlined at 3 sites, 8 external BSR→MOV.L+JSR, 20 branch displacements recalculated, 6 JMP trampolines. ~19,200 cycles/frame saved (~5% Slave SH2).
+
 ### Reverting SH2 dc.w — Literal Pool Values Must Be Byte-Verified
 
 When reverting SH2 code sections that contain literal pools (data words following code), the pool values must be restored from the original ROM bytes — **never reconstructed from memory or assumed to be NOPs**.
@@ -486,8 +505,18 @@ This means writing FS outside VBlank is DEFERRED to the next VBlank. Our inline 
 
 **Rule:** Frame buffer swaps MUST happen inside V-INT handlers (which run during VBlank), not in the main loop. The original game does this correctly — `vdp_dma_frame_swap_037` runs as a V-INT handler.
 
-### Re-DMA Does NOT Trigger SH2 Re-Render
-Calling `mars_dma_xfer_vdp_fill` a second time within the same game frame sends FIFO data to the SH2, but produces **zero visual effect**. Confirmed by corruption diagnostic: inverting camera buffer + re-DMA = no screen change. The SH2 receives the data (no hang) but does not re-render. Root cause under investigation — likely the SH2 handler's internal state prevents re-entry within the same frame.
+### ~~Re-DMA Does NOT Trigger SH2 Re-Render~~ — MISDIAGNOSIS (March 16, 2026)
+
+**STATUS: RESOLVED.** Re-DMA DOES trigger SH2 re-render. The working 40 FPS code (A-1, commit b6bd487) calls `mars_dma_xfer_vdp_fill` **twice** per game frame — state 0 (`camera_snapshot_wrapper`) and state 4 (`camera_avg_and_redma`). Both calls trigger SH2 renders via cmd $03 handler.
+
+The original "zero visual effect" observation came from 3 known bugs in the WIP `camera_interpolation_60fps.asm`: (1) BSR.W displacement error, (2) block-copy from wrong source `$06030000`, (3) state 0 additions that broke the 40 FPS path.
+
+**SH2 racing handler architecture (disassembled March 16):**
+- **Per-frame racing uses cmd $03** → handler `$06000CC4` (lightweight: buffer clear `$06004300` + state flags `$0600F208` + completion `$060043FC`)
+- **NOT cmd $01** → handler `$060008A0` (full 10-subroutine scene-init orchestrator)
+- Jump table at `$06000780`: index = COMM0_LO, SHLL2'd. Racing sets $C8A8=$0103 → COMM0_HI=$01, COMM0_LO=$03
+
+**Rule:** When debugging "X doesn't work," check whether the observation came from buggy test code. The 40 FPS A-1 code is the authoritative proof that re-DMA + re-render works.
 
 ### A-2 WIP Module Bugs (camera_interpolation_60fps.asm)
 The untracked WIP module for 60 FPS rendering has 3 known bugs. DO NOT include it in the build until fixed:

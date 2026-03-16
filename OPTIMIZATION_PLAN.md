@@ -350,17 +350,24 @@ NEW: Huffman renderer analysis — required to unlock S-5/S-9 alternatives
 
 ### A-2: 60 FPS Rendering — Blockers
 
-**Blocker 1: FS swap deferred to VBlank (HARDWARE CONSTRAINT)**
+**Blocker 1: FS swap deferred to VBlank — SOLVABLE (March 2026 research)**
 
 Per the corrected 32X Hardware Manual (page 35): writing the FS bit during active display is deferred to the next VBlank. Our inline `bchg #0,$A1518B` in state 4's main loop writes during active display — the swap is queued to the same VBlank where state 8's V-INT handler does its own swap. Two swaps at the same VBlank cancel out.
 
-**Solution direction:** Frame swaps must happen inside V-INT handlers (during VBlank). Need a custom V-INT handler that swaps FS WITHOUT resetting `$C87E` to 0. The existing `vdp_dma_frame_swap_037` resets `$C87E`, which would restart the game frame prematurely.
+**Solution (researched March 16):** V-INT handlers execute during VBlank, so FS writes inside them take effect immediately. Create a "swap-only" V-INT handler (~50 bytes) that toggles FS and `$C80C` without resetting `$C87E` or checking COMM1. Hook it into the V-INT jump table as a repurposed/new state. The 68K main loop writes a V-INT state to `$FF0008` each frame — writing different states during game states 0 and 4 gives one FS swap per TV frame = 3 swaps per game frame = 60 FPS.
 
-**Blocker 2: Re-DMA does not trigger SH2 re-render (UNKNOWN MECHANISM)**
+**~~Blocker 2: Re-DMA does not trigger SH2 re-render~~ — RESOLVED (misdiagnosis)**
 
-Calling `mars_dma_xfer_vdp_fill` a second time per frame sends FIFO data to the SH2 (no hang, ACK received), but produces zero visual effect. Confirmed by corruption diagnostic: inverting the camera buffer before re-DMA shows no screen change. Profiling shows zero SH2 cycle increase. The SH2 Master handler at `$060008A0` has 11 subroutine calls, but the internal render trigger mechanism is not yet understood.
+**March 16 finding:** This was a misdiagnosis. The working 40 FPS code (A-1, commit b6bd487) calls `mars_dma_xfer_vdp_fill` TWICE per game frame — once in state 0 (`camera_snapshot_wrapper`) and once in state 4 (`camera_avg_and_redma`). Both calls go through the same COMM0 + FIFO path and both trigger SH2 renders. The second render produces the interpolated camera frame that state 8 displays.
 
-**Solution direction:** Requires deep SH2 reverse engineering of handler `$060008A0` and its 11 callees. Alternative: write a custom SH2 command handler in expansion ROM that reads camera updates from COMM registers and calls the render pipeline directly, bypassing the FIFO/DREQ mechanism.
+The original "zero visual effect" observation came from the **buggy WIP module** (`camera_interpolation_60fps.asm`) which has 3 known bugs: BSR.W displacement error, wrong source address (`$06030000` instead of proper re-DMA), and state 0 code that breaks the 40 FPS path.
+
+**SH2 handler architecture (disassembled March 16):**
+- **Cmd $03 (`$06000CC4`, racing per-frame):** Lightweight trigger — clears ~82KB of render buffers via `$06004300`, writes state flags to `$0600F208`, tail-jumps to completion handler `$060043FC` (clears COMM0_HI, sets COMM1_LO bit 0).
+- **Cmd $01 (`$060008A0`, scene init):** Full orchestrator — 10 subroutine calls including DMAC setup (`$06004448`), Pipeline 1 SRAM copy (`$0600252C`), entity loop (`$060024DC`), main coordinator (`$060032D4`), completion signal.
+- **DMAC auto-drain:** Configured once during scene init (SAR0=FIFO `$20004012`, CHCR0=`$44E1`). Subsequent FIFO writes from per-frame DMA are drained automatically.
+
+**Only Blocker 1 (FS swap timing) remains for A-2.**
 
 **A-2 WIP module bugs (camera_interpolation_60fps.asm):** The untracked WIP module has 3 known bugs that must be fixed before resuming A-2 work: (1) BSR.W displacement bug on line 123 (vasm +2 error). (2) Diagnostic garbage block-copy left in camera_avg_and_redma_60fps (sends from $06030000 instead of re-DMA). (3) state0_60fps adds block-copy + swap in state 0 that breaks the verified 40 FPS path.
 
@@ -491,16 +498,18 @@ These don't improve FPS (68K has spare capacity) but are low-risk code improveme
 ```
 $300000-$3FFFFF  1MB expansion space (SH2-executable only)
 
-Active handlers (~2 KB used):
+Active handlers (~2.5 KB used):
   $300500  cmd25_single_shot (64B) — B-005
   $300600  cmd27_queue_drain (128B) — B-003 (dormant, superseded by inline drain)
   $300700  slave_comm7_idle_check (64B) — B-003
   $3010F0  cmd22_single_shot (176B) — B-004 (longword copy + inline COMM cleanup)
   $3011A0  vis_bitmask_handler (64B) — DORMANT (S-1c reverted, JT restored)
+  $3011E0  vertex_transform_optimized (96B) — ACTIVE (S-6 Phase A, trampoline $0234C8)
+  $301300  coord_transform_batched (388B) — ACTIVE (S-6 Phase B, trampolines $02338A-$02349F)
 
   Pipeline 2 rendering functions (SDRAM, NOT expansion):
     $06003024  main_coordinator_short — display list dispatch (BSRF)
-    $06003368  coord_transform (34B) — 17% hotspot, 4 callers
+    $06003368  coord_transform (34B) — ~12% hotspot (was 17%, S-6 saved ~5%), 4 callers → expansion
     $0600350A  frustum_cull (12% hotspot, 2 callers)
     $06003530  render_quad_short (edge walking)
     $0600358A  span_filler_short (8% hotspot)
@@ -508,14 +517,14 @@ Active handlers (~2 KB used):
 Dormant infrastructure:
   $300028  handler_frame_sync (22B)
   $300050  master_dispatch_hook (44B) — B-006 (reverted, dead code)
-  $300100  vertex_transform_optimized (96B)
+  $300100  vertex_transform_optimized (96B) — original copy (dormant, superseded by $3011E0)
   $300200  slave_work_wrapper (76B) — B-006 (reverted, dead code)
   $300800  cmdint_handler (64B) — reserved
   $300C00  queue_processor (128B) — reserved
   $301000  general_queue_drain (240B) — dormant
   $301178  angle_normalize SH2 handler (dormant, cmd $30)
 
-Free from $3011E0: ~1,019 KB (99.8%)
+Free from $301490: ~1,018 KB (99.8%)
 ```
 
 ---

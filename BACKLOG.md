@@ -8,6 +8,26 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 
 ## P0 — Blockers
 
+### R-001: Disassemble SH2 handler $060008A0 (render trigger)
+**Status:** DONE (2026-03-16) — **Blocker 2 was a misdiagnosis**
+**Priority:** P0 → resolved
+**Finding:** Disassembly revealed that racing uses **cmd $03** → handler `$06000CC4` (lightweight trigger: buffer clear + state flags + done signal), NOT cmd $01 → `$060008A0` (full scene-init orchestrator). The working 40 FPS code already calls `mars_dma_xfer_vdp_fill` twice per game frame (state 0 + state 4), proving re-DMA triggers a second SH2 render. The "zero visual effect" observation came from 3 known bugs in the WIP 60fps module, not from a hardware/firmware limitation.
+**Handler architecture documented:**
+- Cmd $03 (`$06000CC4`): clears buffers via `$06004300`, writes state flags `$0600F208`, tail-calls `$060043FC` (COMM0 clear + COMM1 done)
+- Cmd $01 (`$060008A0`): 10-subroutine orchestrator (DMAC setup, SRAM copy, entity loop, main coordinator)
+- Jump table at `$06000780`: 16 entries, cmd $00-$06 active, $07+ → default `$06000490`
+**Impact:** Only Blocker 1 (FS swap timing) remains for A-2 (60 FPS)
+
+### R-002: Implement swap-only V-INT handler (A-2 Blocker 1)
+**Status:** OPEN
+**Priority:** P1 — solvable, implements A-2 Blocker 1 fix
+**Why:** A-2 Blocker 1: FS writes outside VBlank are deferred. V-INT handlers execute during VBlank, so FS writes inside them take effect immediately. Create a "swap-only" V-INT handler (~50 bytes) that toggles FS and `$C80C` without resetting `$C87E` or checking COMM1.
+**Implementation:** Hook into V-INT jump table as repurposed/new state. Game states 0 and 4 write this state to `$FF0008` to get one swap per TV frame = 3 swaps per game frame.
+**Key files:** `disasm/modules/68k/main-loop/vint_handler.asm`, `disasm/modules/68k/game/render/vdp_dma_frame_swap_037.asm`
+**Depends on:** R-001 (both blockers must be solved for A-2 to work)
+
+---
+
 ### B-001: Find 20+ bytes in 68K $00E200 section
 **Status:** MOOT (bypassed by in-place replacement)
 **Why:** Track 1 (async commands) originally needed `sh2_send_cmd_async` shim in this section, but had 0 bytes free.
@@ -51,12 +71,12 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 **References:** [OPTIMIZATION_PLAN.md](OPTIMIZATION_PLAN.md) §A-1, [analysis/FRAME_RATE_ARCHITECTURE.md](analysis/FRAME_RATE_ARCHITECTURE.md)
 
 ### A-2: 60 FPS Rendering
-**Status:** BLOCKED — two hardware constraints discovered
-**Priority:** P0 — must resolve before any other optimization work
+**Status:** BLOCKED — one hardware constraint remaining (Blocker 1 only)
+**Priority:** P0
 **Why:** Display 3 unique rendered frames per game frame = 60 FPS with 20 FPS game logic.
-**Blockers (both must be solved):**
-1. **FS swap must happen during VBlank** — writing FS outside VBlank is deferred to next VBlank. Our inline `bchg` in the main loop collides with state 8's V-INT swap. Need a V-INT handler mechanism for mid-frame swaps (without resetting `$C87E`).
-2. **Re-DMA does not trigger SH2 re-render** — calling `mars_dma_xfer_vdp_fill` a second time sends data but the SH2 doesn't re-render. Corruption diagnostic confirmed zero visual effect. The SH2's render trigger mechanism inside handler `$060008A0` is not fully understood.
+**Remaining blocker:**
+1. **FS swap must happen during VBlank** — writing FS outside VBlank is deferred to next VBlank. Our inline `bchg` in the main loop collides with state 8's V-INT swap. Need a swap-only V-INT handler (R-002).
+**~~Blocker 2: RESOLVED~~** — Re-DMA DOES trigger SH2 re-render. The working 40 FPS code proves this (mars_dma_xfer_vdp_fill called twice per game frame). The "zero visual effect" observation was from 3 known bugs in the WIP 60fps module. See R-001.
 **Space:** SOLVED — code relocated to `code_1c200.asm` expansion area (7,936 bytes free).
 **Key files:** `disasm/modules/68k/optimization/camera_interpolation_60fps.asm`, `disasm/sections/code_1c200.asm`
 **A-2 WIP bugs (camera_interpolation_60fps.asm):** (1) BSR.W displacement bug on line 123 — never use `bsr.w` in new code per KNOWN_ISSUES. (2) Diagnostic garbage block-copy on lines 83-93 — sends from wrong source $06030000 instead of proper re-DMA. (3) Module implements 60 FPS attempt (state0_60fps adds block-copy + swap in state 0) that breaks the verified 40 FPS path. Must be fixed before A-2 resumes.

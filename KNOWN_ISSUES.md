@@ -419,6 +419,14 @@ Both produce the same result: handler returns to the dispatch loop. The differen
 **Root cause:** Multiple interacting issues. Patch #2 (COMM7 broadcast) was the primary cause, but reverting Patch #2 alone was insufficient — Patches #1+#3 together also produced the same crash. Likely causes: shadow_path_wrapper's COMM7 barrier deadlocks the Master (blocks waiting for Slave to clear COMM7), and/or parallel vertex_transform execution on both CPUs creates data races on shared output buffers.
 **Fix:** Full revert of all 3 patches. Original game code restored at $0203CC, $02046A, $0234C8.
 
+### M0/M0b STOP + H-INT Spurious Wake (PARTIALLY FIXED)
+**Status:** Partially fixed. Main loop and wait_for_vblank now filter spurious wakes. Car selection screen improved from ~1 FPS to ~5 FPS but still slower than original (~20 FPS). Remaining cause unknown — likely a third STOP site or a different interaction (B-004 cmd22 timing, scene init state corruption, or VDP configuration issue).
+**Root cause (confirmed):** M0/M0b replaced spin-waits (`TST.W $C87A / BNE.S`) with `STOP #$2300` but removed the `$C87A` completion check. The H-INT vector at $0088170A is just `RTE` (the `vint_return` label). When H-INT fires during STOP, the CPU wakes and continues past STOP without checking if V-INT actually ran — causing the main loop to re-enter the frame handler or wait_for_vblank to return early.
+**Fix applied:** Added `TST.W $C87A / BNE.S` after both STOP sites (same-size replacement of NOP padding). Spurious wakes loop back to STOP instead of falling through.
+**Remaining issue:** Car selection screen (camera_selection_main_loop) still runs at ~25% of original speed. The improvement from 1 FPS → 5 FPS confirms H-INT wakes were a factor, but a secondary cause remains. Parked as isolated issue — other menus and racing work correctly.
+**Rule:** When using STOP #$2300 on the 68K, ALWAYS add a completion flag check after it. STOP wakes on ANY interrupt at or above the mask level, not just the intended one.
+**Files:** `disasm/modules/68k/game/render/vdp_display_init.asm` (main loop), `disasm/modules/68k/frame/wait_for_vblank.asm`
+
 ### FPS Counter — BSR.W Displacement Bug (FIXED, diagnostic mode)
 **Status:** Build-fixed. Pending emulator verification.
 **Root cause:** vasm `bsr.w fps_render` landed at `fps_render+2` (Line-F exception). fps_render never executed. Display showed 00 because nothing was ever drawn — not a RAM sweep or sampling bug.

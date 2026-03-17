@@ -170,6 +170,17 @@ The expansion space contains optimized SH2 handlers: inlined coord_transform (S-
 | [68K_SH2_COMMUNICATION.md](analysis/68K_SH2_COMMUNICATION.md) | COMM protocol, B-003/B-004/B-005 designs |
 | [COMM_REGISTERS_HARDWARE_ANALYSIS.md](analysis/COMM_REGISTERS_HARDWARE_ANALYSIS.md) | Hardware hazards, handshake patterns |
 
+### Game Logic
+| Document | What It Covers |
+|----------|---------------|
+| [ENTITY_OBJECT_ARCHITECTURE.md](analysis/ENTITY_OBJECT_ARCHITECTURE.md) | 4 object tables, 256B records, dual-layer 68K↔SH2, 20-sub pipeline |
+| [PHYSICS_SYSTEM_ARCHITECTURE.md](analysis/PHYSICS_SYSTEM_ARCHITECTURE.md) | 9-step pipeline, 8.8 grip, 7-gear transmission, speed tables |
+| [AI_SYSTEM_ARCHITECTURE.md](analysis/AI_SYSTEM_ARCHITECTURE.md) | 15-state machine, 3-band collision avoidance, Manhattan distance |
+| [COLLISION_SYSTEM_ARCHITECTURE.md](analysis/COLLISION_SYSTEM_ARCHITECTURE.md) | Binary search track boundary, 4-probe system, EMA surface tracking |
+| [SOUND_DRIVER_ARCHITECTURE.md](analysis/SOUND_DRIVER_ARCHITECTURE.md) | 68K FM/PSG sequencer, Z80 DAC, 18 channels, 3-priority commands |
+| [TRACK_DATA_FORMAT.md](analysis/TRACK_DATA_FORMAT.md) | Segmented spline, 4-page geometry, segment index computation |
+| [MEMORY_MANAGEMENT_ARCHITECTURE.md](analysis/MEMORY_MANAGEMENT_ARCHITECTURE.md) | Static WRAM layout, JSR-cascade copy primitives, PRNG |
+
 ### Project Management
 | Document | What It Covers |
 |----------|---------------|

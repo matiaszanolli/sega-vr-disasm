@@ -151,6 +151,17 @@ No direct cross-trigger. 68K submits to Master (COMM0) and Slave (COMM2) indepen
 | SH2 3D pipeline (overview) | [analysis/sh2-analysis/SH2_3D_PIPELINE_ARCHITECTURE.md](analysis/sh2-analysis/SH2_3D_PIPELINE_ARCHITECTURE.md) |
 | SH2 translation guide | [analysis/sh2-analysis/SH2_TRANSLATION_INTEGRATION.md](analysis/sh2-analysis/SH2_TRANSLATION_INTEGRATION.md) |
 
+### Game Logic Subsystems
+| Question | File |
+|----------|------|
+| **Entity/object system (4 tables, 256B records)** | **[analysis/ENTITY_OBJECT_ARCHITECTURE.md](analysis/ENTITY_OBJECT_ARCHITECTURE.md)** |
+| **Physics (9-step pipeline, grip, gears, drift)** | **[analysis/PHYSICS_SYSTEM_ARCHITECTURE.md](analysis/PHYSICS_SYSTEM_ARCHITECTURE.md)** |
+| **AI (15-state machine, collision avoidance)** | **[analysis/AI_SYSTEM_ARCHITECTURE.md](analysis/AI_SYSTEM_ARCHITECTURE.md)** |
+| **Collision (binary search, 4-probe, proximity)** | **[analysis/COLLISION_SYSTEM_ARCHITECTURE.md](analysis/COLLISION_SYSTEM_ARCHITECTURE.md)** |
+| **Sound driver (FM/PSG/Z80, 18 channels)** | **[analysis/SOUND_DRIVER_ARCHITECTURE.md](analysis/SOUND_DRIVER_ARCHITECTURE.md)** |
+| Track data format (segmented spline) | [analysis/TRACK_DATA_FORMAT.md](analysis/TRACK_DATA_FORMAT.md) |
+| Memory management (WRAM layout, copy primitives) | [analysis/MEMORY_MANAGEMENT_ARCHITECTURE.md](analysis/MEMORY_MANAGEMENT_ARCHITECTURE.md) |
+
 ### Hardware & Communication
 | Question | File |
 |----------|------|

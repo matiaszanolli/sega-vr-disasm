@@ -48,6 +48,18 @@
 | analysis/sh2-analysis/SH2_PARALLELIZATION_STRATEGY.md | Historical parallelization approach | Multi-SH2 work distribution | ⚠ SUPERSEDED — approach reverted (B-006) |
 | analysis/architecture/EXPANSION_ROM_PROTOCOL_ABI.md | Historical COMM6/COMM4 protocol | Pre-B-006 ABI | ⚠ Historical — no longer current |
 
+### Game Logic Subsystems
+
+| Path | Purpose | Key Topics | Note |
+|------|---------|-----------|------|
+| analysis/ENTITY_OBJECT_ARCHITECTURE.md | Entity/object system | 4 WRAM tables ($FF9000-$FF9F00), 256B records, dual-layer 68K↔SH2, 20-sub pipeline, display objects at $FF6218, DMA to SH2 | Added March 2026 |
+| analysis/PHYSICS_SYSTEM_ARCHITECTURE.md | Physics system | 9-step pipeline, 8.8 grip, 7-gear transmission, speed/drag tables, fall-through to collision | Added March 2026 |
+| analysis/AI_SYSTEM_ARCHITECTURE.md | AI system | 15-state machine (120-frame timer), 3-band Manhattan avoidance, atan2 steering, falls through to physics_integration | Added March 2026 |
+| analysis/COLLISION_SYSTEM_ARCHITECTURE.md | Collision system | Binary search (4 iterations), center+4 probes, EMA surface tracking, 4-level proximity zones | Added March 2026 |
+| analysis/SOUND_DRIVER_ARCHITECTURE.md | Sound driver | 68K-driven FM/PSG sequencer + Z80 DAC (653B), 18 channels ($30 stride), 3-priority commands, YM2612/SN76489/Z80 | Added March 2026 |
+| analysis/TRACK_DATA_FORMAT.md | Track data format | Segmented spline, 4 pages × $800, 5L+9W per segment, 2 table modes, index computation | Added March 2026 |
+| analysis/MEMORY_MANAGEMENT_ARCHITECTURE.md | Memory management | Static WRAM layout, JSR-cascade copy primitives, MOVEM block copy, PRNG ($FFEF00), no dynamic allocation | Added March 2026 |
+
 ### Function References
 
 | Path | Purpose | Key Topics | Note |

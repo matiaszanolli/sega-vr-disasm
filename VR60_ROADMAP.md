@@ -112,7 +112,7 @@
 
 | Change | Current | Proposed | Why |
 |--------|---------|----------|-----|
-| Entity table location | 68K WRAM $FF9000 | SDRAM $06008000 | SH2 can't access WRAM. SDRAM accessible by both SH2s. |
+| Entity table location | 68K WRAM $FF9000 | SDRAM $0600F20C | SH2 can't access WRAM. SDRAM accessible by both SH2s. Original $06008000 BLOCKED by gradient strip B at $060086D4. |
 | Data transfer to SH2 | DREQ FIFO + 14× COMM handshake | Master writes SDRAM directly | Eliminates 10.52% COMM bottleneck entirely |
 | Game logic CPU | 68K @ 7.67 MHz | Master SH2 @ 23 MHz | 3× clock, plus MAC unit for multiply-heavy physics |
 | Master→Slave signaling | Via 68K relay (COMM2) | Master writes SDRAM, then COMM2 trigger | One handshake instead of 14 |
@@ -199,41 +199,67 @@ Every constraint below is verified against hardware documentation. **These canno
 
 ---
 
-## 5. Phase 1: Entity Table Relocation
+## 5. Phase 1: SDRAM Path Validation
 
-**Status: NOT STARTED**
-**Prerequisite: Phase 0 (done)**
+**Status: IN PROGRESS** (2026-03-17)
+**Prerequisite: Phase 0 (done)
+**Baseline tag:** `vr60-phase0-baseline`
 
-### 5.1 Goal
+### 5.1 Goal (Revised)
 
-Mirror 68K entity tables to SDRAM every frame. Game logic still runs on 68K. This validates the SDRAM data path before moving any logic.
+Validate that the Master SH2 can read and write entity data at the new SDRAM location. Split into two sub-phases:
+- **Phase 1A:** Master SH2 copies existing cmd $02 entity data to new SDRAM area (validates addressing)
+- **Phase 1B:** 68K writes controller input to SDRAM mailbox (validates communication path)
 
-### 5.2 What Needs to Happen
+**Key insight (Phase 1 planning):** DREQ FIFO is unnecessary for entity tables. The Master SH2 will own them directly in SDRAM once game logic is ported (Phases 3-5). During migration, Master reads from the existing cmd $02 DMA landing area ($0600C000+).
 
-| Step | Description | Evidence/Reference |
-|------|-------------|-------------------|
-| 1a | Determine exact SDRAM address ranges for entity tables | SDRAM memory map in `analysis/sh2-analysis/SH2_RENDERING_ARCHITECTURE.md`. Current usage: $06000000-$0600EFFF (code+data), $06018000-$0603B800 (render buffers). Free: $06008000-$0600BFFF (~16KB), $0600F000-$06017FFF (~36KB). |
-| 1b | Implement 68K FIFO transfer of entity Table 1 ($FF9100, 3840B) to SDRAM | Existing pattern: `mars_dma_xfer_vdp_fill` at $0028C2 transfers 2560B via DREQ FIFO. Same mechanism, different destination. |
-| 1c | Implement 68K FIFO transfer of display objects ($FF6218, 900B) to SDRAM | Same mechanism as 1b |
-| 1d | Master SH2 cmd $3F handler reads entity data from SDRAM instead of FIFO | Currently Slave reads entity data after Master's cmd $02 handler processes the DMA. For Phase 1, we just verify Master can access the data. |
-| 1e | Verify byte-identical entity data arrives in SDRAM | Diagnostic: Master dumps first 16 bytes of Table 1 to a known SDRAM address. Profile run reads it back. |
+### 5.2 SDRAM Memory Map (Corrected)
 
-### 5.3 Unknowns to Resolve BEFORE Starting
+**BLOCKED: $06008000-$0600BFFF** — Gradient strip B at $060086D4-$06008743 (112 bytes) is read by span_filler every polygon. Overwriting = rendering corruption.
 
-| Unknown | How to Resolve | Risk if Wrong |
-|---------|---------------|---------------|
-| Can 68K write to SDRAM at $06008000 via DREQ FIFO? | Read `docs/32x-hardware-manual.md` §DREQ, verify DMAC destination address range. The DREQ mechanism auto-drains FIFO to an SDRAM address configured in DMAC DAR. Current DAR = $06000000 area. Can it target $06008000? | If DMAC DAR range is limited, must use a different transfer method (direct MARS_FIFO writes + Master SH2 drain loop). |
-| What is the exact DREQ FIFO transfer protocol? | Read `mars_dma_xfer_vdp_fill` at `disasm/modules/68k/game/render/mars_dma_xfer_vdp_fill.asm`. Trace how DREQ length is set, how FIFO is written, how DMAC auto-drain works. | Incorrect FIFO usage = corrupted SDRAM or stalled DMA. |
-| Does the existing cmd $02 handler rely on specific SDRAM addresses for its DMA destination? | Read `analysis/sh2-analysis/SH2_COMMAND_HANDLER_REFERENCE.md` cmd $02. If cmd $02 writes to $0600C000-$0600C800, and we want entity tables at $06008000, there's no conflict. But verify. | Address collision = entity data overwritten by rendering pipeline. |
-| How much 68K time does the FIFO transfer add? | Measure: 4740 bytes ÷ 2 bytes/word = 2370 words. At ~8 68K cycles per FIFO word write (poll + write) = ~19K cycles. Compare against existing 2560B transfer time. | If >20K cycles, approaches the 13.4K saved from removing sh2_send_cmd. Net could be negative. |
+**SAFE: $0600F20C-$06017FFF** (36.3 KB free) — between render state flags ($0600F20B) and display list ($06018000). Verified: zero SH2 code references, rendering pipeline never writes here.
 
-### 5.4 Acceptance Criteria
+| Range | Size | Purpose |
+|-------|------|---------|
+| $0600F20C-$0600F80B | 1536B | Entity render data mirror (buffer A) |
+| $0600F80C-$0600FBFF | 1012B | Reserved (buffer A expansion, Phases 3-5) |
+| $0600FC00-$0600FC0F | 16B | Validation canary |
+| $06010000-$06017FFF | 32KB | Reserved (buffer B, Phase 6 double-buffer) |
 
-- [ ] Entity Table 1 (15 AI entities, 3840B) arrives correctly at SDRAM $06009800
-- [ ] Display objects (15 × 60B, 900B) arrive correctly at SDRAM $0600B900
-- [ ] Game runs identically to pre-Phase 1 (no visual or behavioral changes)
+### 5.3 Resolved Unknowns
+
+| Question | Answer | Evidence |
+|----------|--------|----------|
+| Q-001: Can DREQ FIFO target $06008000? | **Moot** — entity tables don't need FIFO. Master SH2 copies from existing cmd $02 area. FIFO destination is SH2 DMAC-controlled (DAR0 at $FFFFFF84), not 68K-controlled. | HW manual §DREQ, agent research 2026-03-17 |
+| SDRAM conflict at $06008000? | **YES** — Gradient strip B at $060086D4. | Agent grep: span_filler reads $060086D4. Zero refs to $0600F20C+. |
+| cmd $02 landing addresses? | $0600C000 (Huffman), $0600C800 (entity visibility, 32×16B) | `analysis/sh2-analysis/SH2_COMMAND_HANDLER_REFERENCE.md` |
+
+### 5.4 Phase 1A Steps
+
+| Step | Description | Files | Risk |
+|------|-------------|-------|------|
+| 1A-1 | Update this roadmap (SDRAM addresses, lessons) | VR60_ROADMAP.md | None |
+| 1A-2 | Expand cmd $3F handler: memcpy from $2200C800 → $2200F20C + canary | cmd3f_vr60_gameframe.asm | Low |
+| 1A-3 | Rebuild: `make sh2-assembly && make all` | Makefile (update size) | Low |
+| 1A-4 | Add 68K test trigger after mars_dma_xfer_vdp_fill | TBD racing module | Medium |
+| 1A-5 | Autoplay 3600 frames + canary verify + profile | — | Low |
+
+### 5.5 Phase 1B Steps
+
+| Step | Description | Risk |
+|------|-------------|------|
+| 1B-1 | Test 68K→SDRAM direct write at $88BC00 | **UNKNOWN** (Q-010) |
+| 1B-2 | If works: 68K writes controller input directly. If not: COMM relay. | Low |
+| 1B-3 | Verify controller input arrives at $2200BC00 | Low |
+
+### 5.6 Acceptance Criteria
+
+- [ ] Canary $DEADBEEF present at $0600FC00 after autoplay
+- [ ] Entity data at $0600F20C matches $0600C800 source
+- [ ] Game runs identically (no visual/behavioral changes)
 - [ ] 3600-frame autoplay passes without crashes
-- [ ] Profiling shows FIFO transfer cost is ≤20K 68K cycles/frame
+- [ ] cmd $3F handler overhead <2000 SH2 cycles/frame
+- [ ] Controller input visible in SDRAM mailbox (Phase 1B)
 
 ---
 
@@ -574,7 +600,7 @@ These must be resolved before their respective phases. Add new questions as they
 
 | # | Question | Affects Phase | Status | Resolution |
 |---|----------|--------------|--------|------------|
-| Q-001 | Can DREQ FIFO target arbitrary SDRAM addresses ($06008000)? | Phase 1 | **OPEN** | Read HW manual §DREQ + trace DMAC DAR setup in cmd $01 handler |
+| Q-001 | Can DREQ FIFO target arbitrary SDRAM addresses ($06008000)? | Phase 1 | **RESOLVED (moot)** | DREQ FIFO destination is SH2 DMAC-controlled (DAR0 at $FFFFFF84). Entity tables don't need FIFO — Master SH2 copies from existing cmd $02 landing area. |
 | Q-002 | What is the SH2 address for ROM data above $300000 (e.g., $0094C000 track tiles)? | Phase 5 | **OPEN** | The 4MB ROM maps to SH2 $02000000-$023FFFFF. Addresses like $0094C000 may be 68K-relative (with $00880000 base subtracted). Must verify: is $0094C000 a CPU address or ROM offset? |
 | Q-003 | Can Master SH2 write to frame buffer ($04xxxxxx) when FM=1? | Phase 2 | **OPEN** | FM=1 gives SH2 access. Master currently writes FB via cmd $22. But does it contend with Slave FB writes during rendering? |
 | Q-004 | Does SDRAM bus contention degrade Slave rendering measurably? | Phase 6 | **OPEN** | Profile Slave utilization before and after Master SDRAM writes. Compare render times. |
@@ -583,6 +609,9 @@ These must be resolved before their respective phases. Add new questions as they
 | Q-007 | What happens to the 68K entity render pipeline variants (A/B/C/D, 2P)? | Phase 2 | **OPEN** | 6+ variants call different physics/AI/collision subsets. When logic moves to SH2, what drives variant selection? |
 | Q-008 | Can we keep menus on 68K while racing logic is on SH2? | All | **OPEN** | Menu system (115 modules) is non-critical. But mode transitions need clean handoff. |
 | Q-009 | What about the 2-player mode? | Phase 2+ | **OPEN** | 2P uses Table 3 ($FF9F00), alternate viewport at $FF6330, different render pipeline variants. Must be considered. |
+| Q-010 | Can 68K write to SDRAM at $88BC00 (adapter-mapped)? | Phase 1B | **OPEN** | Agent research suggests $880000-$8FFFFF maps to SDRAM. Must test empirically — may be read-only ROM mapping. |
+| Q-011 | Where exactly does cmd $02 write entity visibility data in SDRAM? | Phase 1A | **OPEN** | Believed to be $0600C800 (32×16B). Must verify by reading cmd $02 handler. |
+| Q-012 | Can the cmd $3F trigger be inserted after mars_dma_xfer_vdp_fill? | Phase 1A | **OPEN** | Must read the state 4 calling module for available space. |
 
 ---
 
@@ -596,6 +625,9 @@ Record every significant design decision here. Include date, what was decided, w
 | 2026-03-17 | SDRAM mailbox at $0600BC00 | Zero-filled in ROM, no SH2 code references, auto-zeroed by boot IDL copy. | $0600F000 (also free, but farther from entity data). |
 | 2026-03-17 | Inline COMM cleanup in cmd $3F handler | Matches cmd22/cmd25 proven pattern. No func_084 call overhead. | JSR func_084 — adds 4 cycles, no safety benefit. |
 | 2026-03-17 | Port entity projection BEFORE physics | Pure data transform, no side effects, easiest to verify. Immediate 10.52% benefit. | Port physics first — higher impact per function but harder to verify. |
+| 2026-03-17 | Entity tables at $0600F20C (not $06008000) | $06008000 blocked by gradient strip B at $060086D4 (span_filler reads every polygon). $0600F20C-$06017FFF verified free (36.3 KB, zero SH2 code refs). | $06008000 (original plan, conflict with rendering data). |
+| 2026-03-17 | Skip DREQ FIFO for entity tables | Master SH2 will own entity tables directly once game logic is ported. During migration, copy from existing cmd $02 landing area. FIFO destination is SH2 DMAC-controlled (not 68K), making redirection complex. | DREQ FIFO with DMAC reconfiguration (complex, unnecessary). |
+| 2026-03-17 | Use git tag (not duplicate codebase) for baseline comparison | `vr60-phase0-baseline` tag enables `git diff` at any time. Simpler than maintaining parallel codebase. | Separate codebase clone (maintenance overhead, divergence risk). |
 
 ---
 
@@ -603,7 +635,7 @@ Record every significant design decision here. Include date, what was decided, w
 
 | ID | Risk | Severity | Phase | Status | Mitigation |
 |----|------|----------|-------|--------|-----------|
-| R-001 | DREQ FIFO cannot target $06008000 | Blocking | Phase 1 | **OPEN** | Alt: Master SH2 drain loop reads COMM data and writes to SDRAM (slower but proven) |
+| R-001 | DREQ FIFO cannot target $06008000 | Blocking | Phase 1 | **RESOLVED** | Moot — entity tables don't use FIFO. Master copies from cmd $02 landing area. |
 | R-002 | SDRAM bus contention degrades Slave | High | Phase 6 | **OPEN** | Pipeline writes during Slave Pipeline 1 (on-chip SRAM period). Measure before/after. |
 | R-003 | DIVU/DIVS reciprocal rounding mismatch | Medium | Phase 3 | **OPEN** | Exhaustive test: run both 68K and SH2 paths for all possible input values, compare outputs |
 | R-004 | Entity field access slower on SDRAM (2-6 wait states vs 0) | Medium | Phase 1 | **OPEN** | SH2 clock is 3× faster, compensating for wait states. Profile to verify net effect. |
@@ -612,6 +644,9 @@ Record every significant design decision here. Include date, what was decided, w
 | R-007 | Scene transitions corrupt double-buffer state | High | Phase 6 | **OPEN** | Flush both buffers on mode change. Single-buffer fallback during transitions. |
 | R-008 | 2-player mode has different entity/render paths | Medium | All | **OPEN** | Initially implement 1P only. 2P as separate effort after core works. |
 | R-009 | Sound timing drift when game logic runs ahead of display | Medium | Phase 6 | **OPEN** | Timestamp sound events in SDRAM queue. 68K plays at correct V-INT timing. |
+| R-010 | Gradient strip B ($060086D4) invalidated original SDRAM address plan | Medium | Phase 1 | **RESOLVED** | All addresses moved to $0600F20C+. Always grep before allocating SDRAM. |
+| R-011 | cmd $3F trigger in state 4 adds COMM0_HI blocking time | Low | Phase 1A | **OPEN** | Temporary for validation only. In Phase 2+, cmd $3F replaces cmd $02. |
+| R-012 | 68K→SDRAM direct write at $88xxxx may be read-only ROM mapping | Medium | Phase 1B | **OPEN** | Fallback: COMM2-6 relay (proven pattern). Must test empirically. |
 
 ---
 
@@ -680,6 +715,9 @@ Record discoveries, gotchas, and insights as the project progresses. These help 
 | (Pre-VR60) | S-4 | Physics constant scaling (20→30 FPS) created "fragile equilibrium" across 20+ files. | Only attempt frame-rate scaling AFTER all logic is in one codebase on SH2 (Phase 7, not Phase 1). |
 | (Pre-VR60) | B-016 | Small functions called frequently cannot justify COMM overhead. angle_normalize (8×/frame, ~1,500 cycles) became 23% SLOWER under COMM dispatch. | Rule: computation_time >> handshake_overhead × call_count. Never COMM-offload small functions. The new architecture eliminates COMM for data entirely. |
 | 2026-03-17 | Phase 0 | 16 unused jump table slots ($30-$3F) available. No dispatch loop modification needed for new commands. | Use existing slots for all new Master SH2 commands. |
+| 2026-03-17 | Phase 1 planning | **Always grep SDRAM addresses before allocating.** Gradient strip B at $060086D4 was invisible until scanning all SH2 code. | All future SDRAM allocations must be verified with grep across disasm/. |
+| 2026-03-17 | Phase 1 planning | **DREQ FIFO destination is SH2-controlled (DMAC DAR0).** 68K can only write data to the FIFO register — it cannot choose where data lands. | Don't plan around 68K-controlled FIFO destinations. Either reconfigure DMAC or bypass FIFO. |
+| 2026-03-17 | Phase 1 planning | **Entity tables don't need FIFO transfer.** Master SH2 will own them directly once game logic is ported. During migration, read from existing cmd $02 DMA area. | Simplifies Phases 1-2: no DREQ reconfiguration, no 68K FIFO streaming code. |
 
 ---
 

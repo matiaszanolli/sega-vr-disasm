@@ -161,15 +161,20 @@ state4_epilogue:
 .no_swap:
 ; --- Interpolate camera and trigger second SH2 render ---
         jsr     camera_avg_and_redma(pc)
+; --- VR60 Phase 1A: trigger cmd $3F to validate SDRAM path ---
+.wait_3f:
+        tst.b   COMM0_HI                       ; Master idle?
+        bne.s   .wait_3f                        ; spin if busy
+        move.b  #$3F,COMM0_LO                  ; dispatch index = $3F
+        move.b  #$01,COMM0_HI                  ; trigger (LAST write)
 ; --- Original state 4 epilogue ---
         addq.w  #4,($FFFFC87E).w               ; advance game_state
         move.w  #$001C,$00FF0008               ; V-INT state = sprite_cfg
         rts
 
-; Padding to maintain 216-byte total trampoline size.
-; Code = 6 (JMP) + 46 (snapshot) + 38 (avg) + 102 (epilogue) = 192 bytes.
-; Padding = 216 - 192 = 24 bytes.
-        dcb.b   24,$FF
+; Trigger byte count: tst.b abs.l (6) + bne.s (2) + move.b #imm,abs.l (8) + move.b #imm,abs.l (8) = 24 bytes.
+; Code = 6 (JMP) + 46 (snapshot) + 38 (avg) + 126 (epilogue 102 + trigger 24) = 216 bytes.
+; Padding = 216 - 216 = 0 bytes (trigger exactly fills former padding).
         include "modules/68k/game/collision/object_proximity_check_jump_table_dispatch.asm"
         include "modules/68k/game/state/conditional_return_on_disp_flag.asm"
         include "modules/68k/game/collision/proximity_check_with_sine_billboard.asm"

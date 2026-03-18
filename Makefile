@@ -2214,7 +2214,7 @@ $(SH2_CMD3F_VR60_BIN): $(SH2_CMD3F_VR60_SRC) | dirs
 	@echo "==> Assembling SH2: cmd3f_vr60_gameframe..."
 	$(SH2_AS) $(SH2_ASFLAGS) -o $(BUILD_DIR)/sh2/cmd3f_vr60_gameframe.o $<
 	$(SH2_OBJCOPY) -O binary $(BUILD_DIR)/sh2/cmd3f_vr60_gameframe.o $@
-	@echo "    Output: $@ ($$(wc -c < $@) bytes, expected 44)"
+	@echo "    Output: $@ ($$(wc -c < $@) bytes, expected 80)"
 
 $(SH2_CMD3F_VR60_INC): $(SH2_CMD3F_VR60_BIN)
 	@mkdir -p $(SH2_GEN_DIR)

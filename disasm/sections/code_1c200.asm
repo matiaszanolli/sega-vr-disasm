@@ -37,4 +37,7 @@
 ; --- S-1: LOD culling enhanced sprite param update (relocated from code_2200) ---
         include "modules/68k/game/render/object_table_sprite_param_update.asm"
 
+; --- VR60 Phase 1B: COMM relay trigger (50 bytes, called via JSR abs.l from code_2200) ---
+        include "modules/68k/sh2/vr60_comm_trigger.asm"
+
         dcb.b   ($01E200-*),$FF

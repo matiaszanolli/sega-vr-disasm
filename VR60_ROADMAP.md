@@ -246,11 +246,26 @@ Validate that the Master SH2 can read and write entity data at the new SDRAM loc
 
 ### 5.5 Phase 1B Steps
 
+Q-010 resolved: 68K CANNOT write SDRAM directly ($88xxxx = ROM, read-only). Must use COMM relay.
+
 | Step | Description | Risk |
 |------|-------------|------|
-| 1B-1 | Test 68K→SDRAM direct write at $88BC00 | **UNKNOWN** (Q-010) |
-| 1B-2 | If works: 68K writes controller input directly. If not: COMM relay. | Low |
-| 1B-3 | Verify controller input arrives at $2200BC00 | Low |
+| 1B-1 | 68K writes controller input + game state to COMM2-6 as part of cmd $3F trigger | Low (proven COMM pattern) |
+| 1B-2 | cmd $3F handler copies COMM2-6 to SDRAM mailbox at $2200BC00 | Low (same handler, add reads) |
+| 1B-3 | Verify controller input arrives at $2200BC00 via diagnostic dump | Low |
+
+**COMM2-6 layout for cmd $3F (10 usable bytes):**
+
+| Register | 68K Address | Byte Offset from R8 | Content |
+|----------|------------|---------------------|---------|
+| COMM2_HI | $A15124 | +4 | **MUST STAY $00** (Slave polls this!) |
+| COMM2_LO | $A15125 | +5 | controller_p1 buttons (byte) |
+| COMM3 | $A15126 | +6,7 | controller_p1 d-pad + controller_p2 buttons (2 bytes) |
+| COMM4 | $A15128 | +8,9 | game_state $C87E (word) |
+| COMM5 | $A1512A | +10,11 | frame_counter $C964 (word) |
+| COMM6 | $A1512C | +12,13 | race_substate $C8CC (word) |
+
+**CRITICAL: COMM2_HI must remain $00.** Slave SH2 polls COMM2_HI as its work command selector. Any non-zero value triggers spurious Slave dispatch. The 68K must write COMM2_LO via byte write, never COMM2 via word write.
 
 ### 5.6 Acceptance Criteria
 
@@ -609,7 +624,7 @@ These must be resolved before their respective phases. Add new questions as they
 | Q-007 | What happens to the 68K entity render pipeline variants (A/B/C/D, 2P)? | Phase 2 | **OPEN** | 6+ variants call different physics/AI/collision subsets. When logic moves to SH2, what drives variant selection? |
 | Q-008 | Can we keep menus on 68K while racing logic is on SH2? | All | **OPEN** | Menu system (115 modules) is non-critical. But mode transitions need clean handoff. |
 | Q-009 | What about the 2-player mode? | Phase 2+ | **OPEN** | 2P uses Table 3 ($FF9F00), alternate viewport at $FF6330, different render pipeline variants. Must be considered. |
-| Q-010 | Can 68K write to SDRAM at $88BC00 (adapter-mapped)? | Phase 1B | **OPEN** | Agent research suggests $880000-$8FFFFF maps to SDRAM. Must test empirically — may be read-only ROM mapping. |
+| Q-010 | Can 68K write to SDRAM at $88BC00 (adapter-mapped)? | Phase 1B | **RESOLVED: NO** | $880000-$8FFFFF = cartridge ROM (read-only). SDRAM is SH2-exclusive (HW manual §2, §3.1). Must use COMM relay: 68K writes COMM2-6, cmd $3F copies to SDRAM. |
 | Q-011 | Where exactly does cmd $02 write entity visibility data in SDRAM? | Phase 1A | **OPEN** | Believed to be $0600C800 (32×16B). Must verify by reading cmd $02 handler. |
 | Q-012 | Can the cmd $3F trigger be inserted after mars_dma_xfer_vdp_fill? | Phase 1A | **OPEN** | Must read the state 4 calling module for available space. |
 
@@ -646,7 +661,7 @@ Record every significant design decision here. Include date, what was decided, w
 | R-009 | Sound timing drift when game logic runs ahead of display | Medium | Phase 6 | **OPEN** | Timestamp sound events in SDRAM queue. 68K plays at correct V-INT timing. |
 | R-010 | Gradient strip B ($060086D4) invalidated original SDRAM address plan | Medium | Phase 1 | **RESOLVED** | All addresses moved to $0600F20C+. Always grep before allocating SDRAM. |
 | R-011 | cmd $3F trigger in state 4 adds COMM0_HI blocking time | Low | Phase 1A | **OPEN** | Temporary for validation only. In Phase 2+, cmd $3F replaces cmd $02. |
-| R-012 | 68K→SDRAM direct write at $88xxxx may be read-only ROM mapping | Medium | Phase 1B | **OPEN** | Fallback: COMM2-6 relay (proven pattern). Must test empirically. |
+| R-012 | 68K→SDRAM direct write at $88xxxx may be read-only ROM mapping | Medium | Phase 1B | **RESOLVED: confirmed ROM (read-only)** | $88xxxx = cartridge ROM per HW manual §3.1. COMM relay is the ONLY option. |
 
 ---
 
@@ -718,6 +733,7 @@ Record discoveries, gotchas, and insights as the project progresses. These help 
 | 2026-03-17 | Phase 1 planning | **Always grep SDRAM addresses before allocating.** Gradient strip B at $060086D4 was invisible until scanning all SH2 code. | All future SDRAM allocations must be verified with grep across disasm/. |
 | 2026-03-17 | Phase 1 planning | **DREQ FIFO destination is SH2-controlled (DMAC DAR0).** 68K can only write data to the FIFO register — it cannot choose where data lands. | Don't plan around 68K-controlled FIFO destinations. Either reconfigure DMAC or bypass FIFO. |
 | 2026-03-17 | Phase 1 planning | **Entity tables don't need FIFO transfer.** Master SH2 will own them directly once game logic is ported. During migration, read from existing cmd $02 DMA area. | Simplifies Phases 1-2: no DREQ reconfiguration, no 68K FIFO streaming code. |
+| 2026-03-17 | Phase 1B (Q-010) | **68K CANNOT write SDRAM at any address.** $880000-$8FFFFF = cartridge ROM (read-only, HW manual §2 + §3.1). SDRAM is SH2-exclusive. The only 68K→SH2 shared memory is COMM (16B) + Frame Buffer (FM-controlled). | All 68K→SH2 data must go through COMM registers. For bulk data, the DREQ FIFO is the only mechanism (68K writes FIFO, SH2 DMAC drains to SDRAM). For small params (<10 bytes), COMM relay is simplest. |
 
 ---
 

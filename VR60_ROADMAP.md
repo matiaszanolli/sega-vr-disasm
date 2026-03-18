@@ -69,14 +69,18 @@
 
 ### 1.4 Communication Bottleneck
 
+**CORRECTED (Phase 2A, 2026-03-17):** Only 2 sh2_send_cmd calls per race frame, not 14. sh2_cmd_27 = 0 during racing.
+
 | Sync Point | Who Blocks | Duration | Fundamental? |
 |-----------|-----------|----------|-------------|
-| COMM0_HI (sh2_send_cmd ×14) | 68K on Master | 200-500 cyc/call | **Artificial** — design choice |
+| COMM0_HI (sh2_send_cmd ×2, state 4 only) | 68K on Master | ~4,000 + ~9,200 cyc | **Mostly fundamental** — 68K waits for SH2 copy execution, not handshake overhead |
 | COMM1_LO bit 0 (frame done) | 68K V-INT on Master | 0-1000 cyc | **Fundamental** — frame sync |
-| COMM7 (cmd_27 doorbell ×21) | 68K on Slave | 10-30 cyc/call | **Optimized** (B-003) |
-| COMM1_LO bit 1 (DMA ack) | 68K on Slave | 100-300 cyc | **Artificial** |
+| COMM0 (mars_dma_xfer_vdp_fill ×2) | 68K on Master | ~200 cyc each | DREQ trigger, fast |
+| COMM0 (vr60_comm_trigger ×1) | 68K on Master | ~100 cyc | Phase 1B relay, fast |
 
-**Evidence:** `analysis/SYSTEM_EXECUTION_FLOW.md`, `analysis/68K_SH2_COMMUNICATION.md`
+**10.52% breakdown:** Call #1 waits ~4K cyc for Master to finish DREQ DMA processing. Call #2 waits ~9.2K cyc for geometry copy (288×48=13,824 bytes). Total ~13.4K cycles. This is SH2 EXECUTION TIME, not handshake overhead. Cannot be eliminated without pipeline overlap.
+
+**Evidence:** `code_2200.asm:145-154` (only 2 calls), `code_e200.asm:306-329` (function), Phase 2A timing analysis
 
 ### 1.5 Current Data Flow
 
@@ -87,7 +91,7 @@
   → [68K: object_table_sprite_param_update]
   → 68K WRAM $FF6000 (2560B FIFO source)
   → [68K: mars_dma_xfer_vdp_fill via DREQ FIFO]
-  → [14× sh2_send_cmd COMM handshake — 10.52% bottleneck]
+  → [2× sh2_send_cmd — constant params, 10.52% = SH2 copy execution wait]
   → SH2 SDRAM $0600C000+ (entity descriptors)
   → [Slave: Pipeline 1 (SRAM) + Pipeline 2 (SDRAM)]
   → Frame Buffer $04000000
@@ -278,14 +282,22 @@ Q-010 resolved: 68K CANNOT write SDRAM directly ($88xxxx = ROM, read-only). Must
 
 ---
 
-## 6. Phase 2: Entity Projection Port
+## 6. Phase 2: Block Copy Consolidation
 
-**Status: NOT STARTED**
-**Prerequisite: Phase 1**
+**Status: RESOLVED — NO ACTION NEEDED** (2026-03-17)
+**Finding:** Block copy consolidation saves ~0%. The 10.52% is SH2 copy execution time, not handshake overhead. Consolidation into cmd $3F is actually SLOWER (+33%) because it removes the current interleaving of param setup between copies.
 
-### 6.1 Goal
+### 6.1 Phase 2A Research Summary
 
-Move `object_table_sprite_param_update` from 68K to Master SH2. This is the first actual game logic port. Eliminates the 14× sh2_send_cmd bottleneck.
+Only **2** sh2_send_cmd calls per race frame (not 14). Both in state4_epilogue with constant params. sh2_cmd_27 = 0 during racing. camera_interpolation_60fps.asm is untracked (not in build).
+
+**Timing analysis (why consolidation fails):**
+- Current: 2 COMM round-trips. Call #1 blocks ~4K cyc (DREQ wait). Call #2 blocks ~9.2K cyc (copy #1 wait). Total: ~13.4K. The 68K interleaves param setup with copy execution.
+- Consolidated: 1 COMM trigger + COMM1_LO poll for both copies. Total: ~17.9K. WORSE because both copies run sequentially in one handler, blocking 68K for full combined duration.
+
+**The only way to eliminate this 10.52%** is pipeline overlap: fire-and-forget the copies and overlap them with game logic in state 8. This is Phase 6 territory, not Phase 2.
+
+Entity projection port deferred to Phase 3+ (saves only 0.1%, requires entity data in SDRAM).
 
 ### 6.2 Source Function Analysis
 
@@ -734,6 +746,10 @@ Record discoveries, gotchas, and insights as the project progresses. These help 
 | 2026-03-17 | Phase 1 planning | **DREQ FIFO destination is SH2-controlled (DMAC DAR0).** 68K can only write data to the FIFO register — it cannot choose where data lands. | Don't plan around 68K-controlled FIFO destinations. Either reconfigure DMAC or bypass FIFO. |
 | 2026-03-17 | Phase 1 planning | **Entity tables don't need FIFO transfer.** Master SH2 will own them directly once game logic is ported. During migration, read from existing cmd $02 DMA area. | Simplifies Phases 1-2: no DREQ reconfiguration, no 68K FIFO streaming code. |
 | 2026-03-17 | Phase 1B (Q-010) | **68K CANNOT write SDRAM at any address.** $880000-$8FFFFF = cartridge ROM (read-only, HW manual §2 + §3.1). SDRAM is SH2-exclusive. The only 68K→SH2 shared memory is COMM (16B) + Frame Buffer (FM-controlled). | All 68K→SH2 data must go through COMM registers. For bulk data, the DREQ FIFO is the only mechanism (68K writes FIFO, SH2 DMAC drains to SDRAM). For small params (<10 bytes), COMM relay is simplest. |
+| 2026-03-17 | Phase 2A | **Only 2 sh2_send_cmd calls per race frame, NOT 14.** Both in state4_epilogue, both with CONSTANT params. sh2_cmd_27 = 0 calls during racing (21×/frame was menus/attract). camera_interpolation_60fps.asm is untracked and not in the build. | The "14×" was stale. Corrected all roadmap references. |
+| 2026-03-17 | Phase 2A | **Block copy consolidation saves ~0%, not ~10%.** The 10.52% sh2_send_cmd hotspot is SH2 COPY EXECUTION TIME (waiting for 288×48+288×24 byte copies to complete), not handshake overhead. Consolidating into cmd $3F is +33% SLOWER because it removes interleaving. | Never assume profiling hotspots are "overhead" — they may be fundamental execution waits. The only fix is pipeline overlap (Phase 6). |
+| 2026-03-17 | Phase 2A | **COMM0 contention prevents async copies.** mars_dma_xfer_vdp_fill and cmd $3F both use COMM0. They cannot overlap. This means the 68K must wait for cmd $3F completion before re-DMA. | Any architecture with multiple COMM0 users must serialize them. Future design should minimize COMM0 usage. |
+| 2026-03-17 | Phase 2A | **Always re-verify profiling numbers before planning optimizations.** The "14× sh2_send_cmd" and "21× sh2_cmd_27" figures were from old profiling or non-racing modes. Fresh profiling with the current build is essential. | Re-profile after every phase before planning the next one. |
 
 ---
 

@@ -404,7 +404,23 @@ coord_transform_batched:
         include "sh2/expansion/coord_transform_batched.inc"
 
 ; ============================================================================
-; REMAINING EXPANSION ROM SPACE (from ~0x301490)
+; VR60 GAME FRAME HANDLER: 0x301500 — STATUS: ACTIVE (VR60 Phase 0)
+; ============================================================================
+; Master SH2 command handler for the VR60 architectural redesign.
+; Phase 0: No-op that reads SDRAM mailbox and signals completion.
+; Future phases add game logic (physics, AI, collision).
+;
+; Jump table entry at $02087C = $02301500 (cmd $3F).
+; SDRAM mailbox at $0600BC00 (cache-through: $2200BC00).
+;
+; See: disasm/sh2/expansion/cmd3f_vr60_gameframe.asm for source
+;
+        dcb.b   ($301500 - *), $FF      ; Pad to 0x301500
+cmd3f_vr60_gameframe:
+        include "sh2/generated/cmd3f_vr60_gameframe.inc"
+
+; ============================================================================
+; REMAINING EXPANSION ROM SPACE (from ~0x301530)
 ; ============================================================================
 ; Pad to $3F0000 (960KB) instead of $400000 (1MB) to avoid PicoDrive
 ; emulator bug triggered by ROM files > ~0x3F1F40 bytes.

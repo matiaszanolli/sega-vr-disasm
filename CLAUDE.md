@@ -4,19 +4,19 @@ Agent briefing for Virtua Racing Deluxe 32X disassembly/reassembly project.
 
 **Last Updated**: March 16, 2026
 
-## Agent Team (v3)
+## Agent Team (v4 — VR60)
 
-Two agents. See [agents/README.md](agents/README.md) for details.
+Two agents, redesigned for the VR60 architectural overhaul. See [agents/README.md](agents/README.md) for details.
 
-**Worker** (Sonnet or Opus) does all technical work: research, code, build, test. Spawn directly — no intermediary. Use Opus for hard problems (B-004, B-006, novel COMM work), Sonnet for routine tasks.
+**Worker** (Opus default) does all technical work: 68K→SH2 porting, SDRAM integration, build, test. Opus is the default because ALL VR60 work touches SH2/COMM/expansion. Spawn directly — no intermediary.
 
-**Auditor** (Opus) is a focused safety reviewer. Spawned fresh per concrete COMM/SH2/expansion proposal only. Returns APPROVED or BLOCKED. Not needed for 68K-only, profiling, or doc work.
+**Auditor** (Opus) is a safety reviewer with an expanded VR60 checklist: COMM safety + SDRAM addressing + bus contention + cache-through + double-buffer races + entity field preservation + ROM table translation. Spawned fresh per proposal. APPROVED or BLOCKED.
 
-**You are the task manager.** Pick a task from BACKLOG.md, spawn the Worker, review findings, spawn Auditor if flagged, approve/commit.
+**You are the task manager.** Pick a phase from [VR60_ROADMAP.md](VR60_ROADMAP.md), resolve open questions first, spawn the Worker, review findings, spawn Auditor, approve/commit. Update the roadmap after every session.
 
 **Research-First Principle:** Before implementing any fix, read the relevant docs and build a mental model with citations. If a second attempt fails for related reasons, stop coding and read. Named anti-patterns: address shopping, circular investigation, modern platform assumptions, undocumented guessing — all banned.
 
-**index.md maintenance rule:** After any session where a new pitfall is discovered or a new architectural fact is established, update `analysis/agent-scratch/oracle/index.md` before closing.
+**Roadmap maintenance rule:** After any session, update `VR60_ROADMAP.md` (decisions, risks, lessons) and `analysis/agent-scratch/oracle/index.md` if new facts established.
 
 ## Build & Test
 

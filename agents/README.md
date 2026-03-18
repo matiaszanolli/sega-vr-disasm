@@ -1,48 +1,49 @@
-# VRD Agent Team (v3)
+# VRD Agent Team (v4 — VR60)
 
-Specialized agents for the Virtua Racing Deluxe 32X disassembly project.
+Specialized agents for the VR60 architectural redesign of Virtua Racing Deluxe (32X).
 Agent definitions live here. Runtime state lives in `analysis/agent-scratch/` (gitignored).
 
 ## Team Members
 
 | Agent | File | Model | Role |
 |-------|------|-------|------|
-| **Worker** | [worker.md](worker.md) | Sonnet / Opus | All technical work — research, code, build, test |
-| **Auditor** | [auditor.md](auditor.md) | Opus | Safety review for COMM/SH2/expansion proposals only |
-
-**Retired (v2):** Task Manager, Navigator, Engineer — merged into Worker.
+| **Worker** | [worker.md](worker.md) | Opus (default) | All technical work — 68K→SH2 porting, SDRAM integration, build, test |
+| **Auditor** | [auditor.md](auditor.md) | Opus | Safety review — COMM, SDRAM addressing, bus contention, double-buffer races |
 
 ## How It Works
 
 ```
 You (main session)
-  → Spawn Worker with task description + BACKLOG entry
+  → Pick phase from VR60_ROADMAP.md
+  → Resolve open questions (Q-xxx) for that phase BEFORE spawning Worker
+  → Spawn Worker with phase description + relevant roadmap section
   → Worker researches, analyzes, implements, builds
-  → If COMM/SH2/expansion: Worker flags "AUDITOR REVIEW REQUESTED"
+  → Worker flags "AUDITOR REVIEW REQUESTED" (ALL VR60 work touches SH2)
   → You spawn fresh Auditor with the proposal
   → APPROVED → Worker implements. BLOCKED → fix or rethink.
   → Worker writes findings to analysis/agent-scratch/worker/findings.md
-  → You review, commit if appropriate
+  → You review findings, update VR60_ROADMAP.md (decisions, risks, lessons)
+  → You commit if appropriate
 ```
 
-No intermediary coordination agent. No lookup agent. You are the task manager.
+No intermediary coordination agent. You are the task manager.
 
 ## Model Selection
 
-- **Sonnet** for routine work: B-007 (FPS bug), B-009 (profiling), B-011 (SH2 translation), B-013 (doc fix)
-- **Opus** for hard problems: B-004 (COMM protocol), B-006 (parallel hooks), novel hardware interaction design
+**Opus is the default for all VR60 work.** Every phase involves SH2 code, COMM protocol,
+expansion ROM, and SDRAM addressing — exactly the domain where subtle encoding errors
+and hardware race conditions are most dangerous.
 
-Rule of thumb: if the task has crashed the ROM before, use Opus.
+Use Sonnet only for: documentation updates, profiling runs, 68K-only changes that
+don't interact with SH2.
 
 ## Research-First Principle
 
 **Understand before you act.** This is 1994 hardware with undocumented quirks.
 
-Before implementing: read the relevant docs, build a mental model with citations, identify root cause.
+Before implementing: read the relevant docs, build a mental model with citations.
 If a second attempt fails for related reasons: stop coding, go read docs.
 If you're saying "maybe" or "let's try": stop, that's guessing.
-
-The Worker has this embedded in its prompt. The main session watches for it too.
 
 **Named anti-patterns (banned):**
 - **Address shopping** — moving variables without understanding why they fail
@@ -51,30 +52,42 @@ The Worker has this embedded in its prompt. The main session watches for it too.
 - **Undocumented guessing** — "maybe it's X" without a doc reference
 - **Armchair analysis** — reasoning pivots without reading a document
 
-## Auditor Sign-Off Protocol
+## VR60 Architecture Context
 
-The Auditor is spawned **only** when the Worker's proposal touches:
-- COMM registers
-- SH2 code patches
-- Expansion ROM ($300000+)
+All agents must understand the target architecture:
 
-For everything else (68K translation, profiling, doc updates, FPS counter bugs): **no Auditor needed**.
+| CPU | Current Role | VR60 Role | Target Util |
+|-----|-------------|-----------|-------------|
+| 68K | ALL game logic (100.1%) | Thin coordinator: I/O, sound, VDP | <30% |
+| Master SH2 | Block copies (33%) | Game logic engine: physics, AI, collision | 40-60% |
+| Slave SH2 | ALL rendering (78%) | Rendering engine (unchanged) | 50-78% |
 
-Spawn fresh, never resume. Binary verdict: APPROVED or BLOCKED.
+Key infrastructure:
+- **cmd $3F handler** at expansion ROM $301500 (jump table $3F → $02301500)
+- **SDRAM mailbox** at $0600BC00 (controller input, scene cmds, sound queue)
+- **Entity tables** relocating from 68K WRAM $FF9000 → SDRAM $06008000
+- **Data transfer** via SDRAM direct writes (no COMM for bulk data)
 
 ## Key References
 
 | What | Where |
 |------|-------|
+| **Living roadmap** | VR60_ROADMAP.md |
+| Hardware constraints (13) | VR60_ROADMAP.md §3 |
+| Open questions (9+) | VR60_ROADMAP.md §12 |
+| Risk registry (9+) | VR60_ROADMAP.md §14 |
 | Topic lookup table | analysis/agent-scratch/oracle/index.md |
 | Hardware pitfalls (68+) | KNOWN_ISSUES.md |
 | COMM register deep dive | analysis/COMM_REGISTERS_HARDWARE_ANALYSIS.md |
-| Hardware manual | docs/32x-hardware-manual.md |
-| Function address lookup | analysis/FUNCTION_QUICK_LOOKUP.md |
+| Physics architecture | analysis/PHYSICS_SYSTEM_ARCHITECTURE.md |
+| AI architecture | analysis/AI_SYSTEM_ARCHITECTURE.md |
+| Collision architecture | analysis/COLLISION_SYSTEM_ARCHITECTURE.md |
+| Entity architecture | analysis/ENTITY_OBJECT_ARCHITECTURE.md |
 | Worker findings output | analysis/agent-scratch/worker/findings.md |
 
-## index.md Maintenance
+## Roadmap Maintenance
 
-After any session where new pitfalls or architectural facts are established,
-update `analysis/agent-scratch/oracle/index.md`. It's still useful as a
-curated topic lookup table even without a dedicated Navigator agent.
+After every session:
+1. Update `VR60_ROADMAP.md` — open questions, decisions, risks, lessons learned
+2. Update `analysis/agent-scratch/oracle/index.md` if new architectural facts established
+3. Update phase status (NOT STARTED → IN PROGRESS → COMPLETE)

@@ -2,7 +2,7 @@
 
 Agent briefing for Virtua Racing Deluxe 32X disassembly/reassembly project.
 
-**Last Updated**: March 16, 2026
+**Last Updated**: March 18, 2026
 
 ## Agent Team (v4 — VR60)
 
@@ -139,6 +139,7 @@ No direct cross-trigger. 68K submits to Master (COMM0) and Slave (COMM2) indepen
 | **Game mode transitions (boot→menu→racing)** | **[analysis/GAME_MODE_TRANSITIONS.md](analysis/GAME_MODE_TRANSITIONS.md)** |
 | **V-INT dispatch table + frame swap mechanism** | **[analysis/VINT_HANDLER_ARCHITECTURE.md](analysis/VINT_HANDLER_ARCHITECTURE.md)** |
 | **Rendering pipeline (end-to-end)** | **[analysis/RENDERING_PIPELINE.md](analysis/RENDERING_PIPELINE.md)** |
+| **Async pipeline architecture (VR60 Phase 2B)** | **[analysis/ASYNC_PIPELINE_ARCHITECTURE.md](analysis/ASYNC_PIPELINE_ARCHITECTURE.md)** |
 
 ### SH2 Architecture
 | Question | File |

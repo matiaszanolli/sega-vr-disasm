@@ -205,7 +205,7 @@ Every constraint below is verified against hardware documentation. **These canno
 
 ## 5. Phase 1: SDRAM Path Validation
 
-**Status: IN PROGRESS** (2026-03-17)
+**Status: COMPLETE** (2026-03-18)
 **Prerequisite: Phase 0 (done)
 **Baseline tag:** `vr60-phase0-baseline`
 
@@ -282,10 +282,21 @@ Q-010 resolved: 68K CANNOT write SDRAM directly ($88xxxx = ROM, read-only). Must
 
 ---
 
-## 6. Phase 2: Block Copy Consolidation
+## 6. Phase 2: Async Producer-Consumer Pipeline
 
-**Status: RESOLVED — NO ACTION NEEDED** (2026-03-17)
-**Finding:** Block copy consolidation saves ~0%. The 10.52% is SH2 copy execution time, not handshake overhead. Consolidation into cmd $3F is actually SLOWER (+33%) because it removes the current interleaving of param setup between copies.
+**Status: RESEARCH COMPLETE, READY FOR IMPLEMENTATION** (2026-03-18)
+**Full architecture:** [analysis/ASYNC_PIPELINE_ARCHITECTURE.md](analysis/ASYNC_PIPELINE_ARCHITECTURE.md)
+**Design decisions:** Producer-consumer pipeline + frame fence (lock-free) + display-objects-only transfer
+
+### 6.0 Architecture Pivot (Phase 2A → 2B)
+
+Phase 2A found that block copy consolidation saves ~0% — the 10.52% hotspot is SH2 copy execution time, not handshake overhead. Incremental porting within the synchronous model hits the same wall.
+
+Phase 2B conducted 7 independent research investigations (R1-R7) covering frame buffers, COMM1 lifecycle, state data flow, all sh2_send_cmd call sites (45+), mode transitions (4 hazards found), memory region overlap, and dropped frame recovery. All findings consolidated in ASYNC_PIPELINE_ARCHITECTURE.md.
+
+**The breakthrough:** The V-INT $54 handler already implements the exact synchronization gate we need — it stalls the state machine at state 8 until COMM1_LO bit 0 is set. This protects against COMM0 collisions, mode transition races, and dropped frames. We don't need new synchronization; we just need to trust the existing one and make block copies fire-and-forget.
+
+### 6.0a Phase 2A Research Summary (Preserved)
 
 ### 6.1 Phase 2A Research Summary
 
@@ -338,6 +349,77 @@ Entity projection port deferred to Phase 3+ (saves only 0.1%, requires entity da
 - [ ] 3600-frame autoplay passes
 - [ ] 68K utilization drops by ~10% (from 100.1% to ~90%)
 - [ ] No visual differences (A/B comparison screenshots)
+
+### 6.6 Phase 2B: Async Fire-and-Forget Block Copies
+
+**The concrete change:** Remove the two `sh2_send_cmd` calls and inline frame swap from `state4_epilogue`. Reorder: camera re-DMA BEFORE cmd $3F. cmd $3F becomes fire-and-forget (last COMM0 command in frame). cmd $3F handler does the block copies in background while 68K runs state 8 game logic.
+
+**New state4_epilogue:**
+```asm
+; --- Camera interpolation and re-DMA (uses COMM0, must complete before cmd $3F) ---
+        jsr     camera_avg_and_redma(pc)
+; --- Fire-and-forget: async block copies via cmd $3F ---
+        jsr     vr60_comm_trigger           ; COMM3=fence, trigger cmd $3F
+; --- State advance (68K continues immediately) ---
+        addq.w  #4,($FFFFC87E).w
+        move.w  #$001C,$00FF0008
+        rts
+```
+
+**cmd $3F handler (SH2 expansion, expanded):**
+1. Read COMM3-5 (frame fence + game state + toggle)
+2. Clear COMM0_LO (params consumed)
+3. Geometry copy: $2200[3]8000 → $04012010, 288×48
+4. Sprite copy: $2200[3]B600 → $0401B010, 288×24
+5. Entity data copy: $2200C800 → $2200F20C (Phase 1A validation)
+6. Write canary $DEADBEEF
+7. Clear COMM1, set COMM1_LO bit 0 ("frame done")
+8. Clear COMM0_HI (idle)
+
+**Timing guarantee:** Block copies take ~0.9 ms. State 8 game logic takes ~1.4 ms. V-INT $54 fires after state 8. By then, cmd $3F has finished ~0.5 ms ago. COMM0_HI is clear. State 0's DREQ DMA is safe.
+
+**Research findings that validate safety (R1-R7):**
+
+| # | Finding | Impact |
+|---|---------|--------|
+| R1 | 68K ONLY controls FS bit (8 locations). SH2 never writes it. | Frame swap is purely 68K-side. Moving copies to SH2 doesn't affect swap timing. |
+| R2 | COMM1_LO bit 0 = universal "done" signal. Same pattern across ALL modes. | cmd $3F uses identical signal — no mode-specific hazards. |
+| R3 | State 0→4→8 strict pipeline. State 4 always advances. State 8 = sync gate. | V-INT $54 stalls at state 8 until copies done. Natural protection. |
+| R4 | 45+ sh2_send_cmd call sites across all modes. | Async only targets racing state4_epilogue (2 calls). All other modes unchanged. |
+| R5 | mars_dma_xfer_vdp_fill has no COMM0 idle check — but V-INT gate prevents collision. | State 0's DMA can't fire while cmd $3F runs (state stalls at 8). |
+| R6 | No memory overlap between Master copies and Slave rendering. Time-separated. | Safe for concurrent execution. |
+| R7 | Dropped frames: V-INT $54 skips swap, stalls state machine. Existing graceful degradation. | Unchanged by async — same COMM1_LO gate. |
+
+**Resolved open questions:**
+
+| # | Question | Resolution |
+|---|----------|-----------|
+| U-006 | Does removing inline frame swap break first race frame? | **No** — V-INT $54 handles ALL frame swaps. Inline swap was latency optimization, not requirement. |
+| U-007 | Does camera_avg_and_redma depend on block copies? | **No** — reads WRAM ($FF6080/$FF6090), not framebuffer. No dependency. |
+| U-008 | Data dependencies in reordered state4_epilogue? | **None** — camera avg reads WRAM, copies read SDRAM. Independent data sources. |
+
+### 6.7 Phase 2B Implementation Steps
+
+| Step | Description | Files | Risk |
+|------|-------------|-------|------|
+| 2B-1 | Modify state4_epilogue: remove sh2_send_cmd ×2 + inline frame swap. Reorder: camera before cmd $3F. | code_2200.asm | Medium — core frame pipeline change |
+| 2B-2 | Expand cmd $3F handler: add geometry + sprite block copy loops (reuse cmd $22 algorithm) | cmd3f_vr60_gameframe.asm | Medium — SH2 block copy code |
+| 2B-3 | Update Makefile expected size for expanded cmd $3F | Makefile | Low |
+| 2B-4 | Build: `make clean && make all` | — | Low |
+| 2B-5 | Autoplay regression: 3600 frames (menus + race) | — | Low |
+| 2B-6 | Profile: verify sh2_send_cmd drops from 10.52% to ~0% | — | Low |
+| 2B-7 | Visual comparison: A/B screenshots at same frame count | — | Low |
+
+### 6.8 Phase 2B Acceptance Criteria
+
+- [ ] state4_epilogue has zero sh2_send_cmd calls
+- [ ] cmd $3F handler performs both block copies + entity data copy + canary
+- [ ] V-INT $54 correctly swaps frame buffer (COMM1_LO bit 0 set by cmd $3F)
+- [ ] 3600-frame autoplay passes without crashes
+- [ ] sh2_send_cmd hotspot drops from 10.52% to <1% in PC profiling
+- [ ] No visual differences in A/B comparison
+- [ ] Mode transitions (race→results, menu→race) work correctly
+- [ ] Game logic frame rate unchanged (20 FPS)
 
 ---
 
@@ -652,6 +734,10 @@ Record every significant design decision here. Include date, what was decided, w
 | 2026-03-17 | SDRAM mailbox at $0600BC00 | Zero-filled in ROM, no SH2 code references, auto-zeroed by boot IDL copy. | $0600F000 (also free, but farther from entity data). |
 | 2026-03-17 | Inline COMM cleanup in cmd $3F handler | Matches cmd22/cmd25 proven pattern. No func_084 call overhead. | JSR func_084 — adds 4 cycles, no safety benefit. |
 | 2026-03-17 | Port entity projection BEFORE physics | Pure data transform, no side effects, easiest to verify. Immediate 10.52% benefit. | Port physics first — higher impact per function but harder to verify. |
+| 2026-03-18 | Producer-consumer pipeline (not event-driven inversion) | Keep working 68K game logic, decouple from rendering via async. Lower risk than porting all game logic to SH2. | Event-driven inversion (Master SH2 as main loop) — higher reward but requires full game logic rewrite. |
+| 2026-03-18 | Frame fence (lock-free, not explicit handshake) | Monotonic counter in COMM3, no blocking on either side. Resilient to timing jitter. | Explicit handshake — re-introduces blocking. Triple-buffer — 12KB WRAM cost for marginal benefit. |
+| 2026-03-18 | Display objects only (not entity table transfer) | Entity tables stay in 68K WRAM. Only finished display objects transfer via existing DREQ (900B, already working). Eliminates the need for SDRAM entity table migration. | Full entity table transfer (4KB per frame via extended DREQ) — unnecessary if 68K keeps game logic. |
+| 2026-03-18 | Fire-and-forget last COMM0 cmd only | The V-INT $54 gate provides natural synchronization. Making cmd $3F the last COMM0 command ensures state 0's DMA can't fire until cmd $3F completes. | Fire-and-forget all copies — COMM0 collision with re-DMA. |
 | 2026-03-17 | Entity tables at $0600F20C (not $06008000) | $06008000 blocked by gradient strip B at $060086D4 (span_filler reads every polygon). $0600F20C-$06017FFF verified free (36.3 KB, zero SH2 code refs). | $06008000 (original plan, conflict with rendering data). |
 | 2026-03-17 | Skip DREQ FIFO for entity tables | Master SH2 will own entity tables directly once game logic is ported. During migration, copy from existing cmd $02 landing area. FIFO destination is SH2 DMAC-controlled (not 68K), making redirection complex. | DREQ FIFO with DMAC reconfiguration (complex, unnecessary). |
 | 2026-03-17 | Use git tag (not duplicate codebase) for baseline comparison | `vr60-phase0-baseline` tag enables `git diff` at any time. Simpler than maintaining parallel codebase. | Separate codebase clone (maintenance overhead, divergence risk). |
@@ -750,6 +836,10 @@ Record discoveries, gotchas, and insights as the project progresses. These help 
 | 2026-03-17 | Phase 2A | **Block copy consolidation saves ~0%, not ~10%.** The 10.52% sh2_send_cmd hotspot is SH2 COPY EXECUTION TIME (waiting for 288×48+288×24 byte copies to complete), not handshake overhead. Consolidating into cmd $3F is +33% SLOWER because it removes interleaving. | Never assume profiling hotspots are "overhead" — they may be fundamental execution waits. The only fix is pipeline overlap (Phase 6). |
 | 2026-03-17 | Phase 2A | **COMM0 contention prevents async copies.** mars_dma_xfer_vdp_fill and cmd $3F both use COMM0. They cannot overlap. This means the 68K must wait for cmd $3F completion before re-DMA. | Any architecture with multiple COMM0 users must serialize them. Future design should minimize COMM0 usage. |
 | 2026-03-17 | Phase 2A | **Always re-verify profiling numbers before planning optimizations.** The "14× sh2_send_cmd" and "21× sh2_cmd_27" figures were from old profiling or non-racing modes. Fresh profiling with the current build is essential. | Re-profile after every phase before planning the next one. |
+| 2026-03-18 | Phase 2B | **The V-INT $54 handler is the natural async synchronization gate.** It stalls the state machine at state 8 until COMM1_LO bit 0 is set. This means fire-and-forget is safe: the gate prevents state 0's DREQ DMA from firing while cmd $3F is still running. No new synchronization needed. | The existing architecture already has the primitive we need. We just needed 7 research investigations to see it. |
+| 2026-03-18 | Phase 2B | **camera_avg_and_redma produces zero visible change** (FRAME_RATE_ARCHITECTURE.md §9.4). The re-DMA sends interpolated camera data to SH2, but the SH2 doesn't re-render with it. The "40 FPS" is reduced latency (inline swap shows render 1 TV frame earlier), not two unique frames per game tick. | Interpolation infrastructure exists but is non-functional. This may be an opportunity for future activation once pipeline overlap (Phase 6) enables true dual rendering. |
+| 2026-03-18 | Phase 2B | **45+ sh2_send_cmd call sites exist across ALL game modes.** Not just racing. Menus have 1-7 per frame, HUD has per-digit calls, name entry has 10+. Async only targets racing state4_epilogue (the 2 largest calls). All other modes stay synchronous. | Never assume a "global" change — always map all call sites first. |
+| 2026-03-18 | Phase 2B | **4 mode transition hazards found but all protected by V-INT gate.** mars_dma_xfer_vdp_fill has no COMM0 idle check, but can't fire while cmd $3F runs (state stalls at 8). Handler replacement is deferred to next frame. C8A8 reset only happens during menu transitions (not racing). | The synchronous model's implicit barriers protect the async model too. |
 
 ---
 

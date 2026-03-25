@@ -724,7 +724,7 @@ sh2_force_integration:
     nop
 
 .align 2
-.fi_sdiv_addr:  .long   0x02301610 /* sh2_sdiv16 address */
+.fi_sdiv_addr:  .long   0x02301660 /* sh2_sdiv16 address (at physics_divide base) */
 .fi_r400_addr:  .long   41943      /* reciprocal of 400 */
 .fi_pool3:      .short  0x4268     /* max speed */
 

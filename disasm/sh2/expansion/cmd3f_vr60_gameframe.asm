@@ -2,16 +2,20 @@
  * cmd3f_vr60_gameframe — VR60 Game Frame Handler (Phase 2B: Async Block Copies)
  * Expansion ROM Address: $301500 (SH2: $02301500)
  *
- * Phase 3A: Fire-and-forget handler. 68K triggers cmd $3F and continues
- * immediately. This handler performs:
+ * Phase 3B: Fire-and-forget handler + SH2 physics pipeline.
+ * 68K triggers cmd $3F and continues immediately. This handler performs:
  *   1. Read COMM3-5 game state, write to SDRAM mailbox
  *   2. Geometry block copy: $06038000 → $04012010, 144 words × 48 rows
  *   3. Sprite block copy:   $0603B600 → $0401B010, 144 words × 24 rows
- *   4. Entity data validation: read $2200F20C (written by cmd $3E), canary
- *   5. COMM cleanup:        COMM1_LO bit 0 = "frame done" signal
+ *   4. SH2 PHYSICS PIPELINE: 7 functions on entity at $0600F20C
+ *      - Set GBR = entity base, R13 = globals base
+ *      - JSR: speed_degrade → steering → force_integration → speed_clamp
+ *             → speed_accel → tilt_adjust
+ *   5. Post-physics canary at $2200FC00
+ *   6. COMM cleanup: COMM1_LO bit 0 = "frame done" signal
  *
- * Phase 3A change: Entity copy removed (cmd $3E now handles entity transfer
- * via dedicated DREQ). Canary reads entity first longword for verification.
+ * Phase 3B: Physics runs in DUAL-PATH mode. 68K physics also runs on WRAM.
+ * SH2 physics results stay in SDRAM entity copy. Compare outputs to verify.
  *
  * Block copy algorithm reused from cmd22_single_shot.asm (longword path).
  * All addresses are 4-byte aligned and width is even → always longword path.
@@ -108,17 +112,56 @@ cmd3f_vr60_gameframe:
     /* offset 84 */ bf/s    .spr_row             /* next row */
     /* offset 86 */ add     r6,r0                /* [delay slot] dest base += stride */
 
-    /* === ENTITY DATA VALIDATION (Phase 3A) === */
-    /* cmd $3E already transferred 256B entity to $0600F20C via DREQ.         */
-    /* Read first longword from entity working copy as canary verification.    */
-    /* offset 88 */ mov.l   @(.ent_dst,pc),r4    /* R4 = $2200F20C */
-    /* offset 90 */ mov.l   @r4,r0               /* R0 = entity[0..3] */
-    /* Write to canary location for profiler verification */
-    /* offset 92 */ mov.l   @(.canary_addr,pc),r4 /* R4 = $2200FC00 */
-    /* offset 94 */ mov.l   r0,@r4               /* canary = entity first longword */
-    /* Also write $DEADBEEF at +4 to confirm handler reached this point */
-    /* offset 96 */ mov.l   @(.canary_val,pc),r0  /* R0 = $DEADBEEF */
-    /* offset 98 */ mov.l   r0,@(4,r4)            /* canary+4 = $DEADBEEF */
+    /* === PHASE 3B: RUN SH2 PHYSICS ON ENTITY DATA === */
+    /* Entity data at $0600F20C (transferred by cmd $3E via DREQ).            */
+    /* Globals at $0600F30C (also transferred by cmd $3E).                    */
+    /* Set GBR = entity base, R13 = globals base, then call physics.          */
+
+    /* Set GBR = entity base pointer */
+    mov.l   @(.ent_dst,pc),r0       /* R0 = $0600F20C */
+    ldc     r0,gbr                  /* GBR = entity base */
+
+    /* Set R13 = globals base (entity + 256 = $0600F30C) */
+    mov.l   @(.globals_base,pc),r13 /* R13 = $0600F30C */
+
+    /* Call physics functions in pipeline order via JSR @Rn */
+    /* Function 1: speed_degrade_calc */
+    mov.l   @(.phys_f1,pc),r0
+    jsr     @r0
+    nop
+
+    /* Function 2: steering_input (Phase B: integration/damping) */
+    mov.l   @(.phys_f2,pc),r0
+    jsr     @r0
+    nop
+
+    /* Function 3: force_integration (inlines speed_calc_chain + speed_modifier) */
+    mov.l   @(.phys_f3,pc),r0
+    jsr     @r0
+    nop
+
+    /* Function 5: entity_speed_clamp */
+    mov.l   @(.phys_f5,pc),r0
+    jsr     @r0
+    nop
+
+    /* Function 6: speed_accel_braking */
+    mov.l   @(.phys_f6,pc),r0
+    jsr     @r0
+    nop
+
+    /* Function 7: tilt_adjust */
+    mov.l   @(.phys_f7,pc),r0
+    jsr     @r0
+    nop
+
+    /* === CANARY: write entity first longword to verify physics ran === */
+    mov.l   @(.ent_dst,pc),r4       /* R4 = entity base (re-read, GBR may differ) */
+    mov.l   @r4,r0                  /* R0 = entity[0..3] (post-physics) */
+    mov.l   @(.canary_addr,pc),r4
+    mov.l   r0,@r4                  /* canary = entity first longword */
+    mov.l   @(.canary_val,pc),r0
+    mov.l   r0,@(4,r4)             /* canary+4 = $DEADBEEF */
 
     /* === COMPLETION: inline COMM cleanup (func_084 equivalent) === */
     /* Reload COMM base (clobbered during copy loops) */
@@ -156,14 +199,31 @@ cmd3f_vr60_gameframe:
 .spr_dst:
     .long   0x0401B010              /* Sprite dest (framebuffer, cached write) */
 .ent_dst:
-    .long   0x2200F20C              /* VR60 entity working copy (cache-through, written by cmd $3E) */
+    .long   0x0600F20C              /* Entity working copy (native SDRAM) */
+.globals_base:
+    .long   0x0600F30C              /* Globals block (native SDRAM, entity + 256) */
 .canary_addr:
-    .long   0x2200FC00              /* Validation canary location */
+    .long   0x2200FC00              /* Validation canary location (cache-through for visibility) */
 .canary_val:
     .long   0xDEADBEEF              /* Canary value */
 .comm_base:
     .long   0x20004020              /* COMM register base (cache-through) */
 
-/* Total: ~100 bytes code + pad + 32 bytes pool = ~136 bytes (Phase 1A entity copy removed, Phase 3A canary added) */
+/* Physics function addresses in expansion ROM (from sh-elf-nm symbol table) */
+/* Base: physics_group1 at $3016C0, physics_group2_accel at $301A40 */
+.phys_f1:
+    .long   0x023016C0              /* sh2_speed_degrade_calc (g1 + $000) */
+.phys_f2:
+    .long   0x02301720              /* sh2_steering_input (g1 + $060) */
+.phys_f3:
+    .long   0x0230179C              /* sh2_force_integration (g1 + $0DC) */
+.phys_f5:
+    .long   0x023016F2              /* sh2_entity_speed_clamp (g1 + $032) */
+.phys_f6:
+    .long   0x02301A40              /* sh2_speed_accel_braking (g2 + $000) */
+.phys_f7:
+    .long   0x02301BBC              /* sh2_tilt_adjust (g2 + $17C) */
+
+/* Total: ~220 bytes code + 72 bytes pool = ~292 bytes */
 
 .global cmd3f_vr60_gameframe

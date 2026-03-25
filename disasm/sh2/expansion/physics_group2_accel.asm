@@ -14,7 +14,7 @@
  *   result   = dividend / divisor   (16-bit quotient)
  *
  * SH2 replacement: result = (speed * gear_recip[gear]) >> 16
- *   gear_recip_table at $02301640 (6 longword entries, Phase 3B-1)
+ *   gear_recip_table at $02301690 (6 longword entries, Phase 3B-1)
  *   Verified: max 1 LSB error across full [0..17000] speed range.
  *
  * 68K DIVS -$02(A1,D1.W),D2 (natural decel path):
@@ -285,7 +285,7 @@ sh2_speed_accel_braking:
 .sa_c0400:      .short  0x0400     /* 1024 — max delta/frame */
 .align 2
 .sa_gear_tbl:   .long   0x020A1F0  /* SH2 ROM: gear ratio table ($0088A1F0) */
-.sa_recip_tbl:  .long   0x02301640 /* expansion ROM: gear_recip_table */
+.sa_recip_tbl:  .long   0x02301690 /* expansion ROM: gear_recip_table ($301660+$30) */
 .sa_nat_tbl:    .long   0x020A1E2  /* SH2 ROM: natural accel thresholds ($0088A1E2) */
 .sa_dec_tbl:    .long   0x02139EDE /* SH2 ROM: decel thresholds ($00939EDE) */
 /* Pool: 6 + 16 = 22 bytes */

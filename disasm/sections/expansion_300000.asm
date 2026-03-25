@@ -53,12 +53,12 @@
 ;   0x3011E0-0x30123F  vertex_transform_optimized (96 bytes)  — ACTIVE  (S-6 Phase A, trampoline $0234C8)
 ;   0x301300-0x30148F  coord_transform_batched (388 bytes)   — ACTIVE  (S-6 Phase B, trampolines $02338A-$02349F)
 ;   0x301490-0x3014FF  Free (padding to cmd $3F)
-;   0x301500-0x3015AB  cmd3f_vr60_gameframe (172 bytes)       — ACTIVE  (VR60 Phase 0/2B, JT $02087C)
-;   0x3015B0-0x30160F  cmd3e_entity_transfer (~96 bytes)      — ACTIVE  (VR60 Phase 3A, JT $020878)
-;   0x301610-0x30167F  physics_divide (~112 bytes)            — ACTIVE  (VR60 Phase 3B, division infra)
-;   0x301680-0x3019FF  physics_group1 (~884 bytes)            — ACTIVE  (VR60 Phase 3B, functions 1+5+2+3)
-;   0x301A00-0x301BFF  physics_group2_accel (~496 bytes)     — ACTIVE  (VR60 Phase 3B, functions 6+7)
-;   0x301C00-0x3FFFFF  Free space (remaining ~1015KB)
+;   0x301500-0x3015FF  cmd3f_vr60_gameframe (~228 bytes)      — ACTIVE  (VR60 Phase 3B, JT $02087C)
+;   0x301600-0x30165F  cmd3e_entity_transfer (~96 bytes)      — ACTIVE  (VR60 Phase 3A, JT $020878)
+;   0x301660-0x3016BF  physics_divide (~80 bytes)             — ACTIVE  (VR60 Phase 3B, division infra)
+;   0x3016C0-0x301A3F  physics_group1 (~884 bytes)            — ACTIVE  (VR60 Phase 3B, functions 1+5+2+3)
+;   0x301A40-0x301C3F  physics_group2_accel (~496 bytes)     — ACTIVE  (VR60 Phase 3B, functions 6+7)
+;   0x301C40-0x3FFFFF  Free space (remaining ~1015KB)
 ;
 ; Shared Data Structures (cache-through SDRAM, NOT in expansion ROM):
 ;   0x2203E000-0x2203E00F  Parameter block (16 bytes: R14, R7, R8, R5)
@@ -435,7 +435,7 @@ cmd3f_vr60_gameframe:
 ;
 ; See: disasm/sh2/expansion/cmd3e_entity_transfer.asm for source
 ;
-        dcb.b   ($3015B0 - *), $FF      ; Pad to 0x3015B0
+        dcb.b   ($301600 - *), $FF      ; Pad to 0x301600 (moved for Phase 3B cmd $3F growth)
 cmd3e_entity_transfer:
         include "sh2/generated/cmd3e_entity_transfer.inc"
 
@@ -449,7 +449,7 @@ cmd3e_entity_transfer:
 ;
 ; See: disasm/sh2/expansion/physics_divide.asm for source
 ;
-        dcb.b   ($301610 - *), $FF      ; Pad to 0x301610
+        dcb.b   ($301660 - *), $FF      ; Pad to 0x301660
 physics_divide:
         include "sh2/generated/physics_divide.inc"
 
@@ -461,7 +461,7 @@ physics_divide:
 ;
 ; See: disasm/sh2/expansion/physics_group1.asm for source
 ;
-        dcb.b   ($301680 - *), $FF      ; Pad to 0x301680
+        dcb.b   ($3016C0 - *), $FF      ; Pad to 0x3016C0
 physics_group1:
         include "sh2/generated/physics_group1.inc"
 
@@ -473,7 +473,7 @@ physics_group1:
 ;
 ; See: disasm/sh2/expansion/physics_group2_accel.asm for source
 ;
-        dcb.b   ($301A00 - *), $FF      ; Pad to 0x301A00
+        dcb.b   ($301A40 - *), $FF      ; Pad to 0x301A40
 physics_group2_accel:
         include "sh2/generated/physics_group2_accel.inc"
 

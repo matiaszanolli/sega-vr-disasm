@@ -56,8 +56,9 @@
 ;   0x301500-0x3015AB  cmd3f_vr60_gameframe (172 bytes)       — ACTIVE  (VR60 Phase 0/2B, JT $02087C)
 ;   0x3015B0-0x30160F  cmd3e_entity_transfer (~96 bytes)      — ACTIVE  (VR60 Phase 3A, JT $020878)
 ;   0x301610-0x30167F  physics_divide (~112 bytes)            — ACTIVE  (VR60 Phase 3B, division infra)
-;   0x301680-0x3016DF  physics_group1 (~96 bytes)             — ACTIVE  (VR60 Phase 3B, functions 1+5)
-;   0x3016E0-0x3FFFFF  Free space (remaining ~1016KB)
+;   0x301680-0x3019FF  physics_group1 (~884 bytes)            — ACTIVE  (VR60 Phase 3B, functions 1+5+2+3)
+;   0x301A00-0x301BFF  physics_group2_accel (~496 bytes)     — ACTIVE  (VR60 Phase 3B, functions 6+7)
+;   0x301C00-0x3FFFFF  Free space (remaining ~1015KB)
 ;
 ; Shared Data Structures (cache-through SDRAM, NOT in expansion ROM):
 ;   0x2203E000-0x2203E00F  Parameter block (16 bytes: R14, R7, R8, R5)
@@ -465,7 +466,19 @@ physics_group1:
         include "sh2/generated/physics_group1.inc"
 
 ; ============================================================================
-; REMAINING EXPANSION ROM SPACE (from ~0x3016E0)
+; VR60 PHYSICS GROUP 2 (ACCEL): 0x301A00 — STATUS: ACTIVE (VR60 Phase 3B)
+; ============================================================================
+; SH2 translations of functions 6 (speed_accel_braking) and 7 (tilt_adjust).
+; DIVU replaced with gear reciprocal table multiply.
+;
+; See: disasm/sh2/expansion/physics_group2_accel.asm for source
+;
+        dcb.b   ($301A00 - *), $FF      ; Pad to 0x301A00
+physics_group2_accel:
+        include "sh2/generated/physics_group2_accel.inc"
+
+; ============================================================================
+; REMAINING EXPANSION ROM SPACE (from ~0x301C00)
 ; ============================================================================
 ; Pad to $3F0000 (960KB) instead of $400000 (1MB) to avoid PicoDrive
 ; emulator bug triggered by ROM files > ~0x3F1F40 bytes.

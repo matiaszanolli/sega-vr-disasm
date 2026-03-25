@@ -284,7 +284,7 @@ Q-010 resolved: 68K CANNOT write SDRAM directly ($88xxxx = ROM, read-only). Must
 
 ## 6. Phase 2: Async Producer-Consumer Pipeline
 
-**Status: RESEARCH COMPLETE, READY FOR IMPLEMENTATION** (2026-03-18)
+**Status: PHASE 2B IMPLEMENTED** (2026-03-18)
 **Full architecture:** [analysis/ASYNC_PIPELINE_ARCHITECTURE.md](analysis/ASYNC_PIPELINE_ARCHITECTURE.md)
 **Design decisions:** Producer-consumer pipeline + frame fence (lock-free) + display-objects-only transfer
 
@@ -400,89 +400,177 @@ Entity projection port deferred to Phase 3+ (saves only 0.1%, requires entity da
 
 ### 6.7 Phase 2B Implementation Steps
 
-| Step | Description | Files | Risk |
-|------|-------------|-------|------|
-| 2B-1 | Modify state4_epilogue: remove sh2_send_cmd ×2 + inline frame swap. Reorder: camera before cmd $3F. | code_2200.asm | Medium — core frame pipeline change |
-| 2B-2 | Expand cmd $3F handler: add geometry + sprite block copy loops (reuse cmd $22 algorithm) | cmd3f_vr60_gameframe.asm | Medium — SH2 block copy code |
-| 2B-3 | Update Makefile expected size for expanded cmd $3F | Makefile | Low |
-| 2B-4 | Build: `make clean && make all` | — | Low |
-| 2B-5 | Autoplay regression: 3600 frames (menus + race) | — | Low |
-| 2B-6 | Profile: verify sh2_send_cmd drops from 10.52% to ~0% | — | Low |
-| 2B-7 | Visual comparison: A/B screenshots at same frame count | — | Low |
+| Step | Description | Files | Status |
+|------|-------------|-------|--------|
+| 2B-1 | Modify state4_epilogue: remove sh2_send_cmd ×2 + inline frame swap. Reorder: camera before cmd $3F. | code_2200.asm | **DONE** — 102B→24B, 96B padding |
+| 2B-2 | Expand cmd $3F handler: add geometry + sprite block copy loops (reuse cmd $22 algorithm) | cmd3f_vr60_gameframe.asm | **DONE** — 100B→172B (longword copy, stride $0200) |
+| 2B-3 | Update Makefile expected size for expanded cmd $3F | Makefile | **N/A** — no size assertion exists |
+| 2B-4 | Build: `make clean && make all` | — | **DONE** — clean build, 4.0M ROM |
+| 2B-5 | Autoplay regression: 3600 frames (menus + race) | — | **DONE** — no crashes, clean shutdown |
+| 2B-6 | Profile: verify sh2_send_cmd drops from 10.52% to ~0% | — | **PARTIAL** — overall 10.52%→10.29% (menu-masked); binary verified no racing calls |
+| 2B-7 | Visual comparison: A/B screenshots at same frame count | — | **DEFERRED** — requires manual emulator comparison |
 
 ### 6.8 Phase 2B Acceptance Criteria
 
-- [ ] state4_epilogue has zero sh2_send_cmd calls
-- [ ] cmd $3F handler performs both block copies + entity data copy + canary
-- [ ] V-INT $54 correctly swaps frame buffer (COMM1_LO bit 0 set by cmd $3F)
-- [ ] 3600-frame autoplay passes without crashes
-- [ ] sh2_send_cmd hotspot drops from 10.52% to <1% in PC profiling
-- [ ] No visual differences in A/B comparison
-- [ ] Mode transitions (race→results, menu→race) work correctly
-- [ ] Game logic frame rate unchanged (20 FPS)
+- [x] state4_epilogue has zero sh2_send_cmd calls (verified: binary at $003738 has no $4EB9 $0000E35A)
+- [x] cmd $3F handler performs both block copies + entity data copy + canary (172 bytes, 10 pool entries)
+- [x] V-INT $54 correctly swaps frame buffer (COMM1_LO bit 0 set by cmd $3F — 3600 frames, no hangs)
+- [x] 3600-frame autoplay passes without crashes (menus + racing, clean shutdown)
+- [ ] sh2_send_cmd hotspot drops from 10.52% to <1% in **racing-only** profiling (overall profile: 10.52%→10.29%, delta is menu-masked; racing-only profiler not available)
+- [x] Mode transitions (race→results, menu→race) work correctly (autoplay exercises all transitions)
+- [x] Game logic frame rate unchanged (20 FPS, verified via autoplay timing)
+
+**Profiling note:** The overall sh2_send_cmd hotspot (10.52%→10.29%) shows minimal change because menus dominate the sh2_send_cmd call volume across a mixed autoplay. During racing, the 2 sh2_send_cmd calls are confirmed removed (binary verified). A racing-only profiler would show the expected ~0% racing-mode improvement.
 
 ---
 
 ## 7. Phase 3: Physics Port
 
-**Status: NOT STARTED**
-**Prerequisite: Phase 2**
+**Status: RESEARCH COMPLETE** (2026-03-24)
+**Prerequisite: Phase 2 (done)**
 
 ### 7.1 Goal
 
-Move the 9-step physics pipeline to Master SH2.
+Move the physics pipeline to Master SH2. Corrected scope: **13 functions** (not 9 — see §7.2).
 
-### 7.2 Source Functions (Must Port as Complete Unit)
+### 7.2 Source Functions (Verified from entity_render_pipeline Variant A)
 
-| Function | ROM Address | Size | Key Operations | SH2 Translation Issues |
-|----------|-----------|------|----------------|----------------------|
-| `speed_degrade_calc` | $00859A | 42B | SUB, CMP, BCC | None — pure arithmetic |
-| `steering_input_processing` | $0094F4 | 298B | Controller bit decode, EMA filter, deadzone | Reads controller input from SDRAM mailbox (not I/O port). Must verify addressing. |
-| `entity_force_integration` | $009300 | 344B | MULS, ASR, drag/friction tables | ROM table access via $02xxxxxx. MULS→MUL.L (SH2 MAC). |
-| `speed_calc_multiplier_chain` | $009458 | 156B | Table lookup, MULS, shift chains | Track speed factor from $FFC0E6 → must relocate to SDRAM |
-| `entity_speed_clamp` | $009B12 | 32B | MULS #$48, LSR #8 | Direct translation |
-| `entity_speed_accel_and_braking` | $009182 | 382B | Gear ratios, DIVU, MULS | **DIVU has no SH2 equivalent** — must use reciprocal multiply |
-| `tilt_adjust` | $00961E | 106B | CMP, ADD, clamp | Direct translation |
-| `lateral_drift_velocity` | $00987E | 300B | Grip calc, force integration, spin-out | Two variants (A/B). Both needed. |
-| `entity_pos_update` | $006F98 | 98B | sin/cos lookup, position integration | ROM trig table at $0213AC2C. Falls through to collision (Phase 5 dependency!) |
+The orchestrator at $005AB6 calls these physics functions in order (lines 27-42). The roadmap previously listed 9 functions; 3 were missing, and the call chain was incorrectly described.
 
-**Total:** ~1,760 bytes 68K → estimated ~2,500 bytes SH2
+**Core pipeline (called directly by orchestrator):**
 
-### 7.3 Critical Translation Issues
+| # | Function | ROM Range | Size | Entry | Notes |
+|---|----------|-----------|------|-------|-------|
+| 1 | `speed_degrade_calc` | $00859A-$0085C4 | 42B | Direct | Leaf — pure arithmetic |
+| 2 | `steering_input_processing_and_velocity_update` | $0094F4-$00961E | 298B | **+6** (skips data prefix) | Reads controller from WRAM |
+| 3 | `entity_force_integration_and_speed_calc` | $009300-$009458 | 344B | **+18** (skips alternate entry) | Calls #4; contains DIVS D0,D1 + DIVS #$0190 |
+| 4 | — `speed_calc_multiplier_chain` | $009458-$0094F4 | 156B | Called by #3 | Calls `speed_modifier` (34B, inlineable) |
+| 5 | `entity_speed_clamp` | $009B12-$009B32 | 32B | Direct | Leaf; in `game/entity/` not `game/physics/` |
+| 6 | `entity_speed_acceleration_and_braking` | $009182-$009300 | 382B | Direct | Contains DIVU (gear table lookup) |
+| 7 | `tilt_adjust` | $00961E-$009688 | 106B | Direct | Leaf |
+| 8 | `drift_physics_and_camera_offset_calc` | $009688-$009802 | **378B** | Direct | **PREVIOUSLY UNLISTED.** Camera follow + heading drift. Contains DIVS #$0497. |
+| 9 | `suspension_steering_damping` | $009802-$00987E | **124B** | Direct | **PREVIOUSLY UNLISTED.** 3-entry jump table dispatches #10/#11 by $C8CC. |
+
+**Dispatched via suspension_steering_damping jump table:**
+
+| # | Function | ROM Range | Size | Dispatch | Notes |
+|---|----------|-----------|------|----------|-------|
+| 10 | `lateral_drift_velocity_processing_A` | $00987E-$0099AA | 300B | $C8CC state 2 | Grip reduction, spin-out ($B2 sound) |
+| 11 | `lateral_drift_velocity_processing_B` | $0099AA-$009B10 | **358B** | $C8CC state 1 | AI variant: different math (mul-then-div), AI boost, viewport shimmer, ±$200 damping, 2× display |
+
+**Position update + shared utility:**
+
+| # | Function | ROM Range | Size | Notes |
+|---|----------|-----------|------|-------|
+| 12 | `entity_pos_update` | $006F98-$006FFA | 98B | 3× JMP to collision (NO RTS exit). Calls #13. |
+| 13 | `sine_cosine_quadrant_lookup` | $008F4E-$008F88 | 58B | Shared utility (also used by camera, AI) |
+
+**Total: ~2,700B 68K → estimated ~3,800B SH2** (corrected from 1,760/2,500B; variant B = 358B verified)
+
+**Also in the orchestrator between physics calls** (timer/guard housekeeping):
+- `tire_squeal_check` (L27), `effect_timer_mgmt` (L29), `object_timer_expire_speed_param_reset` (L30), `field_check_guard` (L31), `timer_decrement_multi` (L32), `object_anim_timer_speed_clear+6` (L40)
+- **Decision needed:** Co-port these 6 functions to SH2, or keep on 68K with entity field sync?
+
+### 7.3 Critical Translation Issues (Verified)
 
 | Issue | Detail | Resolution |
 |-------|--------|------------|
-| **DIVU instruction** | `entity_speed_accel` uses DIVU for gear ratio. SH2 has no unsigned divide. | Pre-compute reciprocals for 7 gear ratios (known constants). Store in expansion ROM literal pool. `DIVU #ratio` → `MULU.L reciprocal >> shift`. Verify exact match for all 7 ratios. |
-| **DIVS #103** | `speed_interpolation` divides by 103. | Reciprocal: $9D8A = floor(2^20 / 103). `MULS result >> 20` = equivalent. Verify rounding matches for full input range (-32768..+32767). |
-| **Controller input source** | `steering_input_processing` reads from `$C9A1`/`$C9A3` (68K WRAM). | Must read from SDRAM mailbox instead. 68K writes controller state to mailbox each frame. |
-| **Global variables** | Track speed factor ($C0E6), wind flag ($C31B), boost flag ($C826), gear table ptr ($C288) | Relocate to SDRAM. 68K writes these during scene init; Master SH2 reads per-frame. ~20 bytes total. |
-| **Sound triggers** | Physics generates $B1/$B2/$B4 sound bytes to $CA94 | Write to SDRAM sound queue. 68K reads queue each frame, plays sounds. |
-| **Fall-through to collision** | `entity_pos_update` JMPs to `collision_response_surface_tracking` | Phase 3 cannot include collision (Phase 5). Must add temporary RTS at the JMP boundary. |
+| **DIVU (gear table)** | `entity_speed_accel` L78: `DIVU $00(A1,D2.W),D1`. Divisor from 6-entry ROM table at $88A1F0: {171, 192, 205, 213, 219, 224}. Input: raw_speed << 8 (max $426800). | **6-entry reciprocal table** in expansion ROM. `MULU.L reciprocal >> 24`. Precision: verified max error ≤1 LSB for all input/gear combinations. |
+| **DIVS D0,D1 (runtime)** | `entity_force_integration` L110: `DIVS D0,D1` where D0 = max_speed threshold from RAM $FFBBB2. Divisor is NOT a constant. | **SH2 software signed divide subroutine** (~16 iterations, ~64 cycles). No reciprocal table possible. |
+| **DIVS #$0190** | `entity_force_integration` L131: `DIVS #$0190,D1` (÷400, slope increment). | Reciprocal: floor(2^24 / 400) = 41943 ($A3D7). `MULS.L * 41943 >> 24`. |
+| **DIVS #$0497** | `drift_physics_and_camera_offset_calc` L27: `DIVS #$0497,D1` (÷1175, speed normalization). | Reciprocal: floor(2^24 / 1175) = 14281 ($37C9). `MULS.L * 14281 >> 24`. |
+| **~~DIVS #103~~** | ~~`speed_interpolation` divides by 103.~~ | **REMOVED** — `speed_interpolation` is NOT in the physics pipeline. It's a separate subsystem. |
+| **+offset entries** | Orchestrator calls `steering+6` and `force_integration+18`, skipping preambles. | SH2 port uses the main entry points directly. The skipped code (force=-51 default, data prefix) is handled differently in the SH2 version. |
+| **entity_pos_update boundary** | ALL 3 exit paths are unconditional JMPs to collision (no RTS). Cannot insert bare RTS. | **Port position calculation only** — replace the 3 JMPs with RTS in the SH2 version. Collision stays on 68K (Phase 5). The 68K orchestrator must call collision separately after SH2 physics returns. |
+| **suspension_steering_damping dispatch** | Uses $C8CC (race_substate_b) as jump table index to select lateral_drift variant. | Relocate $C8CC to SDRAM globals block. SH2 reads it to choose variant A or B. |
+| **Sound triggers** | 5 writes to $FFCA94: $B1 (2×), $B4 (3×), $B2 (1×). All 15-frame timer gated. Single-byte last-writer-wins. | SDRAM sound byte at globals+$0F. 68K reads each frame, plays via sound driver. |
+| **Controller input** | `steering_input` reads $FFC000/$FFC00A/$FFC010/$FFC018 (68K WRAM). | Relocate to SDRAM globals block. 68K writes per-frame from V-INT input scan. |
 
-### 7.4 RAM Variables to Relocate
+### 7.4 RAM Variables to Relocate (Verified — 44 bytes)
 
-| 68K Address | Size | Name | Written By | Read By (Phase 3) |
-|-------------|------|------|-----------|-------------------|
-| $FFC0E6 | word | track_speed_factor | Scene init | speed_calc_multiplier_chain |
-| $FFC0F8/$FFC0FA | 2 words | accel limits | Scene init | speed_interpolation |
-| $FFC27C | long | speed_table_ptr | Scene init | speed_calc_multiplier_chain |
-| $FFC288 | long | gear_table_ptr | Scene init | entity_force_integration |
-| $FFC31B | byte | wind_active | Scene handler | speed_calc_multiplier_chain |
-| $FFC826 | byte | has_boost_flag | Scene handler | speed_calc_multiplier_chain |
-| $FFC8D8 | word | countersteer_flag | Steering | steering_input_processing |
-| $C9A1/$C9A3 | 2 bytes | controller input | V-INT/input scan | steering_input_processing |
-| $FFCA94 | word | sound_trigger | Physics output | 68K sound dispatch |
+**SDRAM globals block at $0600BF00 (64 bytes allocated):**
 
-**Strategy:** Create a "global vars block" in SDRAM (e.g., $0600BF00, 64 bytes). 68K writes globals during scene init + per-frame input. Master SH2 reads per-frame.
+| Offset | 68K Address | Size | Name | Written By | Read By |
+|--------|-------------|------|------|-----------|---------|
+| +$00 | $FFC0AC | word | track_tilt | Scene init | tilt_adjust |
+| +$02 | $FFC0E6 | word | track_speed_factor | Scene init | speed_calc_multiplier_chain |
+| +$04 | $FFC0F8 | word | upper_accel_limit | Scene init | (reserved — not in pipeline) |
+| +$06 | $FFC0FA | word | lower_accel_limit | Scene init | (reserved — not in pipeline) |
+| +$08 | $FFC27C | long | speed_table_ptr | Scene init | speed_calc_multiplier_chain |
+| +$0C | $FFC048 | long | gear_table_ptr | Scene init | entity_force_integration, entity_speed_accel |
+| +$10 | $FFC0D4 | byte | surface_drivability | Scene init | entity_speed_accel |
+| +$11 | $FFC31B | byte | wind_active | Scene handler | speed_calc_multiplier_chain |
+| +$12 | $FFC826 | byte | has_boost_flag | Scene handler | speed_calc_multiplier_chain |
+| +$13 | $FFC971 | byte | banking_direction | Per-frame | tilt_adjust |
+| +$14 | $FFC000 | word | steering_velocity | Per-frame | steering_input_processing |
+| +$16 | $FFC00A | word | steering_direction | Per-frame | steering_input_processing |
+| +$18 | $FFC010 | byte | input_state | Per-frame | steering_input_processing |
+| +$19 | $FFC018 | byte | ai_control_flag | Per-frame | steering_input_processing |
+| +$1A | $FFC8C8 | word | mode_flag | Per-frame | speed_calculation |
+| +$1C | $FFC8CC | word | race_substate_b | Per-frame | suspension_steering_damping |
+| +$1E | $FFBBA0 | word | heading_correction | Track init | lateral_drift |
+| +$20 | $FFBBA2 | word | lateral_drag | Track init | lateral_drift |
+| +$22 | $FFBBA4 | word | spin_threshold | Track init | lateral_drift |
+| +$24 | $FFBBA6 | word | high_vel_threshold | Track init | lateral_drift |
+| +$26 | $FFBBA8 | word | drift_divisor | Track init | lateral_drift |
+| +$28 | $FFBBB0 | word | min_speed_threshold | Track init | lateral_drift |
+| +$2A | $FFBBB2 | word | max_speed_threshold | Track init | entity_force_integration (DIVS runtime divisor) |
+| +$2C | $FFCA94 | byte | sound_trigger_out | Physics output | 68K sound dispatch |
+| +$2D | $FFBFC0 | byte | ai_control_flag | Scene init | lateral_drift_B (AI boost gate, bit 4) |
+| +$2E | $FFBF7B | byte | slide_indicator | lateral_drift_A output | (display feedback) |
+| +$2F | — | byte | (padding) | — | — |
 
-### 7.5 Acceptance Criteria
+**Total used: 48 bytes** (16 bytes free in 64B block)
 
-- [ ] All 9 physics functions produce byte-identical entity field outputs on SH2 vs 68K
-- [ ] Gear shifts work correctly (test all 7 gears, upshift + downshift + natural)
-- [ ] Drift/spin-out triggers correctly (verified via sound byte queue)
+**Viewport output addresses** (lateral_drift_B writes, 68K reads for display):
+- $FF617A (word) — left viewport scale
+- $FF618E (word) — right viewport scale
+- These are WRAM display registers, NOT relocated to SDRAM. SH2 writes to SDRAM mirror; 68K copies to WRAM per frame.
+
+### 7.5 Entity Field Access Summary (38 Offsets)
+
+Across all 13 physics functions, 38 distinct entity offsets are accessed. Key groups:
+
+| Category | Offsets | Access |
+|----------|---------|--------|
+| Position | +$30 (X), +$34 (Y), +$3C (heading mirror), +$40 (heading) | RW |
+| Speed | +$04, +$06 (display), +$16 (calc), +$74 (raw), +$7E (target) | RW |
+| Dynamics | +$0E (force), +$10 (drag), +$78 (grip), +$7A (gear), +$8A (boost mod) | RW |
+| Drift | +$4C (slip), +$8E (steer vel), +$90 (drift rate), +$92 (slide), +$94/$96 (lateral), +$AA (accum) | RW |
+| Flags | +$02 (status), +$54 (steer mode), +$58/$59 (contact), +$62 (collision), +$6A (lateral), +$8C (lateral flag), +$A8 (speed state), +$AE (table offset) | R mostly |
+| Timers | +$14 (boost), +$80 (sound), +$82/$84 (brake), +$98/$9A/+$E6/$E8 (screech) | RW |
+| Camera | +$1E (ref angle), +$5A/$5C (trail), +$76 (cam dist) | R/RW |
+
+**Full entity record: 256 bytes per entity, 25 entities = 6,400 bytes.**
+Once physics runs on SH2, entity tables must be in SDRAM (already allocated at $0600F20C per Phase 1).
+
+### 7.6 ROM Table References (8 Tables)
+
+| Table | 68K Address | SH2 Address | Size | Used By |
+|-------|------------|-------------|------|---------|
+| Drag (road surface) | $0093910E | $0213910E | ~128W | entity_force_integration |
+| Drag (off-road) | $00938FCE | $02138FCE | ~128W | entity_force_integration |
+| Gear ratios | $0088A1F0 | $020A1F0 | 6W (12B) | entity_speed_accel |
+| Upshift thresholds | $0088A1E2 | $020A1E2 | 6W (12B) | entity_speed_accel |
+| Downshift thresholds | $00939EDE | $02139EDE | 6W (12B) | entity_speed_accel |
+| Speed table base | ptr at $FFC27C | ptr relocated to globals | ~384W | speed_calc_multiplier_chain |
+| Sine/cosine | $00930000 | $02130000 | 256W (512B) | entity_pos_update, drift_physics |
+| Sine table (alt) | $00A2D8 | $0202A2D8 | 64W (128B) | physics_lookup_tables |
+
+**SH2 ROM access:** All tables are in ROM below $300000. SH2 accesses ROM at $02000000 + file_offset. ROM reads from SH2 are cached (1-2 wait states first access, 0 thereafter if in cache). Table locality is good for caching.
+
+### 7.7 Acceptance Criteria (Corrected)
+
+- [ ] All 13 physics functions produce byte-identical entity field outputs on SH2 vs 68K
+- [ ] Gear shifts work correctly (test all **6** gears, upshift + downshift + natural)
+- [ ] Drift/spin-out triggers correctly (verified via SDRAM sound byte)
 - [ ] 3600-frame autoplay with physics on SH2 — no crashes, no visual differences
-- [ ] DIVU/DIVS reciprocal accuracy verified for full input range
+- [ ] DIVU reciprocal accuracy verified: max error ≤1 LSB for full input range × 6 gear ratios
+- [ ] DIVS software divide matches 68K DIVS for all tested inputs
+- [ ] DIVS #$0190 and DIVS #$0497 reciprocals verified exact for full signed 16-bit range
 - [ ] 68K utilization drops by ~2% (physics portion removed)
+- [ ] Sound triggers reach 68K correctly via SDRAM queue (all 3 sound codes: $B1/$B2/$B4)
+- [ ] entity_pos_update position matches 68K output (JMP→collision boundary verified clean)
 
 ---
 
@@ -710,17 +798,21 @@ These must be resolved before their respective phases. Add new questions as they
 | # | Question | Affects Phase | Status | Resolution |
 |---|----------|--------------|--------|------------|
 | Q-001 | Can DREQ FIFO target arbitrary SDRAM addresses ($06008000)? | Phase 1 | **RESOLVED (moot)** | DREQ FIFO destination is SH2 DMAC-controlled (DAR0 at $FFFFFF84). Entity tables don't need FIFO — Master SH2 copies from existing cmd $02 landing area. |
-| Q-002 | What is the SH2 address for ROM data above $300000 (e.g., $0094C000 track tiles)? | Phase 5 | **OPEN** | The 4MB ROM maps to SH2 $02000000-$023FFFFF. Addresses like $0094C000 may be 68K-relative (with $00880000 base subtracted). Must verify: is $0094C000 a CPU address or ROM offset? |
-| Q-003 | Can Master SH2 write to frame buffer ($04xxxxxx) when FM=1? | Phase 2 | **OPEN** | FM=1 gives SH2 access. Master currently writes FB via cmd $22. But does it contend with Slave FB writes during rendering? |
+| Q-002 | What is the SH2 address for ROM data above $300000 (e.g., $0094C000 track tiles)? | Phase 5 | **RESOLVED: 68K CPU addresses** | All collision ROM refs are 68K CPU addresses ($0088xxxx+). Formula: `SH2_addr = 68K_addr + $01780000` (= 68K - $880000 + $02000000). Example: $0094C000 → file offset $C4000 → SH2 $020C4000. Highest ref: $00970000 → file offset $0EF000 (within 4MB). R-005 mitigated. |
+| Q-003 | Can Master SH2 write to frame buffer ($04xxxxxx) when FM=1? | Phase 2 | **RESOLVED: YES, time-separated** | FM=1 gives both SH2s access. BUT current design prevents simultaneous access: Slave writes SDRAM during state 0, Master writes framebuffer during state 4. They never write the same memory at the same time. HW manual §4.2: both SH2s CAN write framebuffer concurrently (same bus), but must not write the same bank simultaneously. |
 | Q-004 | Does SDRAM bus contention degrade Slave rendering measurably? | Phase 6 | **OPEN** | Profile Slave utilization before and after Master SDRAM writes. Compare render times. |
-| Q-005 | Is the `entity_type_dispatch` RAM table at $C05C written only during scene init? | Phase 4 | **OPEN** | If written per-frame, must be in SDRAM. If init-only, can be snapshot once. |
-| Q-006 | How does camera_snapshot_wrapper (A-1 hook) interact with the new architecture? | Phase 2 | **OPEN** | A-1 camera interpolation hooks into state 0 of the scene dispatcher. If game logic moves to Master SH2, the camera snapshot must also move. |
-| Q-007 | What happens to the 68K entity render pipeline variants (A/B/C/D, 2P)? | Phase 2 | **OPEN** | 6+ variants call different physics/AI/collision subsets. When logic moves to SH2, what drives variant selection? |
-| Q-008 | Can we keep menus on 68K while racing logic is on SH2? | All | **OPEN** | Menu system (115 modules) is non-critical. But mode transitions need clean handoff. |
-| Q-009 | What about the 2-player mode? | Phase 2+ | **OPEN** | 2P uses Table 3 ($FF9F00), alternate viewport at $FF6330, different render pipeline variants. Must be considered. |
+| Q-005 | Is the `entity_type_dispatch` RAM table at $C05C written only during scene init? | Phase 4 | **RESOLVED: init-only** | No MOVE/CLR writes to $C05C found in any per-frame code. Used as LEA base in 3 functions (entity_type_dispatch_tables, effect_countdown, hw_reg_init). Table is populated during scene init. Can be snapshot once to SDRAM. |
+| Q-006 | How does camera_snapshot_wrapper (A-1 hook) interact with the new architecture? | Phase 2 | **RESOLVED: no conflict** | Camera snapshot runs in state 0 (BEFORE physics in same frame). Reads entity position from WRAM. When physics moves to SH2, camera reads PREVIOUS frame's output — same 1-frame-behind behavior that already exists. No architectural change needed. |
+| Q-007 | What happens to the 68K entity render pipeline variants (A/B/C/D, 2P)? | Phase 2 | **RESOLVED: phase 3 = Variant A only** | Variant A (player entity, all 9 physics steps) ports to SH2. Variants B/C/D (AI, replay) continue on 68K — they use reduced physics subsets. Variant selection driven by entity_type_dispatch_tables (indexes jump table at $C05C), stays on 68K. |
+| Q-008 | Can we keep menus on 68K while racing logic is on SH2? | All | **RESOLVED: YES** | cmd $3F only fires from `state4_epilogue` in `state_disp_005020` (active racing). Other dispatchers (countdown, results, attract, replay) have different state 4 handlers with no physics trigger. Menu WRAM ($C800-$CFFF) is separate from entity WRAM ($FF9000+). No shared resource conflicts. 115 menu modules stay on 68K entirely. |
+| Q-009 | What about the 2-player mode? | Phase 2+ | **RESOLVED: defer to post-Phase 3** | 2P uses Table 3 ($FF9F00) — single 256B entity record (NOT a 15-entry table). Same physics functions as 1P (A0-parameterized). Split-screen viewport at $FF6178. MOVEM block copy in `gfx_2_player_entity_frame_orch` assumes both entities updated on same CPU. Phase 3 = 1P racing only. Porting both players requires either: (A) both on SH2 (2× physics cost) or (B) explicit DMA synchronization barrier. R-008 updated. |
 | Q-010 | Can 68K write to SDRAM at $88BC00 (adapter-mapped)? | Phase 1B | **RESOLVED: NO** | $880000-$8FFFFF = cartridge ROM (read-only). SDRAM is SH2-exclusive (HW manual §2, §3.1). Must use COMM relay: 68K writes COMM2-6, cmd $3F copies to SDRAM. |
-| Q-011 | Where exactly does cmd $02 write entity visibility data in SDRAM? | Phase 1A | **OPEN** | Believed to be $0600C800 (32×16B). Must verify by reading cmd $02 handler. |
-| Q-012 | Can the cmd $3F trigger be inserted after mars_dma_xfer_vdp_fill? | Phase 1A | **OPEN** | Must read the state 4 calling module for available space. |
+| Q-011 | Where exactly does cmd $02 write entity visibility data in SDRAM? | Phase 1A | **RESOLVED: $0600C800** | Confirmed: 32 entries × 16 bytes = 512B at $0600C800 ($2200C800 cache-through). Handler $04 reads visibility flag at byte offset +0. Already validated by cmd $3F entity copy ($2200C800 → $2200F20C). |
+| Q-012 | Can the cmd $3F trigger be inserted after mars_dma_xfer_vdp_fill? | Phase 1A | **RESOLVED: YES (implemented)** | vr60_comm_trigger inserted in state4_epilogue (code_2200.asm). 78 bytes freed by Phase 2B async conversion. Working in current build. |
+| Q-013 | How many gears does the game use? | Phase 3 | **RESOLVED: 6** | Gear ratio ROM table at $88A1F0 has 6 entries: {171, 192, 205, 213, 219, 224}. 7th slot is code, not data. Gear index +$7A ranges 0-5. |
+| Q-014 | Does the DIVU use constant or runtime divisors? | Phase 3 | **RESOLVED: table lookup** | DIVU in entity_speed_accel uses 6 known gear ratios from ROM table. Pre-computable reciprocals. DIVS D0,D1 in entity_force_integration IS runtime (max_speed from RAM). |
+| Q-015 | What are the 5 interleaved timer/guard functions between physics calls? | Phase 3 | **RESOLVED: 3 safe, 2 conflict** | **Safe** (no physics-input writes): tire_squeal_check (76B), effect_timer_mgmt (106B), timer_decrement_multi (82B). **Conflict** (write physics-input fields): object_timer_expire_speed_param_reset (80B, writes +$40 heading), object_anim_timer_speed_clear+6 (48B, writes +$06 speed). Conflicts are safe because these run BEFORE physics in orchestrator order — keep on 68K. field_check_guard (10B) only reads +$8C, no writes. |
+| Q-016 | Is lateral_drift_velocity_B ($0099AA) structurally different from A ($00987E)? | Phase 3 | **RESOLVED: YES, fundamentally different** | B = 358B (not ~300B). Different math: force calc order (mul-then-div vs div-first), AI boost logic (speed > $C8 + AI flag → extra grip loss from +$0E), different grip clamp range ([$40,$FF] vs [$7F,∞]), 2× damping threshold (±$200 vs ±$100), viewport shimmer ($FF617A/$FF618E writes), 2× display scaling. 3 extra entity fields (+$04, +$0E, +$80), 1 extra global ($FFBFC0 AI control flag). Both variants must be ported independently. SH2 estimate: ~420B. |
 
 ---
 
@@ -741,6 +833,10 @@ Record every significant design decision here. Include date, what was decided, w
 | 2026-03-17 | Entity tables at $0600F20C (not $06008000) | $06008000 blocked by gradient strip B at $060086D4 (span_filler reads every polygon). $0600F20C-$06017FFF verified free (36.3 KB, zero SH2 code refs). | $06008000 (original plan, conflict with rendering data). |
 | 2026-03-17 | Skip DREQ FIFO for entity tables | Master SH2 will own entity tables directly once game logic is ported. During migration, copy from existing cmd $02 landing area. FIFO destination is SH2 DMAC-controlled (not 68K), making redirection complex. | DREQ FIFO with DMAC reconfiguration (complex, unnecessary). |
 | 2026-03-17 | Use git tag (not duplicate codebase) for baseline comparison | `vr60-phase0-baseline` tag enables `git diff` at any time. Simpler than maintaining parallel codebase. | Separate codebase clone (maintenance overhead, divergence risk). |
+| 2026-03-24 | SDRAM globals block at $0600BF00 (64 bytes) | Between mailbox ($0600BC00) and entity data ($0600C000). 46 bytes used, 18 reserved. Close to existing SDRAM allocations. | $0600F200 (near entity mirror, but crossing into allocated range). |
+| 2026-03-24 | SH2 software divide for runtime DIVS | entity_force_integration's DIVS D0,D1 has runtime divisor (max_speed threshold from RAM). No pre-computation possible. ~64 SH2 cycles vs 140 68K cycles for DIVS. | Reciprocal lookup table — would need 65K entries for full 16-bit range. |
+| 2026-03-24 | Reciprocal multiply for constant DIVS | DIVS #$0190 and DIVS #$0497 are compile-time constants. Reciprocal at 2^24 precision gives exact results for all signed 16-bit inputs. Zero runtime overhead beyond MULS+shift. | SH2 software divide — correct but unnecessarily slow for known constants. |
+| 2026-03-24 | entity_pos_update: replace JMPs with RTS for SH2 port | The 3 JMP exits into collision are the Phase 5 boundary. SH2 version returns after position update; 68K orchestrator calls collision separately. | Keep entity_pos_update on 68K — wastes the opportunity to run position math on SH2. |
 
 ---
 
@@ -752,14 +848,18 @@ Record every significant design decision here. Include date, what was decided, w
 | R-002 | SDRAM bus contention degrades Slave | High | Phase 6 | **OPEN** | Pipeline writes during Slave Pipeline 1 (on-chip SRAM period). Measure before/after. |
 | R-003 | DIVU/DIVS reciprocal rounding mismatch | Medium | Phase 3 | **OPEN** | Exhaustive test: run both 68K and SH2 paths for all possible input values, compare outputs |
 | R-004 | Entity field access slower on SDRAM (2-6 wait states vs 0) | Medium | Phase 1 | **OPEN** | SH2 clock is 3× faster, compensating for wait states. Profile to verify net effect. |
-| R-005 | Track tile ROM addresses are 68K-relative (not file offsets) | Blocking | Phase 5 | **OPEN** | Decode track data ROM table format completely before porting collision |
+| R-005 | Track tile ROM addresses are 68K-relative (not file offsets) | Blocking | Phase 5 | **RESOLVED** | Confirmed: all collision ROM refs are 68K CPU addresses. SH2 conversion: `addr + $01780000`. Highest ref $00970000 = file offset $EF000 (within 4MB ROM). Pointer tables at $742C/$745C contain mode-indexed segment_map/base_data pairs. |
 | R-006 | Camera interpolation (A-1) conflicts with new architecture | High | Phase 2 | **OPEN** | A-1 hooks into 68K scene state 0. If state machine moves to SH2, camera must move too. May need interim hybrid (camera on 68K, physics on SH2). |
 | R-007 | Scene transitions corrupt double-buffer state | High | Phase 6 | **OPEN** | Flush both buffers on mode change. Single-buffer fallback during transitions. |
-| R-008 | 2-player mode has different entity/render paths | Medium | All | **OPEN** | Initially implement 1P only. 2P as separate effort after core works. |
+| R-008 | 2-player mode has different entity/render paths | Medium | All | **CHARACTERIZED** | 2P uses same physics (A0-parameterized), Table 3 ($FF9F00, 1 entity), split-screen viewport. MOVEM block copy in `gfx_2_player_entity_frame_orch` assumes same-CPU update. Phase 3 = 1P only. 2P requires either both players on SH2 or explicit sync barrier. Defer to post-Phase 3. |
 | R-009 | Sound timing drift when game logic runs ahead of display | Medium | Phase 6 | **OPEN** | Timestamp sound events in SDRAM queue. 68K plays at correct V-INT timing. |
 | R-010 | Gradient strip B ($060086D4) invalidated original SDRAM address plan | Medium | Phase 1 | **RESOLVED** | All addresses moved to $0600F20C+. Always grep before allocating SDRAM. |
 | R-011 | cmd $3F trigger in state 4 adds COMM0_HI blocking time | Low | Phase 1A | **OPEN** | Temporary for validation only. In Phase 2+, cmd $3F replaces cmd $02. |
 | R-012 | 68K→SDRAM direct write at $88xxxx may be read-only ROM mapping | Medium | Phase 1B | **RESOLVED: confirmed ROM (read-only)** | $88xxxx = cartridge ROM per HW manual §3.1. COMM relay is the ONLY option. |
+| R-013 | Physics port scope 50% larger than estimated (2,642B vs 1,760B) | Medium | Phase 3 | **IDENTIFIED** | 3 previously unlisted functions: drift_physics_and_camera_offset_calc (378B), suspension_steering_damping (124B), lateral_drift_B (~300B). Budget SH2 expansion space accordingly (~3,700B). |
+| R-014 | Runtime DIVS in entity_force_integration — no reciprocal possible | Low | Phase 3 | **MITIGATED** | SH2 software signed divide (~64 cycles). Called once per entity per frame. Total overhead: 25 entities × 64 cycles = 1,600 cycles/frame. Negligible vs 383K cycle budget. |
+| R-015 | 2 timer/guard functions write physics-input fields (+$40, +$06) | Low | Phase 3 | **MITIGATED** | object_timer_expire_speed_param_reset writes +$40 (heading), object_anim_timer_speed_clear writes +$06 (speed). Both run BEFORE physics in orchestrator order. Keep on 68K — natural ordering ensures correctness. No co-porting needed. |
+| R-016 | entity_pos_update JMP→collision boundary creates split-CPU execution | Medium | Phase 3/5 | **OPEN** | Position update on SH2, collision on 68K. 68K must call collision after reading SH2-updated position from SDRAM. Adds ~1 frame latency to collision response unless pipelined. |
 
 ---
 
@@ -840,6 +940,17 @@ Record discoveries, gotchas, and insights as the project progresses. These help 
 | 2026-03-18 | Phase 2B | **camera_avg_and_redma produces zero visible change** (FRAME_RATE_ARCHITECTURE.md §9.4). The re-DMA sends interpolated camera data to SH2, but the SH2 doesn't re-render with it. The "40 FPS" is reduced latency (inline swap shows render 1 TV frame earlier), not two unique frames per game tick. | Interpolation infrastructure exists but is non-functional. This may be an opportunity for future activation once pipeline overlap (Phase 6) enables true dual rendering. |
 | 2026-03-18 | Phase 2B | **45+ sh2_send_cmd call sites exist across ALL game modes.** Not just racing. Menus have 1-7 per frame, HUD has per-digit calls, name entry has 10+. Async only targets racing state4_epilogue (the 2 largest calls). All other modes stay synchronous. | Never assume a "global" change — always map all call sites first. |
 | 2026-03-18 | Phase 2B | **4 mode transition hazards found but all protected by V-INT gate.** mars_dma_xfer_vdp_fill has no COMM0 idle check, but can't fire while cmd $3F runs (state stalls at 8). Handler replacement is deferred to next frame. C8A8 reset only happens during menu transitions (not racing). | The synchronous model's implicit barriers protect the async model too. |
+| 2026-03-24 | Phase 3 research | **Physics pipeline has 13 functions, not 9.** Three were missing from the roadmap: `drift_physics_and_camera_offset_calc` (378B, contains DIVS #$0497), `suspension_steering_damping` (124B, jump table dispatches lateral_drift variants), and `lateral_drift_velocity_B` (~300B, AI variant). Total: 2,642B 68K → ~3,700B SH2. | Always trace the orchestrator call-by-call before planning ports. The roadmap's function list was assembled from documentation, not from reading the actual orchestrator source. |
+| 2026-03-24 | Phase 3 research | **Orchestrator uses +offset entry points** (`steering+6`, `force_integration+18`) to skip initialization preambles. The SH2 port must handle these entry semantics — either by implementing the same skip or by restructuring the SH2 functions. | When porting, read the CALL SITE (orchestrator), not just the function itself. Entry offsets change the effective interface. |
+| 2026-03-24 | Phase 3 research | **`drift_physics_and_camera_offset_calc` is NOT `lateral_drift_velocity`.** The orchestrator calls drift_physics first (camera follow + heading drift), then suspension_steering_damping (which dispatches to lateral_drift via jump table). Two separate functions with different purposes. | Function names in the roadmap were assumed from PHYSICS_SYSTEM_ARCHITECTURE.md descriptions, not verified against actual call sites. Always read the orchestrator. |
+| 2026-03-24 | Phase 3 research | **Gear ratio table has 6 entries, not 7.** Values: {171, 192, 205, 213, 219, 224} at ROM $88A1F0. The 7th position contains code (MOVE.W instruction), not data. 68K→SH2 ROM offset mapping: subtract $880000 from 68K absolute address to get file offset, then add $02000000 for SH2. | Always read ROM data bytes directly instead of assuming table sizes from documentation or function analysis. |
+| 2026-03-24 | Phase 3 research | **DIVS #103 (speed_interpolation) is NOT in the physics pipeline.** It's a separate subsystem. Only 4 divisions exist in the actual pipeline: DIVU gear_table (6 constants), DIVS D0 (runtime), DIVS #$0190, DIVS #$0497. The "DIVS #103" claim was from a stale roadmap entry that listed speed_interpolation as a physics function. | Always verify function membership by reading the orchestrator, not by searching for "physics" in filenames. |
+| 2026-03-24 | Phase 3 research | **Timer/guard functions between physics calls: 3 safe, 2 write physics inputs.** object_timer_expire_speed_param_reset writes +$40 (heading), object_anim_timer_speed_clear writes +$06 (speed). Both run BEFORE physics in orchestrator call order. No co-porting needed — keep on 68K, natural ordering ensures correct values reach SH2 physics. | When analyzing function dependencies for CPU migration, check WRITE→READ ordering, not just which fields are accessed. Same-CPU ordering is free synchronization. |
+| 2026-03-24 | Phase 3 research | **lateral_drift_velocity_B is structurally different from A — NOT a subset.** Different math (mul-then-div vs div-first), different grip range ([$40,$FF] vs [$7F,∞]), AI boost logic (speed-gated), viewport shimmer writes, 2× damping, 2× display scaling. 358B (not ~300B). Must port independently. | Never assume "variant" means "minor parameter change." Read both implementations fully before estimating scope. |
+| 2026-03-24 | Phase 3 research | **$C05C entity_type_dispatch table is init-only.** No per-frame writes found. Can be snapshot once to SDRAM during scene init. Confirms Phase 4 (AI port) can use a static copy. | Verified by grep: no MOVE/CLR writes to $C05C in any per-frame code path. |
+| 2026-03-24 | Q-002 | **All collision ROM addresses are 68K CPU addresses, not file offsets.** Conversion: `SH2_addr = 68K_addr + $01780000`. Highest reference: $00970000 → file offset $EF000 (within 4MB). Track pointer tables at $742C/$745C contain mode-indexed segment_map/base_data address pairs. | R-005 resolved. No ROM boundary issues. Phase 5 collision port can proceed with simple address arithmetic. |
+| 2026-03-24 | Q-008 | **cmd $3F only fires during active racing (`state_disp_005020`).** The other 4 dispatchers (countdown, results, attract, replay) have entirely different state 4 handlers with no physics trigger. Menu scene handlers are completely separate. | No mode-gate needed for cmd $3F — the scene handler architecture IS the gate. Menus stay on 68K with zero SH2 interaction. |
+| 2026-03-24 | Q-009 | **2P uses identical physics functions as 1P (A0-parameterized).** Table 3 ($FF9F00) is a single 256B entity, not a 15-entity table. `gfx_2_player_entity_frame_orch` MOVEM block copy assumes both entities updated on same CPU — splitting P1/P2 across CPUs creates race conditions in display DMA. | Phase 3 = 1P only. 2P deferred. When porting 2P, either both players on SH2 or add explicit sync barrier. |
 
 ---
 

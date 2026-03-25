@@ -40,4 +40,9 @@
 ; --- VR60 Phase 1B: COMM relay trigger (50 bytes, called via JSR abs.l from code_2200) ---
         include "modules/68k/sh2/vr60_comm_trigger.asm"
 
+; --- VR60 Phase 3A: entity+globals staging + DREQ transfer (called via JSR abs.l from code_2200) ---
+        include "modules/68k/sh2/vr60_entity_stage.asm"
+        include "modules/68k/sh2/vr60_globals_stage.asm"
+        include "modules/68k/sh2/vr60_entity_transfer.asm"
+
         dcb.b   ($01E200-*),$FF

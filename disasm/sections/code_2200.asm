@@ -128,50 +128,39 @@ camera_avg_and_redma:
         rts
 
 ; ============================================================================
-; state4_epilogue — State 4 tail: block-copy + swap + interpolation + re-DMA
+; state4_epilogue — State 4 tail: async fire-and-forget (VR60 Phase 2B)
 ; Tail-jumped from frame_update_orch_005070 (state 4 handler).
 ;
-; 1. Sends 2 sh2_send_cmd block copies to capture the CURRENT SH2 render
-;    (camera N) to the framebuffer before re-DMA overwrites SDRAM.
-; 2. Swaps frame buffer → displays camera N render (first swap = 40 FPS).
-; 3. Averages camera, re-DMAs → SH2 re-renders with interpolated camera.
-;    State 8's existing block copies + swap will display this second render.
+; Phase 2B: Block copies moved to cmd $3F SH2 handler (fire-and-forget).
+; V-INT $54 (vdp_dma_frame_swap_037) gates frame swap via COMM1_LO bit 0.
+; See: analysis/ASYNC_PIPELINE_ARCHITECTURE.md
 ;
-; Size: 102 bytes
+; 1. camera_avg_and_redma — interpolate camera + re-DMA (uses COMM0, must
+;    complete before cmd $3F trigger)
+; 2. vr60_comm_trigger — fire-and-forget cmd $3F (SH2 does block copies in
+;    background while 68K runs state 8 game logic)
+; 3. State advance + V-INT state + RTS (68K continues immediately)
+;
+; Size: 24 bytes
 ; ============================================================================
 state4_epilogue:
-; --- Block-copy current SH2 render (camera N) to framebuffer ---
-; Same params as sh2_geometry_transfer_and_palette_cycle_handler
-        movea.l #$06038000,a0                  ; 3D geometry source (SDRAM)
-        movea.l #$04012010,a1                  ; framebuffer dest
-        move.w  #$0120,d0                      ; width = 288 pixels
-        move.w  #$0030,d1                      ; height = 48 rows
-        jsr     $0088E35A                      ; sh2_send_cmd (abs.l, PC-rel too far)
-        movea.l #$0603B600,a0                  ; sprite data source (SDRAM)
-        movea.l #$0401B010,a1                  ; framebuffer dest
-        move.w  #$0120,d0                      ; width = 288 pixels
-        move.w  #$0018,d1                      ; height = 24 rows
-        jsr     $0088E35A                      ; sh2_send_cmd
-; --- Swap frame buffer (COMM1_LO bit 0 set after last block copy) ---
-        btst    #0,COMM1_LO                    ; SH2 block copy done?
-        beq.s   .no_swap                       ; no → skip (shouldn't happen)
-        bclr    #0,COMM1_LO                    ; clear done flag
-        bchg    #0,($FFFFC80C).w               ; flip frame toggle
-        bchg    #0,$00A1518B                   ; toggle FS bit (swap display)
-.no_swap:
-; --- Interpolate camera and trigger second SH2 render ---
+; --- VR60 Phase 3A: stage entity + globals, transfer via DREQ to SDRAM ---
+        jsr     vr60_entity_stage               ; 6B — 256B WRAM copy $FF9000→$FF6A00
+        jsr     vr60_globals_stage              ; 6B — 48B scattered globals→$FF6B00
+        jsr     vr60_entity_transfer            ; 6B — DREQ 320B $FF6A00→SDRAM $0600F20C
+; --- Interpolate camera and re-DMA (must complete before cmd $3F — COMM0 sequencing) ---
         jsr     camera_avg_and_redma(pc)
-; --- VR60 Phase 1B: relay game state via COMM3-5, trigger cmd $3F ---
+; --- Fire-and-forget: async block copies + frame signal via cmd $3F ---
         jsr     vr60_comm_trigger               ; 6B — writes COMM3-5 + triggers cmd $3F
-; --- Original state 4 epilogue ---
+; --- State advance (68K continues immediately, no wait) ---
         addq.w  #4,($FFFFC87E).w               ; advance game_state
         move.w  #$001C,$00FF0008               ; V-INT state = sprite_cfg
         rts
 
-; JSR (6B) replaces 24B inline trigger from Phase 1A. Padding restored to 18B.
-; Code = 6 (JMP) + 46 (snapshot) + 38 (avg) + 108 (epilogue 102 + JSR 6) = 198 bytes.
-; Padding = 216 - 198 = 18 bytes.
-        dcb.b   18,$FF
+; Phase 3A: stage (6B) + globals (6B) + transfer (6B) + camera (4B) + trigger (6B) + epilogue (14B) = 42B
+; Code = 6 (JMP) + 46 (snapshot) + 38 (avg) + 48 (epilogue) = 138 bytes.
+; Padding = 216 - 138 = 78 bytes.
+        dcb.b   78,$FF
         include "modules/68k/game/collision/object_proximity_check_jump_table_dispatch.asm"
         include "modules/68k/game/state/conditional_return_on_disp_flag.asm"
         include "modules/68k/game/collision/proximity_check_with_sine_billboard.asm"

@@ -52,7 +52,10 @@
 ;   0x3011A0-0x3011DF  vis_bitmask_handler (64 bytes)          — DORMANT (S-1c reverted, JT restored)
 ;   0x3011E0-0x30123F  vertex_transform_optimized (96 bytes)  — ACTIVE  (S-6 Phase A, trampoline $0234C8)
 ;   0x301300-0x30148F  coord_transform_batched (388 bytes)   — ACTIVE  (S-6 Phase B, trampolines $02338A-$02349F)
-;   0x301490-0x3FFFFF  Free space (remaining ~1018KB)
+;   0x301490-0x3014FF  Free (padding to cmd $3F)
+;   0x301500-0x3015AB  cmd3f_vr60_gameframe (172 bytes)       — ACTIVE  (VR60 Phase 0/2B, JT $02087C)
+;   0x3015B0-0x30160F  cmd3e_entity_transfer (~96 bytes)      — ACTIVE  (VR60 Phase 3A, JT $020878)
+;   0x301610-0x3FFFFF  Free space (remaining ~1017KB)
 ;
 ; Shared Data Structures (cache-through SDRAM, NOT in expansion ROM):
 ;   0x2203E000-0x2203E00F  Parameter block (16 bytes: R14, R7, R8, R5)
@@ -420,9 +423,23 @@ cmd3f_vr60_gameframe:
         include "sh2/generated/cmd3f_vr60_gameframe.inc"
 
 ; ============================================================================
-; REMAINING EXPANSION ROM SPACE (from ~0x301530)
+; VR60 ENTITY TRANSFER HANDLER: 0x3015B0 — STATUS: ACTIVE (VR60 Phase 3A)
+; ============================================================================
+; Configures SH2 DMAC channel 0 to receive 256 bytes of player entity data
+; from the 68K via DREQ FIFO. Data lands at $0600F20C (entity working copy).
+;
+; Jump table entry at $020878 = $023015B0 (cmd $3E).
+;
+; See: disasm/sh2/expansion/cmd3e_entity_transfer.asm for source
+;
+        dcb.b   ($3015B0 - *), $FF      ; Pad to 0x3015B0
+cmd3e_entity_transfer:
+        include "sh2/generated/cmd3e_entity_transfer.inc"
+
+; ============================================================================
+; REMAINING EXPANSION ROM SPACE (from ~0x301610)
 ; ============================================================================
 ; Pad to $3F0000 (960KB) instead of $400000 (1MB) to avoid PicoDrive
 ; emulator bug triggered by ROM files > ~0x3F1F40 bytes.
-; Still provides ~960KB expansion space (99.7% free).
+; Still provides ~1017KB expansion space.
         dcb.b   ($3F0000 - *), $FF

@@ -831,8 +831,8 @@ vdp_wait_test:                   ; $02050C
         dc.w    $0490        ; $020872
         dc.w    $0600        ; $020874
         dc.w    $0490        ; $020876
-        dc.w    $0600        ; $020878
-        dc.w    $0490        ; $02087A
+        dc.w    $0230        ; $020878  cmd $3E → expansion ROM $023015B0 (VR60 Phase 3A: entity transfer)
+        dc.w    $15B0        ; $02087A
         dc.w    $0230        ; $02087C  cmd $3F → expansion ROM $02301500 (VR60 Phase 0)
         dc.w    $1500        ; $02087E
         dc.w    $4F22        ; $020880

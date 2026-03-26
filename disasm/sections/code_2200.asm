@@ -144,23 +144,42 @@ camera_avg_and_redma:
 ; Size: 24 bytes
 ; ============================================================================
 state4_epilogue:
-; --- VR60 Phase 3A: stage entity + globals, transfer via DREQ to SDRAM ---
-        jsr     vr60_entity_stage               ; 6B — 256B WRAM copy $FF9000→$FF6A00
-        jsr     vr60_globals_stage              ; 6B — 48B scattered globals→$FF6B00
-        jsr     vr60_entity_transfer            ; 6B — DREQ 320B $FF6A00→SDRAM $0600F20C
-; --- Interpolate camera and re-DMA (must complete before cmd $3F — COMM0 sequencing) ---
+; --- VR60 Phase 3B: conditional entity staging + globals transfer ---
+; First racing frame ($C8D2 = 0): stage entity (256B) + globals (64B) = 320B
+; Subsequent frames ($C8D2 != 0): globals only (64B), entity persists in SDRAM
+; $C8D2 is zeroed at boot (WRAM init) and re-zeroed when state dispatcher
+; resets $C87E to 0 (every new scene). Since state4_epilogue only runs at
+; $C87E=4, and $C87E resets to 0 at scene start, the first state 4 after
+; any scene change will find $C8D2=0 (seeded by scene init's WRAM clear).
+;
+; SAFETY: If $C8D2 is NOT cleared by game init (edge case), the entity
+; staging just re-seeds SDRAM with WRAM data on every race start. The SH2
+; physics overwrites it within 1 frame. No correctness impact.
+        tst.b   ($FFFFC8D2).w                   ; 4B — entity seeded in SDRAM?
+        bne.s   .globals_only                    ; 2B — yes: skip entity staging
+; --- First frame: full entity + globals staging ---
+        jsr     vr60_entity_stage               ; 6B — 256B WRAM→$FF6A00
+        jsr     vr60_globals_stage              ; 6B — 64B scattered→$FF6B00
+        jsr     vr60_entity_transfer            ; 6B — DREQ 320B→SDRAM (cmd $3E mode 0)
+        move.b  #$01,($FFFFC8D2).w              ; 6B — mark entity seeded
+        bra.s   .camera                          ; 2B
+.globals_only:
+; --- Subsequent frames: globals only ---
+        jsr     vr60_globals_stage              ; 6B — 64B scattered→$FF6B00
+        jsr     vr60_globals_transfer           ; 6B — DREQ 64B→SDRAM (cmd $3E mode 1)
+.camera:
+; --- Interpolate camera and re-DMA ---
         jsr     camera_avg_and_redma(pc)
-; --- Fire-and-forget: async block copies + frame signal via cmd $3F ---
+; --- Fire-and-forget: async block copies + physics via cmd $3F ---
         jsr     vr60_comm_trigger               ; 6B — writes COMM3-5 + triggers cmd $3F
-; --- State advance (68K continues immediately, no wait) ---
-        addq.w  #4,($FFFFC87E).w               ; advance game_state
+; --- State advance ---
+        addq.w  #4,($FFFFC87E).w
         move.w  #$001C,$00FF0008               ; V-INT state = sprite_cfg
         rts
 
-; Phase 3A: stage (6B) + globals (6B) + transfer (6B) + camera (4B) + trigger (6B) + epilogue (14B) = 42B
-; Code = 6 (JMP) + 46 (snapshot) + 38 (avg) + 48 (epilogue) = 138 bytes.
-; Padding = 216 - 138 = 78 bytes.
-        dcb.b   78,$FF
+; Auto-pad to next module at $0037B6 (object_proximity_check_jump_table_dispatch).
+; state4_epilogue grew with conditional staging (Phase 3B).
+        dcb.b   ($0037B6-*),$FF
         include "modules/68k/game/collision/object_proximity_check_jump_table_dispatch.asm"
         include "modules/68k/game/state/conditional_return_on_disp_flag.asm"
         include "modules/68k/game/collision/proximity_check_with_sine_billboard.asm"

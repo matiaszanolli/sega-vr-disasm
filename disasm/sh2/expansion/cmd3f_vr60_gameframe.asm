@@ -241,32 +241,32 @@ cmd3f_vr60_gameframe:
 .comm_base:
     .long   0x20004020              /* COMM register base (cache-through) */
 
-/* Physics function addresses (bases shifted +$20 from original) */
-/* physics_group1 at $3016E0, physics_group2_accel at $301A60, physics_timers at $301C60 */
+/* Physics function addresses */
+/* physics_group1 at $301700, physics_group2_accel at $301A80, physics_timers at $301C80 */
 .phys_f1:
-    .long   0x023016E0              /* sh2_speed_degrade_calc (g1 + $000) */
+    .long   0x02301700              /* sh2_speed_degrade_calc (g1 + $000) */
 .phys_f2:
-    .long   0x02301740              /* sh2_steering_input (g1 + $060) */
+    .long   0x02301760              /* sh2_steering_input (g1 + $060) */
 .phys_f3:
-    .long   0x023017BC              /* sh2_force_integration (g1 + $0DC) */
+    .long   0x023017DC              /* sh2_force_integration (g1 + $0DC) */
 .phys_f5:
-    .long   0x02301712              /* sh2_entity_speed_clamp (g1 + $032) */
+    .long   0x02301732              /* sh2_entity_speed_clamp (g1 + $032) */
 .phys_f6:
-    .long   0x02301A60              /* sh2_speed_accel_braking (g2 + $000) */
+    .long   0x02301A80              /* sh2_speed_accel_braking (g2 + $000) */
 .phys_f7:
-    .long   0x02301BDC              /* sh2_tilt_adjust (g2 + $17C) */
+    .long   0x02301BFC              /* sh2_tilt_adjust (g2 + $17C) */
 
-/* Timer/guard function addresses (physics_timers at $301C60) */
+/* Timer/guard function addresses (physics_timers at $301C80) */
 .tmr_td:
-    .long   0x02301C60              /* sh2_timer_decrement_multi (tmr + $000) */
+    .long   0x02301C80              /* sh2_timer_decrement_multi (tmr + $000) */
 .tmr_et:
-    .long   0x02301CB4              /* sh2_effect_timer_mgmt (tmr + $054) */
+    .long   0x02301CD4              /* sh2_effect_timer_mgmt (tmr + $054) */
 .tmr_te:
-    .long   0x02301D20              /* sh2_timer_expire_reset (tmr + $0C0) */
+    .long   0x02301D40              /* sh2_timer_expire_reset (tmr + $0C0) */
 .tmr_fg:
-    .long   0x02301D40              /* sh2_field_check_guard (tmr + $0E0) */
+    .long   0x02301D60              /* sh2_field_check_guard (tmr + $0E0) */
 .tmr_ac:
-    .long   0x02301D4E              /* sh2_anim_timer_speed_clear (tmr + $0EE) */
+    .long   0x02301D6E              /* sh2_anim_timer_speed_clear (tmr + $0EE) */
 
 /* Total: ~280 bytes code + 92 bytes pool = ~372 bytes */
 

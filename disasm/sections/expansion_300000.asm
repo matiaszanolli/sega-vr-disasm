@@ -450,7 +450,7 @@ cmd3e_entity_transfer:
 ;
 ; See: disasm/sh2/expansion/physics_divide.asm for source
 ;
-        dcb.b   ($301680 - *), $FF      ; Pad to 0x301680
+        dcb.b   ($3016B0 - *), $FF      ; Pad to 0x3016B0 (cmd $3E grew to 132B with mode switch)
 physics_divide:
         include "sh2/generated/physics_divide.inc"
 
@@ -462,7 +462,7 @@ physics_divide:
 ;
 ; See: disasm/sh2/expansion/physics_group1.asm for source
 ;
-        dcb.b   ($3016E0 - *), $FF      ; Pad to 0x3016E0
+        dcb.b   ($301700 - *), $FF      ; Pad to 0x301700
 physics_group1:
         include "sh2/generated/physics_group1.inc"
 
@@ -474,7 +474,7 @@ physics_group1:
 ;
 ; See: disasm/sh2/expansion/physics_group2_accel.asm for source
 ;
-        dcb.b   ($301A60 - *), $FF      ; Pad to 0x301A60
+        dcb.b   ($301A80 - *), $FF      ; Pad to 0x301A80
 physics_group2_accel:
         include "sh2/generated/physics_group2_accel.inc"
 
@@ -490,7 +490,7 @@ physics_group2_accel:
 ;
 ; See: disasm/sh2/expansion/physics_timers.asm for source
 ;
-        dcb.b   ($301C60 - *), $FF      ; Pad to 0x301C60
+        dcb.b   ($301C80 - *), $FF      ; Pad to 0x301C80
 physics_timers:
         include "sh2/generated/physics_timers.inc"
 

@@ -17,9 +17,11 @@
 
 ; --- Variant A: Full pipeline (46 calls) ---
 ; Complete physics + AI + rendering chain for the player entity.
+; VR60 Phase 3B: first 6 bytes replaced with JMP to bypass trampoline
+; in code_1c200. The trampoline handles camera_state_selector, display
+; offset clear, $C8D2 flag check, and either runs physics or skips.
 entity_render_pipeline:
-        jsr     camera_state_selector+12(pc); $4EBA $5CC4
-        MOVEQ   #$00,D0                         ; $005ABA
+        jmp     vr60_physics_bypass_trampoline  ; 6B (replaces JSR camera+12 + MOVEQ #0,D0)
         MOVE.W  D0,$0044(A0)                    ; $005ABC ; clear display_offset
         MOVE.W  D0,$0046(A0)                    ; $005AC0 ; clear display_scale
         MOVE.W  D0,$004A(A0)                    ; $005AC4 ; clear display_aux
@@ -38,7 +40,8 @@ entity_render_pipeline:
         jsr     drift_physics_and_camera_offset_calc(pc); $4EBA $3B92
         jsr     suspension_steering_damping(pc); $4EBA $3D08
         jsr     object_anim_timer_speed_clear+6(pc); $4EBA $237C
-; --- Position + AI ---
+; --- Position + AI (VR60: bypass re-entry point) ---
+entity_render_pipeline_position_ai:
         jsr     entity_pos_update(pc)   ; $4EBA $1496
         jsr     multi_flag_test(pc)     ; $4EBA $21D2
         jsr     ai_opponent_select(pc)  ; $4EBA $492A

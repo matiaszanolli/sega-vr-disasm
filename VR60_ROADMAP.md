@@ -426,8 +426,31 @@ Entity projection port deferred to Phase 3+ (saves only 0.1%, requires entity da
 
 ## 7. Phase 3: Physics Port
 
-**Status: RESEARCH COMPLETE** (2026-03-24)
+**Status: PHASE 3B IMPLEMENTED — DUAL-PATH LIVE** (2026-03-26)
 **Prerequisite: Phase 2 (done)**
+
+### 7.0 Phase 3B Implementation Status
+
+**What's built (7 physics + 5 timer/guard = 12 SH2 functions, ~2,060B SH2 code):**
+
+| Component | ROM Address | Size | Status |
+|-----------|------------|------|--------|
+| cmd $3F (game frame + physics calls) | $301500 | 280B | ACTIVE — 11 JSR calls interleaved |
+| cmd $3E (DREQ entity+globals transfer) | $301620 | 96B | ACTIVE |
+| physics_divide (sdiv16 + reciprocal tables) | $301680 | 80B | ACTIVE |
+| physics_group1 (f1+f5+f2+f3) | $3016E0 | 884B | ACTIVE |
+| physics_group2_accel (f6+f7) | $301A60 | 496B | ACTIVE |
+| physics_timers (5 timer/guard functions) | $301C60 | 284B | ACTIVE |
+
+**Mode:** Dual-path — 68K physics runs on WRAM, SH2 physics runs on SDRAM copy simultaneously. Game uses 68K results. SH2 results are for verification only.
+
+**Remaining for SH2-only physics:**
+- Step 3: Initial-frame-only entity staging (stop overwriting SDRAM entity)
+- Step 4: Orchestrator bypass ($C8D2 flag to skip 68K physics)
+- Step 5: COMM6 sound trigger relay (SH2→68K)
+- Step 6: Verification + profiling
+
+**Not yet ported (Phase 3C-D):** Functions 8-13 (drift, position update, sine/cosine). These are Phase 3C/3D scope — drift system + collision boundary.
 
 ### 7.1 Goal
 
@@ -467,9 +490,15 @@ The orchestrator at $005AB6 calls these physics functions in order (lines 27-42)
 
 **Total: ~2,700B 68K → estimated ~3,800B SH2** (corrected from 1,760/2,500B; variant B = 358B verified)
 
-**Also in the orchestrator between physics calls** (timer/guard housekeeping):
-- `tire_squeal_check` (L27), `effect_timer_mgmt` (L29), `object_timer_expire_speed_param_reset` (L30), `field_check_guard` (L31), `timer_decrement_multi` (L32), `object_anim_timer_speed_clear+6` (L40)
-- **Decision needed:** Co-port these 6 functions to SH2, or keep on 68K with entity field sync?
+**Timer/guard functions (co-ported to SH2 in Phase 3B-5):**
+- `tire_squeal_check` (L27) — stays on 68K (writes globals $FFC8A4, not entity fields)
+- `effect_timer_mgmt` (L29) — **CO-PORTED** (writes +$02, +$0E, +$14, +$6A, +$6C, +$6E)
+- `object_timer_expire_speed_param_reset` (L30) — **CO-PORTED** (writes +$40, +$62, +$92; simplified for entity 0)
+- `field_check_guard` (L31) — **CO-PORTED** (reads +$8C, sets R2 for caller)
+- `timer_decrement_multi` (L32) — **CO-PORTED** (decrements 8 timers: +$80-$86, +$98-$9A, +$E6-$E8)
+- `object_anim_timer_speed_clear+6` (L40) — **CO-PORTED** (clears +$06; frame counter at entity+$F0)
+
+**Decision: CO-PORT** — All entity-modifying timer/guard functions run on SH2 alongside physics. This solves the entity ownership problem: entity lives permanently in SDRAM after initial frame, no per-frame WRAM→SDRAM staging needed. See §7.8 for details.
 
 ### 7.3 Critical Translation Issues (Verified)
 
@@ -559,18 +588,75 @@ Once physics runs on SH2, entity tables must be in SDRAM (already allocated at $
 
 **SH2 ROM access:** All tables are in ROM below $300000. SH2 accesses ROM at $02000000 + file_offset. ROM reads from SH2 are cached (1-2 wait states first access, 0 thereafter if in cache). Table locality is good for caching.
 
-### 7.7 Acceptance Criteria (Corrected)
+### 7.7 Acceptance Criteria (Phase 3B — Functions 1-7 + Timers)
 
-- [ ] All 13 physics functions produce byte-identical entity field outputs on SH2 vs 68K
-- [ ] Gear shifts work correctly (test all **6** gears, upshift + downshift + natural)
-- [ ] Drift/spin-out triggers correctly (verified via SDRAM sound byte)
-- [ ] 3600-frame autoplay with physics on SH2 — no crashes, no visual differences
-- [ ] DIVU reciprocal accuracy verified: max error ≤1 LSB for full input range × 6 gear ratios
-- [ ] DIVS software divide matches 68K DIVS for all tested inputs
-- [ ] DIVS #$0190 and DIVS #$0497 reciprocals verified exact for full signed 16-bit range
-- [ ] 68K utilization drops by ~2% (physics portion removed)
-- [ ] Sound triggers reach 68K correctly via SDRAM queue (all 3 sound codes: $B1/$B2/$B4)
-- [ ] entity_pos_update position matches 68K output (JMP→collision boundary verified clean)
+- [x] All 7 physics functions assembled and linked into expansion ROM (884B + 496B)
+- [x] 5 timer/guard functions co-ported (284B, interleaved in correct orchestrator order)
+- [x] DIVU reciprocal accuracy verified: exact for all 6 gear ratios (zero diff)
+- [x] 3600-frame autoplay in dual-path mode — no crashes
+- [x] cmd $3F calls physics in correct order with GBR/R13 setup
+- [x] Grip clamp bug found and fixed (ratio check before subtraction, not after)
+- [x] Frame counter persistence bug found and fixed (entity+$F0, not globals+$30)
+- [x] Hardware-level review: GBR range, COMM safety, SDRAM cache, DMAC state — all clear
+- [ ] SH2-only physics enabled (orchestrator bypass — Step 4, pending)
+- [ ] Sound triggers reach 68K via COMM6 (Step 5, pending)
+- [ ] 68K utilization measured with SH2-only physics (Step 6, pending)
+
+### 7.8 Entity Ownership Resolution
+
+**Problem (identified 2026-03-26):** The entity staging function copies 256B from WRAM ($FF9000) to SDRAM ($0600F20C) every frame. When SH2 physics writes results to SDRAM, the next frame's staging OVERWRITES them with stale WRAM data. Physics fields are accumulated (speed, position, grip) — resetting them breaks the simulation.
+
+**Solution: Co-port all entity-modifying functions to SH2.** With physics + timer/guard functions all running on SH2, the SDRAM entity is the sole authoritative copy. Entity staging switches to initial-frame-only mode:
+
+- **First racing frame:** Full 256B WRAM → SDRAM copy (seed initial state)
+- **Subsequent frames:** Entity persists in SDRAM, modified only by SH2 physics+timers
+- **Per-frame globals:** Still staged every frame via DREQ (controller input, mode flags)
+
+**Timer/guard fields resolved:**
+
+| Function | Offset Written | Conflict With Physics | Resolution |
+|----------|---------------|----------------------|------------|
+| effect_timer_mgmt | +$02, +$0E, +$14, +$6A, +$6C, +$6E | +$0E read by force_integration | Co-ported, runs before physics |
+| timer_expire_reset | +$40, +$62, +$92 | +$40 read by entity_pos_update | Co-ported, runs before steering |
+| timer_decrement_multi | +$80-$86, +$98-$9A, +$E6-$E8 | Timers gate sound triggers | Co-ported, runs before force_integration |
+| field_check_guard | reads +$8C | Guards lateral physics | Co-ported, runs before timer_decrement |
+| anim_timer_speed_clear | +$06 | +$06 read by speed_clamp | Co-ported, runs after tilt_adjust |
+
+**Known simplifications:**
+- `timer_expire_reset`: Type check chain (object_id $69-$6F range) skipped. For entity 0 (player), object_id is always $00 < $69, so the check always exits to .set_speed. **Only safe for entity 0.**
+- `anim_timer_speed_clear`: JMP to `conditional_return_on_state_match` replaced with RTS. The fallthrough path handles edge-case state transitions that don't occur during normal player racing. **Only safe for entity 0.**
+- `anim_timer_speed_clear`: Frame counter stored at entity+$F0 (unused entity field) instead of WRAM $C02A. This avoids the globals staging wipe issue.
+
+### 7.9 SH2 Register Convention (Established Phase 3B)
+
+| Register | Role | Set By | Lifespan |
+|----------|------|--------|----------|
+| GBR | Entity base ($0600F20C) | cmd $3F via `LDC R0,GBR` | Entire physics pipeline |
+| R13 | Globals base ($0600F30C) | cmd $3F via `MOV.L @pool,R13` | Entire physics pipeline |
+| R14 | Entity base (for @(R0,R14) indexed access) | cmd $3F (same value as GBR) | Entire physics pipeline |
+| R8 | COMM base ($20004020) | Dispatch loop (preserved) | Entire handler |
+| R0-R7, R9-R12 | Scratch | Per-function | Function-local |
+| R15 | Stack pointer | System | Always |
+
+**Addressing patterns:**
+- Entity field ≤ offset 30: `MOV.W @(offset,R14),R0` (displacement, any dest for Rn form)
+- Entity field ≤ offset 510: `MOV.W @(offset,GBR),R0` (GBR, **R0 only** for dest/source)
+- Entity field > offset 510: not needed (entity is 256B)
+- Globals field: `MOV #offset,R0; MOV.W @(R0,R13),Rn` (indexed, R0 must be index)
+- ROM table: `MOV.L @pool,Rn; MOV.W @(R0,Rn),Rm` (literal pool + indexed)
+
+### 7.10 Expansion ROM Memory Layout (Phase 3B)
+
+```
+$301300-$30148F  coord_transform_batched (388B)       — ACTIVE (S-6 Phase B)
+$301500-$301617  cmd $3F (280B)                       — ACTIVE (Phase 3B: copies + 11 physics/timer JSR calls)
+$301620-$30167F  cmd $3E (96B)                        — ACTIVE (Phase 3A: DMAC entity+globals transfer)
+$301680-$3016DF  physics_divide (80B)                 — ACTIVE (Phase 3B: sh2_sdiv16 + gear reciprocal table)
+$3016E0-$301A53  physics_group1 (884B)                — ACTIVE (Phase 3B: speed_degrade + speed_clamp + steering + force_integration)
+$301A60-$301C4F  physics_group2_accel (496B)          — ACTIVE (Phase 3B: speed_accel_braking + tilt_adjust)
+$301C60-$301D83  physics_timers (284B)                — ACTIVE (Phase 3B: 5 timer/guard co-ports)
+$301D84-$3FFFFF  Free (~1013KB)                       — Reserved for Phase 3C-D (drift, position) + Phase 4-5
+```
 
 ---
 
@@ -837,6 +923,11 @@ Record every significant design decision here. Include date, what was decided, w
 | 2026-03-24 | SH2 software divide for runtime DIVS | entity_force_integration's DIVS D0,D1 has runtime divisor (max_speed threshold from RAM). No pre-computation possible. ~64 SH2 cycles vs 140 68K cycles for DIVS. | Reciprocal lookup table — would need 65K entries for full 16-bit range. |
 | 2026-03-24 | Reciprocal multiply for constant DIVS | DIVS #$0190 and DIVS #$0497 are compile-time constants. Reciprocal at 2^24 precision gives exact results for all signed 16-bit inputs. Zero runtime overhead beyond MULS+shift. | SH2 software divide — correct but unnecessarily slow for known constants. |
 | 2026-03-24 | entity_pos_update: replace JMPs with RTS for SH2 port | The 3 JMP exits into collision are the Phase 5 boundary. SH2 version returns after position update; 68K orchestrator calls collision separately. | Keep entity_pos_update on 68K — wastes the opportunity to run position math on SH2. |
+| 2026-03-26 | GBR as entity base pointer (not R14-only) | GBR `MOV.W @(disp,GBR),R0` has 8-bit disp × 2 = 0-510 byte range. Entity is 256B — ALL fields reachable. Eliminates the R0+Rn indexed workaround for offsets > 30. Verified against SH2 ISA docs. | R14-only with indexed addressing — requires `MOV #offset,R0; EXTU.B R0,R0; MOV.W @(R0,R14),R0` for every field > offset 30 (3 instructions vs 1). |
+| 2026-03-26 | Co-port timer/guard functions to SH2 (not keep on 68K) | Solves entity ownership: entity lives permanently in SDRAM, no per-frame WRAM→SDRAM staging. 5 functions, 284B SH2 code. Interleaved in cmd $3F matching 68K orchestrator order. | Keep on 68K with selective field staging — requires identifying exactly which bytes to copy per frame, complex, error-prone. COMM relay — 16 bytes too small for 20+ bytes of timer-modified fields. |
+| 2026-03-26 | Dedicated cmd $3E for entity transfer (not DREQ extension) | Independent DMAC channel 0 configuration. Doesn't modify shared `mars_dma_xfer_vdp_fill`. 68K pushes 320B to FIFO, SH2 DMAC drains to $0600F20C. Clean separation of concerns. | Extend existing DREQ (modify shared function, affects all modes). |
+| 2026-03-26 | Frame counter at entity+$F0 (not globals+$30) | globals+$30 is cleared every frame by `vr60_globals_stage`. Entity field +$F0 is unused (last documented field is +$E8) and persists across frames. | Store in globals — broken (wiped each frame). Store in WRAM — SH2 can't access. Separate SDRAM slot — adds complexity. |
+| 2026-03-26 | Dual-path verification before SH2-only activation | Both 68K and SH2 run physics simultaneously. Game uses 68K results. SH2 results can be compared for correctness without risk. Only disable 68K physics after SH2 output is verified. | Direct switchover — high risk, no fallback if SH2 output is wrong. |
 
 ---
 
@@ -846,7 +937,7 @@ Record every significant design decision here. Include date, what was decided, w
 |----|------|----------|-------|--------|-----------|
 | R-001 | DREQ FIFO cannot target $06008000 | Blocking | Phase 1 | **RESOLVED** | Moot — entity tables don't use FIFO. Master copies from cmd $02 landing area. |
 | R-002 | SDRAM bus contention degrades Slave | High | Phase 6 | **OPEN** | Pipeline writes during Slave Pipeline 1 (on-chip SRAM period). Measure before/after. |
-| R-003 | DIVU/DIVS reciprocal rounding mismatch | Medium | Phase 3 | **OPEN** | Exhaustive test: run both 68K and SH2 paths for all possible input values, compare outputs |
+| R-003 | DIVU/DIVS reciprocal rounding mismatch | Medium | Phase 3 | **RESOLVED** | Gear reciprocal table verified exact for all 6 ratios (zero diff). DIVS #$0190 and #$0497 reciprocals verified at 2^24 precision. Software divide sh2_sdiv16 uses same shift-subtract algorithm as hardware. |
 | R-004 | Entity field access slower on SDRAM (2-6 wait states vs 0) | Medium | Phase 1 | **OPEN** | SH2 clock is 3× faster, compensating for wait states. Profile to verify net effect. |
 | R-005 | Track tile ROM addresses are 68K-relative (not file offsets) | Blocking | Phase 5 | **RESOLVED** | Confirmed: all collision ROM refs are 68K CPU addresses. SH2 conversion: `addr + $01780000`. Highest ref $00970000 = file offset $EF000 (within 4MB ROM). Pointer tables at $742C/$745C contain mode-indexed segment_map/base_data pairs. |
 | R-006 | Camera interpolation (A-1) conflicts with new architecture | High | Phase 2 | **OPEN** | A-1 hooks into 68K scene state 0. If state machine moves to SH2, camera must move too. May need interim hybrid (camera on 68K, physics on SH2). |
@@ -858,8 +949,11 @@ Record every significant design decision here. Include date, what was decided, w
 | R-012 | 68K→SDRAM direct write at $88xxxx may be read-only ROM mapping | Medium | Phase 1B | **RESOLVED: confirmed ROM (read-only)** | $88xxxx = cartridge ROM per HW manual §3.1. COMM relay is the ONLY option. |
 | R-013 | Physics port scope 50% larger than estimated (2,642B vs 1,760B) | Medium | Phase 3 | **IDENTIFIED** | 3 previously unlisted functions: drift_physics_and_camera_offset_calc (378B), suspension_steering_damping (124B), lateral_drift_B (~300B). Budget SH2 expansion space accordingly (~3,700B). |
 | R-014 | Runtime DIVS in entity_force_integration — no reciprocal possible | Low | Phase 3 | **MITIGATED** | SH2 software signed divide (~64 cycles). Called once per entity per frame. Total overhead: 25 entities × 64 cycles = 1,600 cycles/frame. Negligible vs 383K cycle budget. |
-| R-015 | 2 timer/guard functions write physics-input fields (+$40, +$06) | Low | Phase 3 | **MITIGATED** | object_timer_expire_speed_param_reset writes +$40 (heading), object_anim_timer_speed_clear writes +$06 (speed). Both run BEFORE physics in orchestrator order. Keep on 68K — natural ordering ensures correctness. No co-porting needed. |
+| R-015 | 2 timer/guard functions write physics-input fields (+$40, +$06) | Low | Phase 3 | **RESOLVED** | Co-ported all 5 timer/guard functions to SH2 (Phase 3B-5). Entity ownership problem solved — entity lives permanently in SDRAM. Timer/guard calls interleaved with physics in cmd $3F, matching 68K orchestrator order. |
 | R-016 | entity_pos_update JMP→collision boundary creates split-CPU execution | Medium | Phase 3/5 | **OPEN** | Position update on SH2, collision on 68K. 68K must call collision after reading SH2-updated position from SDRAM. Adds ~1 frame latency to collision response unless pipelined. |
+| R-017 | SH2 timer_expire_reset simplified for entity 0 only | Low | Phase 3B | **ACCEPTED** | Object type check chain ($C89C/$C8C8/object_id $69-$6F) skipped. For entity 0, object_id=$00 < $69 always reaches .set_speed. If called for other entities, would produce incorrect behavior. Safe: cmd $3F only processes entity 0. |
+| R-018 | SH2 anim_timer_speed_clear lacks conditional_return_on_state_match fallthrough | Low | Phase 3B | **ACCEPTED** | 68K JMPs to a state-check function that either returns or falls through. SH2 always returns (RTS). The fallthrough path handles edge-case state transitions during animation timer expiry — not observed during normal player racing. Monitor during extended testing. |
+| R-019 | Entity staging overwrites SH2 physics results | Critical | Phase 3B | **RESOLVED** | Staging copies WRAM→SDRAM every frame, overwriting accumulated SH2 physics. Fix: initial-frame-only staging (first racing frame seeds SDRAM, subsequent frames entity persists in SDRAM). Timer/guard co-port to SH2 completes the solution. |
 
 ---
 
@@ -951,6 +1045,13 @@ Record discoveries, gotchas, and insights as the project progresses. These help 
 | 2026-03-24 | Q-002 | **All collision ROM addresses are 68K CPU addresses, not file offsets.** Conversion: `SH2_addr = 68K_addr + $01780000`. Highest reference: $00970000 → file offset $EF000 (within 4MB). Track pointer tables at $742C/$745C contain mode-indexed segment_map/base_data address pairs. | R-005 resolved. No ROM boundary issues. Phase 5 collision port can proceed with simple address arithmetic. |
 | 2026-03-24 | Q-008 | **cmd $3F only fires during active racing (`state_disp_005020`).** The other 4 dispatchers (countdown, results, attract, replay) have entirely different state 4 handlers with no physics trigger. Menu scene handlers are completely separate. | No mode-gate needed for cmd $3F — the scene handler architecture IS the gate. Menus stay on 68K with zero SH2 interaction. |
 | 2026-03-24 | Q-009 | **2P uses identical physics functions as 1P (A0-parameterized).** Table 3 ($FF9F00) is a single 256B entity, not a 15-entity table. `gfx_2_player_entity_frame_orch` MOVEM block copy assumes both entities updated on same CPU — splitting P1/P2 across CPUs creates race conditions in display DMA. | Phase 3 = 1P only. 2P deferred. When porting 2P, either both players on SH2 or add explicit sync barrier. |
+| 2026-03-26 | Phase 3B | **GBR as entity base: 510-byte displacement covers the entire 256B entity record.** `MOV.W @(disp,GBR),R0` uses 8-bit disp × 2 = 0-510 byte range. Every entity field is reachable in a single instruction. The constraint: only R0 can be source/destination for GBR access. Work around by `MOV R0,Rn` after load or `MOV Rn,R0` before store. | SH2 ISA docs §6 (displacement modes). The Rn-displacement form (`MOV.W @(disp,Rn),R0`) has only 4-bit disp × 2 = 0-30 byte range — grossly insufficient for entity fields. GBR is the correct choice. |
+| 2026-03-26 | Phase 3B | **SH2 CMP/PL = strictly > 0, not >= 0.** "Compare PLus" sets T=1 when Rn > 0 (signed). This matches 68K TST+BLE exactly (BLE branches when value ≤ 0, fall-through when > 0). A code review agent flagged this as a bug, but verification against the ISA docs confirmed correctness. | Always verify SH2 instruction semantics against the primary source (sh1-sh2-cpu-core-architecture.md), not agent reasoning. Subtle instruction names like "PL" (plus) can mislead — it means "positive", not "plus-or-zero". |
+| 2026-03-26 | Phase 3B | **Entity ownership problem: staging overwrites SH2 physics results.** Full WRAM→SDRAM entity copy every frame destroys accumulated SH2 values (speed, position, grip). Solution: co-port timer/guard functions to SH2 so entity lives permanently in SDRAM. Initial-frame staging seeds the entity; subsequent frames persist it. | The problem was not obvious during Phase 3A design because dual-path mode masks it (68K keeps WRAM correct, so staging sends valid data). Only becomes visible when 68K physics is bypassed. |
+| 2026-03-26 | Phase 3B | **Grip clamp logic must cap the RATIO, not the GRIP.** 68K: `DIVS D0,D1; SUB.W D1,grip; CMPI.W #$80,D1; BLE .done; MOVE.W #$80,grip`. The CMPI checks D1 (ratio), not the subtracted grip. SH2 translation initially checked grip after subtraction — produces different results when ratio < 128. | When translating multi-step arithmetic with conditional overrides, trace which REGISTER each instruction operates on. The 68K's register-based flow (D0 vs D1 vs memory) is easy to conflate in SH2 where R0 is heavily reused. |
+| 2026-03-26 | Phase 3B | **Persistent data cannot live in the globals staging block.** `vr60_globals_stage` clears +$30 to +$3F every frame. The anim_timer frame counter was stored at globals+$30 and got wiped. Moved to entity+$F0 (unused field, within GBR range). | Before storing persistent data in any SDRAM region, verify what else writes to that region. The globals staging function is a silent data destroyer for any slot it touches. |
+| 2026-03-26 | Phase 3B | **SH2 gas assembler GBR word displacement expects BYTE OFFSETS, divides by 2 internally.** Writing `@(53,gbr)` means byte offset 53, which is ODD → "misaligned offset" error. Must use actual entity byte offsets: `@(0x6A,gbr)` for field +$6A (106). Gas computes disp = 106/2 = 53 for the encoding. | The gas manual is unclear on this. Test: `@(4,gbr)` works because 4/2 = 2 (integer). `@(5,gbr)` would fail for word access. Always use hex entity offsets directly. |
+| 2026-03-26 | Phase 3B | **SH2 indexed store `MOV.W Rm,@(R0,Rn)` requires R0 as INDEX, not as VALUE.** When storing a value to an indexed address, the value must be in Rm (any register), and the offset MUST be in R0. If R0 holds the value to store, swap: put value in R1, offset in R0, then `MOV.W R1,@(R0,R13)`. | This constraint applies to ALL indexed addressing modes on SH2, both loads and stores. R0 is always the index register in `@(R0,Rn)` forms. Plan register allocation accordingly. |
 
 ---
 

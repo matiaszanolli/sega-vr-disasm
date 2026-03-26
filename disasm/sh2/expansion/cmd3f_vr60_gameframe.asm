@@ -124,34 +124,66 @@ cmd3f_vr60_gameframe:
     /* Set R13 = globals base (entity + 256 = $0600F30C) */
     mov.l   @(.globals_base,pc),r13 /* R13 = $0600F30C */
 
-    /* Call physics functions in pipeline order via JSR @Rn */
-    /* Function 1: speed_degrade_calc */
+    /* Call physics + timer/guard functions in orchestrator order via JSR @Rn.
+     * Order matches 68K entity_render_pipeline Variant A (lines 27-40):
+     *   speed_degrade → effect_timer → timer_expire → field_guard
+     *   → timer_decrement → steering → force_integration → speed_clamp
+     *   → speed_accel → tilt_adjust → anim_timer_speed_clear
+     * tire_squeal_check stays on 68K (writes globals, not entity fields).
+     */
+
+    /* 1. speed_degrade_calc */
     mov.l   @(.phys_f1,pc),r0
     jsr     @r0
     nop
 
-    /* Function 2: steering_input (Phase B: integration/damping) */
+    /* T1. effect_timer_mgmt */
+    mov.l   @(.tmr_et,pc),r0
+    jsr     @r0
+    nop
+
+    /* T2. timer_expire_reset */
+    mov.l   @(.tmr_te,pc),r0
+    jsr     @r0
+    nop
+
+    /* T3. field_check_guard (sets R2 = lateral flag) */
+    mov.l   @(.tmr_fg,pc),r0
+    jsr     @r0
+    nop
+
+    /* T4. timer_decrement_multi */
+    mov.l   @(.tmr_td,pc),r0
+    jsr     @r0
+    nop
+
+    /* 2. steering_input */
     mov.l   @(.phys_f2,pc),r0
     jsr     @r0
     nop
 
-    /* Function 3: force_integration (inlines speed_calc_chain + speed_modifier) */
+    /* 3. force_integration (inlines speed_calc_chain + speed_modifier) */
     mov.l   @(.phys_f3,pc),r0
     jsr     @r0
     nop
 
-    /* Function 5: entity_speed_clamp */
+    /* 5. entity_speed_clamp */
     mov.l   @(.phys_f5,pc),r0
     jsr     @r0
     nop
 
-    /* Function 6: speed_accel_braking */
+    /* 6. speed_accel_braking */
     mov.l   @(.phys_f6,pc),r0
     jsr     @r0
     nop
 
-    /* Function 7: tilt_adjust */
+    /* 7. tilt_adjust */
     mov.l   @(.phys_f7,pc),r0
+    jsr     @r0
+    nop
+
+    /* T5. anim_timer_speed_clear */
+    mov.l   @(.tmr_ac,pc),r0
     jsr     @r0
     nop
 
@@ -209,21 +241,33 @@ cmd3f_vr60_gameframe:
 .comm_base:
     .long   0x20004020              /* COMM register base (cache-through) */
 
-/* Physics function addresses in expansion ROM (from sh-elf-nm symbol table) */
-/* Base: physics_group1 at $3016C0, physics_group2_accel at $301A40 */
+/* Physics function addresses (bases shifted +$20 from original) */
+/* physics_group1 at $3016E0, physics_group2_accel at $301A60, physics_timers at $301C60 */
 .phys_f1:
-    .long   0x023016C0              /* sh2_speed_degrade_calc (g1 + $000) */
+    .long   0x023016E0              /* sh2_speed_degrade_calc (g1 + $000) */
 .phys_f2:
-    .long   0x02301720              /* sh2_steering_input (g1 + $060) */
+    .long   0x02301740              /* sh2_steering_input (g1 + $060) */
 .phys_f3:
-    .long   0x0230179C              /* sh2_force_integration (g1 + $0DC) */
+    .long   0x023017BC              /* sh2_force_integration (g1 + $0DC) */
 .phys_f5:
-    .long   0x023016F2              /* sh2_entity_speed_clamp (g1 + $032) */
+    .long   0x02301712              /* sh2_entity_speed_clamp (g1 + $032) */
 .phys_f6:
-    .long   0x02301A40              /* sh2_speed_accel_braking (g2 + $000) */
+    .long   0x02301A60              /* sh2_speed_accel_braking (g2 + $000) */
 .phys_f7:
-    .long   0x02301BBC              /* sh2_tilt_adjust (g2 + $17C) */
+    .long   0x02301BDC              /* sh2_tilt_adjust (g2 + $17C) */
 
-/* Total: ~220 bytes code + 72 bytes pool = ~292 bytes */
+/* Timer/guard function addresses (physics_timers at $301C60) */
+.tmr_td:
+    .long   0x02301C60              /* sh2_timer_decrement_multi (tmr + $000) */
+.tmr_et:
+    .long   0x02301CB4              /* sh2_effect_timer_mgmt (tmr + $054) */
+.tmr_te:
+    .long   0x02301D20              /* sh2_timer_expire_reset (tmr + $0C0) */
+.tmr_fg:
+    .long   0x02301D40              /* sh2_field_check_guard (tmr + $0E0) */
+.tmr_ac:
+    .long   0x02301D4E              /* sh2_anim_timer_speed_clear (tmr + $0EE) */
+
+/* Total: ~280 bytes code + 92 bytes pool = ~372 bytes */
 
 .global cmd3f_vr60_gameframe

@@ -58,7 +58,8 @@
 ;   0x301660-0x3016BF  physics_divide (~80 bytes)             — ACTIVE  (VR60 Phase 3B, division infra)
 ;   0x3016C0-0x301A3F  physics_group1 (~884 bytes)            — ACTIVE  (VR60 Phase 3B, functions 1+5+2+3)
 ;   0x301A40-0x301C3F  physics_group2_accel (~496 bytes)     — ACTIVE  (VR60 Phase 3B, functions 6+7)
-;   0x301C40-0x3FFFFF  Free space (remaining ~1015KB)
+;   0x301C40-0x301DFF  physics_timers (~450 bytes)            — ACTIVE  (VR60 Phase 3B, timer/guard co-port)
+;   0x301E00-0x3FFFFF  Free space (remaining ~1014KB)
 ;
 ; Shared Data Structures (cache-through SDRAM, NOT in expansion ROM):
 ;   0x2203E000-0x2203E00F  Parameter block (16 bytes: R14, R7, R8, R5)
@@ -435,7 +436,7 @@ cmd3f_vr60_gameframe:
 ;
 ; See: disasm/sh2/expansion/cmd3e_entity_transfer.asm for source
 ;
-        dcb.b   ($301600 - *), $FF      ; Pad to 0x301600 (moved for Phase 3B cmd $3F growth)
+        dcb.b   ($301620 - *), $FF      ; Pad to 0x301620 (cmd $3F grew to ~280B with timer calls)
 cmd3e_entity_transfer:
         include "sh2/generated/cmd3e_entity_transfer.inc"
 
@@ -449,7 +450,7 @@ cmd3e_entity_transfer:
 ;
 ; See: disasm/sh2/expansion/physics_divide.asm for source
 ;
-        dcb.b   ($301660 - *), $FF      ; Pad to 0x301660
+        dcb.b   ($301680 - *), $FF      ; Pad to 0x301680
 physics_divide:
         include "sh2/generated/physics_divide.inc"
 
@@ -461,7 +462,7 @@ physics_divide:
 ;
 ; See: disasm/sh2/expansion/physics_group1.asm for source
 ;
-        dcb.b   ($3016C0 - *), $FF      ; Pad to 0x3016C0
+        dcb.b   ($3016E0 - *), $FF      ; Pad to 0x3016E0
 physics_group1:
         include "sh2/generated/physics_group1.inc"
 
@@ -473,14 +474,30 @@ physics_group1:
 ;
 ; See: disasm/sh2/expansion/physics_group2_accel.asm for source
 ;
-        dcb.b   ($301A40 - *), $FF      ; Pad to 0x301A40
+        dcb.b   ($301A60 - *), $FF      ; Pad to 0x301A60
 physics_group2_accel:
         include "sh2/generated/physics_group2_accel.inc"
 
 ; ============================================================================
-; REMAINING EXPANSION ROM SPACE (from ~0x301C00)
+; VR60 TIMER/GUARD FUNCTIONS: 0x301C40 — STATUS: ACTIVE (VR60 Phase 3B)
+; ============================================================================
+; Co-ported from 68K to solve entity ownership problem. These functions
+; modify entity fields that physics depends on, so they must run on the
+; same CPU as physics (Master SH2).
+;
+; Functions: timer_decrement_multi, effect_timer_mgmt, timer_expire_reset,
+;            field_check_guard, anim_timer_speed_clear
+;
+; See: disasm/sh2/expansion/physics_timers.asm for source
+;
+        dcb.b   ($301C60 - *), $FF      ; Pad to 0x301C60
+physics_timers:
+        include "sh2/generated/physics_timers.inc"
+
+; ============================================================================
+; REMAINING EXPANSION ROM SPACE (from ~0x301E00)
 ; ============================================================================
 ; Pad to $3F0000 (960KB) instead of $400000 (1MB) to avoid PicoDrive
 ; emulator bug triggered by ROM files > ~0x3F1F40 bytes.
-; Still provides ~1016KB expansion space.
+; Still provides ~1014KB expansion space.
         dcb.b   ($3F0000 - *), $FF

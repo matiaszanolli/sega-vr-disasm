@@ -618,17 +618,19 @@ sh2_force_integration:
     mov.l   @(.fi_sdiv_addr,pc),r6
     jsr     @r6
     nop
-    /* R0 = ratio */
-    mov     r0,r7                   /* save ratio */
+    /* R0 = ratio (from DIVS) */
+    /* 68K logic: SUB.W D1,grip; CMPI.W #$80,D1; BLE .squeal; MOVE.W #$80,grip */
+    /* = subtract ratio from grip, then if ratio > 128, override grip to 128 */
+    mov     r0,r7                   /* R7 = ratio */
     mov.w   @(120,gbr),r0          /* R0 = grip */
-    sub     r7,r0                   /* grip -= ratio */
-    mov.w   r0,@(120,gbr)
-    /* Cap: grip >= $80 */
+    sub     r7,r0                   /* R0 = grip - ratio */
+    mov.w   r0,@(120,gbr)          /* store subtracted grip */
+    /* Check RATIO (not grip!) against 128 — match 68K CMPI.W #$80,D1 / BLE */
     mov     #0x80,r1
-    extu.b  r1,r1                   /* 128 */
-    cmp/hs  r1,r0                   /* grip >= 128? */
-    bt      .fi_squeal
-    mov     r1,r0
+    extu.b  r1,r1                   /* R1 = 128 */
+    cmp/gt  r1,r7                   /* T = (ratio > 128) signed */
+    bf      .fi_squeal              /* ratio <= 128: keep subtracted grip */
+    mov     r1,r0                   /* ratio > 128: override grip to 128 */
     mov.w   r0,@(120,gbr)
 
 .fi_squeal:
@@ -724,7 +726,7 @@ sh2_force_integration:
     nop
 
 .align 2
-.fi_sdiv_addr:  .long   0x02301660 /* sh2_sdiv16 address (at physics_divide base) */
+.fi_sdiv_addr:  .long   0x02301680 /* sh2_sdiv16 address (at physics_divide base) */
 .fi_r400_addr:  .long   41943      /* reciprocal of 400 */
 .fi_pool3:      .short  0x4268     /* max speed */
 

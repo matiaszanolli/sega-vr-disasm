@@ -231,9 +231,13 @@ sh2_field_check_guard:
  * If clear: increment frame counter. If counter > 80: clear counter +
  *   clear speed (+$06).
  *
- * Frame counter stored at globals+$30 (reserved slot, replaces $C02A).
- * JMP to conditional_return_on_state_match replaced with RTS.
- * Clobbers: R0, R1, R2
+ * Frame counter stored at entity+$F0 (persistent, within 256B entity record).
+ * NOT in globals block (globals+$30 is cleared every frame by staging).
+ * The 68K uses WRAM $C02A; the SH2 uses entity+$F0 as equivalent.
+ * JMP to conditional_return_on_state_match replaced with RTS
+ *   (the conditional fallthrough path handles edge-case state transitions
+ *    that don't occur during normal racing for entity 0).
+ * Clobbers: R0, R1
  * ============================================================================
  */
 .global sh2_anim_timer_speed_clear
@@ -245,24 +249,19 @@ sh2_anim_timer_speed_clear:
     tst     #2,r0                 /* bit 1? */
     bf      .ac_clear_counter     /* set: clear counter */
 
-    /* Bit 1 clear: increment frame counter at globals+$30 */
-    mov     #0x30,r0
-    extu.b  r0,r0
-    mov.w   @(r0,r13),r1          /* R1 = globals+$30 counter */
-    add     #1,r1                 /* counter++ */
-    mov.w   r1,@(r0,r13)          /* store back */
+    /* Bit 1 clear: increment frame counter at entity+$F0 */
+    mov.w   @(0xF0,gbr),r0        /* entity+$F0 = anim frame counter */
+    add     #1,r0                 /* counter++ */
+    mov.w   r0,@(0xF0,gbr)        /* store back */
 
-    /* Check if counter > 80 */
-    mov     #80,r0
-    cmp/gt  r0,r1                 /* counter > 80? */
+    /* Check if counter > 80 ($50) */
+    mov     #80,r1
+    cmp/gt  r1,r0                 /* counter > 80? */
     bf      .ac_done              /* not yet */
 
     /* Counter exceeded 80: clear counter, clear speed */
-    mov     #0x30,r0
-    extu.b  r0,r0                 /* R0 = offset $30 */
-    mov     #0,r1
-    mov.w   r1,@(r0,r13)          /* globals+$30 = 0 */
-    mov     r1,r0
+    mov     #0,r0
+    mov.w   r0,@(0xF0,gbr)        /* entity+$F0 = 0 (clear counter) */
     mov.w   r0,@(0x06,gbr)        /* entity+$06 = 0 (clear speed) */
 
 .ac_done:
@@ -270,10 +269,9 @@ sh2_anim_timer_speed_clear:
     nop
 
 .ac_clear_counter:
-    mov     #0x30,r0
-    extu.b  r0,r0
-    mov     #0,r1
-    mov.w   r1,@(r0,r13)          /* globals+$30 = 0 */
+    /* Bit 1 was set: clear frame counter and return */
+    mov     #0,r0
+    mov.w   r0,@(0xF0,gbr)        /* entity+$F0 = 0 */
     rts
     nop
 

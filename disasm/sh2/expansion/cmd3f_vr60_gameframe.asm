@@ -187,6 +187,11 @@ cmd3f_vr60_gameframe:
     jsr     @r0
     nop
 
+    /* 12. entity_pos_update (Phase 3D: 16.16 fixed-point position) */
+    mov.l   @(.phys_f12,pc),r0
+    jsr     @r0
+    nop
+
     /* === CANARY: write entity first longword to verify physics ran === */
     mov.l   @(.ent_dst,pc),r4       /* R4 = entity base (re-read, GBR may differ) */
     mov.l   @r4,r0                  /* R0 = entity[0..3] (post-physics) */
@@ -268,6 +273,10 @@ cmd3f_vr60_gameframe:
 .tmr_ac:
     .long   0x02301D6E              /* sh2_anim_timer_speed_clear (tmr + $0EE) */
 
-/* Total: ~280 bytes code + 92 bytes pool = ~372 bytes */
+/* Position update function address (physics_pos_update at $301DA0) */
+.phys_f12:
+    .long   0x02301DA0              /* sh2_entity_pos_update (16.16 fixed-point) */
+
+/* Total: ~290 bytes code + 96 bytes pool = ~386 bytes */
 
 .global cmd3f_vr60_gameframe

@@ -495,9 +495,22 @@ physics_timers:
         include "sh2/generated/physics_timers.inc"
 
 ; ============================================================================
-; REMAINING EXPANSION ROM SPACE (from ~0x301E00)
+; VR60 16.16 POSITION UPDATE: 0x301DA0 — STATUS: ACTIVE (VR60 Phase 3D)
+; ============================================================================
+; 16.16 fixed-point position update. Replaces 68K entity_pos_update with
+; sub-pixel precision accumulation. Integer part at +$30/+$34 (rendering-
+; compatible), fraction at +$F2/+$F4 (new persistent fields).
+;
+; See: disasm/sh2/expansion/physics_pos_update.asm for source
+;
+        dcb.b   ($301DA0 - *), $FF      ; Pad to 0x301DA0
+physics_pos_update:
+        include "sh2/generated/physics_pos_update.inc"
+
+; ============================================================================
+; REMAINING EXPANSION ROM SPACE (from ~0x301E80)
 ; ============================================================================
 ; Pad to $3F0000 (960KB) instead of $400000 (1MB) to avoid PicoDrive
 ; emulator bug triggered by ROM files > ~0x3F1F40 bytes.
-; Still provides ~1014KB expansion space.
+; Still provides ~1013KB expansion space.
         dcb.b   ($3F0000 - *), $FF

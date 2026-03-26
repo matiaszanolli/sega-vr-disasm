@@ -170,6 +170,12 @@ state4_epilogue:
 .camera:
 ; --- Interpolate camera and re-DMA ---
         jsr     camera_avg_and_redma(pc)
+; --- Sound pickup: read COMM6_HI from previous frame's cmd $3F ---
+; Previous cmd $3F wrote the sound byte to COMM6_HI. Read it and
+; write to the 68K sound trigger address $FFC8A4. 1-frame delay
+; is imperceptible at 20 FPS. Sound driver reads $C8A4 each frame.
+        move.b  COMM6,($FFFFC8A4).w             ; 6B — COMM6_HI → sound trigger
+        clr.b   COMM6                            ; 4B — clear for next frame
 ; --- Fire-and-forget: async block copies + physics via cmd $3F ---
         jsr     vr60_comm_trigger               ; 6B — writes COMM3-5 + triggers cmd $3F
 ; --- State advance ---

@@ -200,13 +200,24 @@ cmd3f_vr60_gameframe:
     mov.l   @(.canary_val,pc),r0
     mov.l   r0,@(4,r4)             /* canary+4 = $DEADBEEF */
 
+    /* === SOUND TRIGGER RELAY: globals+$2C → COMM6_HI === */
+    /* Physics functions write sound codes ($B1/$B4/$B2) to globals+$2C. */
+    /* Read it and relay to COMM6_HI for 68K V-INT pickup. */
+    mov     #0x2C,r0
+    mov.b   @(r0,r13),r0          /* R0 = globals[+$2C] (sound byte) */
+    /* R8 was clobbered — reload before COMM write */
+    mov.l   @(.comm_base,pc),r8   /* R8 = $20004020 */
+    mov.b   r0,@(12,r8)           /* COMM6_HI = sound byte */
+    /* Clear the sound trigger in globals so it doesn't repeat next frame */
+    mov     #0x2C,r0              /* R0 = offset (R0 must be index for indexed store) */
+    mov     #0,r1                 /* R1 = 0 (value to store) */
+    mov.b   r1,@(r0,r13)          /* globals[+$2C] = 0 */
+
     /* === COMPLETION: inline COMM cleanup (func_084 equivalent) === */
-    /* Reload COMM base (clobbered during copy loops) */
-    /* offset 110 */ mov.l  @(.comm_base,pc),r8  /* R8 = $20004020 */
 
     /* Clear COMM1, set "command done" bit */
-    /* offset 112 */ mov    #0,r0
-    /* offset 114 */ mov.w  r0,@(2,r8)           /* COMM1 = $0000 */
+    mov    #0,r0
+    mov.w  r0,@(2,r8)             /* COMM1 = $0000 */
     /* offset 116 */ mov.b  @(3,r8),r0           /* R0 = COMM1_LO (0) */
     /* offset 118 */ or     #1,r0                /* R0 |= 1 */
     /* offset 120 */ mov.b  r0,@(3,r8)           /* COMM1_LO = 1 ("done") */
@@ -247,35 +258,35 @@ cmd3f_vr60_gameframe:
     .long   0x20004020              /* COMM register base (cache-through) */
 
 /* Physics function addresses */
-/* physics_group1 at $301700, physics_group2_accel at $301A80, physics_timers at $301C80 */
+/* physics_group1 at $301720, physics_group2_accel at $301AA0, physics_timers at $301CA0 */
 .phys_f1:
-    .long   0x02301700              /* sh2_speed_degrade_calc (g1 + $000) */
+    .long   0x02301720              /* sh2_speed_degrade_calc (g1 + $000) */
 .phys_f2:
-    .long   0x02301760              /* sh2_steering_input (g1 + $060) */
+    .long   0x02301780              /* sh2_steering_input (g1 + $060) */
 .phys_f3:
-    .long   0x023017DC              /* sh2_force_integration (g1 + $0DC) */
+    .long   0x023017FC              /* sh2_force_integration (g1 + $0DC) */
 .phys_f5:
-    .long   0x02301732              /* sh2_entity_speed_clamp (g1 + $032) */
+    .long   0x02301752              /* sh2_entity_speed_clamp (g1 + $032) */
 .phys_f6:
-    .long   0x02301A80              /* sh2_speed_accel_braking (g2 + $000) */
+    .long   0x02301AA0              /* sh2_speed_accel_braking (g2 + $000) */
 .phys_f7:
-    .long   0x02301BFC              /* sh2_tilt_adjust (g2 + $17C) */
+    .long   0x02301C1C              /* sh2_tilt_adjust (g2 + $17C) */
 
-/* Timer/guard function addresses (physics_timers at $301C80) */
+/* Timer/guard function addresses (physics_timers at $301CA0) */
 .tmr_td:
-    .long   0x02301C80              /* sh2_timer_decrement_multi (tmr + $000) */
+    .long   0x02301CA0              /* sh2_timer_decrement_multi (tmr + $000) */
 .tmr_et:
-    .long   0x02301CD4              /* sh2_effect_timer_mgmt (tmr + $054) */
+    .long   0x02301CF4              /* sh2_effect_timer_mgmt (tmr + $054) */
 .tmr_te:
-    .long   0x02301D40              /* sh2_timer_expire_reset (tmr + $0C0) */
+    .long   0x02301D60              /* sh2_timer_expire_reset (tmr + $0C0) */
 .tmr_fg:
-    .long   0x02301D60              /* sh2_field_check_guard (tmr + $0E0) */
+    .long   0x02301D80              /* sh2_field_check_guard (tmr + $0E0) */
 .tmr_ac:
-    .long   0x02301D6E              /* sh2_anim_timer_speed_clear (tmr + $0EE) */
+    .long   0x02301D8E              /* sh2_anim_timer_speed_clear (tmr + $0EE) */
 
-/* Position update function address (physics_pos_update at $301DA0) */
+/* Position update function address (physics_pos_update at $301DC0) */
 .phys_f12:
-    .long   0x02301DA0              /* sh2_entity_pos_update (16.16 fixed-point) */
+    .long   0x02301DC0              /* sh2_entity_pos_update (16.16 fixed-point) */
 
 /* Total: ~290 bytes code + 96 bytes pool = ~386 bytes */
 

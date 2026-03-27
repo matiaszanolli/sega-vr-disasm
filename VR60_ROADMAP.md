@@ -426,31 +426,36 @@ Entity projection port deferred to Phase 3+ (saves only 0.1%, requires entity da
 
 ## 7. Phase 3: Physics Port
 
-**Status: PHASE 3B IMPLEMENTED — DUAL-PATH LIVE** (2026-03-26)
+**Status: PHASE 3B+3D COMPLETE — SH2-ONLY PHYSICS LIVE** (2026-03-26)
 **Prerequisite: Phase 2 (done)**
 
-### 7.0 Phase 3B Implementation Status
+### 7.0 Implementation Status
 
-**What's built (7 physics + 5 timer/guard = 12 SH2 functions, ~2,060B SH2 code):**
+**What's built (13 functions, ~2,440B SH2 code, fully operational):**
 
 | Component | ROM Address | Size | Status |
 |-----------|------------|------|--------|
-| cmd $3F (game frame + physics calls) | $301500 | 280B | ACTIVE — 11 JSR calls interleaved |
-| cmd $3E (DREQ entity+globals transfer) | $301620 | 96B | ACTIVE |
-| physics_divide (sdiv16 + reciprocal tables) | $301680 | 80B | ACTIVE |
-| physics_group1 (f1+f5+f2+f3) | $3016E0 | 884B | ACTIVE |
-| physics_group2_accel (f6+f7) | $301A60 | 496B | ACTIVE |
-| physics_timers (5 timer/guard functions) | $301C60 | 284B | ACTIVE |
+| cmd $3F (game frame + physics + sound relay) | $301500 | 300B | ACTIVE — 13 JSR calls + COMM6 relay |
+| cmd $3E (DREQ entity+globals, dual mode) | $301640 | 132B | ACTIVE — mode 0: 320B, mode 1: 64B |
+| physics_divide (sdiv16 + reciprocal tables) | $3016D0 | 80B | ACTIVE |
+| physics_group1 (f1+f5+f2+f3) | $301720 | 884B | ACTIVE |
+| physics_group2_accel (f6+f7) | $301AA0 | 496B | ACTIVE |
+| physics_timers (5 timer/guard functions) | $301CA0 | 280B | ACTIVE |
+| physics_pos_update (16.16 fixed-point) | $301DC0 | 184B | ACTIVE |
 
-**Mode:** Dual-path — 68K physics runs on WRAM, SH2 physics runs on SDRAM copy simultaneously. Game uses 68K results. SH2 results are for verification only.
+**Mode:** SH2-ONLY — 68K physics bypassed via trampoline. Entity persists in SDRAM. Globals transferred per-frame via DREQ. Sound triggers relayed via COMM6_HI.
 
-**Remaining for SH2-only physics:**
-- Step 3: Initial-frame-only entity staging (stop overwriting SDRAM entity)
-- Step 4: Orchestrator bypass ($C8D2 flag to skip 68K physics)
-- Step 5: COMM6 sound trigger relay (SH2→68K)
-- Step 6: Verification + profiling
+**Profiling (March 2026, Phase 3D complete):**
 
-**Not yet ported (Phase 3C-D):** Functions 8-13 (drift, position update, sine/cosine). These are Phase 3C/3D scope — drift system + collision boundary.
+| Metric | Baseline | Phase 3D | Change |
+|--------|----------|----------|--------|
+| 68K STOP spin | 51.9% | 63.1% | +11.2% (more idle = less work) |
+| 68K active time | 48.1% | 36.9% | -11.2% (physics offloaded) |
+| Physics integration hotspot | 1.91% | 0.76% | -60% (only AI entities remain) |
+| sine_cosine lookups | 2.31% | 0.36% | -84% (player entity on SH2) |
+| sh2_send_cmd wait | 10.29% | 10.29% | Unchanged (menu-dominated) |
+
+**Not yet ported (Phase 3C):** Functions 8-11 (drift_physics, suspension_steering, lateral_drift_A/B). These handle drift, spin-out, and camera follow. Currently the player entity doesn't drift or spin — steering/speed work but lateral physics is missing.
 
 ### 7.1 Goal
 
@@ -588,19 +593,22 @@ Once physics runs on SH2, entity tables must be in SDRAM (already allocated at $
 
 **SH2 ROM access:** All tables are in ROM below $300000. SH2 accesses ROM at $02000000 + file_offset. ROM reads from SH2 are cached (1-2 wait states first access, 0 thereafter if in cache). Table locality is good for caching.
 
-### 7.7 Acceptance Criteria (Phase 3B — Functions 1-7 + Timers)
+### 7.7 Acceptance Criteria (Phase 3B+3D — ALL COMPLETE)
 
 - [x] All 7 physics functions assembled and linked into expansion ROM (884B + 496B)
-- [x] 5 timer/guard functions co-ported (284B, interleaved in correct orchestrator order)
+- [x] 5 timer/guard functions co-ported (280B, interleaved in correct orchestrator order)
 - [x] DIVU reciprocal accuracy verified: exact for all 6 gear ratios (zero diff)
 - [x] 3600-frame autoplay in dual-path mode — no crashes
 - [x] cmd $3F calls physics in correct order with GBR/R13 setup
 - [x] Grip clamp bug found and fixed (ratio check before subtraction, not after)
 - [x] Frame counter persistence bug found and fixed (entity+$F0, not globals+$30)
 - [x] Hardware-level review: GBR range, COMM safety, SDRAM cache, DMAC state — all clear
-- [ ] SH2-only physics enabled (orchestrator bypass — Step 4, pending)
-- [ ] Sound triggers reach 68K via COMM6 (Step 5, pending)
-- [ ] 68K utilization measured with SH2-only physics (Step 6, pending)
+- [x] SH2-only physics enabled (orchestrator bypass via trampoline in code_1c200)
+- [x] Sound triggers reach 68K via COMM6_HI (relay in cmd $3F + pickup in state4_epilogue)
+- [x] 68K utilization measured: STOP spin 51.9% → 63.1% (+11.2% idle = physics offloaded)
+- [x] 16.16 fixed-point position update (entity+$F2/+$F4 fractional, +$30/+$34 integer, 60 FPS ready)
+- [x] Initial-frame-only entity staging ($C8D2 flag, cmd $3E dual mode)
+- [x] 3600-frame autoplay with SH2-only physics — no crashes, clean shutdown
 
 ### 7.8 Entity Ownership Resolution
 

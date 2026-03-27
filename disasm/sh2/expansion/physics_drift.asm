@@ -391,7 +391,7 @@ sh2_drift_physics:
 .dp_c0188:      .short  0x0188
 .align 2
 .dp_recip1175:  .long   0x000037C9
-.dp_sin_addr:   .long   0x02301E7C     /* .pu_sin_lookup (pos_update $301E00 + $7C) */
+.dp_sin_addr:   .long   0x02301E9C /* .pu_sin_lookup (pos_update $301E00 + $7C) */
 
 
 /* ============================================================================

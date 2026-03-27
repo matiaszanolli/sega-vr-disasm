@@ -49,4 +49,8 @@
         include "modules/68k/sh2/vr60_entity_transfer.asm"
         include "modules/68k/sh2/vr60_globals_transfer.asm"
 
+; --- VR60 Phase 4: AI entity staging + DREQ transfer (first frame only) ---
+        include "modules/68k/sh2/vr60_ai_entity_stage.asm"
+        include "modules/68k/sh2/vr60_ai_entity_transfer.asm"
+
         dcb.b   ($01E200-*),$FF

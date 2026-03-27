@@ -157,11 +157,13 @@ state4_epilogue:
 ; physics overwrites it within 1 frame. No correctness impact.
         tst.b   ($FFFFC8D2).w                   ; 4B — entity seeded in SDRAM?
         bne.s   .globals_only                    ; 2B — yes: skip entity staging
-; --- First frame: full entity + globals staging ---
-        jsr     vr60_entity_stage               ; 6B — 256B WRAM→$FF6A00
+; --- First frame: full entity + globals + AI staging ---
+        jsr     vr60_entity_stage               ; 6B — 256B player WRAM→$FF6A00
         jsr     vr60_globals_stage              ; 6B — 64B scattered→$FF6B00
         jsr     vr60_entity_transfer            ; 6B — DREQ 320B→SDRAM (cmd $3E mode 0)
-        move.b  #$01,($FFFFC8D2).w              ; 6B — mark entity seeded
+        jsr     vr60_ai_entity_stage            ; 6B — 3840B AI WRAM→$FF6B40 (Phase 4)
+        jsr     vr60_ai_entity_transfer         ; 6B — DREQ 3840B→SDRAM (cmd $3E mode 2)
+        move.b  #$01,($FFFFC8D2).w              ; 6B — mark entities seeded
         bra.s   .camera                          ; 2B
 .globals_only:
 ; --- Subsequent frames: globals only ---

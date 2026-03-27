@@ -450,7 +450,7 @@ cmd3e_entity_transfer:
 ;
 ; See: disasm/sh2/expansion/physics_divide.asm for source
 ;
-        dcb.b   ($301700 - *), $FF      ; Pad to 0x3016E0
+        dcb.b   ($301720 - *), $FF      ; Pad to 0x3016E0
 physics_divide:
         include "sh2/generated/physics_divide.inc"
 
@@ -462,7 +462,7 @@ physics_divide:
 ;
 ; See: disasm/sh2/expansion/physics_group1.asm for source
 ;
-        dcb.b   ($301760 - *), $FF      ; Pad to 0x301740
+        dcb.b   ($301780 - *), $FF      ; Pad to 0x301740
 physics_group1:
         include "sh2/generated/physics_group1.inc"
 
@@ -474,7 +474,7 @@ physics_group1:
 ;
 ; See: disasm/sh2/expansion/physics_group2_accel.asm for source
 ;
-        dcb.b   ($301AE0 - *), $FF      ; Pad to 0x301AC0
+        dcb.b   ($301B00 - *), $FF      ; Pad to 0x301AC0
 physics_group2_accel:
         include "sh2/generated/physics_group2_accel.inc"
 
@@ -490,7 +490,7 @@ physics_group2_accel:
 ;
 ; See: disasm/sh2/expansion/physics_timers.asm for source
 ;
-        dcb.b   ($301CE0 - *), $FF      ; Pad to 0x301CC0
+        dcb.b   ($301D00 - *), $FF      ; Pad to 0x301CC0
 physics_timers:
         include "sh2/generated/physics_timers.inc"
 
@@ -503,7 +503,7 @@ physics_timers:
 ;
 ; See: disasm/sh2/expansion/physics_pos_update.asm for source
 ;
-        dcb.b   ($301E00 - *), $FF      ; Pad to 0x301DE0
+        dcb.b   ($301E20 - *), $FF      ; Pad to 0x301DE0
 physics_pos_update:
         include "sh2/generated/physics_pos_update.inc"
 
@@ -513,7 +513,7 @@ physics_pos_update:
 ; 4 functions: drift_physics, suspension_damping, lateral_drift_A, lateral_drift_B
 ; See: disasm/sh2/expansion/physics_drift.asm for source
 ;
-        dcb.b   ($301EC0 - *), $FF      ; Pad to 0x301EA0
+        dcb.b   ($301EE0 - *), $FF      ; Pad to 0x301EA0
 physics_drift:
         include "sh2/generated/physics_drift.inc"
 

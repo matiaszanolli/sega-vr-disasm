@@ -33,47 +33,55 @@ cmd3e_entity_transfer:
     /* Save PR for subroutine return */
     /* offset  0 */ sts.l   pr,@-r15
 
-    /* === CHECK MODE: COMM3_HI selects entity+globals ($00) or globals-only ($01) === */
+    /* === CHECK MODE: COMM3_HI selects transfer type === */
+    /* Mode 0: entity+globals (320B → $0600F20C) */
+    /* Mode 1: globals-only (64B → $0600F30C) */
+    /* Mode 2: AI entities (3840B → $06010000) — Phase 4 */
     /* offset  2 */ mov.b   @(6,r8),r0       /* R0 = COMM3_HI (mode byte) */
     /* offset  4 */ tst     r0,r0            /* mode == 0? */
-    /* offset  6 */ bf      .globals_only    /* non-zero: globals-only path */
+    /* offset  6 */ bf      .check_mode1     /* non-zero: check further */
 
-    /* === MODE 0: FULL TRANSFER (entity 256B + globals 64B = 320B) === */
-
-    /* SAR0 = $20004012 (FIFO source, fixed) */
+    /* === MODE 0: PLAYER ENTITY + GLOBALS (320B) === */
     mov.l   @(.dmac_sar0,pc),r1
     mov.l   @(.fifo_addr,pc),r0
     mov.l   r0,@r1
-
-    /* DAR0 = $0600F20C (entity + globals, auto-increment) */
     mov.l   @(.dmac_dar0,pc),r1
     mov.l   @(.entity_dst,pc),r0
     mov.l   r0,@r1
-
-    /* TCR0 = $00A0 (160 words = 320 bytes) */
     mov.l   @(.dmac_tcr0,pc),r1
     mov.l   @(.tcr_full,pc),r0
     mov.l   r0,@r1
-
     bra     .configure_chcr
     nop
 
-.globals_only:
-    /* === MODE 1: GLOBALS-ONLY TRANSFER (64B) === */
+.check_mode1:
+    mov     #1,r1
+    cmp/eq  r1,r0                /* mode == 1? */
+    bf      .ai_entities         /* mode 2+: AI entities */
 
-    /* SAR0 = $20004012 (same FIFO source) */
+    /* === MODE 1: GLOBALS-ONLY (64B) === */
     mov.l   @(.dmac_sar0,pc),r1
     mov.l   @(.fifo_addr,pc),r0
     mov.l   r0,@r1
-
-    /* DAR0 = $0600F30C (globals base, skip entity) */
     mov.l   @(.dmac_dar0,pc),r1
     mov.l   @(.globals_dst,pc),r0
     mov.l   r0,@r1
-
-    /* TCR0 = $0020 (32 words = 64 bytes) */
     mov.l   @(.dmac_tcr0,pc),r1
     mov.l   @(.tcr_globals,pc),r0
+    mov.l   r0,@r1
+    bra     .configure_chcr
+    nop
+
+.ai_entities:
+    /* === MODE 2: AI ENTITIES (3840B → $06010000) === */
+    mov.l   @(.dmac_sar0,pc),r1
+    mov.l   @(.fifo_addr,pc),r0
+    mov.l   r0,@r1
+    mov.l   @(.dmac_dar0,pc),r1
+    mov.l   @(.ai_dst,pc),r0
+    mov.l   r0,@r1
+    mov.l   @(.dmac_tcr0,pc),r1
+    mov.l   @(.tcr_ai,pc),r0
     mov.l   r0,@r1
 
 .configure_chcr:
@@ -129,6 +137,10 @@ cmd3e_entity_transfer:
     .long   0x000000A0              /* 160 transfers (= 320 bytes: 256B entity + 64B globals) */
 .tcr_globals:
     .long   0x00000020              /* 32 transfers (= 64 bytes: globals only) */
+.ai_dst:
+    .long   0x06010000              /* AI entity base (SDRAM, 15 × 256B) */
+.tcr_ai:
+    .long   0x00000780              /* 1920 transfers (= 3840 bytes: 15 AI entities) */
 .dmac_chcr0:
     .long   0xFFFFFF8C              /* DMAC CHCR0 register */
 .chcr_value:

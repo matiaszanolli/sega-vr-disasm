@@ -276,22 +276,22 @@ cmd3f_vr60_gameframe:
 .comm_base:
     .long   0x20004020              /* COMM register base (cache-through) */
 
-/* Physics function addresses (final layout, Phase 3C+viewport) */
-/* g1=$301760, g2=$301AE0, tmr=$301CE0, pos=$301E00, drift=$301EC0 */
-.phys_f1:   .long   0x02301760     /* speed_degrade (g1+$000) */
-.phys_f2:   .long   0x023017C0     /* steering_input (g1+$060) */
-.phys_f3:   .long   0x0230183C     /* force_integration (g1+$0DC) */
-.phys_f5:   .long   0x02301792     /* speed_clamp (g1+$032) */
-.phys_f6:   .long   0x02301AE0     /* speed_accel (g2+$000) */
-.phys_f7:   .long   0x02301C5C     /* tilt_adjust (g2+$17C) */
-.tmr_td:    .long   0x02301CE0     /* timer_decrement (tmr+$000) */
-.tmr_et:    .long   0x02301D34     /* effect_timer (tmr+$054) */
-.tmr_te:    .long   0x02301DA0     /* timer_expire (tmr+$0C0) */
-.tmr_fg:    .long   0x02301DC0     /* field_guard (tmr+$0E0) */
-.tmr_ac:    .long   0x02301DCE     /* anim_clear (tmr+$0EE) */
-.phys_f12:  .long   0x02301E00     /* pos_update (pos+$000) */
-.phys_f8:   .long   0x02301EC0     /* drift_physics (drift+$000) */
-.phys_f9:   .long   0x023020F8     /* suspension_damping (drift+$238) */
+/* Physics function addresses (Phase 4 layout) */
+/* g1=$301780, g2=$301B00, tmr=$301D00, pos=$301E20, drift=$301EE0 */
+.phys_f1:   .long   0x02301780     /* speed_degrade (g1+$000) */
+.phys_f2:   .long   0x023017E0     /* steering_input (g1+$060) */
+.phys_f3:   .long   0x0230185C     /* force_integration (g1+$0DC) */
+.phys_f5:   .long   0x023017B2     /* speed_clamp (g1+$032) */
+.phys_f6:   .long   0x02301B00     /* speed_accel (g2+$000) */
+.phys_f7:   .long   0x02301C7C     /* tilt_adjust (g2+$17C) */
+.tmr_td:    .long   0x02301D00     /* timer_decrement (tmr+$000) */
+.tmr_et:    .long   0x02301D54     /* effect_timer (tmr+$054) */
+.tmr_te:    .long   0x02301DC0     /* timer_expire (tmr+$0C0) */
+.tmr_fg:    .long   0x02301DE0     /* field_guard (tmr+$0E0) */
+.tmr_ac:    .long   0x02301DEE     /* anim_clear (tmr+$0EE) */
+.phys_f12:  .long   0x02301E20     /* pos_update (pos+$000) */
+.phys_f8:   .long   0x02301EE0     /* drift_physics (drift+$000) */
+.phys_f9:   .long   0x02302118     /* suspension_damping (drift+$238) */
 
 /* Total: ~290 bytes code + 96 bytes pool = ~386 bytes */
 

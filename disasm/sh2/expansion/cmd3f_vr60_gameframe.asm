@@ -219,9 +219,18 @@ cmd3f_vr60_gameframe:
     mov.l   @(.comm_base,pc),r8   /* R8 = $20004020 */
     mov.b   r0,@(12,r8)           /* COMM6_HI = sound byte */
     /* Clear the sound trigger in globals so it doesn't repeat next frame */
-    mov     #0x2C,r0              /* R0 = offset (R0 must be index for indexed store) */
-    mov     #0,r1                 /* R1 = 0 (value to store) */
+    mov     #0x2C,r0
+    mov     #0,r1
     mov.b   r1,@(r0,r13)          /* globals[+$2C] = 0 */
+
+    /* === VIEWPORT SHIMMER RELAY: entity+$F8/$FA → COMM4/COMM5 === */
+    /* lateral_drift_B writes viewport left/right to entity+$F8/+$FA. */
+    /* Relay to COMM4/5 for 68K state4_epilogue pickup. */
+    /* COMM4/5 were used for input (frame metadata) but consumed at entry. */
+    mov.w   @(0xF8,gbr),r0        /* entity[+$F8] left viewport */
+    mov.w   r0,@(8,r8)            /* COMM4 = left viewport */
+    mov.w   @(0xFA,gbr),r0        /* entity[+$FA] right viewport */
+    mov.w   r0,@(10,r8)           /* COMM5 = right viewport */
 
     /* === COMPLETION: inline COMM cleanup (func_084 equivalent) === */
 
@@ -267,22 +276,22 @@ cmd3f_vr60_gameframe:
 .comm_base:
     .long   0x20004020              /* COMM register base (cache-through) */
 
-/* Physics function addresses (layout updated for Phase 3C) */
-/* g1=$301740, g2=$301AC0, tmr=$301CC0, pos=$301DE0, drift=$301EA0 */
-.phys_f1:   .long   0x02301740     /* speed_degrade (g1+$000) */
-.phys_f2:   .long   0x023017A0     /* steering_input (g1+$060) */
-.phys_f3:   .long   0x0230181C     /* force_integration (g1+$0DC) */
-.phys_f5:   .long   0x02301772     /* speed_clamp (g1+$032) */
-.phys_f6:   .long   0x02301AC0     /* speed_accel (g2+$000) */
-.phys_f7:   .long   0x02301C3C     /* tilt_adjust (g2+$17C) */
-.tmr_td:    .long   0x02301CC0     /* timer_decrement (tmr+$000) */
-.tmr_et:    .long   0x02301D14     /* effect_timer (tmr+$054) */
-.tmr_te:    .long   0x02301D80     /* timer_expire (tmr+$0C0) */
-.tmr_fg:    .long   0x02301DA0     /* field_guard (tmr+$0E0) */
-.tmr_ac:    .long   0x02301DAE     /* anim_clear (tmr+$0EE) */
-.phys_f12:  .long   0x02301DE0     /* pos_update (pos+$000) */
-.phys_f8:   .long   0x02301EA0     /* drift_physics (drift+$000) */
-.phys_f9:   .long   0x023020D8     /* suspension_damping (drift+$238) */
+/* Physics function addresses (final layout, Phase 3C+viewport) */
+/* g1=$301760, g2=$301AE0, tmr=$301CE0, pos=$301E00, drift=$301EC0 */
+.phys_f1:   .long   0x02301760     /* speed_degrade (g1+$000) */
+.phys_f2:   .long   0x023017C0     /* steering_input (g1+$060) */
+.phys_f3:   .long   0x0230183C     /* force_integration (g1+$0DC) */
+.phys_f5:   .long   0x02301792     /* speed_clamp (g1+$032) */
+.phys_f6:   .long   0x02301AE0     /* speed_accel (g2+$000) */
+.phys_f7:   .long   0x02301C5C     /* tilt_adjust (g2+$17C) */
+.tmr_td:    .long   0x02301CE0     /* timer_decrement (tmr+$000) */
+.tmr_et:    .long   0x02301D34     /* effect_timer (tmr+$054) */
+.tmr_te:    .long   0x02301DA0     /* timer_expire (tmr+$0C0) */
+.tmr_fg:    .long   0x02301DC0     /* field_guard (tmr+$0E0) */
+.tmr_ac:    .long   0x02301DCE     /* anim_clear (tmr+$0EE) */
+.phys_f12:  .long   0x02301E00     /* pos_update (pos+$000) */
+.phys_f8:   .long   0x02301EC0     /* drift_physics (drift+$000) */
+.phys_f9:   .long   0x023020F8     /* suspension_damping (drift+$238) */
 
 /* Total: ~290 bytes code + 96 bytes pool = ~386 bytes */
 

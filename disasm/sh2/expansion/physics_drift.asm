@@ -391,7 +391,7 @@ sh2_drift_physics:
 .dp_c0188:      .short  0x0188
 .align 2
 .dp_recip1175:  .long   0x000037C9
-.dp_sin_addr:   .long   0x02301E5C     /* .pu_sin_lookup (pos_update $301DE0 + $7C) */
+.dp_sin_addr:   .long   0x02301E7C     /* .pu_sin_lookup (pos_update $301E00 + $7C) */
 
 
 /* ============================================================================
@@ -796,7 +796,7 @@ sh2_lateral_drift_A:
 .la_c2000:      .short  0x2000
 .la_c1000:      .short  0x1000
 .align 2
-.la_sdiv_addr:  .long   0x023016E0
+.la_sdiv_addr:  .long   0x02301700
 
 
 /* ============================================================================
@@ -1125,7 +1125,7 @@ sh2_lateral_drift_B:
 .lb_c2000:      .short  0x2000
 .lb_c1000:      .short  0x1000
 .align 2
-.lb_sdiv_addr:  .long   0x023016E0
+.lb_sdiv_addr:  .long   0x02301700
 
 .global physics_drift_end
 physics_drift_end:

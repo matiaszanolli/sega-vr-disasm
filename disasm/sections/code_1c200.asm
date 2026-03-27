@@ -43,6 +43,9 @@
 ; --- VR60 Phase 3B: physics bypass trampoline (called via JMP from entity_render_pipeline) ---
         include "modules/68k/sh2/vr60_physics_bypass_trampoline.asm"
 
+; --- VR60 Phase 4: AI bypass trampoline (called via JMP from Variant B) ---
+        include "modules/68k/sh2/vr60_ai_bypass_trampoline.asm"
+
 ; --- VR60 Phase 3A/3B: entity+globals staging + DREQ transfer (called via JSR abs.l from code_2200) ---
         include "modules/68k/sh2/vr60_entity_stage.asm"
         include "modules/68k/sh2/vr60_globals_stage.asm"

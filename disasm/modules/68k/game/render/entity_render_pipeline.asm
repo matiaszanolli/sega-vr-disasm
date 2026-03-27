@@ -72,9 +72,11 @@ entity_render_pipeline_position_ai:
         jmp     control_flag_check_cond_pos_copy(pc); $4EFA $109C ; tail call
 
 ; --- Variant B: Reduced pipeline (non-player) ---
-; No steering, drift, or position update.
-        jsr     camera_state_selector+12(pc); $4EBA $5C0C
-        jsr     effect_timer_mgmt(pc)   ; $4EBA $47DC
+; VR60 Phase 4: first 8 bytes replaced with JMP to bypass trampoline.
+; When $C8D2 set, skips physics+AI (handled by SH2 entity loop).
+        jmp     vr60_ai_bypass_trampoline_variant_b  ; 6B
+        nop                                           ; 2B (pad to 8B)
+entity_render_pipeline_varb_physics:
         jsr     object_timer_expire_speed_param_reset(pc); $4EBA $25F8
         jsr     field_check_guard(pc)   ; $4EBA $2550
         jsr     timer_decrement_multi(pc); $4EBA $29C8
@@ -91,7 +93,8 @@ entity_render_pipeline_position_ai:
         jsr     proximity_zone_multi+54(pc); $4EBA $2B52
         jsr     heading_from_position(pc); $4EBA $3490
         jsr     ai_target_check(pc)     ; $4EBA $5120
-; --- Rendering ---
+; --- Rendering (VR60: Variant B bypass re-entry point) ---
+entity_render_pipeline_varb_rendering:
         jsr     obj_distance_calc(pc)   ; $4EBA $1A46
         jsr     object_visibility_collector(pc); $4EBA $15EA
         jsr     camera_param_calc(pc)   ; $4EBA $CDC4

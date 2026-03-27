@@ -285,7 +285,7 @@ sh2_speed_accel_braking:
 .sa_c0400:      .short  0x0400     /* 1024 — max delta/frame */
 .align 2
 .sa_gear_tbl:   .long   0x020A1F0  /* SH2 ROM: gear ratio table ($0088A1F0) */
-.sa_recip_tbl:  .long   0x02301700 /* expansion ROM: gear_recip_table ($3016D0+$30) */
+.sa_recip_tbl:  .long   0x02301710 /* expansion ROM: gear_recip_table ($3016E0+$30) */
 .sa_nat_tbl:    .long   0x020A1E2  /* SH2 ROM: natural accel thresholds ($0088A1E2) */
 .sa_dec_tbl:    .long   0x02139EDE /* SH2 ROM: decel thresholds ($00939EDE) */
 /* Pool: 6 + 16 = 22 bytes */

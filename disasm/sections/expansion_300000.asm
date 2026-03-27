@@ -436,7 +436,7 @@ cmd3f_vr60_gameframe:
 ;
 ; See: disasm/sh2/expansion/cmd3e_entity_transfer.asm for source
 ;
-        dcb.b   ($301640 - *), $FF      ; Pad to 0x301640 (cmd $3F = 300B with sound relay)
+        dcb.b   ($301640 - *), $FF      ; Pad to 0x301640 (cmd $3F = 320B with drift calls)
 cmd3e_entity_transfer:
         include "sh2/generated/cmd3e_entity_transfer.inc"
 
@@ -450,7 +450,7 @@ cmd3e_entity_transfer:
 ;
 ; See: disasm/sh2/expansion/physics_divide.asm for source
 ;
-        dcb.b   ($3016D0 - *), $FF      ; Pad to 0x3016D0
+        dcb.b   ($3016E0 - *), $FF      ; Pad to 0x3016E0
 physics_divide:
         include "sh2/generated/physics_divide.inc"
 
@@ -462,7 +462,7 @@ physics_divide:
 ;
 ; See: disasm/sh2/expansion/physics_group1.asm for source
 ;
-        dcb.b   ($301720 - *), $FF      ; Pad to 0x301720
+        dcb.b   ($301740 - *), $FF      ; Pad to 0x301740
 physics_group1:
         include "sh2/generated/physics_group1.inc"
 
@@ -474,7 +474,7 @@ physics_group1:
 ;
 ; See: disasm/sh2/expansion/physics_group2_accel.asm for source
 ;
-        dcb.b   ($301AA0 - *), $FF      ; Pad to 0x301AA0
+        dcb.b   ($301AC0 - *), $FF      ; Pad to 0x301AC0
 physics_group2_accel:
         include "sh2/generated/physics_group2_accel.inc"
 
@@ -490,7 +490,7 @@ physics_group2_accel:
 ;
 ; See: disasm/sh2/expansion/physics_timers.asm for source
 ;
-        dcb.b   ($301CA0 - *), $FF      ; Pad to 0x301CA0
+        dcb.b   ($301CC0 - *), $FF      ; Pad to 0x301CC0
 physics_timers:
         include "sh2/generated/physics_timers.inc"
 
@@ -503,12 +503,22 @@ physics_timers:
 ;
 ; See: disasm/sh2/expansion/physics_pos_update.asm for source
 ;
-        dcb.b   ($301DC0 - *), $FF      ; Pad to 0x301DC0
+        dcb.b   ($301DE0 - *), $FF      ; Pad to 0x301DE0
 physics_pos_update:
         include "sh2/generated/physics_pos_update.inc"
 
 ; ============================================================================
-; REMAINING EXPANSION ROM SPACE (from ~0x301E80)
+; VR60 DRIFT SYSTEM: 0x301E00 — STATUS: ACTIVE (VR60 Phase 3C)
+; ============================================================================
+; 4 functions: drift_physics, suspension_damping, lateral_drift_A, lateral_drift_B
+; See: disasm/sh2/expansion/physics_drift.asm for source
+;
+        dcb.b   ($301EA0 - *), $FF      ; Pad to 0x301EA0
+physics_drift:
+        include "sh2/generated/physics_drift.inc"
+
+; ============================================================================
+; REMAINING EXPANSION ROM SPACE (from ~0x302500)
 ; ============================================================================
 ; Pad to $3F0000 (960KB) instead of $400000 (1MB) to avoid PicoDrive
 ; emulator bug triggered by ROM files > ~0x3F1F40 bytes.

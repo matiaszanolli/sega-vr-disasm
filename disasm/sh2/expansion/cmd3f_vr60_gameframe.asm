@@ -182,6 +182,16 @@ cmd3f_vr60_gameframe:
     jsr     @r0
     nop
 
+    /* 8. drift_physics (Phase 3C: camera follow + heading drift) */
+    mov.l   @(.phys_f8,pc),r0
+    jsr     @r0
+    nop
+
+    /* 9. suspension_damping (Phase 3C: dispatches to lateral_drift_A or B) */
+    mov.l   @(.phys_f9,pc),r0
+    jsr     @r0
+    nop
+
     /* T5. anim_timer_speed_clear */
     mov.l   @(.tmr_ac,pc),r0
     jsr     @r0
@@ -257,36 +267,22 @@ cmd3f_vr60_gameframe:
 .comm_base:
     .long   0x20004020              /* COMM register base (cache-through) */
 
-/* Physics function addresses */
-/* physics_group1 at $301720, physics_group2_accel at $301AA0, physics_timers at $301CA0 */
-.phys_f1:
-    .long   0x02301720              /* sh2_speed_degrade_calc (g1 + $000) */
-.phys_f2:
-    .long   0x02301780              /* sh2_steering_input (g1 + $060) */
-.phys_f3:
-    .long   0x023017FC              /* sh2_force_integration (g1 + $0DC) */
-.phys_f5:
-    .long   0x02301752              /* sh2_entity_speed_clamp (g1 + $032) */
-.phys_f6:
-    .long   0x02301AA0              /* sh2_speed_accel_braking (g2 + $000) */
-.phys_f7:
-    .long   0x02301C1C              /* sh2_tilt_adjust (g2 + $17C) */
-
-/* Timer/guard function addresses (physics_timers at $301CA0) */
-.tmr_td:
-    .long   0x02301CA0              /* sh2_timer_decrement_multi (tmr + $000) */
-.tmr_et:
-    .long   0x02301CF4              /* sh2_effect_timer_mgmt (tmr + $054) */
-.tmr_te:
-    .long   0x02301D60              /* sh2_timer_expire_reset (tmr + $0C0) */
-.tmr_fg:
-    .long   0x02301D80              /* sh2_field_check_guard (tmr + $0E0) */
-.tmr_ac:
-    .long   0x02301D8E              /* sh2_anim_timer_speed_clear (tmr + $0EE) */
-
-/* Position update function address (physics_pos_update at $301DC0) */
-.phys_f12:
-    .long   0x02301DC0              /* sh2_entity_pos_update (16.16 fixed-point) */
+/* Physics function addresses (layout updated for Phase 3C) */
+/* g1=$301740, g2=$301AC0, tmr=$301CC0, pos=$301DE0, drift=$301EA0 */
+.phys_f1:   .long   0x02301740     /* speed_degrade (g1+$000) */
+.phys_f2:   .long   0x023017A0     /* steering_input (g1+$060) */
+.phys_f3:   .long   0x0230181C     /* force_integration (g1+$0DC) */
+.phys_f5:   .long   0x02301772     /* speed_clamp (g1+$032) */
+.phys_f6:   .long   0x02301AC0     /* speed_accel (g2+$000) */
+.phys_f7:   .long   0x02301C3C     /* tilt_adjust (g2+$17C) */
+.tmr_td:    .long   0x02301CC0     /* timer_decrement (tmr+$000) */
+.tmr_et:    .long   0x02301D14     /* effect_timer (tmr+$054) */
+.tmr_te:    .long   0x02301D80     /* timer_expire (tmr+$0C0) */
+.tmr_fg:    .long   0x02301DA0     /* field_guard (tmr+$0E0) */
+.tmr_ac:    .long   0x02301DAE     /* anim_clear (tmr+$0EE) */
+.phys_f12:  .long   0x02301DE0     /* pos_update (pos+$000) */
+.phys_f8:   .long   0x02301EA0     /* drift_physics (drift+$000) */
+.phys_f9:   .long   0x023020D8     /* suspension_damping (drift+$238) */
 
 /* Total: ~290 bytes code + 96 bytes pool = ~386 bytes */
 

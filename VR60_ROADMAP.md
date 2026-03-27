@@ -426,7 +426,7 @@ Entity projection port deferred to Phase 3+ (saves only 0.1%, requires entity da
 
 ## 7. Phase 3: Physics Port
 
-**Status: PHASE 3B+3D COMPLETE — SH2-ONLY PHYSICS LIVE** (2026-03-26)
+**Status: PHASE 3 COMPLETE** (2026-03-27)
 **Prerequisite: Phase 2 (done)**
 
 ### 7.0 Implementation Status
@@ -455,7 +455,7 @@ Entity projection port deferred to Phase 3+ (saves only 0.1%, requires entity da
 | sine_cosine lookups | 2.31% | 0.36% | -84% (player entity on SH2) |
 | sh2_send_cmd wait | 10.29% | 10.29% | Unchanged (menu-dominated) |
 
-**Not yet ported (Phase 3C):** Functions 8-11 (drift_physics, suspension_steering, lateral_drift_A/B). These handle drift, spin-out, and camera follow. Currently the player entity doesn't drift or spin — steering/speed work but lateral physics is missing.
+**Phase 3C COMPLETE** (2026-03-27): Functions 8-11 (drift_physics, suspension_damping, lateral_drift_A/B) ported. 1,716B SH2 code. Player entity now drifts, spins out, and has camera follow distance computed on SH2. Viewport shimmer relayed via COMM4/5.
 
 ### 7.1 Goal
 
@@ -653,18 +653,22 @@ Once physics runs on SH2, entity tables must be in SDRAM (already allocated at $
 - Globals field: `MOV #offset,R0; MOV.W @(R0,R13),Rn` (indexed, R0 must be index)
 - ROM table: `MOV.L @pool,Rn; MOV.W @(R0,Rn),Rm` (literal pool + indexed)
 
-### 7.10 Expansion ROM Memory Layout (Phase 3B)
+### 7.10 Expansion ROM Memory Layout (Phase 3 Final)
 
 ```
 $301300-$30148F  coord_transform_batched (388B)       — ACTIVE (S-6 Phase B)
-$301500-$301617  cmd $3F (280B)                       — ACTIVE (Phase 3B: copies + 11 physics/timer JSR calls)
-$301620-$30167F  cmd $3E (96B)                        — ACTIVE (Phase 3A: DMAC entity+globals transfer)
-$301680-$3016DF  physics_divide (80B)                 — ACTIVE (Phase 3B: sh2_sdiv16 + gear reciprocal table)
-$3016E0-$301A53  physics_group1 (884B)                — ACTIVE (Phase 3B: speed_degrade + speed_clamp + steering + force_integration)
-$301A60-$301C4F  physics_group2_accel (496B)          — ACTIVE (Phase 3B: speed_accel_braking + tilt_adjust)
-$301C60-$301D83  physics_timers (284B)                — ACTIVE (Phase 3B: 5 timer/guard co-ports)
-$301D84-$3FFFFF  Free (~1013KB)                       — Reserved for Phase 3C-D (drift, position) + Phase 4-5
+$301500-$301647  cmd $3F (328B)                       — ACTIVE (Phase 3: 15 JSR calls + sound/viewport relay)
+$301660-$3016E3  cmd $3E (132B)                       — ACTIVE (Phase 3A: DMAC entity+globals, dual mode)
+$301700-$30174F  physics_divide (80B)                 — ACTIVE (sh2_sdiv16 + gear reciprocal table)
+$301760-$301AD3  physics_group1 (884B)                — ACTIVE (speed_degrade + speed_clamp + steering + force_integration)
+$301AE0-$301CCF  physics_group2_accel (496B)          — ACTIVE (speed_accel_braking + tilt_adjust)
+$301CE0-$301DF7  physics_timers (280B)                — ACTIVE (5 timer/guard co-ports)
+$301E00-$301EB7  physics_pos_update (184B)            — ACTIVE (16.16 fixed-point position + sine lookup)
+$301EC0-$302573  physics_drift (1716B)                — ACTIVE (drift_physics + suspension + lateral_A + lateral_B)
+$302580-$3FFFFF  Free (~1006KB)                       — Reserved for Phase 4 (AI) + Phase 5 (collision)
 ```
+
+**Total VR60 physics code: ~4,224 bytes** (17 functions + infrastructure)
 
 ---
 

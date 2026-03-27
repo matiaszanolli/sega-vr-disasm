@@ -528,7 +528,18 @@ ai_steering:
         include "sh2/generated/ai_steering.inc"
 
 ; ============================================================================
-; REMAINING EXPANSION ROM SPACE (from ~0x302700)
+; VR60 AI ORCHESTRATOR: 0x3026C0 — STATUS: ACTIVE (VR60 Phase 4)
+; ============================================================================
+; AI entity main update: spawn positioning, steering, speed, position.
+; 3 entry points: main (active racing), spawn (timer), finish (retirement).
+; See: disasm/sh2/expansion/ai_orchestrator.asm for source
+;
+        dcb.b   ($3026C0 - *), $FF      ; Pad to 0x3026C0
+ai_orchestrator:
+        include "sh2/generated/ai_orchestrator.inc"
+
+; ============================================================================
+; REMAINING EXPANSION ROM SPACE (from ~0x302A00)
 ; ============================================================================
 ; Pad to $3F0000 (960KB) instead of $400000 (1MB) to avoid PicoDrive
 ; emulator bug triggered by ROM files > ~0x3F1F40 bytes.

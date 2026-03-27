@@ -202,6 +202,44 @@ cmd3f_vr60_gameframe:
     jsr     @r0
     nop
 
+    /* === PHASE 4: AI ENTITY LOOP === */
+    /* Process 15 AI entities: for each, set GBR/R14, call orchestrator + physics */
+    /* AI entities are at SDRAM $06010000 (15 × 256B, staged first frame) */
+    mov.l   @(.ai_ent_base,pc),r11 /* R11 = AI entity base ($06010000) */
+    mov     #15,r12                /* R12 = entity count */
+.ai_loop:
+    /* Set GBR and R14 to current AI entity */
+    mov     r11,r0
+    ldc     r0,gbr                 /* GBR = AI entity */
+    mov     r11,r14                /* R14 = same (for indexed access) */
+
+    /* Call AI orchestrator (spawn/steering/speed/position) */
+    mov.l   @(.ai_orch_addr,pc),r0
+    jsr     @r0                    /* sh2_ai_orch_main */
+    nop
+
+    /* Call shared physics subset for AI entity */
+    /* Same functions as player but entity fields now point to AI entity */
+    mov.l   @(.phys_f6,pc),r0     /* speed_accel_braking */
+    jsr     @r0
+    nop
+    mov.l   @(.phys_f7,pc),r0     /* tilt_adjust */
+    jsr     @r0
+    nop
+    mov.l   @(.phys_f9,pc),r0     /* suspension_damping */
+    jsr     @r0
+    nop
+
+    /* Advance to next entity (256B stride) */
+    mov.w   @(.ai_stride,pc),r0
+    add     r0,r11                 /* R11 += 256 */
+    dt      r12                    /* count-- */
+    bf      .ai_loop               /* loop if not zero */
+
+    /* Restore player entity GBR for relay section */
+    mov.l   @(.ent_dst,pc),r0
+    ldc     r0,gbr
+
     /* === CANARY: write entity first longword to verify physics ran === */
     mov.l   @(.ent_dst,pc),r4       /* R4 = entity base (re-read, GBR may differ) */
     mov.l   @r4,r0                  /* R0 = entity[0..3] (post-physics) */
@@ -278,20 +316,25 @@ cmd3f_vr60_gameframe:
 
 /* Physics function addresses (Phase 4 layout) */
 /* g1=$301780, g2=$301B00, tmr=$301D00, pos=$301E20, drift=$301EE0 */
-.phys_f1:   .long   0x02301780     /* speed_degrade (g1+$000) */
-.phys_f2:   .long   0x023017E0     /* steering_input (g1+$060) */
-.phys_f3:   .long   0x0230185C     /* force_integration (g1+$0DC) */
-.phys_f5:   .long   0x023017B2     /* speed_clamp (g1+$032) */
-.phys_f6:   .long   0x02301B00     /* speed_accel (g2+$000) */
-.phys_f7:   .long   0x02301C7C     /* tilt_adjust (g2+$17C) */
-.tmr_td:    .long   0x02301D00     /* timer_decrement (tmr+$000) */
-.tmr_et:    .long   0x02301D54     /* effect_timer (tmr+$054) */
-.tmr_te:    .long   0x02301DC0     /* timer_expire (tmr+$0C0) */
-.tmr_fg:    .long   0x02301DE0     /* field_guard (tmr+$0E0) */
-.tmr_ac:    .long   0x02301DEE     /* anim_clear (tmr+$0EE) */
-.phys_f12:  .long   0x02301E20     /* pos_update (pos+$000) */
-.phys_f8:   .long   0x02301EE0     /* drift_physics (drift+$000) */
-.phys_f9:   .long   0x02302118     /* suspension_damping (drift+$238) */
+.phys_f1:   .long   0x023017C0     /* speed_degrade (g1+$000) */
+.phys_f2:   .long   0x02301820     /* steering_input (g1+$060) */
+.phys_f3:   .long   0x0230189C     /* force_integration (g1+$0DC) */
+.phys_f5:   .long   0x023017F2     /* speed_clamp (g1+$032) */
+.phys_f6:   .long   0x02301B40     /* speed_accel (g2+$000) */
+.phys_f7:   .long   0x02301CBC     /* tilt_adjust (g2+$17C) */
+.tmr_td:    .long   0x02301D40     /* timer_decrement (tmr+$000) */
+.tmr_et:    .long   0x02301D94     /* effect_timer (tmr+$054) */
+.tmr_te:    .long   0x02301E00     /* timer_expire (tmr+$0C0) */
+.tmr_fg:    .long   0x02301E20     /* field_guard (tmr+$0E0) */
+.tmr_ac:    .long   0x02301E2E     /* anim_clear (tmr+$0EE) */
+.phys_f12:  .long   0x02301E60     /* pos_update (pos+$000) */
+.phys_f8:   .long   0x02301F20     /* drift_physics (drift+$000) */
+.phys_f9:   .long   0x02302158     /* suspension_damping (drift+$238) */
+
+/* Phase 4: AI entity loop addresses */
+.ai_ent_base:   .long   0x06010000 /* AI entity SDRAM base */
+.ai_orch_addr:  .long   0x02302700 /* sh2_ai_orch_main */
+.ai_stride:     .short  0x0100     /* 256 bytes per entity */
 
 /* Total: ~290 bytes code + 96 bytes pool = ~386 bytes */
 

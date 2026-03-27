@@ -563,10 +563,10 @@ sh2_ai_orch_finish:
 .ao_ai_globals: .long   0x0600FC10 /* AI globals area (cache-through not needed, Master only reads) */
 .ao_ofs_tbl:    .long   0x020A8C8  /* X offset table (ROM) */
 .ao_pos_tbl:    .long   0x020A868  /* spawn position table (ROM) */
-.ao_steer_addr: .long   0x023025A0 /* sh2_ai_steering_calc */
-.ao_sdiv_addr:  .long   0x02301720 /* sh2_sdiv16 */
-.ao_spd_clamp:  .long   0x023017B2 /* sh2_entity_speed_clamp (g1+$032) */
-.ao_sin_addr:   .long   0x02301E9C /* .pu_sin_lookup (physics_pos_update) */
+.ao_steer_addr: .long   0x023025E0     /* sh2_ai_steering_calc */
+.ao_sdiv_addr:  .long   0x02301760     /* sh2_sdiv16 */
+.ao_spd_clamp:  .long   0x023017F2     /* sh2_entity_speed_clamp (g1+$032) */
+.ao_sin_addr:   .long   0x02301EDC     /* .pu_sin_lookup (physics_pos_update) */
 
 .global ai_orchestrator_end
 ai_orchestrator_end:

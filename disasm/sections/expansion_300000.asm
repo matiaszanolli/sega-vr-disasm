@@ -436,7 +436,7 @@ cmd3f_vr60_gameframe:
 ;
 ; See: disasm/sh2/expansion/cmd3e_entity_transfer.asm for source
 ;
-        dcb.b   ($301660 - *), $FF      ; Pad to 0x301660 (cmd $3F = 328B with viewport relay)
+        dcb.b   ($3016A0 - *),$FF      ; Pad to 0x301660 (cmd $3F = 328B with viewport relay)
 cmd3e_entity_transfer:
         include "sh2/generated/cmd3e_entity_transfer.inc"
 
@@ -450,7 +450,7 @@ cmd3e_entity_transfer:
 ;
 ; See: disasm/sh2/expansion/physics_divide.asm for source
 ;
-        dcb.b   ($301720 - *), $FF      ; Pad to 0x3016E0
+        dcb.b   ($301760 - *), $FF      ; Pad to 0x3016E0
 physics_divide:
         include "sh2/generated/physics_divide.inc"
 
@@ -462,7 +462,7 @@ physics_divide:
 ;
 ; See: disasm/sh2/expansion/physics_group1.asm for source
 ;
-        dcb.b   ($301780 - *), $FF      ; Pad to 0x301740
+        dcb.b   ($3017C0 - *), $FF      ; Pad to 0x301740
 physics_group1:
         include "sh2/generated/physics_group1.inc"
 
@@ -474,7 +474,7 @@ physics_group1:
 ;
 ; See: disasm/sh2/expansion/physics_group2_accel.asm for source
 ;
-        dcb.b   ($301B00 - *), $FF      ; Pad to 0x301AC0
+        dcb.b   ($301B40 - *), $FF      ; Pad to 0x301AC0
 physics_group2_accel:
         include "sh2/generated/physics_group2_accel.inc"
 
@@ -490,7 +490,7 @@ physics_group2_accel:
 ;
 ; See: disasm/sh2/expansion/physics_timers.asm for source
 ;
-        dcb.b   ($301D00 - *), $FF      ; Pad to 0x301CC0
+        dcb.b   ($301D40 - *), $FF      ; Pad to 0x301CC0
 physics_timers:
         include "sh2/generated/physics_timers.inc"
 
@@ -503,7 +503,7 @@ physics_timers:
 ;
 ; See: disasm/sh2/expansion/physics_pos_update.asm for source
 ;
-        dcb.b   ($301E20 - *), $FF      ; Pad to 0x301DE0
+        dcb.b   ($301E60 - *), $FF      ; Pad to 0x301DE0
 physics_pos_update:
         include "sh2/generated/physics_pos_update.inc"
 
@@ -513,7 +513,7 @@ physics_pos_update:
 ; 4 functions: drift_physics, suspension_damping, lateral_drift_A, lateral_drift_B
 ; See: disasm/sh2/expansion/physics_drift.asm for source
 ;
-        dcb.b   ($301EE0 - *), $FF      ; Pad to 0x301EA0
+        dcb.b   ($301F20 - *), $FF      ; Pad to 0x301EA0
 physics_drift:
         include "sh2/generated/physics_drift.inc"
 
@@ -523,7 +523,7 @@ physics_drift:
 ; AI steering + atan2 calculation (shared with camera system)
 ; See: disasm/sh2/expansion/ai_steering.asm for source
 ;
-        dcb.b   ($3025A0 - *), $FF      ; Pad to 0x3025A0
+        dcb.b   ($3025E0 - *), $FF      ; Pad to 0x3025A0
 ai_steering:
         include "sh2/generated/ai_steering.inc"
 
@@ -534,7 +534,7 @@ ai_steering:
 ; 3 entry points: main (active racing), spawn (timer), finish (retirement).
 ; See: disasm/sh2/expansion/ai_orchestrator.asm for source
 ;
-        dcb.b   ($3026C0 - *), $FF      ; Pad to 0x3026C0
+        dcb.b   ($302700 - *), $FF      ; Pad to 0x3026C0
 ai_orchestrator:
         include "sh2/generated/ai_orchestrator.inc"
 

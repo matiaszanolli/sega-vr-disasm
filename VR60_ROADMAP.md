@@ -653,39 +653,63 @@ Once physics runs on SH2, entity tables must be in SDRAM (already allocated at $
 - Globals field: `MOV #offset,R0; MOV.W @(R0,R13),Rn` (indexed, R0 must be index)
 - ROM table: `MOV.L @pool,Rn; MOV.W @(R0,Rn),Rm` (literal pool + indexed)
 
-### 7.10 Expansion ROM Memory Layout (Phase 3 Final)
+### 7.10 Expansion ROM Memory Layout (Phase 4)
 
 ```
 $301300-$30148F  coord_transform_batched (388B)       — ACTIVE (S-6 Phase B)
-$301500-$301647  cmd $3F (328B)                       — ACTIVE (Phase 3: 15 JSR calls + sound/viewport relay)
-$301660-$3016E3  cmd $3E (132B)                       — ACTIVE (Phase 3A: DMAC entity+globals, dual mode)
-$301700-$30174F  physics_divide (80B)                 — ACTIVE (sh2_sdiv16 + gear reciprocal table)
-$301760-$301AD3  physics_group1 (884B)                — ACTIVE (speed_degrade + speed_clamp + steering + force_integration)
-$301AE0-$301CCF  physics_group2_accel (496B)          — ACTIVE (speed_accel_braking + tilt_adjust)
-$301CE0-$301DF7  physics_timers (280B)                — ACTIVE (5 timer/guard co-ports)
-$301E00-$301EB7  physics_pos_update (184B)            — ACTIVE (16.16 fixed-point position + sine lookup)
-$301EC0-$302573  physics_drift (1716B)                — ACTIVE (drift_physics + suspension + lateral_A + lateral_B)
-$302580-$3FFFFF  Free (~1006KB)                       — Reserved for Phase 4 (AI) + Phase 5 (collision)
+$301500-$301683  cmd $3F (388B)                       — ACTIVE (Phase 4: 15 JSR + AI entity loop + relays)
+$3016A0-$301748  cmd $3E (168B)                       — ACTIVE (3-mode DMAC: player/globals/AI)
+$301760-$3017AF  physics_divide (80B)                 — ACTIVE (sh2_sdiv16 + gear reciprocal table)
+$3017C0-$301B33  physics_group1 (884B)                — ACTIVE (speed_degrade + speed_clamp + steering + force_integration)
+$301B40-$301D2F  physics_group2_accel (496B)          — ACTIVE (speed_accel_braking + tilt_adjust)
+$301D40-$301E57  physics_timers (280B)                — ACTIVE (5 timer/guard co-ports)
+$301E60-$301F17  physics_pos_update (184B)            — ACTIVE (16.16 fixed-point position + sine lookup)
+$301F20-$3025D3  physics_drift (1716B)                — ACTIVE (drift_physics + suspension + lateral_A + lateral_B)
+$3025E0-$3026EF  ai_steering (272B)                   — ACTIVE (Phase 4: atan2 + steering calc)
+$302700-$3029FB  ai_orchestrator (764B)               — ACTIVE (Phase 4: 3 entry points — main/spawn/finish)
+$302A00-$3FFFFF  Free (~981KB)                        — Reserved for Phase 5 (collision)
 ```
 
-**Total VR60 physics code: ~4,224 bytes** (17 functions + infrastructure)
+**Total VR60 SH2 code: ~6,096 bytes** (21 functions + AI entity loop + infrastructure)
 
 ---
 
 ## 8. Phase 4: AI Port
 
-**Status: NOT STARTED**
-**Prerequisite: Phase 3 (physics_integration must be on SH2)**
+**Status: PHASE 4 CORE COMPLETE** (2026-03-27)
+**Prerequisite: Phase 3 (done)**
+
+### 8.0 Implementation Status
+
+**What's built (4 SH2 modules, ~1,800B SH2 code):**
+
+| Component | ROM Address | Size | Status |
+|-----------|------------|------|--------|
+| ai_steering + atan2 | $3025E0 | 272B | ACTIVE — heading from position deltas |
+| ai_orchestrator (3 entries) | $302700 | 764B | ACTIVE — spawn, steering, speed, position |
+| cmd $3F AI entity loop | (inline) | ~60B | ACTIVE — iterates 15 entities per frame |
+| Variant B bypass trampoline | code_1c200 | ~30B | ACTIVE — skips 68K physics+AI for AI entities |
+
+**AI entity SDRAM:** $06010000 (15 × 256B = 3,840B, first-frame DREQ staging)
+**AI globals:** $0600FC10 (16B: countdown, visibility, race_counter, slot table)
+
+**Total entities on Master SH2:** 16 (1 player + 15 AI)
+**Estimated Master SH2 utilization:** ~38% (from 33% at Phase 3)
+
+**Remaining (not yet ported):**
+- collision_avoidance_speed_calc (502B) — Manhattan distance + speed table lookup. Falls through to physics. Currently AI entities skip this path (orchestrator handles speed directly).
+- ai_state_dispatch + external state handlers — global 15-state machine. Ticks independently, can stay on 68K for now.
+- Supporting micro-functions (timers, flags, buffer setup) — small, can be ported incrementally.
 
 ### 8.1 Goal
 
 Move the 15-state AI machine to Master SH2.
 
-### 8.2 Key Dependency
+### 8.2 Key Dependency (RESOLVED)
 
-`collision_avoidance_speed_calc` ($A470) **falls through to** `physics_integration` ($A666) with no RTS. If physics is already on SH2 (Phase 3), the AI fall-through targets SH2 code — this is the natural integration point. If physics is NOT on SH2, we'd need a trampoline back to 68K, which defeats the purpose.
+`collision_avoidance_speed_calc` ($A470) **falls through to** `physics_integration` ($A666) with no RTS. Phase 3 put physics on SH2, making this the natural AI integration point. The orchestrator now chains into the existing SH2 physics pipeline.
 
-**This is why Phase 4 depends on Phase 3.**
+**Phase 4 depends on Phase 3 — SATISFIED.**
 
 ### 8.3 Functions to Port
 

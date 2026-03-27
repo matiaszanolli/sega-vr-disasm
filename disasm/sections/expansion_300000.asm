@@ -518,7 +518,17 @@ physics_drift:
         include "sh2/generated/physics_drift.inc"
 
 ; ============================================================================
-; REMAINING EXPANSION ROM SPACE (from ~0x302500)
+; VR60 AI STEERING: 0x3025A0 — STATUS: ACTIVE (VR60 Phase 4)
+; ============================================================================
+; AI steering + atan2 calculation (shared with camera system)
+; See: disasm/sh2/expansion/ai_steering.asm for source
+;
+        dcb.b   ($3025A0 - *), $FF      ; Pad to 0x3025A0
+ai_steering:
+        include "sh2/generated/ai_steering.inc"
+
+; ============================================================================
+; REMAINING EXPANSION ROM SPACE (from ~0x302700)
 ; ============================================================================
 ; Pad to $3F0000 (960KB) instead of $400000 (1MB) to avoid PicoDrive
 ; emulator bug triggered by ROM files > ~0x3F1F40 bytes.

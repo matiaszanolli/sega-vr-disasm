@@ -118,9 +118,13 @@ vr60_globals_stage:
         move.b  d0,(a1)+                        ; +$2E
         clr.b   (a1)+                           ; +$2F padding
 
-; --- Reserved (offsets +$30 to +$3F) — clear 16 bytes ---
-        clr.l   (a1)+                           ; +$30
-        clr.l   (a1)+                           ; +$34
+; --- Phase 4 AI globals (offsets +$30 to +$37) ---
+        clr.l   (a1)+                           ; +$30 (max_cam_dist / reserved)
+        move.w  ($FFFFC83E).w,d0                ; difficulty_index
+        move.w  d0,(a1)+                        ; +$34
+        move.w  ($FFFFC840).w,d0                ; camera_mode
+        move.w  d0,(a1)+                        ; +$36
+; --- Reserved (offsets +$38 to +$3F) — clear 8 bytes ---
         clr.l   (a1)+                           ; +$38
         clr.l   (a1)+                           ; +$3C
 

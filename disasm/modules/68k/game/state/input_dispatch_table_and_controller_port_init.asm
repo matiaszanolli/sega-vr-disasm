@@ -29,12 +29,12 @@ input_dispatch_table_and_controller_port_init:
         or.b    d0,d1                   ; $8200
         DC.W    $0088                           ; $0016C2
         DC.W    $1A6E                           ; $0016C4
-        DC.W    $0088                           ; $0016C6
-        DC.W    $1A72                           ; $0016C8
+        DC.W    $0089                           ; $0016C6  VR60: → vint_vdp_sync_with_swap (60 FPS)
+        DC.W    $C30E                           ; $0016C8  (was $0088/$1A72 → original vdp sync)
         DC.W    $0088                           ; $0016CA
         DC.W    $1C66                           ; $0016CC
         DC.W    $0089                           ; $0016CE  VR60: → vint_sprite_cfg_with_swap (60 FPS)
-        DC.W    $C30E                           ; $0016D0  (was $0088/$1ACA → original sprite cfg)
+        DC.W    $C350                           ; $0016D0  (was $0088/$1ACA → original sprite cfg)
         DC.W    $0088                           ; $0016D2
         DC.W    $19FE                           ; $0016D4
         DC.W    $0088                           ; $0016D6

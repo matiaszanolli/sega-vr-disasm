@@ -183,6 +183,10 @@ state4_epilogue:
         move.w  COMM5,$00FF618E                  ; 6B — viewport right
 ; --- Fire-and-forget: async block copies + physics via cmd $3F ---
         jsr     vr60_comm_trigger               ; 6B — writes COMM3-5 + triggers cmd $3F
+; --- 60 FPS: inline frame swap (3rd swap per game tick) ---
+; State 0 V-INT swaps frame A. State 8 V-INT swaps frame B.
+; This inline swap at state 4 provides frame C → 60 FPS display.
+        jsr     vint_swap_only                  ; 6B — FS toggle + CMD INT management
 ; --- State advance ---
         addq.w  #4,($FFFFC87E).w
         move.w  #$001C,$00FF0008               ; V-INT state = sprite_cfg

@@ -598,7 +598,7 @@ sh2_force_integration:
 
 /* --- INTERMEDIATE LITERAL POOL 2 --- */
 .align 2
-.fi_pool2:      .short  0x0270     /* boost addition (60 FPS: $0738 ÷ 3) */
+.fi_pool2:      .short  0x0738     /* boost addition */
                 .short  0x71C0     /* air resistance coeff */
                 .short  0x0100     /* grip 1.0 (8.8) */
 

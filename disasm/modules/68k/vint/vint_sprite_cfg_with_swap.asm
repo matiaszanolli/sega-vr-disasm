@@ -46,13 +46,6 @@ vint_sprite_cfg_with_swap:
         bclr    #0,$00A1518B                    ; 6B — FS=0 (display buffer 1)
 .done:
 ; --- CMD INT: re-enable ---
-        bset    #7,MARS_SYS_INTCTL
-; --- 60 FPS: fire cmd $3F physics (non-blocking) ---
-        tst.b   COMM0_HI                        ; Master busy?
-        bne.s   .no_swap                         ; skip if busy
-        move.b  #$3F,COMM0_LO
-        move.b  #$01,COMM0_HI
-; --- 60 FPS: re-trigger Slave render ---
-        move.b  #$02,COMM2
+        bset    #7,MARS_SYS_INTCTL              ; 6B
 .no_swap:
         rts

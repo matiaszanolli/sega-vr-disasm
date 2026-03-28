@@ -132,11 +132,9 @@ sh2_ai_orch_main:
     mov     r2,r0                  /* R0 = offset */
     mov     #2,r1                  /* R1 = value (state=2) */
     mov.w   r1,@(r0,r7)           /* race_slot[slot] = 2 */
-    /* Set spawn timer (60 FPS: 120 × 3 = 360 = $168) */
+    /* Set spawn timer = 120 */
     mov     #120,r0
     extu.b  r0,r0
-    shll    r0                     /* 240 */
-    add     #120,r0                /* 360 */
     mov.w   r0,@(0xB0,gbr)        /* entity[+$B0] = 120 */
     /* Clear countdown */
     mov.l   @(.ao_ai_globals,pc),r7
@@ -276,13 +274,22 @@ sh2_ai_orch_main:
     mov     r0,r1
     mov     r7,r0                  /* target heading */
     sub     r1,r0                  /* R0 = delta = target - heading */
-    mov     #107,r1                /* 60 FPS: $140 (320) ÷ 3 ≈ 107 ($6B) */
-    cmp/gt  r1,r0                  /* delta > 107? */
+    mov     #5,r1
+    shll2   r1
+    shll2   r1
+    shll    r1
+    shll    r1                     /* R1 = $140 = 320 */
+    cmp/gt  r1,r0                  /* delta > $140? */
     bf      .ao_steer_hi_ok
     mov     r1,r0
 .ao_steer_hi_ok:
-    mov     #-107,r1               /* 60 FPS: -$140 ÷ 3 ≈ -107 */
-    cmp/ge  r1,r0                  /* delta >= -107? */
+    mov     #5,r1
+    shll2   r1
+    shll2   r1
+    shll    r1
+    shll    r1
+    neg     r1,r1                  /* R1 = -$140 = -320 */
+    cmp/ge  r1,r0                  /* delta >= -$140? */
     bt      .ao_steer_lo_ok
     mov     r1,r0
 .ao_steer_lo_ok:
@@ -347,12 +354,12 @@ sh2_ai_orch_main:
     mov     r0,r1
     mov     r6,r0                  /* target speed */
     sub     r1,r0                  /* R0 = delta */
-    mov     #16,r1                 /* 60 FPS: 47 ÷ 3 ≈ 16 */
+    mov     #47,r1
     cmp/gt  r1,r0
     bf      .ao_accel_hi
     mov     r1,r0
 .ao_accel_hi:
-    mov     #-27,r1                /* 60 FPS: -80 ÷ 3 ≈ -27 */
+    mov     #-80,r1
     cmp/ge  r1,r0
     bt      .ao_accel_lo
     mov     r1,r0
@@ -471,12 +478,13 @@ sh2_ai_orch_spawn:
     mov     #120,r0
     extu.b  r0,r0
     mov.w   @(0xB0,gbr),r0        /* spawn_timer → clobbers 120! */
-    /* 60 FPS: spawn timer now 360 frames. Visibility = (360-timer) × $13EA >> 16 */
-    mov.w   @(.ao_c0168,pc),r1    /* R1 = 360 ($168) */
+    /* Fix: save 120, load timer */
+    mov     #120,r1
+    extu.b  r1,r1
     mov.w   @(0xB0,gbr),r0
-    sub     r0,r1                  /* R1 = 360 - timer */
-    mov.w   @(.ao_c13EA,pc),r2    /* scaling factor (60 FPS: $3BBB ÷ 3) */
-    mulu.w  r2,r1                  /* MACL = (360-timer) × $13EA (unsigned) */
+    sub     r0,r1                  /* R1 = 120 - timer */
+    mov.w   @(.ao_c3BBB,pc),r2
+    mulu.w  r2,r1                  /* MACL = (120-timer) × $3BBB (unsigned) */
     sts     macl,r0
     shlr16  r0                     /* >>16 → visibility [0..20] */
     /* Store to AI globals visibility */
@@ -547,11 +555,9 @@ sh2_ai_orch_finish:
 .ao_c0140:      .short  0x0140     /* max steer delta = 320 */
 .ao_cFEC0:      .short  0xFEC0     /* min steer delta = -320 */
 .ao_c0100:      .short  0x0100     /* dead zone threshold = 256 */
-.ao_c11F8:      .short  0x05FE     /* decel accum max (60 FPS: $11F8 ÷ 3) */
+.ao_c11F8:      .short  0x11F8     /* decel accum max */
 .ao_c4000_s:    .short  0x4000     /* cosine offset (90°) */
-.ao_c3BBB:      .short  0x3BBB     /* visibility scaling (unused, kept for reference) */
-.ao_c0168:      .short  0x0168     /* 360 = spawn timer base (60 FPS: 120 × 3) */
-.ao_c13EA:      .short  0x13EA     /* visibility scaling (60 FPS: $3BBB ÷ 3) */
+.ao_c3BBB:      .short  0x3BBB     /* visibility scaling factor */
 .ao_c4000:      .short  0x4000     /* inactive flag */
 .align 2
 .ao_ai_globals: .long   0x0600FC10 /* AI globals area (cache-through not needed, Master only reads) */

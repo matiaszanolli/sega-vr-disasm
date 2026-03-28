@@ -130,10 +130,10 @@ sh2_effect_timer_mgmt:
     and     r2,r1
     mov     r1,r0
     mov.w   r0,@(0x02,gbr)        /* +$02: clear bit 13 */
-    mov     #30,r0                /* $1E */
-    mov.w   r0,@(0x6C,gbr)        /* +$6C index = 30 */
-    mov.w   r0,@(0x6A,gbr)        /* +$6A timer = 30 */
-    mov.w   r0,@(0x14,gbr)        /* +$14 duration = 30 */
+    mov     #90,r0                /* 60 FPS: 30 × 3 = 90 */
+    mov.w   r0,@(0x6C,gbr)        /* +$6C index = 90 */
+    mov.w   r0,@(0x6A,gbr)        /* +$6A timer = 90 */
+    mov.w   r0,@(0x14,gbr)        /* +$14 duration = 90 */
     mov     #0,r0
     mov.w   r0,@(0x0E,gbr)        /* +$0E effect = 0 */
     rts
@@ -152,9 +152,9 @@ sh2_effect_timer_mgmt:
     mov     #0,r0
     mov.w   r0,@(0x0E,gbr)        /* +$0E = 0 */
     mov.w   r0,@(0x6C,gbr)        /* +$6C = 0 */
-    mov     #30,r0
-    mov.w   r0,@(0x6A,gbr)        /* +$6A = 30 */
-    mov.w   r0,@(0x14,gbr)        /* +$14 = 30 */
+    mov     #90,r0                /* 60 FPS: 30 × 3 = 90 */
+    mov.w   r0,@(0x6A,gbr)        /* +$6A = 90 */
+    mov.w   r0,@(0x14,gbr)        /* +$14 = 90 */
 .et_return:
     rts
     nop
@@ -254,9 +254,10 @@ sh2_anim_timer_speed_clear:
     add     #1,r0                 /* counter++ */
     mov.w   r0,@(0xF0,gbr)        /* store back */
 
-    /* Check if counter > 80 ($50) */
-    mov     #80,r1
-    cmp/gt  r1,r0                 /* counter > 80? */
+    /* Check if counter > 240 (60 FPS: 80 × 3 = 240) */
+    mov     #0xF0,r1
+    extu.b  r1,r1                 /* R1 = 240 ($F0) */
+    cmp/gt  r1,r0                 /* counter > 240? */
     bf      .ac_done              /* not yet */
 
     /* Counter exceeded 80: clear counter, clear speed */

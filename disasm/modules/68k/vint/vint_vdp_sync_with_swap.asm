@@ -33,5 +33,12 @@ vint_vdp_sync_with_swap:
         bclr    #0,$00A1518B
 .done:
         bset    #7,MARS_SYS_INTCTL
+; --- 60 FPS: fire cmd $3F physics (non-blocking) ---
+        tst.b   COMM0_HI                        ; Master busy?
+        bne.s   .no_swap                         ; skip if busy (graceful)
+        move.b  #$3F,COMM0_LO                   ; cmd index
+        move.b  #$01,COMM0_HI                   ; trigger
+; --- 60 FPS: re-trigger Slave render ---
+        move.b  #$02,COMM2                       ; Slave cmd $02 (render)
 .no_swap:
         rts

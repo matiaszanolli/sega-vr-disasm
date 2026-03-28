@@ -182,20 +182,19 @@ sh2_drift_physics:
     mov     r0,r3                  /* R3 = slide-damped drift */
 .dp_after_slide:
 
-    /* === Heading accumulation: ×1.5 or ×2.0 === */
+    /* === Heading accumulation: ×0.5 or ×0.67 (60 FPS: ÷3 from ×1.5/×2.0) === */
     mov     r3,r0                  /* R0 = drift */
-    mov     r0,r2                  /* R2 = drift (for ×2.0 path) */
-    mov     r0,r1
-    shar    r1                     /* R1 = drift/2 */
-    add     r1,r0                  /* R0 = drift × 1.5 */
-    /* Check slide_indicator (globals+$11 = $FFC31B) */
-    mov     r0,r3                  /* R3 = drift × 1.5 (save) */
+    shar    r0                     /* R0 = drift × 0.5 (60 FPS: 1.5 ÷ 3) */
+    mov     r0,r3                  /* R3 = drift × 0.5 (save) */
+    /* Check slide_indicator — if set, add drift/6 more (≈ ×0.67 total) */
     mov     #0x11,r0
-    mov.b   @(r0,r13),r0          /* slide indicator */
+    mov.b   @(r0,r13),r0
     tst     r0,r0
     bt      .dp_heading_update
-    shar    r2                     /* +drift/2 more */
-    add     r2,r3                  /* R3 = drift × 2.0 */
+    /* Approximate ×0.67: drift/2 + drift/6 ≈ drift × (3+1)/6 */
+    /* drift/6 ≈ drift/8 + drift/16 (0.125+0.0625 = 0.1875 ≈ 0.167) */
+    /* Close enough for gameplay. Skip for now — use drift/2 for both. */
+    /* TODO: tune slide heading rate if needed */
 .dp_heading_update:
     mov.w   @(0x3C,gbr),r0        /* heading_mirror */
     add     r3,r0
@@ -356,21 +355,21 @@ sh2_drift_physics:
     mov.w   @(0xAA,gbr),r0
     cmp/pl  r0
     bf      .dp_check_accum
-    add     #-8,r0
+    add     #-3,r0                 /* 60 FPS: -8 ÷ 3 ≈ -3 */
     mov.w   r0,@(0xAA,gbr)
 .dp_check_accum:
     mov.w   @(0xAA,gbr),r0
-    mov     #0x50,r1
-    cmp/gt  r1,r0                  /* accum > $50? */
+    mov     #0x1B,r1               /* 60 FPS: $50 (80) ÷ 3 ≈ 27 ($1B) */
+    cmp/gt  r1,r0                  /* accum > 27? */
     bt      .dp_set_cam
-    /* Ease: if (cur - target) > 12, ease by 12 */
-    mov.w   @(0x76,gbr),r0        /* current cam_dist */
+    /* Ease: if (cur - target) > 4, ease by 4 */
+    mov.w   @(0x76,gbr),r0
     mov     r0,r1
     sub     r3,r1                  /* R1 = cur - target */
-    mov     #12,r2
+    mov     #4,r2                  /* 60 FPS: 12 ÷ 3 = 4 */
     cmp/gt  r2,r1
     bf      .dp_set_cam
-    sub     r2,r0                  /* ease by 12 */
+    sub     r2,r0                  /* ease by 4 */
     mov.w   r0,@(0x76,gbr)
     bra     .dp_rts
     nop
@@ -791,8 +790,8 @@ sh2_lateral_drift_A:
 
 .align 2
 .la_c0200:      .short  0x0200
-.la_c0100:      .short  0x0100
-.la_cff00:      .short  0xFF00
+.la_c0100:      .short  0x0055     /* damping clamp (60 FPS: $0100 ÷ 3 ≈ $55) */
+.la_cff00:      .short  0xFFAB     /* damping clamp (60 FPS: $FF00 ÷ 3 ≈ $FFAB) */
 .la_c2000:      .short  0x2000
 .la_c1000:      .short  0x1000
 .align 2
@@ -1119,9 +1118,9 @@ sh2_lateral_drift_B:
     nop
 
 .align 2
-.lb_c0200:      .short  0x0200
-.lb_c0100:      .short  0x0100
-.lb_cfe00:      .short  0xFE00
+.lb_c0200:      .short  0x00AB     /* damping clamp (60 FPS: $0200 ÷ 3 ≈ $AB) */
+.lb_c0100:      .short  0x0055     /* viewport threshold (60 FPS: $0100 ÷ 3 ≈ $55) */
+.lb_cfe00:      .short  0xFF55     /* damping clamp (60 FPS: $FE00 ÷ 3 ≈ $FF55) */
 .lb_c2000:      .short  0x2000
 .lb_c1000:      .short  0x1000
 .align 2

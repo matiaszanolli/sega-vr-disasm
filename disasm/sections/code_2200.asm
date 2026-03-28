@@ -170,8 +170,7 @@ state4_epilogue:
         jsr     vr60_globals_stage              ; 6B — 64B scattered→$FF6B00
         jsr     vr60_globals_transfer           ; 6B — DREQ 64B→SDRAM (cmd $3E mode 1)
 .camera:
-; --- Interpolate camera and re-DMA ---
-        jsr     camera_avg_and_redma(pc)
+; --- camera_avg_and_redma REMOVED (Phase 7: real 60 FPS physics, no interpolation) ---
 ; --- Sound + viewport pickup from previous frame's cmd $3F ---
 ; COMM6_HI = sound trigger byte ($B1/$B2/$B4 or $00)
 ; COMM4 = viewport left scale (lateral_drift_B shimmer)

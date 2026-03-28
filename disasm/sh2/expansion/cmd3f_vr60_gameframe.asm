@@ -256,6 +256,7 @@ cmd3f_vr60_gameframe:
     /* R8 was clobbered — reload before COMM write */
     mov.l   @(.comm_base,pc),r8   /* R8 = $20004020 */
     mov.b   r0,@(12,r8)           /* COMM6_HI = sound byte */
+    mov.b   @(12,r8),r0           /* dummy read — flush SH2 write buffer */
     /* Clear the sound trigger in globals so it doesn't repeat next frame */
     mov     #0x2C,r0
     mov     #0,r1
@@ -267,21 +268,26 @@ cmd3f_vr60_gameframe:
     /* COMM4/5 were used for input (frame metadata) but consumed at entry. */
     mov.w   @(0xF8,gbr),r0        /* entity[+$F8] left viewport */
     mov.w   r0,@(8,r8)            /* COMM4 = left viewport */
+    mov.w   @(8,r8),r0            /* dummy read — flush write buffer */
     mov.w   @(0xFA,gbr),r0        /* entity[+$FA] right viewport */
     mov.w   r0,@(10,r8)           /* COMM5 = right viewport */
+    mov.w   @(10,r8),r0           /* dummy read — flush write buffer */
 
     /* === COMPLETION: inline COMM cleanup (func_084 equivalent) === */
 
     /* Clear COMM1, set "command done" bit */
     mov    #0,r0
     mov.w  r0,@(2,r8)             /* COMM1 = $0000 */
-    /* offset 116 */ mov.b  @(3,r8),r0           /* R0 = COMM1_LO (0) */
-    /* offset 118 */ or     #1,r0                /* R0 |= 1 */
-    /* offset 120 */ mov.b  r0,@(3,r8)           /* COMM1_LO = 1 ("done") */
+    mov.w  @(2,r8),r0             /* dummy read — flush write buffer */
+    mov.b  @(3,r8),r0             /* R0 = COMM1_LO (0) */
+    or     #1,r0                  /* R0 |= 1 */
+    mov.b  r0,@(3,r8)             /* COMM1_LO = 1 ("done") */
+    mov.b  @(3,r8),r0             /* dummy read — flush write buffer */
 
     /* Clear COMM0_HI (idle — allows next COMM0 command) */
-    /* offset 122 */ mov    #0,r0
-    /* offset 124 */ mov.b  r0,@(0,r8)           /* COMM0_HI = 0 */
+    mov    #0,r0
+    mov.b  r0,@(0,r8)             /* COMM0_HI = 0 */
+    mov.b  @(0,r8),r0             /* dummy read — flush write buffer */
 
     /* === RETURN === */
     /* offset 126 */ lds.l  @r15+,pr

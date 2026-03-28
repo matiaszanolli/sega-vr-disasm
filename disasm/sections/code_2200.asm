@@ -183,6 +183,8 @@ state4_epilogue:
         move.w  COMM5,$00FF618E                  ; 6B — viewport right
 ; --- Fire-and-forget: async block copies + physics via cmd $3F ---
         jsr     vr60_comm_trigger               ; 6B — writes COMM3-5 + triggers cmd $3F
+; --- 60 FPS: re-trigger Slave for second render (COMM2_HI = $02) ---
+        move.b  #$02,COMM2                       ; 6B — trigger Slave cmd $02
 ; --- State advance ---
         addq.w  #4,($FFFFC87E).w
         move.w  #$001C,$00FF0008               ; V-INT state = sprite_cfg

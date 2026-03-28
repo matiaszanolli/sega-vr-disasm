@@ -33,8 +33,8 @@ input_dispatch_table_and_controller_port_init:
         DC.W    $1A72                           ; $0016C8
         DC.W    $0088                           ; $0016CA
         DC.W    $1C66                           ; $0016CC
-        DC.W    $0088                           ; $0016CE
-        DC.W    $1ACA                           ; $0016D0
+        DC.W    $0089                           ; $0016CE  VR60: → vint_sprite_cfg_with_swap (60 FPS)
+        DC.W    $C30E                           ; $0016D0  (was $0088/$1ACA → original sprite cfg)
         DC.W    $0088                           ; $0016D2
         DC.W    $19FE                           ; $0016D4
         DC.W    $0088                           ; $0016D6

@@ -40,6 +40,9 @@
 ; --- VR60 Phase 1B: COMM relay trigger (50 bytes, called via JSR abs.l from code_2200) ---
         include "modules/68k/sh2/vr60_comm_trigger.asm"
 
+; --- VR60 60 FPS: sprite config + frame swap V-INT handler (replaces state $001C) ---
+        include "modules/68k/vint/vint_sprite_cfg_with_swap.asm"
+
 ; --- VR60 Phase 3B: physics bypass trampoline (called via JMP from entity_render_pipeline) ---
         include "modules/68k/sh2/vr60_physics_bypass_trampoline.asm"
 

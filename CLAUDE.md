@@ -79,8 +79,8 @@ disasm/vrd.asm (entry point)
 
 - **823 68K modules** (736 fully translated, 87 with remaining dc.w — all data, not code)
 - **All SH2 functions** integrated (92 function IDs via 89 .inc files, zero remaining)
-- **Display FPS**: ~40 (camera interpolation, stable frame pacing). Game logic at 20 FPS.
-- **60 FPS blocker**: FS swap must happen during VBlank → need swap-only V-INT handler (R-002). Design ready, 4 table slots available. See [VINT_HANDLER_ARCHITECTURE.md](analysis/VINT_HANDLER_ARCHITECTURE.md) §6.
+- **Display FPS**: ~60 (triple frame swap + Slave re-trigger, 3 FS swaps per game tick). Game logic at 20 FPS.
+- **60 FPS mechanism**: V-INT jump table patched at states $0014/$001C to wrapper handlers that call original VDP setup + FS toggle during VBlank. Slave re-triggered via COMM2_HI=$02 at state 4. R-002 RESOLVED.
 - **Master SH2 commands**: 7 active ($00-$06) — all disassembled. See [SH2_COMMAND_HANDLER_REFERENCE.md](analysis/sh2-analysis/SH2_COMMAND_HANDLER_REFERENCE.md)
 
 ### 68K Game Architecture

@@ -84,10 +84,10 @@ index 0078522..eabb5eb 100644
    SekCyclesLeft = 0;
  }
 diff --git a/platform/libretro/libretro.c b/platform/libretro/libretro.c
-index a6f2bf6..d93e9a4 100644
+index a6f2bf6..ad3a641 100644
 --- a/platform/libretro/libretro.c
 +++ b/platform/libretro/libretro.c
-@@ -94,6 +94,214 @@ static retro_input_state_t input_state_cb;
+@@ -94,6 +94,215 @@ static retro_input_state_t input_state_cb;
  static retro_environment_t environ_cb;
  static retro_audio_sample_batch_t audio_batch_cb;
  
@@ -126,6 +126,7 @@ index a6f2bf6..d93e9a4 100644
 +static unsigned int vrd_gate_thresh = 150000;   /* ssh2 cycles/frame => 3D-active */
 +static int          vrd_3d_active = 0;          /* from previous frame's ssh2 work */
 +static int          vrd_active_frames = 0;
++static long         vrd_scene_filter = -1;      /* VRD_SCENE=hex: only count this scene */
 +
 +/* Classify a sampled PC as idle (poll / V-blank-wait / delay loop) vs useful work.
 +   68K idle = BIOS main-loop poll in WRAM ($FF0000+).
@@ -263,8 +264,8 @@ index a6f2bf6..d93e9a4 100644
 +
 +    if (cpu_id < 0 || cpu_id > 2) return;
 +
-+    /* VRD: 3D-phase gate — ignore samples outside 3D-active frames */
-+    if (vrd_gate_3d && !vrd_3d_active) return;
++    /* VRD: phase gate — ignore samples outside active (3D and/or scene-matched) frames */
++    if ((vrd_gate_3d || vrd_scene_filter >= 0) && !vrd_3d_active) return;
 +    /* VRD: exact idle/useful accounting (independent of histogram truncation) */
 +    if (vrd_is_idle_pc(cpu_id, pc)) vrd_frame_idle[cpu_id]   += (unsigned)cycles;
 +    else                            vrd_frame_useful[cpu_id] += (unsigned)cycles;
@@ -302,7 +303,7 @@ index a6f2bf6..d93e9a4 100644
  #define VOUT_MAX_WIDTH 320
  #define VOUT_MAX_HEIGHT 240
  
-@@ -1960,6 +2168,8 @@ static void update_variables(bool first_run)
+@@ -1960,6 +2169,8 @@ static void update_variables(bool first_run)
        else
           PicoIn.opt &= ~POPT_EN_DRC;
     }
@@ -311,7 +312,7 @@ index a6f2bf6..d93e9a4 100644
  #endif
  #ifdef _3DS
     if(!ctr_svchack_successful)
-@@ -2406,8 +2616,209 @@ void retro_run(void)
+@@ -2406,8 +2617,211 @@ void retro_run(void)
        update_audio_latency = false;
     }
  
@@ -353,6 +354,7 @@ index a6f2bf6..d93e9a4 100644
 +      { const char *dl = getenv("VRD_DUMP_FILE");  if (dl) strncpy(vrd_dump_file, dl, sizeof(vrd_dump_file)-1); }
 +      { const char *fc = getenv("VRD_FB_CRC");     if (fc && atoi(fc) > 0) vrd_fb_crc_on = 1; }
 +      { const char *sa = getenv("VRD_SCENE_ADDR"); vrd_scene_addr = sa ? (unsigned)strtoul(sa,0,16) : 0xFFC87E; }
++      { const char *sf = getenv("VRD_SCENE");      if (sf) vrd_scene_filter = (long)strtoul(sf,0,16); }
 +      if (vrd_watch_log) {
 +         int wi; fprintf(vrd_watch_log, "frame");
 +         for (wi = 0; wi < vrd_watch_n; wi++) fprintf(vrd_watch_log, ",0x%X", vrd_watch_addr[wi]);
@@ -389,7 +391,7 @@ index a6f2bf6..d93e9a4 100644
 +   if ((vrd_profile_enabled || vrd_profile_pc_enabled) &&
 +       vrd_profile_frame < vrd_profile_max_frames && vrd_is_32x) {
 +      unsigned int vrd_m68k_cycles = SekCyclesDone() - vrd_m68k_before;
-+      int vrd_active = (!vrd_gate_3d) || vrd_3d_active;
++      int vrd_active = (!(vrd_gate_3d || vrd_scene_filter >= 0)) || vrd_3d_active;
 +
 +      if (vrd_active) {
 +         int c;
@@ -411,8 +413,9 @@ index a6f2bf6..d93e9a4 100644
 +                 vrd_active, vrd_fbcrc, vrd_scene, vrd_state, vrd_is_32x);
 +      }
 +
-+      /* gate the NEXT frame on this frame's Slave 3D workload */
-+      vrd_3d_active = (vrd_ssh2_work_cycles > vrd_gate_thresh);
++      /* gate the NEXT frame on Slave 3D workload AND optional scene filter */
++      vrd_3d_active = (!vrd_gate_3d || vrd_ssh2_work_cycles > vrd_gate_thresh) &&
++                      (vrd_scene_filter < 0 || (long)vrd_r16(0xFF0004) == vrd_scene_filter);
 +
 +      if (vrd_profile_frame == vrd_profile_max_frames - 1) {
 +         if (vrd_profile_enabled && vrd_profile_log) {

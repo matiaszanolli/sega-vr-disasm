@@ -23,6 +23,7 @@ sequence run (a clean, input-free 3D benchmark).
 | `VRD_PROFILE_PC_LOG=path` | Where to write the PC CSV (`cpu,pc,total_cycles,count,avg,share` + `BUDGET` lines) |
 | `VRD_GATE_3D=1` | Count only frames where the Slave is rendering 3D (excludes boot/2D) |
 | `VRD_GATE_THRESH=N` | Slave cycles/frame to count as 3D-active (default 150000) |
+| `VRD_SCENE=hex` | Count only frames whose scene-handler word (`$FF0004`) matches — e.g. `0x4CBC` = interactive racing. **Essential**: mixing car-select/attract/menu skews the budget. |
 | `VRD_FB_CRC=1` | Compute an FNV hash of the displayed framebuffer each frame (`fb_crc` column) → effective-display-FPS / "did the image change?" |
 | `VRD_WATCH=addr:size,...` | Log values at addresses every frame (68K or SH2 bus; size 1/2/4) |
 | `VRD_WATCH_LOG=path` | Where to write the watch time-series CSV |
@@ -72,24 +73,28 @@ VRD_DUMP_FRAME=2000 VRD_DUMP=0x06004240:32,0x0600CA00:64 VRD_DUMP_FILE=dump.txt 
 - PC profiling forces the SH2 **interpreter** (DRC off). Frame-level cycle counts
   are valid under DRC too.
 
-## Canonical baseline (current `60fps_project` build, racing/3D-active)
+## Canonical baseline — INTERACTIVE RACING only (`VRD_SCENE=0x4CBC`, 1131 frames)
 
-| 68K time | share | cyc/frame |
-|----------|-------|-----------|
-| V-blank idle (WRAM poll) | ~51% | ~65,000 |
-| `sh2_send_cmd` sync-wait (68K blocked on Master SH2 copy) | ~13.5% | ~16,900 |
-| **Real compute (useful, offloadable)** | **31.5%** | **39,197** |
+> Always scene-isolate. The mixed 3D-gated average is skewed by car-select/attract/
+> name-entry (which call `sh2_send_cmd` heavily and look nothing like racing).
 
-| SH2 | useful/frame | of executed | of CPU budget |
-|-----|-------------|-------------|---------------|
-| Master SH2 | 103,423 | 83.6% | ~27% (≈68% free) |
-| Slave SH2 | 125,476 | 40.9% | ~80% util (41% real render) |
+| CPU (racing) | useful/frame | of CPU budget | notes |
+|--------------|-------------|---------------|-------|
+| 68K | 45,481 (36.6%) | — | **63% V-blank idle**; `sh2_send_cmd` wait negligible in racing |
+| Master SH2 | 158,977 (99.7%) | ~41% | cmd $3F physics/AI/copies; ~59% free |
+| Slave SH2 | 231,056 (75.3%) | ~60% | ~80% util — busiest CPU; renders every TV frame |
 
-**Key conclusion:** 68K *compute* per game-frame (~3×39,197 ≈ 117,600 cyc) already
-fits inside one TV-frame budget (127,833). **Compute is NOT the 60 FPS bottleneck**
-— so offloading more 68K compute to the Master SH2 does not help (and lengthens the
-sync-wait). The real levers are (1) the **`sh2_send_cmd` sync barrier** — the 68K
-blocked ~13.5% of the time waiting for Master SH2 block copies → pipeline overlap /
-batched-or-faster copies; and (2) the **3-TV-frame state machine** (game state
-0→4→8). Effective display ≈ 45 FPS; racing shows a repeating 3-frame cycle where
-**state-4 frames are a constant framebuffer** while states 0/8 change.
+**Key conclusions (racing-isolated):**
+- Racing is **neither compute-bound nor sync-bound**. The 68K is **63% idle** every
+  frame; the `sh2_send_cmd` barrier (13% in mixed data) is a car-select/attract
+  artifact, not racing → **pipeline-overlap of `sh2_send_cmd` is not the lever.**
+- The cap is the **state machine: one state per V-INT, 0→4→8 = 3 TV-frames per
+  game-tick.** The Slave already renders every TV frame (states 0/8 produce changing
+  images; state 4 is a constant framebuffer); only the *game logic* runs at 20 Hz.
+- Path to 60 FPS = **run the game logic every TV frame (Phase 7)**. Budget check:
+  a full game-tick's 68K compute (~3×45,481 ≈ 136k cyc) is ~7–10% over one TV-frame
+  (127,833) → needs ~10% 68K relief (finish offloading the AI-entity physics/
+  collision remnants — `Physics Integration $A68C`, `AI Steering $A7B8` — to the
+  ~59%-idle Master). The Slave renders every frame already, so its load is ~flat.
+  The hard part is per-frame physics-constant scaling (the prior Phase 7 revert
+  reason), now more tractable with physics/AI in one SH2 codebase.

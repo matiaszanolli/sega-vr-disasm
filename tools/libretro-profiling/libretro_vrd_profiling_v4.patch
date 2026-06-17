@@ -84,10 +84,10 @@ index 0078522..eabb5eb 100644
    SekCyclesLeft = 0;
  }
 diff --git a/platform/libretro/libretro.c b/platform/libretro/libretro.c
-index a6f2bf6..1e641c8 100644
+index a6f2bf6..acf9436 100644
 --- a/platform/libretro/libretro.c
 +++ b/platform/libretro/libretro.c
-@@ -94,6 +94,205 @@ static retro_input_state_t input_state_cb;
+@@ -94,6 +94,210 @@ static retro_input_state_t input_state_cb;
  static retro_environment_t environ_cb;
  static retro_audio_sample_batch_t audio_batch_cb;
  
@@ -133,9 +133,14 @@ index a6f2bf6..1e641c8 100644
 +static int vrd_is_idle_pc(int cpu_id, unsigned int pc)
 +{
 +    if (cpu_id == 0)
-+        return pc >= 0xFF0000;
-+    if (pc >= 0x06000440 && pc < 0x06000640) return 1; /* msh2 $460 / ssh2 $592,$60A */
-+    if (pc >= 0x020003C0 && pc < 0x020003E0) return 1; /* slave boot idle $0203CC */
++        return pc >= 0xFF0000;                         /* BIOS main-loop V-blank poll */
++    if (cpu_id == 1) {                                 /* Master SH2 (empirical poll PCs) */
++        if (pc >= 0x06004230 && pc < 0x06004260) return 1;  /* dispatch/idle poll $0600424E */
++        if (pc >= 0x06000440 && pc < 0x06000492) return 1;  /* secondary poll */
++    } else {                                           /* Slave SH2 */
++        if (pc >= 0x06000580 && pc < 0x06000660) return 1;  /* cmd poll + delay loop */
++        if (pc >= 0x020003C0 && pc < 0x020003E0) return 1;  /* boot idle $0203CC */
++    }
 +    return 0;
 +}
 +
@@ -293,7 +298,7 @@ index a6f2bf6..1e641c8 100644
  #define VOUT_MAX_WIDTH 320
  #define VOUT_MAX_HEIGHT 240
  
-@@ -1960,6 +2159,8 @@ static void update_variables(bool first_run)
+@@ -1960,6 +2164,8 @@ static void update_variables(bool first_run)
        else
           PicoIn.opt &= ~POPT_EN_DRC;
     }
@@ -302,7 +307,7 @@ index a6f2bf6..1e641c8 100644
  #endif
  #ifdef _3DS
     if(!ctr_svchack_successful)
-@@ -2406,8 +2607,209 @@ void retro_run(void)
+@@ -2406,8 +2612,209 @@ void retro_run(void)
        update_audio_latency = false;
     }
  

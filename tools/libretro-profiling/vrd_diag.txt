@@ -1,0 +1,32 @@
+68K unique PCs: 178 (hash table size: 65536)
+Master SH2 unique PCs: 3
+Slave SH2 unique PCs: 10
+
+--- Pico.rom raw bytes at offset $200 (should be 4EF9 0088 0838...) ---
+  Pico.romsize = 0x3F0000
+  Pico.rom @ 0x2000000
+  offset $200: 00 06 A8 03 00 06 A8 03 00 06 A8 03 00 06 A8 03 00 06 A8 03 00 06 A8 03 00 06 A8 03 00 06 A8 03
+  offset $832: F0 52 00 06 44 53 00 06 7C 53 00 06 24 5B 00 06
+  offset $000: 00 06 FC 03 00 06 80 FF 00 06 FC 03 00 06 80 FF
+
+--- Hash table sample (first 20 non-empty 68K entries) ---
+  slot   268: pc=0x00880218 cycles=70 count=1
+  slot   512: pc=0x00000400 cycles=40 count=1
+  slot   518: pc=0x0000040C cycles=32 count=1
+  slot   524: pc=0x00000418 cycles=36 count=1
+  slot   527: pc=0x0000041E cycles=16 count=1
+  slot   539: pc=0x00000436 cycles=34 count=1
+  slot   548: pc=0x00000448 cycles=34 count=1
+  slot   563: pc=0x00000466 cycles=40 count=1
+  slot   571: pc=0x00000476 cycles=36 count=1
+  slot   576: pc=0x00000480 cycles=32 count=1
+  slot   577: pc=0x00000482 cycles=396 count=12
+  slot   578: pc=0x00000484 cycles=449 count=13
+  slot   580: pc=0x00000488 cycles=37 count=1
+  slot   586: pc=0x00000494 cycles=36 count=1
+  slot   589: pc=0x0000049A cycles=36 count=1
+  slot   593: pc=0x000004A2 cycles=24 count=1
+  slot   597: pc=0x000004AA cycles=32 count=1
+  slot   599: pc=0x000004AE cycles=40 count=1
+  slot   601: pc=0x000004B2 cycles=40 count=1
+  slot   603: pc=0x000004B6 cycles=40 count=1

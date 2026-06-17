@@ -59,7 +59,9 @@
 ;   0x3016C0-0x301A3F  physics_group1 (~884 bytes)            — ACTIVE  (VR60 Phase 3B, functions 1+5+2+3)
 ;   0x301A40-0x301C3F  physics_group2_accel (~496 bytes)     — ACTIVE  (VR60 Phase 3B, functions 6+7)
 ;   0x301C40-0x301DFF  physics_timers (~450 bytes)            — ACTIVE  (VR60 Phase 3B, timer/guard co-port)
-;   0x301E00-0x3FFFFF  Free space (remaining ~1014KB)
+;   0x301E00-0x3026FF  physics_pos, physics_drift, ai_steering, ai_orchestrator
+;   0x302B00-0x302BFF  render_state_patcher (~200 bytes)   — ACTIVE  (VR60 Phase 7, 60 FPS render bridge)
+;   0x302C00-0x3FFFFF  Free space (remaining ~1013KB)
 ;
 ; Shared Data Structures (cache-through SDRAM, NOT in expansion ROM):
 ;   0x2203E000-0x2203E00F  Parameter block (16 bytes: R14, R7, R8, R5)
@@ -436,7 +438,7 @@ cmd3f_vr60_gameframe:
 ;
 ; See: disasm/sh2/expansion/cmd3e_entity_transfer.asm for source
 ;
-        dcb.b   ($3016A0 - *),$FF      ; Pad to 0x301660 (cmd $3F = 328B with viewport relay)
+        dcb.b   ($3016B0 - *),$FF      ; Pad to 0x3016B0 (cmd $3F = 424B, cmd $3E = 168B, fits before $301760)
 cmd3e_entity_transfer:
         include "sh2/generated/cmd3e_entity_transfer.inc"
 
@@ -450,7 +452,7 @@ cmd3e_entity_transfer:
 ;
 ; See: disasm/sh2/expansion/physics_divide.asm for source
 ;
-        dcb.b   ($301760 - *), $FF      ; Pad to 0x3016E0
+        dcb.b   ($301760 - *), $FF      ; Pad to 0x301760 (original physics_divide location)
 physics_divide:
         include "sh2/generated/physics_divide.inc"
 
@@ -539,7 +541,20 @@ ai_orchestrator:
         include "sh2/generated/ai_orchestrator.inc"
 
 ; ============================================================================
-; REMAINING EXPANSION ROM SPACE (from ~0x302A00)
+; RENDER STATE PATCHER: VR60 Phase 7 — 60 FPS render bridge
+; ============================================================================
+; Bridges physics entity data ($0600F20C) to Slave render state ($0600CA00+).
+; Applies camera correction from player movement to all entity states.
+; Called from cmd3f_vr60_gameframe after physics pipeline.
+;
+; See: disasm/sh2/expansion/render_state_patcher.asm for source
+;
+        dcb.b   (($302B00) - *), $FF      ; Pad to next aligned block
+render_state_patcher:
+        include "sh2/generated/render_state_patcher.inc"
+
+; ============================================================================
+; REMAINING EXPANSION ROM SPACE (from ~0x302C00)
 ; ============================================================================
 ; Pad to $3F0000 (960KB) instead of $400000 (1MB) to avoid PicoDrive
 ; emulator bug triggered by ROM files > ~0x3F1F40 bytes.

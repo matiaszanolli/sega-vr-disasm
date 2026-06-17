@@ -57,8 +57,8 @@ input_dispatch_table_and_controller_port_init:
         ORI.B  #$01,D0                          ; $0016FA
         ORI.B  #$01,D0                          ; $0016FE
         ORI.B  #$01,D0                          ; $001702
-        DC.W    $0088                           ; $001706
-        DC.W    $1D0C                           ; $001708
+        DC.W    $0089                           ; $001706  VR60 Phase 8: → vint_unified_60fps
+        DC.W    $C392                           ; $001708  (was $0088/$1D0C → vdp_dma_frame_swap_037)
         RTE                                     ; $00170A
         MOVE.B  #$00,(-366).W                   ; $00170C
         MOVE.B  #$00,(-365).W                   ; $001712

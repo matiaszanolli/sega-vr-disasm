@@ -170,8 +170,7 @@ state4_epilogue:
         jsr     vr60_globals_stage              ; 6B — 64B scattered→$FF6B00
         jsr     vr60_globals_transfer           ; 6B — DREQ 64B→SDRAM (cmd $3E mode 1)
 .camera:
-; --- Interpolate camera and re-DMA ---
-        jsr     camera_avg_and_redma(pc)
+; --- VR60 Phase 7: camera interpolation REMOVED (60 FPS physics handles it) ---
 ; --- Sound + viewport pickup from previous frame's cmd $3F ---
 ; COMM6_HI = sound trigger byte ($B1/$B2/$B4 or $00)
 ; COMM4 = viewport left scale (lateral_drift_B shimmer)
@@ -182,12 +181,10 @@ state4_epilogue:
         move.w  COMM4,$00FF617A                  ; 6B — viewport left
         move.w  COMM5,$00FF618E                  ; 6B — viewport right
 ; --- Fire-and-forget: async block copies + physics via cmd $3F ---
+; cmd $3F triggers Slave internally (after render state patcher completes)
         jsr     vr60_comm_trigger               ; 6B — writes COMM3-5 + triggers cmd $3F
-; --- 60 FPS: re-trigger Slave for second render (COMM2_HI = $02) ---
-        move.b  #$02,COMM2                       ; 6B — trigger Slave cmd $02
-; --- State advance ---
-        addq.w  #4,($FFFFC87E).w
-        move.w  #$001C,$00FF0008               ; V-INT state = sprite_cfg
+; --- VR60 Phase 8: state advance REMOVED (dispatcher runs all states per frame) ---
+; --- V-INT state write REMOVED (dispatcher writes $0054 after all states complete) ---
         rts
 
 ; Auto-pad to next module at $0037B6 (object_proximity_check_jump_table_dispatch).

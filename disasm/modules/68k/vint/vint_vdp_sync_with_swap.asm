@@ -1,11 +1,13 @@
 ; ============================================================================
 ; vint_vdp_sync_with_swap — V-INT State $0014: VDP Sync + Frame Swap
-; Size: ~40 bytes
 ; ============================================================================
 ;
 ; Wrapper for vdp_dma_xfer_setup_001a72 (state $0014 handler).
 ; Called from V-INT dispatch during VBlank.
-; Same swap logic as vint_sprite_cfg_with_swap.
+;
+; Phase 8: 60 FPS triggers REMOVED. The state dispatcher now runs all states
+; per frame, and the unified V-INT handler ($0054) does all VDP work.
+; This wrapper is kept for non-racing modes that still use V-INT $0014.
 ;
 ; Entry: A5 = VDP control port
 ; ============================================================================
@@ -33,5 +35,6 @@ vint_vdp_sync_with_swap:
         bclr    #0,$00A1518B
 .done:
         bset    #7,MARS_SYS_INTCTL
+
 .no_swap:
         rts

@@ -132,10 +132,9 @@ sh2_ai_orch_main:
     mov     r2,r0                  /* R0 = offset */
     mov     #2,r1                  /* R1 = value (state=2) */
     mov.w   r1,@(r0,r7)           /* race_slot[slot] = 2 */
-    /* Set spawn timer = 120 */
-    mov     #120,r0
-    extu.b  r0,r0
-    mov.w   r0,@(0xB0,gbr)        /* entity[+$B0] = 120 */
+    /* Set spawn timer = 360 (60 FPS: 120×3) */
+    mov.w   @(.ao_spawn_timer,pc),r0
+    mov.w   r0,@(0xB0,gbr)        /* entity[+$B0] = 360 */
     /* Clear countdown */
     mov.l   @(.ao_ai_globals,pc),r7
     mov     #0,r0
@@ -151,6 +150,10 @@ sh2_ai_orch_main:
      * So we just RTS here. */
     rts
     nop
+
+/* Literal island for spawn timer (must be within 510B of mov.w reference) */
+.align 1
+.ao_spawn_timer:    .short  360        /* 60 FPS: 120×3 = 360 */
 
     /* === DISTANCE BANDS: select approach speed === */
 .ao_dist_close:
@@ -269,27 +272,19 @@ sh2_ai_orch_main:
     /* R0 = target angle (16-bit) */
     mov     r0,r7                  /* R7 = target_heading (save) */
 
-    /* === Clamp steering delta to ±$140 per frame === */
+    /* === Clamp steering delta to ±$6B per frame (60 FPS: $140÷3) === */
     mov.w   @(0x3C,gbr),r0        /* entity heading */
     mov     r0,r1
     mov     r7,r0                  /* target heading */
     sub     r1,r0                  /* R0 = delta = target - heading */
-    mov     #5,r1
-    shll2   r1
-    shll2   r1
-    shll    r1
-    shll    r1                     /* R1 = $140 = 320 */
-    cmp/gt  r1,r0                  /* delta > $140? */
+    mov     #0x6B,r1               /* R1 = $6B = 107 (60 FPS: 320÷3) */
+    cmp/gt  r1,r0                  /* delta > $6B? */
     bf      .ao_steer_hi_ok
     mov     r1,r0
 .ao_steer_hi_ok:
-    mov     #5,r1
-    shll2   r1
-    shll2   r1
-    shll    r1
-    shll    r1
-    neg     r1,r1                  /* R1 = -$140 = -320 */
-    cmp/ge  r1,r0                  /* delta >= -$140? */
+    mov     #0x6B,r1
+    neg     r1,r1                  /* R1 = -$6B = -107 */
+    cmp/ge  r1,r0                  /* delta >= -$6B? */
     bt      .ao_steer_lo_ok
     mov     r1,r0
 .ao_steer_lo_ok:
@@ -354,12 +349,12 @@ sh2_ai_orch_main:
     mov     r0,r1
     mov     r6,r0                  /* target speed */
     sub     r1,r0                  /* R0 = delta */
-    mov     #47,r1
+    mov     #16,r1                 /* 60 FPS: 47÷3 ≈ 16 */
     cmp/gt  r1,r0
     bf      .ao_accel_hi
     mov     r1,r0
 .ao_accel_hi:
-    mov     #-80,r1
+    mov     #-27,r1                /* 60 FPS: -80÷3 ≈ -27 */
     cmp/ge  r1,r0
     bt      .ao_accel_lo
     mov     r1,r0

@@ -1,53 +1,65 @@
 ; ============================================================================
-; State Dispatcher (5-Entry Jump Table + 8 Subroutines, Data Prefix)
-; ROM Range: $005020-$005070 (80 bytes)
+; State Dispatcher — VR60 Phase 8: 60 FPS Sequential Execution
+; ROM Range: $005020-$00509D (126 bytes, absorbs frame_update_orch_005070)
 ; ============================================================================
-; Category: game
-; Purpose: Data prefix: 2 words ($A5A3, $A400) — RAM buffer addresses.
-;   Dispatches via 5-entry longword jump table indexed by
-;   state_dispatch_idx ($C87E). State 0 handler: calls VDPSyncSH2,
-;   init ($002154), animation_update, frame_sync, display_update,
-;   frame_update ($00B03C), sprite_setup ($00B632), sprite_finalize
-;   ($00B646). Advances state by 4, writes $14 to SH2 COMM.
 ;
-; Uses: D0, D2, A0, A1, A6
-; RAM:
-;   $C87E: state_dispatch_idx (word)
-; Calls:
-;   $002154: init handler
-;   $0028C2: VDPSyncSH2
-;   $00B03C: frame_update
-;   $00B094: frame_sync
-;   $00B09E: animation_update
-;   $00B0DE: display_update
-;   $00B632: sprite_setup
-;   $00B646: sprite_finalize
+; PHASE 8 REFACTORING: Instead of cycling $C87E through 0→4→8 (20 FPS),
+; runs ALL three states' work sequentially every TV frame (60 FPS).
+;
+; The 68K has ~43K active cycles per frame (with VR60 physics bypass).
+; Budget is 128K per TV frame. 66% margin.
+;
+; Data prefix at $005020 MUST be preserved (referenced by other code).
+; Jump table at $00502E is no longer used ($C87E always 0).
+;
+; Entry: called from scene handler via $FF0002 JSR
+; Exit: tail-jumps to pause_menu_handler_ctrl_check+20
+; V-INT state: always $0054 (unified handler does VDP sync + sprite cfg + swap)
 ; ============================================================================
 
 state_disp_005020:
-; --- data prefix: 2-word buffer addresses ---
+; --- data prefix: 2-word buffer addresses (MUST stay at $005020) ---
         dc.w    $A5A3                           ; $005020  buffer addr A
         dc.w    $A400                           ; $005022  buffer addr B
-; --- code ---
-        move.w  ($FFFFC87E).w,D0                ; $005024  D0 = state_dispatch_idx
-        movea.l $00502E(PC,D0.W),A1             ; $005028  A1 = handler address
-        jmp     (A1)                            ; $00502C  dispatch
-; --- jump table (5 longword entries) ---
-        dc.l    $00885042                       ; $00502E  [00] → state 0 handler
-        dc.l    $00885070                       ; $005032  [04] → $005070 (past fn)
-        dc.l    $0088509E                       ; $005036  [08] → $00509E (past fn)
-        dc.l    $008850DE                       ; $00503A  [0C] → $0050DE (past fn)
-        dc.l    $0088573C                       ; $00503E  [10] → $00573C (past fn)
-; --- state 0 handler ---
-        jsr     camera_snapshot_wrapper(pc); was: mars_dma_xfer_vdp_fill — now snapshots camera before DMA
-        jsr     sound_update_disp+126(pc); $4EBA $D10C
-        jsr     cascaded_frame_counter+10(pc); $4EBA $6052
-        jsr     cascaded_frame_counter(pc); $4EBA $6044
-        jsr     ai_timer_inc(pc)        ; $4EBA $608A
-        jsr     speed_scale_conditional(pc); $4EBA $5FE4
-        jsr     lap_value_store_1(pc)   ; $4EBA $65D6
-        jsr     lap_value_store_2(pc)   ; $4EBA $65E6
-        addq.w  #4,($FFFFC87E).w                ; $005062  advance state
-        move.w  #$0014,$00FF0008                ; $005066  SH2 COMM = $14
-        rts                                     ; $00506E
+
+; ============================================================================
+; STATE 0 WORK: DREQ + camera + sound + timers
+; ============================================================================
+        jsr     camera_snapshot_wrapper(pc)      ; camera snapshot + 2560B DREQ to SH2
+        jsr     sound_update_disp+126(pc)        ; sound channel A ($C874)
+        jsr     cascaded_frame_counter+10(pc)    ; countdown timer animation
+        jsr     cascaded_frame_counter(pc)       ; cascaded counter
+        jsr     ai_timer_inc(pc)                 ; AI think timer
+        jsr     speed_scale_conditional(pc)      ; speed scaling factor
+        jsr     lap_value_store_1(pc)            ; lap counter A
+        jsr     lap_value_store_2(pc)            ; lap counter B
+
+; ============================================================================
+; STATE 4 WORK: input + AI buffers + entity render pipeline + SH2 physics
+; ============================================================================
+        jsr     sound_update_disp+170(pc)        ; sound channel B ($C875)
+        jsr     controller_read_button_remap+16(pc) ; controller input
+        jsr     ai_buffer_setup+14(pc)           ; AI buffer prep A
+        jsr     ai_buffer_setup+28(pc)           ; AI buffer prep B
+        jsr     entity_render_pipeline_with_vdp_dma_2p_copy+462(pc) ; entity rendering + VDP DMA
+        jsr     state4_epilogue(pc)              ; globals staging + cmd $3F trigger
+
+; ============================================================================
+; STATE 8 WORK: 2P graphics + HUD + animation + objects
+; ============================================================================
+        jsr     sound_update_disp+206(pc)        ; sound channel C ($C862)
+        jsr     gfx_2_player_entity_frame_orch(pc) ; 2-player entity graphics
+        jsr     display_digit_extract+58(pc)     ; HUD digit rendering A
+        jsr     display_digit_extract+46(pc)     ; HUD digit rendering B
+        jsr     hud_panel_config(pc)             ; HUD panel configuration
+        jsr     conditional_return_on_disp_config_flag(pc) ; display mode check
+        addq.w  #1,($FFFFC8AA).w                ; scene_state++
+        jsr     animated_seq_player+10(pc)       ; animation playback
+        jsr     object_update(pc)                ; object/sprite update
+
+; --- V-INT state: unified handler (VDP sync + sprite cfg + frame swap) ---
+        move.w  #$0054,$00FF0008                ; V-INT state = unified 60 FPS handler
+
+; --- Tail-jump to pause/scene transition check ---
+        jmp     pause_menu_handler_ctrl_check+20(pc)
 

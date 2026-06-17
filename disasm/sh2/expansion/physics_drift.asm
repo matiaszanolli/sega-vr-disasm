@@ -356,21 +356,21 @@ sh2_drift_physics:
     mov.w   @(0xAA,gbr),r0
     cmp/pl  r0
     bf      .dp_check_accum
-    add     #-8,r0
+    add     #-3,r0                 /* 60 FPS: -8÷3 ≈ -3 decay/frame */
     mov.w   r0,@(0xAA,gbr)
 .dp_check_accum:
     mov.w   @(0xAA,gbr),r0
     mov     #0x50,r1
     cmp/gt  r1,r0                  /* accum > $50? */
     bt      .dp_set_cam
-    /* Ease: if (cur - target) > 12, ease by 12 */
+    /* Ease: if (cur - target) > 4, ease by 4 (60 FPS: 12÷3) */
     mov.w   @(0x76,gbr),r0        /* current cam_dist */
     mov     r0,r1
     sub     r3,r1                  /* R1 = cur - target */
-    mov     #12,r2
+    mov     #4,r2                  /* 60 FPS: 12÷3 = 4 */
     cmp/gt  r2,r1
     bf      .dp_set_cam
-    sub     r2,r0                  /* ease by 12 */
+    sub     r2,r0                  /* ease by 4 */
     mov.w   r0,@(0x76,gbr)
     bra     .dp_rts
     nop

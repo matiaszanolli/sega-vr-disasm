@@ -7,7 +7,26 @@
       "Bash(./run_pc_profiling.sh:*)",
       "Bash(# Compare func_082 region \\($02438C = 148364 decimal, 50 bytes\\) dd if=build/vr_rebuild.32x bs=1 skip=148364 count=50)",
       "Bash(sort:*)",
-      "Read(//mnt/data/src/32x-playground/**)"
+      "Read(//mnt/data/src/32x-playground/**)",
+      "Bash(sh-elf-nm build/sh2/physics_group1.o)",
+      "Bash(sh-elf-nm build/sh2/physics_timers.o)",
+      "Bash(sh-elf-nm /tmp/cmd3f_check.o)",
+      "Read(//^### 6\\\\.20 DMULS\\\\.L/,/^### 6\\\\.2[1-9]|^## [0-9]/**)",
+      "Read(//^### 6\\\\.38 MUL\\\\.L/,/^### 6\\\\.3[9]|^## [0-9]/**)",
+      "Read(//^### 6\\\\.29 MAC\\\\.L/,/^### 6\\\\.3[0]|^## [0-9]/**)",
+      "Bash(VRD_PROFILE_PC=1 VRD_PROFILE_PC_LOG=phase3d_profile.csv ./profiling_frontend ../../build/vr_rebuild.32x 2400 --autoplay)",
+      "Bash(sh-elf-nm /tmp/drift_check.o)",
+      "Bash(VRD_PROFILE_PC=1 VRD_PROFILE_PC_LOG=phase3_final.csv ./profiling_frontend ../../build/vr_rebuild.32x 2400 --autoplay)",
+      "Bash(/tmp/sdram_analysis.txt:*)",
+      "Bash(sh-elf-nm /tmp/ai_steer.o)",
+      "Bash(sh-elf-nm /tmp/ai_orch.o)",
+      "Bash(VRD_PROFILE_PC=1 VRD_PROFILE_PC_LOG=phase4_profile.csv ./profiling_frontend ../../build/vr_rebuild.32x 2400 --autoplay)",
+      "Read(//^        dc.w    \\\\$4F22.*044[0-9a-fA-F]/**)",
+      "Bash(find /mnt/data/src/32x-playground -type f \\\\\\(-name *.md -o -name *.asm \\\\\\))"
+    ],
+    "additionalDirectories": [
+      "/mnt/data/src/32x-playground/s/0x02301730.*gear_recip/0x02301750 \\",
+      "/tmp"
     ]
   }
 }

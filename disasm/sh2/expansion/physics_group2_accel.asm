@@ -282,7 +282,7 @@ sh2_speed_accel_braking:
 .align 2
 .sa_c1f40:      .short  0x1F40     /* 8000 — sound threshold */
 .sa_c4268:      .short  0x4268     /* 17000 — max speed */
-.sa_c0400:      .short  0x0400     /* 1024 — max delta/frame */
+.sa_c0400:      .short  0x0155     /* 60 FPS: 1024÷3 = 341 — max delta/frame */
 .align 2
 .sa_gear_tbl:   .long   0x020A1F0  /* SH2 ROM: gear ratio table ($0088A1F0) */
 .sa_recip_tbl:  .long   0x02301790 /* expansion ROM: gear_recip_table_table_table ($301700+$30) */
@@ -316,11 +316,11 @@ sh2_tilt_adjust:
     tst     r1,r1
     bf      .ta_done                /* either set: skip */
 
-    mov     #0x30,r0               /* R0 = tilt rate = 48 */
+    mov     #0x10,r0               /* R0 = tilt rate = 16 (60 FPS: 48÷3) */
 
     /* --- X-tilt phase --- */
     /* Load track_tilt from globals +$00 */
-    mov     r0,r7                   /* save tilt rate (48) */
+    mov     r0,r7                   /* save tilt rate (16) */
     mov     #0x00,r0
     mov.w   @(r0,r13),r0           /* R0 = track_tilt */
     mov     r0,r1                   /* R1 = track_tilt */
@@ -362,7 +362,7 @@ sh2_tilt_adjust:
     mov.w   r0,@(14,gbr)           /* entity[+$0E] = X-tilt */
 
     /* --- Z-tilt phase --- */
-    mov     #0x30,r7               /* reset tilt rate = 48 */
+    mov     #0x10,r7               /* reset tilt rate = 16 (60 FPS: 48÷3) */
     /* Check direction flag bit 6 */
     mov     #0x13,r0
     mov.b   @(r0,r13),r0           /* banking_direction */

@@ -40,9 +40,12 @@
 ; --- VR60 Phase 1B: COMM relay trigger (50 bytes, called via JSR abs.l from code_2200) ---
         include "modules/68k/sh2/vr60_comm_trigger.asm"
 
-; --- VR60 60 FPS: V-INT handlers with frame swap (replace states $0014 and $001C) ---
+; --- VR60 60 FPS: V-INT handlers (Phase 7 wrappers kept for non-racing modes) ---
         include "modules/68k/vint/vint_vdp_sync_with_swap.asm"
         include "modules/68k/vint/vint_sprite_cfg_with_swap.asm"
+
+; --- VR60 Phase 8: Unified V-INT handler (VDP sync + sprite cfg + frame swap) ---
+        include "modules/68k/vint/vint_unified_60fps.asm"
 
 ; --- VR60 Phase 3B: physics bypass trampoline (called via JMP from entity_render_pipeline) ---
         include "modules/68k/sh2/vr60_physics_bypass_trampoline.asm"

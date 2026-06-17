@@ -124,6 +124,12 @@ cmd3f_vr60_gameframe:
     /* Set R13 = globals base (entity + 256 = $0600F30C) */
     mov.l   @(.globals_base,pc),r13 /* R13 = $0600F30C */
 
+    /* Save pre-physics positions for render state patcher delta computation */
+    mov.w   @(0x30,gbr),r0         /* current world X */
+    mov.w   r0,@(0xEC,gbr)         /* save to entity+$EC */
+    mov.w   @(0x34,gbr),r0         /* current world Y */
+    mov.w   r0,@(0xEE,gbr)         /* save to entity+$EE */
+
     /* Call physics + timer/guard functions in orchestrator order via JSR @Rn.
      * Order matches 68K entity_render_pipeline Variant A (lines 27-40):
      *   speed_degrade → effect_timer → timer_expire → field_guard
@@ -240,6 +246,13 @@ cmd3f_vr60_gameframe:
     mov.l   @(.ent_dst,pc),r0
     ldc     r0,gbr
 
+    /* === RENDER STATE PATCHER: bridge SH2 physics → Slave render data === */
+    /* Updates entity state positions from SH2 physics entities.           */
+    /* Camera correction (player moved) + per-AI-entity corrections.       */
+    mov.l   @(.patcher_addr,pc),r0
+    jsr     @r0                    /* sh2_render_state_patch */
+    nop
+
     /* === CANARY: write entity first longword to verify physics ran === */
     mov.l   @(.ent_dst,pc),r4       /* R4 = entity base (re-read, GBR may differ) */
     mov.l   @r4,r0                  /* R0 = entity[0..3] (post-physics) */
@@ -272,6 +285,13 @@ cmd3f_vr60_gameframe:
     mov.w   @(0xFA,gbr),r0        /* entity[+$FA] right viewport */
     mov.w   r0,@(10,r8)           /* COMM5 = right viewport */
     mov.w   @(10,r8),r0           /* dummy read — flush write buffer */
+
+    /* === SLAVE RE-TRIGGER: render with patched entity states === */
+    /* Must happen AFTER render_state_patcher so Slave sees updated positions. */
+    /* Writing from Master SH2 side (not 68K) ensures correct sequencing. */
+    mov     #2,r0
+    mov.b   r0,@(4,r8)             /* COMM2_HI = $02 (trigger Slave cmd $02) */
+    mov.b   @(4,r8),r0             /* dummy read — flush write buffer */
 
     /* === COMPLETION: inline COMM cleanup (func_084 equivalent) === */
 
@@ -340,6 +360,10 @@ cmd3f_vr60_gameframe:
 /* Phase 4: AI entity loop addresses */
 .ai_ent_base:   .long   0x06010000 /* AI entity SDRAM base */
 .ai_orch_addr:  .long   0x02302700 /* sh2_ai_orch_main */
+
+/* Phase 7: Render state patcher */
+.patcher_addr:  .long   0x02302B00 /* sh2_render_state_patch (render_state_patcher.asm) */
+
 .ai_stride:     .short  0x0100     /* 256 bytes per entity */
 
 /* Total: ~290 bytes code + 96 bytes pool = ~386 bytes */

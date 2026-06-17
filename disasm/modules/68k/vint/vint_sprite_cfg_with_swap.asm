@@ -1,51 +1,40 @@
 ; ============================================================================
 ; vint_sprite_cfg_with_swap — V-INT State $001C: Sprite Config + Frame Swap
-; Size: ~40 bytes
 ; ============================================================================
 ;
 ; Wrapper for the original vdp_dma_xfer_setup_001aca handler.
 ; Called from V-INT dispatch during VBlank (VBLK=1).
 ;
-; Does TWO things:
-;   1. Call the original sprite config handler (VDP DMA setup)
-;   2. Toggle the frame buffer (FS bit) if racing mode active ($C8D2)
-;
-; The FS toggle happens DURING VBlank, so it takes effect immediately
-; (per 32X Hardware Manual page 35: "swapping is done at the next VBlank"
-; only applies to writes during DISPLAY — writes during VBlank are instant).
-;
-; CMD INT is disabled during FS toggle to prevent SH2 from issuing
-; commands while the adapter register is being modified.
+; Phase 8: 60 FPS triggers REMOVED. The state dispatcher now runs all states
+; per frame, and the unified V-INT handler ($0054) does all VDP work.
+; This wrapper is kept for non-racing modes that still use V-INT $001C.
 ;
 ; Entry: A5 = VDP control port (from V-INT dispatch)
-; Preserves: all (same contract as original handler)
 ; ============================================================================
 
 VDP_DMA_SETUP_001ACA    equ     $00881ACA       ; original handler 68K address
 
 vint_sprite_cfg_with_swap:
 ; --- Call original sprite config handler ---
-        jsr     VDP_DMA_SETUP_001ACA            ; 6B — abs.l (original handler)
+        jsr     VDP_DMA_SETUP_001ACA
 
 ; --- Frame swap (only during racing, $C8D2 != 0) ---
-        tst.b   ($FFFFC8D2).w                   ; 4B — racing mode?
-        beq.s   .no_swap                         ; 2B — no: skip swap
+        tst.b   ($FFFFC8D2).w
+        beq.s   .no_swap
 
-; --- CMD INT: disable during FS toggle ---
-        bclr    #7,MARS_SYS_INTCTL              ; 6B — clear CMD INT
+        bclr    #7,MARS_SYS_INTCTL
 .wait_ack:
-        btst    #7,$00A1518A                    ; 6B — CMD INT acknowledged?
-        beq.s   .wait_ack                       ; 2B — spin
+        btst    #7,$00A1518A
+        beq.s   .wait_ack
 
-; --- Toggle frame buffer ---
-        bchg    #0,($FFFFC80C).w                ; 6B — flip software toggle
-        bne.s   .set_buf_1                      ; 2B
-        bset    #0,$00A1518B                    ; 6B — FS=1 (display buffer 0)
-        bra.s   .done                            ; 2B
+        bchg    #0,($FFFFC80C).w
+        bne.s   .set_buf_1
+        bset    #0,$00A1518B
+        bra.s   .done
 .set_buf_1:
-        bclr    #0,$00A1518B                    ; 6B — FS=0 (display buffer 1)
+        bclr    #0,$00A1518B
 .done:
-; --- CMD INT: re-enable ---
-        bset    #7,MARS_SYS_INTCTL              ; 6B
+        bset    #7,MARS_SYS_INTCTL
+
 .no_swap:
         rts

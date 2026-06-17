@@ -770,8 +770,72 @@ Move the 15-state AI machine to Master SH2.
 
 ## 9. Phase 5: Collision Port
 
-**Status: NOT STARTED**
-**Prerequisite: Phase 3 (entity_pos_update must be on SH2)**
+**Status: SCOPED (2026-06-17) — 5A next.** Function inventory + addresses verified
+against disassembly and ROM bytes. Prerequisite Phase 3 satisfied.
+**Prerequisite: Phase 3 (entity_pos_update on SH2 — done)**
+
+### 9.0 Scoping Results (verified 2026-06-17)
+
+**Current integration point (corrected).** Collision is **NOT missing** — it currently
+runs on the **68K**. In SH2-physics mode the bypass trampoline jumps to
+`entity_render_pipeline_position_ai` (`entity_render_pipeline.asm:44`), and line 45
+`jsr entity_pos_update` still executes; the 68K `entity_pos_update` tail-JMPs into
+`collision_response_surface_tracking` on all three exits
+(`entity_pos_update.asm:32/35/38`). `cmd $3F` calls **no** collision function. So Phase 5
+= **port collision to SH2 (call it from cmd $3F after `.phys_f12`) and remove the
+redundant 68K call** — this is the ~10% 68K relief Phase 7 needs (§11).
+
+**§9.2 addresses/sizes: all 9 verified CORRECT** (ROM byte spot-checks). No glitchy-doc
+address error in this list (contrast §7.6).
+
+**Hidden callees omitted by §9.2 — must also be ported (~660B extra 68K):**
+
+| Callee | File / SH2 addr | Size | Notes |
+|--------|----------------|------|-------|
+| `angle_normalize` (+24=$74A4, +168=$7534 entries) | $748C / $0200748C | 316B | Pure math, no WRAM, no DIV — clean |
+| `plane_eval` (+24=$75E0) | $75C8 / $020075C8 | 54B | Pure math, A2-relative reads, no DIV |
+| `object_type_dispatch` | $7A40 / $02007A40 | 78B | 14-entry PC-rel jump table @ $7A52 → 68K-addr handlers; table must be rebuilt for SH2 |
+| `zone_check_inner` | $AE06 / $0200AE06 | 210B | used by object_collision; reads $C268 (68K-addr ptr) |
+
+**No DIVU/DIVS anywhere in the 9 functions or 4 callees** — all shift/MULS-based. Unlike
+Phase 3, no reciprocal tables or software-divide needed.
+
+**Keystone risk:** 68K-CPU-address tile pointers from `track_data_index_calc` (stored in
+entity +$CE/$D2/$D6/$DA) must be `+$01780000`-translated at every SH2 dereference. See §9.3.
+
+**WRAM globals to relocate to the SDRAM globals block (SH2 can't reach 68K WRAM):**
+`$FFC0D0-$C0E2` (probe x/y scratch), `$FFC02E-$C044` (probe offsets + extract033 work buf),
+`$FFC319/$C31A` (surface type), `$FFC268` (track base ptr — store pre-translated),
+`$FFC8A0` (race_state), `$FFC8CE/$C8D0` (object-collision thresholds). Already handled:
+`$FFC8CC` (globals +$1C), `$FFC8A4` sound (globals +$2C → COMM6_HI). object_collision /
+proximity must iterate the **SDRAM** entity copies ($0600F20C player, $06010000 AI), not WRAM.
+
+**Open question for 5F (not a blocker for 5A–5E):** in SH2-physics mode `entity_pos_update`
+runs on *both* SH2 (cmd $3F) and 68K (line 45) — trace the authoritative-copy / copy-back
+model before deleting the 68K collision call.
+
+### 9.0b Sub-Phase Plan (incremental, mirrors Phase 3: build group → dual-path verify → switch)
+
+- **5A — Leaf math foundation (zero addressing risk, NEXT).** Port `angle_normalize`
+  (+24/+168), `plane_eval` (+24), `rotational_offset_calc` ($764E, uses already-ported
+  sine), `position_separation` ($AFFE), `proximity_zone_loop` ($877A). Unit-verify each
+  vs 68K output on sampled inputs. Place at expansion `$302A00+` (free per §7.10).
+- **5B — Track-data addressing layer (keystone).** Port `track_data_extract_033` +
+  `track_data_index_calc_table_lookup`. Establish pointer-translation convention
+  (pre-translate table base once; +$01780000 every returned tile ptr). Relocate $C268/
+  $C8A0/$C02E/$C0D0 scratch to SDRAM globals. Verify identical tile content for recorded
+  (x,y,race_state) inputs.
+- **5C — Boundary detection (high risk).** Port `object_type_dispatch` (rebuild SH2 jump
+  table) then `track_boundary_collision_detection` (4 probes). Dual-path compare +$55-$59
+  flags and +$CE/$D2/$D6/$DA pointers.
+- **5D — Surface response.** Port `collision_response_surface_tracking` (4-iter binary
+  search + EMA heights). Wire into `cmd3f_vr60_gameframe.asm` right after `.phys_f12`.
+  Dual-path compare +$30/$34 and +$5A/$5C/$5E/$32 over 1000 frames (§9.5).
+- **5E — Object/proximity collision.** Port `object_collision_detection` + `zone_check_inner`
+  over SDRAM entity copies. Route sound $B8 via globals+$2C → COMM6_HI.
+- **5F — Switchover + AI remnants.** $C8D2-gate the 68K collision tail off; co-port §11
+  remnants (`collision_avoidance_speed_calc`, AI `physics_integration`/`ai_steering`
+  callers). Re-profile (`vrd_budget.py` + `fb_crc`): Slave <100%, confirm 68K relief.
 
 ### 9.1 Goal
 
@@ -795,9 +859,11 @@ Move collision detection to Master SH2. This is the most complex port — binary
 
 ### 9.3 Track Data Access
 
-Collision heavily uses `track_data_index_calc_table_lookup` which reads ROM pointer tables at $00742C/$00745C (SH2: $0200742C/$0200745C) and dereferences to tile data at $0094C000+ (SH2: $02D4C000+? **MUST VERIFY** — ROM addresses above $300000 may map differently on SH2).
+Collision uses `track_data_index_calc_table_lookup`, which reads **PC-relative** pointer tables at file `$742C`/`$745C` (the tables themselves are SH2 `$0200742C`/`$0200745C`). The table *contents* are **68K CPU addresses** (e.g. `$0094C000`, `$009D0000`) that must be translated at dereference time.
 
-**CRITICAL UNKNOWN:** What is the SH2 address for ROM data at 68K $0094C000? If the ROM is 4MB ($000000-$3FFFFF), the SH2 address is $02000000 + $0094C000 = $0294C000. But the ROM is only 4MB — $0094C000 > $3FFFFF, so this might be a banked/mirrored address. **MUST READ** the track data ROM table format before attempting this port.
+**RESOLVED (verified 2026-06-17, ROM content checked):** SH2 address = `68K_addr − $880000 + $02000000` (= `68K_addr + $01780000`). Worked example: `$0094C000 − $880000 = file $CC000` → SH2 `$0200CC000` (data present in ROM). Highest track-data base referenced is `$009D0000` → file `$150000` → SH2 `$02150000`, well within the 4MB ROM (`$3F0000`). No banking/mirroring involved. **The earlier "$0294C000 / file $C4000" values in this section were wrong arithmetic** ($0094C000 is **not** $02000000+$0094C000, and $94C000−$880000 is **not** $C4000). See Q-002.
+
+**Porting hazard (the keystone risk):** `track_data_index_calc` returns A1/A2 as **68K CPU addresses** (`adda.l D3,A1` onto a base read from the 68K-addr table). These are stored into entity +$CE/$D2/$D6/$DA and re-dereferenced by `collision_response_surface_tracking`. On SH2 **every such pointer must be +$01780000-translated at dereference** (or the table base pre-translated once at scene init). Getting it wrong reads 68K code as tile data → garbage collision.
 
 ### 9.4 Sound Triggers from Collision
 
@@ -957,7 +1023,7 @@ These must be resolved before their respective phases. Add new questions as they
 | # | Question | Affects Phase | Status | Resolution |
 |---|----------|--------------|--------|------------|
 | Q-001 | Can DREQ FIFO target arbitrary SDRAM addresses ($06008000)? | Phase 1 | **RESOLVED (moot)** | DREQ FIFO destination is SH2 DMAC-controlled (DAR0 at $FFFFFF84). Entity tables don't need FIFO — Master SH2 copies from existing cmd $02 landing area. |
-| Q-002 | What is the SH2 address for ROM data above $300000 (e.g., $0094C000 track tiles)? | Phase 5 | **RESOLVED: 68K CPU addresses** | All collision ROM refs are 68K CPU addresses ($0088xxxx+). Formula: `SH2_addr = 68K_addr + $01780000` (= 68K - $880000 + $02000000). Example: $0094C000 → file offset $C4000 → SH2 $020C4000. Highest ref: $00970000 → file offset $0EF000 (within 4MB). R-005 mitigated. |
+| Q-002 | What is the SH2 address for ROM data above $300000 (e.g., $0094C000 track tiles)? | Phase 5 | **RESOLVED: 68K CPU addresses** | All collision ROM refs are 68K CPU addresses ($0088xxxx+). Formula: `SH2_addr = 68K_addr + $01780000` (= 68K - $880000 + $02000000). Example (corrected 2026-06-17): $0094C000 → file offset **$CC000** → SH2 **$0200CC000** (verified in ROM). Highest base ref: $009D0000 → file **$150000** → SH2 $02150000 (within 4MB, $3F0000). *Prior "$C4000/$020C4000/$0294C000" and "$00970000→$0EF000" figures were arithmetic errors — recompute, don't copy.* R-005 mitigated. |
 | Q-003 | Can Master SH2 write to frame buffer ($04xxxxxx) when FM=1? | Phase 2 | **RESOLVED: YES, time-separated** | FM=1 gives both SH2s access. BUT current design prevents simultaneous access: Slave writes SDRAM during state 0, Master writes framebuffer during state 4. They never write the same memory at the same time. HW manual §4.2: both SH2s CAN write framebuffer concurrently (same bus), but must not write the same bank simultaneously. |
 | Q-004 | Does SDRAM bus contention degrade Slave rendering measurably? | Phase 6 | **OPEN** | Profile Slave utilization before and after Master SDRAM writes. Compare render times. |
 | Q-005 | Is the `entity_type_dispatch` RAM table at $C05C written only during scene init? | Phase 4 | **RESOLVED: init-only** | No MOVE/CLR writes to $C05C found in any per-frame code. Used as LEA base in 3 functions (entity_type_dispatch_tables, effect_countdown, hw_reg_init). Table is populated during scene init. Can be snapshot once to SDRAM. |

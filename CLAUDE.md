@@ -79,7 +79,7 @@ disasm/vrd.asm (entry point)
 
 - **823 68K modules** (736 fully translated, 87 with remaining dc.w — all data, not code)
 - **All SH2 functions** integrated (92 function IDs via 89 .inc files, zero remaining)
-- **Display FPS**: ~60 (triple frame swap + Slave re-trigger, 3 FS swaps per game tick). Game logic at 20 FPS.
+- **Display FPS**: ~45 effective (framebuffer-hash measured); **game logic 20 FPS** (state machine = 1 state per V-INT, 0→4→8 per game-tick). The Slave renders every TV frame (states 0/8 change, state 4 is a constant frame). 60 FPS = run logic per-TV-frame (Phase 7) — see VR60_ROADMAP §1.1b/§11.
 - **60 FPS mechanism**: V-INT jump table patched at states $0014/$001C to wrapper handlers that call original VDP setup + FS toggle during VBlank. Slave re-triggered via COMM2_HI=$02 at state 4. R-002 RESOLVED.
 - **Master SH2 commands**: 7 active ($00-$06) — all disassembled. See [SH2_COMMAND_HANDLER_REFERENCE.md](analysis/sh2-analysis/SH2_COMMAND_HANDLER_REFERENCE.md)
 
@@ -240,10 +240,16 @@ VRD_PROFILE_PC=1 VRD_PROFILE_PC_LOG=profile.csv \
 python3 analyze_pc_profile.py profile.csv
 ```
 
-**Current measurements** (March 2026, 40 FPS camera interpolation):
+**Current measurements** — RACING-ISOLATED (VRD profiler, 2026-06-17, scene `0x4CBC`).
+Use the rebuilt tooling and **always scene-isolate**; see [tools/libretro-profiling/VRD_PROFILING.md](tools/libretro-profiling/VRD_PROFILING.md). Profile racing with:
+`VRD_PROFILE_PC=1 VRD_GATE_3D=1 VRD_SCENE=0x4CBC` then `vrd_budget.py`.
 
-| CPU | Cycles/Frame | Utilization | Notes |
-|-----|-------------|-------------|-------|
-| 68K | 127,986 | ~48% active, 52% STOP | Interpolation overhead negligible |
-| Master SH2 | 127,061 avg | 0-36% | Extra block copies in state 4 |
-| Slave SH2 | 299,926 | 52% (2 renders/3 TV) | 22% headroom per render |
+| CPU | Useful/Frame | Note |
+|-----|-------------|------|
+| 68K | 45,481 (36.6%) | **63% V-blank idle**; sync-wait negligible in racing |
+| Master SH2 | 158,977 | ~41% of budget; ~59% headroom |
+| Slave SH2 | 231,056 | ~80% util / ~60% useful render; busiest CPU |
+
+**Bottleneck:** the state machine (1 state/V-INT), NOT compute or sync. The 60 FPS lever
+is Phase 7 (per-TV-frame logic) + ~10% 68K relief. The old "68K 100% / Slave 78%"
+figures were frame-level util (mostly V-blank STOP + mixed scenes) — misleading.

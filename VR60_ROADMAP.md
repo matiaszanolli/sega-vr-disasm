@@ -40,6 +40,25 @@
 
 **Evidence:** `analysis/ARCHITECTURAL_BOTTLENECK_ANALYSIS.md`, `analysis/profiling/68K_BOTTLENECK_ANALYSIS.md`
 
+### 1.1b CPU Utilization — RACING-ISOLATED (Profiled 2026-06-17, current VR60 build, scene `0x4CBC`)
+
+Measured with the rebuilt VRD profiler (Tier 1+2: exact idle/useful split, SH2 PC
+capture fixed via DRC-off, 3D + scene gating). **Supersedes §1.1 for the VR60 build.**
+Tooling + recipes: [tools/libretro-profiling/VRD_PROFILING.md](tools/libretro-profiling/VRD_PROFILING.md).
+
+| CPU | Useful/Frame | % of budget | Notes |
+|-----|-------------|-------------|-------|
+| 68K | 45,481 (36.6% of frame) | — | **63% V-blank idle**; `sh2_send_cmd` sync-wait negligible in racing |
+| Master SH2 | 158,977 (99.7% of executed) | ~41% | cmd $3F physics/AI/copies; **~59% headroom** |
+| Slave SH2 | 231,056 (75.3% of executed) | ~60% | ~80% util — busiest CPU; **renders every TV frame** |
+
+**Key finding:** racing is **neither compute-bound nor sync-bound**. The 20 FPS cap is
+the **state machine (one state per V-INT, 0→4→8 = 3 TV-frames per game-tick)** while the
+68K idles 63%/frame and the Slave already renders every TV frame (states 0/8 produce
+changing images; state 4 is a constant framebuffer; effective display ≈ 45 FPS). The
+~13% `sh2_send_cmd` wait seen in **mixed-mode** profiling is a **car-select/attract
+artifact**, NOT racing — always scene-isolate (`VRD_SCENE=0x4CBC`).
+
 ### 1.2 68K Time Breakdown
 
 | Component | Cycles | % | Source |
@@ -800,7 +819,11 @@ All written to SDRAM sound queue. 68K reads and plays.
 
 ## 10. Phase 6: Pipeline Overlap
 
-**Status: NOT STARTED**
+**Status: DEPRIORITIZED for racing (2026-06-17).** Racing-isolated profiling (§1.1b)
+shows the 68K is NOT blocked on the Master SH2 during racing — the `sh2_send_cmd`
+sync-wait is negligible and the 68K is 63% V-blank idle. Pipeline overlap removes a
+barrier that is not the racing bottleneck. Retain as a future/non-racing option; it is
+**not** the 60 FPS lever (Phase 7 is — see §11).
 **Prerequisite: Phases 2-5 complete (all game logic on Master SH2)**
 
 ### 10.1 Goal
@@ -869,8 +892,18 @@ Frame N+1:
 
 ## 11. Phase 7: 60 FPS Game Logic
 
-**Status: NOT STARTED**
-**Prerequisite: Phase 6 (pipeline overlap stable)**
+**Status: THE 60 FPS LEVER (confirmed by profiling 2026-06-17).** Racing-isolated data
+(§1.1b) shows the cap is the state machine (1 state/V-INT), not CPU budget: the 68K is
+63% idle and the Slave already renders every TV frame. The path is running game logic
+per-TV-frame. **Budget check:** a full game-tick's 68K compute (~3×45,481 ≈ 136k cyc) is
+~7-10% over one TV-frame (127,833) → needs **~10% 68K relief** (finish offloading the
+AI-entity physics/collision remnants — `Physics Integration $0088A68C`,
+`AI Steering $0088A7B8`, `collision_avoidance_speed_calc` — to the ~59%-idle Master SH2).
+The hard part remains **per-frame constant scaling** (the original Phase 7 revert reason),
+now more tractable with physics/AI in one SH2 codebase. Verify each step with the budget
++ `fb_crc` tools (Slave must stay <100%; all 3 frames must become unique).
+**~~Prerequisite: Phase 6 (pipeline overlap stable)~~** — Phase 6 is NOT a prerequisite
+(racing isn't sync-bound). Real prereq: finish the AI/collision offload (Phase 4/5 tail).
 
 ### 11.1 Goal
 
@@ -1088,6 +1121,10 @@ Record discoveries, gotchas, and insights as the project progresses. These help 
 | 2026-03-26 | Phase 3B | **Persistent data cannot live in the globals staging block.** `vr60_globals_stage` clears +$30 to +$3F every frame. The anim_timer frame counter was stored at globals+$30 and got wiped. Moved to entity+$F0 (unused field, within GBR range). | Before storing persistent data in any SDRAM region, verify what else writes to that region. The globals staging function is a silent data destroyer for any slot it touches. |
 | 2026-03-26 | Phase 3B | **SH2 gas assembler GBR word displacement expects BYTE OFFSETS, divides by 2 internally.** Writing `@(53,gbr)` means byte offset 53, which is ODD → "misaligned offset" error. Must use actual entity byte offsets: `@(0x6A,gbr)` for field +$6A (106). Gas computes disp = 106/2 = 53 for the encoding. | The gas manual is unclear on this. Test: `@(4,gbr)` works because 4/2 = 2 (integer). `@(5,gbr)` would fail for word access. Always use hex entity offsets directly. |
 | 2026-03-26 | Phase 3B | **SH2 indexed store `MOV.W Rm,@(R0,Rn)` requires R0 as INDEX, not as VALUE.** When storing a value to an indexed address, the value must be in Rm (any register), and the offset MUST be in R0. If R0 holds the value to store, swap: put value in R1, offset in R0, then `MOV.W R1,@(R0,R13)`. | This constraint applies to ALL indexed addressing modes on SH2, both loads and stores. R0 is always the index register in `@(R0,Rn)` forms. Plan register allocation accordingly. |
+| 2026-06-17 | Profiling | **Always scene-isolate racing data (`VRD_SCENE=0x4CBC`).** Mixed 3D-gated profiling lumps car-select/attract/name-entry (heavy `sh2_send_cmd` callers) with racing and skews the budget. The "~13% `sh2_send_cmd` sync-wait" was a car-select artifact; in racing it's negligible. | A wrong conclusion (attack the sync barrier → Phase 6) was drawn from mixed data and only reversed after scene-isolation. Isolate the actual scene before concluding. |
+| 2026-06-17 | Profiling | **Racing 68K is 63% V-blank idle — not compute-bound, not sync-bound.** The 20 FPS cap is the state-machine structure (1 state/V-INT). 60 FPS = run logic per-TV-frame (Phase 7), not pipeline overlap (Phase 6) or a big compute offload. | Redirected the 60 FPS plan onto Phase 7 with a measured ~10% offload, not a guessed 25-30%. |
+| 2026-06-17 | Profiling | **`render_state_patcher` is a no-op.** It writes `$0600CA00`/`$0600CCA0` — addresses the 3D engine never reads (it reads context-relative from `$06003xxx`/`$06004xxx`). Target map came from stale docs (address-shopping). Empirically: 0% change in Slave render load. | Verify a consumer actually READS an address (watch/dump tools) before building on it. |
+| 2026-06-17 | Profiling | **Profiler accuracy requires: idle/useful split (not raw util), no top-N truncation, SH2 interpreter (DRC bypasses PC sampling), distinguishing 68K compute from sync-wait, and scene-isolation.** "68K 100% / Slave 78%" frame-level util is mostly the V-blank STOP + mixed scenes — misleading. | The rebuilt VRD tooling (Tier 1+2) gives the real per-CPU compute budget. See `tools/libretro-profiling/VRD_PROFILING.md`. |
 
 ---
 

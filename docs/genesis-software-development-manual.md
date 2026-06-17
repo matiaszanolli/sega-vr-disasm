@@ -377,7 +377,7 @@ The CLR command attempts to write 0 after reading the target memory. The VDP sus
 **Other restricted commands:**
 - `CLR`, `NBCD`, `NEG`, `NEGX`, `NOT`, `Scc`, `TAS` (single operand commands)
 - `BCHG`, `BSET`, `BCLR` (bit handling commands)
-- `ASL`, `LSR`, `LSL`, `ROR`, `ROL`, `ROXR`, `ROXL` (shift and rotate commands)
+- `ASR`, `ASL`, `LSR`, `LSL`, `ROR`, `ROL`, `ROXR`, `ROXL` (shift and rotate commands)
 - `ADDI`, `ADDQ`, `ANDI`, `CMPI`, `EORI`, `ORI`, `SUBI`, `SUBQ` (immediate commands)
 
 The above commands cannot be used to access the VRAM, since read and write operations are made to a single destination in these commands.
@@ -407,8 +407,8 @@ The relationships between the ID code and the peripheral device are given below.
 | Not defined          | 1   | 1   | 1   | 0   | ($E) |
 | New joy stick (3TRIG)| 1   | 1   | 0   | 1   | ($D) |
 | SEGA RESERVED        | 1   | 1   | 0   | 0   | ($C) |
-| Not defined          | 1   | 1   | 0   | 1   | ($B) |
-| SEGA RESERVED        | 1   | 0   | 1   | 1   | ($A) |
+| Not defined          | 1   | 0   | 1   | 1   | ($B) |
+| SEGA RESERVED        | 1   | 0   | 1   | 0   | ($A) |
 | Not defined          | 1   | 0   | 1   | 0   | ($9) |
 | Not defined          | 1   | 0   | 0   | 1   | ($8) |
 | Not defined          | 1   | 0   | 0   | 0   | ($7) |

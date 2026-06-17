@@ -1006,7 +1006,7 @@ Tables 5.3 to 5.8 list the minimum number of clock states required for execution
 
 | Instruction | Instruction Code | Operation | Execution State | T Bit |
 |-------------|------------------|-----------|-----------------|-------|
-| MOV #imm,Rn | 1110nnnnii iiiii | imm → Sign extension → Rn | 1 | — |
+| MOV #imm,Rn | 1110nnnniiiiiiii | imm → Sign extension → Rn | 1 | — |
 | MOV.W @(disp,PC),Rn | 1001nnnndddddddd | (disp × 2 + PC) → Sign extension → Rn | 1 | — |
 | MOV.L @(disp,PC),Rn | 1101nnnndddddddd | (disp × 4 + PC) → Rn | 1 | — |
 | MOV Rm,Rn | 0110nnnnmmmm0011 | Rm → Rn | 1 | — |
@@ -1024,7 +1024,7 @@ Tables 5.3 to 5.8 list the minimum number of clock states required for execution
 | MOV.L @Rm+,Rn | 0110nnnnmmmm0110 | (Rm) → Rn,Rm + 4 → Rm | 1 | — |
 | MOV.L Rm,@(R0,Rn) | 0000nnnnmmmm0110 | Rm → (R0 + Rn) | 1 | — |
 | MOV.W Rm,@(R0,Rn) | 0000nnnnmmmm0101 | Rm → (R0 + Rn) | 1 | — |
-| MOV.L Rm,@(disp,Rn) | 0001nnnnmmmmdddd | Rm → (disp + Rn) | 1 | — |
+| MOV.L Rm,@(disp,Rn) | 0001nnnnmmmmdddd | Rm → (disp × 4 + Rn) | 1 | — |
 | MOV.B R0,@(disp,Rn) | 10000000nnnndddd | R0 → (disp + Rn) | 1 | — |
 | MOV.W R0,@(disp,Rn) | 10000001nnnndddd | R0 → (disp × 2 + Rn) | 1 | — |
 | MOV.L Rm,@(disp,Rn) | 0001nnnnmmmmdddd | Rm → (disp × 4 + Rn) | 1 | — |
@@ -1045,8 +1045,8 @@ Tables 5.3 to 5.8 list the minimum number of clock states required for execution
 | MOV.L @(disp,GBR),R0 | 11000110dddddddd | (disp × 4 + GBR) → R0 | 1 | — |
 | MOVA @(disp,PC),R0 | 11000111dddddddd | disp × 4 + PC → R0 | 1 | — |
 | MOVT Rn | 0000nnnn00101001 | T → Rn | 1 | — |
-| SWAP.B Rm,Rn | 01101nnnmmmm1000 | Rm → Swap upper and lower 2 bytes → Rn | 1 | — |
-| SWAP.W Rm,Rn | 01101nnnmmmm1001 | Rm → Swap upper and lower word → Rn | 1 | — |
+| SWAP.B Rm,Rn | 0110nnnnmmmm1000 | Rm → Swap upper and lower 2 bytes → Rn | 1 | — |
+| SWAP.W Rm,Rn | 0110nnnnmmmm1001 | Rm → Swap upper and lower word → Rn | 1 | — |
 | XTRCT Rm,Rn | 0010nnnnmmmm1101 | Center 32 bits of Rm and Rn → Rn | 1 | — |
 
 ---

@@ -60,7 +60,7 @@ The memory organization of MB838200B/BL is configurable between 16 bits and 8 bi
 ```
               +----U----+
    A18 [ 1]  |         | [42] NC
-    A7 [ 2]  |         | [41] A8
+   A17 [ 2]  |         | [41] A8
     A7 [ 3]  |         | [40] A9
     A6 [ 4]  |         | [39] A10
     A5 [ 5]  |         | [38] A11
@@ -124,7 +124,7 @@ A-1 is LSB in 8-bit mode:
 |:----:|:--------:|:---------:|:---------:|
 | H | O1 to O8 | O9 to O15 | O16 |
 | L | O1 to O8 | High-Z | A-1 ("L" input) |
-| L | O8 to O15 | High-Z | A-1 ("H" input) |
+| L | O9 to O15 | High-Z | A-1 ("H" input) |
 
 ---
 

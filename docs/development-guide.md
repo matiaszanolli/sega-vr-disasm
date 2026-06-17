@@ -45,7 +45,7 @@ SH2 has two address spaces for same hardware:
 | System registers | `2000 4000h-2000 403Eh` | cache-through |
 | VDP registers | `2000 4100h-2000 410Ah` | cache-through |
 | Frame buffer | `2400 0000h` | 1 Mbit, 4-word write FIFO |
-| SDRAM | `2200 0000h` | 2 Mbit |
+| SDRAM | `2600 0000h` | 2 Mbit |
 
 ## ROM Address Space Mapping
 

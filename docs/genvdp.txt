@@ -631,7 +631,7 @@
  Registers 19, 20, specify how many 16-bit words to transfer:
 
  #19: L07 L06 L05 L04 L03 L02 L01 L00
- #20: L15 L14 L13 L12 L11 L10 L08 L08
+ #20: L15 L14 L13 L12 L11 L10 L09 L08
 
  Note that a length of 7FFFh equals FFFFh bytes transferred, and a length
  of FFFFh = 1FFFF bytes transferred.
@@ -694,7 +694,7 @@
  Registers 19, 20, specify how many 8-bit bytes to fill:
 
  #19: L07 L06 L05 L04 L03 L02 L01 L00
- #20: L15 L14 L13 L12 L11 L10 L08 L08
+ #20: L15 L14 L13 L12 L11 L10 L09 L08
 
  The address bits in registers 21, 22, 23 are ignored:
 
@@ -742,7 +742,7 @@
  Registers 19, 20, specify how many 8-bit bytes to copy:
 
  #19: L07 L06 L05 L04 L03 L02 L01 L00
- #20: L15 L14 L13 L12 L11 L10 L08 L08
+ #20: L15 L14 L13 L12 L11 L10 L09 L08
     
  The address bits in register 23 are ignored.
  Registers 21, 22 specify the source address in VRAM:

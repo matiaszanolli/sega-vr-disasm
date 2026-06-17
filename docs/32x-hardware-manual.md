@@ -994,10 +994,10 @@ See explanation of MEGA Drive register.
 **MD Side:** A1 5180h
 **SH Side:** 2000 4100h
 
-| Bit | 15 | 14 | 13 | 12-8 | 7 | 6-2 | 1 | 0 |
-|-----|-----|-----|-----|------|---|-----|---|---|
-| Field | PAL | - | PRI | - | 240 | - | M1 | M0 |
-| R/W | Read only | - | R/W | - | R/W | - | R/W | R/W |
+| Bit | 15 | 14-8 | 7 | 6 | 5-2 | 1 | 0 |
+|-----|-----|------|---|---|-----|---|---|
+| Field | PAL | - | PRI | 240 | - | M1 | M0 |
+| R/W | Read only | - | R/W | R/W | - | R/W | R/W |
 
 **PAL: TV format**
 - 0: PAL

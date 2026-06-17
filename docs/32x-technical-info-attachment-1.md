@@ -1,6 +1,7 @@
 # 32X Technical Information Attachment 1
 
 **Document:** Details of 32X Technical Information 6
+**Document Number:** MAR-42-072694
 **Source:** SEGA of America, Inc.
 **Classification:** CONFIDENTIAL - PROPERTY OF SEGA
 
@@ -36,7 +37,7 @@ The above corrective measure will go into effect from the Ver. 2.1 (new board sc
 ;*--------------------------------------------------------------*
 ;       Vector / Mega Drive ID / Mars Initial Program
         .include        source\header.prg       ; Mega Drive & Mars Header
-        .include        source\cd_mars.prg      ; Sega indicated Initial Program & Security
+        .include        source\icd_mars.prg     ; Sega indicated Initial Program & Security
 ;*--------------------------------------------------------------*
 
         bcs             _error0                 ; if cs = 1 then ID error

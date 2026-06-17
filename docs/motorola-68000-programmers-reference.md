@@ -655,6 +655,8 @@ These categories sometimes combine to form new categories that are more restrict
 | Long | (xxx).L | 111 | 000 | X | X | X | -- |
 | **Immediate** | #\<xxx\> | 111 | 100 | X | X | -- | -- |
 
+> **Transcriber note:** The `(xxx).L` register field is shown as `000` (faithful to the printed Motorola manual's erratum), but the architecturally correct value is **`001`** — `(xxx).W` uses register field `000`, `(xxx).L` uses `001`. §2.2.17 of this document states the correct encoding. Use `001` for `(xxx).L` when decoding.
+
 ---
 
 ### 2.4 Brief Extension Word Format Compatibility
@@ -1545,7 +1547,7 @@ Table 3-18 lists the integer condition code computations for instructions and Ta
 | AND, ANDI, EOR, EORI, MOVEQ, MOVE, OR, ORI, CLR, EXT, EXTB, NOT, TAS, TST | -- | \* | \* | 0 | 0 | |
 | CHK | -- | \* | U | U | U | |
 | CHK2, CMP2 | -- | U | ? | U | ? | Z = (R = LB) V (R = UB); C = (LB <= UB) AND (IR < LB) V (R > UB)) V (UB < LB) AND (R > UB) AND (R < LB) |
-| SUB, SUBI, SUBQ | \* | \* | \* | ? | ? | V = Sm AND Dm V Rm V Sm AND Dm AND Rm; C = Sm AND Dm V Rm AND Dm V Sm AND Rm |
+| SUB, SUBI, SUBQ | \* | \* | \* | ? | ? | V = Sm AND Dm AND Rm V Sm AND Dm AND Rm; C = Sm AND Dm V Rm AND Dm V Sm AND Rm |
 | SUBX | \* | \* | ? | ? | ? | V = Sm AND Dm AND Rm V Sm AND Dm AND Rm; C = Sm AND Dm V Rm AND Dm V Sm AND Rm; Z = Z AND Rm AND ... AND R0 |
 | CAS, CAS2, CMP, CMPA, CMPI, CMPM | -- | \* | \* | ? | ? | V = Sm AND Dm AND Rm V Sm AND Dm AND Rm; C = Sm AND Dm V Rm AND Dm V Sm AND Rm |
 | DIVS, DIVU | -- | \* | \* | ? | 0 | V = Division Overflow |

@@ -84,7 +84,7 @@ The system block diagram shows the following major components and their intercon
 - **Filter** processes audio output
 - **Sound MIX** combines Genesis and 32X audio
 - **Video MIX** combines Genesis and 32X video for final output
-- **PLL** generates the 21 MHz internal clock from the 46 MHz Genesis clock
+- **PLL** generates the 23 MHz internal clock from the 46 MHz Genesis clock
 - Signals include: HSYNC, VSYNC, BCLK, K, YS, NTSC/PAL, MRES, TEST
 
 ---

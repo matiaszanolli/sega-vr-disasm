@@ -382,8 +382,8 @@ For various pieces of data (music and SEs), the following range of request numbe
 
 | Type | Range |
 |------|-------|
-| **Music** | 01H-7FH |
-| **SE** | 80H-EFH |
+| **Music** | 80H-EFH |
+| **SE** | 01H-7FH |
 
 ### Effect Commands
 

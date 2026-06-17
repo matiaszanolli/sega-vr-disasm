@@ -594,7 +594,7 @@ SET_REG         MACRO           ; reg,val
 VDP_ADR         MACRO           ; code,addr,tmp
         MOVE.W  \2,\3
         ANDI.W  #$3FFF,\3
-MTMP    SET     ((\1)<<14)&$C000)
+MTMP    SET     (((\1)<<14)&$C000)
         IFNE    MTMP
         ORI.W   #MTMP,\3
         ENDC
@@ -603,7 +603,7 @@ MTMP    SET     ((\1)<<14)&$C000)
         MOVE.W  \2,\3
         LSR.W   #8,\3
         LSR.W   #6,\3
-MTMP    SET     ((\1)<<2)&$00F0)
+MTMP    SET     (((\1)<<2)&$00F0)
         IFNE    MTMP
         ORI.W   #MTMP,\3
         ENDC

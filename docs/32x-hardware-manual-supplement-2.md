@@ -185,7 +185,7 @@ _SERIALMODE     .equ    h'fffffe00      ; Serial Mode Register
 
 ; Free Run Timer (FRT)
 _FRT            .equ    h'fffffe10      ; Free Run Timer
-_TIRE           .equ    h'00            ; Timer Interrupt Enable Register
+_TIER           .equ    h'00            ; Timer Interrupt Enable Register
 _TCSR           .equ    h'01            ; Timer Control & Status Register
 _FRC_H          .equ    h'02            ; Free Running Counter High
 _FRC_L          .equ    h'03            ; Free Running Counter Low

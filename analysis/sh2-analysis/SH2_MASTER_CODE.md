@@ -232,7 +232,7 @@ python3 tools/sh2_disasm.py <rom_file> 0x288 2048 | grep "20004020"
 
 ### Hardware Documentation
 - [32X Hardware Manual](../docs/32x-hardware-manual.md) - SH2 memory map
-- [32X Technical Info](../docs/32x-technical-info-attachment1.md) - Sample code
+- [32X Technical Info](../docs/32x-technical-info-attachment-1.md) - Sample code
 
 ### External References
 - Hitachi SH7604 Hardware Manual - SH2 instruction set

@@ -461,6 +461,8 @@ $C00004 and $C00006 are functionally equivalent.
 | D1   | HB   | 1: During H blanking |
 | D0   | PAL  | 1: PAL MODE, 0: NTSC MODE |
 
+> **Transcriber note:** This source orders the low byte as `DMA(D3) VB(D2) HB(D1) PAL(D0)`, which disagrees with real Genesis hardware and with the *Sega Genesis Software Manual* (`READ: Status Register`). The canonical order is **`VB(D3) HB(D2) DMA(D1) PAL(D0)`** — VBLANK = bit 3, HBLANK = bit 2, DMA-busy = bit 1, PAL = bit 0. Use the canonical order when decoding `$C00004` status reads.
+
 **WRITE1: Register Set**
 
 ```
@@ -652,7 +654,7 @@ REG #11: [0] [0] [0] [0] [IE2] [VSCR] [HSCR] [LSCR]
 
 ```
 MSB                                              LSB
-REG #12: [RS0] [0] [0] [S/TE] [LSM1] [LSM0] [RS1]
+REG #12: [RS0] [0] [0] [0] [S/TE] [LSM1] [LSM0] [RS1]
 ```
 
 | Bit  | Function |

@@ -1,0 +1,514 @@
+diff --git a/pico/32x/32x.c b/pico/32x/32x.c
+index f7d58be..0fa0b3f 100644
+--- a/pico/32x/32x.c
++++ b/pico/32x/32x.c
+@@ -13,6 +13,10 @@
+ struct Pico32x Pico32x;
+ SH2 sh2s[2];
+ 
++/* VRD Profiling: per-frame work cycle counters */
++unsigned int vrd_msh2_work_cycles = 0;
++unsigned int vrd_ssh2_work_cycles = 0;
++
+ #define SH2_IDLE_STATES (SH2_STATE_CPOLL|SH2_STATE_VPOLL|SH2_STATE_RPOLL|SH2_STATE_SLEEP)
+ 
+ static int REGPARM(2) sh2_irq_cb(SH2 *sh2, int level)
+@@ -466,7 +470,34 @@ static void run_sh2(SH2 *sh2, unsigned int m68k_cycles)
+   elprintf_sh2(sh2, EL_32X, "+run %u %d @%08x",
+     sh2->m68krcycles_done, cycles, sh2->pc);
+ 
+-  done = sh2_execute(sh2, cycles);
++  {
++    extern int vrd_profile_pc_enabled;
++    extern void vrd_profile_pc_sample(int, unsigned int, int);
++    if (vrd_profile_pc_enabled) {
++      /* VRD: chunked execution so we can sample the SH2 PC. Requires the
++         interpreter (DRC is forced off when VRD_PROFILE_PC is set). */
++      int cpu = sh2->is_slave ? 2 : 1;
++      unsigned int remaining = cycles, total = 0;
++      while (remaining > 0) {
++        unsigned int chunk = remaining > 32 ? 32 : remaining;
++        int d = sh2_execute(sh2, chunk);
++        if (d <= 0) break;
++        vrd_profile_pc_sample(cpu, sh2->pc, d);
++        total += (unsigned)d;
++        if ((unsigned)d >= remaining) break;
++        remaining -= (unsigned)d;
++      }
++      done = total;
++    } else {
++      done = sh2_execute(sh2, cycles);
++    }
++  }
++
++  /* VRD Profiling: track actual work cycles */
++  if (sh2->is_slave)
++    vrd_ssh2_work_cycles += done;
++  else
++    vrd_msh2_work_cycles += done;
+ 
+   sh2->m68krcycles_done += C_SH2_TO_M68K(sh2, done);
+   sh2->state &= ~SH2_STATE_RUN;
+diff --git a/pico/pico_cmn.c b/pico/pico_cmn.c
+index 0078522..eabb5eb 100644
+--- a/pico/pico_cmn.c
++++ b/pico/pico_cmn.c
+@@ -34,7 +34,28 @@ static void SekExecM68k(int cyc_do)
+ #elif defined(EMU_M68K)
+   Pico.t.m68c_cnt += m68k_execute(cyc_do) - cyc_do;
+ #elif defined(EMU_F68K)
+-  Pico.t.m68c_cnt += fm68k_emulate(&PicoCpuFM68k, cyc_do, 0) - cyc_do;
++  {
++    extern int vrd_profile_pc_enabled;
++    extern void vrd_profile_pc_sample(int, unsigned int, int);
++
++    if (vrd_profile_pc_enabled) {
++      /* VRD: sub-batch profiling - execute in ~32-cycle chunks for PC sampling */
++      #define VRD_CHUNK_CYCLES 32
++      int remaining = cyc_do;
++      int total_done = 0;
++      while (remaining > 0) {
++        int chunk = remaining > VRD_CHUNK_CYCLES ? VRD_CHUNK_CYCLES : remaining;
++        int done = fm68k_emulate(&PicoCpuFM68k, chunk, 0);
++        if (done <= 0) { remaining = 0; break; }
++        vrd_profile_pc_sample(0, fm68k_get_pc(&PicoCpuFM68k), done);
++        total_done += done;
++        remaining -= done;
++      }
++      Pico.t.m68c_cnt += total_done - cyc_do;
++    } else {
++      Pico.t.m68c_cnt += fm68k_emulate(&PicoCpuFM68k, cyc_do, 0) - cyc_do;
++    }
++  }
+ #endif
+   SekCyclesLeft = 0;
+ }
+diff --git a/platform/libretro/libretro.c b/platform/libretro/libretro.c
+index a6f2bf6..1e641c8 100644
+--- a/platform/libretro/libretro.c
++++ b/platform/libretro/libretro.c
+@@ -94,6 +94,205 @@ static retro_input_state_t input_state_cb;
+ static retro_environment_t environ_cb;
+ static retro_audio_sample_batch_t audio_batch_cb;
+ 
++/* ======================================================================== */
++/* VRD Profiling instrumentation                                            */
++/* ======================================================================== */
++static FILE *vrd_profile_log = NULL;
++static int vrd_profile_enabled = 0;
++static int vrd_profile_frame = 0;
++static int vrd_profile_max_frames = 2400;
++
++/* PC-level profiling */
++int vrd_profile_pc_enabled = 0;
++static FILE *vrd_profile_pc_log = NULL;
++
++/* PC sample histogram (hash table per CPU: 0=68K, 1=Master SH2, 2=Slave SH2) */
++#define VRD_PC_HASH_SIZE 65536
++#define VRD_PC_HASH_MASK (VRD_PC_HASH_SIZE - 1)
++typedef struct {
++    unsigned int pc;
++    unsigned int total_cycles;
++    unsigned int count;
++} vrd_pc_entry_t;
++static vrd_pc_entry_t vrd_pc_table[3][VRD_PC_HASH_SIZE];
++static int vrd_pc_used[3] = {0, 0, 0};
++
++/* VRD: exact idle/useful cycle accounting (every sample counted — immune to the
++   top-N histogram truncation). Per CPU: 0=68K, 1=Master SH2, 2=Slave SH2. */
++static unsigned int       vrd_frame_idle[3]   = {0,0,0};  /* reset each frame */
++static unsigned int       vrd_frame_useful[3] = {0,0,0};
++static unsigned long long vrd_cum_idle[3]     = {0,0,0};  /* over counted frames */
++static unsigned long long vrd_cum_useful[3]   = {0,0,0};
++
++/* VRD: 3D-phase gating (count only frames where the Slave is rendering 3D) */
++static int          vrd_gate_3d = 0;            /* VRD_GATE_3D=1 to enable */
++static unsigned int vrd_gate_thresh = 150000;   /* ssh2 cycles/frame => 3D-active */
++static int          vrd_3d_active = 0;          /* from previous frame's ssh2 work */
++static int          vrd_active_frames = 0;
++
++/* Classify a sampled PC as idle (poll / V-blank-wait / delay loop) vs useful work.
++   68K idle = BIOS main-loop poll in WRAM ($FF0000+).
++   SH2 idle = Master dispatch poll / Slave command poll + delay loop / boot idle. */
++static int vrd_is_idle_pc(int cpu_id, unsigned int pc)
++{
++    if (cpu_id == 0)
++        return pc >= 0xFF0000;
++    if (pc >= 0x06000440 && pc < 0x06000640) return 1; /* msh2 $460 / ssh2 $592,$60A */
++    if (pc >= 0x020003C0 && pc < 0x020003E0) return 1; /* slave boot idle $0203CC */
++    return 0;
++}
++
++/* ===================== VRD Tier 2: runtime inspection ===================== */
++extern struct Pico32xMem *Pico32xMem;
++extern u32 REGPARM(2) p32x_sh2_read8(u32 a, SH2 *sh2);
++extern u32 REGPARM(2) p32x_sh2_read16(u32 a, SH2 *sh2);
++
++/* Generic read routed to the right bus: 68K (ROM/WRAM) vs SH2 (FB/SDRAM/etc). */
++static unsigned vrd_r16(unsigned addr) {
++    extern M68K_CONTEXT PicoCpuFM68k;
++    if (addr < 0x400000 || (addr >= 0xFF0000 && addr <= 0xFFFFFF))
++        return PicoCpuFM68k.read_word(addr) & 0xFFFF;
++    return p32x_sh2_read16(addr, &msh2) & 0xFFFF;
++}
++static unsigned vrd_r8(unsigned addr) {
++    extern M68K_CONTEXT PicoCpuFM68k;
++    if (addr < 0x400000 || (addr >= 0xFF0000 && addr <= 0xFFFFFF))
++        return PicoCpuFM68k.read_byte(addr) & 0xFF;
++    return p32x_sh2_read8(addr, &msh2) & 0xFF;
++}
++
++/* FNV-1a hash of the currently-displayed framebuffer (decisive "did the image
++   change between frames?" signal — no host video needed). */
++static unsigned vrd_fb_crc(void) {
++    unsigned short *fb; unsigned h = 2166136261u; int i;
++    if (!Pico32xMem) return 0;
++    fb = Pico32xMem->dram[(Pico32x.vdp_regs[0x0a/2] & P32XV_FS) ^ 1];
++    for (i = 0; i < 0x20000/2; i++) { h ^= fb[i]; h *= 16777619u; }
++    return h;
++}
++
++#define VRD_MAX_WATCH 32
++static unsigned vrd_watch_addr[VRD_MAX_WATCH], vrd_watch_size[VRD_MAX_WATCH];
++static int   vrd_watch_n = 0;
++static FILE *vrd_watch_log = NULL;
++static long  vrd_dump_frame = -1;
++static char  vrd_dump_spec[256] = "";
++static char  vrd_dump_file[256] = "";
++static int   vrd_fb_crc_on = 0;
++static unsigned vrd_scene_addr = 0xC87E;   /* 68K game-state word ($FFC87E) */
++
++static void vrd_parse_watch(const char *s) {
++    while (s && *s && vrd_watch_n < VRD_MAX_WATCH) {
++        unsigned a = 0, sz = 2;
++        if (sscanf(s, "%x:%u", &a, &sz) >= 1) {
++            vrd_watch_addr[vrd_watch_n] = a;
++            vrd_watch_size[vrd_watch_n] = sz ? sz : 2;
++            vrd_watch_n++;
++        }
++        s = strchr(s, ','); if (s) s++;
++    }
++}
++static unsigned vrd_readN(unsigned a, unsigned sz) {
++    if (sz <= 1) return vrd_r8(a);
++    if (sz == 2) return vrd_r16(a);
++    return (vrd_r16(a) << 16) | vrd_r16(a + 2);   /* 4-byte */
++}
++static void vrd_dump_regions(void) {
++    const char *path = vrd_dump_file[0] ? vrd_dump_file : "vrd_dump.txt";
++    FILE *f = fopen(path, "w");
++    const char *s = vrd_dump_spec;
++    if (!f) return;
++    while (s && *s) {
++        unsigned a = 0, len = 64, i;
++        if (sscanf(s, "%x:%u", &a, &len) >= 1) {
++            fprintf(f, "# DUMP %08X..%08X\n", a, a + len);
++            for (i = 0; i < len; i += 16) {
++                unsigned j; fprintf(f, "%08X:", a + i);
++                for (j = 0; j < 16 && i + j < len; j += 2)
++                    fprintf(f, " %04X", vrd_r16(a + i + j));
++                fprintf(f, "\n");
++            }
++        }
++        s = strchr(s, ','); if (s) s++;
++    }
++    fclose(f);
++}
++
++/* WRAM caller tracking: when 68K PC is in WRAM ($FF0000+), record
++   the last non-WRAM PC as the "caller" to identify what triggers polling */
++static vrd_pc_entry_t vrd_wram_caller_table[VRD_PC_HASH_SIZE];
++static int vrd_wram_caller_used = 0;
++static unsigned int vrd_last_non_wram_pc = 0;
++
++static void vrd_wram_caller_record(unsigned int caller_pc, int cycles)
++{
++    unsigned int hash, i;
++    hash = (caller_pc >> 1) & VRD_PC_HASH_MASK;
++    for (i = 0; i < VRD_PC_HASH_SIZE; i++) {
++        unsigned int idx = (hash + i) & VRD_PC_HASH_MASK;
++        if (vrd_wram_caller_table[idx].pc == caller_pc) {
++            vrd_wram_caller_table[idx].total_cycles += cycles;
++            vrd_wram_caller_table[idx].count++;
++            return;
++        }
++        if (vrd_wram_caller_table[idx].count == 0) {
++            vrd_wram_caller_table[idx].pc = caller_pc;
++            vrd_wram_caller_table[idx].total_cycles = cycles;
++            vrd_wram_caller_table[idx].count = 1;
++            vrd_wram_caller_used++;
++            return;
++        }
++    }
++}
++
++/* SH2 work cycle counters from 32x.c */
++extern unsigned int vrd_msh2_work_cycles;
++extern unsigned int vrd_ssh2_work_cycles;
++
++/* PC sample collection with open-addressing hash table */
++void vrd_profile_pc_sample(int cpu_id, unsigned int pc, int cycles)
++{
++    unsigned int hash, i;
++    vrd_pc_entry_t *t;
++
++    if (cpu_id < 0 || cpu_id > 2) return;
++
++    /* VRD: 3D-phase gate — ignore samples outside 3D-active frames */
++    if (vrd_gate_3d && !vrd_3d_active) return;
++    /* VRD: exact idle/useful accounting (independent of histogram truncation) */
++    if (vrd_is_idle_pc(cpu_id, pc)) vrd_frame_idle[cpu_id]   += (unsigned)cycles;
++    else                            vrd_frame_useful[cpu_id] += (unsigned)cycles;
++
++    /* WRAM caller tracking (68K only) */
++    if (cpu_id == 0) {
++        if (pc >= 0xFF0000) {
++            if (vrd_last_non_wram_pc != 0)
++                vrd_wram_caller_record(vrd_last_non_wram_pc, cycles);
++        } else {
++            vrd_last_non_wram_pc = pc;
++        }
++    }
++
++    t = vrd_pc_table[cpu_id];
++    hash = (pc >> 1) & VRD_PC_HASH_MASK;
++
++    for (i = 0; i < VRD_PC_HASH_SIZE; i++) {
++        unsigned int idx = (hash + i) & VRD_PC_HASH_MASK;
++        if (t[idx].pc == pc) {
++            t[idx].total_cycles += cycles;
++            t[idx].count++;
++            return;
++        }
++        if (t[idx].count == 0) {
++            t[idx].pc = pc;
++            t[idx].total_cycles = cycles;
++            t[idx].count = 1;
++            vrd_pc_used[cpu_id]++;
++            return;
++        }
++    }
++}
++
+ #define VOUT_MAX_WIDTH 320
+ #define VOUT_MAX_HEIGHT 240
+ 
+@@ -1960,6 +2159,8 @@ static void update_variables(bool first_run)
+       else
+          PicoIn.opt &= ~POPT_EN_DRC;
+    }
++   if (getenv("VRD_PROFILE_PC"))   /* VRD: SH2 interpreter required for PC sampling */
++      PicoIn.opt &= ~POPT_EN_DRC;
+ #endif
+ #ifdef _3DS
+    if(!ctr_svchack_successful)
+@@ -2406,8 +2607,209 @@ void retro_run(void)
+       update_audio_latency = false;
+    }
+ 
++   /* VRD Profiling: Initialize on first frame */
++   if (vrd_profile_frame == 0) {
++      const char *profile_path = getenv("VRD_PROFILE_LOG");
++      const char *max_frames_str = getenv("VRD_PROFILE_FRAMES");
++      const char *pc_profile_path = getenv("VRD_PROFILE_PC_LOG");
++      const char *pc_enabled_str = getenv("VRD_PROFILE_PC");
++
++      if (max_frames_str) {
++         int custom_max = atoi(max_frames_str);
++         if (custom_max > 0) vrd_profile_max_frames = custom_max;
++      }
++      if (profile_path) {
++         vrd_profile_log = fopen(profile_path, "w");
++         if (vrd_profile_log) {
++            vrd_profile_enabled = 1;
++            fprintf(vrd_profile_log, "frame,m68k_cycles,msh2_cycles,ssh2_cycles,"
++                    "m68k_useful,msh2_useful,ssh2_useful,active,fb_crc,scene,state,is_32x\n");
++         }
++      }
++      if (pc_enabled_str && atoi(pc_enabled_str) > 0) {
++         vrd_profile_pc_enabled = 1;
++         if (pc_profile_path) {
++            vrd_profile_pc_log = fopen(pc_profile_path, "w");
++            if (vrd_profile_pc_log)
++               fprintf(vrd_profile_pc_log, "cpu,pc,total_cycles,count,avg_cycles,share\n");
++         }
++         if (!vrd_profile_pc_log) vrd_profile_pc_enabled = 0;
++      }
++      { const char *g = getenv("VRD_GATE_3D");     if (g && atoi(g) > 0) vrd_gate_3d = 1; }
++      { const char *t = getenv("VRD_GATE_THRESH"); if (t && atoi(t) > 0) vrd_gate_thresh = (unsigned)atoi(t); }
++      /* Tier 2: runtime inspection */
++      { const char *w  = getenv("VRD_WATCH");      if (w) vrd_parse_watch(w); }
++      { const char *wl = getenv("VRD_WATCH_LOG");  if (wl) vrd_watch_log = fopen(wl, "w"); }
++      { const char *df = getenv("VRD_DUMP_FRAME"); if (df) vrd_dump_frame = atol(df); }
++      { const char *ds = getenv("VRD_DUMP");       if (ds) strncpy(vrd_dump_spec, ds, sizeof(vrd_dump_spec)-1); }
++      { const char *dl = getenv("VRD_DUMP_FILE");  if (dl) strncpy(vrd_dump_file, dl, sizeof(vrd_dump_file)-1); }
++      { const char *fc = getenv("VRD_FB_CRC");     if (fc && atoi(fc) > 0) vrd_fb_crc_on = 1; }
++      { const char *sa = getenv("VRD_SCENE_ADDR"); vrd_scene_addr = sa ? (unsigned)strtoul(sa,0,16) : 0xFFC87E; }
++      if (vrd_watch_log) {
++         int wi; fprintf(vrd_watch_log, "frame");
++         for (wi = 0; wi < vrd_watch_n; wi++) fprintf(vrd_watch_log, ",0x%X", vrd_watch_addr[wi]);
++         fprintf(vrd_watch_log, "\n");
++      }
++   }
++
++   /* VRD Profiling: Pre-frame state capture */
++   int vrd_is_32x = (PicoIn.AHW & PAHW_32X) ? 1 : 0;
++   unsigned int vrd_m68k_before = 0;
++   if ((vrd_profile_enabled || vrd_profile_pc_enabled) &&
++       vrd_profile_frame < vrd_profile_max_frames && vrd_is_32x) {
++      vrd_msh2_work_cycles = 0;
++      vrd_ssh2_work_cycles = 0;
++      vrd_frame_idle[0] = vrd_frame_idle[1] = vrd_frame_idle[2] = 0;
++      vrd_frame_useful[0] = vrd_frame_useful[1] = vrd_frame_useful[2] = 0;
++      vrd_m68k_before = SekCyclesDone();
++   }
++
+    PicoFrame();
+ 
++   /* VRD Tier 2: per-frame runtime inspection (independent of profile logs) */
++   if (PicoIn.AHW & PAHW_32X) {
++      if (vrd_watch_log) {
++         int wi; fprintf(vrd_watch_log, "%d", vrd_profile_frame);
++         for (wi = 0; wi < vrd_watch_n; wi++)
++            fprintf(vrd_watch_log, ",0x%X", vrd_readN(vrd_watch_addr[wi], vrd_watch_size[wi]));
++         fprintf(vrd_watch_log, "\n");
++      }
++      if ((long)vrd_profile_frame == vrd_dump_frame) vrd_dump_regions();
++   }
++
++   /* VRD Profiling: Post-frame logging */
++   if ((vrd_profile_enabled || vrd_profile_pc_enabled) &&
++       vrd_profile_frame < vrd_profile_max_frames && vrd_is_32x) {
++      unsigned int vrd_m68k_cycles = SekCyclesDone() - vrd_m68k_before;
++      int vrd_active = (!vrd_gate_3d) || vrd_3d_active;
++
++      if (vrd_active) {
++         int c;
++         vrd_active_frames++;
++         for (c = 0; c < 3; c++) {
++            vrd_cum_useful[c] += vrd_frame_useful[c];
++            vrd_cum_idle[c]   += vrd_frame_idle[c];
++         }
++      }
++
++      if (vrd_profile_enabled && vrd_profile_log) {
++         unsigned vrd_fbcrc = vrd_fb_crc_on ? vrd_fb_crc() : 0;
++         unsigned vrd_scene = vrd_r16(0xFF0004);          /* scene-handler low word */
++         unsigned vrd_state = vrd_r16(vrd_scene_addr);    /* game state ($FFC87E) */
++         fprintf(vrd_profile_log, "%d,%u,%u,%u,%u,%u,%u,%d,0x%08X,0x%04X,0x%04X,%d\n",
++                 vrd_profile_frame, vrd_m68k_cycles,
++                 vrd_msh2_work_cycles, vrd_ssh2_work_cycles,
++                 vrd_frame_useful[0], vrd_frame_useful[1], vrd_frame_useful[2],
++                 vrd_active, vrd_fbcrc, vrd_scene, vrd_state, vrd_is_32x);
++      }
++
++      /* gate the NEXT frame on this frame's Slave 3D workload */
++      vrd_3d_active = (vrd_ssh2_work_cycles > vrd_gate_thresh);
++
++      if (vrd_profile_frame == vrd_profile_max_frames - 1) {
++         if (vrd_profile_enabled && vrd_profile_log) {
++            fclose(vrd_profile_log); vrd_profile_log = NULL;
++         }
++
++         /* Export PC histogram */
++         if (vrd_profile_pc_enabled && vrd_profile_pc_log) {
++            const char *cpu_names[] = {"68K", "Master", "Slave"};
++            int cpu, i, j;
++
++            for (cpu = 0; cpu < 3; cpu++) {
++               unsigned int total = 0;
++               static vrd_pc_entry_t sorted[VRD_PC_HASH_SIZE];
++               int n = 0;
++               for (i = 0; i < VRD_PC_HASH_SIZE; i++) {
++                  if (vrd_pc_table[cpu][i].count > 0) {
++                     sorted[n++] = vrd_pc_table[cpu][i];
++                     total += vrd_pc_table[cpu][i].total_cycles;
++                  }
++               }
++               /* Insertion sort by total_cycles descending */
++               for (i = 1; i < n; i++) {
++                  vrd_pc_entry_t key = sorted[i];
++                  j = i - 1;
++                  while (j >= 0 && sorted[j].total_cycles < key.total_cycles) {
++                     sorted[j + 1] = sorted[j];
++                     j--;
++                  }
++                  sorted[j + 1] = key;
++               }
++               for (i = 0; i < n && i < 200; i++) {
++                  float avg = (float)sorted[i].total_cycles / sorted[i].count;
++                  float share = total > 0 ? (100.0f * sorted[i].total_cycles / total) : 0;
++                  fprintf(vrd_profile_pc_log, "%s,0x%08X,%u,%u,%.1f,%.2f\n",
++                          cpu_names[cpu], sorted[i].pc, sorted[i].total_cycles,
++                          sorted[i].count, avg, share);
++               }
++            }
++            /* Export WRAM caller histogram */
++            if (vrd_wram_caller_used > 0) {
++               unsigned int total = 0;
++               static vrd_pc_entry_t sorted_callers[VRD_PC_HASH_SIZE];
++               int n = 0;
++               for (i = 0; i < VRD_PC_HASH_SIZE; i++) {
++                  if (vrd_wram_caller_table[i].count > 0) {
++                     sorted_callers[n++] = vrd_wram_caller_table[i];
++                     total += vrd_wram_caller_table[i].total_cycles;
++                  }
++               }
++               for (i = 1; i < n; i++) {
++                  vrd_pc_entry_t key = sorted_callers[i];
++                  j = i - 1;
++                  while (j >= 0 && sorted_callers[j].total_cycles < key.total_cycles) {
++                     sorted_callers[j + 1] = sorted_callers[j];
++                     j--;
++                  }
++                  sorted_callers[j + 1] = key;
++               }
++               fprintf(vrd_profile_pc_log, "# WRAM_CALLERS: %d unique callers, %u total cycles\n", n, total);
++               for (i = 0; i < n && i < 50; i++) {
++                  float avg = (float)sorted_callers[i].total_cycles / sorted_callers[i].count;
++                  float share = total > 0 ? (100.0f * sorted_callers[i].total_cycles / total) : 0;
++                  fprintf(vrd_profile_pc_log, "WRAM_CALLER,0x%08X,%u,%u,%.1f,%.2f\n",
++                          sorted_callers[i].pc, sorted_callers[i].total_cycles,
++                          sorted_callers[i].count, avg, share);
++               }
++            }
++
++            /* Dump WRAM content at $FF0000-$FF001F for disassembly */
++            {
++               extern M68K_CONTEXT PicoCpuFM68k;
++               fprintf(vrd_profile_pc_log, "# WRAM_DUMP: $FF0000-$FF001F\n");
++               for (i = 0; i < 32; i += 2) {
++                  unsigned int word = PicoCpuFM68k.read_word(0xFF0000 + i);
++                  fprintf(vrd_profile_pc_log, "# %06X: %04X\n", 0xFF0000 + i, word);
++               }
++            }
++
++            /* VRD: exact idle/useful budget summary (counts EVERY sample — not
++               subject to the top-200 histogram truncation above). */
++            fprintf(vrd_profile_pc_log,
++                    "# BUDGET: active_frames=%d gate_3d=%d thresh=%u\n",
++                    vrd_active_frames, vrd_gate_3d, vrd_gate_thresh);
++            {
++               const char *nm[3] = {"68K","Master","Slave"};
++               int af = vrd_active_frames > 0 ? vrd_active_frames : 1;
++               int k;
++               for (k = 0; k < 3; k++) {
++                  unsigned long long tot = vrd_cum_useful[k] + vrd_cum_idle[k];
++                  double upf = (double)vrd_cum_useful[k] / af;
++                  double ush = tot ? 100.0 * (double)vrd_cum_useful[k] / (double)tot : 0;
++                  fprintf(vrd_profile_pc_log,
++                     "BUDGET,%s,useful=%llu,idle=%llu,useful_pct=%.1f,useful_per_frame=%.0f\n",
++                     nm[k], vrd_cum_useful[k], vrd_cum_idle[k], ush, upf);
++               }
++            }
++
++            fclose(vrd_profile_pc_log); vrd_profile_pc_log = NULL;
++            vrd_profile_pc_enabled = 0;
++         }
++      }
++   }
++   vrd_profile_frame++;
++
+    /* Check whether frontend needs to be notified
+     * of timing/geometry changes */
+    if (libretro_update_av_info || libretro_update_geometry) {

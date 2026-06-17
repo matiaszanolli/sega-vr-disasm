@@ -113,7 +113,7 @@ def analyze_pc_profile(csv_path: str, top_n: int = 20):
         reader = csv.DictReader(f)
         for row in reader:
             cpu = row['cpu'].strip()
-            if cpu.startswith('#') or cpu.startswith('WRAM_CALLER'):
+            if cpu.startswith('#') or cpu.startswith('WRAM_CALLER') or cpu == 'BUDGET':
                 continue
             pc = int(row['pc'], 16)
             total_cycles = int(row['total_cycles'])

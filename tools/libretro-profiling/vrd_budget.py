@@ -24,7 +24,9 @@ SH2_FRAME_CYC = 383333         # one TV-frame of SH2 cycles
 # Re-derive if SDRAM code layout changes: idle loops are the dominant low-avg
 # self-looping PCs in each CPU's histogram.
 IDLE = {
-    '68K':    [(0xFF0000, 0x1000000)],                       # BIOS main-loop V-blank poll
+    # 68K "non-compute": V-blank poll + the sh2_send_cmd COMM0_HI sync waits
+    # (68K blocked on the Master SH2 finishing a block copy — NOT offloadable compute).
+    '68K':    [(0xFF0000, 0x1000000), (0x88E35A, 0x88E363), (0x88E316, 0x88E31F)],
     'Master': [(0x06004230, 0x06004260), (0x06000440, 0x06000492)],  # dispatch/idle poll
     'Slave':  [(0x06000580, 0x06000660), (0x020003C0, 0x020003E0)],  # cmd poll + delay + boot
 }

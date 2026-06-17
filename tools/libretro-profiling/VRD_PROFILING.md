@@ -74,14 +74,22 @@ VRD_DUMP_FRAME=2000 VRD_DUMP=0x06004240:32,0x0600CA00:64 VRD_DUMP_FILE=dump.txt 
 
 ## Canonical baseline (current `60fps_project` build, racing/3D-active)
 
-| CPU | useful/frame | of executed | of CPU budget |
+| 68K time | share | cyc/frame |
+|----------|-------|-----------|
+| V-blank idle (WRAM poll) | ~51% | ~65,000 |
+| `sh2_send_cmd` sync-wait (68K blocked on Master SH2 copy) | ~13.5% | ~16,900 |
+| **Real compute (useful, offloadable)** | **31.5%** | **39,197** |
+
+| SH2 | useful/frame | of executed | of CPU budget |
 |-----|-------------|-------------|---------------|
-| 68K | 56,073 | 45.0% | ~44% |
 | Master SH2 | 103,423 | 83.6% | ~27% (≈68% free) |
 | Slave SH2 | 125,476 | 40.9% | ~80% util (41% real render) |
 
-Effective display ≈ 45 FPS (consecutive-change). Racing displays a repeating
-3-frame cycle (game state 0→4→8); **state-4 frames are a constant framebuffer**
-while states 0/8 change. 60 FPS implies fitting a full game-frame's 68K work
-(~3×56k ≈ 168k cyc) into one TV frame (127,833) → **~24–32% more 68K work must
-move off the 68K** (Master SH2 has the headroom).
+**Key conclusion:** 68K *compute* per game-frame (~3×39,197 ≈ 117,600 cyc) already
+fits inside one TV-frame budget (127,833). **Compute is NOT the 60 FPS bottleneck**
+— so offloading more 68K compute to the Master SH2 does not help (and lengthens the
+sync-wait). The real levers are (1) the **`sh2_send_cmd` sync barrier** — the 68K
+blocked ~13.5% of the time waiting for Master SH2 block copies → pipeline overlap /
+batched-or-faster copies; and (2) the **3-TV-frame state machine** (game state
+0→4→8). Effective display ≈ 45 FPS; racing shows a repeating 3-frame cycle where
+**state-4 frames are a constant framebuffer** while states 0/8 change.

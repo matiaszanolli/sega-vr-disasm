@@ -160,7 +160,7 @@ sh2_effect_timer_mgmt:
     nop
 
 .align 2
-.et_sine_tbl:   .long   0x021A2D8   /* sine table ROM */
+.et_sine_tbl:   .long   0x0200A2D8  /* sine table ROM (68K $00A2D8 = file $A2D8; matches original effect_timer_mgmt) */
 .et_mask_2000:  .short  0x2000
 .et_clear_2000: .short  0xDFFF
 .et_mask_1000:  .short  0x1000

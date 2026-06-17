@@ -556,8 +556,8 @@ sh2_ai_orch_finish:
 .ao_c4000:      .short  0x4000     /* inactive flag */
 .align 2
 .ao_ai_globals: .long   0x0600FC10 /* AI globals area (cache-through not needed, Master only reads) */
-.ao_ofs_tbl:    .long   0x020A8C8  /* X offset table (ROM) */
-.ao_pos_tbl:    .long   0x020A868  /* spawn position table (ROM) */
+.ao_ofs_tbl:    .long   0x0200A8C8 /* X offset table (ROM, file $A8C8) */
+.ao_pos_tbl:    .long   0x0200A868 /* spawn position table (ROM, file $A868) */
 .ao_steer_addr: .long   0x023025E0     /* sh2_ai_steering_calc */
 .ao_sdiv_addr:  .long   0x02301760     /* sh2_sdiv16 */
 .ao_spd_clamp:  .long   0x023017F2     /* sh2_entity_speed_clamp (g1+$032) */

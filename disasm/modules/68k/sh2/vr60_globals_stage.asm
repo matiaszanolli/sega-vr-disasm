@@ -32,7 +32,7 @@
 ;   +$26  drift_divisor (word)        from $FFBBA8
 ;   +$28  min_speed_threshold (word)  from $FFBBB0
 ;   +$2A  max_speed_threshold (word)  from $FFBBB2
-;   +$2C  sound_trigger_out (byte)    from $FFCA94  (output: cleared after staging)
+;   +$2C  sound_trigger_out (byte)    from $FFC8A4  (output: cleared after staging)
 ;   +$2D  ai_boost_control (byte)     from $FFBFC0
 ;   +$2E  slide_indicator (byte)      from $FFBF7B  (output)
 ;   +$2F  (padding byte)

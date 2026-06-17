@@ -536,7 +536,7 @@ The orchestrator at $005AB6 calls these physics functions in order (lines 27-42)
 | **+offset entries** | Orchestrator calls `steering+6` and `force_integration+18`, skipping preambles. | SH2 port uses the main entry points directly. The skipped code (force=-51 default, data prefix) is handled differently in the SH2 version. |
 | **entity_pos_update boundary** | ALL 3 exit paths are unconditional JMPs to collision (no RTS). Cannot insert bare RTS. | **Port position calculation only** — replace the 3 JMPs with RTS in the SH2 version. Collision stays on 68K (Phase 5). The 68K orchestrator must call collision separately after SH2 physics returns. |
 | **suspension_steering_damping dispatch** | Uses $C8CC (race_substate_b) as jump table index to select lateral_drift variant. | Relocate $C8CC to SDRAM globals block. SH2 reads it to choose variant A or B. |
-| **Sound triggers** | 5 writes to $FFCA94: $B1 (2×), $B4 (3×), $B2 (1×). All 15-frame timer gated. Single-byte last-writer-wins. | SDRAM sound byte at globals+$0F. 68K reads each frame, plays via sound driver. |
+| **Sound triggers** | 5 writes to $FFC8A4 (orig `#$B2,(-14172).W`): $B1 (2×), $B4 (3×), $B2 (1×). All 15-frame timer gated. Single-byte last-writer-wins. | SDRAM sound byte at globals **+$2C** (not +$0F). SH2 physics writes it, cmd $3F relays to COMM6_HI, 68K reads each frame. |
 | **Controller input** | `steering_input` reads $FFC000/$FFC00A/$FFC010/$FFC018 (68K WRAM). | Relocate to SDRAM globals block. 68K writes per-frame from V-INT input scan. |
 
 ### 7.4 RAM Variables to Relocate (Verified — 44 bytes)
@@ -568,7 +568,7 @@ The orchestrator at $005AB6 calls these physics functions in order (lines 27-42)
 | +$26 | $FFBBA8 | word | drift_divisor | Track init | lateral_drift |
 | +$28 | $FFBBB0 | word | min_speed_threshold | Track init | lateral_drift |
 | +$2A | $FFBBB2 | word | max_speed_threshold | Track init | entity_force_integration (DIVS runtime divisor) |
-| +$2C | $FFCA94 | byte | sound_trigger_out | Physics output | 68K sound dispatch |
+| +$2C | $FFC8A4 | byte | sound_trigger_out | Physics output | 68K sound dispatch |
 | +$2D | $FFBFC0 | byte | ai_control_flag | Scene init | lateral_drift_B (AI boost gate, bit 4) |
 | +$2E | $FFBF7B | byte | slide_indicator | lateral_drift_A output | (display feedback) |
 | +$2F | — | byte | (padding) | — | — |
@@ -603,14 +603,18 @@ Once physics runs on SH2, entity tables must be in SDRAM (already allocated at $
 |-------|------------|-------------|------|---------|
 | Drag (road surface) | $0093910E | $0213910E | ~128W | entity_force_integration |
 | Drag (off-road) | $00938FCE | $02138FCE | ~128W | entity_force_integration |
-| Gear ratios | $0088A1F0 | $020A1F0 | 6W (12B) | entity_speed_accel |
-| Upshift thresholds | $0088A1E2 | $020A1E2 | 6W (12B) | entity_speed_accel |
-| Downshift thresholds | $00939EDE | $02139EDE | 6W (12B) | entity_speed_accel |
+| Gear ratios | $0088A1F0 (file $A1F0) | $0200A1F0 | 6W (12B) | entity_speed_accel |
+| Upshift thresholds | $0088A1E2 (file $A1E2) | $0200A1E2 | 6W (12B) | entity_speed_accel |
+| Downshift thresholds | file $139EDE | $02139EDE | 6W (12B) | entity_speed_accel |
 | Speed table base | ptr at $FFC27C | ptr relocated to globals | ~384W | speed_calc_multiplier_chain |
-| Sine/cosine | $00930000 | $02130000 | 256W (512B) | entity_pos_update, drift_physics |
-| Sine table (alt) | $00A2D8 | $0202A2D8 | 64W (128B) | physics_lookup_tables |
+| Sine/cosine | file $130000 | $02130000 | 257W | entity_pos_update, drift_physics |
+| Sine table (alt) | $00A2D8 (file $A2D8) | $0200A2D8 | 64W (128B) | physics_lookup_tables, effect_timer |
 
-**SH2 ROM access:** All tables are in ROM below $300000. SH2 accesses ROM at $02000000 + file_offset. ROM reads from SH2 are cached (1-2 wait states first access, 0 thereafter if in cache). Table locality is good for caching.
+**SH2 ROM access:** All tables are in ROM below $300000. SH2 accesses ROM at `$02000000 + file_offset`. ROM reads from SH2 are cached (1-2 wait states first access, 0 thereafter if in cache). Table locality is good for caching.
+
+> **Address-audit correction (2026-06-17):** The SH2 column above is the authority — verified against actual ROM bytes. Earlier revisions of this table (and the code derived from them) carried two error classes:
+> 1. **Dropped-zero literals** — `$020A1F0`/`$020A1E2`/`$0202A2D8` were written with a missing/extra digit, resolving *below* the `$02000000` ROM window (e.g. `0x020A1F0` parses as `$0020A1F0` = garbage). Found and fixed in `physics_group2_accel.asm`, `ai_orchestrator.asm`, `physics_timers.asm`. **Any 7-hex-digit `0x020xxxxx` literal in SH2 source is almost certainly this bug** — it should be 8 digits (`0x0200xxxx`).
+> 2. **Mislabeled 68K addresses** — the `$0093xxxx`/`$00A2D8` *68K* labels were wrong; the tables actually live at file offsets `$13xxxx`/`$A2D8`. The SH2 literals (`$0213xxxx`) were nonetheless correct because they were derived to point at the real file offset. Verify table identity by ROM content, not by the 68K label.
 
 ### 7.7 Acceptance Criteria (Phase 3B+3D — ALL COMPLETE)
 

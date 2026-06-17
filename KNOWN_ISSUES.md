@@ -77,6 +77,36 @@ On SH2, `sh-elf-as` uses **power-of-2** alignment, NOT byte count:
 
 **Rule:** For SH2 literal pools: `.align 1` before `.word`, `.align 2` before `.long`.
 
+### SH2 ROM-Table Literals — Dropped-Zero Address Bug (from glitchy docs)
+
+ROM-table pointers in SH2 literal pools were partly derived from an earlier, buggy
+revision of `VR60_ROADMAP.md` §7.6 that carried malformed SH2 addresses. The failure is
+**silent** — wrong pointers read garbage, they don't crash the build, and a no-crash
+autoplay won't catch them (Ground Rule 10).
+
+**Bug signature:** a **7-hex-digit `0x020xxxxx` literal**. SH2 ROM is mapped at
+`$02000000`, so a real ROM-table pointer is 8 digits (`0x0200xxxx` for file offset
+`$0xxxx`). A dropped leading zero turns `$0200A1F0` into `0x020A1F0` = `$0020A1F0`, which
+sits *below* the ROM window and reads open-bus/mirror garbage.
+
+**Found & fixed 2026-06-17** (all 5 were active, in the built ROM):
+
+| File | Label | Was | Now |
+|------|-------|-----|-----|
+| `physics_group2_accel.asm` | gear ratios | `0x020A1F0` | `0x0200A1F0` |
+| `physics_group2_accel.asm` | nat-accel thr | `0x020A1E2` | `0x0200A1E2` |
+| `ai_orchestrator.asm` | AI X-offset tbl | `0x020A8C8` | `0x0200A8C8` |
+| `ai_orchestrator.asm` | AI spawn-pos tbl | `0x020A868` | `0x0200A868` |
+| `physics_timers.asm` | sine (alt) | `0x021A2D8` | `0x0200A2D8` |
+
+**Verification method (do this, don't trust comments):** locate the table's true file
+offset by content in `build/vr_rebuild.32x` (e.g. gear ratios = words
+`00ab 00c0 00cd 00d5 00db 00e0`), then SH2 addr = `file_offset + 0x02000000`. Note the
+`$0093xxxx`/`$00A2D8` *68K labels* in old comments are themselves wrong — the sine/drag/
+atan2/decel tables actually live at file `$13xxxx`/`$A2D8`, so the `$0213xxxx` SH2 literals
+are correct despite the bad labels. **Audit rule:** `grep -rnE '0x020[0-9A-Fa-f]{4}([^0-9A-Fa-f]|$)'`
+over `disasm/sh2/` flags every candidate.
+
 ### SH2 gas MOV @(disp,Rm) — Byte Offsets, Not Scaled
 The SH2 assembler (`sh-elf-as`) uses **byte offsets** for `MOV.W @(disp,Rm)` and `MOV.L @(disp,Rm)` instructions:
 - `mov.w @(2,r8),r0` → EA = R8 + 2 (byte offset). Assembler stores disp/2=1 in the opcode.

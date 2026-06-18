@@ -695,11 +695,13 @@ $302D00-$303013  collision_leaf (788B)                — ASSEMBLED ONLY (Phase 
 $303100-$3031EF  collision_track_data (240B)          — ASSEMBLED ONLY (Phase 5B: track_data_index_calc + track_data_extract_033; pointer-translation convention defined; ref-model verified 0 mismatch; not yet wired to cmd $3F)
 $303200-$303407  collision_boundary (520B)            — ASSEMBLED ONLY (Phase 5C: object_type_dispatch $303200 + track_boundary_collision_detection $303250; puzzle resolved [trap nibbles -> $02 per dispatch_b]; A2-capture fix [store angle_normalize advanced A2, not input tile]; packer globals +$38/+$3A WIRED; ref-model verified 0 mismatch incl. A2 fidelity 63,219 cases; cmd $3F dispatch DEFERRED)
 $303410-$30361F  collision_response (528B)            — ASSEMBLED ONLY (Phase 5D: collision_response_surface_tracking $303410; 4-iter binary search + EMA surface tracking; calls track_boundary $303250 5x + plane_eval_signed $302F3A 4x; deltas+iter on stack across calls; reads COLL_POS $06011030 + tile ptrs +$CE/$D2/$D6/$DA; verify_5d.py 0 mismatch [bin search 60k + EMA 160k]; cmd $3F dispatch DEFERRED — authoritative-copy unresolved, render_state_patcher no-op)
-$303620-$3FFFFF  Free (~969KB)                         — Reserved for Phase 5E+ (collision)
+$303640-$3039D8  collision_object (920B)              — ASSEMBLED ONLY (Phase 5E: object_collision_detection $303640 + position_separation $303768 + zone_check_inner $3037C4 + proximity_zone_loop $303964; entity-TABLE layer over SDRAM copies [player $0600F20C, AI $06010000+(i-1)*$100, entity-15 $06010E00]; $C268 = SAME ptr as 5C track_seg_base → reuses globals +$3A; OBJ_COLL_GLOBALS $06011050 [thresholds+bounds]; sound $B8 → globals +$2C; directional_collision_probe EXCLUDED [dead]; 5E bug-fix: pass-2 A2-clobber [.zc_zb_bytes] + neg.w exts.w; verify_5e.py 0 mismatch w/ teeth-proofs A=316/B=5105; cmd $3F dispatch DEFERRED)
+$303994-$3FFFFF  Free (~968KB)                         — Reserved for Phase 5F+ (switchover)
 
 SDRAM TRACK_WORK region (native): $06011000 work buf (24B) / $06011020 surf-type
-/ $06011021 surf-cnt / $06011024 A4 scratch (8B) / $06011030 coll-pos (20B). AI
-entities end $06010F00 → region free (grep-verified).
+/ $06011021 surf-cnt / $06011024 A4 scratch (8B) / $06011030 coll-pos (20B) /
+$06011050 OBJ_COLL_GLOBALS (20B: 5E object thresholds + zone bounds). AI entities
+end $06010F00 → region free (grep-verified).
 ```
 
 **Total VR60 SH2 code: ~7,268 bytes** (24 functions + AI entity loop + infrastructure)
@@ -786,8 +788,8 @@ Move the 15-state AI machine to Master SH2.
 
 ## 9. Phase 5: Collision Port
 
-**Status: 5D DONE (2026-06-18, assembled + ref-verified; cmd $3F dispatch deferred) —
-5E next.** Function inventory + addresses verified against disassembly and ROM bytes.
+**Status: 5E DONE (2026-06-18, assembled + ref-verified; cmd $3F dispatch deferred) —
+5F next (switchover).** Function inventory + addresses verified against disassembly and ROM bytes.
 5A leaf-math ported to SH2 $302D00 (2c0f603). 5B track-data addressing layer ported to
 SH2 $303100, ~60k-case verified, Auditor APPROVED. 5C boundary detection
 (object_type_dispatch + track_boundary) ported to SH2 $303200 (520B), packer globals
@@ -839,8 +841,13 @@ model before deleting the 68K collision call.
 
 - **5A — Leaf math foundation (zero addressing risk). ✅ DONE 2c0f603.** Ported `angle_normalize`
   (+24/+168), `plane_eval` (+24), `rotational_offset_calc` ($764E, uses already-ported
-  sine), `position_separation` ($AFFE), `proximity_zone_loop` ($877A). Unit-verify each
-  vs 68K output on sampled inputs. Place at expansion `$302A00+` (free per §7.10).
+  sine) to SH2 $302D00 (collision_leaf.asm). Unit-verified vs 68K (100k cases).
+  **CORRECTION (2026-06-18):** an earlier draft of this entry claimed 5A also ported
+  `position_separation` ($AFFE) and `proximity_zone_loop` ($877A). It did NOT — those
+  iterate the entity table and were DEFERRED to 5E precisely because the SDRAM
+  entity-iteration convention had to be settled first (§7.10 Phase-5A note records the
+  deferral: "position_separation / proximity_zone_loop are deferred to Phase 5E").
+  They are done in 5E (below), NOT 5A. collision_leaf.asm contains neither function.
 - **5B — Track-data addressing layer (keystone). ✅ DONE (Auditor APPROVED).** Ported
   `track_data_extract_033` + `track_data_index_calc_table_lookup` to SH2 $303100 (240B).
   **Convention:** translate table CONTENTS by +$01780000 once at pointer formation, store
@@ -906,8 +913,39 @@ model before deleting the 68K collision call.
   track_boundary itself, so 5C needs no separate dispatch); preconditions = A-1 gate
   re-confirm + authoritative-copy resolved + A-4 trap canary. 5D honors A-3 (reads
   SH2-form ptrs, writes only position/EMA scalars — no pointer writes).
-- **5E — Object/proximity collision.** Port `object_collision_detection` + `zone_check_inner`
-  over SDRAM entity copies. Route sound $B8 via globals+$2C → COMM6_HI.
+- **5E — Object/proximity collision. ✅ DONE (2026-06-18), ASSEMBLED + ref-verified;
+  cmd $3F dispatch DEFERRED.** Ported 4 functions (920B) to SH2 $303640
+  (collision_object.asm): `object_collision_detection` ($AF18 → $303640, player vs
+  entity-15), `position_separation` ($AFFE → $303768), `zone_check_inner` ($AE06 →
+  $3037C4, 2-pass angle/bounds), `proximity_zone_loop` ($877A → $303964, 15-entity zone).
+  **5E bug-fix pass (2026-06-18):** Finding A — pass-2 `lea zone_check_data(pc),A2`
+  clobbers the read pointer (post-hit iters read zone_check_data+k*$800), now
+  replicated bit-exactly via `.zc_zb_bytes` {$00FF,$0010,$0003} + R12 mode flag.
+  Finding B — both abs `neg` sites now `exts.w` (68K neg.w word semantics, -$8000).
+  Finding C — verify_5e.py now transliterates the corrected asm and the true 68K
+  (incl. the clobber); teeth-proofs confirm it FAILS against the pre-fix logic
+  (Finding A: 316 divergent cases, Finding B: 5105). 0 mismatch post-fix.
+  `directional_collision_probe` ($7AD6) EXCLUDED — dead in this build (grep: zero
+  jsr/bsr/jump-table/data refs; the `dc.w $7AD6` hits are coincidental data words).
+  **Settled SDRAM entity-iteration convention** (§7.10 deferred this): player (entity 0)
+  = $0600F20C; AI entity i (1..15) = $06010000+(i-1)*$100 (stride $100); WRAM
+  entity-15 ($FF9F00) = SDRAM $06010E00. Evidence: vr60_ai_entity_stage DREQs WRAM
+  $FF9100 (entity 1) → SDRAM $06010000 intact; cmd $3F AI loop iterates the same.
+  **$C268 finding:** zone_check's "$C268 angle table" is the SAME single WRAM longword
+  as 5B/5C's track_seg_base (scene_camera_init.asm:84; the "angle table" label is a
+  mislabel) → REUSES 5C's pre-translated globals +$3A, no separate relocation.
+  **Globals:** the staged window is FULL, so 5E's scene-stable thresholds ($C8CE/$C8D0)
+  + zone bounds ($C8E4-$C8F2, 8 words) relocate to OBJ_COLL_GLOBALS $06011050 in
+  TRACK_WORK (staged once at scene init when wired in 5F; A-2). Sound $B8 → globals +$2C
+  → COMM6_HI (existing relay). proximity center+thresholds = caller-supplied registers.
+  **Translations:** ASR.W#1/#2/#5 (exts.w+shar), sub.w/neg.w word-wrap (exts.w retrunc),
+  BSET-to-mem (shift-loop 1<<zone; SH2 has no SHLD), ORI-to-mem (RMW), EXG (temp).
+  **WIRING DECISION: ADDITIVE / DEFERRED** (matches 5C/5D) — render_state_patch no-op,
+  SH2 entity unread; wiring writes flags on unread entities + interacts with A-1.
+  Safe-wiring plan (5F): JSR object_collision after .phys_f12 (GBR=player; it loads
+  A1=$06010E00); stage OBJ_COLL_GLOBALS once at scene init; re-confirm A-1 $C8D2 gate.
+  verify_5e.py: position_separation 40k + proximity 20k×15 + zone_check 20k + object_
+  collision 40k → **0 mismatch**. Auditor review pending.
 - **5F — Switchover + AI remnants.** $C8D2-gate the 68K collision tail off; co-port §11
   remnants (`collision_avoidance_speed_calc`, AI `physics_integration`/`ai_steering`
   callers). Re-profile (`vrd_budget.py` + `fb_crc`): Slave <100%, confirm 68K relief.
@@ -956,7 +994,7 @@ All written to SDRAM sound queue. 68K reads and plays.
 - [~] Track boundary detection produces identical collision flags (+$55-$59) — 5C ref-verified; live compare deferred to 5F
 - [~] Binary search resolves identical positions (compare +$30/+$34) — 5D ref-model 0 mismatch (60k cases); live 1000-frame compare deferred to 5F
 - [~] Surface tracking EMA produces identical heights (+$5A/+$5C/+$5E/+$32) — 5D ref-model 0 mismatch (160k cases); live compare deferred to 5F
-- [ ] Object-to-object collision triggers correctly (sound $B8, speed averaging)
+- [~] Object-to-object collision triggers correctly (sound $B8, speed averaging) — 5E ref-model 0 mismatch (object_collision 40k + zone_check 20k + position_separation 40k + proximity 20k×15); live compare deferred to 5F
 - [ ] All 3 tracks work (Beginner, Medium, Expert — different tile tables)
 - [ ] 3600-frame autoplay — no behavior changes
 
@@ -1272,6 +1310,9 @@ Record discoveries, gotchas, and insights as the project progresses. These help 
 | 2026-06-17 | Profiling | **Profiler accuracy requires: idle/useful split (not raw util), no top-N truncation, SH2 interpreter (DRC bypasses PC sampling), distinguishing 68K compute from sync-wait, and scene-isolation.** "68K 100% / Slave 78%" frame-level util is mostly the V-blank STOP + mixed scenes — misleading. | The rebuilt VRD tooling (Tier 1+2) gives the real per-CPU compute budget. See `tools/libretro-profiling/VRD_PROFILING.md`. |
 | 2026-06-18 | Phase 5D | **Wiring collision live is gated by the render_state_patcher no-op, not just the 5F authoritative-copy question.** `render_state_patch` does read the SDRAM entity +$30/$34, so it *looks* like the SH2 car drives the camera — but the patcher writes arrays the 3D engine never reads (no-op, 2026-06-17). So the SH2 entity is invisible and 5D wiring would change an unread copy: zero benefit, nonzero A-1 risk. Kept 5D additive/deferred like 5C. | Before wiring a "behavioral" SH2 write live, trace the full consumer chain to a *rendered* output — a reader existing isn't enough if that reader is itself dead. |
 | 2026-06-18 | Phase 5D | **SH2 displacement-addressing limits bite the obvious transliteration.** `mov.w @(disp,Rn),Rm` needs Rm=R0 (so COLL_POS x/y reads went through indexed `mov #slot,r0; mov.w @(r0,r2)`); `and/tst #imm` are R0-only (BTST #0 became `mov #1,r2; and r2,r1; tst`); mov.w disp max is 30 so +$32 needs indexing. GAS also auto-relaxed an out-of-range `bt` into `bf 1f; bra; 1:` (benign). | Don't hand-count SH2 addressing modes from the 68K shape — assemble early and let GAS surface the R0-only / disp-range constraints. |
+| 2026-06-18 | Phase 5E | **The SDRAM entity-iteration convention is just "reuse the AI staging map".** WRAM entity i (1..15) ↔ SDRAM $06010000+(i-1)*$100 because vr60_ai_entity_stage DREQs the WRAM $FF9100 block intact to $06010000; entity-15 ($FF9F00) = $06010E00. Player = $0600F20C. 5E iterates with the same base/stride/count the cmd $3F AI physics loop already uses. | When porting entity-table code, don't invent an addressing scheme — find the existing staging copy and mirror its base+stride; the mapping is already fixed by the DREQ. |
+| 2026-06-18 | Phase 5E | **zone_check's "$C268 angle lookup table" is a MISLABEL — it is the SAME road-segment base as 5B/5C's track_seg_base.** One WRAM longword ($FFC268, set once at scene_camera_init.asm:84), read by both extract_033 and zone_check. So 5E reuses 5C's pre-translated globals +$3A; no new relocation/translation. | Verify a pointer's identity by its single write site + content, not by a comment's label — module comments can be wrong. |
+| 2026-06-18 | Phase 5E | **`directional_collision_probe` ($7AD6) is dead — excluded from the port.** grep over disasm/ finds no jsr/bsr/jump-table/data ref; the `dc.w $7AD6` hits are coincidental opcode words at file offset $xx7AD6 in 47 data-region mirror copies. SH2 has no SHLD (SH3+), so `bset Dn,mem` ported as a 1<<zone shift loop. | Confirm "dead code" by checking refs are real call/jump-table targets, not value coincidences at a matching low offset across mirrored data banks. |
 
 ---
 

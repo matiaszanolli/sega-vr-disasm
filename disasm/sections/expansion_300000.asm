@@ -639,7 +639,39 @@ collision_response:
         include "sh2/generated/collision_response.inc"
 
 ; ============================================================================
-; REMAINING EXPANSION ROM SPACE (from ~0x303620)
+; VR60 OBJECT / PROXIMITY COLLISION: 0x303640 — ASSEMBLED ONLY (Phase 5E)
+; ============================================================================
+; The final additive collision sub-phase — the entity-TABLE layer (player +
+; 15 AI), as opposed to the track-boundary layer (5A-5D). Four functions
+; (920B): object_collision_detection (68K $AF18, player vs entity-15) +
+; zone_check_inner (68K $AE06, 2-pass angle/bounds zone) + position_separation
+; (68K $AFFE, push apart) + proximity_zone_loop (68K $877A, 15-entity zone).
+;
+; SETTLED SDRAM entity-iteration convention: player (entity 0) = $0600F20C;
+; AI entity i (1..15) = $06010000 + (i-1)*$100 (stride $100, same as cmd $3F's
+; AI loop); WRAM entity-15 ($FF9F00) = SDRAM $06010E00. Evidence: the AI
+; staging copies WRAM $FF9100 (entity 1) -> SDRAM $06010000 intact
+; (vr60_ai_entity_stage.asm). $C268 (zone_check's table base) is the SAME ptr
+; as 5B/5C's track_seg_base (one WRAM longword, scene_camera_init.asm:84) ->
+; reuses 5C's pre-translated globals +$3A; NO separate relocation. 5E-specific
+; scene-stable read-only globals (object thresholds $C8CE/$C8D0 + zone bounds
+; $C8E4-$C8F2) relocate to OBJ_COLL_GLOBALS = $06011050 in TRACK_WORK (the
+; staged globals window is full; these are staged once at scene init when wired
+; in 5F). Sound $B8 routes via globals +$2C -> COMM6_HI (existing relay).
+; directional_collision_probe ($7AD6) EXCLUDED — dead in this build (zero refs).
+;
+; NOT wired into cmd $3F (additive/deferred, like 5C/5D): the SH2 entity drives
+; nothing rendered (render_state_patch is a no-op; on-screen car is the 68K WRAM
+; entity). Reference-model verified (verify_5e.py, 0 mismatch).
+;
+; See: disasm/sh2/expansion/collision_object.asm for source + conventions.
+;
+        dcb.b   ($303640 - *), $FF      ; Pad to 0x303640
+collision_object:
+        include "sh2/generated/collision_object.inc"
+
+; ============================================================================
+; REMAINING EXPANSION ROM SPACE (from ~0x303994)
 ; ============================================================================
 ; Pad to $3F0000 (960KB) instead of $400000 (1MB) to avoid PicoDrive
 ; emulator bug triggered by ROM files > ~0x3F1F40 bytes.

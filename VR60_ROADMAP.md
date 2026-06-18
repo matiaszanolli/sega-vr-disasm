@@ -690,10 +690,19 @@ $301E60-$301F17  physics_pos_update (184B)            — ACTIVE (16.16 fixed-po
 $301F20-$3025D3  physics_drift (1716B)                — ACTIVE (drift_physics + suspension + lateral_A + lateral_B)
 $3025E0-$3026EF  ai_steering (272B)                   — ACTIVE (Phase 4: atan2 + steering calc)
 $302700-$3029FB  ai_orchestrator (764B)               — ACTIVE (Phase 4: 3 entry points — main/spawn/finish)
-$302A00-$3FFFFF  Free (~981KB)                        — Reserved for Phase 5 (collision)
+$302B00-$302C7F  render_state_patcher (384B)          — NO-OP (Phase 7 dead-end; writes addresses renderer never reads)
+$302D00-$303013  collision_leaf (788B)                — ASSEMBLED ONLY (Phase 5A: angle_normalize×3 + plane_eval×2 + rotational_offset_calc; not yet wired to cmd $3F)
+$303100-$3FFFFF  Free (~970KB)                        — Reserved for Phase 5B+ (collision)
 ```
 
-**Total VR60 SH2 code: ~6,096 bytes** (21 functions + AI entity loop + infrastructure)
+**Total VR60 SH2 code: ~7,268 bytes** (24 functions + AI entity loop + infrastructure)
+
+**Phase 5A note:** `collision_leaf` holds 3 register-parameter pure-math leaves
+(zero addressing risk). `position_separation` / `proximity_zone_loop` are
+**deferred to Phase 5E** — they iterate the entity table and need the SDRAM
+entity-iteration convention settled first. 5A is additive: the functions are
+assembled and byte-verified (100k randomized cases vs a 68K reference model)
+but NOT dispatched from cmd $3F.
 
 ---
 

@@ -554,7 +554,29 @@ render_state_patcher:
         include "sh2/generated/render_state_patcher.inc"
 
 ; ============================================================================
-; REMAINING EXPANSION ROM SPACE (from ~0x302C00)
+; VR60 COLLISION LEAF MATH: 0x302D00 — STATUS: ASSEMBLED ONLY (VR60 Phase 5A)
+; ============================================================================
+; Three zero-addressing-risk pure-math BSP/collision leaf functions, ported
+; 1:1 from 68K. REGISTER-PARAMETER leaves (caller supplies pointers/scalars):
+;   angle_normalize / angle_normalize_p24 / angle_normalize_alt
+;       (68K $748C / +24 $74A4 / +168 $7534) — BSP visibility test
+;   plane_eval / plane_eval_signed  (68K $75C8 / $75E0) — plane evaluation
+;   rotational_offset_calc          (68K $764E) — billboard offsets; calls the
+;       existing .pu_sin_lookup sine routine at SH2 $02301EDC.
+;
+; NOT wired into cmd $3F dispatch yet — 5A is additive/assembly-only. Verified
+; byte-correct vs a 68K reference model (100k randomized cases).
+; position_separation / proximity_zone_loop deferred to Phase 5E (entity-table
+; iteration, needs the SDRAM entity-iteration convention).
+;
+; See: disasm/sh2/expansion/collision_leaf.asm for source
+;
+        dcb.b   ($302D00 - *), $FF      ; Pad to 0x302D00
+collision_leaf:
+        include "sh2/generated/collision_leaf.inc"
+
+; ============================================================================
+; REMAINING EXPANSION ROM SPACE (from ~0x303100)
 ; ============================================================================
 ; Pad to $3F0000 (960KB) instead of $400000 (1MB) to avoid PicoDrive
 ; emulator bug triggered by ROM files > ~0x3F1F40 bytes.

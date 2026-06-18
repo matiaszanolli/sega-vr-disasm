@@ -576,7 +576,28 @@ collision_leaf:
         include "sh2/generated/collision_leaf.inc"
 
 ; ============================================================================
-; REMAINING EXPANSION ROM SPACE (from ~0x303100)
+; VR60 COLLISION TRACK-DATA ADDRESSING: 0x303100 — STATUS: ASSEMBLED ONLY (5B)
+; ============================================================================
+; THE KEYSTONE sub-phase. Two track-data addressing functions + the documented
+; 68K->SH2 pointer-translation convention (translate table CONTENTS and the
+; $C268 base by +$01780000 ONCE at formation; table BASE is PC-relative and
+; already an SH2 addr). Reference-model verified vs the ROM (index_calc 19,895
+; cases / extract_033 40,000 cases, 0 mismatch).
+;   track_data_index_calc_table_lookup (68K $0073E8) — 2-level ROM tile lookup
+;   track_data_extract_033             (68K $0076A2) — 4-page geometry extract
+;
+; NOT wired into cmd $3F dispatch and the 68K globals packer is NOT modified
+; yet — those happen in 5C/5D. Proposed SDRAM: globals +$38 race_state,
+; +$3A track_seg_base (pre-translated), scratch $06011000 (work buffer).
+;
+; See: disasm/sh2/expansion/collision_track_data.asm for source + convention.
+;
+        dcb.b   ($303100 - *), $FF      ; Pad to 0x303100
+collision_track_data:
+        include "sh2/generated/collision_track_data.inc"
+
+; ============================================================================
+; REMAINING EXPANSION ROM SPACE (from ~0x303300)
 ; ============================================================================
 ; Pad to $3F0000 (960KB) instead of $400000 (1MB) to avoid PicoDrive
 ; emulator bug triggered by ROM files > ~0x3F1F40 bytes.

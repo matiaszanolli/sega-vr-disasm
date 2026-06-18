@@ -692,7 +692,8 @@ $3025E0-$3026EF  ai_steering (272B)                   — ACTIVE (Phase 4: atan2
 $302700-$3029FB  ai_orchestrator (764B)               — ACTIVE (Phase 4: 3 entry points — main/spawn/finish)
 $302B00-$302C7F  render_state_patcher (384B)          — NO-OP (Phase 7 dead-end; writes addresses renderer never reads)
 $302D00-$303013  collision_leaf (788B)                — ASSEMBLED ONLY (Phase 5A: angle_normalize×3 + plane_eval×2 + rotational_offset_calc; not yet wired to cmd $3F)
-$303100-$3FFFFF  Free (~970KB)                        — Reserved for Phase 5B+ (collision)
+$303100-$3031EF  collision_track_data (240B)          — ASSEMBLED ONLY (Phase 5B: track_data_index_calc + track_data_extract_033; pointer-translation convention defined; ref-model verified 0 mismatch; not yet wired to cmd $3F)
+$3031F0-$3FFFFF  Free (~970KB)                        — Reserved for Phase 5C+ (collision)
 ```
 
 **Total VR60 SH2 code: ~7,268 bytes** (24 functions + AI entity loop + infrastructure)
@@ -779,10 +780,10 @@ Move the 15-state AI machine to Master SH2.
 
 ## 9. Phase 5: Collision Port
 
-**Status: 5A DONE (2026-06-17) — 5B next.** Function inventory + addresses verified
-against disassembly and ROM bytes. 5A leaf-math (angle_normalize, plane_eval,
-rotational_offset_calc) ported to SH2 $302D00, 100k-case verified, committed (2c0f603).
-Prerequisite Phase 3 satisfied.
+**Status: 5B DONE (2026-06-17) — 5C next.** Function inventory + addresses verified
+against disassembly and ROM bytes. 5A leaf-math ported to SH2 $302D00 (2c0f603). 5B
+track-data addressing layer ported to SH2 $303100, ~60k-case verified, Auditor APPROVED
+(translation convention + SDRAM layout). Prerequisite Phase 3 satisfied.
 **Prerequisite: Phase 3 (entity_pos_update on SH2 — done)**
 
 ### 9.0 Scoping Results (verified 2026-06-17)
@@ -831,14 +832,26 @@ model before deleting the 68K collision call.
   (+24/+168), `plane_eval` (+24), `rotational_offset_calc` ($764E, uses already-ported
   sine), `position_separation` ($AFFE), `proximity_zone_loop` ($877A). Unit-verify each
   vs 68K output on sampled inputs. Place at expansion `$302A00+` (free per §7.10).
-- **5B — Track-data addressing layer (keystone).** Port `track_data_extract_033` +
-  `track_data_index_calc_table_lookup`. Establish pointer-translation convention
-  (pre-translate table base once; +$01780000 every returned tile ptr). Relocate $C268/
-  $C8A0/$C02E/$C0D0 scratch to SDRAM globals. Verify identical tile content for recorded
-  (x,y,race_state) inputs.
+- **5B — Track-data addressing layer (keystone). ✅ DONE (Auditor APPROVED).** Ported
+  `track_data_extract_033` + `track_data_index_calc_table_lookup` to SH2 $303100 (240B).
+  **Convention:** translate table CONTENTS by +$01780000 once at pointer formation, store
+  SH2-ready (PC-rel table bases $0200742C/$0200745C need NO translation). Safe in dual-path
+  because SH2 uses the SDRAM entity copy, 68K uses WRAM. **Proposed SDRAM layout (to wire in
+  5C):** globals +$38 (word)=race_state, globals +$3A (long)=track_seg_base PRE-TRANSLATED
+  by packer; intra-frame SH2-only scratch TRACK_WORK_BUF at $06011000 (native, verified free).
 - **5C — Boundary detection (high risk).** Port `object_type_dispatch` (rebuild SH2 jump
-  table) then `track_boundary_collision_detection` (4 probes). Dual-path compare +$55-$59
-  flags and +$CE/$D2/$D6/$DA pointers.
+  table) then `track_boundary_collision_detection` (4 probes). Wire in the 5B layout (add
+  packer writes to globals +$38/+$3A with +$3A pre-translated; allocate TRACK_WORK_BUF).
+  Dual-path compare +$55-$59 flags and +$CE/$D2/$D6/$DA pointers.
+  **Auditor advisories carried from 5B (MUST honor):**
+  - *A-1:* keep cmd $3E player-entity staging initial-frame-only ($C8D2-gated). A mid-race
+    mode-0 stage overwrites SDRAM entity +$CE/$D2/$D6/$DA with 68K-form pointer garbage →
+    collision corruption. Re-confirm the gate hasn't regressed before storing SH2 pointers.
+  - *A-2:* the packer must write globals +$3A as `$C268_runtime + $01780000` (full longword).
+    $C268 is set at scene init (stable across frame) — stage it once at scene transition,
+    not per-frame, and sample it where the 68K collision uses it.
+  - *A-3:* 5F copy-back must NEVER move WRAM +$CE/$D2/$D6/$DA into SDRAM (68K-form would
+    overwrite SH2-form). Verify when tracing the authoritative-copy model.
 - **5D — Surface response.** Port `collision_response_surface_tracking` (4-iter binary
   search + EMA heights). Wire into `cmd3f_vr60_gameframe.asm` right after `.phys_f12`.
   Dual-path compare +$30/$34 and +$5A/$5C/$5E/$32 over 1000 frames (§9.5).

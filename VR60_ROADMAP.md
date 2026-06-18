@@ -788,8 +788,12 @@ Move the 15-state AI machine to Master SH2.
 
 ## 9. Phase 5: Collision Port
 
-**Status: 5E DONE (2026-06-18, assembled + ref-verified; cmd $3F dispatch deferred) —
-5F next (switchover).** Function inventory + addresses verified against disassembly and ROM bytes.
+**Status: 5A–5E DONE (additive port complete, all ref-verified, cmd $3F dispatch deferred).
+5F-0 render-input trace DONE — GO (2026-06-18). 5F-1 (build SH2→render bridge) is NEXT.**
+KEY FINDING: Phases 3–5 are currently SHADOW computation (68K WRAM entity drives the
+screen; SH2 SDRAM entity is inert) — the render bridge, not collision wiring, is 5F's real
+prerequisite. See §9.0b 5F + `analysis/VR60_PHASE5F_SCOPING.md` + `VR60_PHASE5F0_RENDER_INPUT.md`.
+Function inventory + addresses verified against disassembly and ROM bytes.
 5A leaf-math ported to SH2 $302D00 (2c0f603). 5B track-data addressing layer ported to
 SH2 $303100, ~60k-case verified, Auditor APPROVED. 5C boundary detection
 (object_type_dispatch + track_boundary) ported to SH2 $303200 (520B), packer globals
@@ -946,9 +950,44 @@ model before deleting the 68K collision call.
   A1=$06010E00); stage OBJ_COLL_GLOBALS once at scene init; re-confirm A-1 $C8D2 gate.
   verify_5e.py: position_separation 40k + proximity 20k×15 + zone_check 20k + object_
   collision 40k → **0 mismatch**. Auditor review pending.
-- **5F — Switchover + AI remnants.** $C8D2-gate the 68K collision tail off; co-port §11
-  remnants (`collision_avoidance_speed_calc`, AI `physics_integration`/`ai_steering`
-  callers). Re-profile (`vrd_budget.py` + `fb_crc`): Slave <100%, confirm 68K relief.
+- **5F — Switchover. RECAST after 5F-0 scoping+trace (2026-06-18).** Scoping
+  (`analysis/VR60_PHASE5F_SCOPING.md`) established the load-bearing fact: **Phases 3–5
+  are currently SHADOW computation** — the on-screen car is driven entirely by the 68K
+  WRAM entity; the SH2 SDRAM entity ($0600F20C/$06010000) reaches nothing visible
+  (`sh2_render_state_patch` is a verified no-op; the Phase 3 bypass re-enters at
+  `entity_render_pipeline_position_ai`, so the 68K still builds display objects from
+  WRAM). **Therefore wiring collision alone changes nothing on screen — the SH2→render
+  bridge is the real prerequisite.** Collision ports 5A–5E are correct + ready but inert
+  until the bridge lands.
+  - **5F-0 — Render-input trace. ✅ DONE (2026-06-18), GO** (`analysis/VR60_PHASE5F0_RENDER_INPUT.md`).
+    The Slave 3D engine reads per-entity 48B transform/position state from **SDRAM**
+    `$0600CA60`/`CB20`/`CD30` (batches 1/2/3, via R13 before each `JSR $060024DC`), copied
+    transiently into on-chip SRAM `$C0000740` per iteration (NOT authoritative → **H-9 does
+    NOT block** a Master bridge). Those SDRAM state arrays are regenerated EVERY frame by
+    the cmd `$02` setup routines (`$06002494`/`$06002394`, from handler `$06000FA8`) out of
+    the SDRAM descriptor tables `$0600C1xx`/`C218`/`C254` — the DREQ landing of the 68K
+    display objects built by `object_table_sprite_param_update` ($0036DE).
+    *Address discrepancy resolved:* patcher's `$0600CA00`/`CCA0` (`render_state_patcher.asm:307,310`)
+    are the batch-0 setup base / $90-short-of-batch-3 — never read by the loop (built against
+    a guessed layout) → the measured 0% render change. `CA60=CA00+$60`, `CD30=CCA0+$90`.
+    `$0600C800` = Huffman/cmd $23 (different class).
+  - **5F-1 — Build the bridge (NEXT, implementation).** Do NOT patch CA60/CB20/CD30 directly
+    (regenerated each frame before the loop reads them — exactly why the patcher fails).
+    Inject one level UPSTREAM: port `object_table_sprite_param_update` ($0036DE, ~216B — the
+    original Phase 2 target, see §6.2) to SH2 so the **Master** builds the SDRAM descriptor
+    tables `$0600C218`/`C1xx`/`C254` from the SH2-authoritative entity; the existing cmd $02
+    setup chain then rebuilds the state arrays from SH2-derived descriptors with **zero
+    Slave-engine changes**. Then gate the 68K `$FF6218` DREQ block (`mars_dma_xfer_vdp_fill`
+    $0028C2) so the Master write isn't re-overwritten. Pre-reqs: decode `$06002494`/`$06002394`
+    field-by-field; confirm the DREQ block is gateable; optional runtime probe (Master writes
+    an offset into entity-0 descriptor world-X → car #0 shifts on screen).
+  - **5F-2 — Wire collision + gate 68K path (AFTER the bridge is live).** Now meaningful:
+    JSR collision after `.phys_f12` (5D entry covers 5C+5D; object_collision per §5E plan;
+    stage OBJ_COLL_GLOBALS); $C8D2-gate the 68K collision tail off. Honor A-1/A-2/A-3/A-4.
+  - **5F-3 — AI remnants + re-profile.** Co-port §11 remnants (`collision_avoidance_speed_calc`,
+    AI `physics_integration`/`ai_steering` callers); re-profile (`vrd_budget.py` + `fb_crc`):
+    Slave <100%, all frames unique, confirm 68K relief. This is also the gateway to Phase 7
+    (the same render bridge is what makes per-TV-frame logic actually move the car).
 
 ### 9.1 Goal
 

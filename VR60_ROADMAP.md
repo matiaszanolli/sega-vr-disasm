@@ -693,7 +693,12 @@ $302700-$3029FB  ai_orchestrator (764B)               — ACTIVE (Phase 4: 3 ent
 $302B00-$302C7F  render_state_patcher (384B)          — NO-OP (Phase 7 dead-end; writes addresses renderer never reads)
 $302D00-$303013  collision_leaf (788B)                — ASSEMBLED ONLY (Phase 5A: angle_normalize×3 + plane_eval×2 + rotational_offset_calc; not yet wired to cmd $3F)
 $303100-$3031EF  collision_track_data (240B)          — ASSEMBLED ONLY (Phase 5B: track_data_index_calc + track_data_extract_033; pointer-translation convention defined; ref-model verified 0 mismatch; not yet wired to cmd $3F)
-$3031F0-$3FFFFF  Free (~970KB)                        — Reserved for Phase 5C+ (collision)
+$303200-$303407  collision_boundary (520B)            — ASSEMBLED ONLY (Phase 5C: object_type_dispatch $303200 + track_boundary_collision_detection $303250; puzzle resolved [trap nibbles -> $02 per dispatch_b]; A2-capture fix [store angle_normalize advanced A2, not input tile]; packer globals +$38/+$3A WIRED; ref-model verified 0 mismatch incl. A2 fidelity 63,219 cases; cmd $3F dispatch DEFERRED)
+$303410-$3FFFFF  Free (~970KB)                        — Reserved for Phase 5D+ (collision)
+
+SDRAM TRACK_WORK region (native): $06011000 work buf (24B) / $06011020 surf-type
+/ $06011021 surf-cnt / $06011024 A4 scratch (8B) / $06011030 coll-pos (20B). AI
+entities end $06010F00 → region free (grep-verified).
 ```
 
 **Total VR60 SH2 code: ~7,268 bytes** (24 functions + AI entity loop + infrastructure)
@@ -780,10 +785,13 @@ Move the 15-state AI machine to Master SH2.
 
 ## 9. Phase 5: Collision Port
 
-**Status: 5B DONE (2026-06-17) — 5C next.** Function inventory + addresses verified
-against disassembly and ROM bytes. 5A leaf-math ported to SH2 $302D00 (2c0f603). 5B
-track-data addressing layer ported to SH2 $303100, ~60k-case verified, Auditor APPROVED
-(translation convention + SDRAM layout). Prerequisite Phase 3 satisfied.
+**Status: 5C DONE (2026-06-17, assembled + ref-verified; cmd $3F dispatch deferred) —
+5D next.** Function inventory + addresses verified against disassembly and ROM bytes.
+5A leaf-math ported to SH2 $302D00 (2c0f603). 5B track-data addressing layer ported to
+SH2 $303100, ~60k-case verified, Auditor APPROVED. 5C boundary detection
+(object_type_dispatch + track_boundary) ported to SH2 $303200 (520B), packer globals
++$38/+$3A wired, verify_5c.py 0 mismatch (incl. A2-fidelity 63,219 cases — see
+bug-fix note below). Auditor APPROVED. Prerequisite Phase 3 satisfied.
 **Prerequisite: Phase 3 (entity_pos_update on SH2 — done)**
 
 ### 9.0 Scoping Results (verified 2026-06-17)
@@ -839,10 +847,19 @@ model before deleting the 68K collision call.
   because SH2 uses the SDRAM entity copy, 68K uses WRAM. **Proposed SDRAM layout (to wire in
   5C):** globals +$38 (word)=race_state, globals +$3A (long)=track_seg_base PRE-TRANSLATED
   by packer; intra-frame SH2-only scratch TRACK_WORK_BUF at $06011000 (native, verified free).
-- **5C — Boundary detection (high risk).** Port `object_type_dispatch` (rebuild SH2 jump
-  table) then `track_boundary_collision_detection` (4 probes). Wire in the 5B layout (add
-  packer writes to globals +$38/+$3A with +$3A pre-translated; allocate TRACK_WORK_BUF).
-  Dual-path compare +$55-$59 flags and +$CE/$D2/$D6/$DA pointers.
+- **5C — Boundary detection. ✅ DONE (2026-06-17), ASSEMBLED + ref-verified; cmd $3F
+  dispatch DEFERRED.** Ported `object_type_dispatch` (SH2 $303200, flat-rebuilt; the
+  $7AB2 DIVU-/0 trap nibbles 5,6,7,9,10,11,12,14,15 → default $02 per the identical
+  twin `object_type_dispatch_b`/$7C46 — unreachable for track-boundary surfaces) and
+  `track_boundary_collision_detection` (SH2 $303250, center + 4 probes; 520B total).
+  Packer WIRED: globals +$38 race_state ($C8A0), +$3A track_seg_base ($C268
+  pre-translated, ROM-verified). WRAM relocated to TRACK_WORK ($06011000+: workbuf =
+  exactly extract_033's 8 words; surf-type/cnt; A4 scratch; coll-pos for 5D).
+  verify_5c.py: object_type_dispatch (256 cases) + probe orchestration (32 combos) +
+  workbuf correspondence → 0 mismatch. Live cmd-$3F dual-path compare deferred (would
+  interact with A-1 $C8D2 staging + 5F authoritative-copy question); wiring plan in
+  findings.md (JSR after `.phys_f12`). Old dual-path-compare target (+$55-$59,
+  +$CE/$D2/$D6/$DA/$DE) carries to that step.
   **Auditor advisories carried from 5B (MUST honor):**
   - *A-1:* keep cmd $3E player-entity staging initial-frame-only ($C8D2-gated). A mid-race
     mode-0 stage overwrites SDRAM entity +$CE/$D2/$D6/$DA with 68K-form pointer garbage →
@@ -852,6 +869,19 @@ model before deleting the 68K collision call.
     not per-frame, and sample it where the 68K collision uses it.
   - *A-3:* 5F copy-back must NEVER move WRAM +$CE/$D2/$D6/$DA into SDRAM (68K-form would
     overwrite SH2-form). Verify when tracing the authoritative-copy model.
+  **New advisory from 5C Auditor (MUST honor at cmd-$3F dispatch):**
+  - *A-4:* object_type_dispatch maps the trap/oob nibbles (5,6,7,9-15) to D0=$02. The
+    "these never occur on track-boundary surfaces" claim is inferred, not exhaustively
+    proven. When wiring live: a nibble in that set makes the 68K *trap* (DIVU/0 at $7AB2)
+    while SH2 silently returns $02 — masking a divergence. Add a debug canary/assert at
+    the dispatch step BEFORE deleting the 68K collision path.
+  **5C correctness lesson (record):** first cut stored the *input* tile ptr where the 68K
+  uses `angle_normalize`'s *advanced output* A2 (= input+2 + $1C×found-groups for full/+24;
+  = input for alt). Fixed by capturing R9 (SH2 A2) after each angle call. verify_5c.py was
+  extended to model A2 fidelity (63,219 cases, 0 mismatch; a simulated pre-fix port mismatches
+  4472/4472 center hits — the test now has teeth). Lesson: when porting a callee whose
+  *register side-effects* (not just return value) are consumed by the caller, the
+  reference model MUST assert those side-effects, not only the documented return.
 - **5D — Surface response.** Port `collision_response_surface_tracking` (4-iter binary
   search + EMA heights). Wire into `cmd3f_vr60_gameframe.asm` right after `.phys_f12`.
   Dual-path compare +$30/$34 and +$5A/$5C/$5E/$32 over 1000 frames (§9.5).

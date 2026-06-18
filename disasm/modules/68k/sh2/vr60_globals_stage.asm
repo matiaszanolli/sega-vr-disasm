@@ -124,9 +124,18 @@ vr60_globals_stage:
         move.w  d0,(a1)+                        ; +$34
         move.w  ($FFFFC840).w,d0                ; camera_mode
         move.w  d0,(a1)+                        ; +$36
-; --- Reserved (offsets +$38 to +$3F) — clear 8 bytes ---
-        clr.l   (a1)+                           ; +$38
-        clr.l   (a1)+                           ; +$3C
+; --- Collision inputs (offsets +$38 to +$3F) — VR60 Phase 5C ---
+; +$38 (word) = race_state ($FFC8A0)  — read by SH2 track_data_index_calc
+        move.w  ($FFFFC8A0).w,d0                ; race_state
+        move.w  d0,(a1)+                        ; +$38
+; +$3A (long) = track_seg_base ($FFC268) PRE-TRANSLATED to SH2 (+$01780000)
+; A-2: $C268 is scene-init-stable; stage the live value each frame, translated
+; once here so SH2 extract_033 dereferences it with NO further translation.
+        move.l  ($FFFFC268).w,d0                ; track_seg_base (68K CPU addr)
+        add.l   #$01780000,d0                   ; -> SH2 ROM addr (68K-$880000+$02000000)
+        move.l  d0,(a1)+                        ; +$3A
+; +$3E/$3F (2 bytes) spare in the staged window
+        clr.w   (a1)+                           ; +$3E
 
         movem.l (sp)+,d0/a0-a1                  ; restore regs
         rts

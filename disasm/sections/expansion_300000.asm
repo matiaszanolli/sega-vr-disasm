@@ -597,7 +597,27 @@ collision_track_data:
         include "sh2/generated/collision_track_data.inc"
 
 ; ============================================================================
-; REMAINING EXPANSION ROM SPACE (from ~0x303300)
+; VR60 COLLISION BOUNDARY DETECTION: 0x303200 — STATUS: ASSEMBLED ONLY (5C)
+; ============================================================================
+; object_type_dispatch (68K $7A40, flat-rebuilt 14-entry classifier; trap/oob
+; nibbles -> design-intent default $02, proven via object_type_dispatch_b) +
+; track_boundary_collision_detection (68K $789C, center + 4 directional probes).
+; Inherits the 5B pointer-translation convention; calls collision_track_data
+; (index_calc $02303100 / extract_033 $0230317C) + collision_leaf
+; (angle_normalize $02302D00 / _p24 $02302D18 / _alt $02302E12). WRAM scratch
+; relocated to TRACK_WORK region ($06011000+: workbuf/surf-type/surf-cnt/A4/
+; coll-pos). NOT wired into cmd $3F yet; the 68K globals packer is extended
+; (globals +$38 race_state, +$3A track_seg_base pre-translated) so inputs exist
+; when later dispatched. Reference-model verified (verify_5c.py, 0 mismatch).
+;
+; See: disasm/sh2/expansion/collision_boundary.asm for source + puzzle/mapping.
+;
+        dcb.b   ($303200 - *), $FF      ; Pad to 0x303200
+collision_boundary:
+        include "sh2/generated/collision_boundary.inc"
+
+; ============================================================================
+; REMAINING EXPANSION ROM SPACE (from ~0x303400)
 ; ============================================================================
 ; Pad to $3F0000 (960KB) instead of $400000 (1MB) to avoid PicoDrive
 ; emulator bug triggered by ROM files > ~0x3F1F40 bytes.

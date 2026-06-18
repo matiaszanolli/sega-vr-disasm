@@ -694,7 +694,8 @@ $302B00-$302C7F  render_state_patcher (384B)          — NO-OP (Phase 7 dead-en
 $302D00-$303013  collision_leaf (788B)                — ASSEMBLED ONLY (Phase 5A: angle_normalize×3 + plane_eval×2 + rotational_offset_calc; not yet wired to cmd $3F)
 $303100-$3031EF  collision_track_data (240B)          — ASSEMBLED ONLY (Phase 5B: track_data_index_calc + track_data_extract_033; pointer-translation convention defined; ref-model verified 0 mismatch; not yet wired to cmd $3F)
 $303200-$303407  collision_boundary (520B)            — ASSEMBLED ONLY (Phase 5C: object_type_dispatch $303200 + track_boundary_collision_detection $303250; puzzle resolved [trap nibbles -> $02 per dispatch_b]; A2-capture fix [store angle_normalize advanced A2, not input tile]; packer globals +$38/+$3A WIRED; ref-model verified 0 mismatch incl. A2 fidelity 63,219 cases; cmd $3F dispatch DEFERRED)
-$303410-$3FFFFF  Free (~970KB)                        — Reserved for Phase 5D+ (collision)
+$303410-$30361F  collision_response (528B)            — ASSEMBLED ONLY (Phase 5D: collision_response_surface_tracking $303410; 4-iter binary search + EMA surface tracking; calls track_boundary $303250 5x + plane_eval_signed $302F3A 4x; deltas+iter on stack across calls; reads COLL_POS $06011030 + tile ptrs +$CE/$D2/$D6/$DA; verify_5d.py 0 mismatch [bin search 60k + EMA 160k]; cmd $3F dispatch DEFERRED — authoritative-copy unresolved, render_state_patcher no-op)
+$303620-$3FFFFF  Free (~969KB)                         — Reserved for Phase 5E+ (collision)
 
 SDRAM TRACK_WORK region (native): $06011000 work buf (24B) / $06011020 surf-type
 / $06011021 surf-cnt / $06011024 A4 scratch (8B) / $06011030 coll-pos (20B). AI
@@ -785,8 +786,8 @@ Move the 15-state AI machine to Master SH2.
 
 ## 9. Phase 5: Collision Port
 
-**Status: 5C DONE (2026-06-17, assembled + ref-verified; cmd $3F dispatch deferred) —
-5D next.** Function inventory + addresses verified against disassembly and ROM bytes.
+**Status: 5D DONE (2026-06-18, assembled + ref-verified; cmd $3F dispatch deferred) —
+5E next.** Function inventory + addresses verified against disassembly and ROM bytes.
 5A leaf-math ported to SH2 $302D00 (2c0f603). 5B track-data addressing layer ported to
 SH2 $303100, ~60k-case verified, Auditor APPROVED. 5C boundary detection
 (object_type_dispatch + track_boundary) ported to SH2 $303200 (520B), packer globals
@@ -882,9 +883,29 @@ model before deleting the 68K collision call.
   4472/4472 center hits — the test now has teeth). Lesson: when porting a callee whose
   *register side-effects* (not just return value) are consumed by the caller, the
   reference model MUST assert those side-effects, not only the documented return.
-- **5D — Surface response.** Port `collision_response_surface_tracking` (4-iter binary
-  search + EMA heights). Wire into `cmd3f_vr60_gameframe.asm` right after `.phys_f12`.
-  Dual-path compare +$30/$34 and +$5A/$5C/$5E/$32 over 1000 frames (§9.5).
+- **5D — Surface response. ✅ DONE (2026-06-18), ASSEMBLED + ref-verified; cmd $3F
+  dispatch DEFERRED.** Ported `collision_response_surface_tracking` (68K $7700, 412B)
+  to SH2 **$303410 (528B)**. 4-iter binary search (1/4-step deltas via ASR.W #2;
+  reset-to-prev; advance/revert/stop using track_boundary's +$55 bit0 as oracle) +
+  EMA surface tracking (4 probes +$D2/$D6/$DA/$CE -> plane_eval_signed -> EMA into
+  +$5A/$5C/$5E/$32; probe4 +$DE unused; dead `jsr` at $7818 not ported). Callees
+  confirmed: track_boundary $02303250 (clobbers R0-R12 -> deltas+iter stashed on
+  stack, GBR re-stc'd), plane_eval_signed **$02302F3A** (R9=tile ptr, R1=x, R2=y,
+  out R1; BLE -> `cmp/pl r1; bf`). COLL_POS $06011030 mapping re-verified (center
+  $C0D0=slot+$00, NOT $C090). verify_5d.py: bin search 60k + EMA 160k + BLE +
+  mapping -> **0 mismatch**.
+  **Authoritative-copy investigation (advances 5F):** `render_state_patch` READS the
+  SDRAM entity +$30/$34 to build a camera delta into $0600CA00/$0600CCA0 — but that
+  patcher is a **proven no-op** (3D engine reads $06003xxx/$06004xxx, not those
+  arrays). So the SH2 entity position drives nothing visible; the on-screen car is
+  the 68K WRAM entity (68K collision intact). cmd $3F runs no collision today.
+  **WIRING DECISION: ADDITIVE / DEFERRED** — wiring 5D live writes an unread entity
+  (no benefit) and interacts with A-1 staging (mid-race mode-0 stage could feed
+  track_boundary 68K-form +$CE.. garbage); 5F's authoritative/copy-back model is
+  unresolved. Safe-wiring plan: JSR $02303410 after `.phys_f12` (it calls
+  track_boundary itself, so 5C needs no separate dispatch); preconditions = A-1 gate
+  re-confirm + authoritative-copy resolved + A-4 trap canary. 5D honors A-3 (reads
+  SH2-form ptrs, writes only position/EMA scalars — no pointer writes).
 - **5E — Object/proximity collision.** Port `object_collision_detection` + `zone_check_inner`
   over SDRAM entity copies. Route sound $B8 via globals+$2C → COMM6_HI.
 - **5F — Switchover + AI remnants.** $C8D2-gate the 68K collision tail off; co-port §11
@@ -932,9 +953,9 @@ All written to SDRAM sound queue. 68K reads and plays.
 
 ### 9.5 Acceptance Criteria
 
-- [ ] Track boundary detection produces identical collision flags (+$55-$59)
-- [ ] Binary search resolves identical positions (compare +$30/+$34 across 1000 frames)
-- [ ] Surface tracking EMA produces identical heights (+$5A/+$5C/+$5E/+$32)
+- [~] Track boundary detection produces identical collision flags (+$55-$59) — 5C ref-verified; live compare deferred to 5F
+- [~] Binary search resolves identical positions (compare +$30/+$34) — 5D ref-model 0 mismatch (60k cases); live 1000-frame compare deferred to 5F
+- [~] Surface tracking EMA produces identical heights (+$5A/+$5C/+$5E/+$32) — 5D ref-model 0 mismatch (160k cases); live compare deferred to 5F
 - [ ] Object-to-object collision triggers correctly (sound $B8, speed averaging)
 - [ ] All 3 tracks work (Beginner, Medium, Expert — different tile tables)
 - [ ] 3600-frame autoplay — no behavior changes
@@ -1249,6 +1270,8 @@ Record discoveries, gotchas, and insights as the project progresses. These help 
 | 2026-06-17 | Profiling | **Racing 68K is 63% V-blank idle — not compute-bound, not sync-bound.** The 20 FPS cap is the state-machine structure (1 state/V-INT). 60 FPS = run logic per-TV-frame (Phase 7), not pipeline overlap (Phase 6) or a big compute offload. | Redirected the 60 FPS plan onto Phase 7 with a measured ~10% offload, not a guessed 25-30%. |
 | 2026-06-17 | Profiling | **`render_state_patcher` is a no-op.** It writes `$0600CA00`/`$0600CCA0` — addresses the 3D engine never reads (it reads context-relative from `$06003xxx`/`$06004xxx`). Target map came from stale docs (address-shopping). Empirically: 0% change in Slave render load. | Verify a consumer actually READS an address (watch/dump tools) before building on it. |
 | 2026-06-17 | Profiling | **Profiler accuracy requires: idle/useful split (not raw util), no top-N truncation, SH2 interpreter (DRC bypasses PC sampling), distinguishing 68K compute from sync-wait, and scene-isolation.** "68K 100% / Slave 78%" frame-level util is mostly the V-blank STOP + mixed scenes — misleading. | The rebuilt VRD tooling (Tier 1+2) gives the real per-CPU compute budget. See `tools/libretro-profiling/VRD_PROFILING.md`. |
+| 2026-06-18 | Phase 5D | **Wiring collision live is gated by the render_state_patcher no-op, not just the 5F authoritative-copy question.** `render_state_patch` does read the SDRAM entity +$30/$34, so it *looks* like the SH2 car drives the camera — but the patcher writes arrays the 3D engine never reads (no-op, 2026-06-17). So the SH2 entity is invisible and 5D wiring would change an unread copy: zero benefit, nonzero A-1 risk. Kept 5D additive/deferred like 5C. | Before wiring a "behavioral" SH2 write live, trace the full consumer chain to a *rendered* output — a reader existing isn't enough if that reader is itself dead. |
+| 2026-06-18 | Phase 5D | **SH2 displacement-addressing limits bite the obvious transliteration.** `mov.w @(disp,Rn),Rm` needs Rm=R0 (so COLL_POS x/y reads went through indexed `mov #slot,r0; mov.w @(r0,r2)`); `and/tst #imm` are R0-only (BTST #0 became `mov #1,r2; and r2,r1; tst`); mov.w disp max is 30 so +$32 needs indexing. GAS also auto-relaxed an out-of-range `bt` into `bf 1f; bra; 1:` (benign). | Don't hand-count SH2 addressing modes from the 68K shape — assemble early and let GAS surface the R0-only / disp-range constraints. |
 
 ---
 

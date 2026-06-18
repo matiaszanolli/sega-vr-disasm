@@ -617,7 +617,29 @@ collision_boundary:
         include "sh2/generated/collision_boundary.inc"
 
 ; ============================================================================
-; REMAINING EXPANSION ROM SPACE (from ~0x303400)
+; VR60 COLLISION RESPONSE + SURFACE TRACKING: 0x303410 — ASSEMBLED ONLY (5D)
+; ============================================================================
+; collision_response_surface_tracking (68K $7700, 412B): 4-iteration binary
+; search (1/4-step advance/revert using track_boundary's +$55 bit0 collision
+; flag as oracle) + EMA surface-height tracking at 4 probe points (plane_eval_
+; signed oracle). Calls track_boundary_collision_detection (5C, $02303250) up to
+; 5x and plane_eval_signed (5A, $02302F3A) 4x. Reads COLL_POS scratch ($06011030)
+; + SH2-form tile ptrs from entity +$CE/$D2/$D6/$DA. Writes entity +$30/$34/$40/
+; $46 (search) and +$5A/$5C/$5E/$32 (EMA). 1/4-step deltas + iter counter stashed
+; on the stack across each track_boundary call (it clobbers R0-R12). NOT wired
+; into cmd $3F (authoritative-copy question deferred to 5F — render_state_patcher
+; is a no-op, so the SH2 entity drives nothing visible; wiring live would change
+; an unread entity + interact with A-1 staging). Reference-model verified
+; (verify_5d.py, 0 mismatch).
+;
+; See: disasm/sh2/expansion/collision_response.asm for source + investigation.
+;
+        dcb.b   ($303410 - *), $FF      ; Pad to 0x303410
+collision_response:
+        include "sh2/generated/collision_response.inc"
+
+; ============================================================================
+; REMAINING EXPANSION ROM SPACE (from ~0x303620)
 ; ============================================================================
 ; Pad to $3F0000 (960KB) instead of $400000 (1MB) to avoid PicoDrive
 ; emulator bug triggered by ROM files > ~0x3F1F40 bytes.

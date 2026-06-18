@@ -779,8 +779,10 @@ Move the 15-state AI machine to Master SH2.
 
 ## 9. Phase 5: Collision Port
 
-**Status: SCOPED (2026-06-17) — 5A next.** Function inventory + addresses verified
-against disassembly and ROM bytes. Prerequisite Phase 3 satisfied.
+**Status: 5A DONE (2026-06-17) — 5B next.** Function inventory + addresses verified
+against disassembly and ROM bytes. 5A leaf-math (angle_normalize, plane_eval,
+rotational_offset_calc) ported to SH2 $302D00, 100k-case verified, committed (2c0f603).
+Prerequisite Phase 3 satisfied.
 **Prerequisite: Phase 3 (entity_pos_update on SH2 — done)**
 
 ### 9.0 Scoping Results (verified 2026-06-17)
@@ -825,7 +827,7 @@ model before deleting the 68K collision call.
 
 ### 9.0b Sub-Phase Plan (incremental, mirrors Phase 3: build group → dual-path verify → switch)
 
-- **5A — Leaf math foundation (zero addressing risk, NEXT).** Port `angle_normalize`
+- **5A — Leaf math foundation (zero addressing risk). ✅ DONE 2c0f603.** Ported `angle_normalize`
   (+24/+168), `plane_eval` (+24), `rotational_offset_calc` ($764E, uses already-ported
   sine), `position_separation` ($AFFE), `proximity_zone_loop` ($877A). Unit-verify each
   vs 68K output on sampled inputs. Place at expansion `$302A00+` (free per §7.10).

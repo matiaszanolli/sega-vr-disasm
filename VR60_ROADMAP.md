@@ -964,23 +964,35 @@ model before deleting the 68K collision call.
     `$0600CA60`/`CB20`/`CD30` (batches 1/2/3, via R13 before each `JSR $060024DC`), copied
     transiently into on-chip SRAM `$C0000740` per iteration (NOT authoritative → **H-9 does
     NOT block** a Master bridge). Those SDRAM state arrays are regenerated EVERY frame by
-    the cmd `$02` setup routines (`$06002494`/`$06002394`, from handler `$06000FA8`) out of
-    the SDRAM descriptor tables `$0600C1xx`/`C218`/`C254` — the DREQ landing of the 68K
-    display objects built by `object_table_sprite_param_update` ($0036DE).
+    the descriptor→state transform **`$06000DC8`** (batch C: `$0600C218` → `$06001D34` →
+    `$0600CCA0`, 15 entities; corrected by 5F-1a — the 5F-0 doc's `$06002494`/`$06002394`
+    were the on-chip-context routines, not the descriptor→state writer) out of the SDRAM
+    descriptor tables `$0600C1xx`/`C218`/`C254` — the DREQ landing of the 68K display
+    objects built by `object_table_sprite_param_update` ($0036DE).
     *Address discrepancy resolved:* patcher's `$0600CA00`/`CCA0` (`render_state_patcher.asm:307,310`)
     are the batch-0 setup base / $90-short-of-batch-3 — never read by the loop (built against
     a guessed layout) → the measured 0% render change. `CA60=CA00+$60`, `CD30=CCA0+$90`.
     `$0600C800` = Huffman/cmd $23 (different class).
-  - **5F-1 — Build the bridge (NEXT, implementation).** Do NOT patch CA60/CB20/CD30 directly
-    (regenerated each frame before the loop reads them — exactly why the patcher fails).
-    Inject one level UPSTREAM: port `object_table_sprite_param_update` ($0036DE, ~216B — the
-    original Phase 2 target, see §6.2) to SH2 so the **Master** builds the SDRAM descriptor
-    tables `$0600C218`/`C1xx`/`C254` from the SH2-authoritative entity; the existing cmd $02
-    setup chain then rebuilds the state arrays from SH2-derived descriptors with **zero
-    Slave-engine changes**. Then gate the 68K `$FF6218` DREQ block (`mars_dma_xfer_vdp_fill`
-    $0028C2) so the Master write isn't re-overwritten. Pre-reqs: decode `$06002494`/`$06002394`
-    field-by-field; confirm the DREQ block is gateable; optional runtime probe (Master writes
-    an offset into entity-0 descriptor world-X → car #0 shifts on screen).
+  - **5F-1a — Decode the descriptor pipeline. ✅ DONE (2026-06-18)** (`analysis/VR60_PHASE5F1_BRIDGE_SPEC.md`).
+    Established: the port must emit the **60B ($3C-stride) display-object record ×15** that
+    `object_table_sprite_param_update` writes to `$FF6218` (key offsets: +$00/$14/$28 visibility,
+    +$02 = entity world X, +$06 = world Y, +$04 = camera-offset+entity+$32, +$08/$0A/$0C
+    lateral/height/depth >>3, +$10 sprite-def ptr). **Injection: write 15×$3C to SDRAM
+    `$0600C218`** (Master cache-through `$2600C218`) — *proved to be literally the DREQ landing
+    of `$FF6218`*. **No hard DREQ gate needed:** 68K DREQ runs in state 0; cmd $3F runs in
+    state 4 (later) → Master write is the last writer before the Slave reads. 16.16-vs-word
+    risk resolved LOW (+$30/$34 are integer world words). **Q-2 (must-resolve in the port):**
+    5 inputs `object_table_sprite_param_update` reads from 68K WRAM ($FFC8CC car-index, $FFC0E4
+    camera offset [load-bearing — shifts every car's +$04], $FF9064/$FFC31C ghost, $FF9065 flip)
+    are Master-unreachable → must be staged to SDRAM/COMM. **Q-3:** player descriptor is in
+    batch A (`$06001BD4`/`$06001A6C`, not yet decoded) → **AI-only (15 @ C218) is the safe
+    first cut**; player deferred.
+  - **5F-1b-probe — Bridge validation probe (NEXT).** Before the full port, a minimal
+    revertable Master write to `$2600C218` in cmd $3F (replacing the no-op patcher call at
+    `cmd3f_vr60_gameframe.asm:252`) that makes an unmistakable visual change to one AI car
+    (e.g. clear its visibility flag / large world-X offset). Proves the state-4 injection
+    actually reaches the screen. Visual confirmation = Matias (headless can't see it). GO →
+    5F-1c (full object_table_sprite_param_update port, AI-only, + Q-2 staging).
   - **5F-2 — Wire collision + gate 68K path (AFTER the bridge is live).** Now meaningful:
     JSR collision after `.phys_f12` (5D entry covers 5C+5D; object_collision per §5E plan;
     stage OBJ_COLL_GLOBALS); $C8D2-gate the 68K collision tail off. Honor A-1/A-2/A-3/A-4.

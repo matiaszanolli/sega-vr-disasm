@@ -671,7 +671,23 @@ collision_object:
         include "sh2/generated/collision_object.inc"
 
 ; ============================================================================
-; REMAINING EXPANSION ROM SPACE (from ~0x303994)
+; VR60 5F-1b RENDER-BRIDGE VALIDATION PROBE: 0x3039E0 — DIAGNOSTIC (revertable)
+; ============================================================================
+; Tiny SH2 routine that clears the descriptor +$00 visibility word on the
+; racing display-object block $0600C254 (56 entries, $14 stride; cache-through
+; $2600C254 — Run C), called from cmd $3F in place of the no-op
+; sh2_render_state_patch. Per VR60_PHASE5F1B_PROBE_DIAGNOSIS.md the racing
+; render (Slave cmd $02, $06000FA8) reads C128/C178/C254 via entity loop
+; $060024DC, NOT C218. If C254 holds the opponent cars they VANISH in racing.
+; Run A/B/C selectable by editing two lines in bridge_probe.asm.
+; See bridge_probe.asm + VR60_PHASE5F1B_PROBE_DIAGNOSIS.md. Pending visual confirm.
+;
+        dcb.b   ($3039E0 - *), $FF      ; Pad to 0x3039E0
+bridge_probe:
+        include "sh2/generated/bridge_probe.inc"
+
+; ============================================================================
+; REMAINING EXPANSION ROM SPACE (from ~0x303A10)
 ; ============================================================================
 ; Pad to $3F0000 (960KB) instead of $400000 (1MB) to avoid PicoDrive
 ; emulator bug triggered by ROM files > ~0x3F1F40 bytes.

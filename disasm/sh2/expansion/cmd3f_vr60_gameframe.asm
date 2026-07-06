@@ -246,12 +246,23 @@ cmd3f_vr60_gameframe:
     mov.l   @(.ent_dst,pc),r0
     ldc     r0,gbr
 
-    /* === RENDER STATE PATCHER: bridge SH2 physics → Slave render data === */
-    /* Updates entity state positions from SH2 physics entities.           */
-    /* Camera correction (player moved) + per-AI-entity corrections.       */
-    mov.l   @(.patcher_addr,pc),r0
-    jsr     @r0                    /* sh2_render_state_patch */
+    /* === 5F-1b PROBE (DIAGNOSTIC) — bridge validation, REVERTABLE =========
+     * Replaces the no-op sh2_render_state_patch call with bridge_probe, which
+     * clears the visibility flags on all 15 C218 display-object descriptors
+     * (cache-through $2600C218) so opponent cars VANISH if the Master->Slave
+     * render bridge works. See bridge_probe.asm + VR60_PHASE5F1_BRIDGE_SPEC.md.
+     *
+     * REVERT (one line): swap the .bridge_addr literal below back to
+     * .patcher_addr (sh2_render_state_patch). Leave bridge_probe inert.
+     */
+    mov.l   @(.bridge_addr,pc),r0
+    jsr     @r0                    /* bridge_probe (was: sh2_render_state_patch) */
     nop
+    /* --- original (restore for revert): -------------------------------------
+     * mov.l   @(.patcher_addr,pc),r0
+     * jsr     @r0                    ; sh2_render_state_patch
+     * nop
+     * --------------------------------------------------------------------- */
 
     /* === CANARY: write entity first longword to verify physics ran === */
     mov.l   @(.ent_dst,pc),r4       /* R4 = entity base (re-read, GBR may differ) */
@@ -363,6 +374,9 @@ cmd3f_vr60_gameframe:
 
 /* Phase 7: Render state patcher */
 .patcher_addr:  .long   0x02302B00 /* sh2_render_state_patch (render_state_patcher.asm) */
+
+/* Phase 5F-1b: bridge validation probe (DIAGNOSTIC, revertable) */
+.bridge_addr:   .long   0x023039E0 /* bridge_probe (bridge_probe.asm) */
 
 .ai_stride:     .short  0x0100     /* 256 bytes per entity */
 

@@ -1,23 +1,23 @@
 # 68K Hotspots - Top 20 PCs by cycle share
 # Format: PC [Region] (share%) function_name
 
- 1. 0x00FF0010 [WRAM    ] (51.53%) WRAM_code
- 2. 0x0088E360 [ROM-68K ] (10.39%) Sprite Descriptor Table + SH2 Palette...
- 3. 0x0089461C [ROM-68K ] ( 1.08%) Menu Tile Copy to VDP (Block Transfer)
- 4. 0x0089461A [ROM-68K ] ( 0.95%) Menu Tile Copy to VDP (Block Transfer)
- 5. 0x0088A68C [ROM-68K ] ( 0.39%) Physics Integration
- 6. 0x0088A6C2 [ROM-68K ] ( 0.36%) Physics Integration
- 7. 0x0088A7B8 [ROM-68K ] ( 0.34%) AI Steering Calculation
- 8. 0x008B0D2C [ROM-SH2 ] ( 0.31%) Z80 Bus Wait
- 9. 0x008B0D24 [ROM-SH2 ] ( 0.27%) Z80 Bus Wait
-10. 0x008849A2 [ROM-68K ] ( 0.25%) Wait For V-Blank
-11. 0x008874F2 [ROM-68K ] ( 0.20%) Angle Normalization and Visibility Fu...
-12. 0x0088751C [ROM-68K ] ( 0.19%) Angle Normalization and Visibility Fu...
-13. 0x0088A402 [ROM-68K ] ( 0.19%) Speed Interpolation (Table-Based with...
-14. 0x008945B2 [ROM-68K ] ( 0.19%) Palette Fade 003
-15. 0x008875CC [ROM-68K ] ( 0.19%) Plane Evaluation Pair
-16. 0x00888F64 [ROM-68K ] ( 0.19%) sine_cosine_quadrant_lookup
-17. 0x00888F58 [ROM-68K ] ( 0.18%) sine_cosine_quadrant_lookup
-18. 0x00889B2A [ROM-68K ] ( 0.18%) Entity Speed Clamp
-19. 0x008874C0 [ROM-68K ] ( 0.17%) Angle Normalization and Visibility Fu...
-20. 0x00887698 [ROM-68K ] ( 0.17%) rotational_offset_calc
+ 1. 0x00FF0010 [WRAM    ] (54.94%) WRAM_code
+ 2. 0x0088E360 [ROM-68K ] (13.39%) Sprite Descriptor Table + SH2 Palette...
+ 3. 0x0089461C [ROM-68K ] ( 1.07%) Menu Tile Copy to VDP (Block Transfer)
+ 4. 0x0089461A [ROM-68K ] ( 0.94%) Menu Tile Copy to VDP (Block Transfer)
+ 5. 0x0088A68C [ROM-68K ] ( 0.31%) Physics Integration
+ 6. 0x0088A6C2 [ROM-68K ] ( 0.28%) Physics Integration
+ 7. 0x0088A7B8 [ROM-68K ] ( 0.26%) AI Steering Calculation
+ 8. 0x008B0D2C [ROM-SH2 ] ( 0.26%) Z80 Bus Wait
+ 9. 0x008849A2 [ROM-68K ] ( 0.24%) Wait For V-Blank
+10. 0x008B0D24 [ROM-SH2 ] ( 0.23%) Z80 Bus Wait
+11. 0x008945B2 [ROM-68K ] ( 0.19%) Palette Fade 003
+12. 0x00894604 [ROM-68K ] ( 0.16%) Menu Tile Copy to VDP (Block Transfer)
+13. 0x008875CC [ROM-68K ] ( 0.15%) Plane Evaluation Pair
+14. 0x00881438 [ROM-68K ] ( 0.15%) LZSS Decompressor
+15. 0x0088A402 [ROM-68K ] ( 0.15%) Speed Interpolation (Table-Based with...
+16. 0x00888F64 [ROM-68K ] ( 0.15%) sine_cosine_quadrant_lookup
+17. 0x0088751C [ROM-68K ] ( 0.15%) Angle Normalization and Visibility Fu...
+18. 0x00888F58 [ROM-68K ] ( 0.14%) sine_cosine_quadrant_lookup
+19. 0x00889B2A [ROM-68K ] ( 0.14%) Entity Speed Clamp
+20. 0x00887698 [ROM-68K ] ( 0.13%) rotational_offset_calc

@@ -1,51 +1,23 @@
-# Slave SH2 Hotspots - Top 20 PCs by cycle share
-# Format: PC [Region] (share%) - Use for disassembly lookup
-#
-# SDRAM addresses: 0x06xxxxxx (game code copied from ROM 0x020000)
-#   To convert: SDRAM 0x0600XYZW → ROM 0x0200XYZW → file offset 0x020000+XYZW
-# ROM-C addresses: 0xC0xxxxxx (cached ROM, often data/header regions)
-#
-# Legend:
-#   ⚠️  = Delay loop (optimization target)
-#   📊  = Data region (not code)
-#   ✅  = Analyzed and documented
+# SLAVE Hotspots - Top 20 PCs by cycle share
+# Format: PC [Region] (share%) function_name
 
- 1. 0x0600060A [SDRAM   ] (66.50%) ⚠️  PRIMARY DELAY LOOP - 64-iteration busy wait
-                                        See: analysis/profiling/DELAY_LOOP_ANALYSIS.md
-                                        ROM: MOV #0x40,R7 / NOP / DT R7 / BF loop
-
- 2. 0xC0000196 [ROM-C   ] ( 5.11%) 📊  ROM header region (ASCII data, not code)
- 3. 0xC000019A [ROM-C   ] ( 3.28%) 📊  ROM header region (ASCII data, not code)
-
- 4. 0x0600450A [SDRAM   ] ( 3.18%) ⚠️  SECONDARY DELAY LOOP - variable-count busy wait
-                                        ROM 0x02450A: DT R7 / BF loop
-                                        R7 loaded from constant at 0x024528
-
- 5. 0x06000608 [SDRAM   ] ( 1.92%)     Pre-delay setup (MOV #0x40,R7)
-                                        Part of primary delay at 0x060060A
-
- 6. 0xC00000B8 [ROM-C   ] ( 1.59%) 📊  ROM header/vector region
- 7. 0x06003A4A [SDRAM   ] ( 1.48%) ⚠️  TERTIARY DELAY LOOP - 16-iteration busy wait
-                                        ROM 0x023A4A: MOV #0x10,R7 / DT R7 / BF loop
- 8. 0xC00001A8 [ROM-C   ] ( 1.35%) 📊  ROM header region
- 9. 0xC0000210 [ROM-C   ] ( 0.99%) 📊  ROM header region
-10. 0xC00000B4 [ROM-C   ] ( 0.98%) 📊  ROM header/vector region
-11. 0xC000013C [ROM-C   ] ( 0.97%) 📊  ROM header region
-12. 0xC00000F8 [ROM-C   ] ( 0.71%) 📊  ROM header region
-13. 0xC00001D4 [ROM-C   ] ( 0.64%) 📊  ROM header region
-14. 0xC0000046 [ROM-C   ] ( 0.59%) 📊  ROM vector table
-15. 0xC0000188 [ROM-C   ] ( 0.58%) 📊  ROM header region
-16. 0xC000001E [ROM-C   ] ( 0.57%) 📊  ROM vector table
-17. 0xC00001F8 [ROM-C   ] ( 0.54%) 📊  ROM header region
-18. 0xC00001B4 [ROM-C   ] ( 0.53%) 📊  ROM header region
-19. 0xC00000FC [ROM-C   ] ( 0.38%) 📊  ROM header region
-20. 0xC00000B0 [ROM-C   ] ( 0.36%) 📊  ROM header/vector region
-
-# Summary:
-# - 73.1% of cycles in delay loops:
-#   * 0x0600060A: 66.50% (64 iterations, ~1000 calls/frame)
-#   * 0x0600450A:  3.18% (variable count from constant)
-#   * 0x06003A4A:  1.48% (16 iterations)
-#   * 0x06000608:  1.92% (delay setup instruction)
-# - ROM-C "hotspots" are data fetches, not instruction execution
-# - All SDRAM hotspots are now analyzed ✅
+ 1. 0xC0000198 [ROM-C   ] (17.44%) 
+ 2. 0x0600060C [SDRAM   ] ( 8.24%) 
+ 3. 0x06000596 [SDRAM   ] ( 8.24%) 
+ 4. 0x06000608 [SDRAM   ] ( 8.24%) 
+ 5. 0x06000592 [SDRAM   ] ( 8.24%) 
+ 6. 0x0600064E [SDRAM   ] ( 8.24%) 
+ 7. 0x06000638 [SDRAM   ] ( 7.28%) 
+ 8. 0x0600063E [SDRAM   ] ( 5.77%) 
+ 9. 0x0600424E [SDRAM   ] (11.72%) 
+10. 0x06003FDC [SDRAM   ] ( 6.44%) 
+11. 0x06004514 [SDRAM   ] ( 5.12%) 
+12. 0x0600450A [SDRAM   ] ( 4.33%) 
+13. 0x0202353C [ROM     ] ( 4.27%) 
+14. 0x02023540 [ROM     ] ( 4.07%) 
+15. 0x06004252 [SDRAM   ] ( 3.95%) 
+16. 0x0600450C [SDRAM   ] ( 3.92%) 
+17. 0x06004514 [SDRAM   ] ( 1.23%) 
+18. 0xC0000196 [ROM-C   ] ( 1.10%) 
+19. 0x0600450A [SDRAM   ] ( 1.06%) 
+20. 0x06000642 [SDRAM   ] ( 1.00%) 

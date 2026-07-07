@@ -7,6 +7,34 @@
 
 ---
 
+## ⚠ CRITICAL CORRECTION (2026-07-06) — read before trusting any Phase 3–5 status below
+
+**The entire cmd `$3F` VR60 pipeline (Phases 3–8: physics, AI, collision, the render bridge)
+was wired into `state_disp_005020` — the 2-PLAYER split-screen race dispatcher — not the
+1-player interactive dispatcher (`state_disp_004cb8`) that autoplay, profiling, and normal
+play actually use. cmd `$3F` has never fired during any 1P racing session measured on this
+branch.** Full evidence: `analysis/VR60_IMPLEMENTATION_AUDIT.md` +
+`analysis/VR60_DISPATCHER_ROUTING.md`. Discovered via three render-bridge validation probes
+(5F-1b) that produced zero visible effect, tracked down with headless watches of COMM0, the
+SDRAM entity, an execution sentinel, the `$C8D2` staging gate, and the live `$FF0002` scene
+handler.
+
+- **Mis-targeted from the start** (commit `b5bd8a3`, 2026-06-17), not a regression — and
+  self-contradictory with Q-009/R-008 (already correctly identified `gfx_2_player_entity_
+  frame_orch`, which `state_disp_005020` calls, as 2P-only and deferred).
+- **Player physics is NOT currently broken** — checked explicitly: the physics-bypass
+  trampoline shares the same dead `$C8D2` gate, so it always falls through to the unmodified
+  68K physics chain in 1P. Confirmed safe, not assumed.
+- **Open, unresolved:** whether the Phase 3/4/5 "measured improvement" profiling deltas
+  recorded below were ever real in 1P, given cmd `$3F` + the bypass trampolines are no-ops
+  there. Not yet re-investigated — treat every "ACTIVE"/"done" status below as **unvalidated
+  in 1-player racing** until re-checked.
+- No universal fix exists — 1P, Free Run, and GP/split each need their own hook into their own
+  dispatcher's heavy-frame handler; 2P is the only one already wired (and unvalidated itself —
+  no 2P profiling run exists).
+
+---
+
 ## Table of Contents
 
 1. [Current State Baseline](#1-current-state-baseline)
@@ -1193,7 +1221,7 @@ These must be resolved before their respective phases. Add new questions as they
 | Q-005 | Is the `entity_type_dispatch` RAM table at $C05C written only during scene init? | Phase 4 | **RESOLVED: init-only** | No MOVE/CLR writes to $C05C found in any per-frame code. Used as LEA base in 3 functions (entity_type_dispatch_tables, effect_countdown, hw_reg_init). Table is populated during scene init. Can be snapshot once to SDRAM. |
 | Q-006 | How does camera_snapshot_wrapper (A-1 hook) interact with the new architecture? | Phase 2 | **RESOLVED: no conflict** | Camera snapshot runs in state 0 (BEFORE physics in same frame). Reads entity position from WRAM. When physics moves to SH2, camera reads PREVIOUS frame's output — same 1-frame-behind behavior that already exists. No architectural change needed. |
 | Q-007 | What happens to the 68K entity render pipeline variants (A/B/C/D, 2P)? | Phase 2 | **RESOLVED: phase 3 = Variant A only** | Variant A (player entity, all 9 physics steps) ports to SH2. Variants B/C/D (AI, replay) continue on 68K — they use reduced physics subsets. Variant selection driven by entity_type_dispatch_tables (indexes jump table at $C05C), stays on 68K. |
-| Q-008 | Can we keep menus on 68K while racing logic is on SH2? | All | **RESOLVED: YES** | cmd $3F only fires from `state4_epilogue` in `state_disp_005020` (active racing). Other dispatchers (countdown, results, attract, replay) have different state 4 handlers with no physics trigger. Menu WRAM ($C800-$CFFF) is separate from entity WRAM ($FF9000+). No shared resource conflicts. 115 menu modules stay on 68K entirely. |
+| Q-008 | Can we keep menus on 68K while racing logic is on SH2? | All | **PARTIALLY REFUTED (2026-07-06) — see correction banner** | Menu/racing separation claim stands (menu WRAM is separate, no conflicts). But **"`state_disp_005020` = active racing" is FALSE** — it's the 2-PLAYER dispatcher; interactive 1P racing uses `state_disp_004cb8` (`race_scene_init_004a32`), which has no cmd $3F trigger. cmd $3F has never fired during 1P racing on this branch. Root-caused in `analysis/VR60_IMPLEMENTATION_AUDIT.md` + `VR60_DISPATCHER_ROUTING.md`. Re-wiring must hook each active-race dispatcher (1P/Free-Run/GP) individually — no single choke point. |
 | Q-009 | What about the 2-player mode? | Phase 2+ | **RESOLVED: defer to post-Phase 3** | 2P uses Table 3 ($FF9F00) — single 256B entity record (NOT a 15-entry table). Same physics functions as 1P (A0-parameterized). Split-screen viewport at $FF6178. MOVEM block copy in `gfx_2_player_entity_frame_orch` assumes both entities updated on same CPU. Phase 3 = 1P racing only. Porting both players requires either: (A) both on SH2 (2× physics cost) or (B) explicit DMA synchronization barrier. R-008 updated. |
 | Q-010 | Can 68K write to SDRAM at $88BC00 (adapter-mapped)? | Phase 1B | **RESOLVED: NO** | $880000-$8FFFFF = cartridge ROM (read-only). SDRAM is SH2-exclusive (HW manual §2, §3.1). Must use COMM relay: 68K writes COMM2-6, cmd $3F copies to SDRAM. |
 | Q-011 | Where exactly does cmd $02 write entity visibility data in SDRAM? | Phase 1A | **RESOLVED: $0600C800** | Confirmed: 32 entries × 16 bytes = 512B at $0600C800 ($2200C800 cache-through). Handler $04 reads visibility flag at byte offset +0. Already validated by cmd $3F entity copy ($2200C800 → $2200F20C). |

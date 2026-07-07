@@ -82,6 +82,14 @@
 
 .global bridge_probe
 bridge_probe:
+    /* --- EXECUTION SENTINEL (diagnostic): write $DEADBEEF to real SDRAM
+     * cache-through $2600FC00. If cmd $3F executes this handler, the sentinel
+     * reaches DRAM (cache-through bypasses the write-back cache confound) and is
+     * observable at $0600FC00. Proves execution independent of descriptor theory. */
+    mov.l   @(.bp_sentinel_addr,pc),r1
+    mov.l   @(.bp_sentinel_val,pc),r0
+    mov.l   r0,@r1                    /* $2600FC00 = $DEADBEEF */
+
     /* R1 = descriptor base, CACHE-THROUGH (see .bp_desc_base) */
     mov.l   @(.bp_desc_base,pc),r1   /* R1 = $2600C254 (Run C) */
     mov     #56,r2                    /* R2 = descriptor count (Run C = 56; A=4, B=8) */
@@ -95,6 +103,10 @@ bridge_probe:
     nop
 
 .align 2
+.bp_sentinel_addr:
+    .long   0x2600FC00               /* real SDRAM cache-through execution sentinel */
+.bp_sentinel_val:
+    .long   0xDEADBEEF
 .bp_desc_base:
     /* RUN SELECTOR line 1 of 2: C254 (Run C) | C128 (Run A) | C178 (Run B) */
     .long   0x2600C254               /* C254 racing descriptor batch 3, Master cache-through */

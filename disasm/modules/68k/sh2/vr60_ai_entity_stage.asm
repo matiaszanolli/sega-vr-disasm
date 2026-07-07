@@ -9,11 +9,13 @@
 ; Uses the existing block copy routine at $008988EC (128× MOVE.W (A1)+,(A2))
 ; called 15 times (once per 256B entity). Each call copies 256B.
 ;
-; Actually — the staging area $FF6B40 + 3840 = $FF7B40, which is between
-; $FF6B00 (globals) and $FF9000 (entity tables). Verify this is free.
-; $FF6B40 to $FF7B3F = 4,096B. The display object array starts at $FF6218
-; and goes to ~$FF6960. Globals are at $FF6B00-$FF6B3F. So $FF6B40-$FF8FFF
-; (~9KB) is free. ✓
+; Actually — the staging area $FF6B40 + 3840 = $FF7A40 (not $FF7B40 — an
+; earlier version of this comment had a $100 arithmetic slip), which is
+; between $FF6B00 (globals) and $FF9000 (entity tables). Verify this is free.
+; $FF6B40 to $FF7B3F = 4,096B (a rounder reserved allocation than the 3,840B
+; actually used, leaving $FF7A40-$FF7B3F, 256B, as spare slack within it).
+; The display object array starts at $FF6218 and goes to ~$FF6960. Globals
+; are at $FF6B00-$FF6B3F. So $FF6B40-$FF8FFF (~9KB) is free. ✓
 ;
 ; HOWEVER: DREQ transfer of 3,840B takes ~15K 68K cycles for FIFO writes.
 ; This runs ONLY on the first racing frame ($C8D2 = 0). Acceptable.

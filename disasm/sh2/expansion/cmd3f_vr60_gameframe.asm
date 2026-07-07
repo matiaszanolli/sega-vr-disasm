@@ -345,7 +345,10 @@ cmd3f_vr60_gameframe:
 .globals_base:
     .long   0x0600F30C              /* Globals block (native SDRAM, entity + 256) */
 .canary_addr:
-    .long   0x2200FC00              /* Validation canary location (cache-through for visibility) */
+    .long   0x2600FC00              /* Validation canary location (SDRAM cache-through; was
+                                       0x2200FC00 = cache-through CARTRIDGE ROM, a silent no-op
+                                       that made every prior "canary verified" claim meaningless
+                                       — see analysis/VR60_IMPLEMENTATION_AUDIT.md) */
 .canary_val:
     .long   0xDEADBEEF              /* Canary value */
 .comm_base:

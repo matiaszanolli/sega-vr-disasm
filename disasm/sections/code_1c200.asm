@@ -63,4 +63,10 @@
         include "modules/68k/sh2/vr60_ai_entity_stage.asm"
         include "modules/68k/sh2/vr60_ai_entity_transfer.asm"
 
+; --- VR60 Phase 1P: 1-player interactive racing staging + cmd $3F trigger ---
+; Patched into game_frame_orch_013 (code_4200.asm) — see file header for why
+; this lives here (equal-size swap; cross-section abs.l JSR convention).
+; ISOLATION TEST BUILD — see vr60_1p_staging_hook.asm header.
+        include "modules/68k/sh2/vr60_1p_staging_hook.asm"
+
         dcb.b   ($01E200-*),$FF

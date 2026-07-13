@@ -30,6 +30,14 @@
 .align 2
 
 cmd3e_entity_transfer:
+    /* DIAGNOSTIC SENTINEL (temporary, re-added for joint transition-frame test,
+     * analysis/VR60_PHASE1_CMD3E_ACK_HANG.md §9.5b/§11): stores R8 (always
+     * $20004020 per entry contract) to $2600FC00 (pre-validated stable/free
+     * in this scenario), proving handler entry independent of the 68K-side
+     * sentinel and COMM0/DREQ_LEN observations run in the same pass. */
+    mov.l   @(.sentinel_addr,pc),r1
+    mov.l   r8,@r1
+
     /* Save PR for subroutine return */
     /* offset  0 */ sts.l   pr,@-r15
 
@@ -91,10 +99,17 @@ cmd3e_entity_transfer:
     /* offset 22 */ mov.l   @(.chcr_value,pc),r0
     /* offset 24 */ mov.l   r0,@r1
 
-    /* DMAOR = enable DMA (bit 0 = 1, no priority mode) */
+    /* DMAOR = enable DMA (bit 0 = 1, no priority mode)
+     * MUST be a 32-bit (mov.l) store: DMAOR's live bits (PR/AE/NMIF/DME) are
+     * bits 3-0, i.e. in the LOWER 16 bits of this big-endian 32-bit register.
+     * A mov.w store to the register's base address writes the UPPER 16 bits
+     * (which are reserved/hardwired to 0) and never touches DME -- so the
+     * DMAC never actually arms, matching the established working pattern
+     * for this exact register in struct_init_short.asm (dmac_fifo_setup),
+     * which uses mov.l. See analysis/VR60_PHASE1_CMD3E_ACK_HANG.md. */
     /* offset 26 */ mov.l   @(.dmac_dmaor,pc),r1
     /* offset 28 */ mov     #1,r0
-    /* offset 30 */ mov.w   r0,@r1
+    /* offset 30 */ mov.l   r0,@r1
 
     /* === SIGNAL ACK: set COMM1_LO bit 1 === */
     /* offset 32 */ mov.b   @(3,r8),r0       /* R0 = COMM1_LO */
@@ -144,11 +159,24 @@ cmd3e_entity_transfer:
 .dmac_chcr0:
     .long   0xFFFFFF8C              /* DMAC CHCR0 register */
 .chcr_value:
-    .long   0x000014E5              /* External request, word, dest auto-inc, enable */
+    /* $14E5 had source/destination address-mode fields TRANSPOSED (SM=incr,
+     * DM=fixed) relative to docs/32x-hardware-manual.md's mandated pattern
+     * for DREQ-FIFO-to-memory channel-0 transfers (dest must increment,
+     * source -- the FIFO port -- must stay fixed): "0100 0100 1110 0XXXb".
+     * Independently corroborated by PicoDrive's own dreq0_do() sanity check
+     * (sh2soc.c: chcr & 0x3f08 must == 0x0400) -- 0x14E5 & 0x3f08 = 0x1400,
+     * would trip that check every call. Corrected to 0x44E5 (flips bits 14
+     * and 12 only; IE=1/TE=0/DE=1 preserved). See
+     * analysis/VR60_PHASE1_CMD3E_ACK_HANG.md §8.2. Real, independently-
+     * confirmed bug -- kept fixed regardless of whether it explains the
+     * separate dispatch-never-happens hang under this emulator (§8.5-8.6). */
+    .long   0x000044E5              /* External request, word, dest auto-inc, enable */
 .dmac_dmaor:
     .long   0xFFFFFFB0              /* DMA operation register */
 .dreq_len:
     .long   0x20004010              /* DREQ Length register (SH2 side) */
+.sentinel_addr:
+    .long   0x2600FC00              /* pre-validated stable/free in this scenario */
 
 /* Total: 56 bytes code + 40 bytes pool = 96 bytes */
 

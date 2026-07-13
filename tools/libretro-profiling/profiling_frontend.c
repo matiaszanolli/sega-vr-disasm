@@ -85,6 +85,8 @@ typedef bool (*fn_retro_load_game)(const struct lr_game_info *);
 typedef void (*fn_retro_unload_game)(void);
 typedef void (*fn_retro_run)(void);
 typedef void (*fn_retro_get_system_info)(struct lr_system_info *);
+typedef size_t (*fn_retro_serialize_size)(void);
+typedef bool (*fn_retro_unserialize)(const void *data, size_t size);
 
 /* Function pointers */
 static fn_retro_init core_init;
@@ -99,6 +101,8 @@ static fn_retro_load_game core_load_game;
 static fn_retro_unload_game core_unload_game;
 static fn_retro_run core_run;
 static fn_retro_get_system_info core_get_system_info;
+static fn_retro_serialize_size core_serialize_size;
+static fn_retro_unserialize core_unserialize;
 
 /* Stub callbacks */
 static void stub_video_refresh(const void *data, unsigned width,
@@ -203,6 +207,7 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Usage: VRD_PROFILE_LOG=/path/to/log.csv %s /path/to/rom.32x [max_frames] [--autoplay]\n", argv[0]);
         fprintf(stderr, "\nEnvironment variables:\n");
         fprintf(stderr, "  VRD_PROFILE_LOG - Path to CSV output file (required for profiling)\n");
+        fprintf(stderr, "  VRD_LOAD_STATE  - Path to a savestate to load before running (see VRD_PROFILING.md)\n");
         fprintf(stderr, "\nOptions:\n");
         fprintf(stderr, "  --autoplay  Inject inputs to navigate menus and start a race\n");
         return 1;
@@ -254,6 +259,8 @@ int main(int argc, char **argv) {
     core_unload_game = (fn_retro_unload_game)load_symbol(handle, "retro_unload_game");
     core_run = (fn_retro_run)load_symbol(handle, "retro_run");
     core_get_system_info = (fn_retro_get_system_info)load_symbol(handle, "retro_get_system_info");
+    core_serialize_size = (fn_retro_serialize_size)load_symbol(handle, "retro_serialize_size");
+    core_unserialize = (fn_retro_unserialize)load_symbol(handle, "retro_unserialize");
 
     if (!core_init || !core_run || !core_load_game) {
         fprintf(stderr, "Failed to load required symbols\n");
@@ -320,6 +327,49 @@ int main(int argc, char **argv) {
     }
 
     printf("Game loaded successfully\n");
+
+    /* Optional: load a savestate captured from real (manual) gameplay, so
+     * headless verification can target a scene --autoplay's canned input
+     * can't reach (e.g. real 1P GP racing -- --autoplay only ever reaches
+     * Free Run, see VR60_DISPATCHER_ROUTING.md). The state file is whatever
+     * bytes retro_serialize() produced; format is core/version-specific,
+     * not game-ROM data. */
+    const char *load_state_path = getenv("VRD_LOAD_STATE");
+    if (load_state_path) {
+        if (!core_serialize_size || !core_unserialize) {
+            fprintf(stderr, "Core does not export retro_serialize_size/retro_unserialize\n");
+            free(rom_data);
+            core_deinit();
+            dlclose(handle);
+            return 1;
+        }
+        FILE *sf = fopen(load_state_path, "rb");
+        if (!sf) {
+            fprintf(stderr, "Failed to open savestate: %s\n", load_state_path);
+            free(rom_data);
+            core_deinit();
+            dlclose(handle);
+            return 1;
+        }
+        fseek(sf, 0, SEEK_END);
+        long state_size = ftell(sf);
+        fseek(sf, 0, SEEK_SET);
+        void *state_data = malloc(state_size);
+        fread(state_data, 1, state_size, sf);
+        fclose(sf);
+
+        if (!core_unserialize(state_data, (size_t)state_size)) {
+            fprintf(stderr, "retro_unserialize failed (size=%ld) -- state file may not match this core build\n", state_size);
+            free(state_data);
+            free(rom_data);
+            core_deinit();
+            dlclose(handle);
+            return 1;
+        }
+        free(state_data);
+        printf("Savestate loaded: %s (%ld bytes)\n", load_state_path, state_size);
+    }
+
     printf("Running %d frames...\n", max_frames);
 
     /* Run emulation frames */

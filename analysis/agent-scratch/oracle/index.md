@@ -442,6 +442,8 @@ $020476: NOP
 
 7. **Test SH2 patches in isolation** — Interacting patches hide root causes. B-006: reverting only Patch #2 was insufficient; Patches #1+#3 together also crashed. Always test each patch alone first.
 
+7b. **Unbounded retry loops on a COMM ACK can hard-hang the 68K** — a retry fix for cmd $3E/$3F (force 0→1 transition, `beq.s .retrigger` with no attempt cap) was headlessly "verified" but never actually tested against the real code path it was meant to fix (see pitfall 16 below); real GP racing hard-hung the 68K (black screen, audio still running). Fully reverted 2026-07-13. Any retry loop waiting on a hardware/emulator ACK must have a hard attempt cap. See `analysis/VR60_PHASE1_CMD3E_ACK_HANG.md` §13.
+
 ### 🟠 HIGH (silent bugs, hours to debug)
 
 8. **SH2 `.align N` uses power-of-2 semantics** — `.align 1`=2B, `.align 2`=4B, `.align 4`=16B. Using `.align 4` inflates code and shifts all PC-relative displacements.
@@ -467,6 +469,8 @@ $020476: NOP
 15. **MOVE.W #$0000,(addr).W ≠ CLR.W (addr).W** — Different encodings (6 bytes vs 4 bytes). Never substitute one for the other when byte-matching original ROM.
 
 15. **Sega's "COMM1" = hardware COMM2 ($20004024)** — Sega's slave source calls $20004024 "COMM1". VRD docs use hardware register index (COMM2). When reading Sega's internal code comments, their COMM1 = our COMM2.
+
+16. **`--autoplay` never reaches real GP racing** — `profiling_frontend`'s canned input (press START blindly, then hold A after frame 1200) reliably parks the game in scene `$5586` (Free Run/TT) and never reaches scene `$4CBC` (real 1P GP racing) — confirmed out to 3600 frames, and even with zero input. The `[racing]` progress label is a naive frame-count heuristic, not derived from game state. Any headless test claiming to verify 1P-GP-specific code must watch `$FF0004` directly to confirm the scene, or use `VRD_LOAD_STATE=path` (added 2026-07-13) with a manually-captured GP savestate.
 
 ---
 

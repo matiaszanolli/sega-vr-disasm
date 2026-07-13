@@ -23,12 +23,13 @@ sequence run (a clean, input-free 3D benchmark).
 | `VRD_PROFILE_PC_LOG=path` | Where to write the PC CSV (`cpu,pc,total_cycles,count,avg,share` + `BUDGET` lines) |
 | `VRD_GATE_3D=1` | Count only frames where the Slave is rendering 3D (excludes boot/2D) |
 | `VRD_GATE_THRESH=N` | Slave cycles/frame to count as 3D-active (default 150000) |
-| `VRD_SCENE=hex` | Count only frames whose scene-handler word (`$FF0004`) matches — e.g. `0x4CBC` = interactive racing. **Essential**: mixing car-select/attract/menu skews the budget. |
+| `VRD_SCENE=hex` | Count only frames whose scene-handler word (`$FF0004`) matches — e.g. `0x4CBC` = 1P interactive racing, `0x5586` = Free Run/TT. **Essential**: mixing car-select/attract/menu skews the budget. **Note (2026-07-13): `--autoplay` never actually reaches `0x4CBC`** — it reliably parks in `0x5586` (Free Run) instead, so this filter alone won't get you real GP-racing frames under `--autoplay`; use `VRD_LOAD_STATE` with a manually-captured GP savestate. |
 | `VRD_FB_CRC=1` | Compute an FNV hash of the displayed framebuffer each frame (`fb_crc` column) → effective-display-FPS / "did the image change?" |
 | `VRD_WATCH=addr:size,...` | Log values at addresses every frame (68K or SH2 bus; size 1/2/4) |
 | `VRD_WATCH_LOG=path` | Where to write the watch time-series CSV |
 | `VRD_DUMP_FRAME=N`, `VRD_DUMP=addr:len,...`, `VRD_DUMP_FILE=path` | Hex-dump memory regions at frame N |
 | `VRD_SCENE_ADDR=hex` | 68K game-state word logged as `state` (default `FFC87E`) |
+| `VRD_LOAD_STATE=path` | Load a savestate (`retro_unserialize`) before the frame loop starts. Use this to headlessly test scenes `--autoplay` can't reach — e.g. real 1P GP racing, since `--autoplay`'s canned input reliably parks in Free Run (`$5586`) instead (confirmed 2026-07-13, out to 3600 frames). Format-compatible with standalone PicoDrive's own savestates (same `pico/state.c` serialization) — any file not ending in `.gz` works directly; gunzip first if it does. |
 
 Addresses route by bus automatically: `<0x400000` or `0xFF0000+` → 68K; `0x04xxxxxx`/`0x06xxxxxx` (+cache-through) → SH2.
 

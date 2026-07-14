@@ -228,6 +228,21 @@ HANDLER $05 VISIBILITY CULLING:
   This is the game's built-in LOD/range culling — S-5/S-9 should interface here.
 ```
 
+### 1P Racing State Dispatch — Path A is dead code (found 2026-07-13)
+
+`state_disp_004cb8.asm` (68K `$884CBC`, the active scene handler during real 1P racing per
+`$FF0002`/`$FF0004`) has a 5-entry jump table indexed by `$C87E`. State 8's handler
+(`game_frame_orch_013.asm`, "Path A", `$884D1A-$884D98`) is **provably dead code during real
+gameplay** — zero PC-histogram hits across 4 independent savestates and 28.5M sampled
+instructions (`analysis/VR60_PHASE1_CMD3E_ACK_HANG.md` §15). `$C87E` transits 0→4→8→12 at most
+once, likely during scene init, then sticks at state `$0C` ("Path B", same file, lines 66-73) for
+the rest of the race — but Path B is lightweight (sound/controller/frame-counter/AI-buffer only),
+not the real per-frame driver. The actual physics/AI/entity driver is (partially traced)
+`race_frame_main_dispatch_entity_updates.asm` via `race_entity_update_loop` (confirmed heavy
+execution) — its exact recurring per-frame trigger is still unresolved. **Any future 1P SH2-offload
+hook must NOT target `game_frame_orch_013`** — it was the VR60 Phase 1 plan's insertion point and
+is unreachable during real play.
+
 ### SH2 Dispatch Architecture (Traced March 2026, corrected March 12)
 
 **CORRECTION (March 12, 2026):** The PRIMARY dispatch at $020460 is the MASTER SH2,

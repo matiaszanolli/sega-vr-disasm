@@ -24,12 +24,32 @@
 ; every frame, so an unverified change to any of them is a change to
 ; already-working functionality, not just to this dormant hook.
 ;
-; Before re-attempting SH2 offload here: get a real GP-racing savestate
-; (VRD_LOAD_STATE, added to profiling_frontend.c this session) for headless
-; testing, use BOUNDED retries (never loop forever on an ack), and land any
-; new retry logic in 1P-exclusive copies of these functions rather than
-; editing the shared vr60_*_transfer.asm/vr60_comm_trigger.asm files, so a
-; wrong fix can never again hang the already-working 2P/demo path.
+; UPDATE (2026-07-13, later same session): this hook's own address range
+; (state 8, "Path A" of game_frame_orch_013) is now confirmed DEAD CODE
+; during real 1-player gameplay -- zero PC-histogram hits across four
+; independent savestates (mid-race, near-countdown-end, from-loading with
+; and without held input) and 28.5 million sampled 68K instructions from
+; one savestate alone. State $C87E transits 0->4->8->12 at most once, very
+; early (likely during scene init, before state_disp_004cb8 even becomes
+; the active scene handler), then sticks at Path B (state $0C) for the rest
+; of the race. Path B itself is lightweight (sound/controller/frame-counter/
+; AI-buffer only) and is NOT the real per-frame game-logic driver either.
+;
+; The real per-frame entity/physics/AI driver was traced (partially) to
+; `race_frame_main_dispatch_entity_updates` (disasm/modules/68k/game/race/
+; race_frame_main_dispatch_entity_updates.asm) via race_entity_update_loop,
+; which shows heavy, confirmed execution in every real-racing PC histogram
+; this session. The exact recurring per-frame trigger for that function is
+; not yet fully pinned down -- needs its own dedicated tracing session.
+;
+; DO NOT reuse this hook's insertion point (game_frame_orch_013's Path A)
+; for any future 1P SH2-offload work -- it is provably unreachable during
+; real gameplay. See analysis/VR60_PHASE1_CMD3E_ACK_HANG.md §15 for the
+; full investigation. If a retry-based fix for cmd $3E/$3F is still needed
+; once the real hook point is found: use BOUNDED retries (never loop
+; forever on an ack), and land new logic in 1P-exclusive copies of
+; vr60_*_transfer.asm/vr60_comm_trigger.asm rather than editing the shared
+; files (they're also called unconditionally by the always-active 2P path).
 ; ============================================================================
 
 vr60_1p_staging_hook:

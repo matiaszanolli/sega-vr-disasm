@@ -51,6 +51,33 @@ width, CHCR0 address-mode fields) were kept since they don't depend on the rever
 Before resuming: get a real GP-racing savestate (`VRD_LOAD_STATE` now supports this), and bound
 any retry logic with a hard attempt cap.
 
+## ⚠ BIGGER STATUS UPDATE (2026-07-13, later same session) — the hook's insertion point itself is dead code
+
+Following up on the above with real GP-racing savestates (finally obtained — see R-021), extensive
+`VRD_PROFILE_PC=1` histogram testing across four independent savestates/conditions (mid-race,
+near-countdown-end, from-loading with and without held input) and up to 28.5 million sampled 68K
+instructions found **zero execution** of `game_frame_orch_013`'s "Path A" (state 8) — the exact
+function the entire Phase 1 plan hooks into. State `$C87E` apparently transits 0→4→8→12 at most
+**once**, very early (likely during scene init, before `state_disp_004cb8` even becomes the active
+scene handler — `race_scene_data_loader.asm` sets `$FF0002` to yet a third handler,
+`$00894262`, as part of loading), then sticks at Path B (state `$0C`) for the entire rest of the
+race. Path B is itself lightweight (sound/controller/frame-counter/AI-buffer only) and is **not**
+the real per-frame game-logic driver either.
+
+**The actual per-frame entity/physics/AI driver was traced (partially) to
+`race_frame_main_dispatch_entity_updates`** (`disasm/modules/68k/game/race/
+race_frame_main_dispatch_entity_updates.asm`, ROM `$006D9C-$006F98`) via `race_entity_update_loop`,
+which shows heavy, confirmed execution (thousands of PC samples) in every real-racing histogram
+this session. Its exact recurring per-frame trigger is not yet fully pinned down — its only found
+static caller (`race_scene_data_loader.asm:45`) is itself inside a one-time loading sequence, not
+an obviously-recurring call site. **This needs its own dedicated tracing session.**
+
+**Bottom line: the entire original Phase 1 plan's insertion point (`game_frame_orch_013`'s state-8
+"Path A") must be abandoned — it is provably unreachable during real gameplay, in every tested
+scenario.** Any future 1P SH2-offload attempt needs a hook into `race_frame_main_dispatch_entity_
+updates` (or whichever of its internal entry points turns out to be the real per-frame call site)
+instead. Full writeup: `analysis/VR60_PHASE1_CMD3E_ACK_HANG.md` §15.
+
 ---
 
 ## Table of Contents
@@ -1307,7 +1334,7 @@ Record every significant design decision here. Include date, what was decided, w
 | R-018 | SH2 anim_timer_speed_clear lacks conditional_return_on_state_match fallthrough | Low | Phase 3B | **ACCEPTED** | 68K JMPs to a state-check function that either returns or falls through. SH2 always returns (RTS). The fallthrough path handles edge-case state transitions during animation timer expiry — not observed during normal player racing. Monitor during extended testing. |
 | R-019 | Entity staging overwrites SH2 physics results | Critical | Phase 3B | **RESOLVED** | Staging copies WRAM→SDRAM every frame, overwriting accumulated SH2 physics. Fix: initial-frame-only staging (first racing frame seeds SDRAM, subsequent frames entity persists in SDRAM). Timer/guard co-port to SH2 completes the solution. |
 | R-020 | Unbounded retry loops on a COMM ACK can hard-hang the 68K if the underlying race theory is wrong | Critical | Phase 1 (1P wiring) | **RESOLVED (reverted)** | A retry fix for a suspected Master-SH2 poll-detection race (`.retrigger: ... beq.s .retrigger`, no attempt cap) was applied to `vr60_entity_transfer.asm` and 3 siblings, "verified" headlessly, but that verification never actually exercised the real GP-racing call path (Q-017). Real GP racing hard-hung (black screen, frozen 68K). Fully reverted to `HEAD`. If retried: bound every retry loop with a hard attempt cap (give up and skip the frame's SH2 offload rather than loop forever), and implement any new logic in 1P-exclusive copies of these functions — they are also called unconditionally by the always-active 2P path (`state4_epilogue`), so editing them for "1P" silently changes 2P/demo behavior too. |
-| R-021 | `--autoplay` cannot reach real GP racing — headless verification of 1P-specific code is currently impossible without a manual savestate | High | Phase 1 (1P wiring) | **OPEN (tooling added, savestate still needed)** | See Q-017. `VRD_LOAD_STATE` was added to `profiling_frontend.c` to consume a manually-captured savestate, but the one captured 2026-07-13 was Free Run, not GP — still need a real GP-racing savestate before any further 1P SH2-offload work can be headlessly verified. |
+| R-021 | `--autoplay` cannot reach real GP racing — headless verification of 1P-specific code is currently impossible without a manual savestate | High | Phase 1 (1P wiring) | **PARTIALLY RESOLVED — savestate is mid-race, not at the race-start transition** | See Q-017. `VRD_LOAD_STATE` was added to `profiling_frontend.c`. A real GP-racing savestate (scene `$4CBC`, confirmed via `$FF0004`) was captured 2026-07-13 at `tools/libretro-profiling/savestate_1p_gp_racing.bin` (gitignored), but it's captured **mid-race** — state 8 (`game_frame_orch_013`, where the 1P hook lives) is transient, fires once at the loading→driving transition, and never recurs (confirmed: zero PC-histogram hits across 823,113 sampled instructions from this savestate). Still need a savestate captured AT or just before that transition to actually exercise the hook headlessly. See `analysis/VR60_PHASE1_CMD3E_ACK_HANG.md` §14. |
 
 ---
 
@@ -1418,6 +1445,9 @@ Record discoveries, gotchas, and insights as the project progresses. These help 
 | 2026-07-13 | Phase 1 (1P wiring) | **A passing headless test is not evidence the tested code path executed at all.** `profiling_frontend`'s `[racing]` progress label is a naive frame-count heuristic (`frame < 1200 ? "menus" : "racing"`), not derived from real game state. `--autoplay` actually parks the game in Free Run (`$5586`) and never reaches GP (`$4CBC`) — confirmed by watching `$FF0004` directly, not by trusting the label. Every "verified working" headless result for the 1P hook this session was measured against Free Run, which never calls the hooked function. | Always confirm the scene/state word directly for any scenario-specific headless test; never trust a frame-count-based label or an assumption about what an autoplay script reaches. |
 | 2026-07-13 | Phase 1 (1P wiring) | **Editing a function shared by a working caller and an experimental caller risks breaking the working one.** `vr60_entity_transfer.asm` and 3 siblings are called both by the untested 1P hook AND by the always-active, already-working `state4_epilogue` (2P/demo path). A retry-loop "fix" scoped mentally to "fix 1P" was actually a live change to 2P's behavior, and hard-hung the 68K in real GP racing (unbounded retry, no ACK ever arriving in that real context). Fully reverted to `HEAD`. | Before changing a shared function for one caller's problem, check every caller. If a fix is genuinely caller-specific, implement it as a caller-specific copy rather than editing the shared function. |
 | 2026-07-13 | Tooling | **`VRD_LOAD_STATE=path` added to `profiling_frontend.c`** — loads a real savestate (`retro_unserialize`) before the frame loop, letting headless tests target scenes `--autoplay` can't reach. Confirmed compatible with standalone PicoDrive's own savestate files (same underlying `pico/state.c` serialization; standalone only adds an optional `.gz` wrapper). | Use this for any future 1P-specific (or other autoplay-unreachable) headless verification — capture the scenario once manually, then iterate headlessly against the saved state. |
+| 2026-07-13 | Phase 1 (1P wiring), later same session | **`game_frame_orch_013`'s "Path A" (state 8) — the entire Phase 1 plan's hook insertion point — is dead code during real 1-player gameplay.** Zero PC-histogram hits across four independent savestates and 28.5M sampled instructions. `$C87E` transits 0→4→8→12 at most once, likely during scene init; Path B (state `$0C`) persists for the rest of the race but is itself lightweight (no entity/physics calls) and isn't the real driver either. The real per-frame physics/AI driver was traced (partially) to `race_frame_main_dispatch_entity_updates` via `race_entity_update_loop` (confirmed heavy execution), but its exact recurring trigger isn't pinned down yet. | A PC histogram's absence-of-evidence, checked precisely by address range across multiple independent test conditions, is strong evidence of non-execution — but always include ALL histogram categories (`WRAM_CALLER`, not just `68K`) or you'll draw the opposite wrong conclusion from someone else's return addresses. Any future 1P SH2-offload hook must target `race_frame_main_dispatch_entity_updates`'s real per-frame entry point, not `game_frame_orch_013`. |
+| 2026-07-13 | Tooling | **`VRD_HOLD_INPUT=mask` added to `profiling_frontend.c`** — holds a joypad bitmask from frame 0, independent of `--autoplay`'s menu-navigation timing logic (which assumes frame 0 = boot, not frame 0 = savestate resume). Used to rule out "does reaching this code path require player input" as a hypothesis. | Use for any headless test resuming from a savestate where sustained input (e.g. holding accelerate) needs to start immediately, not 1200 frames in. |
+| 2026-07-13 | Profiling methodology | **The PC histogram CSV has a `WRAM_CALLER` category (JSR return addresses from self-modified WRAM code) separate from the plain `68K` category** — filtering on `$1=="68K"` alone silently discards it, and its addresses are return-addresses-after-a-call, not necessarily inside the function you think they are (verify against the actual source, e.g. Path B vs Path A confusion this session). | Always `cut -d',' -f1 file.csv \| sort -u` to see every category present before drawing conclusions from a PC histogram. |
 
 ---
 

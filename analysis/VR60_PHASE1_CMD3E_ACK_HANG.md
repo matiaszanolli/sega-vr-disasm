@@ -1519,3 +1519,108 @@ wired into 1P racing. Next attempt at fixing the cmd `$3E`/`$3F` dispatch gap (i
 1P-exclusive copies of the transfer functions rather than editing the shared
 `vr60_*_transfer.asm`/`vr60_comm_trigger.asm` files, so a wrong fix can never again hang the
 already-working 2P/demo path.
+
+## 14. Session 2026-07-13 continued — a real GP savestate, and a premature "it works" reversed
+
+A real GP-racing savestate was captured (Matias selecting "Virtua Racing" from Mode Select,
+confirmed via `$FF0004` reading `$4CBC` across 300+ sampled frames — the actual in-game menu label
+is "Virtua Racing", not "Grand Prix"; saved at
+`tools/libretro-profiling/savestate_1p_gp_racing.bin`, gitignored). Re-wired the ORIGINAL,
+unmodified `vr60_entity_transfer.asm` chain (entity_stage + globals_stage + entity_transfer, no
+retry logic, gated first-frame-only by `VR60_1P_FLAG`) into `vr60_1p_staging_hook.asm` as a
+ground-truth test: does cmd `$3E` actually hang against real GP racing, or was every earlier "hang"
+observation confounded by the `--autoplay`-reaches-Free-Run gap (§13.1)?
+
+**Initial result looked like a clean answer**: 1800 consecutive frames, no hang, `VR60_1P_FLAG`
+never latched (so `vr60_entity_transfer` re-ran every sampled frame instead of once), yet the SH2
+canary (`$2600FC00`) read nonzero on 1798/1800 samples and `DREQ_LEN` cycled through many draining
+values. Read as: cmd `$3E` dispatches and completes successfully under real GP racing with the
+plain, unmodified code — no race condition after all.
+
+**This was wrong, and caught by a much stronger check.** Trying to root-cause why `VR60_1P_FLAG`
+never latches (even with an unconditional, first-instruction write, and even to a totally
+unrelated scratch address `$FFFFD000` — ruling out an address-specific WRAM collision), a
+`VRD_PROFILE_PC` histogram over the same 300-frame run showed **zero samples anywhere in
+`game_frame_orch_013`'s entire original address range** (`$884D1A-$884D98`) across 823,113 total
+sampled 68K instructions — and correspondingly zero samples in `vr60_1p_staging_hook`'s relocated
+body either. **The hook was never entered at all in this test.** State 8 (`game_frame_orch_013`,
+"Path A") is transient — it fires once, right at the loading→driving transition, and per the
+earlier Explore-agent finding (§ "the transient nature of state 8"), state `$0C` (Path B) never
+advances the dispatch index again once reached, so it never recurs later in the race. The
+savestate was captured **mid-race**, after that one-shot transition had already passed, so the
+hook structurally could not run in this window. The canary/`DREQ_LEN` activity observed was almost
+certainly stale data already present in the savestate's SDRAM snapshot from Matias's play session,
+or unrelated DREQ traffic from the stock render pipeline's own block copies sharing the same
+hardware register — not evidence of this hook's code running at all.
+
+**Lesson**: a memory-write side effect "looking right" (nonzero canary, plausible-looking cycling
+values) is not sufficient evidence a code path executed — it can be residual state from before the
+test began. **PC-histogram profiling (`VRD_PROFILE_PC=1`), which counts every sampled instruction
+directly, is a much stronger check than inferring execution from downstream memory effects,** and
+should be the first thing reached for when a "does X code path run" question matters, not the last.
+
+**Status: unchanged from §13's revert** (still fully safe, inert passthrough) — this session did
+not find new evidence either for or against a real cmd `$3E` race condition, because the test
+never actually exercised the code path it was meant to test. **Still needed**: a savestate captured
+AT (or just before) the race-start transition — not mid-race — so state 8 fires within the test
+window.
+
+## 15. Session 2026-07-13 continued — Path A is dead code; the real 1P driver is elsewhere
+
+Matias captured three further savestates chasing the state-8 transition (mid-race, a hand-timed
+"instant of gaining control", and finally one at the Loading screen, before scene init runs). Each
+was tested with a `VRD_PROFILE_PC=1` histogram checked against `game_frame_orch_013`'s exact
+address range (`$884D1A-$884D98`), across window sizes up to 28.5 million sampled 68K instructions
+(150 real seconds) from the mid-race savestate alone, and with a newly-added `VRD_HOLD_INPUT` env
+var (holds a joypad button from frame 0, independent of `--autoplay`'s menu-timing logic) to rule
+out "maybe it needs player input to reach state 8". **Zero hits in every single test**, across four
+independent savestates/conditions and two independent methodologies (PC histogram, direct
+unconditional memory writes that persist regardless of sampling granularity).
+
+Along the way, a real methodological trap was caught and corrected: the PC histogram CSV has a
+second category, `WRAM_CALLER` (call-site return addresses for JSRs originating from self-modified
+WRAM code), separate from the plain `68K` category — filtering on `$1=="68K"` alone silently
+discards this data. Early re-analysis mistook heavy `WRAM_CALLER` hits at `$884D8E`/`$884D96` for
+evidence the hook was firing; precise range-checking showed these addresses are in **Path B**
+("`; --- path B: minimal update ---`", state `$0C`'s handler, `game_frame_orch_013.asm:66-73`) —
+specifically its own `move.w #$0054,$00FF0008` and `rts` — not Path A (state 8, where the hook
+lives, `$884D1A-$884D62`), which showed **zero** hits in every single check.
+
+**Conclusion: Path A (`game_frame_orch_013`'s "full frame update", where the VR60 1P hook was
+wired) is dead code during real 1-player gameplay.** State `$C87E` apparently transits 0→4→8→12
+at most once, very early (likely during scene initialization itself, before `state_disp_004cb8`
+even becomes the active scene handler — see `race_scene_data_loader.asm:18`, which sets
+`$FF0002=$00894262`, a third, different handler, as part of the loading sequence), and Path B
+(state `$0C`) is what persists and runs every frame thereafter. Path B itself is lightweight
+(sound, controller read, frame counter, AI buffer setup only — no entity/physics/render calls), so
+it cannot be the real per-frame game-logic driver either.
+
+**The actual per-frame entity/physics/AI driver was traced (partially) to
+`race_frame_main_dispatch_entity_updates`** (`disasm/modules/68k/game/race/
+race_frame_main_dispatch_entity_updates.asm`, ROM `$006D9C-$006F98`) — this function's body
+contains the real physics pipeline (`entity_force_integration_and_speed_calc`,
+`entity_speed_clamp`, `tilt_adjust`, `drift_physics_and_camera_offset_calc`,
+`suspension_steering_damping`, `entity_pos_update`, `ai_opponent_select`,
+`collision_response_surface_tracking`, `race_pos_sorting_and_rank_assignment`, etc.) and calls
+`race_entity_update_loop` repeatedly across three entity batches. `race_entity_update_loop`'s own
+body is confirmed executing heavily in every real-racing PC histogram this session (e.g.
+`$885A24-$885AB2`, thousands of samples each). Its only found static caller is
+`race_scene_data_loader.asm:45` (`jsr race_frame_main_dispatch_entity_updates+448`) — but that call
+site is itself deep inside a one-time scene-loading sequence (the same function that writes
+`$FF0002=$00894262`), not an obviously-recurring per-frame call — so **the exact recurring trigger
+for `race_frame_main_dispatch_entity_updates` (or whichever of its internal entry points actually
+runs every frame) is not yet fully pinned down.** This needs its own dedicated tracing session
+before any new VR60 1P hook can be designed.
+
+**Actionable status**:
+- Confirmed dead: `game_frame_orch_013` / Path A / the current VR60 1P hook location. Any future
+  1P SH2-offload work must NOT reuse this insertion point — it is provably unreachable during real
+  gameplay across every tested scenario.
+- Confirmed alive, real: `race_entity_update_loop` and (by strong inference) the surrounding
+  `race_frame_main_dispatch_entity_updates` physics/AI pipeline. This is almost certainly the
+  correct place to look for a 1P hook point in any future session.
+- New reusable tooling: `VRD_HOLD_INPUT=mask` in `profiling_frontend.c` (hold a joypad button from
+  frame 0, independent of `--autoplay`).
+- `vr60_1p_staging_hook.asm` left in its safe, inert-passthrough, diagnostic-marker-cleaned state
+  (the temporary `move.b #$7E,VR60_1P_FLAG` ground-truth-test write should be removed before any
+  future session builds on top of this — it served its diagnostic purpose and is now stale).

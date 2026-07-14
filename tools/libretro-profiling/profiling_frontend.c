@@ -31,6 +31,7 @@
 static int autoplay_enabled = 0;
 static int current_frame = 0;
 static int16_t current_input = 0;
+static int16_t hold_input_mask = 0;   /* VRD_HOLD_INPUT: bitmask held from frame 0, independent of --autoplay's menu-timing logic */
 
 /* Libretro types (minimal subset) */
 typedef void (*lr_video_refresh_t)(const void *data, unsigned width,
@@ -122,11 +123,11 @@ static size_t stub_audio_sample_batch(const int16_t *data, size_t frames) {
 static void stub_input_poll(void) {
     /* Update input state for autoplay */
     if (!autoplay_enabled) {
-        current_input = 0;
+        current_input = hold_input_mask;
         return;
     }
 
-    current_input = 0;
+    current_input = hold_input_mask;
 
     /*
      * VRD menu navigation - press START repeatedly every 90 frames (1.5 sec)
@@ -208,6 +209,7 @@ int main(int argc, char **argv) {
         fprintf(stderr, "\nEnvironment variables:\n");
         fprintf(stderr, "  VRD_PROFILE_LOG - Path to CSV output file (required for profiling)\n");
         fprintf(stderr, "  VRD_LOAD_STATE  - Path to a savestate to load before running (see VRD_PROFILING.md)\n");
+        fprintf(stderr, "  VRD_HOLD_INPUT  - Joypad bitmask held from frame 0, independent of --autoplay (e.g. 0x100 = hold A/accelerate)\n");
         fprintf(stderr, "\nOptions:\n");
         fprintf(stderr, "  --autoplay  Inject inputs to navigate menus and start a race\n");
         return 1;
@@ -216,6 +218,7 @@ int main(int argc, char **argv) {
     const char *rom_path = argv[1];
     const char *profile_log = getenv("VRD_PROFILE_LOG");
     int max_frames = 600; /* 10 seconds @ 60fps */
+    { const char *hi = getenv("VRD_HOLD_INPUT"); if (hi) hold_input_mask = (int16_t)strtoul(hi, 0, 0); }
 
     /* Parse arguments */
     for (int i = 2; i < argc; i++) {

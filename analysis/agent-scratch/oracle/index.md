@@ -228,20 +228,22 @@ HANDLER $05 VISIBILITY CULLING:
   This is the game's built-in LOD/range culling — S-5/S-9 should interface here.
 ```
 
-### 1P Racing State Dispatch — Path A is dead code (found 2026-07-13)
+### 1P Racing State Dispatch — investigated, corrected, still not fully resolved (2026-07-13)
 
 `state_disp_004cb8.asm` (68K `$884CBC`, the active scene handler during real 1P racing per
-`$FF0002`/`$FF0004`) has a 5-entry jump table indexed by `$C87E`. State 8's handler
-(`game_frame_orch_013.asm`, "Path A", `$884D1A-$884D98`) is **provably dead code during real
-gameplay** — zero PC-histogram hits across 4 independent savestates and 28.5M sampled
-instructions (`analysis/VR60_PHASE1_CMD3E_ACK_HANG.md` §15). `$C87E` transits 0→4→8→12 at most
-once, likely during scene init, then sticks at state `$0C` ("Path B", same file, lines 66-73) for
-the rest of the race — but Path B is lightweight (sound/controller/frame-counter/AI-buffer only),
-not the real per-frame driver. The actual physics/AI/entity driver is (partially traced)
-`race_frame_main_dispatch_entity_updates.asm` via `race_entity_update_loop` (confirmed heavy
-execution) — its exact recurring per-frame trigger is still unresolved. **Any future 1P SH2-offload
-hook must NOT target `game_frame_orch_013`** — it was the VR60 Phase 1 plan's insertion point and
-is unreachable during real play.
+`$FF0002`/`$FF0004`) has a 5-entry jump table indexed by `$C87E`. An EARLIER pass this session
+concluded state 8's handler (`game_frame_orch_013.asm`, "Path A") was dead code (zero PC-histogram
+hits across 4 savestates, 28.5M samples) — **this was retracted the same session**: a new
+`VRD_CALLER_TRACE` capability (exact JSR-return-address counter) proved Path A fires 50+ times in
+a 600-frame window; the PC histogram's absence was a top-200/cycle-sort truncation artifact, not
+real non-execution. **`state_disp_004cb8`'s states 0 and 8 both recur regularly** — the "each
+state fires once per race" premise was wrong. The mechanism that repeatedly rewrites `$FF0002` to
+trigger Path A is still not identified. Separately, `race_entity_update_loop` was also confirmed
+genuinely executing, called from `object_table_lookup_loop`/`object_table_clear_loop`, themselves
+reached via `sh2_handler_dispatch_scene_init`+98 from `state_disp_004cb8`'s state-0 handler.
+**Lesson**: a top-200 PC histogram's absence of an address does NOT prove non-execution —
+cross-check with `VRD_CALLER_TRACE` (exact, non-truncated) before concluding "dead code." Full
+writeup: `analysis/VR60_PHASE1_CMD3E_ACK_HANG.md` §15-§19.
 
 ### SH2 Dispatch Architecture (Traced March 2026, corrected March 12)
 
@@ -486,6 +488,8 @@ $020476: NOP
 15. **Sega's "COMM1" = hardware COMM2 ($20004024)** — Sega's slave source calls $20004024 "COMM1". VRD docs use hardware register index (COMM2). When reading Sega's internal code comments, their COMM1 = our COMM2.
 
 16. **`--autoplay` never reaches real GP racing** — `profiling_frontend`'s canned input (press START blindly, then hold A after frame 1200) reliably parks the game in scene `$5586` (Free Run/TT) and never reaches scene `$4CBC` (real 1P GP racing) — confirmed out to 3600 frames, and even with zero input. The `[racing]` progress label is a naive frame-count heuristic, not derived from game state. Any headless test claiming to verify 1P-GP-specific code must watch `$FF0004` directly to confirm the scene, or use `VRD_LOAD_STATE=path` (added 2026-07-13) with a manually-captured GP savestate.
+
+17. **`VRD_PROFILE_PC`'s exported histogram is top-200, cycle-sorted — absence of an address there does NOT prove it never executes.** A real address (`game_frame_orch_013`, `$884D1A`) was declared "dead code" after showing zero hits across 28.5M samples, then proven to fire 50+ times in a 600-frame window using `VRD_CALLER_TRACE` (an exact, non-truncated JSR-return-address counter added 2026-07-13). The address simply had low enough per-hit cycle cost to fall outside the top 200 entries by total cycles. Also: `VRD_PROFILE_PC=1` silently disables itself if `VRD_PROFILE_PC_LOG` isn't also set (a fallback in `libretro.c` forces `vrd_profile_pc_enabled=0` when the log file didn't open) — always pass both together. Before concluding any code path "never executes," cross-check with `VRD_CALLER_TRACE=<hex addr>` (reads the JSR return address off the 68K stack when the watched PC is hit), not just histogram absence.
 
 ---
 

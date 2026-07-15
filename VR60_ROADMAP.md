@@ -78,6 +78,20 @@ scenario.** Any future 1P SH2-offload attempt needs a hook into `race_frame_main
 updates` (or whichever of its internal entry points turns out to be the real per-frame call site)
 instead. Full writeup: `analysis/VR60_PHASE1_CMD3E_ACK_HANG.md` §15.
 
+## ⚠ CORRECTION TO THE ABOVE (2026-07-13, later same session) — Path A is NOT dead code
+
+The "Path A is dead code" conclusion directly above was a **false negative**, caught and retracted
+in the same session. A new `VRD_CALLER_TRACE` capability (exact JSR-return-address counter, not a
+truncated histogram) proved `game_frame_orch_013` (`$884D1A`) is hit 50+ times in a 600-frame
+window — the earlier "zero PC-histogram hits" claim was an artifact of the histogram being
+top-200/cycle-sorted, and this address apparently falls below that cutoff despite executing for
+real. **`state_disp_004cb8`'s states 0 and 8 both recur regularly during real racing** — the whole
+"each state fires once per race" premise from earlier in this session was wrong. The exact
+mechanism that repeatedly rewrites `$FF0002` to trigger Path A is still not identified. Full
+writeup and corrected next steps: `analysis/VR60_PHASE1_CMD3E_ACK_HANG.md` §17-§19.
+**Do not trust "dead code"/"never executes" claims anywhere in this document or the linked
+analysis without an exact-counter (`VRD_CALLER_TRACE`) check — histogram absence is not proof.**
+
 ---
 
 ## Table of Contents

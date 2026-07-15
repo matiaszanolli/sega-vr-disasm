@@ -1624,3 +1624,140 @@ before any new VR60 1P hook can be designed.
 - `vr60_1p_staging_hook.asm` left in its safe, inert-passthrough, diagnostic-marker-cleaned state
   (the temporary `move.b #$7E,VR60_1P_FLAG` ground-truth-test write should be removed before any
   future session builds on top of this — it served its diagnostic purpose and is now stale).
+
+## 16. Root cause found: why `$C87E` never revisits state 8
+
+Traced the V-INT jump table (`disasm/modules/68k/main-loop/vint_handler.asm`) for the exact
+sub-handler Path B writes to `$FF0008` every single frame (`$0054`). The dispatch is
+`movea.l jmp_table(pc,d0.w),a1` with **D0 used directly as a byte offset** (not ×4 — the file's own
+comment "state index × 4 = table offset" describes what the *caller* pre-multiplies, not further
+scaling here), so `$0054` (84 decimal, = 21×4) selects table entry "state 21" → handler
+`$00881D0C`. Disassembling it directly (`tools/m68k_disasm.py`, since this handler was never
+modularized into its own file) found the actual frame-swap logic:
+
+```
+00881D68  MOVE.W  #$0000,Z80_BUSREQ
+00881D70  BTST    #0,$00A15123        ; test COMM1_LO bit 0 ("command done")
+00881D78  BEQ     $00881DBC           ; NOT set -> skip straight to RTS
+00881D7A  BCLR    #0,$00A15123        ; clear it
+00881D82  MOVE.W  #$0000,$C87E.W      ; *** reset $C87E to 0 ***
+00881D88  BCLR    #7,MARS_SYS_BASE
+00881D90  BTST    #7,MARS_VDP_FBCTL
+00881D98  BEQ     $00881D90            ; wait for VDP FB control
+00881D9A  BCHG    #0,$C80C.W          ; toggle frame-swap bit
+...
+00881DBC  RTS
+```
+
+**`$C87E`'s reset to 0 is conditional on `COMM1_LO` bit 0 being set** — the exact signal
+`COMM_REGISTERS_HARDWARE_ANALYSIS.md` and `func_084` manage as the Master SH2's "command done"
+flag. If nothing dispatches a Master SH2 command via that protocol during steady-state 1-player
+racing, this bit never gets set again, `$C87E` never resets, and the entire 0→4→8→12 state cycle
+— including state 8 (`game_frame_orch_013`, "Path A", where the VR60 hook lives) — fires at most
+once and never again. This is not a bug; it's the actual, intentional design of a mechanism that
+appears to be built for something else (likely a mode/moment where Master SH2 commands recur
+regularly), and 1-player racing's real per-frame logic (§15's `race_frame_main_dispatch_entity_
+updates`/`race_entity_update_loop`) runs through a completely independent path that never touches
+this state-dispatch system at all.
+
+**This fully closes out the "why doesn't state 8 fire" question** — no further savestate
+experiments are needed to answer it; the mechanism is now understood from source, not inferred
+from absence of PC-histogram evidence. It reinforces §15's conclusion unchanged: any future 1P
+SH2-offload hook must target the real recurring per-frame driver, not this state-dispatch table.
+
+## 17. CORRECTION — §15's "Path A is dead code" conclusion is retracted; it does execute
+
+While tracing the real per-frame physics trigger (below), a new `VRD_CALLER_TRACE=addr` capability
+was added to `profiling_frontend.c`'s core (reads the JSR return address off the 68K stack when a
+watched PC is hit — an exact, non-truncated counter, unlike the PC histogram). Tracing
+`game_frame_orch_013`'s own entry (`$884D1A`, "Path A" — the address §15 declared dead) found **50+
+hits across a 600-frame window**, called from `$FF0006` (the main loop's own self-modifying JSR,
+`disasm/sections/...` main-loop copy at `$FF0000`) — i.e. `$FF0002` gets transiently rewritten to
+`$00884D1A` and JSR'd to directly, then restored, **within a single emulated frame** — invisible to
+a once-per-frame `VRD_WATCH` sample (confirmed: watching `$FF0002` across 30 frames shows a
+constant `$00884CBC`, never `$00884D1A`, even though the caller-trace proves the JSR happens).
+
+**Root cause of the false negative**: the regular `VRD_PROFILE_PC` histogram is top-200,
+cycle-count-sorted (`platform/libretro/libretro.c:121,2811`). `$884D1A` is evidently hit often
+enough to be real but with low enough per-hit cycle cost to fall outside the top 200 entries by
+total cycles — so it never appeared in any exported CSV all session, despite executing. §15's
+"zero PC-histogram hits ⇒ dead code" reasoning was invalid for this specific address; PC-histogram
+*absence* only proves non-execution when cross-checked against an exact counter (like
+`VRD_CALLER_TRACE`), not from the truncated table alone. This is now added to the oracle index as
+its own pitfall, in addition to the `WRAM_CALLER`-category one already recorded there.
+
+**What is now known for certain**: `game_frame_orch_013` ("Path A", state 8) genuinely executes
+repeatedly during real 1-player racing — not once, not never, but on a real, recurring cadence
+(roughly every 3-10 frames in the 600-frame sample). The exact mechanism that repeatedly rewrites
+`$FF0002` to `$884D1A` and back is **not yet identified** — it does not go through the `$C87E`-
+indexed `state_disp_004cb8` dispatch table in the simple way originally assumed (that table's own
+jump-table dispatch reads `$C87E` and does `JMP`, not a temporary self-modifying JSR-and-restore of
+`$FF0002` itself), so there is a distinct, still-unidentified piece of code doing this swap.
+
+**Practical implication for VR60 Phase 1**: the original hook insertion point
+(`game_frame_orch_013`'s Path A, where `vr60_1p_staging_hook` already lives) is **not** dead code
+after all — §15's abandonment recommendation is retracted. It may still be viable as a hook
+location, *if* its recurrence rate (every few frames, not necessarily every frame) is acceptable
+for the staging/transfer design. Before resuming any offload work here: (1) fully identify the
+mechanism that swaps `$FF0002` to trigger Path A, to understand its real cadence and any
+preconditions: (2) re-verify with `VRD_CALLER_TRACE` (not the truncated PC histogram, and not
+assumption) whether the fuller hook body (entity/AI/globals transfer + cmd `$3F`) executing at
+this now-confirmed-real cadence is what's needed, or whether the cadence is too sparse/irregular
+for the intended "seed once, physics persists" design and `race_frame_main_dispatch_entity_
+updates`/`race_entity_update_loop` (§15's alternate candidate, ALSO confirmed genuinely executing,
+via its own `object_table_lookup_loop`/`object_table_clear_loop` callers — see §18) remains a
+valid, possibly better, target too. Do not assume either one without direct verification via the
+now-working `VRD_CALLER_TRACE` tool.
+
+## 18. The real, fully-traced call chain for `race_entity_update_loop`
+
+Using `VRD_CALLER_TRACE` (see §17), the previously-unresolved "who calls `race_entity_update_loop`
+every frame" question from §15/§16 is now answered precisely, address-by-address:
+
+- `race_entity_update_loop+176` (`$8859EC`, the shared physics-tail entry) is called from **three**
+  confirmed sites, all firing repeatedly during real racing:
+  1. `object_table_lookup_loop.asm:22` (`disasm/modules/68k/game/entity/`) — an 8-times-repeated
+     `DBRA` loop, return address `$885902` (confirmed byte-exact against the file's own listed
+     addresses).
+  2. `object_table_clear_loop.asm:21` — a 6-times-repeated `DBRA` loop, return address `$885936`
+     (also byte-exact).
+  3. `race_entity_update_loop.asm:36` itself (`.update_secondary_entity`, self-recursive), return
+     address `$88596A`.
+- `object_table_lookup_loop` is reached via `sh2_handler_dispatch_scene_init`'s "entry 3" (offset
+  +98, `$0058C8`) — confirmed via `VRD_CALLER_TRACE=8858C8`, called from `$884CF2`, which is the
+  exact address of the `addq.w #4,($FFFFC87E).w` instruction immediately following `jsr
+  sh2_handler_dispatch_scene_init+98(pc)` in `state_disp_004cb8.asm`'s **state 0 handler**
+  (`disasm/modules/68k/game/state/state_disp_004cb8.asm`, `; --- state 0 handler ---` block) — and
+  this fires 50+ times across the same 600-frame window, i.e. **state 0 also recurs**, not just
+  once, consistent with §17's finding that the whole "each state fires once per race" premise was
+  wrong for this dispatcher.
+
+**Bottom line**: `state_disp_004cb8`'s states 0 and 8 (at minimum) both recur regularly during real
+racing — contradicting every prior conclusion in §13-§16 that this dispatcher's states only cycle
+once. Whatever the real gating/cadence mechanism is (not yet identified — see §17), the state
+machine is genuinely live and active throughout the race, in both the "physics driver" path (state
+0 → `sh2_handler_dispatch_scene_init` → `object_table_lookup_loop`/`object_table_clear_loop` →
+`race_entity_update_loop`) and the original VR60 hook path (state 8 → `game_frame_orch_013`).
+
+## 19. Honest status and recommended next step
+
+This session's investigation of "why doesn't the 1P hook fire" went through several full
+reversals: hang confirmed → hang unconfirmed (methodology gap) → hook confirmed dead (PC histogram
+absence) → hook confirmed alive after all (histogram truncation was hiding it). Every one of these
+reversals was caught by *building a better diagnostic* (a real savestate, then `VRD_HOLD_INPUT`,
+then `VRD_CALLER_TRACE`) and re-testing, not by further static reasoning — that pattern held
+throughout and should continue. **Do not trust any single "dead code" or "never executes" claim
+in this document without an exact-counter check (`VRD_CALLER_TRACE`) — a truncated PC histogram's
+absence of an address is not proof of non-execution, only a hint worth checking further.**
+
+Recommended for a future session, in order:
+1. Identify what actually rewrites `$FF0002` to `$884D1A` (Path A) and back — grep for `dc.l
+   $00884D1A` / `move.l #$00884D1A` / any computed-write pattern, now knowing it's a real, live,
+   recurring mechanism worth finding, not a dead end.
+2. Once the mechanism and its cadence are understood, decide whether Path A (original hook) or
+   `race_frame_main_dispatch_entity_updates`/`race_entity_update_loop` (§18's chain) is the better
+   target — possibly hook whichever fires more predictably/frequently, verified via
+   `VRD_CALLER_TRACE` before writing any new staging/transfer logic.
+3. Re-apply the lesson from §13: any new retry-based COMM fix must be bounded and tested against
+   the confirmed-correct recurring context before being wired live, and implemented in 1P-exclusive
+   copies of the transfer functions, not the shared `vr60_*_transfer.asm`/`vr60_comm_trigger.asm`.

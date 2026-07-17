@@ -1873,3 +1873,81 @@ repeat hang), before anything reached PicoDrive or Matias's time. The final comm
 verified-safe and strictly additive (two working DREQ transfers now proven active in 1P for the
 first time), with the remaining two pieces clearly disabled and documented rather than shipped
 speculatively.
+
+## 22. CORRECTION — §21's "724 unique / matches baseline" claim does not reproduce; the freeze
+## is a savestate-loading artifact, not a VR60 code bug (AI transfer / cmd `$3F` innocent)
+
+A follow-up session picked up §21's next step (read the AI loop/physics code directly, confirm
+the stall mechanism instead of inferring it from `fb_crc`). Before touching any code, re-ran
+§21's own literal verification command against `savestate_1p_gp_racing.bin` to get a baseline
+to instrument against — **and it did not reproduce**: 3 unique `fb_crc` hashes, not 724, on the
+exact same committed "safe" tree (AI transfer + cmd `$3F` both disabled, entity+globals transfer
+only). This directly contradicts §21's claim.
+
+**Root-caused with a differential test, cheapest-explanation-first:**
+
+1. Re-ran the literal §21 verification command (`VRD_LOAD_STATE=savestate_1p_gp_racing.bin
+   VRD_FB_CRC=1`, 1800 frames, no other flags) against the untouched committed tree — **3 unique
+   `fb_crc`**, not 724.
+2. Added `VRD_PROFILE_LOG` to get the `state` ($C87E) column alongside `fb_crc`: `$C87E` cycles
+   cleanly through `$0004→$0008→$000C→$0000` for exactly one lap after the savestate loads, then
+   **freezes at `$0000` forever** (checked out to frame 1799). `msh2_cycles`/`ssh2_cycles` also
+   go flat at a fixed value from frame 5 onward — both SH2 CPUs settle into idle polling and never
+   do fresh work again.
+3. Tested with `VRD_HOLD_INPUT=0x100` (hold accelerate) in case the freeze was actually "car
+   isn't moving, so nothing changes" — no change, still 3 unique, still stuck at `$C87E=0`.
+4. **Decisive test**: temporarily replaced `game_frame_orch_013.asm`'s `jmp
+   vr60_1p_staging_hook` / `nop` (the entire VR60 1P hook, 8 bytes) with the exact two original
+   JSRs it replaced (`jsr animated_seq_player+10(pc)` / `jsr object_update(pc)`) — i.e. **zero
+   VR60 code reachable at all**, byte-identical to the pre-VR60 function. Rebuilt, re-ran the
+   same savestate: **still 3 unique `fb_crc`, still stuck at `$C87E=0`.** Reverted immediately
+   after (tree is back to committed HEAD, confirmed via `git status`/rebuild).
+
+This proves the freeze has nothing to do with AI transfer, cmd `$3F`, or any other VR60 code —
+it reproduces identically with the VR60 hook physically absent. §21's isolation steps (1-4) were
+real, reproducible *relative comparisons* under a flawed baseline, but the "724 unique, matches
+baseline" reference point they were compared against was never actually true for this savestate
+under this exact test harness. (How §21 arrived at 724 is unclear in hindsight — no artifact from
+that run survived to check against — but it does not reproduce now and should not be trusted.)
+
+**What's actually happening (mechanism, not yet fixed):** `savestate_1p_gp_racing.bin`
+(`tools/libretro-profiling/savestate_1p_gp_racing.bin`, captured 2026-07-13 20:09, predates the
+`.mds.gz` states Matias provided later that session) loads via `VRD_LOAD_STATE` and lets the game
+run for almost exactly one more `$C87E` lap before the state dispatcher stops advancing. A watch
+of the SH2-side COMM registers (see caveat below) during the freeze showed `COMM0_HI` pinned at
+`$01` (busy) continuously — consistent with Master SH2 being left waiting on a hardware event
+(most plausibly 32X DMA/DREQ controller completion) that a savestate captured mid-transfer
+doesn't correctly re-arm on restore. This is a plausible mechanism, not a confirmed one — it
+was not chased further this session. Likely candidates: (a) PicoDrive's `pico/state.c` save
+format doesn't fully capture in-flight 32X DMAC state, so resuming mid-DREQ leaves the "transfer
+complete" event unfired forever; (b) the specific frame this savestate was captured on happened
+to be mid-command in a way an idle-frame or menu-frame savestate wouldn't be.
+
+**Tooling caveat found in passing (fixed no code, just methodology):** `VRD_WATCH`'s address
+routing (`third_party/picodrive/platform/libretro/libretro.c` `vrd_r16`/`vrd_r8`) sends any
+address `>= 0x400000` through the **SH2** memory bus (`p32x_sh2_read8/16`), not the 68K bus.
+COMM registers as documented for 68K-side access (`$A15120` etc., per
+`analysis/COMM_REGISTERS_HARDWARE_ANALYSIS.md`) are `>= 0x400000` and get silently misrouted to
+SH2 space, returning garbage (read as all-zero in testing) — **not a crash, just wrong data,
+easy to miss**. For `VRD_WATCH`, always use the SH2-space cache-through COMM addresses instead
+(`$20004020`=COMM0_HI, `$20004021`=COMM0_LO, `$20004022`=COMM1_HI, `$20004023`=COMM1_LO,
+`$20004024`=COMM2_HI, `$20004026`=COMM3, `$20004028`=COMM4, `$2000402A`=COMM5, `$2000402C`=COMM6),
+matching how the SH2-side `.asm` files already address them via `R8=$20004020` + offset. This
+caveat is why the first pass at this investigation's COMM0/COMM1 watch (this section, step 2 of
+the original attempt) returned all-zero garbage before being corrected.
+
+**Practical conclusion for future sessions:**
+- **AI entity transfer (cmd `$3E` mode 2) and cmd `$3F` remain unverified, not proven unsafe.**
+  §21's "both cause a freeze" conclusion is retracted along with the 724-unique baseline it was
+  measured against. They stay disabled in `vr60_1p_staging_hook.asm` (no code change needed —
+  the committed tree was never modified by this session's testing) purely because nothing can
+  currently be verified reliably, not because of new evidence against them.
+- `savestate_1p_gp_racing.bin` is **not currently trustworthy for `fb_crc`-based verification**
+  past its first `$C87E` lap. Any future headless verification must first re-confirm `$C87E`
+  keeps cycling for the full run length before trusting `fb_crc` uniqueness as a signal — a
+  frozen `state` column is a hard invalidator of the whole run, checked before anything else.
+- Before spending more time on AI transfer/cmd `$3F`, get a savestate that survives a long
+  `VRD_LOAD_STATE` run with `$C87E` cycling cleanly throughout (either capture a fresh one at an
+  idle/menu boundary rather than mid-race, or investigate PicoDrive's 32X DMAC savestate
+  completeness directly) — otherwise every future "verified clean" or "verified broken" claim
+  from this fixture is suspect the same way §21's was.

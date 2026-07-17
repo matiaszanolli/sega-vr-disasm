@@ -105,31 +105,37 @@ shared `vr60_*_transfer.asm`/`vr60_comm_trigger.asm` files, per that incident's 
 `VRD_PROFILE_PC` histogram alone — always cross-check with `VRD_CALLER_TRACE` (exact, non-
 truncated) before concluding a code path doesn't run.
 
-## ⚠ IMPLEMENTATION STATUS (2026-07-16) — entity/globals transfer LIVE and verified; AI transfer + cmd $3F disabled
+## ⚠ IMPLEMENTATION STATUS (2026-07-16, corrected 2026-07-16) — code unchanged and safe; the "724-unique baseline" test result is RETRACTED
 
-Following the above, `vr60_1p_staging_hook.asm` was re-populated with four new 1P-exclusive files
+`vr60_1p_staging_hook.asm` was populated with four new 1P-exclusive files
 (`vr60_1p_entity_transfer.asm`, `vr60_1p_ai_entity_transfer.asm`, `vr60_1p_globals_transfer.asm`,
 `vr60_1p_comm_trigger.asm`), each with a bounded (max 16 attempt) retry, never touching the shared
-`vr60_*_transfer.asm`/`vr60_comm_trigger.asm` files. Headless `VRD_FB_CRC` testing against
-`tools/libretro-profiling/savestate_1p_gp_racing.bin` found AI entity transfer (cmd `$3E` mode 2)
-and the cmd `$3F` trigger both independently freeze the display (`fb_crc` collapses to 3-4 unique
-hashes over 1800 frames vs ~724 baseline) — most likely because `cmd3f_vr60_gameframe.asm`'s AI
-entity loop unconditionally processes 15 SDRAM entities regardless of whether they were ever
-staged, and stalls when they weren't. **Both are disabled** (commented out with inline notes) in
-the committed state.
+`vr60_*_transfer.asm`/`vr60_comm_trigger.asm` files. AI entity transfer (cmd `$3E` mode 2) and the
+cmd `$3F` trigger are disabled (commented out with inline notes); entity+globals transfer (cmd
+`$3E` modes 0/1) is active. **This code has not changed** and remains the safest available
+state — but a follow-up session found the `fb_crc`-based verification this status banner
+originally reported (724 unique hashes, "matches baseline") **does not reproduce**, and traced
+the freeze it was comparing against to a savestate-loading artifact, not any VR60 code: with the
+entire 1P hook physically removed (bypassed via the original two JSRs it replaces), the exact
+same `fb_crc` freeze still reproduces against `savestate_1p_gp_racing.bin`. The game's own state
+dispatcher (`$C87E`) cycles cleanly for almost exactly one lap after the savestate loads, then
+permanently stops advancing — independent of any VR60 code being reachable at all. Full writeup:
+`analysis/VR60_PHASE1_CMD3E_ACK_HANG.md` §22 (retracts §21's isolation conclusions about AI
+transfer/cmd `$3F` specifically, though the *code* §21 shipped — bounded retries, both disabled —
+was and remains correct and safe regardless).
 
-**What's live and verified working**: entity + globals staging/transfer (cmd `$3E` modes 0/1) —
-`724` unique `fb_crc` hashes (exact baseline match), cmd `$3E` genuinely dispatches every ~3 frames,
-`DREQ_LEN` shows real draining, zero hang across 1800 frames. This is the first confirmed-working
-SH2 offload activity in real 1-player racing this project has ever verified. Full writeup,
-including the exact isolation steps: `analysis/VR60_PHASE1_CMD3E_ACK_HANG.md` §21.
+**Practical upshot**: AI transfer (cmd `$3E` mode 2) and cmd `$3F` are neither proven safe nor
+proven unsafe — §21's "both cause a freeze" conclusion doesn't hold up, because the reference
+baseline it was compared against was never real for this test harness. They stay disabled, not
+because of new evidence against them, but because nothing can currently be verified against this
+savestate. **Before any further headless testing of this hook**, get a savestate that survives a
+full `VRD_LOAD_STATE` run with `$C87E` cycling cleanly throughout — check that first, before
+trusting any `fb_crc` uniqueness number from `savestate_1p_gp_racing.bin` again.
 
-**Next steps for a future session**: read `cmd3f_vr60_gameframe.asm`'s AI loop and physics
-functions directly to confirm (not just infer) why it stalls on unstaged data; re-verify with
-`VRD_CALLER_TRACE` watching Master SH2's poll-loop address to see if it genuinely gets stuck;
-re-test AI transfer + cmd `$3F` together (with AI data properly staged this time) once the stall
-mechanism is understood, since the very first full-body test (AI staged, cmd `$3F` active) *also*
-froze — meaning simply staging the AI data may not be sufficient by itself.
+**Tooling note**: `VRD_WATCH` routes any address `>= 0x400000` through the SH2 memory bus, not
+the 68K bus — 68K-side COMM addresses (`$A15120` etc.) get silently misrouted and return garbage.
+Use the SH2-space cache-through COMM addresses instead (`$20004020`=COMM0_HI, etc. — see
+`analysis/VR60_PHASE1_CMD3E_ACK_HANG.md` §22 for the full COMM offset table).
 
 ---
 

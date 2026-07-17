@@ -255,12 +255,18 @@ cmd3f_vr60_gameframe:
      * REVERT (one line): swap the .bridge_addr literal below back to
      * .patcher_addr (sh2_render_state_patch). Leave bridge_probe inert.
      */
-    mov.l   @(.bridge_addr,pc),r0
-    jsr     @r0                    /* bridge_probe (was: sh2_render_state_patch) */
+    mov.l   @(.patcher_addr,pc),r0
+    jsr     @r0                    /* sh2_render_state_patch (bridge_probe reverted for
+                                       Phase 1 verification -- 2026-07-16, see
+                                       analysis/VR60_PHASE1_CMD3E_ACK_HANG.md §20:
+                                       cmd $3F now fires for real in 1P, and
+                                       bridge_probe's visibility-clear was causing
+                                       an fb_crc freeze that isn't Phase 1's concern.
+                                       Swap back to .bridge_addr for Phase 2. */
     nop
-    /* --- original (restore for revert): -------------------------------------
-     * mov.l   @(.patcher_addr,pc),r0
-     * jsr     @r0                    ; sh2_render_state_patch
+    /* --- bridge_probe (restore for Phase 2): -------------------------------------
+     * mov.l   @(.bridge_addr,pc),r0
+     * jsr     @r0                    ; bridge_probe
      * nop
      * --------------------------------------------------------------------- */
 

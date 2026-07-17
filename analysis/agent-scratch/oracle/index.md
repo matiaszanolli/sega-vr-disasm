@@ -228,22 +228,27 @@ HANDLER $05 VISIBILITY CULLING:
   This is the game's built-in LOD/range culling — S-5/S-9 should interface here.
 ```
 
-### 1P Racing State Dispatch — investigated, corrected, still not fully resolved (2026-07-13)
+### 1P Racing State Dispatch — fully resolved, Path A is fine (2026-07-13)
 
-`state_disp_004cb8.asm` (68K `$884CBC`, the active scene handler during real 1P racing per
-`$FF0002`/`$FF0004`) has a 5-entry jump table indexed by `$C87E`. An EARLIER pass this session
-concluded state 8's handler (`game_frame_orch_013.asm`, "Path A") was dead code (zero PC-histogram
-hits across 4 savestates, 28.5M samples) — **this was retracted the same session**: a new
-`VRD_CALLER_TRACE` capability (exact JSR-return-address counter) proved Path A fires 50+ times in
-a 600-frame window; the PC histogram's absence was a top-200/cycle-sort truncation artifact, not
-real non-execution. **`state_disp_004cb8`'s states 0 and 8 both recur regularly** — the "each
-state fires once per race" premise was wrong. The mechanism that repeatedly rewrites `$FF0002` to
-trigger Path A is still not identified. Separately, `race_entity_update_loop` was also confirmed
-genuinely executing, called from `object_table_lookup_loop`/`object_table_clear_loop`, themselves
-reached via `sh2_handler_dispatch_scene_init`+98 from `state_disp_004cb8`'s state-0 handler.
-**Lesson**: a top-200 PC histogram's absence of an address does NOT prove non-execution —
-cross-check with `VRD_CALLER_TRACE` (exact, non-truncated) before concluding "dead code." Full
-writeup: `analysis/VR60_PHASE1_CMD3E_ACK_HANG.md` §15-§19.
+`state_disp_004cb8.asm` (68K `$884CBC`, the CONSTANT active scene handler during real 1P racing —
+`$FF0002` never changes) has a 5-entry jump table indexed by `$C87E`, dispatched via `JMP` (not
+`JSR`) to each state handler. An earlier pass this session wrongly concluded state 8's handler
+(`game_frame_orch_013.asm`, "Path A") was dead code (zero hits in a top-200/cycle-sorted PC
+histogram across 28.5M samples) — a false negative, retracted the same session. A new
+`VRD_CALLER_TRACE` capability (exact JSR-return-address counter, reads A7 off the 68K stack) proved
+Path A fires **reliably every 3 frames (20 Hz)**, exactly matching CLAUDE.md's documented "1 state
+per V-INT" game-tick model — `$C87E` genuinely cycles 0→4→8→12→reset→0→... continuously during
+real racing, exactly as the architecture was always assumed to work; there was never a real
+mechanism to find. (The `JMP`-not-`JSR` dispatch meant the caller-trace's observed return address,
+`$FF0006`, was just the original main-loop `JSR`'s residual stack entry, not evidence of a second
+dynamic rewrite — an intermediate over-complication, also resolved.) Separately confirmed:
+`race_entity_update_loop` is ALSO genuinely active, called from `object_table_lookup_loop`/
+`object_table_clear_loop`, reached via `sh2_handler_dispatch_scene_init`+98 from
+`state_disp_004cb8`'s state-0 handler (which recurs on the same ~3-frame cadence). **Both are
+valid hook targets; the original VR60 Phase 1 plan's Path-A insertion point stands.**
+**Lesson (keep applying)**: a top-200 PC histogram's absence of an address does NOT prove
+non-execution — cross-check with `VRD_CALLER_TRACE` (exact, non-truncated) before concluding
+"dead code." Full writeup: `analysis/VR60_PHASE1_CMD3E_ACK_HANG.md` §15-§20.
 
 ### SH2 Dispatch Architecture (Traced March 2026, corrected March 12)
 

@@ -63,10 +63,21 @@
         include "modules/68k/sh2/vr60_ai_entity_stage.asm"
         include "modules/68k/sh2/vr60_ai_entity_transfer.asm"
 
+; --- VR60 Phase 1P: 1-player-exclusive copies of the DREQ transfer + cmd $3F
+; trigger functions, with BOUNDED retries against the Master-SH2 poll-
+; detection race (analysis/VR60_PHASE1_CMD3E_ACK_HANG.md §13). Separate
+; files from the shared vr60_*_transfer.asm/vr60_comm_trigger.asm above --
+; those are called unconditionally every frame by the always-active 2P path
+; (state4_epilogue) and must never carry unverified retry logic again after
+; the 2026-07-13 black-screen incident (§13.2-13.3). ---
+        include "modules/68k/sh2/vr60_1p_entity_transfer.asm"
+        include "modules/68k/sh2/vr60_1p_ai_entity_transfer.asm"
+        include "modules/68k/sh2/vr60_1p_globals_transfer.asm"
+        include "modules/68k/sh2/vr60_1p_comm_trigger.asm"
+
 ; --- VR60 Phase 1P: 1-player interactive racing staging + cmd $3F trigger ---
 ; Patched into game_frame_orch_013 (code_4200.asm) — see file header for why
 ; this lives here (equal-size swap; cross-section abs.l JSR convention).
-; ISOLATION TEST BUILD — see vr60_1p_staging_hook.asm header.
         include "modules/68k/sh2/vr60_1p_staging_hook.asm"
 
         dcb.b   ($01E200-*),$FF

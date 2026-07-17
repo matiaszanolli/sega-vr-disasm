@@ -1750,14 +1750,126 @@ throughout and should continue. **Do not trust any single "dead code" or "never 
 in this document without an exact-counter check (`VRD_CALLER_TRACE`) — a truncated PC histogram's
 absence of an address is not proof of non-execution, only a hint worth checking further.**
 
-Recommended for a future session, in order:
-1. Identify what actually rewrites `$FF0002` to `$884D1A` (Path A) and back — grep for `dc.l
-   $00884D1A` / `move.l #$00884D1A` / any computed-write pattern, now knowing it's a real, live,
-   recurring mechanism worth finding, not a dead end.
+Recommended for a future session, in order (§20 below already resolves step 1):
+1. ~~Identify what actually rewrites `$FF0002` to `$884D1A`~~ — **done, see §20: nothing does. The
+   mental model was overcomplicated; `$FF0002` never changes.**
 2. Once the mechanism and its cadence are understood, decide whether Path A (original hook) or
    `race_frame_main_dispatch_entity_updates`/`race_entity_update_loop` (§18's chain) is the better
-   target — possibly hook whichever fires more predictably/frequently, verified via
-   `VRD_CALLER_TRACE` before writing any new staging/transfer logic.
+   target — **§20 resolves this too: Path A is fine, cadence confirmed regular and expected.**
 3. Re-apply the lesson from §13: any new retry-based COMM fix must be bounded and tested against
    the confirmed-correct recurring context before being wired live, and implemented in 1P-exclusive
    copies of the transfer functions, not the shared `vr60_*_transfer.asm`/`vr60_comm_trigger.asm`.
+
+## 20. Full resolution — the mental model was overcomplicated; Path A is fine, on the expected cadence
+
+Grepped for every static reference to `$00884D1A` (Path A's address) across all of `disasm/`:
+**exactly one hit, and it's the jump-table entry inside `state_disp_004cb8.asm` itself**
+(`; $004CCE [08] → $004D1A`). Nothing anywhere writes `$00884D1A` into `$FF0002` — the theory in
+§17 that `$FF0002` gets "transiently rewritten to Path A and restored" was an overcomplication.
+
+The actual, simple mechanism: the main loop's `JSR [$FF0002]` targets `state_disp_004cb8`
+(`$884CBC`) — constant, matching every `$FF0002` watch this session. **Inside**
+`state_disp_004cb8`, dispatch to a state handler is a `JMP`, not a `JSR`
+(`movea.l $004CC6(pc,d0.w),a1` / `jmp (a1)`, confirmed in the file itself). `JMP` pushes nothing
+onto the stack, so when execution later reaches Path A, the top of the stack still holds
+whatever the **original** `JSR [$FF0002]` (from the main loop) pushed — `$FF0006`. That's exactly
+the caller-trace result from §17, fully explained: it was never evidence of a second, dynamic
+rewrite — it's the ordinary residual return address from a `JSR`-then-`JMP` dispatch chain, which
+is the architecture this whole investigation originally (correctly) assumed for `$C87E`-based
+dispatch.
+
+**This means `$C87E` does cycle 0→4→8→12→(reset)→0→... repeatedly during real racing**, exactly as
+`state_disp_004cb8`'s own jump table implies and as CLAUDE.md's documented model states ("game
+logic 20 FPS, state machine = 1 state per V-INT"). Computing the actual inter-hit frame deltas from
+§17's `VRD_CALLER_TRACE=884D1A` data (50 hits, 600-frame window): the sequence is `4,4,4,4,4,4,4,4,
+4,4,4,4,4,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3` — a clean,
+regular **3-frame period** (after a short initial 4-frame transient), i.e. **exactly 20 Hz at a
+60 Hz display** (60÷3=20) — precisely the documented game-tick rate, no anomaly at all. The V-INT
+reset mechanism found in §16 (conditional on `COMM1_LO` bit 0) evidently DOES fire every ~3 frames
+in practice — most likely tied to the completion of `mars_dma_xfer_vdp_fill`/cmd `$02`, which is
+independently confirmed (§12.5) to dispatch every single racing frame — this was not verified
+directly this session but is the most consistent explanation and not a mystery worth further
+static tracing.
+
+**Conclusion, final for this investigation: `game_frame_orch_013` ("Path A", state 8) is a
+perfectly viable, reliably-recurring hook location, firing once every ~3 frames (20 Hz) during
+real 1-player racing — exactly matching the original VR60 Phase 1 plan's design assumption.** The
+"dead code" scare (§15), its correction (§17), and the "mechanism not identified" gap (§17-§19) are
+now fully closed: there was never a real problem with the hook location, only a histogram-
+truncation-induced false negative and an overcomplicated hypothesis for the caller-trace result,
+both now resolved. `race_frame_main_dispatch_entity_updates`/`race_entity_update_loop` (§18) remain
+independently confirmed-active too (via the state-0 → `sh2_handler_dispatch_scene_init` chain) but
+are no longer *needed* as an alternative — Path A works fine.
+
+**Updated status: `vr60_1p_staging_hook.asm` can be safely re-populated with the full Phase 1 body
+(entity/AI/globals staging + DREQ transfer + cmd `$3F` trigger) at its current location, once the
+retry-loop design from §13 is redone properly** (bounded attempts, tested against
+`tools/libretro-profiling/savestate_1p_gp_racing.bin` via `VRD_CALLER_TRACE` before ever touching
+live gameplay again, implemented in 1P-exclusive copies rather than the shared
+`vr60_*_transfer.asm`/`vr60_comm_trigger.asm` files per the hard lesson from tonight's black-screen
+incident).
+
+## 21. Implementation done, partially verified — entity/globals transfer clean; AI transfer and cmd $3F both freeze rendering
+
+Implemented per §20's conclusion: four new 1P-exclusive files (`vr60_1p_entity_transfer.asm`,
+`vr60_1p_ai_entity_transfer.asm`, `vr60_1p_globals_transfer.asm`, `vr60_1p_comm_trigger.asm`),
+each with a **bounded** retry (max 16 attempts, ~600-cycle settle delay each; gives up and skips
+that transfer/trigger for the frame rather than looping forever) against the same race documented
+in §13 — never touching the shared `vr60_*_transfer.asm`/`vr60_comm_trigger.asm` files this time.
+Wired into `vr60_1p_staging_hook.asm` mirroring `state4_epilogue`'s full call order (entity/AI/
+globals staging + transfer on the first frame, globals-only on subsequent frames, sound/viewport
+relay, cmd `$3F` trigger).
+
+**First full-body headless test found a real regression**: `fb_crc` collapsed to 3 unique hashes
+over 1800 frames (vs ~724 baseline) — the display was effectively frozen, though the 68K itself
+never hung (profiler completed normally, `DREQ_LEN`/canary both showed real activity). Isolated by
+disabling one variable at a time, always re-testing against the same savestate:
+
+1. Reverting `cmd3f_vr60_gameframe.asm`'s bridge_probe wiring back to the no-op patcher (it was
+   still wired in from the 5F-1b render-bridge experiment, and bridge_probe deliberately clears
+   entity visibility — a plausible freeze cause) — **did not fix it** (still 3 unique hashes).
+2. Disabling the cmd `$3F` trigger entirely (keeping AI transfer active) — **did not fix it**
+   (still 3 unique hashes) → the freeze is in cmd `$3E`, not `$3F`.
+3. Disabling AI entity staging/transfer specifically (keeping entity+globals transfer, cmd `$3F`
+   still disabled) — **fixed it**: 724 unique hashes, matching baseline exactly. → **the AI
+   transfer (cmd `$3E` mode 2) is the cause**, isolated precisely.
+4. Re-enabling cmd `$3F` alone (AI transfer still disabled) to sanity-check it independently —
+   **also froze the display** (4 unique hashes). This makes sense once cross-referenced against
+   `cmd3f_vr60_gameframe.asm`'s own body: its "PHASE 4: AI ENTITY LOOP" section unconditionally
+   processes 15 entities from SDRAM `$06010000` on every single invocation, regardless of whether
+   the 68K side ever staged them there. With AI staging disabled, that SDRAM region was never
+   populated (stale/uninitialized data), so cmd `$3F`'s handler was processing garbage as if it
+   were real entities — plausibly stalling Master SH2 inside that loop and starving the "SLAVE
+   RE-TRIGGER" step at the end of the handler, which is what actually re-triggers Slave's
+   per-frame render (cmd `$02` via `COMM2_HI=$02`). This was **not verified by reading the AI
+   physics/ai_orch_main code directly** — it's the most consistent explanation given the isolation
+   results, not a confirmed root cause.
+
+**What's confirmed clean and left ACTIVE**: `vr60_1p_entity_transfer` + `vr60_1p_globals_transfer`
+(cmd `$3E` modes 0 and 1) staging + DREQ transfer, firing every ~3 frames per §20's cadence
+finding. Verified via a full 1800-frame `VRD_FB_CRC=1` run against
+`tools/libretro-profiling/savestate_1p_gp_racing.bin`: **724 unique `fb_crc` hashes (exact
+baseline match), canary nonzero on 1798/1800 samples (cmd `$3E` genuinely dispatches), `DREQ_LEN`
+shows real progressive draining (`$89-$9C` range), no hang across the full run.** This is real,
+verified, working SH2 offload of the player entity's data path — the first time this session (or
+arguably ever, in the 1P context) that any part of the VR60 pipeline has been confirmed genuinely
+active during real 1-player racing with zero measurable side effect.
+
+**What's disabled, pending its own investigation**: AI entity transfer (cmd `$3E` mode 2) and the
+cmd `$3F` trigger, both commented out in `vr60_1p_staging_hook.asm` with inline notes explaining
+why and what to re-check before re-enabling. Next steps for a future session: (a) re-verify
+`VR60_1P_FLAG`'s "first frame only" gating — it was already found not to stick (§17 background,
+unrelated to this specific freeze) — AI transfer's design assumes it only runs once, so confirm
+whether repeated re-staging (not just the garbage-data theory above) is itself a contributing
+factor; (b) read `cmd3f_vr60_gameframe.asm`'s AI loop and the physics functions it calls directly
+to confirm (not just infer) the stall mechanism before attempting a fix; (c) re-test with
+`VRD_CALLER_TRACE` watching Master SH2's own poll-loop address to see whether it genuinely gets
+stuck (matching this session's proven diagnostic pattern) rather than continuing to infer from
+`fb_crc` alone.
+
+**Status: this is a genuine, meaningful step forward, not a repeat of §13's incident** — this was
+caught and isolated entirely in headless testing, with bounded retries throughout (no risk of a
+repeat hang), before anything reached PicoDrive or Matias's time. The final committed state is
+verified-safe and strictly additive (two working DREQ transfers now proven active in 1P for the
+first time), with the remaining two pieces clearly disabled and documented rather than shipped
+speculatively.

@@ -78,19 +78,58 @@ scenario.** Any future 1P SH2-offload attempt needs a hook into `race_frame_main
 updates` (or whichever of its internal entry points turns out to be the real per-frame call site)
 instead. Full writeup: `analysis/VR60_PHASE1_CMD3E_ACK_HANG.md` §15.
 
-## ⚠ CORRECTION TO THE ABOVE (2026-07-13, later same session) — Path A is NOT dead code
+## ⚠ FULL CORRECTION AND RESOLUTION (2026-07-13, later same session) — Path A is fine, dead-code claim retracted
 
-The "Path A is dead code" conclusion directly above was a **false negative**, caught and retracted
-in the same session. A new `VRD_CALLER_TRACE` capability (exact JSR-return-address counter, not a
-truncated histogram) proved `game_frame_orch_013` (`$884D1A`) is hit 50+ times in a 600-frame
-window — the earlier "zero PC-histogram hits" claim was an artifact of the histogram being
-top-200/cycle-sorted, and this address apparently falls below that cutoff despite executing for
-real. **`state_disp_004cb8`'s states 0 and 8 both recur regularly during real racing** — the whole
-"each state fires once per race" premise from earlier in this session was wrong. The exact
-mechanism that repeatedly rewrites `$FF0002` to trigger Path A is still not identified. Full
-writeup and corrected next steps: `analysis/VR60_PHASE1_CMD3E_ACK_HANG.md` §17-§19.
-**Do not trust "dead code"/"never executes" claims anywhere in this document or the linked
-analysis without an exact-counter (`VRD_CALLER_TRACE`) check — histogram absence is not proof.**
+The "Path A is dead code" conclusion directly above was a **false negative**, fully investigated
+and resolved in the same session. A new `VRD_CALLER_TRACE` capability (exact JSR-return-address
+counter, not a truncated histogram) proved `game_frame_orch_013` (`$884D1A`, "Path A", state 8) is
+hit repeatedly and reliably — **exactly once every 3 frames (20 Hz at a 60 Hz display)**, precisely
+matching CLAUDE.md's documented "1 state per V-INT, 20 FPS game logic" model. The earlier "zero
+PC-histogram hits" claim was purely an artifact of the histogram being top-200/cycle-sorted (this
+address executes cheaply enough per-hit to fall outside that cutoff). The mechanism is simple and
+was never actually mysterious: `state_disp_004cb8` (the constant, unchanging scene handler at
+`$FF0002`) dispatches to its states via `JMP` (not `JSR`), so `$C87E` genuinely cycles
+0→4→8→12→reset→0→... every ~3 frames as designed, exactly as the original VR60 Phase 1 plan
+assumed. **No architectural problem was ever real here** — only a histogram-truncation false
+negative and an overcomplicated intermediate hypothesis, both now fully resolved. Full writeup:
+`analysis/VR60_PHASE1_CMD3E_ACK_HANG.md` §17-§20.
+
+**Practical conclusion: `game_frame_orch_013`'s Path A (state 8) is a valid, reliable, ~20 Hz hook
+location — the original Phase 1 plan's insertion point stands.** `vr60_1p_staging_hook.asm` can be
+safely re-populated with the full staging/transfer/cmd-`$3F`-trigger body at its current location,
+once the retry-loop logic from the black-screen incident (Q-017/R-020) is redone with a **hard
+attempt cap** and tested via `VRD_CALLER_TRACE` against the real savestate before ever reaching
+live gameplay again — and implemented in 1P-exclusive copies of the transfer functions, not the
+shared `vr60_*_transfer.asm`/`vr60_comm_trigger.asm` files, per that incident's hard lesson.
+**Standing rule for all future sessions**: do not trust "dead code"/"never executes" claims from a
+`VRD_PROFILE_PC` histogram alone — always cross-check with `VRD_CALLER_TRACE` (exact, non-
+truncated) before concluding a code path doesn't run.
+
+## ⚠ IMPLEMENTATION STATUS (2026-07-16) — entity/globals transfer LIVE and verified; AI transfer + cmd $3F disabled
+
+Following the above, `vr60_1p_staging_hook.asm` was re-populated with four new 1P-exclusive files
+(`vr60_1p_entity_transfer.asm`, `vr60_1p_ai_entity_transfer.asm`, `vr60_1p_globals_transfer.asm`,
+`vr60_1p_comm_trigger.asm`), each with a bounded (max 16 attempt) retry, never touching the shared
+`vr60_*_transfer.asm`/`vr60_comm_trigger.asm` files. Headless `VRD_FB_CRC` testing against
+`tools/libretro-profiling/savestate_1p_gp_racing.bin` found AI entity transfer (cmd `$3E` mode 2)
+and the cmd `$3F` trigger both independently freeze the display (`fb_crc` collapses to 3-4 unique
+hashes over 1800 frames vs ~724 baseline) — most likely because `cmd3f_vr60_gameframe.asm`'s AI
+entity loop unconditionally processes 15 SDRAM entities regardless of whether they were ever
+staged, and stalls when they weren't. **Both are disabled** (commented out with inline notes) in
+the committed state.
+
+**What's live and verified working**: entity + globals staging/transfer (cmd `$3E` modes 0/1) —
+`724` unique `fb_crc` hashes (exact baseline match), cmd `$3E` genuinely dispatches every ~3 frames,
+`DREQ_LEN` shows real draining, zero hang across 1800 frames. This is the first confirmed-working
+SH2 offload activity in real 1-player racing this project has ever verified. Full writeup,
+including the exact isolation steps: `analysis/VR60_PHASE1_CMD3E_ACK_HANG.md` §21.
+
+**Next steps for a future session**: read `cmd3f_vr60_gameframe.asm`'s AI loop and physics
+functions directly to confirm (not just infer) why it stalls on unstaged data; re-verify with
+`VRD_CALLER_TRACE` watching Master SH2's poll-loop address to see if it genuinely gets stuck;
+re-test AI transfer + cmd `$3F` together (with AI data properly staged this time) once the stall
+mechanism is understood, since the very first full-body test (AI staged, cmd `$3F` active) *also*
+froze — meaning simply staging the AI data may not be sufficient by itself.
 
 ---
 
@@ -1348,7 +1387,8 @@ Record every significant design decision here. Include date, what was decided, w
 | R-018 | SH2 anim_timer_speed_clear lacks conditional_return_on_state_match fallthrough | Low | Phase 3B | **ACCEPTED** | 68K JMPs to a state-check function that either returns or falls through. SH2 always returns (RTS). The fallthrough path handles edge-case state transitions during animation timer expiry — not observed during normal player racing. Monitor during extended testing. |
 | R-019 | Entity staging overwrites SH2 physics results | Critical | Phase 3B | **RESOLVED** | Staging copies WRAM→SDRAM every frame, overwriting accumulated SH2 physics. Fix: initial-frame-only staging (first racing frame seeds SDRAM, subsequent frames entity persists in SDRAM). Timer/guard co-port to SH2 completes the solution. |
 | R-020 | Unbounded retry loops on a COMM ACK can hard-hang the 68K if the underlying race theory is wrong | Critical | Phase 1 (1P wiring) | **RESOLVED (reverted)** | A retry fix for a suspected Master-SH2 poll-detection race (`.retrigger: ... beq.s .retrigger`, no attempt cap) was applied to `vr60_entity_transfer.asm` and 3 siblings, "verified" headlessly, but that verification never actually exercised the real GP-racing call path (Q-017). Real GP racing hard-hung (black screen, frozen 68K). Fully reverted to `HEAD`. If retried: bound every retry loop with a hard attempt cap (give up and skip the frame's SH2 offload rather than loop forever), and implement any new logic in 1P-exclusive copies of these functions — they are also called unconditionally by the always-active 2P path (`state4_epilogue`), so editing them for "1P" silently changes 2P/demo behavior too. |
-| R-021 | `--autoplay` cannot reach real GP racing — headless verification of 1P-specific code is currently impossible without a manual savestate | High | Phase 1 (1P wiring) | **PARTIALLY RESOLVED — savestate is mid-race, not at the race-start transition** | See Q-017. `VRD_LOAD_STATE` was added to `profiling_frontend.c`. A real GP-racing savestate (scene `$4CBC`, confirmed via `$FF0004`) was captured 2026-07-13 at `tools/libretro-profiling/savestate_1p_gp_racing.bin` (gitignored), but it's captured **mid-race** — state 8 (`game_frame_orch_013`, where the 1P hook lives) is transient, fires once at the loading→driving transition, and never recurs (confirmed: zero PC-histogram hits across 823,113 sampled instructions from this savestate). Still need a savestate captured AT or just before that transition to actually exercise the hook headlessly. See `analysis/VR60_PHASE1_CMD3E_ACK_HANG.md` §14. |
+| R-021 | `--autoplay` cannot reach real GP racing — headless verification of 1P-specific code is currently impossible without a manual savestate | High | Phase 1 (1P wiring) | **RESOLVED** | See Q-017. `VRD_LOAD_STATE` was added to `profiling_frontend.c`. A real GP-racing savestate (scene `$4CBC`, confirmed via `$FF0004`) is at `tools/libretro-profiling/savestate_1p_gp_racing.bin` (gitignored, mid-race — this is fine: state 8/Path A was confirmed, via `VRD_CALLER_TRACE`, to recur reliably every ~3 frames throughout the race, not just at the loading→driving transition as an earlier pass in this session incorrectly concluded from a truncated PC histogram). See `analysis/VR60_PHASE1_CMD3E_ACK_HANG.md` §14, §17-§20. |
+| Q-018 | Does `game_frame_orch_013`'s Path A (state 8) actually recur during real racing, or fire once? | Phase 1 (1P wiring) | **RESOLVED: recurs every ~3 frames (20 Hz)** | An earlier pass this session concluded Path A never executes (zero hits across 28.5M PC-histogram samples) and recommended abandoning this hook location. That was a false negative — the histogram is top-200/cycle-sorted and missed this address despite real execution. `VRD_CALLER_TRACE` (added this session, reads the JSR return address off the 68K stack) proved Path A fires 50+ times in a 600-frame window, with a clean, regular 3-frame period (60÷3=20 Hz, matching CLAUDE.md's documented game-tick rate exactly). The dispatch mechanism is simple: `state_disp_004cb8` (constant at `$FF0002`) uses `JMP` (not `JSR`) to reach state handlers, so `$C87E` genuinely cycles 0→4→8→12→reset repeatedly, as originally assumed. **The original Phase 1 hook location is valid — no relocation needed.** See `analysis/VR60_PHASE1_CMD3E_ACK_HANG.md` §17-§20. |
 
 ---
 

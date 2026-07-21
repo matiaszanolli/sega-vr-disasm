@@ -1,7 +1,12 @@
 # Phase 1 Completion Report: Master SH2 Interrupt Queue
 
+> **RETRACTED / HISTORICAL:** This report's core memory assumption is invalid. The
+> 68000 cannot write SH2 SDRAM, and `$2203F000-$2203F204` is cartridge ROM, not
+> cache-through SDRAM. The queue was never a valid hardware implementation. Use
+> [`VR60_STATUS.md`](VR60_STATUS.md) for current work.
+
 **Date**: February 7-8, 2026
-**Status**: ✅ **COMPLETE** - All 7 implementation steps validated
+**Status**: **RETRACTED** - boot smoke did not validate the queue data path
 **Build**: ROM boots successfully, runs 300+ frames without crashes
 **Next**: Phase 2 - Convert sh2_cmd_27 call sites to async
 

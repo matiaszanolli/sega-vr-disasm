@@ -1,5 +1,10 @@
 # Virtua Racing 32X — Optimization Strategy
 
+> **HISTORICAL STRATEGY — SUPERSEDED 2026-07-21.** This March plan predates the
+> 1P/2P dispatcher-routing correction and the invalid-savestate discovery. Its “40 FPS
+> achieved” and “one blocker” conclusions are not current 1P acceptance results. Use
+> [`VR60_STATUS.md`](VR60_STATUS.md) and [`VR60_ROADMAP.md`](VR60_ROADMAP.md) for current work.
+
 **Version:** v12.0 (documentation remediation complete — 60 FPS blockers identified)
 **Last Updated:** March 15, 2026
 **Baseline:** ~40 FPS (2 frame swaps per 3 TV frames, camera interpolation)
@@ -10,7 +15,7 @@
 
 ## Ground Truth (March 2026)
 
-### 40 FPS Achieved via Camera Interpolation (A-1)
+### Historical 40 FPS Camera-Interpolation Claim (A-1)
 
 The frame rate bottleneck was bypassed by **decoupling display from game logic**. Instead of reducing SH2 workload (the v10.0 strategy), the 68K now triggers 2 SH2 renders per game frame with interpolated camera parameters. Game logic stays at 20 FPS; only the display runs faster.
 

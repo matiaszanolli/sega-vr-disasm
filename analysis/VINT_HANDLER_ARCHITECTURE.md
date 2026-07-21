@@ -1,5 +1,11 @@
 # V-INT Handler Architecture
 
+> **Current-scope correction (2026-07-21):** A swap-only V-INT mechanism is not the sole
+> remaining step to true 60 FPS. Older “active racing” references to
+> `state_disp_005020` are 2P-specific; normal 1P uses `state_disp_004cb8`. Current work is
+> blocked first on a durable baseline and staged SH2/data-ownership integration. See
+> `../VR60_STATUS.md`.
+
 **Created:** 2026-03-16
 **Purpose:** Complete reference for the Vertical Interrupt dispatch system — state table, frame swap mechanism, and R-002 design notes for 60 FPS.
 
@@ -62,8 +68,8 @@ From `$FF0008` writes across all modules:
 
 | V-INT State | Written By | Game Phase | Handler |
 |------------|-----------|------------|---------|
-| $0010 | state_disp_004cb8, 005308, 005586, 005618 (state 0) | Countdown, results, attract, replay | Minimal VDP read |
-| $0014 | state_disp_005020 (state 0) | **Active racing** | VDP sync + Z-Bus |
+| $0010 | state_disp_004cb8, 005308, 005586, 005618 (state 0) | Normal 1P, results, Free Run/TT, replay | Minimal VDP read |
+| $0014 | state_disp_005020 (state 0) | **2P split-screen** | VDP sync + Z-Bus |
 | $0018 | Multiple menu handlers | Menu/name entry | FB toggle (palette xfer) |
 | $001C | camera_interpolation_60fps (WIP) | Camera interp state 4 | Sprite config |
 | $0020 | state_disp_00573c (sub-state 0), sh2_handler_dispatch, palette handlers | Scene transitions, init | Common VDP sync |
@@ -138,7 +144,7 @@ These are **two separate state machines**:
 | V-INT state | $C87A (via $FF0008) | Main loop self-mod | V-INT handler (immediately) | Selects which V-INT handler runs |
 | Game state | $C87E | State dispatchers (ADDQ #4) | V-INT frame swap (reset to 0) | Selects which game logic runs per frame |
 
-**Race mode cycle:**
+**Historical 2P `state_disp_005020` cycle:**
 ```
 State 0 ($C87E=0):  DMA + sound → V-INT $0014 (minimal)  → $C87E = 4
 State 4 ($C87E=4):  Game logic  → V-INT $0014 (minimal)  → $C87E = 8
@@ -146,9 +152,17 @@ State 8 ($C87E=8):  Full frame  → V-INT $0054 (frame swap) → if COMM1: $C87E
                                                             → if !COMM1: $C87E = 12+
 ```
 
+Normal 1P uses `state_disp_004cb8` and was observed cycling V-INT values
+`$0010/$0010/$0054`; see `VR60_DISPATCHER_ROUTING.md` for its exact state handlers.
+
 ---
 
-## 6. R-002 Design Notes (Swap-Only V-INT Handler)
+## 6. Historical R-002 Design Notes (Swap-Only V-INT Handler)
+
+> This mechanism may remain useful, but it is not the current blocker or a complete 60 FPS
+> plan. It was designed around the historical 2P interpolation path. Complete the validation,
+> SH2 integration, render bridge, ownership, and cadence prerequisites in `../VR60_STATUS.md`
+> before revisiting it.
 
 **Goal:** Toggle FS every TV frame to display 3 unique rendered frames per game frame = 60 FPS.
 

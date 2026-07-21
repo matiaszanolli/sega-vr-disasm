@@ -77,13 +77,13 @@
 #### Blocking Version (control):
 1. Build ROM with async call site disabled (`$E3B6`)
 2. Run test scenario for 60 seconds
-3. Record SH2 frames from `0x22000400`
+3. Record SH2 frames from cache-through SDRAM `0x26000400`
 4. Calculate: `baseline_fps = frames / 60`
 
 #### Async Version (experimental):
 1. Build ROM with async call site enabled (`$EC16`)
 2. Run same test scenario for 60 seconds
-3. Record SH2 frames from `0x22000400`
+3. Record SH2 frames from cache-through SDRAM `0x26000400`
 4. Calculate: `async_fps = frames / 60`
 5. Read counters:
    - IMMEDIATE_COUNT @ `$00FFD006`
@@ -102,14 +102,14 @@ Queue ratio = QUEUED_COUNT / (IMMEDIATE_COUNT + QUEUED_COUNT) * 100%
 ```gdb
 # Attach to PicoDrive process
 (gdb) attach <pid>
-(gdb) break *0x22000400  # SH2 frame counter location
+(gdb) break *0x26000400  # SH2 cache-through SDRAM frame counter location
 
 # Dump async counters
 (gdb) x/1xw 0x00FFD000   # PENDING_CMD_VALID
 (gdb) x/1xh 0x00FFD006   # IMMEDIATE_COUNT
 (gdb) x/1xw 0x00FFD010   # QUEUED_COUNT
 (gdb) x/1xh 0x00FFD01A   # DISPATCH_COUNT
-(gdb) x/1xw 0x22000400   # SH2 frame count
+(gdb) x/1xw 0x26000400   # SH2 frame count
 ```
 
 ---

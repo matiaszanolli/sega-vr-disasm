@@ -2,6 +2,11 @@
  * bridge_probe — VR60 Phase 5F-1b SH2->Render Bridge VALIDATION PROBE
  * Expansion ROM Address: $3039E0 (SH2: $023039E0)
  *
+ * CURRENT STATUS (2026-07-21): assembled but DORMANT. cmd3f_vr60_gameframe
+ * currently calls .patcher_addr, not this routine's .bridge_addr, and normal
+ * 1P does not trigger cmd $3F. “Run C” below describes the probe configuration
+ * that will execute only after both call sites are deliberately enabled.
+ *
  * ============================================================================
  *  PURPOSE — diagnostic only, NOT the full port
  * ============================================================================
@@ -69,9 +74,9 @@
  *   ($0600F20C) and R8 = COMM base. This probe is a leaf: clobbers R0-R2 only,
  *   preserves GBR/R8/R13/R15, so the cmd $3F relay/cleanup tail is unaffected.
  *
- * REVERT (one line, in cmd3f_vr60_gameframe.asm): swap the `.bridge_addr`
- *   literal back to `.patcher_addr` (sh2_render_state_patch, the no-op patcher)
- *   per that file's "5F-1b PROBE" marker. This routine is otherwise inert.
+ * ENABLE (one line, only after the validation gates): change cmd3f's selected
+ *   literal from `.patcher_addr` to `.bridge_addr`. Revert by selecting the
+ *   patcher again. This routine is otherwise inert.
  *
  * Clobbers: R0,R1,R2. Preserves: everything else (no PR save — leaf).
  * ============================================================================

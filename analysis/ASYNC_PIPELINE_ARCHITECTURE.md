@@ -1,5 +1,10 @@
 # Async Producer-Consumer Pipeline Architecture
 
+> **Historical design context (corrected 2026-07-21):** this document assumes its cmd `$3F`
+> integration is active in normal 1P. It was actually wired into the 2P dispatcher, and the
+> current 1P cmd `$3F` trigger is disabled. Keep the synchronization analysis, but do not use
+> the performance or activation claims as current 1P evidence. See `../VR60_STATUS.md`.
+
 **Created:** 2026-03-18
 **Purpose:** Complete architectural analysis for converting the synchronous 68K↔SH2 frame pipeline to an async producer-consumer model. Based on 7 independent research investigations (R1-R7) with full codebase evidence.
 
@@ -143,9 +148,14 @@ State 8 (TV Frame 3):
 
 ## 5. Camera Interpolation Status (R3)
 
-**Critical finding:** The camera_avg_and_redma function (state 4) sends interpolated camera data to SH2 via DREQ re-DMA, but **produces zero visible change** (FRAME_RATE_ARCHITECTURE.md §9.4). The SH2 receives the data but doesn't re-render with it — no new frame is produced from the interpolated camera.
+**Historical observation, causality unproven:** `camera_avg_and_redma` produced no visible
+change in the old 2P-targeted run. That experiment did not prove that the intended dispatcher,
+DREQ consumer, or render trigger executed, so “the SH2 receives it but does not re-render” is
+not an accepted conclusion. See `../VR60_STATUS.md`.
 
-**Implication:** The "40 FPS" display rate comes from the **inline frame swap in state 4** showing the camera N render one TV frame earlier (reduced latency), not from actually rendering two unique frames per game tick. Each game tick still produces one unique rendered frame.
+**Current implication:** the old “40 FPS” interpretation is not accepted. Inline swapping may
+explain the visual/timing observation, but unique-render cadence must be measured on a valid
+fixture rather than inferred from this experiment.
 
 **For the async architecture:** camera_avg_and_redma has no data dependency on the block copies (it reads WRAM camera snapshots, not framebuffer data). It can safely execute before or after the copies.
 

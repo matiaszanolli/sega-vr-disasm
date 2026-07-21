@@ -1,5 +1,11 @@
 # Frame-Rate Architecture Analysis
 
+> **Current-scope correction (2026-07-21):** Sections that call
+> `state_disp_005020` “active racing” describe a historical 2P-targeted interpolation
+> experiment. Normal 1P uses `state_disp_004cb8`; its state-8 hook recurs at about 20 Hz.
+> No current 40/45 FPS 1P result is accepted. See `../VR60_STATUS.md` and
+> `VR60_DISPATCHER_ROUTING.md`.
+
 **Created:** March 14, 2026
 **Purpose:** Complete documentation of how the VRD engine's 20 FPS frame rate is embedded in the architecture, and the data flow that enables frame-rate-independent rendering.
 
@@ -31,15 +37,19 @@ $FF0010: BRA.S $FF0000          ; loop
 
 ## 2. Game Frame State Machine ($C87E)
 
-During racing, the game frame state at `($C87E).w` cycles through 3 states:
+During normal 1P racing, `($C87E).w` advances through dispatcher substates. Exact caller
+tracing—not a truncated PC histogram—confirms the state-8 `game_frame_orch_013` path recurs
+about once per three TV frames. The work assignment varies by dispatcher; the old simplified
+“three universal race phases” model should not be applied to every mode.
 
 | State | Advance | Purpose |
 |-------|---------|---------|
-| 0 | `ADDQ.W #4,($C87E).w` | **Full game frame**: physics, AI, entities, camera, SH2 commands |
-| 4 | `ADDQ.W #4,($C87E).w` | **Minimal work**: VDP sync, sound, give SH2 render time |
-| 8 | Reset to 0 when SH2 signals done | **Wait for SH2**: check COMM1_LO bit 0, frame buffer swap |
+| 0 | Dispatcher-specific advance | Mode-specific setup / DMA work |
+| 4 | Dispatcher-specific advance | Mode-specific intermediate work |
+| 8 | Reached about 20 Hz in normal 1P | `game_frame_orch_013` and current 1P staging hook |
+| $0C and later | Dispatcher/synchronization dependent | Additional work or reset path |
 
-**3 states × 1 TV frame each = 20 FPS game rate** (60 ÷ 3 = 20).
+**Observed 1P game-frame hook cadence: about 20 Hz on a 60 Hz display.**
 
 ### State Dispatchers
 
@@ -47,10 +57,10 @@ Five race state dispatcher functions handle different race phases. Each reads `(
 
 | File | ROM Range | Race Phase |
 |------|-----------|------------|
-| `state_disp_004cb8.asm` | $004CB8 | Pre-race / countdown |
-| `state_disp_005020.asm` | $005020 | Active racing |
+| `state_disp_004cb8.asm` | $004CB8 | **Normal 1P racing** |
+| `state_disp_005020.asm` | $005020 | **2P split-screen racing** |
 | `state_disp_005308.asm` | $005308 | Post-race / results |
-| `state_disp_005586.asm` | $005586 | Attract mode |
+| `state_disp_005586.asm` | $005586 | Free Run/TT / autoplay route |
 | `state_disp_005618.asm` | $005618 | Replay |
 
 ### Frame Buffer Swap Mechanism
@@ -67,7 +77,7 @@ This is the **only synchronization point** between 68K game logic and SH2 render
 
 The V-INT state value written to `$FF0008` is used as a **direct byte offset** into the jump table at `$0016B2`. Each entry is 4 bytes (longword address). The code at `$00169C` does: `movea.l jmp_table(pc,d0.w),a1` where D0 = state value.
 
-**Racing sequence (state_disp_005020):**
+**Historical 2P-targeted sequence (`state_disp_005020`):**
 
 | Game State ($C87E) | Writes V-INT State | V-INT Handler | Purpose |
 |--------------------|-------------------|---------------|---------|
@@ -77,7 +87,7 @@ The V-INT state value written to `$FF0008` is used as a **direct byte offset** i
 
 **Only state 8 triggers frame swap.** States 0 and 4 write V-INT states that do VDP/sprite setup work but NO frame buffer toggle.
 
-### State Machine Work Distribution
+### Historical `state_disp_005020` Work Distribution
 
 | State | Work | Camera DMA | Frame Swap |
 |-------|------|------------|------------|
@@ -330,7 +340,7 @@ Position deltas scale linearly with speed (no explicit per-frame constant, but i
 | Master SH2 | 383,040 | 125,175 avg | 33% avg (0-36%) |
 | Slave SH2 | 383,040 | 301,047 | 79% |
 
-### 7.2 Measured (40 FPS, 2 Swaps per 3 TV Frames)
+### 7.2 Historical Measurement (claimed 40 FPS, 2 swaps per 3 TV frames)
 
 | CPU | 40 FPS Avg | 20 FPS Baseline | Delta | Notes |
 |-----|-----------|-----------------|-------|-------|
@@ -338,9 +348,11 @@ Position deltas scale linearly with speed (no explicit per-frame constant, but i
 | Master SH2 | 127,061 | 125,175 | +1,886 | Extra block copies in state 4 |
 | Slave SH2 | 299,926 | 301,047 | -1,121 | Measurement variance |
 
-**Key result:** The 40 FPS pipeline (snapshot + averaging + 2× sh2_send_cmd + re-DMA + frame swap) adds negligible overhead. The 68K's 52% idle time absorbs all new work.
+**Historical result:** The measured 2P-targeted experiment added negligible overhead in its
+test context. It is not a current normal-1P CPU or FPS baseline.
 
-**SH2 budget:** 2 renders × ~300K = ~600K / 1,149K (3 TV frames) = **52%** utilization. Ample headroom for a 3rd render (60 FPS).
+**Historical estimate:** 2 renders × ~300K = ~600K / 1,149K (3 TV frames) = 52%.
+This did not establish three independently rendered frames or a current 60 FPS budget.
 
 ### 7.3 Projected (60 FPS, 3 Swaps per 3 TV Frames)
 
@@ -350,11 +362,18 @@ Position deltas scale linearly with speed (no explicit per-frame constant, but i
 | SH2 total (3 renders) | ~900K cycles | 1,149K (3 TV frames) | 22% |
 | 68K additional overhead | ~5K cycles | 128K (1 TV frame) | 96% |
 
-60 FPS is feasible from a CPU budget perspective. The bottleneck is **code space** (24 bytes remaining in trampoline) and ensuring the third frame swap doesn't conflict with `vdp_dma_frame_swap_037`'s `$C87E` reset.
+**Superseded conclusion:** these aggregate averages do not prove 60 FPS feasibility. The current
+blockers are a trustworthy live fixture, staged cmd `$3E`/`$3F` validation, SH2/68000
+equivalence, a verified descriptor bridge, and only then cadence/timing conversion. Code space
+and frame-swap placement are not the sole blockers.
 
 ---
 
-## 8. Entity Data Flow to SH2 — Complete Diagram
+## 8. Historical Entity Data-Flow Hypothesis — Superseded
+
+The following diagram contains reverted cmd `$07`, 14-command, and Master-renderer assumptions.
+For current flow use `../VR60_STATUS.md` and `VR60_DISPATCHER_ROUTING.md`; the Slave SH2 owns
+the 3D renderer and the live racing descriptor families are C128/C178/C254.
 
 ```
 SCENE INITIALIZATION (once per race):
@@ -410,11 +429,12 @@ PER GAME FRAME (20 FPS, state 0 only):
 
 ---
 
-## 9. 40 FPS Implementation (Approach A — DONE)
+## 9. Historical 40 FPS Experiment (Approach A)
 
 ### 9.1 What Was Implemented (commit b6bd487)
 
-Camera interpolation rendering — fixed 20 FPS game tick + 40 FPS display via 2 SH2 renders per game frame.
+Historical intent: fixed 20 FPS game tick plus a 40 FPS display through two SH2 renders per
+game frame. The hook is in the 2P dispatcher and is not a current 1P acceptance result.
 
 **Trampoline code** at `code_2200.asm` (192 of 210 available bytes):
 
@@ -428,7 +448,7 @@ Camera interpolation rendering — fixed 20 FPS game tick + 40 FPS display via 2
 - `state_disp_005020` state 0: `jsr camera_snapshot_wrapper(pc)` replaces `jsr mars_dma_xfer_vdp_fill(pc)`
 - `frame_update_orch_005070`: tail-jumps to `state4_epilogue` instead of inline state advance
 
-### 9.2 Per-Game-Frame Flow (Current — Effective 40 FPS)
+### 9.2 Intended Per-Game-Frame Flow (historical)
 
 ```
 State 0 (TV frame 1):
@@ -440,7 +460,8 @@ State 4 (TV frame 2):
   state4_epilogue:
     1. Block-copy SDRAM→framebuffer (2× sh2_send_cmd)
     2. COMM1_LO bit 0 check → bchg FS bit (NOTE: deferred to VBlank — see §9.4)
-    3. camera_avg_and_redma called but re-DMA has no render effect (see §9.4)
+    3. camera_avg_and_redma called; that historical run showed no visible change,
+       but the consumer/render causality was not established (see §9.4)
 
 State 8 (TV frame 3):
   [existing work: render orch, HUD, sprites, object update]
@@ -465,8 +486,12 @@ displaying two distinct rendered frames per game frame.
 ### 9.4 Known Limitations and Hardware Constraints
 
 - **FS swap deferred to VBlank (CRITICAL):** Per 32X Hardware Manual page 35: "writing the FS bit is always allowed, and when written during display, swapping is done at the next VBlank." Our state 4 inline `bchg #0,$A1518B` writes during active display — the swap is deferred to the same VBlank where state 8's V-INT handler does its own swap. The two cancel out. Frame swaps MUST happen inside V-INT handlers (during VBlank).
-- **Re-DMA does not trigger SH2 re-render:** Calling `mars_dma_xfer_vdp_fill` a second time per frame sends FIFO data (confirmed: no hang, ACK received) but produces zero visual change. Corruption diagnostic (inverting $FF6100) confirmed zero effect. Profiling shows zero SH2 cycle increase. The SH2 handler's internal render trigger is not yet understood.
-- **Dispatcher coverage:** Only `state_disp_005020` (active racing) is hooked. Other 4 dispatchers run at original 20 FPS.
+- **Historical re-DMA observation, causality unproven:** A second
+  `mars_dma_xfer_vdp_fill` produced no visible change in that experiment. It did not establish
+  a general “re-DMA cannot trigger rendering” rule because the tested dispatcher/consumer path
+  was not verified.
+- **Dispatcher coverage correction:** The interpolation hook is in 2P
+  `state_disp_005020`; normal 1P `state_disp_004cb8` is not covered by that experiment.
 - **Code space:** SOLVED — relocated to `code_1c200.asm` expansion area (7,936 bytes available).
 - **Camera-only interpolation:** Averaged camera produces smooth panning but entity positions update at 20 FPS. Imperceptible in a driving game since the camera follows the player.
 
@@ -495,7 +520,11 @@ displaying two distinct rendered frames per game frame.
 
 ---
 
-## 11. Path to 60 FPS
+## 11. Superseded Swap-Only 60 FPS Proposal
+
+This section is preserved as the old 2P-targeted display-interpolation idea. It is not the
+current route. The accepted sequence is fixture/liveness → modes 0/1 → mode 2 → cmd `$3F`
+shadow/equivalence → descriptor bridge → authority switch → per-TV-frame cadence conversion.
 
 ### 11.1 Concept
 

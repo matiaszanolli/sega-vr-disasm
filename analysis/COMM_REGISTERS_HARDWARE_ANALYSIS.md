@@ -256,7 +256,7 @@ COMM registers are just 16 bytes. For comparison, all shared memory options:
 | **Frame Buffer** | 128 KB x2 | `$840000` | `$04000000` / `$24000000` | Cacheable / CT | Access controlled by FM bit |
 | **68K Work RAM** | 64 KB | `$FF0000` | **UNMAPPED** | N/A | SH2 CANNOT access |
 
-**Key constraint:** SH2 cannot access 68K Work RAM at ANY address. The SH2 memory map has a gap between the end of ROM cartridge space (`$0203FFFF`) and Frame Buffer (`$04000000`). Addresses like `$02FFFB00` are unmapped — reads return garbage, writes go nowhere.
+**Key constraint:** SH2 cannot access 68K Work RAM at ANY address. The SH2 memory map has a gap between the end of ROM cartridge space (`$023FFFFF`) and Frame Buffer (`$04000000`). Addresses like `$02FFFB00` are unmapped — reads return garbage, writes go nowhere. SDRAM is instead at `$06000000-$0603FFFF` (cache-through `$26000000-$2603FFFF`).
 
 ---
 

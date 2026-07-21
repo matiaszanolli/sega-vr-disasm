@@ -235,20 +235,20 @@ struct HardwareRegs {
 
 ## Memory Layout in SDRAM
 
-### Estimated SDRAM Usage (0x22000000 base)
+### Estimated SDRAM Usage (cache-through `0x26000000` base)
 
 ```
 Address Range          Size    Purpose
 ═══════════════════════════════════════════════════════════
-0x22000000-0x22001FFF  8KB     Stack Space
-0x22002000-0x22003FFF  8KB     Rendering Context Array
-0x22004000-0x2200BFFF  32KB    Transformation Matrices
-0x2200C000-0x2201BFFF  64KB    Vertex Buffers
+0x26000000-0x26001FFF  8KB     Stack Space
+0x26002000-0x26003FFF  8KB     Rendering Context Array
+0x26004000-0x2600BFFF  32KB    Transformation Matrices
+0x2600C000-0x2601BFFF  64KB    Vertex Buffers
                                   - Input vertices
                                   - Transformed vertices
-0x2201C000-0x22023FFF  32KB    Polygon Descriptor Array
-0x22024000-0x2202FFFF  48KB    Texture Cache
-0x22030000-0x2203FFFF  64KB    Work Buffers & Misc
+0x2601C000-0x26023FFF  32KB    Polygon Descriptor Array
+0x26024000-0x2602FFFF  48KB    Texture Cache
+0x26030000-0x2603FFFF  64KB    Work Buffers & Misc
 ═══════════════════════════════════════════════════════════
 Total: 256KB SDRAM
 ```
@@ -354,7 +354,7 @@ D507  MOV.L   @($0222311C,PC),R5    ; Load 0xC0000770
 ```
 
 **Common Addresses**:
-- 0xC0000000 - Likely SDRAM base (maps to 0x22000000?)
+- 0xC0000000 - Historical speculation; **not** a documented SDRAM alias
 - 0xC0000740 - Matrix storage area
 - 0xC0000760 - Vector buffer
 - 0xC0000770 - Another buffer

@@ -1,12 +1,39 @@
 # BACKLOG — Task Queue
 
-Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your session date before starting. Mark `DONE` when complete with commit hash.
+**Current authority:** [VR60_STATUS.md](VR60_STATUS.md) and [VR60_ROADMAP.md](VR60_ROADMAP.md).
+The older items below preserve pre-routing-audit work and are not ordered as the current plan.
 
 **Priority levels:** P0 = blocking other work, P1 = direct FPS improvement, P2 = infrastructure, P3 = nice to have.
 
 ---
 
-## P0 — Blockers
+## Current P0 — Trustworthy 1P Integration Baseline
+
+### VR60-V1: Produce a durable 1P fixture or deterministic input harness
+**Status:** OPEN — current blocker (2026-07-21)
+**Acceptance:** With the VR60 hook bypassed, scene `$4CBC` remains active as expected,
+`$C87E` continues cycling, the state-8 caller continues recurring, and framebuffer liveness
+persists over multiple laps or an equivalent stress run. The existing
+`savestate_1p_gp_racing.bin` is not acceptable for this: it eventually freezes independently
+of the hook.
+
+### VR60-V2: Revalidate the enabled cmd `$3E` modes 0/1
+**Status:** BLOCKED BY VR60-V1
+Test player and globals transfer independently with direct COMM/sentinel observation. The old
+724-hash acceptance result is retracted.
+
+### VR60-V3: Stage the remaining offload path one component at a time
+**Status:** BLOCKED BY VR60-V2
+Order: AI transfer mode 2 → cmd `$3F` shadow execution with 68000 authority → corrected
+C254/C128/C178 render probe → real bridge → collision/equivalence → authority switch/bypass.
+
+### VR60-V4: Raise logic cadence and scale time-dependent behavior
+**Status:** BLOCKED BY VR60-V3
+True 60 Hz logic/display is the final objective, not a frame-swap-only milestone.
+
+---
+
+## Historical P0 — Pre-VR60 Blockers
 
 ### R-001: Disassemble SH2 handler $060008A0 (render trigger)
 **Status:** DONE (2026-03-16) — **Blocker 2 was a misdiagnosis**
@@ -20,8 +47,8 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 **Impact:** Only Blocker 1 (FS swap timing) remains for A-2 (60 FPS)
 
 ### R-002: Implement swap-only V-INT handler (A-2 Blocker 1)
-**Status:** OPEN
-**Priority:** P1 — solvable, implements A-2 Blocker 1 fix
+**Status:** SUPERSEDED AS THE CURRENT BLOCKER (2026-07-21)
+**Priority:** Historical experiment
 **Why:** A-2 Blocker 1: FS writes outside VBlank are deferred. V-INT handlers execute during VBlank, so FS writes inside them take effect immediately. Create a "swap-only" V-INT handler (~50 bytes) that toggles FS and `$C80C` without resetting `$C87E` or checking COMM1.
 **Implementation:** Hook into V-INT jump table as repurposed/new state. Game states 0 and 4 write this state to `$FF0008` to get one swap per TV frame = 3 swaps per game frame.
 **Key files:** `disasm/modules/68k/main-loop/vint_handler.asm`, `disasm/modules/68k/game/render/vdp_dma_frame_swap_037.asm`
@@ -62,17 +89,19 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 **Why reverted:** S-1d profiling proved entity descriptors at `$0600C344` are unused during racing. The bitmask builder added COMM overhead to the 10.52% sh2_send_cmd hotspot for zero benefit. Jump table entry $07 at $02079C restored to original handler ($06000490). Handler at $3011A0 now dormant.
 **Key files:** `disasm/modules/68k/game/scene/sh2_object_and_sprite_update_orch.asm`, `disasm/sections/code_20200.asm`
 
-### A-1: Camera Interpolation Rendering (40 FPS)
-**Status:** DONE (2026-03-14, b6bd487)
+### A-1: Camera Interpolation Rendering (historical 40 FPS claim)
+**Status:** HISTORICAL EXPERIMENT (2026-03-14, b6bd487); not current 1P acceptance
 **Priority:** P1
 **What:** Decoupled display from game logic via camera interpolation. State 0 snapshots prev/curr camera. State 4 block-copies first render + swaps + interpolates camera + re-DMAs for second SH2 render. State 8's existing swap displays interpolated frame. Result: 2 swaps per 3 TV frames = 40 FPS display, 20 FPS game logic. Zero physics changes.
 **Profiling:** CPU impact negligible (68K unchanged, SH2 at 52% for 2 renders). 3600-frame autoplay verified.
-**Coverage note:** Only `state_disp_005020` (active racing) hooked. Other 4 race dispatchers (`004cb8`, `005308`, `005586`, `005618`) NOT yet hooked for camera snapshot.
+**Routing correction:** The hook is in `state_disp_005020`, now known to be the 2P
+split-screen dispatcher. Normal 1P uses `state_disp_004cb8`; therefore this item cannot support
+a current 1P “40 FPS achieved” claim.
 **Key files:** `disasm/sections/code_2200.asm`, `disasm/modules/68k/game/state/state_disp_005020.asm`, `disasm/modules/68k/game/scene/frame_update_orch_005070.asm`
 **References:** [OPTIMIZATION_PLAN.md](OPTIMIZATION_PLAN.md) §A-1, [analysis/FRAME_RATE_ARCHITECTURE.md](analysis/FRAME_RATE_ARCHITECTURE.md)
 
 ### A-2: 60 FPS Rendering
-**Status:** BLOCKED — one hardware constraint remaining (Blocker 1 only)
+**Status:** SUPERSEDED — not one hardware constraint from completion
 **Priority:** P0
 **Why:** Display 3 unique rendered frames per game frame = 60 FPS with 20 FPS game logic.
 **Remaining blocker:**
@@ -116,8 +145,8 @@ Pick the highest-priority unclaimed task. Mark it `IN PROGRESS` with your sessio
 **Status:** DONE (2026-02-17) — COMM-register approach, fully tested
 **v1 (ceb0ed3, reverted):** Broke menu highlights. Used Work RAM queue ($FFFB00) — SH2 cannot access 68K Work RAM.
 **v2-v3 (reverted):** Tried $22FFFB00 and $02FFFB00 as queue base — both unmapped SH2 space.
-**v4 (current, working):** Direct COMM register parameter passing. 68K writes params to COMM2-6, doorbell COMM7=$0027. Slave reads COMM2-6 inline from SDRAM at $020608 (88 bytes). No queue, no Work RAM, no expansion ROM execution on Slave.
-**Key insight:** SH2 memory map shows $0240 0000+ as "-" (nothing). The ONLY shared writable memory is COMM registers (16 bytes) and SDRAM ($0200 0000-$0203 FFFF).
+**v4 (current, working):** Direct COMM register parameter passing. 68K writes params to COMM2-6, doorbell COMM7=$0027. Slave reads COMM2-6 inline from runtime SDRAM at `$06000608` (ROM image offset `$020608`, 88 bytes). No queue, no Work RAM, no expansion ROM execution on Slave.
+**Key insight:** `$02000000-$023FFFFF` is SH2 cartridge ROM, not SDRAM. The 68000↔SH2 writable mechanisms are COMM, DREQ FIFO, and coordinated frame-buffer access. SDRAM is SH2-only at `$06000000-$0603FFFF` (cache-through `$26000000-$2603FFFF`).
 **Key files:** `disasm/sections/code_e200.asm`, `disasm/sections/code_20200.asm`
 
 ### B-004: Single-shot protocol for sh2_send_cmd (14 calls/frame)

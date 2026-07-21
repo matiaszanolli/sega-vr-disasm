@@ -4,7 +4,9 @@
  * SH2 Address: 0x02300280
  * Size: ~32 bytes (reduced - counter now in slave_work_wrapper_v2)
  *
- * FIXED: Removed COMM5 increment - counter now handled by slave_work_wrapper_v2
+ * DORMANT/HISTORICAL: the literal parameter address below is invalid. $2203E000
+ * is cache-through cartridge ROM, not SDRAM. A revival must use $2603E000 and
+ * revalidate the whole B-006 experiment.
  */
 
 .section .text
@@ -26,5 +28,5 @@ slave_test_func:
 
         /* Literal pool (4-byte aligned) */
         .align 4
-        .long   0x2203E000              /* Parameter block */
+        .long   0x2203E000              /* INVALID legacy ROM alias; dormant code */
         .long   0x02300100              /* func_021_optimized */

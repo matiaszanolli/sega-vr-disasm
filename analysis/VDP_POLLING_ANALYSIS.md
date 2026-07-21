@@ -84,7 +84,7 @@ VDPSyncSH2:
 
 ### 4. SH2 Slave Main Loop - OPTIMIZABLE
 
-**Location**: SH2 SDRAM $22000400
+**Location**: SH2 SDRAM `$26000400` cache-through (`$06000400` cached)
 
 ```asm
 .wait_for_work:

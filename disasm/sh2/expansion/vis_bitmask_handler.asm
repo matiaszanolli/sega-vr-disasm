@@ -3,13 +3,14 @@
  * Expansion ROM Address: $3011A0 (SH2: $023011A0)
  * Size: 64 bytes (56 bytes code + 8 bytes literal pool)
  *
- * Phase 2: Reads 15-bit entity visibility bitmask from COMM3, stores it to
- * SDRAM ($2203E020), then patches 15 entity descriptor flag words in SH2
- * SDRAM so the Slave SH2 entity rendering loops skip invisible entities.
+ * DORMANT/INVALID S-1c EXPERIMENT: the literals below use $22xxxxxx, which
+ * is cache-through cartridge ROM—not SDRAM. The descriptor family was also
+ * proven unused for racing. Do not activate this handler; a new experiment
+ * would need verified live descriptors and $26xxxxxx SDRAM aliases.
  *
  * Sequential mapping: 68K entities 0-14 → SH2 descriptors at
  * $0600C344 + N*$14 (contiguous groups A-D, stride $14 = 20 bytes).
- * All writes use cache-through addresses ($2200xxxx).
+ * Historical writes incorrectly used $2200xxxx ROM aliases.
  *
  * The Slave SH2 entity loops check MOV.W @(0,R14),R0 / CMP/EQ #0,R0 / BT
  * at the start of each iteration. Flag=0 → skip all rendering for that
@@ -20,7 +21,7 @@
  *   COMM0_LO (offset 1):  $07 — dispatch index; cleared to $00 by SH2
  *   COMM3    (offset 6,7): 15-bit visibility bitmask (bit N = entity N)
  *
- * Entity Descriptors (cache-through base $2200C344):
+ * Historical invalid descriptor base $2200C344 (ROM alias):
  *   Stride: $14 (20 bytes), flag word at offset +0
  *   15 descriptors patched: entities 0-4 (group A), 5-12 (group B),
  *   13-14 (group C first 2 of 5)
@@ -81,8 +82,8 @@ vis_bitmask_handler:
     /* offset 54 */ nop                         /* [delay slot]                         $0009 */
 
 /* === LITERAL POOL ===
- * Offset 56: $2203E020 — bitmask storage (cache-through SDRAM)
- * Offset 60: $2200C344 — first entity descriptor (cache-through SDRAM)
+ * Offset 56: $2203E020 — invalid ROM alias (historical bitmask storage)
+ * Offset 60: $2200C344 — invalid ROM alias (historical descriptor base)
  *
  * MOV.L at offset 4 → disp = ($3011D8 - $3011A8) / 4 = $30/4 = 12
  * MOV.L at offset 12 → disp = ($3011DC - $3011B0) / 4 = $2C/4 = 11
@@ -91,9 +92,9 @@ vis_bitmask_handler:
  */
 .align 2
 .vis_sdram:
-    .long   0x2203E020          /* SDRAM visibility bitmask (cache-through) */
+    .long   0x2203E020          /* INVALID legacy ROM alias; handler dormant */
 .desc_base:
-    .long   0x2200C344          /* First entity descriptor (cache-through) */
+    .long   0x2200C344          /* INVALID legacy ROM alias; handler dormant */
 
 /* Total: 64 bytes ($3011A0-$3011DF) */
 .global vis_bitmask_handler

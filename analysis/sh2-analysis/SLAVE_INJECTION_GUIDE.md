@@ -1,9 +1,14 @@
 # Slave SH2 Integration Guide
 
+> **HARDWARE-MAP CORRECTION (2026-07-21):** This is a historical, inactive design.
+> Its live literal `$2203E000` is cache-through cartridge ROM, not SDRAM, so the
+> parameter block never existed as described. The intended SH2-shared address would
+> be `$2603E000`, but the whole path must be revalidated before activation.
+
 > **📋 STATUS UPDATE (2026-01-25):** Infrastructure complete, ready for activation!
 > - ✅ `vertex_transform_optimized` ready at $300100 (96 bytes, coord_transform inlined)
 > - ✅ `slave_work_wrapper` ready at $300200 (COMM7 polling loop)
-> - ✅ Parameter block design at 0x2203E000 (cache-through SDRAM)
+> - ⚠ Parameter block literal 0x2203E000 is invalid ROM alias (intended SDRAM: 0x2603E000)
 > - ⏳ **NOT YET ACTIVATED** - Requires trampoline connection + Slave PC redirect
 > - Current state: Tagged as `v4.0-baseline` - ROM identical to original
 >
@@ -59,7 +64,8 @@ This guide documents the Slave SH2 integration using the 4MB expansion ROM.
 
 ### Parameter Block (Shared Memory)
 
-Located at `0x2203E000` (**cache-through** SDRAM, accessible by both SH2s):
+Historically assigned to invalid ROM alias `0x2203E000`; intended cache-through SDRAM
+would be `0x2603E000` (accessible by both SH2s):
 
 | Offset | Size | Register | Purpose |
 |--------|------|----------|---------|
@@ -290,12 +296,12 @@ Using emulator memory view:
 ## Technical Notes
 
 - ROM addresses: `$XXXXXX` format (file offset)
-- SH2 addresses: `0x02XXXXXX` (cached) or `0x22XXXXXX` (cache-through)
+- SH2 cartridge-ROM addresses: `0x02XXXXXX` (cached) or `0x22XXXXXX` (cache-through)
 - COMM registers: `0x20004XXX` from SH2 perspective
-- Parameter block: `0x2203E000` (cache-through SDRAM, shared between SH2s)
-- **Cache coherency**: Shared data between SH2s MUST use cache-through addressing (0x22XXXXXX)
-  - 0x02000000-0x0203FFFF = SDRAM (cached, per-CPU)
-  - 0x22000000-0x2203FFFF = SDRAM (cache-through, coherent)
+- Historical parameter literal: `0x2203E000` (**invalid ROM alias**); intended SDRAM is `0x2603E000`
+- **Cache coherency**: shared SDRAM uses region-specific cache-through `0x26XXXXXX`
+  - 0x06000000-0x0603FFFF = SDRAM (cached, per-CPU cache)
+  - 0x26000000-0x2603FFFF = SDRAM (cache-through, coherent)
 
 ## Source Files
 

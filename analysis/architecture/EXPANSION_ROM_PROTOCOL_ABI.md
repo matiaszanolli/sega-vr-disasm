@@ -2,7 +2,11 @@
 
 **Date:** 2026-01-21
 **Version:** 1.0
-**Status:** Locked
+**Status:** **REVOKED / HISTORICAL** — invalid `$22000100` memory premise
+
+> `$22000100` is cache-through cartridge ROM, not writable SDRAM, and the 68000
+> cannot read SH2 SDRAM directly. COMM4 remains the only diagnostic described
+> here that could be observed by both sides; this ABI must not be treated as locked.
 
 ---
 
@@ -14,7 +18,7 @@ This document defines the Master (68K) ↔ Slave (SH2) communication protocol fo
 - Hardware-safe (no undefined simultaneous writes)
 - Deterministic (edge-triggered, not level-triggered)
 - Scalable (single command now, extensible to job queue later)
-- Diagnostically observable (SDRAM mirror of state)
+- Diagnostically observable through COMM4 (the historical SDRAM mirror was invalid)
 
 ---
 
@@ -59,33 +63,32 @@ This document defines the Master (68K) ↔ Slave (SH2) communication protocol fo
 **Semantics:**
 - Read by Master (68K) to verify Slave is executing
 - Counter should increment every frame that expansion code runs
-- Value is canonical truth (primary measurement)
-- Mirrors to SDRAM for diagnostic access
+- Historically intended as the primary observable counter; not live-validated
+- Historical SDRAM-mirror claim retracted
 
 ---
 
-## Diagnostic State (SDRAM Mirror)
+## Retracted Diagnostic-State Design
 
-**Canonical SDRAM Counter Location:** 0x22000100
+**Invalid historical literal:** 0x22000100 (cartridge ROM, not SDRAM)
 
 **Layout:**
 ```
-0x22000100: 32-bit frame counter (canonical truth)
+0x22000100: historical invalid frame-counter location
               - Incremented by Slave in expansion_frame_counter
-              - Readable from both 68K and Slave
-              - Primary diagnostic location
+              - Not writable as SDRAM
+              - Not readable by the 68000 as shared RAM
 
 0x22000104: 32-bit execution count (future use)
 0x22000108: 32-bit error flags (future use)
 0x2200010C: Reserved (align to cache line)
 ```
 
-**Why SDRAM:**
+**Why this design was rejected:**
 - COMM registers are precious and volatile
-- SDRAM is persistent within a game session
-- Debugger can read 0x22000100 to verify counter is incrementing
-- Allows profiling without disturbing register state
-- Cache-aware allocation (0x100 offset)
+- `$22000100` selects cartridge ROM
+- correct SH2 SDRAM would use `$060/$260`, but the 68000 cannot access it directly
+- no valid producer/consumer diagnostic path was established
 
 ---
 
@@ -112,7 +115,7 @@ Slave Polling Loop (once per frame, after COMM6 hook is integrated):
   3. If no: loop back (no signal)
   4. If yes:
      a. Call expansion_frame_counter (in expansion ROM)
-     b. Increment SDRAM[0x22000100]
+     b. Historical invalid step: attempted increment at ROM alias 0x22000100
      c. Increment COMM4 register
      d. Write 0x0000 to COMM6 (CRITICAL: acknowledge/clear)
      e. Loop back
@@ -150,9 +153,9 @@ Next V-INT            0x0012   (cycle repeats)
 2. Slave crash/exception in expansion code
 3. Slave stuck in infinite loop
 
-**Diagnostic:** Read 0x22000100 (SDRAM counter) with debugger
-- If 0x22000100 == 0: Slave has never executed expansion code
-- If 0x22000100 frozen: Slave crashed after 1st increment
+**Historical diagnostic (invalid):** 0x22000100 is cartridge ROM, not an SDRAM counter.
+Do not use it to infer Slave execution. A future SDRAM diagnostic would need a verified
+`$260xxxxx` address plus a reader/consumer trace.
 - Compare against expected value: `expected = frame_count_since_boot`
 
 ### Master Not Signaling
@@ -180,17 +183,17 @@ Next V-INT            0x0012   (cycle repeats)
 COMM6: Command queue head pointer
 COMM5: Command queue tail pointer (Slave writes)
 COMM3/COMM2: Job parameter 1 / Job parameter 2
-SDRAM 0x22000110+: Command queue buffer
+Prospective SH2-only SDRAM `$26000110+`: command queue buffer (not 68000-writable)
 ```
 
 **Compatible with current design?** Yes—protocol remains edge-triggered, COMM4 still response counter.
 
 ### Latency Measurement
 
-**Add to SDRAM:**
+**Historical concept; would require a valid SH2-only producer:**
 ```
-0x22000110: Master write timestamp (cycle counter)
-0x22000114: Slave read timestamp (cycle counter)
+0x26000110: Master-SH2 write timestamp (cycle counter)
+0x26000114: Slave-SH2 read timestamp (cycle counter)
 → Measure latency = read - write
 ```
 
@@ -203,25 +206,22 @@ SDRAM 0x22000110+: Command queue buffer
 ```
 1. Boot ROM
 2. Wait for V-INT to fire (observe game)
-3. Inspect SDRAM[0x22000100]
-4. Read COMM4 register
-   - Both should be non-zero
-   - Values should match (or COMM4 be lower 16 bits)
+3. Read COMM4 register
+   - It should be non-zero if the Slave path genuinely executes
 5. Wait 1 frame
 6. Inspect again
-   - Both counters should increment by 1
+   - COMM4 should increment by 1
 7. Repeat 5-10 frames
-   - Counters should be monotonically increasing
+   - COMM4 should be monotonically increasing
 ```
 
-### Hardware Validation (Real 32X Hardware)
+### Retracted Hardware-Validation Procedure
 
-Once pdcore or hardware test harness is available:
+This procedure is invalid because `$22000100` is ROM:
 ```
-1. Hook debugger to 0x22000100
-2. Run for 60 frames
-3. Expected: 0x22000100 increments 60 times
-4. Measure jitter: max(delta) - min(delta) should be 0 or 1
+1. Do not hook 0x22000100 as a counter
+2. Validate COMM4 and exact Slave execution instead
+3. Allocate any replacement diagnostic in collision-checked $260xxxxx SDRAM
 ```
 
 ---
@@ -237,9 +237,9 @@ Once pdcore or hardware test harness is available:
 3. **COMM4 is Slave write-only** (Master reads only)
    - Future: could add COMM3/COMM2 for parameters
 
-4. **SDRAM 0x22000100 is canonical ground truth**
-   - All diagnostic tools must check this location
-   - Never let COMM4 diverge from SDRAM counter
+4. **No SDRAM counter is canonical in this historical ABI**
+   - `$22000100` must never be used as liveness evidence
+   - establish any future `$260xxxxx` diagnostic independently
 
 5. **No blocking or waiting in Slave hook**
    - Hook must be register-preserving
@@ -253,7 +253,7 @@ Once pdcore or hardware test harness is available:
 - [ ] Hook reads COMM6 and compares against 0x0012
 - [ ] Hook calls expansion_frame_counter if match
 - [ ] Hook clears COMM6 to 0x0000 after servicing
-- [ ] Hook increments SDRAM[0x22000100]
+- [ ] Any future SDRAM diagnostic uses a verified `$260xxxxx` address and reader
 - [ ] Hook increments COMM4
 - [ ] Hook preserves all registers except those written
 - [ ] Baseline smoke test passes (counters increment per frame)
@@ -272,4 +272,4 @@ Once pdcore or hardware test harness is available:
 
 ---
 
-**Status:** ✅ Locked - Ready for Phase 11 implementation
+**Status:** **REVOKED / NOT READY FOR IMPLEMENTATION**

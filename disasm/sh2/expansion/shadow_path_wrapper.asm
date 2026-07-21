@@ -4,8 +4,9 @@
  * SH2 Address: 0x02300400
  * Size: ~80 bytes (expanded for barriers)
  *
- * FIXED: Moved counters from COMM6 to dedicated RAM at 0x2203E010
- * ADDED: Per-call barrier (wait for COMM7 == 0 before signaling)
+ * DORMANT/INVALID: 0x2203E000/10 are cache-through cartridge-ROM aliases,
+ * not RAM. This wrapper cannot provide the claimed counters/parameter sharing
+ * and must not be activated without a corrected $260xxxxx design and re-test.
  */
 
 .section .text
@@ -22,13 +23,13 @@ shadow_path_wrapper:
         tst     r1,r1                   /* Is COMM7 == 0? */
         bf      .wait_slave_ready       /* Loop until Slave clears it */
 
-        /* Increment Master call counter in RAM (NOT COMM6) */
+        /* Historical invalid ROM-alias counter write */
         mov.l   .L_master_counter_addr,r0
         mov.w   @r0,r1                  /* Read counter */
         add     #1,r1                   /* Increment */
         mov.w   r1,@r0                  /* Write back */
 
-        /* Write parameters to shared block */
+        /* Historical invalid ROM-alias parameter writes */
         mov.l   .L_param_block_addr,r0
         mov.l   r14,@r0                 /* param[0] = R14 */
         mov.l   r7,@(4,r0)              /* param[1] = R7 */
@@ -51,9 +52,9 @@ shadow_path_wrapper:
         /* Literal pool (4-byte aligned) */
         .align 4
 .L_master_counter_addr:
-        .long   0x2203E010              /* Master counter address (RAM, NOT COMM) */
+        .long   0x2203E010              /* INVALID legacy ROM alias; dormant */
 .L_param_block_addr:
-        .long   0x2203E000              /* Parameter block */
+        .long   0x2203E000              /* INVALID legacy ROM alias; dormant */
 .L_comm7_addr:
         .long   0x2000402E              /* COMM7 address */
 .L_func_orig_addr:

@@ -167,7 +167,7 @@ BF .occluded
 
 **Purpose**: Vertex coordinate transformation with culling
 
-**v4.0 Status**: 📋 **INFRASTRUCTURE READY, NOT YET ACTIVATED**
+**v4.0 Status**: **HISTORICAL/INVALID PARAMETER MAP, NOT ACTIVATED**
 
 **Current state** (v4.0-baseline):
 - Original vertex_transform implementation active at $0234C8
@@ -176,7 +176,7 @@ BF .occluded
 
 **Infrastructure ready for activation**:
 - ✅ `vertex_transform_optimized` at $300100 - Optimized version with coord_transform inlined (96 bytes)
-- ✅ Parameter block design at 0x2203E000 (cache-through SDRAM for coherency)
+- ⚠ Built parameter literal 0x2203E000 is cartridge ROM, not writable SDRAM
 - ✅ `slave_work_wrapper` at $300200 - COMM7 polling loop ready
 - ⏳ **Not yet connected** - Requires trampoline at $0234C8 + Slave PC redirect
 
@@ -185,9 +185,10 @@ BF .occluded
 2. Signal Slave SH2 via COMM7 = 0x16
 3. Return immediately (Master continues, Slave does work in parallel)
 
-**Parameter Block Design** (0x2203E000 = cache-through SDRAM):
+**Historical Parameter Block Design** (`0x2203E000` is an invalid ROM alias; intended
+cache-through SDRAM would be `0x2603E000`):
 
-*Cache-through addressing (0x22XXXXXX) ensures both SH2 CPUs see coherent data without explicit cache flushes.*
+*For SDRAM, cache-through addressing is `0x26XXXXXX`; `0x22XXXXXX` is cartridge ROM.*
 
 | Offset | Register | Purpose |
 |--------|----------|---------|

@@ -4,6 +4,9 @@
 **Status**: Initial investigation
 **Entry Point**: ROM offset 0x288 (SH2 address $06000288)
 
+> **Memory-map correction:** `$020/$220` is cartridge ROM; `$060/$260` is SDRAM.
+> Runtime code at `$06000288` is boot-loaded SDRAM, not a ROM hardware alias.
+
 ---
 
 ## Executive Summary
@@ -91,9 +94,9 @@ python3 tools/sh2_disasm.py <rom_file> 0x288 128
 
 | Purpose | Expected Location | Notes |
 |---------|------------------|--------|
-| Stack pointer (R15) | SDRAM region | Likely $22000000 + offset |
+| Stack pointer (R15) | SDRAM region | `$060/$260` region; verify exact value |
 | COMM0 address | $20004020 (cached) | For 68K communication |
-| SDRAM work area | $22000000+ | Transformation matrices, polygons |
+| SDRAM work area | $06000000+ / $26000000+ | Cached / cache-through views |
 | Main loop | Unknown | Jump target after init |
 
 ---
@@ -105,11 +108,12 @@ python3 tools/sh2_disasm.py <rom_file> 0x288 128
 │ SH2 Master Address Space                                        │
 ├──────────────┬──────────────────────────────────────────────────┤
 │ $00000000    │ Boot ROM (internal, executed first)              │
-│ $06000000    │ ROM (uncached) - Code executes from here         │
+│ $02000000    │ Cartridge ROM (cached)                           │
+│ $22000000    │ Cartridge ROM (cache-through)                    │
+│ $06000000    │ SDRAM (cached; boot-loaded code/data)            │
 │ $06000288    │ ← Master entry point (this file's focus)         │
-│ $20000000    │ ROM (cached) - Faster access for data            │
 │ $20004020    │ COMM0 register (68K communication)               │
-│ $22000000    │ SDRAM (256KB) - Working memory                   │
+│ $26000000    │ SDRAM (256KB, cache-through) - Working memory    │
 │              │   - Stack                                        │
 │              │   - Transformation matrices                      │
 │              │   - Polygon buffers                              │
@@ -253,4 +257,3 @@ python3 tools/sh2_disasm.py <rom_file> 0x288 2048 | grep "20004020"
 
 **Status**: Entry point confirmed. Ready to disassemble and analyze code.
 **Priority**: HIGH - This is the heart of the 3D engine!
-

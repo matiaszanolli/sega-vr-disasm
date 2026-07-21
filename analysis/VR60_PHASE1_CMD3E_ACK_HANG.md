@@ -1,5 +1,10 @@
 # VR60 Phase 1 — cmd $3E ACK Hang Root-Cause Analysis
 
+> **Read §22 first (current status, 2026-07-21).** The §21 claim that AI transfer and cmd
+> `$3F` independently caused the framebuffer freeze is retracted: the saved-state fixture
+> later freezes with the entire 1P hook bypassed. Modes 0/1 remain enabled but lack a valid
+> long-run acceptance run; mode 2 and cmd `$3F` remain disabled and unverified.
+
 **Date:** 2026-07-13
 **Role:** Worker, read-only research. No asm/source/Makefile modified except this document.
 **Scope:** Why does `jsr vr60_entity_transfer` (cmd $3E, DREQ entity transfer) hang the game
@@ -65,8 +70,9 @@ correct.
 ### 2.2 Jump table entry for cmd $3E is correctly wired
 
 Jump table base is SDRAM `$06000780` (`master_command_loop.asm:96`, `SH2_COMMAND_DISPATCH.md:30`).
-Entry index `$3E` (×4 = offset `$F8`) is stored at SDRAM `$06000878` = ROM file offset
-`$020878` (SDRAM mapping rule, CLAUDE.md §9). Confirmed in `code_20200.asm:834-835`:
+Entry index `$3E` (×4 = offset `$F8`) runs from SDRAM `$06000878`; its boot image is at
+ROM file offset `$020878`. This is a load-image relationship, not a hardware SDRAM alias.
+Confirmed in `code_20200.asm:834-835`:
 
 ```
 dc.w $0230 ; $020878  cmd $3E → expansion ROM $023016B0 (VR60 Phase 7: shifted)

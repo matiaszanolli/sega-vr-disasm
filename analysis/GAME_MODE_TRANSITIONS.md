@@ -1,5 +1,10 @@
 # Game Mode Transition Architecture
 
+> **Routing correction (2026-07-21):** Normal 1P racing uses
+> `state_disp_004cb8`; `state_disp_005020` is 2P split-screen. `state_disp_005586`
+> is the Free Run/TT route reached by `--autoplay`. Read older phase labels below as
+> historical unless reconfirmed in `VR60_DISPATCHER_ROUTING.md`.
+
 **Created:** 2026-03-16
 **Purpose:** Document how the game switches between modes (boot, logos, menus, attract, racing, results, replay) and what state variables control each transition. Required for safely extending camera interpolation to non-racing modes.
 
@@ -29,10 +34,10 @@ Within each scene handler, a sub-dispatcher reads `($C87E).w` (game state) and i
 
 | Dispatcher | ROM Range | Race Phase | V-INT State (state 0) |
 |-----------|-----------|-----------|----------------------|
-| `state_disp_004cb8` | $004CB8 | Pre-race countdown | $0010 (minimal) |
-| `state_disp_005020` | $005020 | Active racing | $0014 (VDP sync) |
+| `state_disp_004cb8` | $004CB8 | **Normal 1P racing** | $0010 (minimal) |
+| `state_disp_005020` | $005020 | **2P split-screen racing** | $0014 (VDP sync) |
 | `state_disp_005308` | $005308 | Post-race results | $0010 (minimal) |
-| `state_disp_005586` | $005586 | Attract mode | $0010 (minimal) |
+| `state_disp_005586` | $005586 | Free Run/TT / autoplay route | $0010 (minimal) |
 | `state_disp_005618` | $005618 | Replay | $0010 (minimal) |
 
 ---
@@ -88,8 +93,8 @@ Found by searching all `move.l #$xxxx,$00FF0002` in the codebase:
 |----------------|-----------------|
 | `$00885618` (replay code entry) | `$008909AE` |
 | `$00885308` (results code entry) | `$0088FB98` |
-| `$00885024` (racing code entry) | `$0088FB98` |
-| `$00884CBC` (countdown code entry) | `$0088FB98` |
+| `$00885024` (2P split-screen code entry) | `$0088FB98` |
+| `$00884CBC` (normal 1P code entry) | `$0088FB98` |
 
 **Called by:** 3 of the 5 race dispatchers call `sh2_handler_dispatch_scene_init+98` from their state 0 handler: `004cb8`, `005586`, `005618`. This means these dispatchers can **self-replace** during state 0 execution.
 
@@ -137,7 +142,7 @@ Loading phase (runs once, non-demo only)
     → Calls race_scene_init_vdp_mode ($00C0F0)
       → C8A8 = $0103 → COMM0 $01/$03 (one-time SH2 scene init)
       → Falls through to scene_init_orch → C8A8 = $0102 (OVERWRITES $0103)
-    → Sets $FF0002 = $00884CBC (countdown dispatcher)
+    → Sets $FF0002 = $00884CBC (normal 1P dispatcher)
 
 Display init (runs once)
   → sh2_split_screen_display_init ($0088E5CE)
@@ -185,7 +190,9 @@ Previously thought: C8A8 = $0102 (heavy) vs $0103 (light) caused the crash. **Wr
 Five functions clear C8A8 to $0000. If re-DMA fires after a reset, COMM0_HI=$00 → SH2 never dispatches → no ACK → infinite hang at `.wait_ack`.
 
 **Factor 3 — V-INT state mismatch:**
-Active racing writes $0014 to $FF0008; other modes write $0010. V-INT handler behavior differs, potentially affecting SH2 synchronization during state 4.
+The historical 2P `state_disp_005020` path writes `$0014` to `$FF0008`; normal 1P
+`state_disp_004cb8` and several other modes write `$0010`. V-INT behavior differs, so
+camera/re-DMA hooks cannot be copied between them without revalidation.
 
 ### Solution Requirements
 
@@ -198,13 +205,18 @@ See `SCENE_HANDLER_ARCHITECTURE.md` §8 for full analysis.
 
 ---
 
-## 7. Safe Intervention Points (REVISED 2026-03-16)
+## 7. Historical Interpolation Candidates — Unvalidated
+
+This table records the old 2P-targeted camera experiment. “Safe” here meant only that a
+command value appeared initialized; it did not establish dispatcher coverage, continuing
+liveness, a second render, or current 1P suitability. Do not use it as implementation guidance
+without the canonical gates in `../VR60_STATUS.md`.
 
 | Dispatcher | $C8A8 at Runtime | Safe for Interp? | Notes |
 |-----------|-----------------|-------------------|-------|
-| `state_disp_005020` | $0102 (confirmed) | **YES** (already working) | Full loading path completed |
-| `state_disp_004cb8` | $0102 (same path) | **LIKELY YES** | Same loading → scene_init_orch path |
-| `state_disp_005308` | $0102 (post-race) | **LIKELY YES** | Loading ran before race started |
+| `state_disp_005020` | $0102 (confirmed) | **UNVALIDATED 2P EXPERIMENT** | Built path; no trustworthy 2P acceptance run |
+| `state_disp_004cb8` | $0102 (same path) | **NOT ESTABLISHED** | Normal 1P requires its own dependency/liveness proof |
+| `state_disp_005308` | $0102 (post-race) | **NOT ESTABLISHED** | Loading state alone is insufficient evidence |
 | `state_disp_005586` | $0102 (from boot) | **NEEDS GUARD** | No full loading, SH2 init may be incomplete |
 | `state_disp_005618` | $0102 (from boot) | **NEEDS GUARD** | No full loading, SH2 init may be incomplete |
 

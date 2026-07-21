@@ -48,8 +48,8 @@ This directory contains comprehensive reverse engineering documentation for Virt
 
 **Key Findings**:
 - ROM visible at $000000 and $880000 (32X remapped)
-- SH2 sees ROM at $06000000 (uncached) and $20000000 (cached)
-- SDRAM at $22000000 (256KB) for SH2 working memory
+- SH2 sees cartridge ROM at `$02000000` (cached) / `$22000000` (cache-through)
+- SH2 SDRAM is `$06000000` (cached) / `$26000000` (cache-through), 256KB
 - Communication registers $A15120-$A1512E for CPU synchronization
 
 ---

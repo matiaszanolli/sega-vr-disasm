@@ -98,8 +98,9 @@ adapter_init:
         beq.s   .wait_sh2_ready                 ; $000870: $67FA             - Loop if not ready
         clr.b   COMM6_LOCAL-ADAPTER_BASE(a4)          ; $000872: $422C $002C       - Acknowledge
 
-; Initialize ring buffer pointers + FPS counter state
-        bsr.w   ring_buffer_init                ; Initialize ring buffer in SDRAM
+; Legacy invalid queue init: retained for byte identity. The callee writes the
+; $2203F200 cartridge-ROM alias, so this is an observed no-op, not SDRAM init.
+        bsr.w   ring_buffer_init
 
 ; Initialize cmd27 async queue indices (must be zero before any cmd_27 calls)
         clr.l   $FFFB00                         ; write_idx=0, read_idx=0

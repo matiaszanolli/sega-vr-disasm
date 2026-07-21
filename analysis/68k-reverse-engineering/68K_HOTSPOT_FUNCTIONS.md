@@ -1,5 +1,8 @@
 # 68K Hotspot Functions - Virtua Racing Deluxe
 
+> **2026-07-21 correction:** The historical `$2203E000` parameter-block example is
+> invalid because `$22xxxxxx` is cartridge ROM. It is not current implementation guidance.
+
 **Project**: Virtua Racing Deluxe (USA).32x
 **Date**: 2026-01-06
 

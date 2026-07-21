@@ -1,5 +1,9 @@
 # 68K ↔ SH2 Communication Protocol - Virtua Racing Deluxe
 
+> **2026-07-21 correction:** Historical `$2203E000` parameter-block sections are
+> invalid; `$22xxxxxx` is cartridge ROM and `$26xxxxxx` is cache-through SDRAM.
+> The 68000 cannot write SDRAM directly. See `../../VR60_STATUS.md`.
+
 **Project**: Virtua Racing Deluxe (USA).32x
 **Last Updated**: 2026-01-26
 **Revision History**:

@@ -1,12 +1,14 @@
 /*
- * CMDINT Handler - Master SH2 Command Interrupt Handler
+ * CMDINT Handler - DORMANT/INVALID historical queue design
  * ROM File Offset: Expansion ROM $300800
  * SH2 Address: 0x02300800 (expansion ROM cached)
  *
  * PURPOSE
  * -------
  * Handles CMDINT (command interrupt) from 68K CPU. The 68K triggers this
- * interrupt when it queues commands in the ring buffer at $2203F000.
+ * interrupt after queueing at historical `$2203F000`. That address is
+ * cartridge ROM, and the 68000 cannot write SH2 SDRAM; the design was never
+ * activated and this reserved handler must remain dormant.
  *
  * The handler processes ONE queue entry per interrupt, then returns.
  * If the queue is still non-empty after RTE, another CMDINT fires immediately.

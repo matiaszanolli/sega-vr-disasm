@@ -1,5 +1,12 @@
 # Scene Handler Architecture
 
+> **Routing correction (2026-07-21):** `state_disp_004cb8` is the normal 1P racing
+> dispatcher, not merely countdown; it remains installed while its state-8
+> `game_frame_orch_013` path recurs at about 20 Hz. `state_disp_005020` is the 2P
+> split-screen dispatcher. Any older “active racing” label or A-1/VR60 conclusion tied to
+> 005020 applies to that 2P-targeted path, not normal 1P. See
+> `VR60_DISPATCHER_ROUTING.md` and `../VR60_STATUS.md`.
+
 **Created:** 2026-03-16
 **Purpose:** Complete reference for the 68K scene handler system — the two-level dispatch, handler lifecycle, $C8A8 command staging, and the transition chain from boot through active racing. Prerequisite for Phase B camera interpolation extension.
 
@@ -58,15 +65,16 @@ Each uses `$C87E` to index a jump table. All share the same final state [10] = `
 
 | Dispatcher | ROM | Phase | V-INT (state 0) | State 0 calls | Handler replacement? |
 |-----------|-----|-------|-----------------|---------------|---------------------|
-| `state_disp_004cb8` | $004CB8 | Pre-race countdown | $0010 | `mars_dma_xfer_vdp_fill` + `sh2_handler_dispatch+98` | Yes (entry 3: track init) |
-| `state_disp_005020` | $005020 | **Active racing** | $0014 | `camera_snapshot_wrapper` (was mars_dma_xfer_vdp_fill) | No |
+| `state_disp_004cb8` | $004CB8 | **Normal 1P racing** | $0010 | `mars_dma_xfer_vdp_fill` + `sh2_handler_dispatch+98`; state 8 reaches `game_frame_orch_013` | Yes (entry 3: track init) |
+| `state_disp_005020` | $005020 | **2P split-screen racing** | $0014 | `camera_snapshot_wrapper` (historical A-1/VR60 hook) | No |
 | `state_disp_005308` | $005308 | Post-race results | $0010 | `mars_dma_xfer_vdp_fill` | No |
-| `state_disp_005586` | $005586 | Attract mode | $0010 | `mars_dma_xfer_vdp_fill` + `sh2_handler_dispatch+98` | Yes (entry 3: track init) |
+| `state_disp_005586` | $005586 | Free Run/TT / autoplay route | $0010 | `mars_dma_xfer_vdp_fill` + `sh2_handler_dispatch+98` | Yes (entry 3: track init) |
 | `state_disp_005618` | $005618 | Replay | $0010 | `mars_dma_xfer_vdp_fill` + `sh2_handler_dispatch+98` | Yes (entry 3: track init) |
 
 **Note:** `sh2_handler_dispatch_scene_init+98` resolves to `$0058C8` (entry 3: track init + control check), NOT entry 1 (handler replacement). The +98 decimal offset points past the handler replacement code and tables.
 
-**Key difference:** Only `state_disp_005020` (active racing) calls `camera_snapshot_wrapper` instead of `mars_dma_xfer_vdp_fill`. This is the Phase A-1 camera interpolation hook.
+**Key difference:** Only the 2P `state_disp_005020` path calls
+`camera_snapshot_wrapper`. This is the historical Phase A-1 hook, not a normal-1P hook.
 
 ---
 
@@ -92,17 +100,16 @@ Loading phase (runs once, non-demo only)
        ├─ Calls race_scene_init_vdp_mode ($00C0F0)
        │    ├─ C8A8 = $0103 → COMM0 $01/$03 (one-time SH2 scene init)
        │    └─ Falls through to scene_init_orch → C8A8 = $0102 (overwrites!)
-       └─ $FF0002 = $00884CBC (countdown dispatcher code entry)
+       └─ $FF0002 = $00884CBC (normal 1P dispatcher code entry)
 
-Countdown phase (per-frame loop)
-  └─ state_disp_004cb8 dispatches by $C87E [0]→[4]→[8]→[C]→[10]
+Normal 1P racing (per-frame loop)
+  └─ state_disp_004cb8 remains installed and dispatches by $C87E
        └─ State 0: mars_dma_xfer_vdp_fill (sends cmd $02 via C8A8=$0102)
-       └─ State [10] → $0088573C (phase transition handler)
+       └─ State 8: game_frame_orch_013 (current 1P staging hook, ~20 Hz)
 
-Active racing (per-frame loop)
-  └─ state_disp_005020 dispatches by $C87E [0]→[4]→[8]→[C]→[10]
-       └─ State 0: camera_snapshot_wrapper (Phase A-1 hook)
-       └─ V-INT state $0014
+2P split-screen racing (separate route)
+  └─ race_scene_init_004d98 installs state_disp_005020
+       └─ Contains the historical camera/VR60 integration
 
 Post-race
   └─ state_disp_005308 (results)
@@ -199,8 +206,8 @@ Detects the current `$FF0002` value against a 4-entry match table and replaces i
 |--------------------------|-------------|---------|
 | $00885618 (replay) | $008909AE (name_entry_screen_init) | Replay → name entry |
 | $00885308 (results) | $0088FB98 (time_trial_records_display_init) | Results → time trial records |
-| $00885024 (racing) | $0088FB98 | Racing → time trial records |
-| $00884CBC (countdown) | $0088FB98 | Countdown → time trial records |
+| $00885024 (2P split-screen) | $0088FB98 | 2P racing → time trial records |
+| $00884CBC (normal 1P) | $0088FB98 | 1P racing → time trial records |
 
 After replacement, writes `$0020` to `$FF0008` and JMPs to `mars_comm_write`.
 
@@ -238,8 +245,8 @@ Buffers at `$06038000` and `$0603B600` are **OUTSIDE** the cmd $03 clear range (
 
 | Mode | Cmd $03 (buffer clear) | Render cmd | Buffers initialized? |
 |------|----------------------|------------|---------------------|
-| Active racing | ✅ Ran during loading | Cmd $02 → Master → Slave | ✅ Yes |
-| Countdown | ✅ Same loading path | Cmd $02 | ✅ Yes |
+| Normal 1P racing (`004cb8`) | ✅ Ran during loading | Cmd $02 → Master → Slave | ✅ Yes |
+| 2P split-screen (`005020`) | ✅ 2P loading path | Cmd $02 | ✅ Yes |
 | Results | ✅ Post-race, loading ran | Cmd $02 | ✅ Yes |
 | Attract | ⚠️ Display init sends COMM $01/$03 | Cmd $02 | Partial — no full loading |
 | Replay | ⚠️ Display init sends COMM $01/$03 | Cmd $02 | Partial — no full loading |
@@ -279,11 +286,17 @@ Five functions clear C8A8 to $0000 during state transitions. If a re-DMA fires a
 
 **Factor 3 — V-INT state mismatch:**
 
-Active racing writes `$0014` to `$FF0008`, while other modes write `$0010`. The V-INT handler's behavior differs between these states, potentially affecting SH2 synchronization or frame buffer swap timing. A re-DMA injected into a mode expecting `$0010` may interact badly with the `$0014` V-INT path.
+The historical 2P `state_disp_005020` path writes `$0014` to `$FF0008`, while normal
+1P `state_disp_004cb8` and several other modes write `$0010`. The V-INT behavior differs,
+so a re-DMA cannot be transplanted between dispatchers without revalidating synchronization.
 
-### Safe Extension Strategy
+### Historical Extension Hypothesis — Not Current Guidance
 
-To extend camera interpolation to other dispatchers:
+The steps below addressed the old camera re-DMA crash theory. They were not validated as a
+working interpolation path and do not supersede the current fixture, staged-command,
+equivalence, descriptor-bridge, and authority gates in `../VR60_STATUS.md`.
+
+If this historical hypothesis is revisited:
 
 1. **Guard C8A8:** Before calling `mars_dma_xfer_vdp_fill` in state 4, verify `C8A8 != $0000`. If zero, skip the re-DMA.
 2. **Wait for SH2 idle:** Before writing COMM0, poll `COMM0_HI == 0` to ensure the Master SH2 has finished the prior command.
@@ -307,10 +320,10 @@ To extend camera interpolation to other dispatchers:
 | 2P P2 loading handler | $00884D98 | `scene_setup:130,152` | Loading |
 | Palette scene dispatch | $0088E90C | `sh2_split_screen_display_init:180` | Transition |
 | 3-panel dispatch | $0088F41C | `sh2_three_panel_display_init:173` | Transition |
-| Countdown dispatcher | $00884CBC | `race_scene_init_004a32:141` | Racing |
-| Active racing dispatcher | $00885024 | Various | Racing |
+| Normal 1P racing dispatcher | $00884CBC | `race_scene_init_004a32:141` | Racing |
+| 2P split-screen dispatcher | $00885024 | `race_scene_init_004d98:149` | Racing |
 | Results dispatcher | $00885308 | Game state machine | Racing |
-| Attract dispatcher | $00885586 | Game state machine | Racing |
+| Free Run/TT dispatcher | $00885586 | Game state machine / autoplay route | Racing |
 | Replay dispatcher | $00885618 | `set_state_pre_dispatch:21` | Racing |
 | Time trial records | $0088FB98 | Handler replacement, resets | Post-Race |
 | Name entry screen | $008909AE | Handler replacement, resets | Post-Race |
@@ -366,8 +379,8 @@ Three race scene init modules directly set `$FF0002` to race sub-dispatcher code
 
 | Init Module | ROM | Sets $FF0002 | Dispatcher | Mode |
 |------------|-----|-------------|-----------|------|
-| `race_scene_init_004a32.asm:141` | $004A3E | $00884CBC | state_disp_004cb8 | 1P countdown |
-| `race_scene_init_004d98.asm:149` | $004D98 | $00885024 | state_disp_005020 | 2P active racing |
+| `race_scene_init_004a32.asm:141` | $004A3E | $00884CBC | state_disp_004cb8 | Normal 1P racing |
+| `race_scene_init_004d98.asm:149` | $004D98 | $00885024 | state_disp_005020 | 2P split-screen racing |
 | `race_scene_init_005100.asm:118` | $005100 | $00885308 | state_disp_005308 | Grand Prix results |
 
 **This closes the gap from §4:** The transition from palette_scene_dispatch to race sub-dispatchers happens because the race scene init modules set `$FF0002` directly, bypassing palette_scene_dispatch for the racing phase. The loading handler runs BEFORE the display init, so by the time the main loop calls `$FF0002`, it's already pointing at the race sub-dispatcher.

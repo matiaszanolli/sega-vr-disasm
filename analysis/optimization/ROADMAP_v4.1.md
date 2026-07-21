@@ -1,8 +1,11 @@
 # Roadmap v4.1: Parallel Processing Activation & Validation
 
 **Created:** 2026-01-26
-**Status:** Active Development Plan
+**Status:** Historical/superseded plan — use `../../VR60_STATUS.md`
 **Goal:** Activate v4.0 parallel processing infrastructure and validate performance gains
+
+> **Memory-map correction:** `$2203E000/$2203E020` are cartridge-ROM aliases, not
+> SDRAM parameter blocks. This plan's shared-memory premise is invalid; SDRAM is `$060/$260`.
 
 ---
 

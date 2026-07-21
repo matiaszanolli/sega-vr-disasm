@@ -48,13 +48,13 @@ From our interrupt analysis, we know:
 
 ### Step 1: Allocate Counter Variables in RAM
 
-**Location:** Use SDRAM (0x22000000-0x2203FFFF range, cache-through)
+**Location:** Use SH2 SDRAM (`0x26000000-0x2603FFFF` cache-through range)
 
 ```asm
 ; Frame counter variables (in SDRAM)
-frame_counter:      .long   0    ; 0x22000100 - counts every frame
-last_second_frame:  .long   0    ; 0x22000104 - frame count 1 second ago
-current_fps:        .long   0    ; 0x22000108 - calculated FPS
+frame_counter:      .long   0    ; 0x26000100 - counts every frame
+last_second_frame:  .long   0    ; 0x26000104 - frame count 1 second ago
+current_fps:        .long   0    ; 0x26000108 - calculated FPS
 ```
 
 ### Step 2: Increment Counter on VBlank

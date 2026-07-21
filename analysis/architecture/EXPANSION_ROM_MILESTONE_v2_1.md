@@ -1,5 +1,9 @@
 # Expansion ROM Implementation Milestone - v2.1
 
+> **HISTORICAL CORRECTION:** Expansion-ROM build/reachability remains valid, but the
+> `$22000100` diagnostic is cartridge ROM and never provided writable SDRAM evidence.
+> The associated “locked” ABI is revoked.
+
 **Date:** 2026-01-21
 **Status:** ✅ **COMPLETE** - Expansion ROM validated with V-INT hook injection
 **Build:** `build/vr_rebuild.32x` (4.0 MB with 1MB SH2 expansion space)
@@ -72,11 +76,10 @@ Expansion ROM Frame Counter ($300018)
 **Protocol (Edge-Triggered, Hardware-Safe):**
 - **COMM6** = Signal from Master (68K writes 0x0012, Slave reads and **clears to 0x0000**)
 - **COMM4** = Counter from Slave (Slave increments, Master reads)
-- **SDRAM 0x22000100** = Canonical counter (SDRAM mirror for diagnostics)
+- **Historical 0x22000100 literal** = invalid cartridge-ROM alias; not a canonical writable counter
 - ✅ Slave clears COMM6 after servicing (edge-triggered, not level-triggered)
 - ✅ No simultaneous writes to same register = no undefined behavior
 - ✅ Deterministic protocol (0000→0012 is the signal edge)
-```
 
 ---
 
@@ -390,14 +393,14 @@ Per hardware manual Section 1.13 (Boot ROM):
    - **Hardware compliance:** ✅ Meets hardware manual specifications
    - **Protocol:** ✅ Edge-triggered (Slave clears COMM6 after servicing)
    - **Robustness:** ✅ No undefined behavior from simultaneous writes
-   - **Diagnostic:** ✅ SDRAM 0x22000100 provides canonical counter visibility
+   - **Diagnostic correction:** `$22000100` is an invalid ROM alias; COMM4 was the only plausible visible counter
 
 ---
 
 ## Documentation References
 
 - **Hardware Compliance (VERIFIED):** [HARDWARE_COMPLIANCE_VERIFICATION.md](HARDWARE_COMPLIANCE_VERIFICATION.md) — Point-by-point verification against Sega 32X Hardware Manual
-- **Protocol ABI (LOCKED):** [EXPANSION_ROM_PROTOCOL_ABI.md](EXPANSION_ROM_PROTOCOL_ABI.md) — Master/Slave comm spec, ack semantics, diagnostic SDRAM layout
+- **Protocol ABI (REVOKED/HISTORICAL):** [EXPANSION_ROM_PROTOCOL_ABI.md](EXPANSION_ROM_PROTOCOL_ABI.md) — invalid SDRAM diagnostic retained as history
 - **Phase 11 Roadmap:** [PHASE11_SLAVE_HOOK_ROADMAP.md](PHASE11_SLAVE_HOOK_ROADMAP.md) — Mechanical implementation plan for Slave hook
 - **Architecture:** [ROM_EXPANSION_4MB_IMPLEMENTATION.md](analysis/architecture/ROM_EXPANSION_4MB_IMPLEMENTATION.md)
 - **Testing Plan:** [NEXT_STEPS.md](NEXT_STEPS.md)

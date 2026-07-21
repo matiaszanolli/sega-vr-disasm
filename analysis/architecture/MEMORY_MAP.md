@@ -2,7 +2,10 @@
 
 **Last Updated**: 2026-02-05
 **Purpose**: Comprehensive documentation of all memory regions, registers, and address spaces
-**Status**: TRUE PARALLEL PROCESSING OPERATIONAL - Expansion ROM active
+**Status**: Historical reference; expansion ROM builds, but parallel path is inactive/unvalidated
+
+> **2026-07-21 correction:** `$020/$220` is cartridge ROM; SDRAM is `$060/$260`.
+> The old `$2203E000` parameter block and “parallel operational” conclusion are invalid.
 
 ---
 
@@ -236,7 +239,7 @@ Used for sound driver and Z80 program.
 1. Master writes command to COMM7 (0x16 for vertex transform)
 2. Slave polls COMM7, picks up work when non-zero
 3. Slave increments COMM5 by 101 per vertex batch processed
-4. Parameters passed via shared memory at $2203E000
+4. Historical design attempted parameter passing at invalid ROM alias `$2203E000`
 
 ---
 
@@ -280,7 +283,7 @@ Standard Sega Genesis VDP registers, plus 32X enhancements.
 │ $20004020    │ 16B      │   → COMM0-COMM7 registers             │
 │              │          │                                       │
 │ $22000000    │ 4MB      │ ROM Cartridge (cache-through)          │
-│ $2203E000    │ 16B      │   → **Parameter block** (R14,R7,R8,R5)|
+│ $2203E000    │ 16B      │   → **Invalid historical ROM alias**  |
 │              │          │   (project uses this addr; hw manual  │
 │              │          │    says SDRAM c/t is $2600xxxx)        │
 │              │          │                                       │
@@ -327,16 +330,17 @@ Standard Sega Genesis VDP registers, plus 32X enhancements.
 - Used for polygon data structures
 - Used for SH2 stack
 
-#### Known SDRAM Locations
+#### Retracted Historical Parameter Locations
 
 | Address | Size | Purpose |
 |---------|------|---------|
-| $2203E000 | 4B | Parameter: R14 (base pointer) |
-| $2203E004 | 4B | Parameter: R7 |
-| $2203E008 | 4B | Parameter: R8 |
-| $2203E00C | 4B | Parameter: R5 |
+| $2203E000 | 4B | Invalid ROM alias historically labeled R14 |
+| $2203E004 | 4B | Invalid ROM alias historically labeled R7 |
+| $2203E008 | 4B | Invalid ROM alias historically labeled R8 |
+| $2203E00C | 4B | Invalid ROM alias historically labeled R5 |
 
-**Parameter Block**: Used by vertex_transform trampoline to pass vertex transform parameters from Master to Slave SH2.
+**Correction:** no writable parameter block exists at these addresses. A future design would
+need collision-checked `$260xxxxx` SDRAM and fresh producer/consumer validation.
 
 ---
 
@@ -370,7 +374,7 @@ Vector#  Address   Purpose                    Handler
 ### Known Flags and Variables
 - **$FFC87A**: V-INT execution flag (checked in V-INT handler)
 - **$A15128**: Written during init (unknown purpose)
-- **$2203E000**: Parameter block for vertex transform (R14, R7, R8, R5)
+- **$2203E000**: Invalid historical parameter-block literal (cartridge ROM)
 
 ### SH2 Key Addresses (Discovered)
 
@@ -388,10 +392,10 @@ Vector#  Address   Purpose                    Handler
 
 - ✅ Located SH2 Master entry point in ROM
 - ✅ Located SH2 Slave entry point in ROM
-- ✅ Mapped SDRAM parameter block at $2203E000
+- ⚠ Historical `$2203E000` mapping disproven (cartridge-ROM alias)
 - ✅ Documented COMM register protocol
 - ✅ Implemented expansion ROM (1MB at $300000)
-- ✅ TRUE PARALLEL PROCESSING operational
+- ⚠ Parallel-processing path remains inactive and behaviorally unvalidated
 
 ## Next Steps
 
@@ -401,4 +405,4 @@ Vector#  Address   Purpose                    Handler
 
 ---
 
-**Status**: TRUE PARALLEL PROCESSING OPERATIONAL - Both SH2 CPUs executing in parallel
+**Status**: Historical conclusion retracted; no validated parallel execution result

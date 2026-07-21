@@ -222,7 +222,9 @@ Game commands (COMM0/COMM1):     Expansion signals (COMM7):
 2. Has prepared the data the signal consumer expects
 3. Has verified the consumer (queue, parameter block, etc.) is initialized
 
-Currently, only `shadow_path_wrapper` meets these criteria (writes COMM7 = 0x16 after preparing the parameter block at $2203E000).
+The historical `shadow_path_wrapper` does **not** meet these criteria: its `$2203E000`
+parameter literal is cartridge ROM, not writable SDRAM. No current expansion signal path
+should be treated as validated solely from that wrapper.
 
 **Future queue drain (B-003):** When the async queue is implemented, a dedicated 68K-side shim will write COMM7 = 0x27 only after enqueuing valid entries to the ring buffer. The Master dispatch hook is NOT the right place for this signal.
 

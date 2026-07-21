@@ -243,32 +243,41 @@ A boot-time probe at [bank_probe.asm](disasm/modules/68k/optimization/bank_probe
 
 ### SH2 Cannot Access 68K Work RAM — At ANY Address
 The SH2 memory map (hardware manual §4.2) shows:
-- `$0200 0000h` — SDRAM (256KB, ends at `$0203 FFFF`)
-- `$0240 0000h` — **"-" (NOTHING)** — unmapped space
+- `$0200 0000h-$023F FFFFh` — cartridge ROM
+- `$0240 0000h-$03FF FFFFh` — **"-" (NOTHING)** — unmapped space
 - `$0400 0000h` — Frame Buffer DRAM
+- `$0600 0000h-$0603 FFFFh` — SDRAM
 
-68K Work RAM lives at 68K address `$FF0000-$FFFFFF`. There is **NO SH2 address** that maps to this region. Both `$02FFFB00` and `$22FFFB00` fall in the unmapped gap between SDRAM and Frame Buffer.
+68K Work RAM lives at 68K address `$FF0000-$FFFFFF`. There is **NO SH2 address** that maps to this region. Both `$02FFFB00` and `$22FFFB00` fall in the unmapped gap between cartridge ROM and Frame Buffer.
 
 **Failed approaches (B-003 v1-v3):**
 - `$22FFFB00` (cache-through) — unmapped, reads as garbage
 - `$02FFFB00` (cached) — same unmapped region, same result
 - `$06FFFB00` (SDRAM mirror on PicoDrive) — not documented, not portable
 
-**Correct approach:** Use COMM registers ($20004020-$2000402E) for parameter passing between 68K and SH2. These 8 words are the ONLY always-accessible shared writable memory between the two CPUs.
+**Correct approach:** Use COMM registers ($20004020-$2000402E) for small 68K↔SH2
+parameters and the DREQ FIFO for bulk 68K→SH2 transfer. SDRAM is not 68000-accessible.
 
-**Rule:** NEVER use 68K Work RAM addresses in SH2 code. The only shared memory options are:
+**Rule:** NEVER use 68K Work RAM addresses in SH2 code. The cross-CPU mechanisms are:
 1. **COMM registers** (16 bytes, always accessible)
-2. **SDRAM** ($0200 0000 - $0203 FFFF, both CPUs can access)
-3. **Frame Buffer** ($0400 0000 / $2400 0000, access controlled by FM bit)
+2. **DREQ FIFO** (bulk 68000→SH2 transfer, with SH2-controlled DMAC destination)
+3. **Frame Buffer** (shared only under explicit FM/access coordination)
+
+Master and Slave SH2 can also share SDRAM at `$06000000-$0603FFFF` (cached) or
+`$26000000-$2603FFFF` (cache-through); the 68000 cannot access that SDRAM directly.
 
 ### Cache-Through Addressing for Shared Memory
-Use `0x22XXXXXX` (cache-through), not `0x0XXXXXXX` (cached) for:
+Use the `0x2XXXXXXX` alias of the correct native SH2 region when cache-through access is
+needed. The region bits still matter: ROM `$02xxxxxx` maps to `$22xxxxxx`, while SDRAM
+`$06xxxxxx` maps to `$26xxxxxx`. Use cache-through access for:
 - System registers (COMM, control registers)
 - VDP registers
 - Any memory modified by another CPU or DMA
 - Shared memory between Master/Slave SH2
 
-Otherwise: stale cached values → subtle data corruption. Parameter block at $2203E000 already uses cache-through (correct).
+Otherwise: stale cached values can cause subtle corruption. The historical parameter block
+at `$2203E000` is **wrong**: it is the ROM alias, not SDRAM. A writable SDRAM block at that
+offset would be `$2603E000`.
 
 ### SH2 Interrupt Hardware Bug
 Original SH2 silicon has a documented bug (see [32x-hardware-manual-supplement-2.md](docs/32x-hardware-manual-supplement-2.md)):
@@ -411,7 +420,7 @@ Both produce the same result: handler returns to the dispatch loop. The differen
 
 **Design:**
 1. **68K sender** (`sh2_cmd_27` at $E3B4): Waits COMM7==0, writes params to COMM2-6, writes COMM7=$0027 (doorbell), waits COMM7==0 (ack)
-2. **Slave inline drain** (SDRAM at $020608, 88 bytes): Checks COMM7, reads COMM2-6, clears COMM7, processes pixels with cache-through writes, loops back to check for more
+2. **Slave inline drain** (runtime SDRAM `$06000608`; ROM image offset `$020608`, 88 bytes): Checks COMM7, reads COMM2-6, clears COMM7, processes pixels with cache-through writes, loops back to check for more
 3. No Master SH2 involvement, no Work RAM queue, no expansion ROM execution
 
 **Key implementation details:**
@@ -419,7 +428,7 @@ Both produce the same result: handler returns to the dispatch loop. The differen
 - **In-place 68K replacement:** 82-byte function body replaced with 50B COMM writes + 32B NOP padding. No section space needed, no register clobber (no MOVEM needed).
 - **Two short waits:** WAIT#1 for previous entry (Slave processing time), WAIT#2 for Slave ack (~17 SH2 cycles to read params + clear COMM7). Much faster than original Master SH2 dispatch.
 - **Cache-through conversion on SH2 side:** Slave converts data_ptr from $04xxxxxx → $24xxxxxx (OR with $20000000) to bypass SH2 data cache. Without this, pixel writes stay in cache and never reach DRAM.
-- **Inline SDRAM execution:** All Slave drain code runs from SDRAM at $020608 (128-byte slot replacing original delay loop). PicoDrive cannot execute Slave code from expansion ROM ($02300000+).
+- **Inline SDRAM execution:** All Slave drain code runs from runtime SDRAM `$06000608` (ROM image offset `$020608`, 128-byte slot replacing the original delay loop). PicoDrive cannot execute Slave code from expansion ROM ($02300000+).
 - **COMM conflict safety:** WAIT#2 ensures Slave has read all params before RTS. No other command can overwrite COMM2-6 while Slave is still reading them.
 - **Re-entrancy:** After processing, Slave BRAs back to COMM7 check — picks up next entry immediately if 68K wrote one during processing.
 
@@ -525,8 +534,12 @@ These are raw absolute addresses. Making them label-based (`dc.l label+$00880000
 ### vasm `dcb.b (label_expr),val` Does Not Work
 When using `dcb.b (object_table_sprite_param_update+216-*),$FF` to compute padding dynamically, vasm evaluates `*` as the address BEFORE the code between the label and the `dcb.b`, producing incorrect padding. **Always use hardcoded byte counts** for `dcb.b` padding after trampoline code.
 
-### State Dispatcher Coverage Gap
-Only `state_disp_005020` (active racing) is hooked for camera snapshot in state 0. The other 4 race dispatchers (`004cb8` pre-race, `005308` post-race, `005586` attract, `005618` replay) call `mars_dma_xfer_vdp_fill` directly without snapshots. Similarly, only `frame_update_orch_005070` (state 4 of `005020`) is hooked for the interpolation epilogue. Non-racing modes and other race phases still run at 20 FPS.
+### State Dispatcher Routing Correction
+`state_disp_005020` is the **2-player split-screen** dispatcher, not generic active
+racing. Normal 1P uses `state_disp_004cb8`. The camera snapshot and
+`frame_update_orch_005070` interpolation hooks therefore describe a historical 2P-targeted
+experiment and are not evidence of a current 1P 40 FPS result. See
+`analysis/VR60_DISPATCHER_ROUTING.md` and `VR60_STATUS.md`.
 
 ### FS Swap Must Happen During VBlank (CRITICAL — Discovered March 2026)
 Per the corrected 32X Hardware Manual (page 35): **"Swapping the Frame Buffer is allowed during V Blank (VBLK = 1) or when in Blank mode. However, writing the FS bit is always allowed, and when written during display, swapping is done at the next VBlank."**
@@ -537,7 +550,9 @@ This means writing FS outside VBlank is DEFERRED to the next VBlank. Our inline 
 
 ### ~~Re-DMA Does NOT Trigger SH2 Re-Render~~ — MISDIAGNOSIS (March 16, 2026)
 
-**STATUS: RESOLVED.** Re-DMA DOES trigger SH2 re-render. The working 40 FPS code (A-1, commit b6bd487) calls `mars_dma_xfer_vdp_fill` **twice** per game frame — state 0 (`camera_snapshot_wrapper`) and state 4 (`camera_avg_and_redma`). Both calls trigger SH2 renders via cmd $02 (scene orchestrator).
+**Historical status:** Re-DMA does trigger the relevant SH2 command in the 2P-targeted A-1
+path. This does not establish a current normal-1P 40 FPS result; the routing correction and
+later validation failures supersede that broader claim.
 
 The original "zero visual effect" observation came from 3 known bugs in the WIP `camera_interpolation_60fps.asm`: (1) BSR.W displacement error, (2) block-copy from wrong source `$06030000`, (3) state 0 additions that broke the 40 FPS path.
 
@@ -546,7 +561,22 @@ The original "zero visual effect" observation came from 3 known bugs in the WIP 
 - **Cmd $03** → handler `$06000CC4` is a **one-time** buffer clear sent during scene init only (race_scene_init_vdp_mode sets $0103, consumed by COMM0 write, then overwritten to $0102 by scene_init_orch fall-through).
 - Jump table at `$06000780`: index = COMM0_LO, SHLL2'd
 
-**Rule:** When debugging "X doesn't work," check whether the observation came from buggy test code. The 40 FPS A-1 code is the authoritative proof that re-DMA + re-render works.
+**Rule:** When debugging "X doesn't work," check whether the observation came from buggy test
+code and verify the exact scene/dispatcher. The A-1 result is historical evidence for its
+hooked path, not the authoritative current 1P baseline.
+
+### `savestate_1p_gp_racing.bin` Is Not a Long-Run Baseline (July 2026)
+
+The saved state reaches scene `$4CBC` and is useful for short caller/routing traces, but later
+stops advancing `$C87E` even when the complete VR60 1P hook is physically bypassed. Therefore:
+
+- the former ~724 unique framebuffer-hash control is retracted;
+- AI transfer mode 2 and cmd `$3F` are not proven to cause the later freeze;
+- framebuffer uniqueness alone cannot establish liveness or causality;
+- a fresh fixture must first pass scene, `$C87E`, caller-trace, and framebuffer-liveness checks
+  with the hook bypassed.
+
+See `analysis/VR60_PHASE1_CMD3E_ACK_HANG.md` §22 and `VR60_STATUS.md`.
 
 ### A-2 WIP Module Bugs (camera_interpolation_60fps.asm)
 The untracked WIP module for 60 FPS rendering has 3 known bugs. DO NOT include it in the build until fixed:
@@ -597,7 +627,7 @@ ROM $300000-$3FFFFF (~1MB, 99.9% free) is accessible to the 68K via banking or p
 | COMM7 broadcast of game commands via dispatch hook | Game cmd bytes (0x01, 0x27) collide with expansion signal values → Slave processes uninitialized queue → crash. See §COMM7 Signal Namespace Collision above. |
 | Placing Patch #2 literal at $020480 | Shared by D011@$020438 (init code). Silently redirects init JSR to hook address. Always scan for $Dnxx refs before overwriting. |
 | Fully async general commands ($22/$25/$2F/$21) | Buffer aliasing: 68K overwrites shared data buffers before Slave replays COMM protocol. Menu graphics corrupt, race timer runs at wrong speed. COMM replay mechanism confirmed working (race 3D scene rendered). Infrastructure kept dormant at $301000. Needs per-call-site data dependency analysis before selective async activation. |
-| Work RAM ring buffer for SH2 queue ($FFFB00) | SH2 CANNOT access 68K Work RAM at ANY address. $02FFFB00 and $22FFFB00 are both in unmapped space (past SDRAM at $0203FFFF, before Frame Buffer at $04000000). Three attempts failed before reading the hardware manual. **Use COMM registers or SDRAM for 68K↔SH2 shared data.** |
+| Work RAM ring buffer for SH2 queue ($FFFB00) | SH2 CANNOT access 68K Work RAM at ANY address. `$02FFFB00` and `$22FFFB00` are both in unmapped space (past cartridge ROM at `$023FFFFF`, before Frame Buffer at `$04000000`). Three attempts failed before reading the hardware manual. **Use COMM/DREQ for 68000↔SH2 transfer; SDRAM is SH2-only.** |
 | Synchronous COMM offload of `angle_normalize` BSP | COMM handshake overhead (polling COMM0_HI) vastly exceeds the computation saved. The 316-byte pure-math function costs ~1,500 68K cycles/frame natively but the COMM stub added **23% of total 68K time** (69M cycles) spinning in `.wait_idle` — waiting for the Master SH2 to finish *prior* COMM commands (sh2_send_cmd copies). The BSP math itself completed fast on SH2 (0.7% in `.wait_done`). **Rule: synchronous COMM offload only works when computation time >> handshake overhead. Small, frequently-called functions (8×/frame) are anti-candidates.** SH2 handler + jump table kept dormant at $02301178 (cmd $30). Revert: 68K runs BSP natively. |
 | S-1a/S-1c entity visibility culling (full pipeline) | Entity descriptors at $0600C344 proven unused during racing (S-1d, 4 independent profiling tests). LOD distance checks + bitmask builder + COMM cmd $07 + SH2 handler all reverted. Jump table entry $07 restored to original $06000490. |
 | `render_state_patcher` ($302B00) writing $0600CA00 to drive 60 FPS rendering | The 3D engine reads geometry **context-relative (R14)** from $06003xxx/$06004xxx; $0600CA00/$0600CCA0 appear **nowhere** in the Slave render disassembly. The patcher writes SDRAM the renderer never reads → **measured 0% change in Slave render load** (VRD profiler, 2026-06-17). Its address map came from stale analysis docs (address-shopping). **Verify a consumer actually reads an address before building on it.** |

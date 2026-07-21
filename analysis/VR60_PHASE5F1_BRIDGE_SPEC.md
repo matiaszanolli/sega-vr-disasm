@@ -1,5 +1,10 @@
 # VR60 Phase 5F-1a — SH2→Render Bridge Decode Spec (the port prerequisite)
 
+> **SUPERSEDED — DO NOT IMPLEMENT THIS C218 SPEC.** The per-frame cmd `$02` racing renderer
+> does not consume C218; it reads C128/C178/C254. See
+> `VR60_PHASE5F1B_PROBE_DIAGNOSIS.md`. The corrected C254 probe is assembled but dormant,
+> and current normal 1P does not trigger cmd `$3F`.
+
 **Created:** 2026-06-18
 **Author:** Worker (READ-ONLY research role — NO code written, no asm/Makefile modified)
 **Status:** RESOLVED. Decode prerequisite for 5F-1b (porting `object_table_sprite_param_update` to SH2 + DREQ gating).

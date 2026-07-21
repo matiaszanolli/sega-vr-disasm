@@ -11,7 +11,7 @@
  * This required ~350 cycles per call due to two COMM6 polling loops.
  *
  * The single-shot protocol writes both pointers at once:
- *   COMM3:4 = A0 (source, with $02000000 SDRAM prefix from 68K)
+ *   COMM3:4 = A0 (source, with $02000000 cartridge-ROM prefix from 68K)
  *   COMM5:6 = A1 (dest, full SH2 address e.g. $0601xxxx)
  *   COMM0_LO = $25 (dispatch index), COMM0_HI = $01 (trigger, written LAST)
  *
@@ -26,7 +26,7 @@
  *   COMM1    (offsets 2,3): UNTOUCHED
  *   COMM2_HI (offset 4):  $00 — NEVER WRITTEN (Slave's work-cmd poll byte)
  *   COMM2_LO (offset 5):  unused
- *   COMM3_HI (offset 6):  A0[31:24] = $02 (SDRAM prefix, added by 68K)
+ *   COMM3_HI (offset 6):  A0[31:24] = $02 (cartridge-ROM prefix, added by 68K)
  *   COMM3_LO (offset 7):  A0[23:16]
  *   COMM4_HI (offset 8):  A0[15:8]
  *   COMM4_LO (offset 9):  A0[7:0]
@@ -61,7 +61,8 @@
  *   (A1 is already a full SH2 address like $0601xxxx; no prefix needed)
  *
  * After param read + COMM0_LO clear, calls the existing decompressor
- * subroutine at $06005058 (SDRAM) with R9=source, R10=dest.
+ * subroutine at $06005058 (runtime SDRAM) with R9=cartridge-ROM source and
+ * R10=SDRAM destination.
  * The decompressor saves/restores all registers internally.
  *
  * Completion: calls func_084 ($060043F0) which clears COMM0_HI to $00
@@ -108,7 +109,7 @@ cmd25_single_shot:
     /* offset 22 */ shll16  r9                  /* R9 = A0[23:16] << 16 */
     /* offset 24 */ or      r4,r9               /* R9 = A0[23:0] */
     /* offset 26 */ mov.l   @(.src_prefix,pc),r7 /* R7=$02000000 [disp=6] */
-    /* offset 28 */ or      r7,r9               /* R9 = $02xxxxxx (SDRAM cache-through) */
+    /* offset 28 */ or      r7,r9               /* R9 = $02xxxxxx (cached cartridge ROM) */
 
     /* === A1 RECONSTRUCTION: (A1[31:16] << 16) | A1[15:0] === */
     /* offset 30 */ shll16  r10                 /* R10 = A1[31:16] << 16 */
@@ -139,7 +140,7 @@ cmd25_single_shot:
  */
 .align 2
 .src_prefix:
-    .long   0x02000000              /* SDRAM cache-through read prefix (src) */
+    .long   0x02000000              /* Cached cartridge-ROM read prefix (src) */
 .decomp:
     .long   0x06005058              /* Decompressor subroutine in SDRAM */
 .func084:

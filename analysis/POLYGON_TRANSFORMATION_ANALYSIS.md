@@ -29,17 +29,16 @@ This document synthesizes findings from hardware documentation and code analysis
 ### 1.2 Memory Architecture
 
 ```
-SH2 Address Space:
-├── $00000000-$01FFFFFF  ROM (via cache)
-├── $02000000-$03FFFFFF  ROM (cache-through) ← CRITICAL FOR TIMING
-├── $04000000-$0400FFFF  SDRAM (via cache)
-├── $06000000-$0600FFFF  SDRAM (cache-through)
-├── $20004000-$2000403F  VDP registers (MUST use cache-through!)
-├── $22000000-$2203FFFF  SDRAM work area
-└── $24000000-$2403FFFF  Frame buffer
+SH2 Address Space (relevant regions):
+├── $00004000 / $20004000  System registers (cached / cache-through)
+├── $00004100 / $20004100  VDP registers (cached / cache-through)
+├── $02000000-$023FFFFF / $22000000-$223FFFFF  Cartridge ROM
+├── $04000000 / $24000000  Frame buffer
+└── $06000000-$0603FFFF / $26000000-$2603FFFF  SDRAM
 ```
 
-**Critical Constraint:** VDP registers at $20004000-$2000403F MUST be accessed through cache-through addresses. Using cached addresses causes read/write corruption.
+**Critical Constraint:** system/VDP registers should use the cache-through `$20004000` /
+`$20004100` regions. A `$22xxxxxx` address is cartridge ROM, not generic shared memory.
 
 ### 1.3 Frame Buffer FIFO
 

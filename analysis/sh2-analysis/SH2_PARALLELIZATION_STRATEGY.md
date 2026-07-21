@@ -1,16 +1,17 @@
 # SH2 Parallelization - Refined Implementation Strategy
 
-## ✅ UPDATE: v4.0 PARALLEL PROCESSING OPERATIONAL (2026-01-25)
+## RETRACTED UPDATE: v4.0 Was Not Proven Operational
 
-**This document is now HISTORICAL.** The parallelization strategy has been successfully implemented via a different approach than originally planned.
+**This document is HISTORICAL.** Its `$2203E000` parameter block is cartridge ROM, not
+writable SDRAM, so the claimed parallel data path was not established.
 
 **What happened:**
 - The PicoDrive Slave boot issue (documented below) was **bypassed** using the full assembly rebuild approach
 - Slave idle loop at $0203CC was redirected to expansion ROM via disassembly modification
-- **TRUE PARALLEL PROCESSING** is now operational with vertex_transform offloaded to Slave SH2
+- The old “TRUE PARALLEL PROCESSING operational” conclusion is retracted
 
 **Current implementation (v4.0):**
-- vertex_transform trampoline at $0234C8 captures real parameters to 0x2203E000
+- vertex_transform trampoline at $0234C8 attempts writes to invalid ROM alias 0x2203E000
 - Slave executes vertex_transform_optimized at $300100 with coord_transform inlined
 - Master returns immediately, freeing cycles for other work
 
@@ -59,7 +60,7 @@ Start with **minimal stub that immediately uses real polygon-based partitioning*
 
 ### Phase 1: Slave Activation (2-3 days) - Unchanged
 - Replace idle loop with work dispatcher
-- Establish SDRAM sync buffer at 0x22000400
+- Establish cache-through SDRAM sync buffer at 0x26000400
 - Basic handshaking: MASTER_READY / SLAVE_READY / MASTER_DONE / SLAVE_DONE
 
 **No changes to this phase.**
@@ -150,7 +151,7 @@ parse_polygon_bounds:
 
 .align 4
 bounds_array:
-    .long   0x22001000    ; SDRAM bounds index (1600 entries × 4 bytes)
+    .long   0x26001000    ; Cache-through SDRAM bounds index (1600 entries × 4 bytes)
 display_list:
     .long   0x02000000    ; Placeholder, set at runtime
 ```
@@ -214,7 +215,7 @@ frame_buf_base:
 bounds_array:
     .long   0x22001000
 sync_base:
-    .long   0x22000400
+    .long   0x26000400
 ```
 
 **Key insight**: Start with real polygon-based bounds checking from day one. The stub logic is correct and testable. Rendering comes later.
@@ -369,7 +370,7 @@ endm
 
 ```
 SDRAM Address Map:
-0x22000400  Sync buffer (control flags, work params)      [64 bytes]
+0x26000400  Sync buffer (control flags, work params)      [64 bytes]
 0x22001000  Polygon bounds index (800 × 4 bytes)          [3.2 KB]
 0x22020000  Trace buffer (256 × 8 bytes)                  [2 KB]
 0x22030000  Debug counters (frame count, cycles, etc)     [1 KB]

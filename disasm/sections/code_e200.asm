@@ -214,14 +214,14 @@ sh2_load_data:
 ; Purpose: Sends decompression command to SH2 via single-shot protocol (B-005).
 ; Called by: Scene init functions (8 call sites, NOT per-frame)
 ; Parameters:
-;   A0 = 68K source data pointer (converted to SH2 SDRAM address)
+;   A0 = 68K cartridge-ROM source pointer (converted to SH2 ROM address)
 ;   A1 = SH2 destination pointer (full SH2 address, e.g. $0601xxxx)
-; Clobbers: A0 (adds $02000000 SH2 offset — original value NOT preserved)
+; Clobbers: A0 (adds $02000000 SH2 cartridge-ROM offset — original not preserved)
 ; Preserves: D0-D7, A1-A6
 ;
 ; Protocol (B-005 single-shot — replaces 3-phase COMM6 handshake):
 ;   1. Wait for COMM0_HI==0 (previous command done)
-;   2. Write COMM3:4 = A0 + $02000000 (source ptr, SDRAM cache-through)
+;   2. Write COMM3:4 = A0 + $02000000 (cached SH2 cartridge-ROM source)
 ;   3. Write COMM5:6 = A1 (dest ptr, full SH2 address)
 ;   4. Write COMM0_LO = $25 (dispatch index), COMM0_HI = $01 (trigger)
 ;   5. Wait for COMM0_LO==0 — SH2 clears this after reading all params
@@ -352,7 +352,7 @@ sh2_send_cmd:
 ;   write COMM7=$0027 (doorbell) → return immediately (fire-and-forget).
 ;   Safe because Slave copies COMM2-6 to local regs before clearing COMM7.
 ;
-; Slave drain at $020608 (inline SDRAM): reads COMM2-6, clears COMM7,
+; Slave drain at runtime SDRAM $06000608 (ROM image $020608): reads COMM2-6, clears COMM7,
 ;   applies cache-through ($04xx→$24xx), processes pixel region.
 ; Size: 42 bytes code + 40 bytes NOP padding = 82 bytes ($E3B4-$E405)
 ; ============================================================================

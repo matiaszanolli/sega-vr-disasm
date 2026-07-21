@@ -4,10 +4,11 @@
 ;
 ; PURPOSE
 ; -------
-; Initializes the async command queue ring buffer in SDRAM.
-; Must be called during boot after SDRAM is available.
+; ACTIVE LEGACY NO-OP / INVALID DESIGN. adapter_init still calls this routine
+; for byte identity, but the 68000 cannot address SH2 SDRAM and $2203Fxxx is
+; a cartridge-ROM alias. These CLR writes do not initialize a shared queue.
 ;
-; RING BUFFER LAYOUT (Cache-Through SDRAM)
+; HISTORICAL INVALID RING BUFFER LAYOUT
 ; -----------------------------------------
 ; $2203F000-$2203F1FF: Ring buffer entries (64 × 8 bytes = 512 bytes)
 ; $2203F200: Head pointer (32-bit, 68K write index)
@@ -24,8 +25,9 @@
 ;
 ; CRITICAL
 ; --------
-; This MUST be called before any async command submission.
-; Both CPUs rely on head/tail pointers being zero at startup.
+; Do not mistake the existing boot call for working initialization. A future
+; queue needs DREQ/COMM-based producer transport; changing the literal to
+; $2603F200 would still not make it writable by the 68000.
 ;
 ; Related: sh2_send_cmd_async, cmdint_handler, queue_processor
 ; ============================================================================
@@ -36,7 +38,7 @@ ring_buffer_init:
         ; only the pointers. Uninitialized entry data is harmless since
         ; entries are only read when head != tail.
 
-        movea.l #$2203F200,a0       ; Head pointer address (cache-through SDRAM)
+        movea.l #$2203F200,a0       ; INVALID ROM alias; writes below are no-ops
         clr.l   (a0)+               ; Head = 0
         clr.l   (a0)                ; Tail = 0 (A0 now points to $2203F204)
 

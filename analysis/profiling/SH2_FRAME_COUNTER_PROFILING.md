@@ -99,13 +99,13 @@ final_exit:
 
 ### Storage Location
 
-**SDRAM Address**: `0x22000400` (32-bit word)
+**SDRAM Address**: `0x26000400` cache-through (`0x06000400` cached; 32-bit word)
 
 - **Accessible from**:
-  - SH2 cache addressing: `0x02000400`
-  - SH2 cache-through addressing: `0x22000400`
+  - SH2 cached addressing: `0x06000400`
+  - SH2 cache-through addressing: `0x26000400`
   - 68K: NOT directly accessible (different address space)
-  - Emulator debugger: `0x22000400`
+  - Emulator debugger: use the bus-specific `$06000400`/`$26000400` view
 
 - **Size**: 4 bytes (32-bit long word)
 - **Wrapping**: Will overflow at 4,294,967,296 frames (~191 days at 20 FPS)
@@ -121,7 +121,7 @@ final_exit:
 
 **Function**:
 ```
-MOV.L @(8,PC),R0       ; Load counter address (0x22000400) into R0
+MOV.L @(8,PC),R0       ; Load cache-through SDRAM counter (0x26000400) into R0
 MOV.L @R0,R1           ; Load current counter value
 ADD #1,R1              ; Increment by 1
 MOV.L R1,@R0           ; Store back to counter
@@ -149,7 +149,7 @@ NOP                    ; Delay slot
 BASELINE TEST:
 1. Load ROM in emulator
 2. Start stopwatch (real time)
-3. Note frame counter value at 0x22000400 (start_value)
+3. Note frame counter value at 0x26000400 (start_value)
 4. Play for exactly 60 seconds
 5. Note frame counter value again (end_value)
 6. Stop stopwatch
@@ -185,7 +185,7 @@ Example:
 ## Profiling Checklist
 
 - [ ] Original ROM tested: baseline established
-- [ ] Frame counter visible in debugger at 0x22000400
+- [ ] Frame counter visible in debugger at 0x26000400
 - [ ] Frame count increments every frame (not every V-INT)
 - [ ] 60-second test runs consistently
 - [ ] Results recorded for each optimization pass
@@ -198,7 +198,7 @@ Example:
 **Check**:
 1. Is final_exit being executed? (Add debug output)
 2. Is the hook properly calling the counter code?
-3. Is SDRAM address 0x22000400 readable in debugger?
+3. Is SDRAM address 0x26000400 readable in debugger?
 4. Is SH2 actually running (not halted)?
 
 **Diagnostic**:
@@ -265,7 +265,7 @@ build/vr_sh2_frame_counter.32x             Modified ROM with counter
 
 1. **Verify counter is working**
    - Load `build/vr_sh2_frame_counter.32x`
-   - Check 0x22000400 value after 60 seconds
+   - Check 0x26000400 value after 60 seconds
    - Should show ~1200 (or appropriate rate for scenario)
 
 2. **Establish baseline metrics**
@@ -310,7 +310,7 @@ build/vr_sh2_frame_counter.32x             Modified ROM with counter
 
 | Address Space | View | SH2 | 68K | Emulator |
 |--------------|------|-----|-----|----------|
-| 0x22000400 | Direct | ✓ | ✗ | ✓ |
+| 0x26000400 | Direct cache-through SDRAM | ✓ | ✗ | ✓ |
 | 0x02000400 | Cache | ✓ | ✗ | - |
 | 0xC964 | 68K RAM | ✗ | ✓ | ✓ |
 
@@ -374,4 +374,3 @@ final_exit:
 ### Key Takeaway
 
 When injecting code hooks at distant locations, **always use JMP absolute.L**, not BRA. BRA's 4KB range is too restrictive for ROM-wide modifications.
-

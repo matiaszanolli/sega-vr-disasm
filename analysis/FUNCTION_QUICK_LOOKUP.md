@@ -1,6 +1,6 @@
 # Function Quick Lookup
 **Virtua Racing Deluxe — LLM-Optimized Flat Reference**
-**Total entries**: 806 | Sorted by ROM address
+**Total entries**: 825 | Sorted by ROM address
 
 Format: `$ADDRESS  name  [category]  — description`
 
@@ -34,7 +34,7 @@ $000694  gfx_32x_cram_fill                                 [Game / Render]
 
 $0006BC  system_boot_init                                  [Game / State]
          System Boot Initialization Main system boot orchestrator.
-         mod:D0, D1, D2, D3, D4, D5, D6, D7, A0, A1,  | calls:$000654: framebuffer_auto_fill_clear (BSR) $000694: cram_fil
+         mod:D0, D1, D2, D3, D4, D5, D6, D7, A0, A1, | calls:$000654: framebuffer_auto_fill_clear (BSR) $000694: cram_fil
 
 $000838  32X Adapter Initialization ($000838-$000C59)      [Boot]
          Initializes the 32X adapter hardware after ROM entry point.
@@ -70,7 +70,7 @@ $001034  VDP DMA Transfer + VRAM Clear (10-Word Data Prefix)  [Game / Render]
 
 $0010C4  VDP Data Fill                                     [Vdp]
          2D block transfer from RAM to VDP data port.
-         in:A0 = source data, A5 = VDP control port, A6 = VDP data port  | mod:D0, D1, D3, D4, A0
+         in:A0 = source data, A5 = VDP control port, A6 = VDP data port | mod:D0, D1, D3, D4, A0
 
 $0010DC  VDP Data Fill Constant                            [Vdp]
          Fills VDP region with a constant word value D3.
@@ -569,8 +569,8 @@ $0036C8  Calculate State from Flags (Copy 2)               [Game / State]
          Identical to calc_state_from_flags.
          in:none | mod:D0
 
-$0036DE  object_table_sprite_param_update                  [Game / Render]
-         Object Table Sprite Parameter Update Iterates through 15 objects (D7=$0E), reading sprite type from entity +$C1 and computing render parameters for...
+$0036DE  object_table_sprite_param_update_impl             [Game / Render]
+         Object Table Sprite Parameter Update Originally at code_2200.
          in:Fixed addresses A0=$FF9100, A1=$FF6218 | mod:D0, D5, D6, D7, A0, A1, A3
 
 $0037B6  object_proximity_check_jump_table_dispatch        [Game / Collision]
@@ -693,8 +693,12 @@ $00417C  Race Completion Check + Lap Bit Tracking          [Game / Race]
          If scene_state ($C8AA) == $15 (race checkpoint): copies $C096 → $C07A, advances $C07C by 4, clears $FF6754.
          mod:D0
 
+$0041E4  display_state_race_lap_preamble                   [Game / Render]
+         Race Lap Display State Preamble Display state handler #5 (dispatched from display_state_disp_004084 jump table when $C07C = 20).
+         in:JMP from display_state_disp_004084 (jump table at $0040A8) | mod:D0, D1, D5, D7, A0, A1, A2, A3 (via call | calls:ai_digit_lookup_best_lap ($00B1B8), vdp_load_and_clear ($00C
+
 $004200  Sprite Config Setup 001                           [Game / Render]
-         Configures sprite display entries from racer data Looks up sprite graphics pointers from ROM tables Copies position data from work buffers via BSR ...
+         Configures sprite display entries from racer data.
          mod:D0, D1, D5, D7, A0, A1, A2, A3
 
 $004280  Data Unpack Nibbles                               [Util]
@@ -807,7 +811,7 @@ $0046EE  Block Copy 1KB with SH2 Check                     [Memory]
 
 $00471E  Game Logic Init + State Dispatch                  [Game / State]
          Two entry points: (1) init path — sets up VDP, sprite table, SH2 command handler, then jumps to external init routine; (2) dispatch path — sets cam...
-         mod:D0, A1, A5 | calls:$002890: game_init (JMP PC-relative) $00B25E: state_advance 
+         mod:D0, A1, A5 | calls:$002890: game_init (JMP PC-relative) $00B25E: state_advance
 
 $0047CA  Flag Set, Sound Config, Advance                   [Game / State]
          SH2 Gate Sets the process flag at $C048, then checks if the SH2 has completed (display bit 7 at $C80E).
@@ -851,8 +855,8 @@ $004998  Scroll Variables & Display Parameters ($004998 - $004A30)  [Display]
          Functions for managing scroll position variables, display limits, and V-blank synchronization.
 
 $004998  Wait For V-Blank                                  [Frame]
-         Waits for V-blank by setting flag and spinning until V-INT clears it.
-         in:none | mod:SR (temporarily set to $2300)
+         Waits for V-blank by setting VINT_STATE and halting the 68K with STOP.
+         in:none | mod:SR (set to $2300 by STOP, then restored
 
 $0049AA  Input Clear                                       [Input]
          Both Players Clears input state for both players.
@@ -886,8 +890,8 @@ $004C8A  Set State + Pre-Dispatch + Init SH2 Scene         [Game / Scene]
          Sets race/mode state ($C8A5) to $9A, calls pre_dispatch_common ($002080) and WaitForVBlank ($004998), then initializes SH2 scene handler to $008856...
          in:none | Exit: SH2 scene initialized | Uses: none
 
-$004CB8  State Dispatcher (5-Entry Jump Table + 6 Subroutines, Data Prefix)  [Game / State]
-         Data prefix: 2 words ($A2A0, $A100) — RAM buffer addresses.
+$004CB8  Normal 1P Race State Dispatcher (5-Entry Jump Table + Data Prefix)  [Game / State]
+         Normal 1-player GP race dispatcher.
          mod:D0, D3, D7, A1, A2 | calls:$0020D6: init handler $0028C2: VDPSyncSH2 $0058C8: sprite_in
 
 $004D00  Call Subs + Advance Game State                    [Game / Menu]
@@ -902,13 +906,12 @@ $004D98  race_scene_init_004d98                            [Game / Race]
          Race Scene Initialization (2-Player) Initializes a 2-player split-screen race scene.
          in:Called as scene init orchestrator | mod:D0-D7, A0, A1, A2, A5 MARS: adapter_ctrl
 
-$005020  State Dispatcher (5-Entry Jump Table + 8 Subroutines, Data Prefix)  [Game / State]
-         Data prefix: 2 words ($A5A3, $A400) — RAM buffer addresses.
-         mod:D0, D2, A0, A1, A6 | calls:$002154: init handler $0028C2: VDPSyncSH2 $00B03C: frame_upd
+$005020  2P Split-Screen Dispatcher                        [Game / State]
+         Experimental VR60 Sequential Execution BUILT BUT UNVALIDATED: this is state_disp_005020, the 2-player path—not normal 1P racing.
+         in:called from scene handler via $FF0002 JSR
 
-$005070  Frame Update Orchestrator (8 Subroutines)         [Game / Scene]
-         Calls 8 subroutines via bsr.
-         mod:D0 (from called routines) | calls:$002180: frame init $00179E: controller_poll $00B09E: animat
+$005070  Frame Update Orchestrator                         [Game / Scene]
+         ABSORBED by state_disp_005020 (VR60 Phase 8) VR60 Phase 8: This function's work is now inlined in state_disp_005020 which runs all 3 states sequent...
 
 $00509E  Frame Orchestrator (12 Subroutines, 2 Entry Points)  [Game / Scene]
          Two entry points: Entry 1 ($509E): Full orchestrator — calls 12 subroutines (init, scene logic, animation, frame update, sprite processing), increm...
@@ -964,7 +967,7 @@ $005676  Frame Orchestrator (8 Subroutines, 2 Entry Points, Controller Decode)  
 
 $0056E4  Pause Menu Handler + Controller Check             [Game / State]
          Three entry points: Entry 1 ($0056E4): BCLR bit 7 of $FDA8, tail-jump to $00D48A.
-         mod:D0 | calls:$0049AA: SetDisplayParams $00D48A: pause handler (tail-jump 
+         mod:D0 | calls:$0049AA: SetDisplayParams $00D48A: pause handler (tail-jump
 
 $00573C  State Dispatcher (4-Entry Jump Table, Variant B)  [Game / State]
          Calls sfx_queue_process, increments $A510 tick counter, then dispatches via 4-entry longword jump table indexed by sub_state ($C8C4).
@@ -1008,7 +1011,7 @@ $0058EA  Object Table Lookup Loop (6 Iterations)           [Game / Entity]
 
 $005908  SH2 Comm Check + Conditional Guard                [Game / Scene]
          Loads base address $A000 into A4, reads $C26C into D0.
-         in:none | Exit: conditional return or fall-through | Uses: D0, 
+         in:none | Exit: conditional return or fall-through | Uses: D0,
 
 $005926  Object Table Clear Loop                           [Game / Entity]
          If D0 has any bits in $0130 set, branches back (to caller's loop).
@@ -1164,7 +1167,7 @@ $00714A  Object Link Copy + Table Lookup                   [Game / Entity]
 
 $0071A6  object_visibility_collector                       [Game / Render]
          Object Visibility Collector Computes a camera direction key from an object's own x/y positions (+$30/+$34) and collects visible geometry entries in...
-         in:A0 = object pointer (+$30=x_pos, +$34=y_pos, +$CA=cam_key, + | mod:D0, D1, D2, D3, D4, D7, A0, A1, A2, A3, 
+         in:A0 = object pointer (+$30=x_pos, +$34=y_pos, +$CA=cam_key, + | mod:D0, D1, D2, D3, D4, D7, A0, A1, A2, A3,
 
 $0071A6  Screen Coordinate Calculation Functions ($0071A6 - $007246)  [Graphics]
          Calculates screen coordinates for 3D objects, mapping world positions to 2D screen locations for rendering.
@@ -1179,11 +1182,11 @@ $007270  Frame Buffer Setup                                [Vdp]
 
 $007280  track_tile_object_display_list_builder            [Game / Render]
          Track Tile Object Display List Builder Builds display list of visible track objects.
-         in:A0 = entity pointer, A2 = display list write pointer | mod:D0, D1, D2, D3, D4, D6, D7, A0, A1, A3, 
+         in:A0 = entity pointer, A2 = display list write pointer | mod:D0, D1, D2, D3, D4, D6, D7, A0, A1, A3,
 
 $00734E  Object Geometry Visibility Collect                [Game / Render]
          Builds a visible-object list for the current viewpoint.
-         in:A0 = object pointer (reads +$CC for segment index) | mod:D0, D1, D2, D3, D4, D7, A0, A1, A2, A3, 
+         in:A0 = object pointer (reads +$CC for segment index) | mod:D0, D1, D2, D3, D4, D7, A0, A1, A2, A3,
 
 $0073E8  Track Data Index Computation + Table Lookup       [Game / Track]
          Computes track segment index from D1/D2 velocity components and D3 base offset.
@@ -1374,7 +1377,7 @@ $0080AE  Triple-Guard Set State to $BE                     [Game / State]
 
 $0080CC  Field Check Guard                                 [Object]
          Loads A0+$8C into D2.
-         in:A0 = object pointer | mod:D2 Fields accessed: A0+$8C: Guard field 
+         in:A0 = object pointer | mod:D2 Fields accessed: A0+$8C: Guard field
 
 $0080D6  Object Camera Position Update                     [Game / Camera]
          Updates object camera/position state from ROM parameter table.
@@ -1709,7 +1712,7 @@ $00A3EA  Speed Interpolation (Table-Based with Clamping)   [Game / Physics]
 
 $00A434  AI Opponent Select                                [Game / Ai]
          Conditionally activates AI opponent targeting based on game mode, entity speed class, game state, and cooldown timer.
-         in:A0 = object/entity pointer | mod:D0 Fields accessed: A0+$04: Speed table 
+         in:A0 = object/entity pointer | mod:D0 Fields accessed: A0+$04: Speed table
 
 $00A470  collision_avoidance_speed_calc                    [Game / Ai]
          AI Collision Avoidance + Speed Calculation AI/physics function that computes entity speed and performs proximity-based collision avoidance.
@@ -1769,14 +1772,14 @@ $00AD14  Entity Target Action                              [Game / Entity]
 
 $00ADC4  Proximity Distance Check                          [Game / Collision]
          Checks 3D proximity between two entities (A0, A1).
-         in:A0 = entity A, A1 = entity B (from entity_target_action chai | mod:D0 Fields accessed: A0/A1+$30: Position 
+         in:A0 = entity A, A1 = entity B (from entity_target_action chai | mod:D0 Fields accessed: A0/A1+$30: Position
 
 $00AE06  Zone Check Inner                                  [Game / Collision]
          Angle-Based Visibility Chained from proximity_distance_check via JMP when entities are close.
          in:A0 = entity A, A1 = entity B | mod:D0-D7, A2
 
 $00AED8  Entity Directional Push                           [Game / Entity]
-         Applies a fixed directional offset ($18 = 24 units) to entity X/Y position based on 4 direction bits in A0+$88: Bit 0: X += D1, Y -= D1  (push righ...
+         Applies a fixed directional offset ($18 = 24 units) to entity X/Y position based on 4 direction bits in A0+$88: Bit 0: X += D1, Y -= D1 (push right...
          in:A0 = object/entity pointer | mod:D0, D1 Fields accessed: A0+$30: X positi
 
 $00AF18  Object Collision Detection                        [Game / Collision]
@@ -1829,7 +1832,7 @@ $00B25E  BCD Scoring Calculation                           [Game / Hud]
 
 $00B2D8  AI Table Lookup + Conditional Fall-through        [Game / Ai]
          Data prefix (12 bytes), then loads object+$2C index, computes table offset (index-1)*4 from AI table base ($C200).
-         in:A0 = object pointer | Exit: conditional | Uses: D0, D3, A0, 
+         in:A0 = object pointer | Exit: conditional | Uses: D0, D3, A0,
 
 $00B2FC  BCD Time Update 010                               [Game / Hud]
          Updates BCD time counter (MM:SS:FF format) Reads speed factor from lookup table, scales by obj speed Subtracts BCD delta from time digits using SBC...
@@ -1957,7 +1960,7 @@ $00BD00  Backward Object Scan + Copy Scroll Data           [Game / Entity]
 
 $00BD2A  AI Scene Interpolation (6 Components)             [Game / Ai]
          Interpolates 6 component values between two keyframes using scene_state as the interpolation factor.
-         in:A0 = keyframe data pointer (+$01 = total frames, +$02 = end  | mod:D0, D1, D2, A0, A1, A2
+         in:A0 = keyframe data pointer (+$01 = total frames, +$02 = end | mod:D0, D1, D2, A0, A1, A2
 
 $00BD9E  Abort With Flag                                   [Game / State]
          Pops the caller's return address from stack (ADDQ #4,SP), sets flag ($C308).
@@ -2017,7 +2020,7 @@ $00C05C  Display List Builder                              [Game / Hud]
 
 $00C0F0  race_scene_init_vdp_mode                          [Game / Scene]
          Race Scene Init (VDP Mode Handler) Major scene initialization function for race/3D mode.
-         in:Called as scene handler when VDP flag ($FEB7) bit 7 is set.  | mod:D0-D1, A0, A2
+         in:Called as scene handler when VDP flag ($FEB7) bit 7 is set. | mod:D0-D1, A0, A2
 
 $00C200  Scene Init Orchestrator                           [Game / Scene]
          Master scene initialization — calls 9 setup subroutines, configures MARS VDP mode (240-line bitmap), sets SH2 interrupt control, initializes frame ...
@@ -2129,7 +2132,7 @@ $00CC06  Object Array Initialization from ROM Tables       [Game / Entity]
 
 $00CC74  Scene Camera Init                                 [Game / Camera]
          Initializes camera/scene for race start.
-         in:D0 = ROM table offset (first entry only) A0 = object/entity  | mod:D0, A0, A1, A2 | calls:$00884922: segment_copy_to_buffer (JMP/JSR target)
+         in:D0 = ROM table offset (first entry only) A0 = object/entity | mod:D0, A0, A1, A2 | calls:$00884922: segment_copy_to_buffer (JMP/JSR target)
 
 $00CD4C  Object Table Init                                 [Game / Entity]
          256-Byte Entry Array Source: code_c200 Initializes a 15-element object table at $FFFF9100, with each entry being 256 ($100) bytes.
@@ -2233,7 +2236,7 @@ $00DFEC  SH2 Handshake and State Advance                   [Game / Scene]
 
 $00E00C  Scene Setup / Game Mode Transition                [Game / Scene]
          Source: code_c200 Configures the game's scene handler function pointer ($FF0002) based on the current game sub-mode ($A024) and related flags.
-         in:No register inputs (reads state from RAM) | mod:No registers modified (all operands are 
+         in:No register inputs (reads state from RAM) | mod:No registers modified (all operands are
 
 $00E118  SH2 Cmd 27 Sprite Render                          [Game / Render]
          Sends two sprite render commands to SH2 via sh2_cmd_27.
@@ -2454,7 +2457,7 @@ $011B08  name_entry_ui_tile_refresh                        [Game / Menu]
 
 $011B6A  Name Entry BCD Score Comparison                   [Game / Menu]
          Compares player's score against high score table using BCD arithmetic.
-         mod:D0, D1, D2, D3, D4, D5, D6, D7, A0, A1, 
+         mod:D0, D1, D2, D3, D4, D5, D6, D7, A0, A1,
 
 $011C7E  Name Entry Score Area DMA Transfer                [Game / Menu]
          Sends SH2 DMA for one of 4 score display areas based on ranking result ($A04E) and display toggle ($A050).
@@ -2482,7 +2485,7 @@ $01250C  SH2 Scene Reset                                   [Game / Scene]
 
 $012534  Camera Tile Render (3D Array Index)               [Game / Menu]
          Calculates 3D array offset into tile data at $EF08: section (D0) × $3C0 + row (D1) × 160 + column (D2) × 8.
-         in:D0 = section index, D1 = row index, D2 = column index, A1 =  | mod:D0, D1, D2, D3, D4, D5, A1, A2, A3, A4 | calls:$01259C: tile_render_sub_A (A1=dest, A2=source) $01260A: til
+         in:D0 = section index, D1 = row index, D2 = column index, A1 = | mod:D0, D1, D2, D3, D4, D5, A1, A2, A3, A4 | calls:$01259C: tile_render_sub_A (A1=dest, A2=source) $01260A: til
 
 $01259C  lap_time_digit_renderer                           [Game / Hud]
          Lap Time Digit Renderer (Records Screen) Same pattern as lap_time_digit_renderer_a — renders BCD lap time as digit tiles to SH2 framebuffer at $060...
@@ -2558,7 +2561,7 @@ $013054  standings_screen_init                             [Game / Menu]
 
 $013292  Camera State Dispatcher (Data Prefix + Jump Table)  [Game / Menu]
          Data prefix (128 bytes of object/sprite descriptors) + state dispatcher.
-         mod:D0, D4, A0, A1 | calls:$00B684: object_update $00882080: initialization $0088205E: 
+         mod:D0, D4, A0, A1 | calls:$00B684: object_update $00882080: initialization $0088205E:
 
 $013346  Camera Render DMA + Overlay                       [Game / Menu]
          DMA transfer + 3 static SH2 DMA transfers (header, main display, bottom panel).
@@ -2901,19 +2904,19 @@ $0305BA  FM System Command Dispatcher                      [Game / Sound]
 
 $03061C  FM Instrument Setup                               [Game / Sound]
          load instrument data and configure channels Loads instrument definition from ROM table at $032AB8 (indexed by D7-$81).
-         in:A6 = sound driver state pointer; D7 = sound command byte ($8 | mod:D0, D1, D4, D5, D6, D7, A0, A1, A2, A3,  | calls:$030C8A: fm_init_channel $030CBA: fm_write_wrapper $030D1C: 
+         in:A6 = sound driver state pointer; D7 = sound command byte ($8 | mod:D0, D1, D4, D5, D6, D7, A0, A1, A2, A3, | calls:$030C8A: fm_init_channel $030CBA: fm_write_wrapper $030D1C:
 
 $03078C  FM Channel Register Map + Instrument Loader B     [Game / Sound]
          $A0-$D2 commands FM/PSG register assignment bytes used by fm_instrument_setup.
-         in:A6 = sound driver state pointer; D7 = sound command byte ($A | mod:D0, D1, D2, D3, D4, D5, D6, D7, A0, A1, 
+         in:A6 = sound driver state pointer; D7 = sound command byte ($A | mod:D0, D1, D2, D3, D4, D5, D6, D7, A0, A1,
 
 $030852  FM Channel Pointer Table + SFX Loader             [Game / Sound]
          $D6-$D7 sound effects 16 longword pointers to channel structs within A6 sound driver state (used by fm_instrument_setup, fm_channel_reg_map_instrum...
-         in:A6 = sound driver state pointer; D7 = sound command byte ($D | mod:D0, D2, D3, D4, D5, D6, D7, A0, A1, A2, 
+         in:A6 = sound driver state pointer; D7 = sound command byte ($D | mod:D0, D2, D3, D4, D5, D6, D7, A0, A1, A2,
 
 $030936  FM Channel Stop Register Map + Stop All           [Game / Sound]
          silence all active channels channel struct pointer table (used alongside $030852 table).
-         in:A6 = sound driver state pointer | mod:D0, D1, D3, D4, D6, A0, A1, A3, A5 | calls:$030C8A: fm_init_channel $030CBA: fm_write_wrapper $030FB2: 
+         in:A6 = sound driver state pointer | mod:D0, D1, D3, D4, D6, A0, A1, A3, A5 | calls:$030C8A: fm_init_channel $030CBA: fm_write_wrapper $030FB2:
 
 $0309F2  FM Special Channel Cleanup                        [Game / Sound]
          stop DAC and noise effect channels Handles cleanup of two special sound channels: Channel $0340 (DAC/PCM): clears active flag, checks key-off, call...
@@ -2961,7 +2964,7 @@ $030C8A  FM Init Channel                                   [Game / Sound]
 
 $030CA2  FM Conditional Write with Bus                     [Game / Sound]
          write FM register if not key-off Checks bit 2 (key-off) on channel (A5).
-         in:A5 = FM channel structure pointer; D0 = FM register number,  | mod:D0, D1, A5 | calls:$030CCC: fm_write_conditional $030D1C: z80_bus_request
+         in:A5 = FM channel structure pointer; D0 = FM register number, | mod:D0, D1, A5 | calls:$030CCC: fm_write_conditional $030D1C: z80_bus_request
 
 $030CBA  FM Write Wrapper                                  [Game / Sound]
          request bus, write port 0, release (fm_write_wrapper) Convenience wrapper: requests Z80 bus, calls fm_write_port0 to write register D0 with data D1...
@@ -2989,7 +2992,7 @@ $030DEE  FM Fade Clear                                     [Game / Sound]
 
 $030DF4  Z80 Sound Write                                   [Sound]
          Requests Z80 bus, waits for grant, reads channel volume from A5+$09, shifts right 3 and masks to 4 bits, writes to Z80 RAM at $A00FFD, then release...
-         in:A5 = channel state pointer | mod:D0 Hardware: $A11100 (Z80 bus request), 
+         in:A5 = channel state pointer | mod:D0 Hardware: $A11100 (Z80 bus request),
 
 $030E20  PSG Channel Processor                             [Game / Sound]
          tick handler with sequence parser FM/PSG register pair table at $030E20-$030E37.
@@ -3021,7 +3024,7 @@ $030FC8  PSG All Silence                                   [Game / Sound]
 
 $030FE0  PSG Frequency Table + Special Command Dispatcher  [Game / Sound]
          data and $E0+ handler Data prefix ($030FE0-$031093): 128-entry PSG frequency lookup table (16-bit big-endian values, note $00-$7F).
-         in:A5 = channel structure pointer, A4 = sequence pointer; A6 =  | mod:D0, D1, D3, D4, D5, D7, A0, A1, A4, A5, 
+         in:A5 = channel structure pointer, A4 = sequence pointer; A6 = | mod:D0, D1, D3, D4, D5, D7, A0, A1, A4, A5,
 
 $031166  Z80 DAC Byte Write                                [Game / Sound]
          write sequence byte to Z80 DAC register Reads one byte from sequence pointer (A4), requests Z80 bus, writes byte to Z80 DAC register at $A00FFE, re...
@@ -3037,7 +3040,7 @@ $031188  Pitch Bend Apply                                  [Game / Sound]
 
 $0311A8  Sound Subtract Field                              [Sound]
          Reads an indexed word from A6 structure, subtracts it from A5+$1E, then clears the indexed byte.
-         in:D0 = index*2, A5 = channel state, A6 = sound state | mod:D1 Fields accessed: A6+$12+D0.W (word), 
+         in:D0 = index*2, A5 = channel state, A6 = sound state | mod:D1 Fields accessed: A6+$12+D0.W (word),
 
 $0311B8  FM Set Panning                                    [Game / Sound]
          write panning register from sequence byte Reads panning value from sequence (A4).
@@ -3061,7 +3064,7 @@ $03120C  Write Panning + PSG Volume Adjust                 [Game / Sound]
 
 $031228  Volume Adjust + Write                             [Game / Sound]
          add delta and route to channel writer Two entry points: $031228: Reads volume delta from sequence (A4), adds to A5+$09.
-         in:A5 = channel structure pointer, A4 = sequence pointer; A6 =  | mod:D0, A4
+         in:A5 = channel structure pointer, A4 = sequence pointer; A6 = | mod:D0, A4
 
 $031240  Sound Load Pair                                   [Sound]
          Reads one byte from (A4) without increment to A5+$12, then reads (A4)+ with increment to A5+$13.
@@ -3069,7 +3072,7 @@ $031240  Sound Load Pair                                   [Sound]
 
 $03124A  FM Operator Register Write                        [Game / Sound]
          load and write 4 operator values Loads instrument data from A6+$30 pointer (or A5+$20 if set).
-         in:A5 = channel structure pointer, A4 = sequence pointer; A6 =  | mod:D0, D1, D3, D6, A0, A1, A2, A4 | calls:$030CA2: fm_conditional_write $030CBA: fm_write_wrapper
+         in:A5 = channel structure pointer, A4 = sequence pointer; A6 = | mod:D0, D1, D3, D6, A0, A1, A2, A4 | calls:$030CA2: fm_conditional_write $030CBA: fm_write_wrapper
 
 $0312A6  Set Instrument Number                             [Game / Sound]
          read instrument index from sequence Reads one byte from sequence pointer (A4), stores to sound driver instrument number at A6+$0A.
@@ -3081,7 +3084,7 @@ $0312AC  Sound Add Transpose                               [Sound]
 
 $0312B4  FM Instrument Register Write                      [Game / Sound]
          full operator + TL register setup Multiple entry points: $0312B4: Write register pair (D0,D1 from seq) via fm_conditional_write.
-         in:A5 = channel structure pointer, A4 = sequence pointer; A6 =  | mod:D0, D1, D3, D4, D5, A1, A2, A4 | calls:$030CCC: fm_write_conditional $030D1C: z80_bus_request
+         in:A5 = channel structure pointer, A4 = sequence pointer; A6 = | mod:D0, D1, D3, D4, D5, A1, A2, A4 | calls:$030CCC: fm_write_conditional $030D1C: z80_bus_request
 
 $031352  FM TL Scaling Table + Volume Register Writer      [Game / Sound]
          update TL with volume 8-byte key scaling table at $031352 (operator TL scaling bits for 8 algorithm types).
@@ -3097,7 +3100,7 @@ $031406  PSG Set Envelope                                  [Game / Sound]
 
 $031418  FM Note-Off Handler                               [Game / Sound]
          key-off channel and cleanup related channels Clears active (bit 7) and sustain (bit 4) flags.
-         in:A5 = channel structure pointer; A6 = sound driver state poin | mod:D0, D1, A0, A1, A3, A5 | calls:$030C8A: fm_init_channel $030CBA: fm_write_wrapper $030FB2: 
+         in:A5 = channel structure pointer; A6 = sound driver state poin | mod:D0, D1, A0, A1, A3, A5 | calls:$030C8A: fm_init_channel $030CBA: fm_write_wrapper $030FB2:
 
 $0314DC  Sound PSG Write                                   [Sound]
          Sets A5+$01 to $E0 (PSG latch byte), reads stream byte to A5+$25, then if bit 2 of (A5) is clear, writes the byte to PSG port $C00011.
@@ -3149,11 +3152,11 @@ $031574  FM SSG-EG Register Write                          [Game / Sound]
 
 $031590  FM Register Table + Channel Pause                 [Game / Sound]
          data and pause all active channels Data prefix ($031590-$031597): 8 FM register numbers for SSG-EG writes (used by fm_ssg_eg_reg_write).
-         in:A5 = channel structure pointer, A4 = sequence pointer; A6 =  | mod:D0, D1, D3, D4, A3, A5 | calls:$030C8A: fm_init_channel $030CA2: fm_conditional_write $030F
+         in:A5 = channel structure pointer, A4 = sequence pointer; A6 = | mod:D0, D1, D3, D4, A3, A5 | calls:$030C8A: fm_init_channel $030CA2: fm_conditional_write $030F
 
 $0315F4  FM Channel Resume Panning                         [Game / Sound]
          restore panning for paused channels Resumes paused channels by restoring panning registers.
-         in:A5 = channel structure pointer (saved/restored); A6 = sound  | mod:D0, D1, D3, D4, A3, A5 | calls:$030CA2: fm_conditional_write
+         in:A5 = channel structure pointer (saved/restored); A6 = sound | mod:D0, D1, D3, D4, A3, A5 | calls:$030CA2: fm_conditional_write
 
 $031650  Sound Set All Channels                            [Sound]
          Reads a byte from stream (A4)+ and writes it to offset $02 of each of 10 channel entries (spaced $30 bytes apart) starting at A6+$40.
@@ -3161,7 +3164,7 @@ $031650  Sound Set All Channels                            [Sound]
 
 $031666  sequence_fade_rate_set                            [Game / Sound]
          Sequence Fade Rate Set Sets fade rate parameters from sequence data.
-         in:A4 = sequence data pointer, A6 = channel struct pointer | mod:A4, A6 Channel fields: +$38: fade state 
+         in:A4 = sequence data pointer, A6 = channel struct pointer | mod:A4, A6 Channel fields: +$38: fade state
 
 $031680  Sound Master Flag                                 [Sound]
          Sets byte at A6+$38 to $80 (master sound flag).
@@ -3171,11 +3174,11 @@ $031680  Sound Master Flag                                 [Sound]
          (no description)
 
 ??????  Ring Buffer Initialization ($TBD)                 [Boot]
-         Initializes the async command queue ring buffer in SDRAM.
+         ACTIVE LEGACY NO-OP / INVALID DESIGN.
 
 ??????  depth_sort                                        [Game / Render]
-         Depth Sort (Selection Sort + Early Exit + Direction Tie-Break) Sorts a 16-element array of 4-byte entries using selection sort.
-         in:A0 = sort array (16 entries × 4 bytes: word key + word obj_p | mod:D0, D1, D2, D7, A0, A1, A2, A3 Object fi
+         Depth Sort (Insertion Sort, Descending) Sorts a 16-element array of 4-byte entries using insertion sort.
+         in:A0 = sort array (16 entries × 4 bytes: word key + word obj_p | mod:D0, D1, D2, A0, A1, A2 Preserves: D3-D7,
 
 ??????  Hw Reg Init                                       [Hardware Regs]
          (no description)
@@ -3183,11 +3186,63 @@ $031680  Sound Master Flag                                 [Sound]
 ??????  Bank Register Probe                               [Optimization]
          Identifies 68K access path to expansion ROM Location: Optimization area (code_1c200 section) The expansion ROM ($300000-$3FFFFF) contains 1MB of mo...
 
+??????  Camera Interpolation                              [Optimization]
+         60 FPS Rendering (A-2) Relocated from code_2200.
+
 ??????  Virtua Racing Deluxe - SH2 Code Section           [Sh2]
          Module: 68k/sh2/section_24200.
 
 ??????  Virtua Racing Deluxe - SH2 Data Section           [Sh2]
          Module: 68k/sh2/section_26200.
+
+??????  vr60_1p_ai_entity_transfer                        [Sh2]
+         1P-exclusive DREQ Transfer of 15 AI Entities 1P-exclusive copy of vr60_ai_entity_transfer.
+
+??????  vr60_1p_comm_trigger                              [Sh2]
+         1P-exclusive COMM relay trigger (cmd $3F) 1P-exclusive copy of vr60_comm_trigger.
+
+??????  vr60_1p_entity_transfer                           [Sh2]
+         1P-exclusive DREQ Transfer of Entity+Globals 1P-exclusive copy of vr60_entity_transfer.
+         in:none (uses hardcoded addresses) Clobbers: COMM0, COMM1 bit 1
+
+??????  vr60_1p_globals_transfer                          [Sh2]
+         1P-exclusive DREQ Transfer of Globals-Only 1P-exclusive copy of vr60_globals_transfer.
+
+??????  vr60_1p_staging_hook                              [Sh2]
+         VR60 1P interactive racing: staging + cmd $3F trigger Full Phase 1 body: mirrors state4_epilogue (code_2200.
+
+??????  vr60_ai_bypass_trampoline_variant_b               [Sh2]
+         Phase 4: AI Entity Physics Bypass Size: ~30 bytes Called via JMP from entity_render_pipeline Variant B (first 8 bytes).
+         in:A0 = entity base pointer (from entity dispatch) Preserves: A
+
+??????  vr60_ai_entity_stage                              [Sh2]
+         Stage 15 AI Entities for DREQ Transfer to SDRAM Size: ~30 bytes Phase 4: Copies 3,840 bytes (15 × 256B) of AI entities from WRAM $FF9100 to staging...
+         in:none (uses hardcoded addresses) Preserves: all (pushes/pops
+
+??????  vr60_ai_entity_transfer                           [Sh2]
+         DREQ Transfer of 15 AI Entities to SDRAM Size: ~60 bytes Phase 4: Transfers 3,840 bytes (15 × 256B) from WRAM staging ($FF6B40) to SH2 SDRAM ($0601...
+
+??????  vr60_comm_trigger                                 [Sh2]
+         VR60 Phase 1B: COMM relay trigger ROM address: assigned by assembler (included in code_2200.
+
+??????  vr60_entity_stage                                 [Sh2]
+         Stage Player Entity for DREQ Transfer to SDRAM Size: 40 bytes Phase 3A: Copies 256 bytes of player entity 0 from $FF9000 (WRAM) to $FF6A00 (WRAM st...
+         in:A0 = entity base pointer (must be entity 0 = $FF9000 for sta
+
+??????  vr60_entity_transfer                              [Sh2]
+         VR60 Phase 3A: DREQ Transfer of Entity+Globals to SDRAM Size: 66 bytes Transfers 320 bytes (256B entity + 64B globals) from WRAM staging to SH2 SDR...
+         in:none (uses hardcoded addresses) Preserves: all (pushes/pops
+
+??????  vr60_globals_stage                                [Sh2]
+         Stage Per-Frame Globals for SDRAM Transfer Size: ~120 bytes Gathers 48 bytes of scattered WRAM physics globals into a contiguous staging block at $...
+         in:none Preserves: A0 (entity pointer used by orchestrator) Clo
+
+??????  vr60_globals_transfer                             [Sh2]
+         VR60 Phase 3B: DREQ Transfer of Globals-Only to SDRAM Size: ~56 bytes Transfers 64 bytes of globals from WRAM staging ($FF6B00) to SH2 SDRAM ($0600...
+
+??????  vr60_physics_bypass_trampoline                    [Sh2]
+         VR60 Phase 3B: Orchestrator Bypass Size: ~30 bytes Called via JMP from entity_render_pipeline (Variant A, first 6 bytes).
+         in:A0 = entity base pointer (from caller) Preserves: A0, all re
 
 ??????  Z80 Commands                                      [Sound]
          (no description)
@@ -3197,5 +3252,17 @@ $031680  Sound Master Flag                                 [Sound]
 
 ??????  Utility Functions ($0049xx)                       [Util]
          General-purpose utility functions used throughout the game: - Random number generation - V-blank synchronization - Display parameter initialization...
+
+??????  vint_sprite_cfg_with_swap                         [Vint]
+         V-INT State $001C: Sprite Config + Frame Swap Wrapper for the original vdp_dma_xfer_setup_001aca handler.
+         in:A5 = VDP control port (from V-INT dispatch)
+
+??????  vint_unified_60fps                                [Vint]
+         VR60 Phase 8: Unified 60 FPS V-INT Handler Combines ALL VDP work into a single V-INT handler that runs every VBlank: 1.
+         in:A5 = VDP control port, A6 = VDP data port (from V-INT dispat
+
+??????  vint_vdp_sync_with_swap                           [Vint]
+         V-INT State $0014: VDP Sync + Frame Swap Wrapper for vdp_dma_xfer_setup_001a72 (state $0014 handler).
+         in:A5 = VDP control port
 
 ```

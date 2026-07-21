@@ -1,5 +1,11 @@
 # VR60 Phase 5F-1b — Bridge Probe Failure Diagnosis (READ-ONLY)
 
+> **Execution correction (2026-07-21):** The static C128/C178/C254 diagnosis remains valid,
+> but H2's claim that the probe runs every 1P racing frame is false. The original wiring was
+> in the 2P dispatcher. A corrected C254 Run-C probe is now assembled, yet cmd `$3F` still
+> selects the no-op patcher and the normal-1P cmd `$3F` trigger is disabled. No corrected
+> probe has been visually validated.
+
 **Created:** 2026-06-18
 **Author:** Worker (READ-ONLY diagnostic role — NO asm/source/Makefile modified)
 **Status:** ROOT CAUSE FOUND. The bridge probe wrote to the **wrong descriptor block**.
@@ -25,8 +31,9 @@ C218 has no effect on the opponent cars regardless of timing or cache — **H3 (
 are moot; the address itself is wrong.** The visibility-flag *semantics* the probe assumed (+$00/+$14/+$28,
 `0 = invisible`) are actually **correct** — but only for the C128/C178/C254 blocks the racing engine reads.
 
-**Verdict per hypothesis:** **H1 = the operative cause (semantic no-op via wrong target)**; H3 unresolved
-but irrelevant given H1; H4 refuted as a cause; H2 refuted (probe does run).
+**Historical verdict at the time:** H1 correctly identified the wrong C218 target, but the H2
+execution verdict was later refuted by the dispatcher audit. The original probe did not run in
+normal 1P. H3 remains untested for the corrected, live path; H4 was not the original cause.
 
 This also retroactively explains the **`render_state_patcher` no-op** and the **5F-1a "GO"** error: 5F-1a
 read the C218→CCA0 transform `$06001D34` (reached from the `$06000DC8` dispatcher) and assumed that
@@ -127,13 +134,13 @@ operative root cause.
 > C218 reference docs noted entity visibility may also live at `$0600C800` 32×$10 — that is the cmd
 > `$23` Huffman class, a third unrelated block; not relevant here.)
 
-### H2 — Probe not executing. **REFUTED.**
+### H2 — Probe not executing. **LATER CONFIRMED FOR NORMAL 1P.**
 
-The JSR swap is live (`cmd3f_vr60_gameframe.asm:258-260` loads `.bridge_addr = $023039E0` and `JSR @R0`),
-cmd `$3F` is the VR60 game-frame handler that runs every racing frame (it performs the geometry/sprite
-block copies, full physics pipeline, and the AI loop, then re-triggers the Slave at `:303-304`). The
-probe runs; it simply writes to a block the render ignores. (The probe loop body is also correct SH2:
-`$2600C218`, 15× stride `$3C`, clearing +$00/+$14/+$28 — verified against the source `bridge_probe.asm`.)
+The original investigation verified a static JSR selection but assumed cmd `$3F` ran in the
+measured 1P scene. The later routing audit proved that trigger lived in the 2P dispatcher.
+Current source contains a corrected C254 probe, but cmd `$3F` selects `.patcher_addr`, and the
+normal-1P cmd `$3F` trigger is disabled. Thus neither the original C218 probe nor corrected Run C
+has a valid live-1P visual result.
 
 ### H3 — Frame timing / "last writer". **UNRESOLVED but IRRELEVANT given H1.**
 
@@ -207,14 +214,14 @@ the next disambiguating probe should pin down empirically** (§6).
 
 ---
 
-## 6. Next disambiguating probe (single best test)
+## 6. Corrected disambiguating probe (implemented, not yet executed)
 
 Static analysis is conclusive that C218 is wrong and C128/C178/C254 is right; what remains *empirically*
 unknown is **which of the three blocks (and which indices) carry the visible opponent cars** during
 racing. One cheap probe answers it unambiguously.
 
-**Probe NEXT-1 — clear visibility on the racing descriptor blocks, one block per run.**
-In `bridge_probe` (or a sibling), change the base + stride + count to target **one** block at a time,
+`bridge_probe.asm` now implements Run C. Once the durable-baseline and cmd-`$3F` shadow gates pass,
+select `.bridge_addr` and test **one** block at a time,
 cache-through, clearing the +$00/+$14/+$28 words (same field logic, already proven correct):
 
 - **Run A:** base `$2600C128`, **stride $14**, count 4 → clears batch-1 visibility.
@@ -233,10 +240,10 @@ cache-through, clearing the +$00/+$14/+$28 words (same field logic, already prov
   batch-0 camera record C100→CA00, or the on-chip Pipeline-1 path), and we re-trace; but the static
   evidence strongly predicts one of these three is the car block.
 
-**Recommended single run to start: Run C (`$2600C254`, $14, 56).** It is the largest block (56 records
+**Configured first run: Run C (`$2600C254`, $14, 56).** It is the largest block (56 records
 via the 7×8 outer/inner loop) and is the one the handler walks last/most heavily — most likely to hold
 the bulk opponent descriptors. If Run C alone vanishes opponents, the bridge target is settled in one
-shot.
+shot. It remains dormant and has no visual confirmation as of 2026-07-21.
 
 > Order-of-operations note: keep the probe at the **same injection point** (`cmd3f_vr60_gameframe.asm:259`,
 > just before COMM2_HI=$02) so the H3 timing variable is held constant. If a correct-address run *still*

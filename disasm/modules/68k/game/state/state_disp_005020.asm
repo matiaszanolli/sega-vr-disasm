@@ -1,13 +1,16 @@
 ; ============================================================================
-; State Dispatcher — VR60 Phase 8: 60 FPS Sequential Execution
+; 2P Split-Screen Dispatcher — Experimental VR60 Sequential Execution
 ; ROM Range: $005020-$00509D (126 bytes, absorbs frame_update_orch_005070)
 ; ============================================================================
 ;
-; PHASE 8 REFACTORING: Instead of cycling $C87E through 0→4→8 (20 FPS),
-; runs ALL three states' work sequentially every TV frame (60 FPS).
+; BUILT BUT UNVALIDATED: this is state_disp_005020, the 2-player path—not
+; normal 1P racing. It runs the historical three states' work sequentially
+; every TV frame, but no trustworthy 2P profiling/behavioral acceptance run
+; has established a 60 FPS result.
 ;
-; The 68K has ~43K active cycles per frame (with VR60 physics bypass).
-; Budget is 128K per TV frame. 66% margin.
+; Historical CPU-margin claims are not current evidence. The 1P cmd $3F
+; trigger and physics bypass are disabled, and normal 1P is controlled by
+; state_disp_004cb8.
 ;
 ; Data prefix at $005020 MUST be preserved (referenced by other code).
 ; Jump table at $00502E is no longer used ($C87E always 0).
@@ -62,4 +65,3 @@ state_disp_005020:
 
 ; --- Tail-jump to pause/scene transition check ---
         jmp     pause_menu_handler_ctrl_check+20(pc)
-

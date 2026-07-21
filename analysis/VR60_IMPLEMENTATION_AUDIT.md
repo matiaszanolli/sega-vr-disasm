@@ -1,5 +1,12 @@
 # VR60 Implementation Audit — the SH2 pipeline is inert during racing
 
+> **Current follow-up (2026-07-21):** The routing finding remains correct for the original
+> Phase 3–5 wiring: `state_disp_005020` is 2P, not normal 1P. A separate 1P hook has since
+> been installed at `state_disp_004cb8` state 8 and confirmed at about 20 Hz. It currently
+> enables only cmd `$3E` modes 0/1; AI transfer, cmd `$3F`, and the 68000 bypass are disabled.
+> Thus the physics/AI/collision pipeline still does not control current 1P gameplay. See
+> `../VR60_STATUS.md` and `VR60_PHASE1_CMD3E_ACK_HANG.md` §22.
+
 **Date:** 2026-06-18
 **Trigger:** three render-bridge probes (5F-1b) produced ZERO visible change. Matias
 suspected "the legacy renderer is still wired up." This audit confirms it, empirically.

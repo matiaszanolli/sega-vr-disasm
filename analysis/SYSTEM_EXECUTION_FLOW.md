@@ -336,4 +336,4 @@ command queues or pipelining, i.e. B-005) is the highest-leverage single change.
 - [68K_SH2_COMMUNICATION.md](68K_SH2_COMMUNICATION.md) — COMM register protocol detail
 - [COMM_REGISTERS_HARDWARE_ANALYSIS.md](COMM_REGISTERS_HARDWARE_ANALYSIS.md) — hardware hazards
 - [ARCHITECTURAL_BOTTLENECK_ANALYSIS.md](ARCHITECTURAL_BOTTLENECK_ANALYSIS.md) — cycle budget
-- [MASTER_FUNCTION_REFERENCE.md](MASTER_FUNCTION_REFERENCE.md) — all 799 function entries
+- [MASTER_FUNCTION_REFERENCE.md](MASTER_FUNCTION_REFERENCE.md) — complete auto-generated named-entry catalog

@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 Agent briefing for Virtua Racing Deluxe 32X disassembly/reassembly project.
 
@@ -13,9 +13,9 @@ Two agents, redesigned for the VR60 architectural overhaul. See [agents/README.m
 **Auditor** (Opus) is a safety reviewer with an expanded VR60 checklist: COMM safety + SDRAM addressing + bus contention + cache-through + double-buffer races + entity field preservation + ROM table translation. Spawned fresh per proposal. APPROVED or BLOCKED.
 
 **You are the task manager.** Start with [VR60_STATUS.md](VR60_STATUS.md), then use
-[VR60_ROADMAP.md](VR60_ROADMAP.md) for the detailed plan. Resolve the current validation gate
-before selecting a later phase. Spawn the Worker, review findings, spawn Auditor, approve/commit,
-and update the roadmap after every session.
+[VR60_ROADMAP.md](VR60_ROADMAP.md). Resolve the current validation gate before selecting a
+later phase. Spawn the Worker, review findings, spawn Auditor, approve/commit, and update the
+roadmap after every session.
 
 **Research-First Principle:** Before implementing any fix, read the relevant docs and build a mental model with citations. If a second attempt fails for related reasons, stop coding and read. Named anti-patterns: address shopping, circular investigation, modern platform assumptions, undocumented guessing — all banned.
 
@@ -23,17 +23,15 @@ and update the roadmap after every session.
 
 ## Current VR60 Integration Status
 
-The normal 1P route is `state_disp_004cb8`; `state_disp_005020` is 2P split-screen. The
-state-8 `game_frame_orch_013` hook is valid and repeats at about 20 Hz. In that hook, cmd
-`$3E` modes 0/1 (player entity and globals) are enabled but lack trustworthy long-run
-validation. AI transfer mode 2 and cmd `$3F` are disabled. The 68000 physics, AI,
-collision, and render-preparation path remains authoritative; the SH2 physics/AI/collision
-ports are built but do not control current 1P gameplay.
+Normal 1P uses `state_disp_004cb8`; `state_disp_005020` is 2P split-screen. The 1P
+state-8 hook is valid at about 20 Hz. cmd `$3E` modes 0/1 are enabled but await a
+trustworthy full-run validation; mode 2 and cmd `$3F` are disabled. The 68000 physics,
+AI, collision, and render-preparation path remains authoritative. The former 724-hash
+acceptance result is retracted because the savestate freezes with the hook bypassed.
 
-The former 724-framebuffer-hash acceptance claim is retracted because the saved-state
-fixture later freezes with the VR60 hook bypassed. Do not publish a current 40/45 FPS or
-CPU-budget claim from that run. Establish a durable 1P control fixture first, then validate
-each stage independently. `VR60_STATUS.md` is authoritative when older documents disagree.
+Do not publish current 40/45 FPS or CPU-budget claims from that fixture. Establish a
+durable 1P control and validate each stage independently. `VR60_STATUS.md` is authoritative
+when older documents disagree.
 
 ## Build & Test
 
@@ -96,8 +94,8 @@ disasm/vrd.asm (entry point)
 
 - **823 68K modules** (736 fully translated, 87 with remaining dc.w — all data, not code)
 - **All SH2 functions** integrated (92 function IDs via 89 .inc files, zero remaining)
-- **Current accepted rate**: no branch-wide 1P FPS result is accepted. The original game-logic cadence remains about 20 Hz; older 40/45 FPS observations are historical experiments pending a valid baseline.
-- **60 Hz mechanism**: incomplete. V-INT/cadence experiments exist, but true 60 Hz still requires staged SH2 integration, a verified render bridge, authority transfer, collision wiring, and fixed-step scaling.
+- **Current accepted rate**: no branch-wide 1P FPS result is accepted. Original game-logic cadence remains about 20 Hz; older 40/45 FPS observations are historical.
+- **60 Hz mechanism**: incomplete. It still requires staged SH2 integration, a verified render bridge, authority transfer, collision wiring, and fixed-step scaling.
 - **Master SH2 commands**: 7 active ($00-$06) — all disassembled. See [SH2_COMMAND_HANDLER_REFERENCE.md](analysis/sh2-analysis/SH2_COMMAND_HANDLER_REFERENCE.md)
 
 ### 68K Game Architecture
@@ -261,9 +259,8 @@ python3 analyze_pc_profile.py profile.csv
 ```
 
 **Historical measurements** — racing-isolated run from 2026-06-17, scene `0x4CBC`.
-These numbers are retained for comparison but are not a current integration baseline: cmd
-`$3F` was not active in this 1P route, and the available later savestate is not a durable
-control. Use the rebuilt tooling, scene-isolate, and apply the validity gates in
+Retain for comparison only. cmd `$3F` was not active in this 1P route, and the later
+savestate is not a durable control. Apply the validity gates in
 [VRD_PROFILING.md](tools/libretro-profiling/VRD_PROFILING.md) before recording new budgets.
 
 | CPU | Useful/Frame | Note |
@@ -272,6 +269,6 @@ control. Use the rebuilt tooling, scene-isolate, and apply the validity gates in
 | Master SH2 | 158,977 | Historical total; old cmd `$3F` attribution is invalid |
 | Slave SH2 | 231,056 | ~80% util / ~60% useful render; busiest CPU |
 
-**Do not derive the next implementation step from these figures.** The current order is:
-durable control fixture, cmd `$3E` modes 0/1, mode 2, cmd `$3F` shadow execution, verified
-descriptor bridge, collision/equivalence, authority switch, and finally 60 Hz cadence/scaling.
+**Do not derive the next implementation step from these figures.** Follow the staged order in
+`VR60_STATUS.md`: durable baseline, `$3E`, `$3F` shadow mode, verified bridge, collision and
+equivalence, authority switch, then 60 Hz cadence/scaling.

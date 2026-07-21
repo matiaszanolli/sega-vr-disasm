@@ -284,7 +284,7 @@ call graphs and register analysis, see
 ### Slave SH2 Interleaving
 
 The Slave SH2 runs the 3D pipeline but also checks COMM7 between operations
-(at `inline_slave_drain`, SDRAM $020608). When `sh2_cmd_27` pixel work arrives,
+(at `inline_slave_drain`, runtime SDRAM `$06000608`, ROM image offset `$020608`). When `sh2_cmd_27` pixel work arrives,
 the Slave processes it between 3D pipeline stages, achieving 78% utilization.
 
 ---

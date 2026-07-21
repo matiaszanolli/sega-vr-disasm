@@ -1,14 +1,18 @@
 ; ============================================================================
-; State Dispatcher (5-Entry Jump Table + 6 Subroutines, Data Prefix)
+; Normal 1P Race State Dispatcher (5-Entry Jump Table + Data Prefix)
 ; ROM Range: $004CB8-$004D00 (72 bytes)
 ; ============================================================================
 ; Category: game
-; Purpose: Data prefix: 2 words ($A2A0, $A100) — RAM buffer addresses.
+; Purpose: Normal 1-player GP race dispatcher. Data prefix: 2 words
+;   ($A2A0, $A100) — RAM buffer addresses.
 ;   Dispatches via 5-entry longword jump table indexed by
 ;   state_dispatch_idx ($C87E). State 0 handler: calls VDPSyncSH2,
 ;   init ($0020D6), animation_update, frame_update ($00B02C),
 ;   sprite_setup ($00B632), sprite_input_check, advances state by 4,
 ;   writes $10 to SH2 COMM.
+;   State 8 reaches game_frame_orch_013 about once per three TV frames. The
+;   VR60 hook there currently enables cmd $3E modes 0/1 only; mode 2 and cmd
+;   $3F are disabled, so the 68000 remains authoritative.
 ;
 ; Uses: D0, D3, D7, A1, A2
 ; RAM:

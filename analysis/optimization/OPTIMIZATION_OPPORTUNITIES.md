@@ -484,7 +484,7 @@ Slave:
 
 **Better**: Use shared SDRAM buffers with flags:
 ```c
-// SDRAM 0x22000000
+// Cache-through SDRAM 0x26000000
 struct SharedWork {
     volatile uint32_t master_done;  // Flag
     volatile uint32_t slave_done;   // Flag
@@ -578,7 +578,7 @@ For optimization planning, here are the official wait states:
 | Write (FULL=1) | 5 | FIFO full, stalls |
 | Read | 6 | Always |
 
-**SDRAM (CS3: $02000000 / $22000000)**
+**SDRAM (CS3: `$06000000` / `$26000000`)**
 | Operation | Wait Clocks | Notes |
 |-----------|-------------|-------|
 | Longword Write | 2 | Single word |

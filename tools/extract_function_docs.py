@@ -385,6 +385,7 @@ def one_liner(entry: dict) -> str:
     d = entry.get("description_text", "").strip()
     if not d:
         d = "(no description)"
+    d = " ".join(d.split())
     # First sentence only
     m = re.match(r'^[^.!?]+[.!?]', d)
     if m:
@@ -404,8 +405,8 @@ def generate_master(entries: list) -> str:
     lines.append(f"**Total entries**: {len(entries)}\n")
     lines.append("\n")
     lines.append("> This document is auto-generated from module header comments.\n")
-    lines.append("> For SH2 3D engine deep analysis see `analysis/sh2-analysis/SH2_3D_FUNCTION_REFERENCE.md`.\n")
-    lines.append("> For frame-level execution flow see `analysis/SYSTEM_EXECUTION_FLOW.md`.\n")
+    lines.append("> For SH2 3D engine deep analysis see `sh2-analysis/SH2_3D_FUNCTION_REFERENCE.md`.\n")
+    lines.append("> For frame-level execution flow see `SYSTEM_EXECUTION_FLOW.md`.\n")
     lines.append("\n---\n\n")
     lines.append("## Table of Contents\n\n")
 
@@ -447,7 +448,9 @@ def generate_master(entries: list) -> str:
             else:
                 lines.append(f"### {name}\n\n")
 
-            desc = e.get("description_text", "").strip()
+            desc = "\n".join(
+                line.rstrip() for line in e.get("description_text", "").strip().splitlines()
+            )
             if desc:
                 lines.append(f"{desc}\n\n")
 
@@ -466,7 +469,7 @@ def generate_master(entries: list) -> str:
             if e["confidence"]:
                 lines.append(field_line("Confidence", e["confidence"]))
 
-            lines.append(f"*Source: [{e['filename']}]({e['filepath']})*\n\n")
+            lines.append(f"*Source: [{e['filename']}](../{e['filepath']})*\n\n")
             lines.append("---\n\n")
 
     return "".join(lines)
@@ -495,11 +498,11 @@ def generate_quick(entries: list) -> str:
         # Extra compact info
         extras = []
         if e["entry"]:
-            extras.append(f"in:{e['entry'][:60]}")
+            extras.append(f"in:{' '.join(e['entry'].split())[:60].rstrip()}")
         if e["uses"]:
-            extras.append(f"mod:{e['uses'][:40]}")
+            extras.append(f"mod:{' '.join(e['uses'].split())[:40].rstrip()}")
         if e["calls"]:
-            extras.append(f"calls:{e['calls'][:60]}")
+            extras.append(f"calls:{' '.join(e['calls'].split())[:60].rstrip()}")
 
         line = f"{addr}  {name:<48s}  [{cat}]\n"
         lines.append(line)

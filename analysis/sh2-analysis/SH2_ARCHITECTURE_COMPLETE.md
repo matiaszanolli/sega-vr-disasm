@@ -4,6 +4,10 @@
 **Analysis Status: COMPLETE**
 **Last Updated**: January 25, 2026 (v4.0 baseline established)
 
+> **2026-07-21 correction:** This historical reference used the wrong SH2 map.
+> `$020/$220` is cartridge ROM; `$060/$260` is SDRAM. The built `$2203E000`
+> parameter literal is invalid and the parallel path remains inactive/unvalidated.
+
 ## 📋 v4.0 STATUS: INFRASTRUCTURE READY, NOT YET ACTIVATED
 
 **Parallel processing infrastructure complete and ready for activation experiments.**
@@ -123,7 +127,7 @@ The Sega 32X features two Hitachi SH2 processors running at 23 MHz, responsible 
 **Infrastructure ready for activation**:
 - ✅ `slave_work_wrapper` at $02300200 - COMM7 polling loop
 - ✅ `vertex_transform_optimized` at $02300100 - Vertex transform with coord_transform inlined
-- ✅ Parameter block at $2203E000 - Cache-through SDRAM for coherency
+- ⚠ Parameter literal `$2203E000` is invalid cartridge-ROM alias (intended: `$2603E000`)
 - ⏳ **Not yet connected** - Requires Slave PC redirect + vertex_transform trampoline
 
 **Historical note** (2026-01-20): PicoDrive's `sh2_reset()` reads boot vectors incorrectly, but custom builds with memory mapping fixes can run 4MB ROMs correctly.
@@ -252,7 +256,7 @@ Frequency: Per pixel batch - CRITICAL BOTTLENECK
 ### Synchronization Protocol
 
 ```
-SDRAM Sync Buffer @ 0x22000400:
+SDRAM Sync Buffer @ 0x26000400 (cache-through):
 ┌──────────────────────────────────────────────────────────────┐
 │ Offset │ Field              │ Size  │ Purpose                │
 ├────────┼────────────────────┼───────┼────────────────────────┤
@@ -287,19 +291,20 @@ Magic Values:
 ├──────────────┬──────────────────────────────────────────────────────┤
 │ $00000000    │ Boot ROM (internal, 4KB)                             │
 ├──────────────┼──────────────────────────────────────────────────────┤
-│ $06000000    │ ROM (uncached) - Code execution                      │
+│ $02000000    │ Cartridge ROM (cached; $22000000 cache-through)      │
+│ $06000000    │ SDRAM (cached) - boot-loaded code/data               │
 │   $06000288  │   Master entry point                                 │
 │   $0622301C  │   3D engine (display_list_processor)                 │
 ├──────────────┼──────────────────────────────────────────────────────┤
-│ $20000000    │ ROM (cached) - Faster data access                    │
+│ $22000000    │ Cartridge ROM (cache-through)                        │
 │   $20004020  │   COMM0 register (68K communication)                 │
 │   $200040xx  │   VDP & system registers                             │
 ├──────────────┼──────────────────────────────────────────────────────┤
-│ $22000000    │ SDRAM (256KB) - Working memory                       │
-│   $22000400  │   Sync buffer (64 bytes)                             │
-│   $22001000  │   Polygon bounds index (3.2KB)                       │
-│   $22020000  │   Trace buffer (2KB, debug)                          │
-│   $22030000  │   Transform matrices, vertex buffers                 │
+│ $26000000    │ SDRAM (256KB, cache-through) - Working memory        │
+│   $26000400  │   Sync buffer (64 bytes)                             │
+│   $26001000  │   Polygon bounds index (3.2KB)                       │
+│   $26020000  │   Trace buffer (2KB, debug)                          │
+│   $26030000  │   Transform matrices, vertex buffers                 │
 ├──────────────┼──────────────────────────────────────────────────────┤
 │ $24000000    │ Frame Buffer 0 (128KB)                               │
 │ $24020000    │ Frame Buffer 1 (128KB)                               │
@@ -309,25 +314,25 @@ Magic Values:
 ### SDRAM Usage Map
 
 ```
-$22000000 +────────────────────+
+$26000000 +────────────────────+
           │ Reserved           │  1KB
-$22000400 +────────────────────+
+$26000400 +────────────────────+
           │ Sync Buffer        │  64 bytes
-$22000440 +────────────────────+
+$26000440 +────────────────────+
           │ Reserved           │  ~3KB
-$22001000 +────────────────────+
+$26001000 +────────────────────+
           │ Polygon Bounds     │  3.2KB (800 × 4 bytes)
           │ Index              │
-$22001C80 +────────────────────+
+$26001C80 +────────────────────+
           │ Reserved           │  ~114KB
-$22020000 +────────────────────+
+$26020000 +────────────────────+
           │ Trace Buffer       │  2KB (debug)
-$22020800 +────────────────────+
+$26020800 +────────────────────+
           │ Transform Matrices │  ~32KB
           │ Vertex Buffers     │  ~64KB
           │ Polygon Buffer     │  ~32KB
           │ Work Space         │  ~8KB
-$2203FFFF +────────────────────+
+$2603FFFF +────────────────────+
           Total: 256KB SDRAM
 ```
 
@@ -540,8 +545,8 @@ The SH2 3D engine in Virtua Racing Deluxe is a well-structured rendering pipelin
 - ✅ **slave_work_wrapper** at $300200: COMM7 polling loop ready for work dispatch
 - ⏳ **Not yet activated**: Current ROM uses original vertex_transform, Slave remains idle
 
-**Design ready for activation**:
-- Trampoline at vertex_transform entry ($0234C8) to capture parameters to $2203E000
+**Historical design, not ready for activation**:
+- Trampoline at vertex_transform entry ($0234C8) contains invalid `$2203E000` ROM-alias storage
 - Slave PC redirect to $02300200 for work polling
 - Expected 15-20% performance improvement from parallel processing
 

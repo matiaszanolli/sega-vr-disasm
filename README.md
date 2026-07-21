@@ -1,38 +1,42 @@
 **(NEW)** *Check my just completed dissassembly of **Aerobiz Supersonic** at* [https://github.com/matiaszanolli/aerobiz-disasm](https://github.com/matiaszanolli/aerobiz-disasm)
 
-# Virtua Racing Deluxe (32X) — Full Disassembly & 60 FPS Optimization
+# Virtua Racing Deluxe (32X) — Full Disassembly & 60 FPS Research
 
-**Status: 40 FPS achieved, 60 FPS one blocker away**
+**Status (2026-07-21): buildable reconstruction; 60 Hz redesign in integration and validation**
 
-A complete, buildable disassembly of Virtua Racing Deluxe for the Sega 32X with deep architectural understanding of the game's internals — now actively optimized to push the hardware to its limits. The original game runs at ~20 FPS; this project has doubled that to 40 FPS via camera interpolation and is one hardware constraint away from 60 FPS.
+A complete, buildable reconstruction of Virtua Racing Deluxe for the Sega 32X, with the original 68000 and SH2 code translated and organized for continued reverse engineering. The active branch is investigating a true 60 Hz redesign, but it does **not** currently have a validated 60 FPS—or validated 40 FPS—1-player result.
 
 > **Looking for the unmodified disassembly?** The byte-identical original code is preserved in the [`v5.0-freeze`](../../tree/v5.0-freeze) branch.
 
-## Current State (March 2026)
+## Current State (July 2026)
 
-```
-Display FPS:  ~40  (camera interpolation, stable frame pacing)
-Game logic:    20 FPS (unchanged — physics, AI, collision at original speed)
-Next target:   60 FPS (1 hardware blocker remaining)
+The original 68000 physics, AI, collision, and render-preparation path remains authoritative in normal 1-player racing. A valid 1P state-8 hook is installed and cmd `$3E` player/global staging is enabled, but its previous long-run framebuffer-hash validation was invalidated by a savestate that freezes independently of the VR60 code.
 
-CPU Utilization (40 FPS, profiled):
-  68000:       █████████░░░░░░░░░░░  48%   ← Idle 52% (STOP #$2300)
-  Master SH2:  ██████░░░░░░░░░░░░░░  0-36% ← Command router + block copies
-  Slave SH2:   ██████████████░░░░░░  73%   ← ALL 3D rendering (bottleneck)
-```
+| Component | Current 1P status |
+|---|---|
+| `state_disp_004cb8` / `game_frame_orch_013` hook | Active; exact trace confirms about 20 Hz |
+| cmd `$3E` entity + globals transfer | Enabled; needs a trustworthy full-run revalidation |
+| cmd `$3E` AI transfer | Disabled; unverified |
+| cmd `$3F` SH2 physics/AI game-frame path | Built but disabled in 1P |
+| SH2 collision | Built and reference-tested, not wired |
+| SH2-to-render bridge | Not established; old patcher is a verified no-op |
+| 68000 physics bypass | Disabled; legacy path remains authoritative |
+| Current display/game rate | No accepted branch-wide FPS result yet |
 
-### What's Working
+See [VR60_STATUS.md](VR60_STATUS.md) for the canonical status, acceptance definition, and immediate validation gate. The detailed investigation history remains in [VR60_ROADMAP.md](VR60_ROADMAP.md).
 
-- **40 FPS display** via camera interpolation — game logic at 20 FPS, display at 40 FPS by rendering 2 interpolated camera frames per game tick. Zero physics changes.
-- **Complete architectural understanding** — 68K scene handlers, V-INT dispatch, dual SH2 dispatch, COMM protocol, rendering pipeline, all documented
-- **SH2 coord_transform inlined** (S-6) — ~5% Slave reduction, 4 call sites relocated to expansion ROM
-- **Command protocol optimized** (B-003/B-004/B-005) — 64% overhead reduction
-- **823 68K modules** fully organized, 736 translated to mnemonics
-- **All 92 SH2 functions** integrated and documented
+### What is solid
 
-### What's Next: 60 FPS
+- The unmodified `v5.0-freeze` baseline remains byte-identical to the original ROM.
+- The buildable disassembly/reconstruction covers the game ROM, SH2 programs, data, and the branch's expansion-ROM work.
+- 1P and 2P racing dispatch are now distinguished correctly: `state_disp_004cb8` is the normal 1P route; `state_disp_005020` is the 2P split-screen route.
+- The 1P state-8 hook point was confirmed with exact caller tracing, avoiding the earlier truncated-histogram false negative.
+- SH2 physics, AI, and collision ports exist, but their presence in the ROM is no longer presented as proof that they execute or control gameplay.
+- The per-frame Slave renderer consumes the C128/C178/C254 descriptor families; the older C218 bridge target was wrong.
 
-**One blocker remains:** Frame buffer swap (FS bit) writes outside VBlank are deferred by hardware. A swap-only V-INT handler (~30 bytes) is needed to perform FS toggles during VBlank for the interpolated frames. The V-INT dispatch table has 4 unused slots available. Design is ready in [VINT_HANDLER_ARCHITECTURE.md](analysis/VINT_HANDLER_ARCHITECTURE.md) §6.
+### Next milestone
+
+Establish a clean, repeatable 1P fixture in which `$C87E` keeps cycling for the entire run with the VR60 hook bypassed. Then re-enable and observe one stage at a time: cmd `$3E` modes 0/1, AI transfer, cmd `$3F` in shadow mode, the real render bridge, and finally subsystem authority changes. Logic-cadence and fixed-step scaling work comes only after that integration is correct.
 
 ## How It Works
 
@@ -50,24 +54,27 @@ The game uses a **two-level dispatch** system:
 
 Master and Slave SH2 have **completely independent dispatch loops** polling different COMM registers:
 
-| CPU | Polls | Role | Utilization |
+| CPU | Polls | Role | Profiling status |
 |-----|-------|------|-------------|
-| **Master** | COMM0_HI | Game commands: block copies, scene init, DMA | 0-36% |
-| **Slave** | COMM2_HI | **ALL 3D rendering** via dual pipeline | ~73% |
+| **Master** | COMM0_HI | Game commands: block copies, scene init, DMA | Re-profile after the validation gate |
+| **Slave** | COMM2_HI | **ALL 3D rendering** via dual pipeline | Re-profile after the validation gate |
 
 No direct cross-trigger. The 68K submits to each independently. COMM7 is an async doorbell for pixel work.
 
-**Slave rendering pipeline** (the bottleneck):
+**Slave rendering pipeline:**
 - **Pipeline 1:** On-chip SRAM ($C0000000, 1748 bytes). Self-contained, zero wait states, 36 entities/frame. Untouchable.
-- **Pipeline 2:** SDRAM cache. coord_transform (12%), frustum_cull (12%), span_filler (8%). This is the optimization target.
+- **Pipeline 2:** SDRAM cache. Historical profiles identified coord transform, frustum cull,
+  and span filling as hotspots; current percentages require a fresh baseline.
 
-### Camera Interpolation (A-1)
+### Historical Camera-Interpolation Experiment (A-1)
+
+The March 2026 work attempted to decouple display cadence from the 20 Hz game tick using the following sequence. It is retained as design history, not as the current branch's validated 1P status: the hook was placed in `state_disp_005020`, now known to be the 2-player dispatcher.
 
 ```
 State 0 (TV1): Snapshot camera → DMA to SH2 → SH2 renders frame A
 State 4 (TV2): Block-copy A → swap → interpolate camera → re-DMA → SH2 renders frame B
 State 8 (TV3): Existing swap displays frame B
-Result: 2 swaps / 3 TV frames = 40 FPS display, 20 FPS game logic
+Intended result: 2 swaps / 3 TV frames = 40 FPS display, 20 FPS game logic
 ```
 
 ## Quick Start
@@ -79,7 +86,7 @@ make all
 # Test in emulator (PicoDrive only — BlastEm has no 32X support)
 picodrive build/vr_rebuild.32x
 
-# Profile (30 seconds, headless)
+# Generic headless smoke only; --autoplay parks in scene $5586 and is NOT 1P GP acceptance
 cd tools/libretro-profiling
 ./profiling_frontend ../../build/vr_rebuild.32x 1800 --autoplay
 ```
@@ -105,7 +112,7 @@ cd tools/libretro-profiling
 │   ├── VINT_HANDLER_ARCHITECTURE.md      # V-INT dispatch table, frame swap, R-002 design
 │   ├── SLAVE_SH2_DISPATCH_ARCHITECTURE.md # Dual SH2 dispatch, pipelines
 │   ├── GAME_MODE_TRANSITIONS.md          # Boot→menu→racing→results flow
-│   ├── MASTER_FUNCTION_REFERENCE.md      # 799+ named functions (auto-generated)
+│   ├── MASTER_FUNCTION_REFERENCE.md      # complete named-entry catalog (auto-generated)
 │   ├── sh2-analysis/                     # SH2 command handlers, 3D engine, rendering
 │   ├── architecture/                     # Memory maps, registers, state machines
 │   └── optimization/                     # Optimization research & designs
@@ -128,25 +135,26 @@ cd tools/libretro-profiling
 Address Range    Size      Contents
 ──────────────────────────────────────────
 $000000-$2FFFFF  3.0 MB    Game Code (68K + SH2)
-$300000-$3FFFFF  1.0 MB    SH2 Expansion Space (~2.5KB used, 99.8% free)
+$300000-$3FFFFF  1.0 MB    SH2 Expansion Space (~15KB used by code/data)
 ──────────────────────────────────────────
 Total            4.0 MB    Full Cartridge
 ```
 
-The expansion space contains optimized SH2 handlers: inlined coord_transform (S-6), single-shot command protocols (B-004/B-005), and async infrastructure.
+The expansion space contains optimized SH2 handlers, command-protocol work, VR60
+physics/AI/collision ports, and diagnostic infrastructure. Most VR60 modules are built but
+dormant in normal 1P.
 
 ## Key Architectural Findings
 
 | Finding | Evidence | Impact |
 |---------|----------|--------|
-| Slave SH2 is the true bottleneck | 73% utilization, ~300K cycles/frame | All optimization must target Slave |
-| 68K has 52% idle time | STOP #$2300, 48% active work | 68K is NOT the bottleneck anymore |
-| Camera interpolation works | 40 FPS achieved (A-1, commit b6bd487) | Display FPS decoupled from game logic |
+| 1P state-8 hook is real | Exact caller trace, approximately once per 3 TV frames | Valid integration point for staged experiments |
+| 2P and 1P use different dispatchers | Static routing plus live `$FF0002` watches | Results from `state_disp_005020` cannot be claimed for normal 1P |
+| Historical profiling needs re-baselining | cmd `$3F` was not active in the measured 1P route; current savestate later freezes independently | Do not reuse old CPU/FPS attribution as a current baseline |
 | $C8A8 = $0102 always (cmd $02) | Verified fall-through analysis | Per-frame DMA is always scene orchestrator |
-| Entity descriptors unused during racing | 4 independent profiling tests (S-1d) | LOD culling at $0600C344 is a dead end |
+| Racing descriptor inputs are C128/C178/C254 families | Decoded cmd `$02` handler literal pool and entity loop | C218 bridge specification is superseded |
 | On-chip SRAM pipeline is untouchable | 1748B, zero external calls | Only Pipeline 2 (SDRAM) is optimizable |
-| V-INT table has 4 unused slots | $0040, $0048, $004C, $0050 | Swap-only handler can use any of these |
-| Master SH2 is underutilized | 0-36%, mostly idle | Available for vertex transform offload (S-8) |
+| Master SH2 offload code is not yet authoritative | cmd `$3F` disabled in 1P; 68000 bypass disabled | Prove data ownership and render consumption before cadence changes |
 
 ## Documentation
 
@@ -156,7 +164,7 @@ The expansion space contains optimized SH2 handlers: inlined coord_transform (S-
 | [SCENE_HANDLER_ARCHITECTURE.md](analysis/SCENE_HANDLER_ARCHITECTURE.md) | 68K scene dispatch, handler chain, $C8A8 lifecycle, Phase B crash analysis |
 | [VINT_HANDLER_ARCHITECTURE.md](analysis/VINT_HANDLER_ARCHITECTURE.md) | V-INT dispatch table (16+ entries), frame swap mechanism, R-002 60 FPS design |
 | [SLAVE_SH2_DISPATCH_ARCHITECTURE.md](analysis/SLAVE_SH2_DISPATCH_ARCHITECTURE.md) | Dual SH2 dispatch, Slave command routing, pipeline sequencing |
-| [GAME_MODE_TRANSITIONS.md](analysis/GAME_MODE_TRANSITIONS.md) | Boot→menu→racing flow, $C8A8 correction, safe intervention points |
+| [GAME_MODE_TRANSITIONS.md](analysis/GAME_MODE_TRANSITIONS.md) | Boot→menu→racing flow, $C8A8 correction, historical interpolation cautions |
 | [SH2_COMMAND_HANDLER_REFERENCE.md](analysis/sh2-analysis/SH2_COMMAND_HANDLER_REFERENCE.md) | All 7 Master SH2 command handlers decoded |
 | [SYSTEM_EXECUTION_FLOW.md](analysis/SYSTEM_EXECUTION_FLOW.md) | Per-frame execution with cycle budgets |
 | [RENDERING_PIPELINE.md](analysis/RENDERING_PIPELINE.md) | End-to-end rendering flow |
@@ -166,7 +174,7 @@ The expansion space contains optimized SH2 handlers: inlined coord_transform (S-
 |----------|---------------|
 | [SH2_3D_ENGINE_DEEP_DIVE.md](analysis/sh2-analysis/SH2_3D_ENGINE_DEEP_DIVE.md) | 3D algorithms: frustum cull, span filler, coord transform |
 | [SH2_RENDERING_ARCHITECTURE.md](analysis/sh2-analysis/SH2_RENDERING_ARCHITECTURE.md) | Dual pipeline (SRAM + SDRAM), entity batching |
-| [MASTER_FUNCTION_REFERENCE.md](analysis/MASTER_FUNCTION_REFERENCE.md) | 799+ named functions (auto-generated) |
+| [MASTER_FUNCTION_REFERENCE.md](analysis/MASTER_FUNCTION_REFERENCE.md) | Complete named-entry catalog (auto-generated; current count in file) |
 | [68K_SH2_COMMUNICATION.md](analysis/68K_SH2_COMMUNICATION.md) | COMM protocol, B-003/B-004/B-005 designs |
 | [COMM_REGISTERS_HARDWARE_ANALYSIS.md](analysis/COMM_REGISTERS_HARDWARE_ANALYSIS.md) | Hardware hazards, handshake patterns |
 
@@ -185,8 +193,9 @@ The expansion space contains optimized SH2 handlers: inlined coord_transform (S-
 | Document | What It Covers |
 |----------|---------------|
 | [BACKLOG.md](BACKLOG.md) | Prioritized task queue |
+| [VR60_STATUS.md](VR60_STATUS.md) | Canonical current status and validation gate |
 | [KNOWN_ISSUES.md](KNOWN_ISSUES.md) | Pitfalls, hardware hazards, abandoned approaches |
-| [OPTIMIZATION_PLAN.md](OPTIMIZATION_PLAN.md) | Strategic roadmap (Phases 1-3) |
+| [OPTIMIZATION_PLAN.md](OPTIMIZATION_PLAN.md) | Archived March 2026 strategy and experiment history |
 | [CLAUDE.md](CLAUDE.md) | Agent briefing, ground rules, build instructions |
 
 ## Requirements
@@ -207,13 +216,13 @@ You must provide your own legal ROM dump:
 |-----------|---------|
 | Platform | Sega 32X (Mega Drive add-on) |
 | 68000 CPU | 7.67 MHz — game logic, scene management, SH2 coordination |
-| Master SH2 | 23.01 MHz — command dispatch, block copies (0-36% util) |
-| Slave SH2 | 23.01 MHz — ALL 3D rendering, dual pipeline (73% util, bottleneck) |
+| Master SH2 | 23.01 MHz — command dispatch and block copies; current budget pending re-profile |
+| Slave SH2 | 23.01 MHz — all 3D rendering through dual pipelines; current budget pending re-profile |
 | Z80 CPU | Sound processing |
 | ROM Size | 4 MB with 1 MB expansion space |
-| Original FPS | ~20 (blocking sync, conservative design) |
-| Current FPS | **~40** (camera interpolation, A-1) |
-| Next Target | **60 FPS** (swap-only V-INT handler, R-002) |
+| Original FPS | ~20 (dispatcher cadence and conservative scheduling) |
+| Current FPS | **Not yet accepted for this branch**; original logic cadence is ~20 Hz |
+| Next Target | **Validated 1P baseline and staged SH2 integration**, then true 60 Hz logic/display |
 
 ## Support
 

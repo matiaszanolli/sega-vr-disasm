@@ -1,5 +1,10 @@
 # VR60 Dispatcher Routing — why the SH2 pipeline is inert, and where it must go
 
+> **Implementation follow-up (2026-07-21):** The recommended 1P state-8 hook has since been
+> installed and exact caller tracing confirms it recurs at about 20 Hz. cmd `$3E` modes 0/1
+> are enabled there but await a trustworthy long run; mode 2, cmd `$3F`, and the 68000 bypass
+> are disabled. See `../VR60_STATUS.md` and `VR60_PHASE1_CMD3E_ACK_HANG.md` §22.
+
 **Date:** 2026-07-06
 **Role:** Worker, read-only research. No asm/source/Makefile modified.
 **Follows:** `analysis/VR60_IMPLEMENTATION_AUDIT.md` (2026-06-18). This doc answers its

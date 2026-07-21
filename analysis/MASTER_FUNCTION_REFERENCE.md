@@ -1,11 +1,11 @@
 # Master Function Reference
 **Virtua Racing Deluxe — Complete 68K + SH2 Function Catalog**
 **Generated from**: `tools/extract_function_docs.py`
-**Total entries**: 806
+**Total entries**: 825
 
 > This document is auto-generated from module header comments.
-> For SH2 3D engine deep analysis see `analysis/sh2-analysis/SH2_3D_FUNCTION_REFERENCE.md`.
-> For frame-level execution flow see `analysis/SYSTEM_EXECUTION_FLOW.md`.
+> For SH2 3D engine deep analysis see `sh2-analysis/SH2_3D_FUNCTION_REFERENCE.md`.
+> For frame-level execution flow see `SYSTEM_EXECUTION_FLOW.md`.
 
 ---
 
@@ -23,7 +23,7 @@
 - [Game / Menu](#game--menu) (115 functions)
 - [Game / Physics](#game--physics) (51 functions)
 - [Game / Race](#game--race) (50 functions)
-- [Game / Render](#game--render) (82 functions)
+- [Game / Render](#game--render) (83 functions)
 - [Game / Scene](#game--scene) (53 functions)
 - [Game / Sound](#game--sound) (67 functions)
 - [Game / State](#game--state) (102 functions)
@@ -35,12 +35,12 @@
 - [Math](#math) (9 functions)
 - [Memory](#memory) (7 functions)
 - [Object](#object) (11 functions)
-- [Optimization](#optimization) (1 functions)
-- [Sh2](#sh2) (8 functions)
+- [Optimization](#optimization) (2 functions)
+- [Sh2](#sh2) (22 functions)
 - [Sound](#sound) (27 functions)
 - [Util](#util) (7 functions)
 - [Vdp](#vdp) (15 functions)
-- [Vint](#vint) (1 functions)
+- [Vint](#vint) (4 functions)
 
 ---
 
@@ -50,7 +50,7 @@
 
 Contains 68000 exception vectors and SEGA standard header. Pure dc.w for byte-perfect ROM rebuild. Critical Vectors: $000000-$000003: Initial SSP (Stack Pointer) = $01000000 $000004-$000007: Reset Vector (Initial PC) = $000003F0 $000078-$00007B: V-INT Handler = $00001684 $000072-$000073: H-INT Handler = $0000170A ROM Header ($000100-$0001FF): Console: "SEGA 32X U" Title: "(C)SEGA 1994.SEP" Domestic: "V.R.DX" Overseas: "V.R.DX" Serial: "GM MK-84601-00" Region: "U" (USA) Dependencies: None (this is the entry point)
 
-*Source: [rom_header.asm](disasm/modules/68k/boot/rom_header.asm)*
+*Source: [rom_header.asm](../disasm/modules/68k/boot/rom_header.asm)*
 
 ---
 
@@ -58,7 +58,7 @@ Contains 68000 exception vectors and SEGA standard header. Pure dc.w for byte-pe
 
 63 JMP abs.l entries ($4EF9 + 32-bit address) that redirect exception vectors to their actual handlers in the main code region ($0088xxxx). Most point to $00880832 (generic exception handler); notable exceptions: $0002A2 → $0088170A (Level 6 V-INT handler) $0002AE → $00881684 (Level 4 H-INT handler) Followed by 35 NOPs ($4E71) padding $00037A-$0003BE.
 
-*Source: [exception_vector_trampolines.asm](disasm/modules/68k/boot/exception_vector_trampolines.asm)*
+*Source: [exception_vector_trampolines.asm](../disasm/modules/68k/boot/exception_vector_trampolines.asm)*
 
 ---
 
@@ -66,7 +66,7 @@ Contains 68000 exception vectors and SEGA standard header. Pure dc.w for byte-pe
 
 Contains the MARS adapter initialization sequence: $0003C0-$0003CF: "MARS CHECK MODE " identification string $0003D0-$0003EF: 32X boot parameters (stack pointers, SH2 entry points) $0003F0-$0004D3: 68K-side adapter boot code (register setup, MARS handshake, VDP init, Z80 program load, jump to main) $0004D4-$0004E7: VDP register initialization data table (20 bytes) $0004E8-$000511: Z80 program data (42 bytes, loaded into Z80 RAM) WARNING: The MARS CHECK string at $0003C0 is verified by the 32X hardware during boot. Do not modify the first 16 bytes.
 
-*Source: [adapter_boot_entry.asm](disasm/modules/68k/boot/adapter_boot_entry.asm)*
+*Source: [adapter_boot_entry.asm](../disasm/modules/68k/boot/adapter_boot_entry.asm)*
 
 ---
 
@@ -75,22 +75,22 @@ Contains the MARS adapter initialization sequence: $0003C0-$0003CF: "MARS CHECK 
 Initializes the 32X adapter hardware after ROM entry point. This includes: - Setting up the adapter control register at $A15100 - Configuring VDP access mode - Establishing communication registers with SH2 processors - Setting up interrupt vectors for 32X mode $A15100 - Adapter control register (FM/CART enable, reset control) Bit 0: FM (enable 32X mode) Bit 1: CART (enable 32X ROM access) Bit 7: ADEN (adapter enable) $A15104 - Interrupt mask register $A1512C - COMM6 (SH2 ready/handshake flag) After adapter_init: $000000-$3FFFFF = Cartridge ROM (via 32X) $880000-$8FFFFF = Cartridge ROM (68K direct, same as $000000-$07FFFF) $A00000-$A0FFFF = Z80 area $A10000-$A1001F = I/O ports $A15100-$A1512F = 32X registers $C00000-$C0001F = VDP $FF0000-$FFFFFF = Work RAM 1. Check adapter presence (bit test at $A15101) 2. If not in 32X mode, loop waiting for FM enable 3. Configure VDP for 32X compatibility 4. Set up communication registers 5. Initialize interrupt vectors 6. Jump to main initialization Dependencies: None (first code to run after reset) Related: ROM header ($000100-$0001FF), entry_point ($000200) Format: Proper mnemonics with original bytes in comments for verification
 
 - **Entry**: Called from entry_point ($000200) via JMP $00880838 (after 32X address remap)
-*Source: [adapter_init.asm](disasm/modules/68k/boot/adapter_init.asm)*
+*Source: [adapter_init.asm](../disasm/modules/68k/boot/adapter_init.asm)*
 
 ---
 
 ### Init Sequence
 
-*Source: [init_sequence.asm](disasm/modules/68k/boot/init_sequence.asm)*
+*Source: [init_sequence.asm](../disasm/modules/68k/boot/init_sequence.asm)*
 
 ---
 
 ### Ring Buffer Initialization ($TBD)
 
-Initializes the async command queue ring buffer in SDRAM. Must be called during boot after SDRAM is available. RING BUFFER LAYOUT (Cache-Through SDRAM) $2203F000-$2203F1FF: Ring buffer entries (64 × 8 bytes = 512 bytes) $2203F200: Head pointer (32-bit, 68K write index) $2203F204: Tail pointer (32-bit, Master SH2 read index) Each entry format: [cmd:16][param1:16][param2:16][param3:16] = 8 bytes CALLING CONVENTION Called from: adapter_init (after SH2 ready signal) Parameters: None CRITICAL This MUST be called before any async command submission. Both CPUs rely on head/tail pointers being zero at startup. Related: sh2_send_cmd_async, cmdint_handler, queue_processor
+ACTIVE LEGACY NO-OP / INVALID DESIGN. adapter_init still calls this routine for byte identity, but the 68000 cannot address SH2 SDRAM and $2203Fxxx is a cartridge-ROM alias. These CLR writes do not initialize a shared queue. HISTORICAL INVALID RING BUFFER LAYOUT $2203F000-$2203F1FF: Ring buffer entries (64 × 8 bytes = 512 bytes) $2203F200: Head pointer (32-bit, 68K write index) $2203F204: Tail pointer (32-bit, Master SH2 read index) Each entry format: [cmd:16][param1:16][param2:16][param3:16] = 8 bytes CALLING CONVENTION Called from: adapter_init (after SH2 ready signal) Parameters: None CRITICAL Do not mistake the existing boot call for working initialization. A future queue needs DREQ/COMM-based producer transport; changing the literal to $2603F200 would still not make it writable by the 68000. Related: sh2_send_cmd_async, cmdint_handler, queue_processor
 
 - **Returns**: Nothing Clobbers: A0
-*Source: [ring_buffer_init.asm](disasm/modules/68k/boot/ring_buffer_init.asm)*
+*Source: [ring_buffer_init.asm](../disasm/modules/68k/boot/ring_buffer_init.asm)*
 
 ---
 
@@ -102,7 +102,7 @@ Sets display mode flag at $8507 to $01.
 
 - **Entry**: none
 - **Modifies**: none
-*Source: [set_flag_8507_01.asm](disasm/modules/68k/display/set_flag_8507_01.asm)*
+*Source: [set_flag_8507_01.asm](../disasm/modules/68k/display/set_flag_8507_01.asm)*
 
 ---
 
@@ -112,7 +112,7 @@ Sets display mode flag at $8507 to $80.
 
 - **Entry**: none
 - **Modifies**: none
-*Source: [set_flag_8507_80.asm](disasm/modules/68k/display/set_flag_8507_80.asm)*
+*Source: [set_flag_8507_80.asm](../disasm/modules/68k/display/set_flag_8507_80.asm)*
 
 ---
 
@@ -120,7 +120,7 @@ Sets display mode flag at $8507 to $80.
 
 Core VDP (Video Display Processor) functions for 32X frame buffer management, palette operations, and SH2 synchronization via COMM ports and FIFO. Functions: - VDPFill: Auto-fill 16 blocks using MARS VDP fill hardware - VDPPrep: Prepare VDP registers for fill operation - VDPOp4: Copy palette data to VDP palette RAM (32 iterations) - MemoryOp3: Copy data to COMM port area (8 iterations) - PaletteRAMCopy: V-INT state 6 palette RAM copy with COMM sync - VDPSyncSH2: Synchronize with SH2 via COMM ports, transfer data via FIFO Hardware Used: - MARS_VDP_FILLADR: VDP auto-fill start address register - MARS_VDP_FILLDATA: VDP auto-fill data register - MARS_DREQ_LEN: DMA request length - MARS_FIFO: FIFO data register for 68K<->SH2 transfer - MARS_SYS_BASE: 32X system register base - COMM ports: Communication with SH2 CPUs Dependencies: modules/shared/definitions.asm (hardware register equates) Originally at $0027F8-$002982 in sections/code_2200.asm
 
-*Source: [vdp_operations.asm](disasm/modules/68k/display/vdp_operations.asm)*
+*Source: [vdp_operations.asm](../disasm/modules/68k/display/vdp_operations.asm)*
 
 ---
 
@@ -130,7 +130,7 @@ In 2-player mode, adds $40 vertical offset to camera position.
 
 - **Entry**: none
 - **Modifies**: none (only modifies memory)
-*Source: [camera_offset_check.asm](disasm/modules/68k/display/camera_offset_check.asm)*
+*Source: [camera_offset_check.asm](../disasm/modules/68k/display/camera_offset_check.asm)*
 
 ---
 
@@ -140,7 +140,7 @@ Updates scroll animation on sprite at $FF6754. Increments scroll counter, update
 
 - **Entry**: none
 - **Modifies**: D0, A2
-*Source: [scroll_update.asm](disasm/modules/68k/display/scroll_update.asm)*
+*Source: [scroll_update.asm](../disasm/modules/68k/display/scroll_update.asm)*
 
 ---
 
@@ -150,7 +150,7 @@ Performs palette fade-out by subtracting 30 from 8 palette entries (spaced 16 by
 
 - **Entry**: none
 - **Modifies**: D0, A2
-*Source: [fade_subtract_array.asm](disasm/modules/68k/display/fade_subtract_array.asm)*
+*Source: [fade_subtract_array.asm](../disasm/modules/68k/display/fade_subtract_array.asm)*
 
 ---
 
@@ -160,7 +160,7 @@ Sets effect code $AB and disables sprite at $FF6940.
 
 - **Entry**: none
 - **Modifies**: none
-*Source: [set_flag_clear_sprite.asm](disasm/modules/68k/display/set_flag_clear_sprite.asm)*
+*Source: [set_flag_clear_sprite.asm](../disasm/modules/68k/display/set_flag_clear_sprite.asm)*
 
 ---
 
@@ -170,7 +170,7 @@ Scrolls sprite upward by 10/frame, clamping at Y=230. Advances state when limit 
 
 - **Entry**: A0 = entity
 - **Modifies**: A2
-*Source: [scroll_limit_update.asm](disasm/modules/68k/display/scroll_limit_update.asm)*
+*Source: [scroll_limit_update.asm](../disasm/modules/68k/display/scroll_limit_update.asm)*
 
 ---
 
@@ -180,7 +180,7 @@ Sets sprite visibility at $FF69E0 based on bit 2 of $C8AB. If flag set: hidden (
 
 - **Entry**: none
 - **Modifies**: D0
-*Source: [visibility_flag_set.asm](disasm/modules/68k/display/visibility_flag_set.asm)*
+*Source: [visibility_flag_set.asm](../disasm/modules/68k/display/visibility_flag_set.asm)*
 
 ---
 
@@ -188,7 +188,7 @@ Sets sprite visibility at $FF69E0 based on bit 2 of $C8AB. If flag set: hidden (
 
 Functions for managing scroll position variables, display limits, and V-blank synchronization. Used to reset/initialize viewport parameters between screens or race restarts. MEMORY | Address | Name         | Purpose                      | |---------|--------------|------------------------------| | $C86C   | SCROLL_VAR1  | Scroll variable 1 (word)     | | $C86E   | SCROLL_VAR2  | Scroll variable 2 (word)     | | $C87A   | VBLANK_FLAG  | V-blank wait flag (word)     | | $C970   | SCROLL_LIMIT1| Scroll limit 1 (long)        | | $C974   | SCROLL_LIMIT2| Scroll limit 2 (long)        | Dependencies: V-INT handler clears VBLANK_FLAG Related: camera.asm, vdp_operations.asm, vint_handler.asm Format: Proper mnemonics with original bytes in comments for verification
 
-*Source: [scroll.asm](disasm/modules/68k/display/scroll.asm)*
+*Source: [scroll.asm](../disasm/modules/68k/display/scroll.asm)*
 
 ---
 
@@ -198,7 +198,7 @@ Advances sub-state counter by 4 and sets display viewport size.
 
 - **Entry**: none
 - **Modifies**: none
-*Source: [counter_inc_display.asm](disasm/modules/68k/display/counter_inc_display.asm)*
+*Source: [counter_inc_display.asm](../disasm/modules/68k/display/counter_inc_display.asm)*
 
 ---
 
@@ -208,7 +208,7 @@ Initializes palette table regions. Sets up A0=$84A2, A1=$84C2, A2=$84E2, clears 
 
 - **Entry**: D0 = table selector (0=A, nonzero=B)
 - **Modifies**: D0, D1, D2, A0-A3
-*Source: [palette_table_init.asm](disasm/modules/68k/display/palette_table_init.asm)*
+*Source: [palette_table_init.asm](../disasm/modules/68k/display/palette_table_init.asm)*
 
 ---
 
@@ -218,17 +218,17 @@ Initializes palette table regions. Sets up A0=$84A2, A1=$84C2, A2=$84E2, clears 
 
 Functions for frame synchronization between 68K and SH2, plus related communication variable management. Used at frame boundaries. MEMORY MAP | Address    | Name              | Purpose                       | |------------|-------------------|-------------------------------| | $FFFFC822  | COMM_FLAG_LO      | Communication flag (low byte) | | $FFFFC823  | COMM_FLAG_HI      | Communication flag (high byte)| | $FFFFC8A2  | COMM_STATUS       | Communication status word     | | $FFFFC8A4  | COMM_DATA         | Communication data word/long  | | $FFFF8504  | SOUND_PORT_A      | Z80 sound port A              | | $FFFF8506  | SOUND_PORT_B      | Z80 sound port B              | Dependencies: V-INT handler, SH2 communication Related: sh2_communication.asm, vint_handler.asm Format: Proper mnemonics with original bytes in comments for verification
 
-*Source: [frame_sync.asm](disasm/modules/68k/frame/frame_sync.asm)*
+*Source: [frame_sync.asm](../disasm/modules/68k/frame/frame_sync.asm)*
 
 ---
 
 ### Wait For V-Blank ($004998–$0049AA, 18 bytes)
 
-Waits for V-blank by setting flag and spinning until V-INT clears it. Lowers interrupt priority to level 3 to allow V-INT.
+Waits for V-blank by setting VINT_STATE and halting the 68K with STOP. V-INT (level 6) will wake the CPU since STOP sets SR to level 3. The V-INT handler clears VINT_STATE before returning via RTE.
 
 - **Entry**: none
-- **Modifies**: SR (temporarily set to $2300)
-*Source: [wait_for_vblank.asm](disasm/modules/68k/frame/wait_for_vblank.asm)*
+- **Modifies**: SR (set to $2300 by STOP, then restored by V-INT's RTE)
+*Source: [wait_for_vblank.asm](../disasm/modules/68k/frame/wait_for_vblank.asm)*
 
 ---
 
@@ -241,7 +241,7 @@ Steering Calculation Register-Safe Wrapper Saves all 15 registers (D0-D7/A0-A6) 
 - **Entry**: A0 = entity base pointer (passed through to calc_steering)
 - **Modifies**: (all preserved)
 - **Confidence**: high
-*Source: [steering_calc_reg_safe_wrapper.asm](disasm/modules/68k/game/ai/steering_calc_reg_safe_wrapper.asm)*
+*Source: [steering_calc_reg_safe_wrapper.asm](../disasm/modules/68k/game/ai/steering_calc_reg_safe_wrapper.asm)*
 
 ---
 
@@ -254,7 +254,7 @@ Calculates steering angle from position delta + cosine lookup Calls ai_steering_
 - **Calls**: $00A7A0: ai_steering_calc $008F4E: cosine_lookup $00A7A4: ai_angle_finalize Object fields (A0): +$30: x_position +$32: z_position +$34: y_position
 - **RAM**: $C0BA: waypoint_x $C0BC: waypoint_z $C0BE: waypoint_y $C0C0: steering_angle $C0C2: angle_temp
 - **Confidence**: medium
-*Source: [ai_steering_angle_calc_026.asm](disasm/modules/68k/game/ai/ai_steering_angle_calc_026.asm)*
+*Source: [ai_steering_angle_calc_026.asm](../disasm/modules/68k/game/ai/ai_steering_angle_calc_026.asm)*
 
 ---
 
@@ -267,7 +267,7 @@ Calculates relative angle between viewport and object position, subtracts quarte
 - **Calls**: $00A7A0: ai_steering_calc (D0=refX, D1=refY, D2=objX, D3=objY → D0=angle)
 - **RAM**: $C0BA: viewport X reference (word) $C0BE: viewport Y reference (word) $C0C2: calculated heading result (word)
 - **Object fields**: +$30: x_position (word) +$34: y_position (word)
-*Source: [ai_steering_calc_negate.asm](disasm/modules/68k/game/ai/ai_steering_calc_negate.asm)*
+*Source: [ai_steering_calc_negate.asm](../disasm/modules/68k/game/ai/ai_steering_calc_negate.asm)*
 
 ---
 
@@ -278,7 +278,7 @@ Computes AI steering angle: loads target position ($C0BA/$C0BE), calls ai_steeri
 - **Modifies**: D0, D1, D2, D3, A0
 - **Calls**: $008F4E: cosine_lookup $00A7A0: ai_steering_calc Object (A0): +$30: x_position (word) +$34: y_position (word)
 - **RAM**: $C0BA: target_x (word) $C0BE: target_y (word) $C0C6: forward_distance (word)
-*Source: [ai_steering_angle_distance_calc.asm](disasm/modules/68k/game/ai/ai_steering_angle_distance_calc.asm)*
+*Source: [ai_steering_angle_distance_calc.asm](../disasm/modules/68k/game/ai/ai_steering_angle_distance_calc.asm)*
 
 ---
 
@@ -289,7 +289,7 @@ Dispatches via 3-entry jump table indexed by race_substate_b. State 0 handler: a
 - **Entry**: A0 = object pointer (+$4C, +$62, +$88, +$92, +$94, +$96)
 - **Modifies**: D0, D1, D4, A0, A1, A2
 - **RAM**: $C8CC: race_substate_b (jump table index: 0/4/8)
-*Source: [suspension_steering_damping.asm](disasm/modules/68k/game/ai/suspension_steering_damping.asm)*
+*Source: [suspension_steering_damping.asm](../disasm/modules/68k/game/ai/suspension_steering_damping.asm)*
 
 ---
 
@@ -300,7 +300,7 @@ Conditionally activates AI opponent targeting based on game mode, entity speed c
 - **Entry**: A0 = object/entity pointer
 - **Modifies**: D0 Fields accessed: A0+$04: Speed table index A0+$86: AI cooldown timer (set to 15 when triggered) A0+$BE: Opponent category flag (0=normal, 1=high-speed)
 - **RAM**: ($C8C8).W: Mode flag (skip if == 1) ($C319).W: Game state byte (require == 4) ($C8A4).W: AI behavior trigger (set to $B7)
-*Source: [ai_opponent_select.asm](disasm/modules/68k/game/ai/ai_opponent_select.asm)*
+*Source: [ai_opponent_select.asm](../disasm/modules/68k/game/ai/ai_opponent_select.asm)*
 
 ---
 
@@ -310,7 +310,7 @@ AI Collision Avoidance + Speed Calculation AI/physics function that computes ent
 
 - **Entry**: A0 = entity pointer, A1 = target entity pointer (from caller)
 - **Modifies**: D0-D3, D6-D7, A0-A3 Called from: counter_guard ($006FFA) via BNE.W
-*Source: [collision_avoidance_speed_calc.asm](disasm/modules/68k/game/ai/collision_avoidance_speed_calc.asm)*
+*Source: [collision_avoidance_speed_calc.asm](../disasm/modules/68k/game/ai/collision_avoidance_speed_calc.asm)*
 
 ---
 
@@ -320,7 +320,7 @@ AI Collision Avoidance (No-Target Path) Alternate path of collision_avoidance_sp
 
 - **Entry**: A0 = entity pointer (from collision_avoidance_speed_calc)
 - **Modifies**: D0-D3, D6-D7, A1
-*Source: [collision_avoidance_no_target.asm](disasm/modules/68k/game/ai/collision_avoidance_no_target.asm)*
+*Source: [collision_avoidance_no_target.asm](../disasm/modules/68k/game/ai/collision_avoidance_no_target.asm)*
 
 ---
 
@@ -332,7 +332,7 @@ Computes a steering angle from relative position deltas using an arctangent appr
 - **Returns**: D0 = steering angle
 - **Modifies**: D0, D1, D2, D3, D6 (preserved via stack)
 - **Calls**: atan2_lookup ($8FC8)
-*Source: [ai_steering_calc.asm](disasm/modules/68k/game/ai/ai_steering_calc.asm)*
+*Source: [ai_steering_calc.asm](../disasm/modules/68k/game/ai/ai_steering_calc.asm)*
 
 ---
 
@@ -345,7 +345,7 @@ AI Entity Main Update Orchestrator Main per-frame update for AI entities. Handle
 - **Calls**: $003C7E (player_table_setup), $006FDE (position_update), $009B12 (movement_calc), $00A1FC (race_state_read), $00A7A0 (ai_steering_calc), $00ACC0 (race_mode_flag_set)
 - **Object fields**: +$02 flags, +$04 speed, +$06 display speed, +$14 timer, +$30 x_pos, +$34 y_pos, +$3C heading, +$40 target heading, +$46 turn rate, +$7A gear, +$8E steer vel, +$90 drift, +$AE slot index, +$B0 spawn timer, +$B8 trail, +$BC decel
 - **Confidence**: high
-*Source: [ai_entity_main_update_orch.asm](disasm/modules/68k/game/ai/ai_entity_main_update_orch.asm)*
+*Source: [ai_entity_main_update_orch.asm](../disasm/modules/68k/game/ai/ai_entity_main_update_orch.asm)*
 
 ---
 
@@ -357,7 +357,7 @@ Checks entity conditions then calls a validation routine for two entity slots. I
 - **Modifies**: D0, A1 Fields accessed: A0+$6A: Timer (must be 0) A0+$88: Cleared on entry A0+$8C: Lock flag (must be 0) A0+$A4: First entity slot index A0+$A6: Second entity slot index
 - **Calls**: validation routine at $ADC4 (via JSR PC-relative) Note: BNE.S instructions at $ACFC and $AD10 chain past RTS into $AD14
 - **RAM**: ($C02C).W: Counter (must be <= 0) ($9000).W: Entity table base (stride via LSL #8)
-*Source: [ai_target_check.asm](disasm/modules/68k/game/ai/ai_target_check.asm)*
+*Source: [ai_target_check.asm](../disasm/modules/68k/game/ai/ai_target_check.asm)*
 
 ---
 
@@ -367,7 +367,7 @@ Two entry points that share increment logic at $00B0F2: Entry 1 ($00B0DE): A0→
 
 - **Modifies**: D0, A0
 - **RAM**: $A9E3: timer block B (3 bytes) $A9E7: timer block A (3 bytes) $B4EE: input flags A (byte) $C30E: input flags B (byte, bit 4)
-*Source: [ai_timer_inc.asm](disasm/modules/68k/game/ai/ai_timer_inc.asm)*
+*Source: [ai_timer_inc.asm](../disasm/modules/68k/game/ai/ai_timer_inc.asm)*
 
 ---
 
@@ -377,7 +377,7 @@ Four entry points that set up A1 (buffer), A2 (RAM pointer), and D3 (parameter),
 
 - **Modifies**: D0, D3, A1, A2
 - **RAM**: $C806: AI control block A (via LEA) $C813: AI control block B (via LEA) $C30E: button/control flags (byte, bits 0/5) $902C: AI parameter (word)
-*Source: [ai_buffer_setup.asm](disasm/modules/68k/game/ai/ai_buffer_setup.asm)*
+*Source: [ai_buffer_setup.asm](../disasm/modules/68k/game/ai/ai_buffer_setup.asm)*
 
 ---
 
@@ -389,7 +389,7 @@ Looks up 3 digit values from ROM tables and writes them to a per-racer display b
 - **Modifies**: D0, D3, A1, A3
 - **Calls**: $00B2EC, $00B422, $00B260 ROM tables: $00899884: digit_lookup_table (word entries, indexed by byte*2) $0089980C: digit_lookup_wide (word entries)
 - **RAM**: $902C: racer_index (word) $C200: racer_display_buffer (4 bytes per racer) $C806: digit_index_0 (byte) $C807: digit_index_1 (byte) $C808: digit_index_2 (byte) $C210: best_lap_current (longword) $C254: best_lap_record (longword) $C307: position_marker_offset (byte) $C8A4: sound_trigger (byte)
-*Source: [ai_digit_lookup_best_lap.asm](disasm/modules/68k/game/ai/ai_digit_lookup_best_lap.asm)*
+*Source: [ai_digit_lookup_best_lap.asm](../disasm/modules/68k/game/ai/ai_digit_lookup_best_lap.asm)*
 
 ---
 
@@ -399,7 +399,7 @@ Data prefix (12 bytes), then loads object+$2C index, computes table offset (inde
 
 - **Entry**: A0 = object pointer | Exit: conditional | Uses: D0, D3, A0, A1
 - **RAM**: $FFFFC200 = AI table base (address loaded into A1)
-*Source: [ai_table_lookup_cond_fall_through.asm](disasm/modules/68k/game/ai/ai_table_lookup_cond_fall_through.asm)*
+*Source: [ai_table_lookup_cond_fall_through.asm](../disasm/modules/68k/game/ai/ai_table_lookup_cond_fall_through.asm)*
 
 ---
 
@@ -410,7 +410,7 @@ Data prefix (12 bytes), then loads object+$2C index, computes table offset (inde
 - **Entry**: D0 = base index (word offset), A1 = object pointer
 - **Modifies**: D0, A0, A1
 - **RAM**: $C8A0: race_state (word)
-*Source: [ai_param_lookup_threshold_check_00b36e.asm](disasm/modules/68k/game/ai/ai_param_lookup_threshold_check_00b36e.asm)*
+*Source: [ai_param_lookup_threshold_check_00b36e.asm](../disasm/modules/68k/game/ai/ai_param_lookup_threshold_check_00b36e.asm)*
 
 ---
 
@@ -421,7 +421,7 @@ Data prefix (12 bytes), then loads object+$2C index, computes table offset (inde
 - **Entry**: D0 = base index (word offset), A1 = object pointer
 - **Modifies**: D0, A0, A1
 - **RAM**: $C8A0: race_state (word)
-*Source: [ai_param_lookup_threshold_check_00b398.asm](disasm/modules/68k/game/ai/ai_param_lookup_threshold_check_00b398.asm)*
+*Source: [ai_param_lookup_threshold_check_00b398.asm](../disasm/modules/68k/game/ai/ai_param_lookup_threshold_check_00b398.asm)*
 
 ---
 
@@ -431,7 +431,7 @@ Loads shared memory pointer into A1, reads AI parameter from $9F2C, calls a sub-
 
 - **Entry**: none | Exit: returns if flag set | Uses: D0, A1
 - **RAM**: $FFFF9F2C = AI parameter (word, loaded into D0) $FFFFC30E = control flag (byte, bit 5 tested)
-*Source: [ai_data_load_cond_return_on_flag.asm](disasm/modules/68k/game/ai/ai_data_load_cond_return_on_flag.asm)*
+*Source: [ai_data_load_cond_return_on_flag.asm](../disasm/modules/68k/game/ai/ai_data_load_cond_return_on_flag.asm)*
 
 ---
 
@@ -442,7 +442,7 @@ Initializes AI control flags at $FF68D0+D0 offset. Clears flag byte, then condit
 - **Entry**: D0 = offset into $FF68D0 array
 - **Modifies**: D0, A1
 - **RAM**: $C967: AI configuration flags (byte) $FF68B0: AI mode byte $FF68D0: AI flag array base
-*Source: [ai_flag_setup_at_object_array.asm](disasm/modules/68k/game/ai/ai_flag_setup_at_object_array.asm)*
+*Source: [ai_flag_setup_at_object_array.asm](../disasm/modules/68k/game/ai/ai_flag_setup_at_object_array.asm)*
 
 ---
 
@@ -452,7 +452,7 @@ Calls sub at $00B990, clears AI active flag ($C31C), decrements the AI timer at 
 
 - **Entry**: none | Exit: timer decremented | Uses: none
 - **RAM**: $FFFFC31C = AI active flag (byte, cleared) $FFFFC303 = AI timer (byte, decremented) $FFFFC064 = AI mode (byte, conditionally cleared)
-*Source: [ai_timer_dec_cond_state_clear.asm](disasm/modules/68k/game/ai/ai_timer_dec_cond_state_clear.asm)*
+*Source: [ai_timer_dec_cond_state_clear.asm](../disasm/modules/68k/game/ai/ai_timer_dec_cond_state_clear.asm)*
 
 ---
 
@@ -462,7 +462,7 @@ Calls sub at $00B990, decrements the AI timer at $C303. If timer reaches zero, c
 
 - **Entry**: none | Exit: timer decremented | Uses: none
 - **RAM**: $FFFFC303 = AI timer (byte, decremented) $FFFFC064 = AI mode (byte, conditionally cleared) $FFFFC31C = AI active flag (byte, conditionally set to 1)
-*Source: [ai_timer_dec_state_clear_reactivate.asm](disasm/modules/68k/game/ai/ai_timer_dec_state_clear_reactivate.asm)*
+*Source: [ai_timer_dec_state_clear_reactivate.asm](../disasm/modules/68k/game/ai/ai_timer_dec_state_clear_reactivate.asm)*
 
 ---
 
@@ -473,7 +473,7 @@ Interpolates 6 component values between two keyframes using scene_state as the i
 - **Entry**: A0 = keyframe data pointer (+$01 = total frames, +$02 = end values)
 - **Modifies**: D0, D1, D2, A0, A1, A2
 - **RAM**: $C054: interp_result_1 $C056: interp_result_2 $C086: interp_result_0 $C0AE: interp_result_3 $C0B0: interp_result_4 $C0B2: interp_result_5 $C8AA: scene_state (interpolation frame counter)
-*Source: [ai_scene_interpolation.asm](disasm/modules/68k/game/ai/ai_scene_interpolation.asm)*
+*Source: [ai_scene_interpolation.asm](../disasm/modules/68k/game/ai/ai_scene_interpolation.asm)*
 
 ---
 
@@ -483,7 +483,7 @@ Tests AI data word ($A0F0). If zero, returns. Otherwise sets up SH2 object at $F
 
 - **Entry**: none | Exit: object setup or fall-through | Uses: D1, A1
 - **RAM**: $FFFFA0F0 = AI data word (tested) $00FF6860 = SH2 object base (byte at +$00 set to $0B, +$10 set to $0C) $00FF60C8 = SH2 flag (word, conditionally set to $FFFF)
-*Source: [ai_object_setup_cond_flag_set.asm](disasm/modules/68k/game/ai/ai_object_setup_cond_flag_set.asm)*
+*Source: [ai_object_setup_cond_flag_set.asm](../disasm/modules/68k/game/ai/ai_object_setup_cond_flag_set.asm)*
 
 ---
 
@@ -493,7 +493,7 @@ Reads state index from ai_state ($A0EA), dispatches via 15-entry jump table. Onl
 
 - **Modifies**: D0, D4, D7, A0, A2, A4, A6
 - **RAM**: $A0EA: ai_state (jump table index: 0/4/8/.../56) $A0EC: ai_timer (counts to $0078 = 120)
-*Source: [ai_state_dispatch.asm](disasm/modules/68k/game/ai/ai_state_dispatch.asm)*
+*Source: [ai_state_dispatch.asm](../disasm/modules/68k/game/ai/ai_state_dispatch.asm)*
 
 ---
 
@@ -503,7 +503,7 @@ Advances AI dispatch counter, clears substate. Initializes 3 SH2 objects at $FF6
 
 - **Modifies**: D0, A1
 - **RAM**: $A0EA: AI dispatch counter (word, advanced by 4) $A0EC: AI substate (word, cleared) $C8A0: race_state (word, used as table index) $FF6800: SH2 object 0 base $FF6810: SH2 object 1 base $FF6820: SH2 object 2 base
-*Source: [ai_dispatch_triple_object_setup.asm](disasm/modules/68k/game/ai/ai_dispatch_triple_object_setup.asm)*
+*Source: [ai_dispatch_triple_object_setup.asm](../disasm/modules/68k/game/ai/ai_dispatch_triple_object_setup.asm)*
 
 ---
 
@@ -513,7 +513,7 @@ Advances the AI state variable at $A0EA by 4 (jump table index step) and clears 
 
 - **Entry**: none | Exit: state advanced | Uses: none
 - **RAM**: $FFFFA0EA = AI state variable (word, incremented by 4) $FFFFA0EC = AI sub-state (word, cleared)
-*Source: [advance_ai_state_machine_00bfd4.asm](disasm/modules/68k/game/ai/advance_ai_state_machine_00bfd4.asm)*
+*Source: [advance_ai_state_machine_00bfd4.asm](../disasm/modules/68k/game/ai/advance_ai_state_machine_00bfd4.asm)*
 
 ---
 
@@ -523,7 +523,7 @@ Advances the AI state variable at $A0EA by 4 (jump table index step) and clears 
 
 - **Entry**: none | Exit: state advanced | Uses: none
 - **RAM**: $FFFFA0EA = AI state variable (word, incremented by 4) $FFFFA0EC = AI sub-state (word, cleared)
-*Source: [advance_ai_state_machine_00c01e.asm](disasm/modules/68k/game/ai/advance_ai_state_machine_00c01e.asm)*
+*Source: [advance_ai_state_machine_00c01e.asm](../disasm/modules/68k/game/ai/advance_ai_state_machine_00c01e.asm)*
 
 ---
 
@@ -535,7 +535,7 @@ Camera Parameter Calculation Computes camera/view parameters from entity state. 
 
 - **Entry**: Uses fixed addresses A0=$FF9000, A1=$FF6100
 - **Modifies**: D0, D1, A0, A1
-*Source: [camera_param_calc.asm](disasm/modules/68k/game/camera/camera_param_calc.asm)*
+*Source: [camera_param_calc.asm](../disasm/modules/68k/game/camera/camera_param_calc.asm)*
 
 ---
 
@@ -545,7 +545,7 @@ Camera Parameter Calculation B Computes camera view parameters from entity A0 ($
 
 - **Entry**: A0 = entity ($FF9000), A1 = camera buffer ($FF6100)
 - **Modifies**: D0, D1, A0, A1
-*Source: [camera_param_calc_b.asm](disasm/modules/68k/game/camera/camera_param_calc_b.asm)*
+*Source: [camera_param_calc_b.asm](../disasm/modules/68k/game/camera/camera_param_calc_b.asm)*
 
 ---
 
@@ -555,7 +555,7 @@ Camera Parameter Calculation C (Dual Output) Computes camera view parameters fro
 
 - **Entry**: A0 = entity, A1 = primary camera buffer, A2 = secondary buffer
 - **Modifies**: D0, D1, A0, A1, A2
-*Source: [camera_param_calc_c.asm](disasm/modules/68k/game/camera/camera_param_calc_c.asm)*
+*Source: [camera_param_calc_c.asm](../disasm/modules/68k/game/camera/camera_param_calc_c.asm)*
 
 ---
 
@@ -565,7 +565,7 @@ Camera Parameter Calculation D (Dual Output) Computes camera view parameters wit
 
 - **Entry**: A0 = entity, A1 = primary camera buffer, A2 = secondary buffer
 - **Modifies**: D0, D1, A0, A1, A2
-*Source: [camera_param_calc_d.asm](disasm/modules/68k/game/camera/camera_param_calc_d.asm)*
+*Source: [camera_param_calc_d.asm](../disasm/modules/68k/game/camera/camera_param_calc_d.asm)*
 
 ---
 
@@ -575,7 +575,7 @@ If $C30E bit 5 set (race active): Y clamping: loads VDP field $FF610A, subtracts
 
 - **Modifies**: D0, D1, A1
 - **RAM**: $C056: camera_offset_x (word) $C0B0: camera_offset_y (word) $C30E: race_flags (byte, bit 5) $C8C8: boost_flag (word)
-*Source: [camera_offset_clamping.asm](disasm/modules/68k/game/camera/camera_offset_clamping.asm)*
+*Source: [camera_offset_clamping.asm](../disasm/modules/68k/game/camera/camera_offset_clamping.asm)*
 
 ---
 
@@ -586,7 +586,7 @@ Copies camera parameters to VDP buffer at $FF6100. Writes $C086 to buffer field 
 - **Modifies**: D0, A0, A1
 - **Calls**: $002996: VDP buffer init
 - **RAM**: $9000: work buffer base (word) $C086: camera parameter (word) $C0AE: camera offset X (word) $C0B0: camera offset Y (word) $C0B2: camera offset Z (word) $C8C8: boost flag (word)
-*Source: [vdp_buffer_xfer_camera_offset_apply.asm](disasm/modules/68k/game/camera/vdp_buffer_xfer_camera_offset_apply.asm)*
+*Source: [vdp_buffer_xfer_camera_offset_apply.asm](../disasm/modules/68k/game/camera/vdp_buffer_xfer_camera_offset_apply.asm)*
 
 ---
 
@@ -597,7 +597,7 @@ Updates object camera/position state from ROM parameter table. Loads 4 parameter
 - **Entry**: A0 = object pointer, D2 = table index
 - **Modifies**: D0, D2, A0, A1
 - **RAM**: $C004: camera_transition_flag $C048: camera_position $C04C: camera_state_timer $C0AC: steering_target $C89C: race_substate
-*Source: [object_camera_pos_update.asm](disasm/modules/68k/game/camera/object_camera_pos_update.asm)*
+*Source: [object_camera_pos_update.asm](../disasm/modules/68k/game/camera/object_camera_pos_update.asm)*
 
 ---
 
@@ -608,7 +608,7 @@ Toggles camera view mode and configures rendering parameters Button press (bits 
 - **Modifies**: D0, D1, A0
 - **RAM**: $C86D: button_raw $C86C: button_state $C313: view_toggle $9000: view_config_base $C0C8: view_active $C8E0: zoom_level $C8D8: view_speed $C8D4: scroll_rate $C8D6: scroll_speed $C0AE: render_distance $C0B0: render_param_a $C0B2: render_param_b $C054: track_pos_hi $C056: track_pos_lo $C0C6: render_angle $C0BA: waypoint_x
 - **Confidence**: medium
-*Source: [camera_view_toggle_020.asm](disasm/modules/68k/game/camera/camera_view_toggle_020.asm)*
+*Source: [camera_view_toggle_020.asm](../disasm/modules/68k/game/camera/camera_view_toggle_020.asm)*
 
 ---
 
@@ -620,7 +620,7 @@ Camera State Dispatcher + Viewport Control Multi-state camera controller with ac
 - **Modifies**: D0, D1, D2, D3, D4, D5, D6, D7
 - **Object fields**: +$04 speed, +$06 current speed, +$0E param, +$1C height, +$24 segment, +$30 x_pos, +$34 y_pos
 - **Confidence**: high
-*Source: [camera_state_disp_viewport_control.asm](disasm/modules/68k/game/camera/camera_state_disp_viewport_control.asm)*
+*Source: [camera_state_disp_viewport_control.asm](../disasm/modules/68k/game/camera/camera_state_disp_viewport_control.asm)*
 
 ---
 
@@ -631,7 +631,7 @@ Direct camera parameter setup from stored configuration values. Clears the camer
 - **Entry**: No register inputs
 - **Returns**: Camera parameters configured from stored values
 - **Modifies**: D0
-*Source: [camera_direct_setup.asm](disasm/modules/68k/game/camera/camera_direct_setup.asm)*
+*Source: [camera_direct_setup.asm](../disasm/modules/68k/game/camera/camera_direct_setup.asm)*
 
 ---
 
@@ -642,7 +642,7 @@ Camera setup reading from the parameter buffer at $C0C0. Copies three buffer val
 - **Entry**: No register inputs
 - **Returns**: Camera configured from buffer with constant yaw
 - **Modifies**: D0, A1
-*Source: [camera_buffer_setup.asm](disasm/modules/68k/game/camera/camera_buffer_setup.asm)*
+*Source: [camera_buffer_setup.asm](../disasm/modules/68k/game/camera/camera_buffer_setup.asm)*
 
 ---
 
@@ -653,7 +653,7 @@ Simple camera setup from the $C0C0 parameter buffer. Reads pitch from buffer[0],
 - **Entry**: No register inputs
 - **Returns**: Camera configured from buffer
 - **Modifies**: D0, A1
-*Source: [camera_simple_setup.asm](disasm/modules/68k/game/camera/camera_simple_setup.asm)*
+*Source: [camera_simple_setup.asm](../disasm/modules/68k/game/camera/camera_simple_setup.asm)*
 
 ---
 
@@ -664,7 +664,7 @@ Camera setup with elevation offset from $C0BC. Reads pitch from buffer[0], copie
 - **Entry**: No register inputs
 - **Returns**: Camera configured from buffer with elevation offset
 - **Modifies**: D0, A1
-*Source: [camera_offset_setup.asm](disasm/modules/68k/game/camera/camera_offset_setup.asm)*
+*Source: [camera_offset_setup.asm](../disasm/modules/68k/game/camera/camera_offset_setup.asm)*
 
 ---
 
@@ -674,7 +674,7 @@ Clears $C0BA, then dispatches via 3-entry word-offset table indexed by $C896 (tw
 
 - **Modifies**: D0, D6
 - **RAM**: $C054: display param A (word) $C056: display param B (word) $C086: camera parameter (word, cleared) $C0AE: camera offset X (word, set then cleared) $C0B0: camera offset Y (word, cleared) $C0B2: camera offset Z (word, cleared) $C0BA: param base (word, cleared) $C0C6: display offset delta (word, cleared) $C0C8: display scale (word, set to $C0) $C88C: work param A (word, cleared) $C88E: work param B (word, cleared) $C890: work param C (word, cleared) $C892: reference param A (word, set from $C8DC) $C894: reference param B (word, set from $C8DE) $C896: sub_state (byte, +2 per call) $C8DA: initial camera offset (word) $C8DC: reference value A (word) $C8DE: reference value B (word) $C8F6: counter (word, cleared)
-*Source: [camera_param_init.asm](disasm/modules/68k/game/camera/camera_param_init.asm)*
+*Source: [camera_param_init.asm](../disasm/modules/68k/game/camera/camera_param_init.asm)*
 
 ---
 
@@ -685,7 +685,7 @@ Increments camera scroll positions (pitch and yaw) by 8 each frame, then copies 
 - **Entry**: No register inputs
 - **Returns**: Scroll positions advanced and synced to viewport
 - **Modifies**: (none modified beyond RAM writes)
-*Source: [camera_scroll_update.asm](disasm/modules/68k/game/camera/camera_scroll_update.asm)*
+*Source: [camera_scroll_update.asm](../disasm/modules/68k/game/camera/camera_scroll_update.asm)*
 
 ---
 
@@ -695,7 +695,7 @@ Increments working yaw ($C894) by $0050, clamped at $EC0A. If yaw exceeds max, f
 
 - **Entry**: none | Exit: yaw incremented | Uses: none
 - **RAM**: $FFFFC894 = working yaw (word, incremented by $0050, max $EC0A) $FFFFC0BE = viewport backup (word, mirror of yaw) $00FF3028 = SH2 shared yaw (word, conditionally updated)
-*Source: [camera_yaw_inc_mirror_to_viewports.asm](disasm/modules/68k/game/camera/camera_yaw_inc_mirror_to_viewports.asm)*
+*Source: [camera_yaw_inc_mirror_to_viewports.asm](../disasm/modules/68k/game/camera/camera_yaw_inc_mirror_to_viewports.asm)*
 
 ---
 
@@ -706,7 +706,7 @@ Sets the working yaw to a fixed value ($EC0A), copies it to both viewport backup
 - **Entry**: No register inputs
 - **Returns**: Yaw set to $EC0A, copied, mode counter advanced
 - **Modifies**: (none modified beyond RAM writes)
-*Source: [camera_value_store_full.asm](disasm/modules/68k/game/camera/camera_value_store_full.asm)*
+*Source: [camera_value_store_full.asm](../disasm/modules/68k/game/camera/camera_value_store_full.asm)*
 
 ---
 
@@ -717,7 +717,7 @@ Copies the working yaw value ($C894) to both the viewport backup register ($C0BE
 - **Entry**: No register inputs
 - **Returns**: Yaw value copied to viewport and shared memory
 - **Modifies**: (none modified beyond RAM writes)
-*Source: [camera_value_store.asm](disasm/modules/68k/game/camera/camera_value_store.asm)*
+*Source: [camera_value_store.asm](../disasm/modules/68k/game/camera/camera_value_store.asm)*
 
 ---
 
@@ -730,7 +730,7 @@ Camera Angle Smoothing with Trigonometry Computes smoothed camera angles using a
 - **Calls**: $008F4E (cosine_lookup), $008F52 (sine_lookup), $00A7A0 (ai_steering_calc), $00A7A4 (steering variant)
 - **Object fields**: +$30 x_pos, +$32 z_pos, +$34 y_pos
 - **Confidence**: high
-*Source: [camera_angle_smoothing_with_trigonometry.asm](disasm/modules/68k/game/camera/camera_angle_smoothing_with_trigonometry.asm)*
+*Source: [camera_angle_smoothing_with_trigonometry.asm](../disasm/modules/68k/game/camera/camera_angle_smoothing_with_trigonometry.asm)*
 
 ---
 
@@ -740,7 +740,7 @@ Clears camera position override flag.
 
 - **Entry**: none
 - **Modifies**: none
-*Source: [clear_camera_override.asm](disasm/modules/68k/game/camera/clear_camera_override.asm)*
+*Source: [clear_camera_override.asm](../disasm/modules/68k/game/camera/clear_camera_override.asm)*
 
 ---
 
@@ -753,7 +753,7 @@ Drift Physics and Camera Offset Calculation Computes lateral drift from steering
 - **Calls**: $008F52 (sine_lookup)
 - **Object fields**: +$04 speed, +$06 display speed, +$0C slope, +$1E target heading, +$3C heading mirror, +$40 heading angle, +$5A trail X, +$5C trail Y, +$76 camera dist, +$8E steer vel, +$90 drift rate, +$92 slide, +$AA drift accum
 - **Confidence**: high
-*Source: [drift_physics_and_camera_offset_calc.asm](disasm/modules/68k/game/camera/drift_physics_and_camera_offset_calc.asm)*
+*Source: [drift_physics_and_camera_offset_calc.asm](../disasm/modules/68k/game/camera/drift_physics_and_camera_offset_calc.asm)*
 
 ---
 
@@ -763,7 +763,7 @@ Sets 3 camera registers to $FFFF unconditionally. Then checks $FF6114 (SH2 statu
 
 - **Modifies**: D0
 - **RAM**: $C00C: camera register A (word) $C018: camera register B (word) $C012: camera register C (word) $C01E: camera register D (word, conditional) $C024: camera register E (word, conditional) $C00E: camera register F (word, conditional) $C010: camera register G (word, conditional) $C048: camera_state (word) $FF6114: SH2 status (word)
-*Source: [set_camera_regs_to_invalid.asm](disasm/modules/68k/game/camera/set_camera_regs_to_invalid.asm)*
+*Source: [set_camera_regs_to_invalid.asm](../disasm/modules/68k/game/camera/set_camera_regs_to_invalid.asm)*
 
 ---
 
@@ -774,7 +774,7 @@ Selects camera view based on button input. Increments per-camera frame counter, 
 - **Entry**: A0 = buffer selector ($9000 = alternate)
 - **Modifies**: D0, A0, A1, A2
 - **RAM**: $C048: camera_position (0-3, word index) $C064: camera_enable $C0A2: camera_frame_counters (word array, indexed by position×2) $C302: camera_max_frames $C314: camera_input_enable $C972: game_input (button bitmap)
-*Source: [camera_state_selector.asm](disasm/modules/68k/game/camera/camera_state_selector.asm)*
+*Source: [camera_state_selector.asm](../disasm/modules/68k/game/camera/camera_state_selector.asm)*
 
 ---
 
@@ -785,7 +785,7 @@ Camera Animation State Dispatcher State machine for camera animation transitions
 - **Entry**: A0 = player entity, A2 = display object
 - **Modifies**: D0, D1, D2, D4, A0, A1, A2, A4
 - **Confidence**: high
-*Source: [camera_animation_state_disp.asm](disasm/modules/68k/game/camera/camera_animation_state_disp.asm)*
+*Source: [camera_animation_state_disp.asm](../disasm/modules/68k/game/camera/camera_animation_state_disp.asm)*
 
 ---
 
@@ -798,7 +798,7 @@ Initializes camera/scene for race start. First entry copies ROM segment data to 
 - **Calls**: $00884922: segment_copy_to_buffer (JMP/JSR target)
 - **RAM**: $C048: camera_state (word, set to 1) $C05A: camera_state_end (word, set to $FFFF) $C07A: camera_target_x (word) $C086: camera_flags (word, cleared) $C08C: camera_segment_buffer $C094: camera_source_x (word, copied to $C07A) $C0AC: frame_countdown (word, set to $001E) $C0E4: camera_viewport_size (word, set to $0040) $C268: road_segment_ptr (longword) $C302: animation_speed (byte, set to $04) $C311: animation_index (byte, cleared) $C700: track_data_buffer $C819: scene_active (byte, cleared) $C824: scene_timer (byte, $14 or $1E) $C89C: sh2_comm_state (word, ×$14 for track table) $C8C8: vint_state (word, race mode check) $C8CC: race_substate (word, indexes road segment table) $C8E4: road_data_buffer $FEA9: system_flags (byte) ROM tables: $008997EC: camera_segment_rom_table (indexed by D0) $00898A04: track_param_table (stride $14, indexed by sh2_comm_state) $00930612: road_segment_ptr_table (longword, indexed by race_substate) $009305D6: road_data_table (longword, indexed by race_substate)
 - **Object fields**: +$18: base_position (longword) +$2A: repeat_count (word, set to 1) +$76: scale_x (word, set to $0100) +$78: scale_y (word, set to $0100) +$A4: zoom_frames (word, set to $000F) +$A6: zoom_step (word, set to 1) +$AC: zoom_rate (word, set to 3) +$B2: base_position_copy (longword)
-*Source: [scene_camera_init.asm](disasm/modules/68k/game/camera/scene_camera_init.asm)*
+*Source: [scene_camera_init.asm](../disasm/modules/68k/game/camera/scene_camera_init.asm)*
 
 ---
 
@@ -810,7 +810,7 @@ Camera Tile Block Send Sends a 56×16 tile block from SH2 framebuffer to display
 - **Returns**: tile data sent to SH2 framebuffer
 - **Modifies**: D0, D1, D5, A0
 - **Calls**: $00E35A: sh2_send_cmd
-*Source: [camera_tile_block_send.asm](disasm/modules/68k/game/camera/camera_tile_block_send.asm)*
+*Source: [camera_tile_block_send.asm](../disasm/modules/68k/game/camera/camera_tile_block_send.asm)*
 
 ---
 
@@ -821,7 +821,7 @@ Camera Angle Increment Clamp Adds a small increment ($10) to D0 if D0 ≤ $4000 
 - **Entry**: D0 = camera angle (16-bit, $0000-$FFFF)
 - **Returns**: D0 = adjusted angle
 - **Modifies**: D0
-*Source: [camera_angle_increment_clamp.asm](disasm/modules/68k/game/camera/camera_angle_increment_clamp.asm)*
+*Source: [camera_angle_increment_clamp.asm](../disasm/modules/68k/game/camera/camera_angle_increment_clamp.asm)*
 
 ---
 
@@ -832,7 +832,7 @@ Camera Angle Decrement Clamp Subtracts a small decrement ($10) from D0 if D0 ≥
 - **Entry**: D0 = camera angle (16-bit, $0000-$FFFF)
 - **Returns**: D0 = adjusted angle
 - **Modifies**: D0
-*Source: [camera_angle_decrement_clamp.asm](disasm/modules/68k/game/camera/camera_angle_decrement_clamp.asm)*
+*Source: [camera_angle_decrement_clamp.asm](../disasm/modules/68k/game/camera/camera_angle_decrement_clamp.asm)*
 
 ---
 
@@ -843,7 +843,7 @@ Camera Selection Main Loop Per-frame update for the camera selection screen. Han
 - **Modifies**: D0, D1, D2, A0, A1
 - **Calls**: $00B684: object_update $00B6DA: sprite_update $00E35A: sh2_send_cmd $00E52C: dma_transfer
 - **RAM**: $C87E: game_state
-*Source: [camera_selection_main_loop.asm](disasm/modules/68k/game/camera/camera_selection_main_loop.asm)*
+*Source: [camera_selection_main_loop.asm](../disasm/modules/68k/game/camera/camera_selection_main_loop.asm)*
 
 ---
 
@@ -856,7 +856,7 @@ Object Proximity Check + Jump Table Dispatch Checks distance between an object a
 - **Entry**: (implicit — uses RAM addresses directly)
 - **Modifies**: D0, D1, D2, D4, D7, A0, A1, A2
 - **RAM**: $9000 (object_base), $C008 (proximity_counter), $C8A0 (race_state) Object fields (via A0 at $9000): +$30: x_position +$34: y_position
-*Source: [object_proximity_check_jump_table_dispatch.asm](disasm/modules/68k/game/collision/object_proximity_check_jump_table_dispatch.asm)*
+*Source: [object_proximity_check_jump_table_dispatch.asm](../disasm/modules/68k/game/collision/object_proximity_check_jump_table_dispatch.asm)*
 
 ---
 
@@ -868,7 +868,7 @@ Object Proximity Check + Jump Table Dispatch Checks distance between an object a
 - **Modifies**: D0, D1, D2, D3, D4, D5, A0, A1, A2
 - **Calls**: $008F52: sine_lookup
 - **Confidence**: medium
-*Source: [proximity_check_with_sine_billboard.asm](disasm/modules/68k/game/collision/proximity_check_with_sine_billboard.asm)*
+*Source: [proximity_check_with_sine_billboard.asm](../disasm/modules/68k/game/collision/proximity_check_with_sine_billboard.asm)*
 
 ---
 
@@ -879,7 +879,7 @@ Data prefix: 56 bytes ($3924-$395B) of sprite/collision configuration records (4
 - **Modifies**: D0, D1, D2, D7, A1, A2, A3, A6
 - **Calls**: $0039EC: collision_distance_calc
 - **RAM**: $C80F: collision_flag (byte, 0 = fall through)
-*Source: [sprite_init_collision_check_003924.asm](disasm/modules/68k/game/collision/sprite_init_collision_check_003924.asm)*
+*Source: [sprite_init_collision_check_003924.asm](../disasm/modules/68k/game/collision/sprite_init_collision_check_003924.asm)*
 
 ---
 
@@ -890,7 +890,7 @@ Data prefix: 56 bytes ($3924-$395B) of sprite/collision configuration records (4
 - **Entry**: A0 = player entity pointer (+$30=X, +$32=Y, +$34=Z); A1 = reference object pointer (+$00=X, +$02=Y, +$04=Z); A2 = output buffer pointer; D0.L = sprite texture/animation ID
 - **Modifies**: D0, D1, D2, D3, D4, D5
 - **Confidence**: medium
-*Source: [proximity_check_simple.asm](disasm/modules/68k/game/collision/proximity_check_simple.asm)*
+*Source: [proximity_check_simple.asm](../disasm/modules/68k/game/collision/proximity_check_simple.asm)*
 
 ---
 
@@ -901,7 +901,7 @@ advance and repeat proximity check Advances A1 by 10 bytes to next object entry,
 - **Entry**: A1 = current object pointer (advanced by $0A per iteration); A2 = output buffer pointer; D7 = loop counter
 - **Modifies**: D7, A1
 - **Confidence**: medium
-*Source: [proximity_loop_iterator_a.asm](disasm/modules/68k/game/collision/proximity_loop_iterator_a.asm)*
+*Source: [proximity_loop_iterator_a.asm](../disasm/modules/68k/game/collision/proximity_loop_iterator_a.asm)*
 
 ---
 
@@ -911,7 +911,7 @@ Data prefix: 92 bytes ($3A4E-$3AA9) of sprite/collision configuration records. C
 
 - **Modifies**: none (just data + simple test)
 - **RAM**: $C80F: collision_flag (byte, 0 = fall through)
-*Source: [sprite_init_collision_check_003a4e.asm](disasm/modules/68k/game/collision/sprite_init_collision_check_003a4e.asm)*
+*Source: [sprite_init_collision_check_003a4e.asm](../disasm/modules/68k/game/collision/sprite_init_collision_check_003a4e.asm)*
 
 ---
 
@@ -923,7 +923,7 @@ Tests if object is within 3D bounding box of reference point Checks X, Z, Y delt
 - **Modifies**: D0, D1, D2, D3, D4, D5, A0, A1, A2
 - **RAM**: $C8E2: rotation_angle Object fields (A0): +$30: x_position +$32: z_position +$34: y_position Output buffer (A2 → $FF65B0): +$00: match_flag (0=no, 1=yes) +$02-$05: ref_position (longword) +$06: ref_y +$0A: rotation_angle +$0C-$0E: ref_params +$10-$13: ref_data (longword)
 - **Confidence**: medium
-*Source: [proximity_check_062.asm](disasm/modules/68k/game/collision/proximity_check_062.asm)*
+*Source: [proximity_check_062.asm](../disasm/modules/68k/game/collision/proximity_check_062.asm)*
 
 ---
 
@@ -935,7 +935,7 @@ trackside object visibility Loads player position from object table 3 ($9F00), g
 - **Modifies**: D0, D1, D2, D3, D4, D5, D7, A0, A1, A2
 - **RAM**: $9F00: obj_table_3 $C008: animation frame counter (0-11, wraps) $C89C: race_state (selects second proximity pass)
 - **Confidence**: medium
-*Source: [object_table_3_proximity_with_animation.asm](disasm/modules/68k/game/collision/object_table_3_proximity_with_animation.asm)*
+*Source: [object_table_3_proximity_with_animation.asm](../disasm/modules/68k/game/collision/object_table_3_proximity_with_animation.asm)*
 
 ---
 
@@ -946,7 +946,7 @@ advance and repeat object_table_3_proximity_with_animation inner loop Advances A
 - **Entry**: A1 = current object pointer (advanced by $0A per iteration); A2 = output buffer pointer; D7 = loop counter
 - **Modifies**: D7, A1
 - **Confidence**: medium
-*Source: [proximity_loop_iterator_b.asm](disasm/modules/68k/game/collision/proximity_loop_iterator_b.asm)*
+*Source: [proximity_loop_iterator_b.asm](../disasm/modules/68k/game/collision/proximity_loop_iterator_b.asm)*
 
 ---
 
@@ -958,7 +958,7 @@ Rotational Offset Calculation Computes rotational offsets for billboard renderin
 - **Modifies**: D0, D2, D3, D4, D5, A0
 - **Object fields**: +$1E heading_angle, +$20 target_x, +$22 target_y, +$30 x_position, +$34 y_position, +$72 lateral_offset, +$E2 long_offset
 - **Confidence**: high
-*Source: [rotational_offset_calc.asm](disasm/modules/68k/game/collision/rotational_offset_calc.asm)*
+*Source: [rotational_offset_calc.asm](../disasm/modules/68k/game/collision/rotational_offset_calc.asm)*
 
 ---
 
@@ -970,7 +970,7 @@ Collision Response + Surface Tracking Iterative collision response with surface 
 - **Modifies**: D0, D1, D2, D3, D4, D5, D6, D7
 - **Object fields**: +$30 x_pos, +$32 y_sub, +$34 y_pos, +$36/+$38 prev_pos, +$40 heading, +$42 prev_heading, +$46 scale, +$48 prev_scale, +$55 collision_flag, +$5A/+$5C/+$5E/+$32 surface_offsets
 - **Confidence**: high
-*Source: [collision_response_surface_tracking.asm](disasm/modules/68k/game/collision/collision_response_surface_tracking.asm)*
+*Source: [collision_response_surface_tracking.asm](../disasm/modules/68k/game/collision/collision_response_surface_tracking.asm)*
 
 ---
 
@@ -982,7 +982,7 @@ Track Boundary Collision Detection Probes 4 points around entity for track bound
 - **Modifies**: D0, D1, D2, A0, A1, A2, A3, A4
 - **Object fields**: +$30 x_position, +$34 y_position, +$40 heading, +$46 scale, +$55-$59 collision flags per probe, +$CE/+$D2/+$D6/+$DA tile data pointers
 - **Confidence**: high
-*Source: [track_boundary_collision_detection.asm](disasm/modules/68k/game/collision/track_boundary_collision_detection.asm)*
+*Source: [track_boundary_collision_detection.asm](../disasm/modules/68k/game/collision/track_boundary_collision_detection.asm)*
 
 ---
 
@@ -994,7 +994,7 @@ Directional Collision Probe Probes for collisions in the entity's heading direct
 - **Modifies**: D0, D1, D2, A0, A1, A2, A3, A4
 - **Object fields**: +$30 x_position, +$34 y_position, +$40 heading, +$46 scale, +$55 collision_flag, +$C6/+$C8 surface_offsets
 - **Confidence**: high
-*Source: [directional_collision_probe.asm](disasm/modules/68k/game/collision/directional_collision_probe.asm)*
+*Source: [directional_collision_probe.asm](../disasm/modules/68k/game/collision/directional_collision_probe.asm)*
 
 ---
 
@@ -1007,7 +1007,7 @@ Checks collision conditions and sets object flags Tests speed threshold, lateral
 - **Calls**: $007EA4: obj_collision_response (tail call via JMP) Object fields (A0): +$02: flags +$04: speed +$1C: collision_param +$55: collision_mask +$56: collision_state_a +$57: collision_state_b +$62: collision_active +$6A: collision_cooldown +$8C: collision_lock +$94: lateral_position
 - **RAM**: $C8D2: lateral_threshold $C8A4: sound_command
 - **Confidence**: medium
-*Source: [collision_flag_check_054.asm](disasm/modules/68k/game/collision/collision_flag_check_054.asm)*
+*Source: [collision_flag_check_054.asm](../disasm/modules/68k/game/collision/collision_flag_check_054.asm)*
 
 ---
 
@@ -1017,7 +1017,7 @@ Calculates proximity zone between entities (A0) and (A1). Zones: 0=far, 1=closes
 
 - **Entry**: A0 = entity, A1 = target entity
 - **Modifies**: D2, D4, D5, D6
-*Source: [proximity_zone_simple.asm](disasm/modules/68k/game/collision/proximity_zone_simple.asm)*
+*Source: [proximity_zone_simple.asm](../disasm/modules/68k/game/collision/proximity_zone_simple.asm)*
 
 ---
 
@@ -1027,7 +1027,7 @@ Multi-entity proximity check with camera position override. Loops 15 entities at
 
 - **Entry**: A0 = entity
 - **Modifies**: D0-D7, A1
-*Source: [proximity_zone_multi.asm](disasm/modules/68k/game/collision/proximity_zone_multi.asm)*
+*Source: [proximity_zone_multi.asm](../disasm/modules/68k/game/collision/proximity_zone_multi.asm)*
 
 ---
 
@@ -1037,7 +1037,7 @@ Simplified proximity loop over 15 entities. Fixed thresholds. 3 zone levels plus
 
 - **Entry**: A0 = entity
 - **Modifies**: D0-D7, A1
-*Source: [proximity_zone_loop.asm](disasm/modules/68k/game/collision/proximity_zone_loop.asm)*
+*Source: [proximity_zone_loop.asm](../disasm/modules/68k/game/collision/proximity_zone_loop.asm)*
 
 ---
 
@@ -1047,7 +1047,7 @@ Proximity trigger with cooldown. Indexes entity table, compares distances, sets 
 
 - **Entry**: A0 = entity
 - **Modifies**: D0, D1, A1
-*Source: [proximity_trigger.asm](disasm/modules/68k/game/collision/proximity_trigger.asm)*
+*Source: [proximity_trigger.asm](../disasm/modules/68k/game/collision/proximity_trigger.asm)*
 
 ---
 
@@ -1057,7 +1057,7 @@ Checks 3D proximity between two entities (A0, A1). Compares absolute differences
 
 - **Entry**: A0 = entity A, A1 = entity B (from entity_target_action chain)
 - **Modifies**: D0 Fields accessed: A0/A1+$30: Position X A0/A1+$32: Position Z A0/A1+$34: Position Y A1+$88: Direction flags (cleared)
-*Source: [proximity_distance_check.asm](disasm/modules/68k/game/collision/proximity_distance_check.asm)*
+*Source: [proximity_distance_check.asm](../disasm/modules/68k/game/collision/proximity_distance_check.asm)*
 
 ---
 
@@ -1068,7 +1068,7 @@ Angle-Based Visibility Chained from proximity_distance_check via JMP when entiti
 - **Entry**: A0 = entity A, A1 = entity B
 - **Returns**: D0 = A0 zone bits; zone bits written to A0+$89 and A1+$89
 - **Modifies**: D0-D7, A2
-*Source: [zone_check_inner.asm](disasm/modules/68k/game/collision/zone_check_inner.asm)*
+*Source: [zone_check_inner.asm](../disasm/modules/68k/game/collision/zone_check_inner.asm)*
 
 ---
 
@@ -1081,7 +1081,7 @@ Checks collision between two objects (A0 = player, A1 = $9F00). Sums velocities 
 - **Calls**: $00AE0A: proximity_check (returns Z=1 if no collision) $00AFFE: collision_speed_apply (external, via BLE.W)
 - **RAM**: $9F00: obj_table_3 (opponent base) $C8A4: sound_trigger (byte) $C8CE: collision_speed_threshold (word) $C8D0: collision_position_threshold (word)
 - **Object fields**: +$02: flags (bit 11 = collision) +$04: velocity +$06: speed +$32: lateral_offset +$6A: accel_x +$88: collision_result +$8C: velocity_x
-*Source: [object_collision_detection.asm](disasm/modules/68k/game/collision/object_collision_detection.asm)*
+*Source: [object_collision_detection.asm](../disasm/modules/68k/game/collision/object_collision_detection.asm)*
 
 ---
 
@@ -1092,7 +1092,7 @@ Stores speed param D1 to A0+$06, then sets status flag bits based on direction f
 - **Entry**: A0 = entity, A1 = target, D1 = speed param value
 - **Modifies**: D0, D1 Fields accessed: A0+$02: Status flags (ORI.W bit-set) A1+$02: Status flags (ORI.W bit-set) A0+$06: Speed param (written with D1) A0+$88: Direction flags (tested bits 0, 2)
 - **RAM**: ($C8A4).W: Active AI mode byte (set to $B2)
-*Source: [close_position_flags.asm](disasm/modules/68k/game/collision/close_position_flags.asm)*
+*Source: [close_position_flags.asm](../disasm/modules/68k/game/collision/close_position_flags.asm)*
 
 ---
 
@@ -1102,7 +1102,7 @@ Pushes two entities apart by 16 units on both X and Y axes. Direction is based o
 
 - **Entry**: A0 = first entity, A1 = second entity
 - **Modifies**: D0, D1 Fields accessed: A0+$30: X position (modified) A0+$34: Y position (modified) A1+$30: X position (modified) A1+$34: Y position (modified)
-*Source: [position_separation.asm](disasm/modules/68k/game/collision/position_separation.asm)*
+*Source: [position_separation.asm](../disasm/modules/68k/game/collision/position_separation.asm)*
 
 ---
 
@@ -1115,7 +1115,7 @@ Tile Decompressor Setup Entry point for tile decompression. Two entry points wit
 - **Entry**: A0 = pointer to compressed tile data
 - **Returns**: Tiles decompressed to VDP via A4 (VDP_DATA)
 - **Modifies**: D0-D7, A0, A1, A3, A4, A5
-*Source: [tile_decompressor_setup.asm](disasm/modules/68k/game/data/tile_decompressor_setup.asm)*
+*Source: [tile_decompressor_setup.asm](../disasm/modules/68k/game/data/tile_decompressor_setup.asm)*
 
 ---
 
@@ -1125,7 +1125,7 @@ Huffman/LZ Decompression Inner Loop Bit-level decoder for compressed data. Uses 
 
 - **Entry**: A0 = compressed data stream pointer A1 = Huffman/lookup table A3 = return address for completed values (JMP (A3)) A4 = output buffer pointer A5 = tile counter D3 = remaining nibbles to fill D4 = nibble accumulator D5 = bit shift register (16-bit) D6 = remaining bits in shift register
 - **Modifies**: D0, D1, D3, D4, D5, D6, D7, A0
-*Source: [huffman_lz_decompression_inner_loop.asm](disasm/modules/68k/game/data/huffman_lz_decompression_inner_loop.asm)*
+*Source: [huffman_lz_decompression_inner_loop.asm](../disasm/modules/68k/game/data/huffman_lz_decompression_inner_loop.asm)*
 
 ---
 
@@ -1135,7 +1135,7 @@ Tile Decompressor Inner Loop A Decompression variant A: XOR-combine and store wi
 
 - **Entry**: D2 = accumulated data, D4 = XOR mask, A4 = VDP_DATA, A5 = counter
 - **Modifies**: D2, D4, A4, A5
-*Source: [tile_decompressor_inner_loop_a.asm](disasm/modules/68k/game/data/tile_decompressor_inner_loop_a.asm)*
+*Source: [tile_decompressor_inner_loop_a.asm](../disasm/modules/68k/game/data/tile_decompressor_inner_loop_a.asm)*
 
 ---
 
@@ -1145,7 +1145,7 @@ Tile Decompressor Inner Loop B Decompression variant B: Store with post-incremen
 
 - **Entry**: D4 = tile data, A4 = VDP_DATA, A5 = counter
 - **Modifies**: D4, A4, A5
-*Source: [tile_decompressor_inner_loop_b.asm](disasm/modules/68k/game/data/tile_decompressor_inner_loop_b.asm)*
+*Source: [tile_decompressor_inner_loop_b.asm](../disasm/modules/68k/game/data/tile_decompressor_inner_loop_b.asm)*
 
 ---
 
@@ -1155,7 +1155,7 @@ Tile Decompressor Inner Loop C Decompression variant C: XOR-combine and store wi
 
 - **Entry**: D2 = accumulated data, D4 = XOR mask, A4 = VDP_DATA, A5 = counter
 - **Modifies**: D2, D4, A4, A5
-*Source: [tile_decompressor_inner_loop_c.asm](disasm/modules/68k/game/data/tile_decompressor_inner_loop_c.asm)*
+*Source: [tile_decompressor_inner_loop_c.asm](../disasm/modules/68k/game/data/tile_decompressor_inner_loop_c.asm)*
 
 ---
 
@@ -1166,7 +1166,7 @@ Tile Data Stream Byte Read Reads next byte from tile data stream (A0)+. If byte 
 - **Entry**: A0 = pointer to compressed tile data stream
 - **Returns**: D0 = byte read; falls through if not $FF
 - **Modifies**: D0, A0
-*Source: [tile_data_stream_byte_read.asm](disasm/modules/68k/game/data/tile_data_stream_byte_read.asm)*
+*Source: [tile_data_stream_byte_read.asm](../disasm/modules/68k/game/data/tile_data_stream_byte_read.asm)*
 
 ---
 
@@ -1177,7 +1177,7 @@ Tile Decompressor Engine Main tile decompression engine. Reads compressed tile c
 - **Entry**: A0 = compressed data, A1 = output buffer, D0 = initial value Entry (alt $001236): A0 = compressed nametable data, D0 = base offset
 - **Modifies**: D0-D7, A0-A5
 - **Calls**: $0012F4: tile_bit_stream_unpacker (BSR PC-relative) $0013A4: bit_stream_refill (BSR PC-relative)
-*Source: [tile_decompressor_engine.asm](disasm/modules/68k/game/data/tile_decompressor_engine.asm)*
+*Source: [tile_decompressor_engine.asm](../disasm/modules/68k/game/data/tile_decompressor_engine.asm)*
 
 ---
 
@@ -1188,7 +1188,7 @@ Tile Bit-Stream Unpacker Unpacks a tile value from a compressed bit-stream. Buil
 - **Entry**: D1 = bit-shift accumulator, D3 = base tile (from A3) D4 = shift control, D5 = bit-stream word, D6 = bits remaining
 - **Returns**: D1 = updated, D3 = unpacked tile value
 - **Modifies**: D0, D1, D3, D4, D5, D6, D7, A0
-*Source: [tile_bit_stream_unpacker.asm](disasm/modules/68k/game/data/tile_bit_stream_unpacker.asm)*
+*Source: [tile_bit_stream_unpacker.asm](../disasm/modules/68k/game/data/tile_bit_stream_unpacker.asm)*
 
 ---
 
@@ -1198,7 +1198,7 @@ Tile Bit-Stream Refill with Mask Table Continuation of tile bit-stream unpacker.
 
 - **Entry**: D0 = bits needed, D5 = bit-stream, D6 = bits remaining, A0 = data
 - **Modifies**: D0, D1, D5, D6, D7, A0, A5
-*Source: [tile_bit_stream_refill_with_mask_table.asm](disasm/modules/68k/game/data/tile_bit_stream_refill_with_mask_table.asm)*
+*Source: [tile_bit_stream_refill_with_mask_table.asm](../disasm/modules/68k/game/data/tile_bit_stream_refill_with_mask_table.asm)*
 
 ---
 
@@ -1209,7 +1209,7 @@ Tile Decompression Dispatcher A Dispatches up to 4 tile decompression jobs packe
 - **Entry**: D0 = 4 packed job IDs (one per byte), A5 = VDP_CTRL
 - **Modifies**: D0, D1, D2, A0, A5
 - **Calls**: $0010F4: tile_decompressor_setup (JSR PC-relative)
-*Source: [tile_decompression_disp_a.asm](disasm/modules/68k/game/data/tile_decompression_disp_a.asm)*
+*Source: [tile_decompression_disp_a.asm](../disasm/modules/68k/game/data/tile_decompression_disp_a.asm)*
 
 ---
 
@@ -1220,7 +1220,7 @@ Tile Decompression Dispatcher B Data prefix ($0014E0-$00152F): Tile decompressio
 - **Entry**: D0 = 4 packed job IDs (one per byte)
 - **Modifies**: D0, D1, D2, D6, A0, A2, A4, A5
 - **Calls**: $001106: tile_decompressor_setup_alt (JSR PC-relative)
-*Source: [tile_decompression_disp_b.asm](disasm/modules/68k/game/data/tile_decompression_disp_b.asm)*
+*Source: [tile_decompression_disp_b.asm](../disasm/modules/68k/game/data/tile_decompression_disp_b.asm)*
 
 ---
 
@@ -1231,7 +1231,7 @@ Descriptor Table + Bit Unpacker Dispatcher Contains a 10-entry descriptor table 
 - **Entry**: D0 = packed 4-byte index (each byte selects a descriptor)
 - **Modifies**: D0, D1, D2, A0, A1, A2, A4, A5
 - **Calls**: $0013B4 (bit_unpack_loop)
-*Source: [descriptor_table_bit_unpacker_disp.asm](disasm/modules/68k/game/data/descriptor_table_bit_unpacker_disp.asm)*
+*Source: [descriptor_table_bit_unpacker_disp.asm](../disasm/modules/68k/game/data/descriptor_table_bit_unpacker_disp.asm)*
 
 ---
 
@@ -1243,7 +1243,7 @@ Unpacks tile data to 12 VRAM regions via repeated calls to unpack_tiles_vdp. Eac
 - **Modifies**: A0, A5
 - **Calls**: $00247C: unpack_tiles_vdp (JSR PC-relative, called 12 times)
 - **RAM**: $C80D: tile_update_flag (nonzero = skip) $C880: vscroll_a (set to $FFF8 during unpack)
-*Source: [vdp_tile_unpack_0024ca.asm](disasm/modules/68k/game/data/vdp_tile_unpack_0024ca.asm)*
+*Source: [vdp_tile_unpack_0024ca.asm](../disasm/modules/68k/game/data/vdp_tile_unpack_0024ca.asm)*
 
 ---
 
@@ -1254,7 +1254,7 @@ If skip_flag ($C80D) is clear: unpacks tile data to two VRAM nametable rows via 
 - **Modifies**: A0, A5
 - **Calls**: $00247C: unpack_tiles_vdp (12×)
 - **RAM**: $C80D: skip_flag (byte, nonzero = skip) $C888: tile_source_ptr (longword)
-*Source: [vdp_tile_unpack_0025b0.asm](disasm/modules/68k/game/data/vdp_tile_unpack_0025b0.asm)*
+*Source: [vdp_tile_unpack_0025b0.asm](../disasm/modules/68k/game/data/vdp_tile_unpack_0025b0.asm)*
 
 ---
 
@@ -1263,7 +1263,7 @@ If skip_flag ($C80D) is clear: unpacks tile data to two VRAM nametable rows via 
 Copies two ROM data blocks to RAM during initialization: Block 1: 288 bytes from $00937E7E to ($FAD8).W Block 2: 432 bytes from $00937F9E to ($FBF8).W
 
 - **Modifies**: D0, A1, A2
-*Source: [bulk_table_copy.asm](disasm/modules/68k/game/data/bulk_table_copy.asm)*
+*Source: [bulk_table_copy.asm](../disasm/modules/68k/game/data/bulk_table_copy.asm)*
 
 ---
 
@@ -1274,7 +1274,7 @@ Word-to-Nibble Unpacker Unpacks two words from (A1) into individual nibble bytes
 - **Entry**: A1 = source word pointer, A3 = output nibble buffer
 - **Modifies**: D0, A1, A3
 - **Confidence**: high
-*Source: [word_to_nibble_unpacker.asm](disasm/modules/68k/game/data/word_to_nibble_unpacker.asm)*
+*Source: [word_to_nibble_unpacker.asm](../disasm/modules/68k/game/data/word_to_nibble_unpacker.asm)*
 
 ---
 
@@ -1286,7 +1286,7 @@ Determines entity visibility based on race mode, entity flags, and global state.
 
 - **Entry**: A0 = entity, A2 = display slot buffer
 - **Modifies**: D0
-*Source: [entity_visibility_check.asm](disasm/modules/68k/game/entity/entity_visibility_check.asm)*
+*Source: [entity_visibility_check.asm](../disasm/modules/68k/game/entity/entity_visibility_check.asm)*
 
 ---
 
@@ -1298,7 +1298,7 @@ If $C31C is nonzero and obj.field_E5 bit 3 is set: clears 7 fields of target obj
 - **Modifies**: D0, A0, A1
 - **RAM**: $C31C: enable flag (byte)
 - **Object fields**: A0+$E5: control flags (byte, bit 3) A1+$00/$14/$28/$3C/$50/$64: animation fields (word, cleared)
-*Source: [object_field_clear.asm](disasm/modules/68k/game/entity/object_field_clear.asm)*
+*Source: [object_field_clear.asm](../disasm/modules/68k/game/entity/object_field_clear.asm)*
 
 ---
 
@@ -1308,7 +1308,7 @@ Masks D0 with $0130 — if non-zero, branches back to previous function. Otherwi
 
 - **Entry**: D0 = status bits | Exit: table processed | Uses: D0, D7, A0
 - **RAM**: $00FF5FFE = SH2 shared byte (cleared) $FFFF9100 = object table base (address loaded into A0)
-*Source: [object_table_lookup_loop.asm](disasm/modules/68k/game/entity/object_table_lookup_loop.asm)*
+*Source: [object_table_lookup_loop.asm](../disasm/modules/68k/game/entity/object_table_lookup_loop.asm)*
 
 ---
 
@@ -1319,7 +1319,7 @@ If D0 has any bits in $0130 set, branches back (to caller's loop). Otherwise, lo
 - **Entry**: D0 = status flags | Exit: table processed
 - **Modifies**: D0, D7, A0
 - **RAM**: $FFFF9700 = object table 2 base (address, loaded into A0)
-*Source: [object_table_clear_loop.asm](disasm/modules/68k/game/entity/object_table_clear_loop.asm)*
+*Source: [object_table_clear_loop.asm](../disasm/modules/68k/game/entity/object_table_clear_loop.asm)*
 
 ---
 
@@ -1332,7 +1332,7 @@ Player Entity Frame Update Per-frame player entity update. Sets player-active fl
 - **RAM**: $C89C sh2_comm_state, $C8A0 race_state, $C8AA scene_state, $C8AC state_dispatch_idx
 - **Object fields**: +$44 display_offset, +$46 display_scale, +$4A display_aux
 - **Confidence**: high
-*Source: [player_entity_frame_update.asm](disasm/modules/68k/game/entity/player_entity_frame_update.asm)*
+*Source: [player_entity_frame_update.asm](../disasm/modules/68k/game/entity/player_entity_frame_update.asm)*
 
 ---
 
@@ -1342,7 +1342,7 @@ Player Entity Frame Update Per-frame player entity update. Sets player-active fl
 
 - **Modifies**: D0
 - **RAM**: $C07A: bitmask table index (word) $C26C: bitmask lookup result (word)
-*Source: [object_bitmask_table_lookup.asm](disasm/modules/68k/game/entity/object_bitmask_table_lookup.asm)*
+*Source: [object_bitmask_table_lookup.asm](../disasm/modules/68k/game/entity/object_bitmask_table_lookup.asm)*
 
 ---
 
@@ -1352,7 +1352,7 @@ Increments object+$1C frame counter, multiplies by 4 (two ADD.W D0,D0), then ind
 
 - **Entry**: A0 = object pointer | Exit: position updated | Uses: D0, A0, A2
 - **RAM**: $FFFFC700 = position table pointer (long, loaded into A2)
-*Source: [object_pos_table_lookup.asm](disasm/modules/68k/game/entity/object_pos_table_lookup.asm)*
+*Source: [object_pos_table_lookup.asm](../disasm/modules/68k/game/entity/object_pos_table_lookup.asm)*
 
 ---
 
@@ -1362,7 +1362,7 @@ Follows object link (A0+$CE → A1), copies type byte A1+$1B to A0+$1D. Looks up
 
 - **Modifies**: D0, D1, A0, A1, A2
 - **RAM**: $C700: table_ptr_B (longword, word-pair table) $C704: table_ptr_A (longword, byte table) Object (A0): +$1D: type copy (byte) +$1E: heading (word, from A1+$1A high byte) +$20: position X (word, from table) +$22: position Y (word, from table) +$25: table value (byte) +$27: prev table value (byte) +$CE: link pointer (longword → A1) +$E4: flip flag (byte, 0 or 1) +$E5: type flags (byte, from A1+$19)
-*Source: [object_link_copy_table_lookup.asm](disasm/modules/68k/game/entity/object_link_copy_table_lookup.asm)*
+*Source: [object_link_copy_table_lookup.asm](../disasm/modules/68k/game/entity/object_link_copy_table_lookup.asm)*
 
 ---
 
@@ -1373,7 +1373,7 @@ Object Type Return — Type 2 Returns constant 2 in D0. Target of object_type_di
 - **Entry**: (from jump table dispatch)
 - **Modifies**: D0
 - **Confidence**: high
-*Source: [object_type_return_007a8e.asm](disasm/modules/68k/game/entity/object_type_return_007a8e.asm)*
+*Source: [object_type_return_007a8e.asm](../disasm/modules/68k/game/entity/object_type_return_007a8e.asm)*
 
 ---
 
@@ -1383,7 +1383,7 @@ Object Type Return — Type 2 (B) Returns constant 2 in D0. Jump table target fo
 
 - **Modifies**: D0
 - **Confidence**: high
-*Source: [object_type_return_007aaa.asm](disasm/modules/68k/game/entity/object_type_return_007aaa.asm)*
+*Source: [object_type_return_007aaa.asm](../disasm/modules/68k/game/entity/object_type_return_007aaa.asm)*
 
 ---
 
@@ -1393,7 +1393,7 @@ Object Type Return — Type 2 (C) Returns constant 2 in D0. Jump table target fo
 
 - **Modifies**: D0
 - **Confidence**: high
-*Source: [object_type_return_007aae.asm](disasm/modules/68k/game/entity/object_type_return_007aae.asm)*
+*Source: [object_type_return_007aae.asm](../disasm/modules/68k/game/entity/object_type_return_007aae.asm)*
 
 ---
 
@@ -1403,7 +1403,7 @@ Object Type Return — Type 2 (D) Returns constant 2 in D0. Jump table target fo
 
 - **Modifies**: D0
 - **Confidence**: high
-*Source: [object_type_return_007c32.asm](disasm/modules/68k/game/entity/object_type_return_007c32.asm)*
+*Source: [object_type_return_007c32.asm](../disasm/modules/68k/game/entity/object_type_return_007c32.asm)*
 
 ---
 
@@ -1413,7 +1413,7 @@ Object Type Return — Type 4 Returns constant 4 in D0. Jump table target for ob
 
 - **Modifies**: D0
 - **Confidence**: high
-*Source: [object_type_return_007c36.asm](disasm/modules/68k/game/entity/object_type_return_007c36.asm)*
+*Source: [object_type_return_007c36.asm](../disasm/modules/68k/game/entity/object_type_return_007c36.asm)*
 
 ---
 
@@ -1423,7 +1423,7 @@ Object Type Return — Type 8 Returns constant 8 in D0. Jump table target for ob
 
 - **Modifies**: D0
 - **Confidence**: high
-*Source: [object_type_return_007c3a.asm](disasm/modules/68k/game/entity/object_type_return_007c3a.asm)*
+*Source: [object_type_return_007c3a.asm](../disasm/modules/68k/game/entity/object_type_return_007c3a.asm)*
 
 ---
 
@@ -1433,7 +1433,7 @@ Object Type Return — Type 16 Returns constant $10 (16) in D0. Jump table targe
 
 - **Modifies**: D0
 - **Confidence**: high
-*Source: [object_type_return_007c3e.asm](disasm/modules/68k/game/entity/object_type_return_007c3e.asm)*
+*Source: [object_type_return_007c3e.asm](../disasm/modules/68k/game/entity/object_type_return_007c3e.asm)*
 
 ---
 
@@ -1443,7 +1443,7 @@ Object Type Return — Type 2 (E) Returns constant 2 in D0. Jump table target fo
 
 - **Modifies**: D0
 - **Confidence**: high
-*Source: [object_type_return_007c42.asm](disasm/modules/68k/game/entity/object_type_return_007c42.asm)*
+*Source: [object_type_return_007c42.asm](../disasm/modules/68k/game/entity/object_type_return_007c42.asm)*
 
 ---
 
@@ -1453,7 +1453,7 @@ Object Type Return — Type 2 (F) Returns constant 2 in D0. Jump table target fo
 
 - **Modifies**: D0
 - **Confidence**: high
-*Source: [object_type_return_007c46.asm](disasm/modules/68k/game/entity/object_type_return_007c46.asm)*
+*Source: [object_type_return_007c46.asm](../disasm/modules/68k/game/entity/object_type_return_007c46.asm)*
 
 ---
 
@@ -1465,7 +1465,7 @@ Entity Flag Bit Test Guard Tests bit 6 of entity flags field +$02(A0). If set, f
 - **Modifies**: A0
 - **Object fields**: +$02 flags (bit 6 = processing gate)
 - **Confidence**: high
-*Source: [entity_flag_bit_test_guard.asm](disasm/modules/68k/game/entity/entity_flag_bit_test_guard.asm)*
+*Source: [entity_flag_bit_test_guard.asm](../disasm/modules/68k/game/entity/entity_flag_bit_test_guard.asm)*
 
 ---
 
@@ -1475,7 +1475,7 @@ Initializes entity position table. If ($EEDC).L != 0, fills with $7FFF0000. Then
 
 - **Entry**: A0 = entity
 - **Modifies**: D0, D1, D7, A1, A2
-*Source: [entity_position_init.asm](disasm/modules/68k/game/entity/entity_position_init.asm)*
+*Source: [entity_position_init.asm](../disasm/modules/68k/game/entity/entity_position_init.asm)*
 
 ---
 
@@ -1485,7 +1485,7 @@ Clamps entity speed to max, multiplies by $48, stores result.
 
 - **Entry**: A0 = entity
 - **Modifies**: D0
-*Source: [entity_speed_clamp.asm](disasm/modules/68k/game/entity/entity_speed_clamp.asm)*
+*Source: [entity_speed_clamp.asm](../disasm/modules/68k/game/entity/entity_speed_clamp.asm)*
 
 ---
 
@@ -1495,7 +1495,7 @@ Loads entity data from a ROM speed/attribute table into RAM entity entries. Tabl
 
 - **Modifies**: D0, A1, A2
 - **RAM**: ($C89C).W: Mode/table index ($9100).W: Entity table base (stride 256 bytes per entity)
-*Source: [entity_table_load.asm](disasm/modules/68k/game/entity/entity_table_load.asm)*
+*Source: [entity_table_load.asm](../disasm/modules/68k/game/entity/entity_table_load.asm)*
 
 ---
 
@@ -1505,7 +1505,7 @@ Loads entity data from a RAM lookup table into entity entries, using a combined 
 
 - **Modifies**: D0, D1, A1, A2
 - **RAM**: ($FDA9).W: Secondary table index (byte) ($FAD8).W: RAM lookup table base ($C8C8).W: Mode flag ($9100).W: Entity table base (stride 256)
-*Source: [entity_table_load_mode.asm](disasm/modules/68k/game/entity/entity_table_load_mode.asm)*
+*Source: [entity_table_load_mode.asm](../disasm/modules/68k/game/entity/entity_table_load_mode.asm)*
 
 ---
 
@@ -1515,7 +1515,7 @@ AI Position Tables + Entity Type Dispatcher Combined data tables and dispatcher 
 
 - **Entry**: A0 = entity pointer
 - **Modifies**: D0, A1
-*Source: [entity_type_dispatch_tables.asm](disasm/modules/68k/game/entity/entity_type_dispatch_tables.asm)*
+*Source: [entity_type_dispatch_tables.asm](../disasm/modules/68k/game/entity/entity_type_dispatch_tables.asm)*
 
 ---
 
@@ -1526,7 +1526,7 @@ Computes or interpolates a position value for an entity. Two paths depending on 
 - **Entry**: A0 = object/entity pointer
 - **Modifies**: D0, D1, A1 Fields accessed: A0+$04: Speed index (0 = use interpolation path) A0+$06: Speed value A0+$0E: Interpolation target value A0+$74: Current position value (read/write) A0+$7A: Lookup table index A0+$7E: Position mirror (written in path 2 only)
 - **RAM**: ($C278).W: Pointer to lookup table
-*Source: [obj_state_return.asm](disasm/modules/68k/game/entity/obj_state_return.asm)*
+*Source: [obj_state_return.asm](../disasm/modules/68k/game/entity/obj_state_return.asm)*
 
 ---
 
@@ -1537,7 +1537,7 @@ Chained from ai_target_check via BNE.S when conditions met. Computes speed/dista
 - **Entry**: A0 = object, A1 = entity target (from ai_target_check)
 - **Modifies**: D0-D3 Fields accessed: A0/A1+$02: Status flags (ORI.W bit-set) A0/A1+$04: Speed value A0/A1+$06: Speed parameter A0+$88: Direction flags
 - **RAM**: ($C8A4).W: Active AI mode byte ($C8CE).W: Speed threshold ($C8D0).W: Position threshold
-*Source: [entity_target_action.asm](disasm/modules/68k/game/entity/entity_target_action.asm)*
+*Source: [entity_target_action.asm](../disasm/modules/68k/game/entity/entity_target_action.asm)*
 
 ---
 
@@ -1547,7 +1547,7 @@ Applies a fixed directional offset ($18 = 24 units) to entity X/Y position based
 
 - **Entry**: A0 = object/entity pointer
 - **Modifies**: D0, D1 Fields accessed: A0+$30: X position (modified) A0+$34: Y position (modified) A0+$88: Direction flags (bits 0-3)
-*Source: [entity_directional_push.asm](disasm/modules/68k/game/entity/entity_directional_push.asm)*
+*Source: [entity_directional_push.asm](../disasm/modules/68k/game/entity/entity_directional_push.asm)*
 
 ---
 
@@ -1558,7 +1558,7 @@ Scans backward through 16-byte object entries starting from A0, skipping entries
 - **Entry**: A0 = object pointer (scan start)
 - **Modifies**: A1
 - **RAM**: $C086: scroll register 1 (word) $C054: scroll register 2 (word) $C056: scroll register 3 (word) $C0AE: position register 1 (word) $C0B0: position register 2 (word) $C0B2: position register 3 (word)
-*Source: [backward_object_scan_copy_scroll_data.asm](disasm/modules/68k/game/entity/backward_object_scan_copy_scroll_data.asm)*
+*Source: [backward_object_scan_copy_scroll_data.asm](../disasm/modules/68k/game/entity/backward_object_scan_copy_scroll_data.asm)*
 
 ---
 
@@ -1569,7 +1569,7 @@ Source: code_c200 Stores a word value and a long pointer into an object entry. U
 - **Entry**: D0 = word value to store at object base A1 = object entry pointer A4 = ROM table cursor (advanced by 4 after call)
 - **Returns**: Object fields written, A4 advanced
 - **Modifies**: A4 (post-incremented)
-*Source: [object_field_store_helper.asm](disasm/modules/68k/game/entity/object_field_store_helper.asm)*
+*Source: [object_field_store_helper.asm](../disasm/modules/68k/game/entity/object_field_store_helper.asm)*
 
 ---
 
@@ -1580,7 +1580,7 @@ Source: code_c200 Initializes a 15-element object array in work RAM at $FF6218. 
 - **Entry**: No register inputs (reads index from $C8CC)
 - **Returns**: 15 objects initialized in $FF6218 area
 - **Modifies**: D0, D1, D7, A1, A2, A3, A4
-*Source: [object_array_init_rom_tables.asm](disasm/modules/68k/game/entity/object_array_init_rom_tables.asm)*
+*Source: [object_array_init_rom_tables.asm](../disasm/modules/68k/game/entity/object_array_init_rom_tables.asm)*
 
 ---
 
@@ -1591,7 +1591,7 @@ Source: code_c200 Initializes a 15-element object array in work RAM at $FF6218. 
 - **Entry**: No register inputs
 - **Returns**: 15 object entries initialized at $FFFF9100
 - **Modifies**: D0, D1, D7, A0, A1, A2, A3
-*Source: [object_table_init_entry_array.asm](disasm/modules/68k/game/entity/object_table_init_entry_array.asm)*
+*Source: [object_table_init_entry_array.asm](../disasm/modules/68k/game/entity/object_table_init_entry_array.asm)*
 
 ---
 
@@ -1602,7 +1602,7 @@ Source: code_c200 Initializes a 15-element object array in work RAM at $FF6218. 
 - **Entry**: D0 = base entry offset (added to game mode for sub-index)
 - **Returns**: 16 object entries loaded, control field cleared
 - **Modifies**: D0, D2, D7, A0, A1
-*Source: [object_entry_loader_loop_table_lookup.asm](disasm/modules/68k/game/entity/object_entry_loader_loop_table_lookup.asm)*
+*Source: [object_entry_loader_loop_table_lookup.asm](../disasm/modules/68k/game/entity/object_entry_loader_loop_table_lookup.asm)*
 
 ---
 
@@ -1613,7 +1613,7 @@ Primary and Alternate Entries Source: code_c200 Initializes two specific object 
 - **Entry**: D0 = entry offset selector (passed to object_entry_data_copy)
 - **Returns**: Both entries initialized with counter fields set
 - **Modifies**: D0, D1, D2, A0, A1
-*Source: [dual_object_entry_init_primary_alternate.asm](disasm/modules/68k/game/entity/dual_object_entry_init_primary_alternate.asm)*
+*Source: [dual_object_entry_init_primary_alternate.asm](../disasm/modules/68k/game/entity/dual_object_entry_init_primary_alternate.asm)*
 
 ---
 
@@ -1624,7 +1624,7 @@ Source: code_c200 Copies field data from a ROM table into a single 256-byte obje
 - **Entry**: D0 = entry offset selector (combined with game mode) D1 = value for object field $2C
 - **Returns**: Object entry fields populated
 - **Modifies**: D0, D2, A0, A1
-*Source: [object_entry_data_copy.asm](disasm/modules/68k/game/entity/object_entry_data_copy.asm)*
+*Source: [object_entry_data_copy.asm](../disasm/modules/68k/game/entity/object_entry_data_copy.asm)*
 
 ---
 
@@ -1635,7 +1635,7 @@ Source: code_c200 Copies field data from a ROM table into a single 256-byte obje
 - **Entry**: No register inputs
 - **Returns**: 16 object entries reset, control field cleared
 - **Modifies**: D7, A0, A1
-*Source: [object_entries_reset_init_fixed_table.asm](disasm/modules/68k/game/entity/object_entries_reset_init_fixed_table.asm)*
+*Source: [object_entries_reset_init_fixed_table.asm](../disasm/modules/68k/game/entity/object_entries_reset_init_fixed_table.asm)*
 
 ---
 
@@ -1645,7 +1645,7 @@ Calls object_update ($00B684), then checks sync flag bit 6. If clear, advances t
 
 - **Entry**: none | Exit: state optionally advanced | Uses: none
 - **RAM**: $FFFFC80E = sync/transition flags (byte, bit 6 tested) $FFFFC87E = main game state (word, conditionally incremented by 4)
-*Source: [object_update_cond_game_state_advance.asm](disasm/modules/68k/game/entity/object_update_cond_game_state_advance.asm)*
+*Source: [object_update_cond_game_state_advance.asm](../disasm/modules/68k/game/entity/object_update_cond_game_state_advance.asm)*
 
 ---
 
@@ -1657,7 +1657,7 @@ Tests VDP update flag ($C80D). If non-zero, returns immediately. Otherwise loads
 
 - **Entry**: A5 = VDP port | Exit: tiles updated or skipped | Uses: A0, A5
 - **RAM**: $FFFFC80D = VDP update flag (byte, tested) $FFFFC886 = frame counter (byte/source addr for tile expand, cleared)
-*Source: [conditional_tile_index_expand.asm](disasm/modules/68k/game/hud/conditional_tile_index_expand.asm)*
+*Source: [conditional_tile_index_expand.asm](../disasm/modules/68k/game/hud/conditional_tile_index_expand.asm)*
 
 ---
 
@@ -1667,7 +1667,7 @@ Sprite/HUD Layout Builder Builds 4 sprite entries at $FF66DC from two PC-relativ
 
 - **Modifies**: D0, D1, D2, A1, A2, A3
 - **RAM**: $C89E (sh2_comm_sub), $C8A0 (race_state), $C8C8 (vint_state), $C026
-*Source: [sprite_hud_layout_builder.asm](disasm/modules/68k/game/hud/sprite_hud_layout_builder.asm)*
+*Source: [sprite_hud_layout_builder.asm](../disasm/modules/68k/game/hud/sprite_hud_layout_builder.asm)*
 
 ---
 
@@ -1677,7 +1677,7 @@ configure 3 HUD display slots Initializes 3 HUD element slots with type $09 and 
 
 - **Modifies**: A1
 - **Confidence**: medium
-*Source: [hud_element_init.asm](disasm/modules/68k/game/hud/hud_element_init.asm)*
+*Source: [hud_element_init.asm](../disasm/modules/68k/game/hud/hud_element_init.asm)*
 
 ---
 
@@ -1688,7 +1688,7 @@ Digit Extraction via Division Data prefix (2 bytes) followed by a division chain
 - **Entry**: D1 = value to extract digits from, A0 = output buffer pointer
 - **Modifies**: D1, A0
 - **Confidence**: medium
-*Source: [digit_extraction_via_division.asm](disasm/modules/68k/game/hud/digit_extraction_via_division.asm)*
+*Source: [digit_extraction_via_division.asm](../disasm/modules/68k/game/hud/digit_extraction_via_division.asm)*
 
 ---
 
@@ -1698,7 +1698,7 @@ Reads 4 seed bytes + 18 groups of 4 params from a RAM buffer at $C200. For each 
 
 - **Modifies**: D0, D1, D2, D3, D4, D5, D6, D7
 - **RAM**: $C200: bcd_input_buffer (4 seed bytes + 18×4 param bytes) $C260: bcd_result (4 bytes output)
-*Source: [bcd_scoring_calc.asm](disasm/modules/68k/game/hud/bcd_scoring_calc.asm)*
+*Source: [bcd_scoring_calc.asm](../disasm/modules/68k/game/hud/bcd_scoring_calc.asm)*
 
 ---
 
@@ -1710,7 +1710,7 @@ Updates BCD time counter (MM:SS:FF format) Reads speed factor from lookup table,
 - **Modifies**: D0, D1, D2, A0, A1, A3
 - **RAM**: $C89E: speed_factor_index Data table (external, at ai_table_lookup_cond_fall_through): Speed factor lookup at $00B2D8 (PC-relative) Object fields (A0): +$06: obj_speed (divisor) +$E2: speed_offset (added to factor)
 - **Confidence**: high
-*Source: [bcd_time_update_010.asm](disasm/modules/68k/game/hud/bcd_time_update_010.asm)*
+*Source: [bcd_time_update_010.asm](../disasm/modules/68k/game/hud/bcd_time_update_010.asm)*
 
 ---
 
@@ -1721,7 +1721,7 @@ BCD Nibble Subtractor Performs BCD subtraction on nibble pairs stored at (A4). C
 - **Entry**: A4 = nibble buffer pointer
 - **Modifies**: D0, D1, A4
 - **Confidence**: high
-*Source: [bcd_nibble_subtractor.asm](disasm/modules/68k/game/hud/bcd_nibble_subtractor.asm)*
+*Source: [bcd_nibble_subtractor.asm](../disasm/modules/68k/game/hud/bcd_nibble_subtractor.asm)*
 
 ---
 
@@ -1732,7 +1732,7 @@ Multiple entry points for extracting BCD/display digits from various game values
 - **Modifies**: D0, D1, A0, A1, A2
 - **Calls**: $004920: data_copy (JMP PC-relative)
 - **RAM**: $9004: vscroll_lookup $9F04: hscroll_lookup $C050: scroll_state $C200: game_data (source for copy) $C254: camera_scroll $C30C: track_sector $EEDC: display_buf_copy_dest $EEFC: camera_scroll_display
-*Source: [display_digit_extract.asm](disasm/modules/68k/game/hud/display_digit_extract.asm)*
+*Source: [display_digit_extract.asm](../disasm/modules/68k/game/hud/display_digit_extract.asm)*
 
 ---
 
@@ -1742,7 +1742,7 @@ Conditionally configures a HUD panel structure at $FF69E0. If ($C819).W flag is 
 
 - **Modifies**: D0, D1
 - **RAM**: ($C819).W: Guard flag (non-zero = skip) ($902A).W: Current lap value ($9F2A).W: Lap threshold ($C967).W: Config bits (bit 4 checked) $FF69E0+$00: Panel enable (byte) $FF69E0+$04: Tile reference (long)
-*Source: [hud_panel_config.asm](disasm/modules/68k/game/hud/hud_panel_config.asm)*
+*Source: [hud_panel_config.asm](../disasm/modules/68k/game/hud/hud_panel_config.asm)*
 
 ---
 
@@ -1752,7 +1752,7 @@ Conditionally activates HUD elements: If ($A0F0).W != 0, exit (already active) I
 
 - **Modifies**: (none modified)
 - **RAM**: ($A0F0).W: Active flag (must be 0) ($C8AB).W: Mode bits (bit 1 checked) $FF60C8: HUD enable flag (set to $FFFF) $FF6850: HUD mode (set to $09)
-*Source: [hud_activate_check.asm](disasm/modules/68k/game/hud/hud_activate_check.asm)*
+*Source: [hud_activate_check.asm](../disasm/modules/68k/game/hud/hud_activate_check.asm)*
 
 ---
 
@@ -1763,7 +1763,7 @@ Display Entry Builder (5 Racers) Builds 5 display entries at $FF6900 from racer 
 - **Entry**: A6 = base pointer for dispatch table offsets
 - **Modifies**: D0, D1, D2, D3, A1, A2, A3
 - **RAM**: $A0EA (buffer_write_index), $A0EE (entry_counter), $C89C (sh2_comm_state), $C8CA (race_substate_read), $C8CC (race_substate), $EF08 (racer_data_table)
-*Source: [display_entry_builder.asm](disasm/modules/68k/game/hud/display_entry_builder.asm)*
+*Source: [display_entry_builder.asm](../disasm/modules/68k/game/hud/display_entry_builder.asm)*
 
 ---
 
@@ -1773,7 +1773,7 @@ Clears HUD display buffer entries: - Zeroes first byte at $FF6800, $FF6810, $FF6
 
 - **Modifies**: D0, D1, A1
 - **RAM**: $FF6800: HUD entry 0 (byte cleared) $FF6810: HUD entry 1 (byte cleared) $FF6820: HUD entry 2 (byte cleared) $FF6900: HUD table (6 words at stride $14, cleared)
-*Source: [hud_buffer_clear.asm](disasm/modules/68k/game/hud/hud_buffer_clear.asm)*
+*Source: [hud_buffer_clear.asm](../disasm/modules/68k/game/hud/hud_buffer_clear.asm)*
 
 ---
 
@@ -1783,7 +1783,7 @@ Clears 16 display slots ($FF6800, stride $10), then if display_list_count ($C0FC
 
 - **Modifies**: D0, D1, D2, D3, A1, A2
 - **RAM**: $C0FC: display_list_count (word, signed; bit 15 = processed flag) $C0FE: scroll_offset (word, clamped to $7FFF) ROM tables: $0089ACF0: display_entry_ptr_table (longword pointers indexed by count×4)
-*Source: [display_list_builder.asm](disasm/modules/68k/game/hud/display_list_builder.asm)*
+*Source: [display_list_builder.asm](../disasm/modules/68k/game/hud/display_list_builder.asm)*
 
 ---
 
@@ -1794,7 +1794,7 @@ Dual Entry Point Source: code_c200 Looks up a score or stat modifier from a PC-r
 - **Entry**: No register inputs (entry point selects configuration)
 - **Returns**: Accumulator updated with looked-up modifier
 - **Modifies**: D0, D1, A0
-*Source: [score_stat_lookup_accum_dual.asm](disasm/modules/68k/game/hud/score_stat_lookup_accum_dual.asm)*
+*Source: [score_stat_lookup_accum_dual.asm](../disasm/modules/68k/game/hud/score_stat_lookup_accum_dual.asm)*
 
 ---
 
@@ -1806,7 +1806,7 @@ Lap Time Digit Renderer A Renders a BCD-encoded lap time as digit tiles to SH2 f
 - **Returns**: A1 advanced past tiles, A2 advanced 4 bytes
 - **Modifies**: D1, D3, A1, A2
 - **Calls**: bcd_nibble_splitter_a: BCD nibble splitter (high + low digit tiles) digit_tile_dma_to_framebuffer_a: single digit tile DMA to framebuffer A
-*Source: [lap_time_digit_renderer_a.asm](disasm/modules/68k/game/hud/lap_time_digit_renderer_a.asm)*
+*Source: [lap_time_digit_renderer_a.asm](../disasm/modules/68k/game/hud/lap_time_digit_renderer_a.asm)*
 
 ---
 
@@ -1818,7 +1818,7 @@ BCD Nibble Splitter A Splits byte in D3 into high nibble (shift right 4) and low
 - **Returns**: A1 advanced by 16
 - **Modifies**: D1, D3, A1
 - **Calls**: digit_tile_dma_to_framebuffer_a: digit tile DMA to framebuffer A
-*Source: [bcd_nibble_splitter_a.asm](disasm/modules/68k/game/hud/bcd_nibble_splitter_a.asm)*
+*Source: [bcd_nibble_splitter_a.asm](../disasm/modules/68k/game/hud/bcd_nibble_splitter_a.asm)*
 
 ---
 
@@ -1830,7 +1830,7 @@ Digit Tile DMA to Framebuffer A Computes SH2 framebuffer address for digit tile 
 - **Returns**: tile data sent to SH2 framebuffer
 - **Modifies**: D0, D1, A0
 - **Calls**: $00E35A: sh2_send_cmd
-*Source: [digit_tile_dma_to_framebuffer_a.asm](disasm/modules/68k/game/hud/digit_tile_dma_to_framebuffer_a.asm)*
+*Source: [digit_tile_dma_to_framebuffer_a.asm](../disasm/modules/68k/game/hud/digit_tile_dma_to_framebuffer_a.asm)*
 
 ---
 
@@ -1841,7 +1841,7 @@ ASCII Character to Tile Index Mapper (SH2, Alternate) Maps ASCII/special charact
 - **Entry**: D0 = character code
 - **Modifies**: D0, D1, A0
 - **Calls**: $00E35A (sh2_send_cmd)
-*Source: [ascii_character_to_tile_index_mapper_010674.asm](disasm/modules/68k/game/hud/ascii_character_to_tile_index_mapper_010674.asm)*
+*Source: [ascii_character_to_tile_index_mapper_010674.asm](../disasm/modules/68k/game/hud/ascii_character_to_tile_index_mapper_010674.asm)*
 
 ---
 
@@ -1853,7 +1853,7 @@ Lap Time Digit Renderer B Identical logic to lap_time_digit_renderer_a but rende
 - **Returns**: A1 advanced past tiles, A2 advanced 4 bytes
 - **Modifies**: D1, D3, A1, A2
 - **Calls**: bcd_nibble_splitter_b: BCD nibble splitter B digit_tile_dma_to_framebuffer_b: digit tile DMA to framebuffer B
-*Source: [lap_time_digit_renderer_b.asm](disasm/modules/68k/game/hud/lap_time_digit_renderer_b.asm)*
+*Source: [lap_time_digit_renderer_b.asm](../disasm/modules/68k/game/hud/lap_time_digit_renderer_b.asm)*
 
 ---
 
@@ -1865,7 +1865,7 @@ BCD Nibble Splitter B Identical logic to bcd_nibble_splitter_a — splits byte i
 - **Returns**: A1 advanced by 16
 - **Modifies**: D1, D3, A1
 - **Calls**: digit_tile_dma_to_framebuffer_b: digit tile DMA to framebuffer B
-*Source: [bcd_nibble_splitter_b.asm](disasm/modules/68k/game/hud/bcd_nibble_splitter_b.asm)*
+*Source: [bcd_nibble_splitter_b.asm](../disasm/modules/68k/game/hud/bcd_nibble_splitter_b.asm)*
 
 ---
 
@@ -1877,7 +1877,7 @@ Digit Tile DMA to Framebuffer B Identical logic to digit_tile_dma_to_framebuffer
 - **Returns**: tile data sent to SH2 framebuffer
 - **Modifies**: D0, D1, A0
 - **Calls**: $00E35A: sh2_send_cmd
-*Source: [digit_tile_dma_to_framebuffer_b.asm](disasm/modules/68k/game/hud/digit_tile_dma_to_framebuffer_b.asm)*
+*Source: [digit_tile_dma_to_framebuffer_b.asm](../disasm/modules/68k/game/hud/digit_tile_dma_to_framebuffer_b.asm)*
 
 ---
 
@@ -1889,7 +1889,7 @@ Lap Time Digit Renderer C (Register-Saving) Same logic as lap_time_digit_rendere
 - **Returns**: A1 advanced past tiles, A2 advanced 4 bytes
 - **Modifies**: D1, D3, D4, A1, A2
 - **Calls**: bcd_nibble_splitter_c: BCD nibble splitter C digit_tile_blit_to_framebuffer: digit tile blit to framebuffer
-*Source: [lap_time_digit_renderer_c.asm](disasm/modules/68k/game/hud/lap_time_digit_renderer_c.asm)*
+*Source: [lap_time_digit_renderer_c.asm](../disasm/modules/68k/game/hud/lap_time_digit_renderer_c.asm)*
 
 ---
 
@@ -1901,7 +1901,7 @@ BCD Nibble Splitter C Same logic as bcd_nibble_splitter_a/031 — splits byte in
 - **Returns**: A1 advanced by 16
 - **Modifies**: D1, D3, A1
 - **Calls**: digit_tile_blit_to_framebuffer: digit tile blit to framebuffer
-*Source: [bcd_nibble_splitter_c.asm](disasm/modules/68k/game/hud/bcd_nibble_splitter_c.asm)*
+*Source: [bcd_nibble_splitter_c.asm](../disasm/modules/68k/game/hud/bcd_nibble_splitter_c.asm)*
 
 ---
 
@@ -1913,7 +1913,7 @@ Digit Tile Blit to Framebuffer Same structure as digit_tile_dma_to_framebuffer_a
 - **Returns**: tile data sent to SH2 framebuffer
 - **Modifies**: D0, D1, A0
 - **Calls**: $011A98: name_entry_check (tile blit with stride)
-*Source: [digit_tile_blit_to_framebuffer.asm](disasm/modules/68k/game/hud/digit_tile_blit_to_framebuffer.asm)*
+*Source: [digit_tile_blit_to_framebuffer.asm](../disasm/modules/68k/game/hud/digit_tile_blit_to_framebuffer.asm)*
 
 ---
 
@@ -1925,7 +1925,7 @@ Lap Time Digit Renderer (Records Screen) Same pattern as lap_time_digit_renderer
 - **Returns**: A1 advanced past tiles, A2 advanced 4 bytes
 - **Modifies**: D1, D3, A1, A2
 - **Calls**: bcd_nibble_splitter: BCD nibble splitter digit_tile_dma: digit tile DMA to $0601F000
-*Source: [lap_time_digit_renderer.asm](disasm/modules/68k/game/hud/lap_time_digit_renderer.asm)*
+*Source: [lap_time_digit_renderer.asm](../disasm/modules/68k/game/hud/lap_time_digit_renderer.asm)*
 
 ---
 
@@ -1937,7 +1937,7 @@ BCD Nibble Splitter (Records Screen) Same pattern as bcd_nibble_splitter_a — s
 - **Returns**: A1 advanced by 16
 - **Modifies**: D1, D3, A1
 - **Calls**: digit_tile_dma: digit tile DMA to $0601F000
-*Source: [bcd_nibble_splitter.asm](disasm/modules/68k/game/hud/bcd_nibble_splitter.asm)*
+*Source: [bcd_nibble_splitter.asm](../disasm/modules/68k/game/hud/bcd_nibble_splitter.asm)*
 
 ---
 
@@ -1949,7 +1949,7 @@ Digit Tile DMA (Records Screen) Same pattern as digit_tile_dma_to_framebuffer_a 
 - **Returns**: tile data sent to SH2 framebuffer
 - **Modifies**: D0, D1, A0
 - **Calls**: $00E35A: sh2_send_cmd
-*Source: [digit_tile_dma.asm](disasm/modules/68k/game/hud/digit_tile_dma.asm)*
+*Source: [digit_tile_dma.asm](../disasm/modules/68k/game/hud/digit_tile_dma.asm)*
 
 ---
 
@@ -1960,7 +1960,7 @@ ASCII Character to Tile Index Mapper (SH2) Maps ASCII character code in D1 to a 
 - **Entry**: D1 = ASCII character code
 - **Modifies**: D0, D1, A0, A1
 - **Calls**: $00E35A (sh2_send_cmd)
-*Source: [ascii_character_to_tile_index_mapper_012618.asm](disasm/modules/68k/game/hud/ascii_character_to_tile_index_mapper_012618.asm)*
+*Source: [ascii_character_to_tile_index_mapper_012618.asm](../disasm/modules/68k/game/hud/ascii_character_to_tile_index_mapper_012618.asm)*
 
 ---
 
@@ -1972,7 +1972,7 @@ Checks if scene state ($C8AA) exceeds 20. If not, returns. Otherwise sets up SH2
 
 - **Entry**: none | Exit: scene transitioned or no-op | Uses: A1, A6
 - **RAM**: $FFFFC8AA = scene state (word, tested, then cleared) $00FF69C0 = SH2 object (byte +$00 set to $09, long +$08 set) $FFFFC8A4 = state variable (byte, set to $A6) $FFFFC8AC = state dispatch index (word, advanced by 4)
-*Source: [conditional_scene_transition_003da6.asm](disasm/modules/68k/game/menu/conditional_scene_transition_003da6.asm)*
+*Source: [conditional_scene_transition_003da6.asm](../disasm/modules/68k/game/menu/conditional_scene_transition_003da6.asm)*
 
 ---
 
@@ -1982,7 +1982,7 @@ Checks if scene state ($C8AA) exceeds 20. If not, returns. Otherwise sends two S
 
 - **Entry**: none | Exit: scene transitioned or no-op | Uses: none
 - **RAM**: $FFFFC8AA = scene state (word, tested, then cleared) $00FF69C8 = SH2 shared command 1 (long, set to $222F29EE) $00FF6998 = SH2 shared command 2 (long, set to $222F1716) $FFFFC8A4 = state variable (byte, set to $A7) $FFFFC30E = control flag (byte, bit 4 set) $FFFFC8AC = state dispatch index (word, advanced by 4)
-*Source: [conditional_scene_transition_003dd4.asm](disasm/modules/68k/game/menu/conditional_scene_transition_003dd4.asm)*
+*Source: [conditional_scene_transition_003dd4.asm](../disasm/modules/68k/game/menu/conditional_scene_transition_003dd4.asm)*
 
 ---
 
@@ -1992,7 +1992,7 @@ Checks if scene state ($C8AA) exceeds 20. If not, returns. Otherwise sends SH2 c
 
 - **Entry**: none | Exit: scene transitioned or no-op | Uses: none
 - **RAM**: $FFFFC8AA = scene state (word, tested, then cleared) $00FF6988 = SH2 shared command data (long, set to $222F038A) $FFFFC8A4 = state variable (byte, set to $C1) $FFFFC8AC = state dispatch index (word, advanced by 4)
-*Source: [conditional_scene_transition_003e7e.asm](disasm/modules/68k/game/menu/conditional_scene_transition_003e7e.asm)*
+*Source: [conditional_scene_transition_003e7e.asm](../disasm/modules/68k/game/menu/conditional_scene_transition_003e7e.asm)*
 
 ---
 
@@ -2002,7 +2002,7 @@ Checks if scene state ($C8AA) exceeds 20. If not, returns. Otherwise sends SH2 c
 
 - **Entry**: none | Exit: scene transitioned or no-op | Uses: none
 - **RAM**: $FFFFC8AA = scene state (word, tested, then cleared) $00FF6988 = SH2 shared command data (long, set to $222F002C) $FFFFC8A4 = state variable (byte, set to $C2) $FFFFC8AC = state dispatch index (word, advanced by 4)
-*Source: [conditional_scene_transition_003ea2.asm](disasm/modules/68k/game/menu/conditional_scene_transition_003ea2.asm)*
+*Source: [conditional_scene_transition_003ea2.asm](../disasm/modules/68k/game/menu/conditional_scene_transition_003ea2.asm)*
 
 ---
 
@@ -2012,7 +2012,7 @@ Checks if scene state ($C8AA) exceeds 20. If not, returns. Otherwise sends SH2 c
 
 - **Entry**: none | Exit: scene transitioned or no-op | Uses: none
 - **RAM**: $FFFFC8AA = scene state (word, tested, then cleared) $00FF6988 = SH2 shared command (long, set to $222EEF3A) $FFFFC8A4 = state variable (byte, set to $C3) $FFFFC30E = control flag (byte, bit 4 set) $FFFFB4EE = secondary flag (byte, bit 4 set) $FFFFC8AC = state dispatch index (word, advanced by 4)
-*Source: [conditional_scene_transition_003ec6.asm](disasm/modules/68k/game/menu/conditional_scene_transition_003ec6.asm)*
+*Source: [conditional_scene_transition_003ec6.asm](../disasm/modules/68k/game/menu/conditional_scene_transition_003ec6.asm)*
 
 ---
 
@@ -2022,7 +2022,7 @@ Calls three subroutines: $00210A, animation_update ($00B09E), and sprite_update_
 
 - **Entry**: none | Exit: game state advanced | Uses: none
 - **RAM**: $FFFFC87E = game state dispatch (word, advanced by 4) $00FF0008 = SH2 display mode/frame delay (word, set to $0010)
-*Source: [call_subs_advance_game_state.asm](disasm/modules/68k/game/menu/call_subs_advance_game_state.asm)*
+*Source: [call_subs_advance_game_state.asm](../disasm/modules/68k/game/menu/call_subs_advance_game_state.asm)*
 
 ---
 
@@ -2032,7 +2032,7 @@ Calls two sub-routines ($00210A and animation_update at $00B09E), then advances 
 
 - **Entry**: none | Exit: state advanced | Uses: none
 - **RAM**: $FFFFC87E = main game state (word, incremented by 4) $00FF0008 = display mode / frame delay (word, set to $0010)
-*Source: [call_subs_advance_game_state_set_frame_delay.asm](disasm/modules/68k/game/menu/call_subs_advance_game_state_set_frame_delay.asm)*
+*Source: [call_subs_advance_game_state_set_frame_delay.asm](../disasm/modules/68k/game/menu/call_subs_advance_game_state_set_frame_delay.asm)*
 
 ---
 
@@ -2042,7 +2042,7 @@ Calls sfx_queue_process ($0021CA) and sprite_update_check ($005908), then advanc
 
 - **Entry**: none | Exit: state advanced | Uses: none
 - **RAM**: $FFFFC87E = main game state (word, incremented by 4) $00FF0008 = display mode / frame delay (word, set to $0010)
-*Source: [sfx_queue_sprite_check_advance_game_state.asm](disasm/modules/68k/game/menu/sfx_queue_sprite_check_advance_game_state.asm)*
+*Source: [sfx_queue_sprite_check_advance_game_state.asm](../disasm/modules/68k/game/menu/sfx_queue_sprite_check_advance_game_state.asm)*
 
 ---
 
@@ -2052,7 +2052,7 @@ Calls SFX queue process ($0021CA), two game subs ($00B02C, $00B632), and sprite_
 
 - **Entry**: none | Exit: game state advanced | Uses: none
 - **RAM**: $FFFFC87E = game state dispatch (word, advanced by 4) $00FF0008 = SH2 display mode/frame delay (word, set to $0010)
-*Source: [call_4_subs_advance_game_state.asm](disasm/modules/68k/game/menu/call_4_subs_advance_game_state.asm)*
+*Source: [call_4_subs_advance_game_state.asm](../disasm/modules/68k/game/menu/call_4_subs_advance_game_state.asm)*
 
 ---
 
@@ -2062,7 +2062,7 @@ Clears the scene state ($C8AA) and menu sub-state ($C084), then sets the state v
 
 - **Entry**: none | Exit: states reset | Uses: none
 - **RAM**: $FFFFC8AA = scene state (word, cleared) $FFFFC084 = menu sub-state (word, cleared) $FFFFC07A = state parameter (word, set to $001C)
-*Source: [reset_scene_menu_state.asm](disasm/modules/68k/game/menu/reset_scene_menu_state.asm)*
+*Source: [reset_scene_menu_state.asm](../disasm/modules/68k/game/menu/reset_scene_menu_state.asm)*
 
 ---
 
@@ -2073,7 +2073,7 @@ Configuration A Source: code_c200 Activates three VDP register slots by writing 
 - **Entry**: No register inputs
 - **Returns**: Three VDP slots activated
 - **Modifies**: (none)
-*Source: [vdp_slot_activation_config_a.asm](disasm/modules/68k/game/menu/vdp_slot_activation_config_a.asm)*
+*Source: [vdp_slot_activation_config_a.asm](../disasm/modules/68k/game/menu/vdp_slot_activation_config_a.asm)*
 
 ---
 
@@ -2084,7 +2084,7 @@ Configuration B Source: code_c200 Activates three VDP register slots by writing 
 - **Entry**: No register inputs
 - **Returns**: Three VDP slots activated
 - **Modifies**: (none)
-*Source: [vdp_slot_activation_config_b.asm](disasm/modules/68k/game/menu/vdp_slot_activation_config_b.asm)*
+*Source: [vdp_slot_activation_config_b.asm](../disasm/modules/68k/game/menu/vdp_slot_activation_config_b.asm)*
 
 ---
 
@@ -2095,7 +2095,7 @@ Configuration C Source: code_c200 Activates three VDP register slots by writing 
 - **Entry**: No register inputs
 - **Returns**: Three VDP slots activated
 - **Modifies**: (none)
-*Source: [vdp_slot_activation_config_c.asm](disasm/modules/68k/game/menu/vdp_slot_activation_config_c.asm)*
+*Source: [vdp_slot_activation_config_c.asm](../disasm/modules/68k/game/menu/vdp_slot_activation_config_c.asm)*
 
 ---
 
@@ -2106,7 +2106,7 @@ Time Trial Records Display Initialization Major scene initialization for time tr
 - **Modifies**: D0, D1, D2, D3, D4, D5, A0, A1
 - **Calls**: $00E1BC (sh2_palette_load), $00E22C (sh2_graphics_cmd), $00E2F0 (sh2_load_data), $00E316 (sh2_send_cmd_wait)
 - **Confidence**: high
-*Source: [time_trial_records_display_init.asm](disasm/modules/68k/game/menu/time_trial_records_display_init.asm)*
+*Source: [time_trial_records_display_init.asm](../disasm/modules/68k/game/menu/time_trial_records_display_init.asm)*
 
 ---
 
@@ -2117,7 +2117,7 @@ Records Scene State Dispatcher Data prefix (~164 bytes: scene configuration tabl
 - **Modifies**: D0, D1, D2, D3, D4, D5, D6, A0
 - **Calls**: $00B684 (object_update)
 - **Confidence**: high
-*Source: [records_scene_state_disp.asm](disasm/modules/68k/game/menu/records_scene_state_disp.asm)*
+*Source: [records_scene_state_disp.asm](../disasm/modules/68k/game/menu/records_scene_state_disp.asm)*
 
 ---
 
@@ -2128,7 +2128,7 @@ Reads current name byte from buffer, sends two SH2 DMA commands. First: transfer
 - **Modifies**: D0, D1, A0, A1
 - **Calls**: $00E35A: sh2_send_cmd (A0=src, A1=dest, D0=size, D1=width)
 - **RAM**: $A022: player selection index (word) $C87E: game_state (word, advanced by 4)
-*Source: [name_entry_sh2_xfer_advance.asm](disasm/modules/68k/game/menu/name_entry_sh2_xfer_advance.asm)*
+*Source: [name_entry_sh2_xfer_advance.asm](../disasm/modules/68k/game/menu/name_entry_sh2_xfer_advance.asm)*
 
 ---
 
@@ -2139,7 +2139,7 @@ Handles character input for player 1 name entry. DMA transfer, cursor render, co
 - **Modifies**: D0, D1, D2, A0
 - **Calls**: $00E52C: dma_transfer (D0=mode) $010796: cursor_render (A0=buffer) $0088179E: controller_poll $01084C: input_handler (name_entry_input_handler) $0088FB36: SH2 transition check
 - **RAM**: $A014: dual-player config flags (byte) $A018: name buffer pointer P1 (long) $A01C: name buffer pointer P2 (long) $A020: cursor position (byte) $A024: character index (word) $A02C: input active flag (byte) $A02D: blink timer (byte) $A036: confirm state (word) $C86C: controller data (word) $C87E: game_state (word) $C8A4: sound effect (byte) $C80E: display control (byte)
-*Source: [name_entry_character_input_010244.asm](disasm/modules/68k/game/menu/name_entry_character_input_010244.asm)*
+*Source: [name_entry_character_input_010244.asm](../disasm/modules/68k/game/menu/name_entry_character_input_010244.asm)*
 
 ---
 
@@ -2150,7 +2150,7 @@ DMA transfer, object update, and character table rendering. Sends SH2 DMA for VR
 - **Modifies**: D0, D1, A0, A1, A2
 - **Calls**: $00B684: object_update $00E35A: sh2_send_cmd (A0=src, A1=dest, D0=size, D1=width) $00E52C: dma_transfer (D0=mode) $01071C: name_entry_sub $010606: character_render (A1=palette, A2=source)
 - **RAM**: $FA48: name table base address (long) $FEA5: column offset byte $FEB1: row offset byte $C87E: game_state (word, advanced by 4)
-*Source: [name_entry_object_update_dma.asm](disasm/modules/68k/game/menu/name_entry_object_update_dma.asm)*
+*Source: [name_entry_object_update_dma.asm](../disasm/modules/68k/game/menu/name_entry_object_update_dma.asm)*
 
 ---
 
@@ -2161,7 +2161,7 @@ Handles character input for player 2 name entry. Nearly identical to name_entry_
 - **Modifies**: D0, D1, D2, A0
 - **Calls**: $00E52C: dma_transfer $010796: cursor_render $0088179E: controller_poll $01084C: input_handler $0088FB36: SH2 transition check
 - **RAM**: $A01C: name buffer pointer P2 (long) $A020: cursor position (byte) $A024: character index (word) $A02C: input active flag (byte) $A02D: blink timer (byte) $A036: confirm state (word) $C86C: controller data (word) $C87E: game_state (word) $C8A4: sound effect (byte) $C80E: display control (byte)
-*Source: [name_entry_character_input_0103c4.asm](disasm/modules/68k/game/menu/name_entry_character_input_0103c4.asm)*
+*Source: [name_entry_character_input_0103c4.asm](../disasm/modules/68k/game/menu/name_entry_character_input_0103c4.asm)*
 
 ---
 
@@ -2172,7 +2172,7 @@ Orchestrates name entry sprite display with DMA, animation, and character previe
 - **Modifies**: D0, D1, A0, A1, A4
 - **Calls**: $00B6DA: sprite_update $00E35A: sh2_send_cmd $00E52C: dma_transfer $010674: sprite_slot_render $0088205E: SH2 scene transition $0088FB36: SH2 completion check
 - **RAM**: $A014: config flags (byte) $A018: P1 buffer pointer (long) $A01C: P2 buffer pointer (long) $A02C: input active/blink flag (byte) $A02D: blink timer (byte) $A02E: blink animation counter (word) $A030: timeout counter (word, init $0BB8=3000) $A036: confirm state (word) $C87E: game_state (word) $C809/$C80A/$C80E/$C802: display enable flags
-*Source: [name_entry_sprite_update_anim.asm](disasm/modules/68k/game/menu/name_entry_sprite_update_anim.asm)*
+*Source: [name_entry_sprite_update_anim.asm](../disasm/modules/68k/game/menu/name_entry_sprite_update_anim.asm)*
 
 ---
 
@@ -2182,7 +2182,7 @@ Name Entry Background Tile Transfer Transfers 5 tile data blocks to SH2 framebuf
 
 - **Modifies**: D0, D1, A0, A1
 - **Calls**: $00E35A: sh2_send_cmd
-*Source: [name_entry_background_tile_transfer.asm](disasm/modules/68k/game/menu/name_entry_background_tile_transfer.asm)*
+*Source: [name_entry_background_tile_transfer.asm](../disasm/modules/68k/game/menu/name_entry_background_tile_transfer.asm)*
 
 ---
 
@@ -2194,7 +2194,7 @@ Renders name entry cursor with blink animation. Decrements blink timer, toggles 
 - **Modifies**: D0, A0, A1, A4
 - **Calls**: $010674: sprite_slot_render (A0=source, A1=dest, D0=char)
 - **RAM**: $A02C: input active/blink flag (byte, toggled) $A02D: blink timer (byte, decremented) $A020: cursor position (byte, 0/1/2+) $A024: character index (word)
-*Source: [name_entry_cursor_render.asm](disasm/modules/68k/game/menu/name_entry_cursor_render.asm)*
+*Source: [name_entry_cursor_render.asm](../disasm/modules/68k/game/menu/name_entry_cursor_render.asm)*
 
 ---
 
@@ -2205,7 +2205,7 @@ Processes directional input for name entry cursor. Handles D-pad left/right (bit
 - **Entry**: D1 = controller input bits
 - **Modifies**: D0, D1, D2
 - **RAM**: $A02A: last input direction (byte) $A02B: repeat counter (byte, 0→$0C max) $A02C: input active flag (byte) $A02D: blink timer (byte) $A024: character index (word, result) $A026: repeat delay counter (word) $A028: direction flag (word, 0=down, 1=up) $C8A4: sound effect (byte, set to $A9)
-*Source: [name_entry_input_handler.asm](disasm/modules/68k/game/menu/name_entry_input_handler.asm)*
+*Source: [name_entry_input_handler.asm](../disasm/modules/68k/game/menu/name_entry_input_handler.asm)*
 
 ---
 
@@ -2217,7 +2217,7 @@ Name Entry Screen Initialization Large orchestrator that initializes the entire 
 - **Modifies**: D0, D1, D2, D3, D4, D5, D7, A0, A1, A2
 - **Calls**: $00E1BC: sh2_palette_load $00E22C: sh2_graphics_cmd $00E2F0: sh2_load_data $00E316: sh2_send_cmd_wait $011942: name_digit_render (lap_time_digit_renderer_b) $011A98: name_entry_check
 - **RAM**: $C87A: vint_dispatch_state $C87E: game_state $C90E: player mode flags (bit 4 = 2P, bit 5 = 1P)
-*Source: [name_entry_screen_init.asm](disasm/modules/68k/game/menu/name_entry_screen_init.asm)*
+*Source: [name_entry_screen_init.asm](../disasm/modules/68k/game/menu/name_entry_screen_init.asm)*
 
 ---
 
@@ -2230,7 +2230,7 @@ Name Entry State Dispatcher Data prefix ($01103E-$011121) contains structured pa
 - **Calls**: $00B684: object_update
 - **RAM**: $C87E: game_state
 - **Object fields**: +$0E: param_e (state parameter) +$77: state flags
-*Source: [name_entry_state_disp.asm](disasm/modules/68k/game/menu/name_entry_state_disp.asm)*
+*Source: [name_entry_state_disp.asm](../disasm/modules/68k/game/menu/name_entry_state_disp.asm)*
 
 ---
 
@@ -2240,7 +2240,7 @@ Calls a sub-routine at $011B08, then advances the main game state by 4 and sets 
 
 - **Entry**: none | Exit: state advanced | Uses: none
 - **RAM**: $FFFFC87E = main game state (word, incremented by 4) $00FF0008 = display mode / frame delay (word, set to $0018)
-*Source: [advance_game_state_set_frame_delay.asm](disasm/modules/68k/game/menu/advance_game_state_set_frame_delay.asm)*
+*Source: [advance_game_state_set_frame_delay.asm](../disasm/modules/68k/game/menu/advance_game_state_set_frame_delay.asm)*
 
 ---
 
@@ -2251,7 +2251,7 @@ Sends 4 SH2 DMA transfers for score display areas, then renders two time digit f
 - **Modifies**: D0, D1, A0, A1, A2
 - **Calls**: $00E35A: sh2_send_cmd (A0=src, A1=dest, D0=size, D1=width) $0118D4: time_digit_render (A1=dest, A2=BCD source)
 - **RAM**: $A046: time digits buffer 1 (long, BCD) $A04A: time digits buffer 2 (long, BCD) $C87E: game_state (word, advanced by 4)
-*Source: [name_entry_score_disp_xfer.asm](disasm/modules/68k/game/menu/name_entry_score_disp_xfer.asm)*
+*Source: [name_entry_score_disp_xfer.asm](../disasm/modules/68k/game/menu/name_entry_score_disp_xfer.asm)*
 
 ---
 
@@ -2262,7 +2262,7 @@ DMA + object_update + sprite_update, then 4 sh2_send_cmd transfers (score displa
 - **Modifies**: D0, D1, D2, A0, A1, A2
 - **Calls**: $00B684: object_update $00B6DA: sprite_update $00E35A: sh2_send_cmd $00E52C: dma_transfer $0118D4: time_digit_render $0119B8: fn_10200_041 (cursor update) $0088179E: controller_poll $0088205E: SH2 scene transition $0088FB36: SH2 completion check
 - **RAM**: $A019: mode toggle flag (byte) $A042: display mode flag (word) $A046: time digit buffer (address via LEA) $A05C: action state (word, 0/1/2) $C80E: display control (byte, bits 6/7) $C809: display enable A (byte) $C80A: display enable B (byte) $C802: display enable C (byte) $C86C: controller P1 data (word) $C87E: game_state (word) $C8A4: sound effect (byte)
-*Source: [name_entry_mode_select_input_handler.asm](disasm/modules/68k/game/menu/name_entry_mode_select_input_handler.asm)*
+*Source: [name_entry_mode_select_input_handler.asm](../disasm/modules/68k/game/menu/name_entry_mode_select_input_handler.asm)*
 
 ---
 
@@ -2273,7 +2273,7 @@ DMA transfer, then sends two SH2 COMM commands. First: waits for COMM0 idle, sen
 - **Modifies**: D0
 - **Calls**: $00E52C: dma_transfer (D0=mode)
 - **RAM**: $C87E: game_state (word, advanced by 4)
-*Source: [name_entry_sh2_comm_setup_dma.asm](disasm/modules/68k/game/menu/name_entry_sh2_comm_setup_dma.asm)*
+*Source: [name_entry_sh2_comm_setup_dma.asm](../disasm/modules/68k/game/menu/name_entry_sh2_comm_setup_dma.asm)*
 
 ---
 
@@ -2284,7 +2284,7 @@ DMA transfer, updates objects and sprites, sends SH2 DMA. Handles smooth scrolli
 - **Modifies**: D0, D1, D2, A0, A1
 - **Calls**: $00B684: object_update $00B6DA: sprite_update $00E35A: sh2_send_cmd $00E52C: dma_transfer $0088179E: controller_poll $0088205E: SH2 scene transition $0088FB36: SH2 completion check
 - **RAM**: $A022: scroll position (long) $A026: scroll velocity (long) $A02A: max scroll position (long) $A02E: scroll step counter (byte) $A05C: action state (word) $C86C: controller data (word) $C87E: game_state (word) $C8A4: sound effect (byte) $C809/$C80A/$C80E/$C802: display enable flags
-*Source: [name_entry_scroll_view_action_handler.asm](disasm/modules/68k/game/menu/name_entry_scroll_view_action_handler.asm)*
+*Source: [name_entry_scroll_view_action_handler.asm](../disasm/modules/68k/game/menu/name_entry_scroll_view_action_handler.asm)*
 
 ---
 
@@ -2295,7 +2295,7 @@ DMA transfer, sends SH2 COMM commands (same as name_entry_sh2_comm_setup_dma), t
 - **Modifies**: D0, D1, A0, A1
 - **Calls**: $00E35A: sh2_send_cmd $00E52C: dma_transfer $011C7E: score_area_transfer (name_entry_score_area_dma_xfer)
 - **RAM**: $A022: scroll position (long) $A050: display toggle (byte, bit 0) $A052: blink counter (word) $C87E: game_state (word, advanced by 4)
-*Source: [name_entry_sh2_comm_scroll_dma_blink.asm](disasm/modules/68k/game/menu/name_entry_sh2_comm_scroll_dma_blink.asm)*
+*Source: [name_entry_sh2_comm_scroll_dma_blink.asm](../disasm/modules/68k/game/menu/name_entry_sh2_comm_scroll_dma_blink.asm)*
 
 ---
 
@@ -2306,7 +2306,7 @@ DMA + object_update + sprite_update, then sh2_send_cmd for scroll view (source $
 - **Modifies**: D0, D1, D2, A0, A1
 - **Calls**: $00B684: object_update $00B6DA: sprite_update $00E35A: sh2_send_cmd $00E52C: dma_transfer $0088179E: controller_poll $0088205E: SH2 scene transition $0088FB36: SH2 completion check
 - **RAM**: $A022: P1 scroll position (long) $A026: P1 scroll velocity (long) $A02A: P1 max scroll (long) $A02E: P1 step counter (byte) $A032: P2 scroll position (long) $A036: P2 scroll velocity (long) $A03A: P2 max scroll (long) $A03E: P2 step counter (byte) $A05C: action state (word, 0/1/2) $C80E: display control (byte, bits 6/7) $C809/$C80A/$C802: display enable flags $C86C: controller P1 data (word) $C86E: controller P2 data (word) $C87E: game_state (word) $C8A4: sound effect (byte)
-*Source: [name_entry_dual_scroll_view_action_handler.asm](disasm/modules/68k/game/menu/name_entry_dual_scroll_view_action_handler.asm)*
+*Source: [name_entry_dual_scroll_view_action_handler.asm](../disasm/modules/68k/game/menu/name_entry_dual_scroll_view_action_handler.asm)*
 
 ---
 
@@ -2316,7 +2316,7 @@ Name Entry Mode Dispatcher Resets SH2 communication and selects a scene handler 
 
 - **Entry**: none | Exit: SH2 scene configured | Uses: none
 - **RAM**: $FFFFC87E = main game state (word, cleared to 0) $FFFFA019 = player 1 selection / track index (byte, tested) $FFFFA042 = game mode parameter (word, tested) $FFFFC80E = sync/transition flags (byte, bits 3/7 modified) $FFFFC81C = debug/mode flags (byte, bit 7 modified) $FFFFFEB7 = VDP/display flag (byte, bit 7 tested) $00FF0002 = SH2 scene handler pointer (long, set) $00FF0008 = display mode / frame delay (word, set to $0020)
-*Source: [sh2_scene_reset_name_entry_mode_disp.asm](disasm/modules/68k/game/menu/sh2_scene_reset_name_entry_mode_disp.asm)*
+*Source: [sh2_scene_reset_name_entry_mode_disp.asm](../disasm/modules/68k/game/menu/sh2_scene_reset_name_entry_mode_disp.asm)*
 
 ---
 
@@ -2326,7 +2326,7 @@ Updates name entry palette with animated color cycling. Copies 8 base palette en
 
 - **Modifies**: D0, D1, D2, D3, D4, D5, A0, A1
 - **RAM**: $A019: color offset index (byte) $A01A: brightness value (byte) $A01C: fade direction/step (byte) $C821: display update flag (byte, set to $01) $FF6E00+$1E0: palette destination (CRAM)
-*Source: [name_entry_color_palette_update.asm](disasm/modules/68k/game/menu/name_entry_color_palette_update.asm)*
+*Source: [name_entry_color_palette_update.asm](../disasm/modules/68k/game/menu/name_entry_color_palette_update.asm)*
 
 ---
 
@@ -2337,7 +2337,7 @@ Cursor Position Clamp [0, 31] Adds D1 offset to D5 then clamps result to [0, 31]
 - **Entry**: D1 = offset to add, D5 = current position
 - **Returns**: D5 = clamped position (0 ≤ D5 ≤ 31)
 - **Modifies**: D5
-*Source: [cursor_pos_clamp.asm](disasm/modules/68k/game/menu/cursor_pos_clamp.asm)*
+*Source: [cursor_pos_clamp.asm](../disasm/modules/68k/game/menu/cursor_pos_clamp.asm)*
 
 ---
 
@@ -2347,7 +2347,7 @@ Name Entry UI Tile Refresh Refreshes 4 UI tile blocks on the name entry screen v
 
 - **Modifies**: D0, D1, A0, A1
 - **Calls**: $00E35A: sh2_send_cmd
-*Source: [name_entry_ui_tile_refresh.asm](disasm/modules/68k/game/menu/name_entry_ui_tile_refresh.asm)*
+*Source: [name_entry_ui_tile_refresh.asm](../disasm/modules/68k/game/menu/name_entry_ui_tile_refresh.asm)*
 
 ---
 
@@ -2357,7 +2357,7 @@ Compares player's score against high score table using BCD arithmetic. Copies 10
 
 - **Modifies**: D0, D1, D2, D3, D4, D5, D6, D7, A0, A1, A2, A3
 - **RAM**: $A058: saved score snapshot (long) $A04A: BCD comparison buffer (long) $A04E: ranking result (word, 0/1/2) $B400: high score table source (1024 bytes) $C200: BCD working buffer $C260: current score (long) $C400: comparison buffer destination
-*Source: [name_entry_bcd_score_cmp.asm](disasm/modules/68k/game/menu/name_entry_bcd_score_cmp.asm)*
+*Source: [name_entry_bcd_score_cmp.asm](../disasm/modules/68k/game/menu/name_entry_bcd_score_cmp.asm)*
 
 ---
 
@@ -2368,7 +2368,7 @@ Sends SH2 DMA for one of 4 score display areas based on ranking result ($A04E) a
 - **Modifies**: D0, D1, A0, A1
 - **Calls**: $00E35A: sh2_send_cmd (A0=src, A1=dest, D0=size, D1=width)
 - **RAM**: $A04E: ranking result (word, 0/1/2) $A050: display toggle (byte, bit 0)
-*Source: [name_entry_score_area_dma_xfer.asm](disasm/modules/68k/game/menu/name_entry_score_area_dma_xfer.asm)*
+*Source: [name_entry_score_area_dma_xfer.asm](../disasm/modules/68k/game/menu/name_entry_score_area_dma_xfer.asm)*
 
 ---
 
@@ -2379,7 +2379,7 @@ Records Screen Initialization Initializes the records/results display screen. Si
 - **Modifies**: D0, D1, D2, D3, D4, A0, A1, A5
 - **Calls**: $00E1BC: sh2_palette_load $00E22C: sh2_graphics_cmd $00E2F0: sh2_load_data $00E316: sh2_send_cmd_wait
 - **RAM**: $C87A: vint_dispatch_state $C87E: game_state
-*Source: [records_screen_init.asm](disasm/modules/68k/game/menu/records_screen_init.asm)*
+*Source: [records_screen_init.asm](../disasm/modules/68k/game/menu/records_screen_init.asm)*
 
 ---
 
@@ -2391,7 +2391,7 @@ Records Screen State Dispatcher Data prefix ($011F38-$012055) contains: - 15-bit
 - **Modifies**: D0, D1, D3, D4, D5, D6, A0, A1
 - **Calls**: $00B684: object_update
 - **RAM**: $C87E: game_state
-*Source: [records_screen_state_disp.asm](disasm/modules/68k/game/menu/records_screen_state_disp.asm)*
+*Source: [records_screen_state_disp.asm](../disasm/modules/68k/game/menu/records_screen_state_disp.asm)*
 
 ---
 
@@ -2402,7 +2402,7 @@ DMA transfer + 3 static sh2_send_cmd DMA transfers. Two sh2_cmd_27 calls with dy
 - **Modifies**: D0, D1, D2, D3, A0, A1
 - **Calls**: $00E35A: sh2_send_cmd $00E3B4: sh2_cmd_27 $00E52C: dma_transfer
 - **RAM**: $A019: camera mode index P1 (byte) $A01A: active player flag (byte, 0=P1, !0=P2) $A01B: camera mode index P2 (byte) $A01C: selection index P2 (byte) $A01E: resolved selection A (long) $A022: resolved selection B (long) $A02C: display row (word) $A034: VRAM dest pointer (long) $C87E: game_state (word, advanced by 4)
-*Source: [name_entry_rendering_sh2_xfer.asm](disasm/modules/68k/game/menu/name_entry_rendering_sh2_xfer.asm)*
+*Source: [name_entry_rendering_sh2_xfer.asm](../disasm/modules/68k/game/menu/name_entry_rendering_sh2_xfer.asm)*
 
 ---
 
@@ -2413,7 +2413,7 @@ Records Viewer Main Loop Data prefix ($012200-$012223) contains VDP/entity param
 - **Modifies**: D0, D1, D2, D5, A0, A1, A2, A5
 - **Calls**: $00B684: object_update $00B6DA: sprite_update $00E35A: sh2_send_cmd $00E52C: dma_transfer
 - **RAM**: $C87E: game_state
-*Source: [records_viewer_main_loop.asm](disasm/modules/68k/game/menu/records_viewer_main_loop.asm)*
+*Source: [records_viewer_main_loop.asm](../disasm/modules/68k/game/menu/records_viewer_main_loop.asm)*
 
 ---
 
@@ -2425,7 +2425,7 @@ Calculates 3D array offset into tile data at $EF08: section (D0) × $3C0 + row (
 - **Modifies**: D0, D1, D2, D3, D4, D5, A1, A2, A3, A4
 - **Calls**: $01259C: tile_render_sub_A (A1=dest, A2=source) $01260A: tile_render_sub_B (A1=dest, A2=source) $0126A6: tile_render_sub_C (A1=dest, A2=source)
 - **RAM**: $EF08: tile data base (long)
-*Source: [camera_tile_render.asm](disasm/modules/68k/game/menu/camera_tile_render.asm)*
+*Source: [camera_tile_render.asm](../disasm/modules/68k/game/menu/camera_tile_render.asm)*
 
 ---
 
@@ -2436,7 +2436,7 @@ Byte Iterator (3-Byte Loop) Reads 3 bytes sequentially from (A2)+, calling the i
 - **Entry**: A2 = source data pointer, D1 = byte value (set per iteration)
 - **Returns**: A2 advanced by 3
 - **Modifies**: D1, D2, A2
-*Source: [byte_iterator.asm](disasm/modules/68k/game/menu/byte_iterator.asm)*
+*Source: [byte_iterator.asm](../disasm/modules/68k/game/menu/byte_iterator.asm)*
 
 ---
 
@@ -2447,7 +2447,7 @@ Camera/Replay Screen Initialization Initializes the camera selection/replay view
 - **Modifies**: D0, D1, D2, D3, D4, A0, A1, A5
 - **Calls**: $00E1BC: sh2_palette_load $00E22C: sh2_graphics_cmd $00E2F0: sh2_load_data $00E316: sh2_send_cmd_wait
 - **RAM**: $C87A: vint_dispatch_state $C87E: game_state
-*Source: [camera_replay_screen_init.asm](disasm/modules/68k/game/menu/camera_replay_screen_init.asm)*
+*Source: [camera_replay_screen_init.asm](../disasm/modules/68k/game/menu/camera_replay_screen_init.asm)*
 
 ---
 
@@ -2458,7 +2458,7 @@ DMA transfer, palette setup, SH2 object configuration. Decrements rotation count
 - **Modifies**: D0, D1, D7, A0, A1, A2
 - **Calls**: $00E52C: dma_transfer
 - **RAM**: $A014: circular buffer offset (long) $A019: palette/mode index (byte) $A020: cursor/animation data (long) $A022: display scroll position (word) $A024: velocity/speed value (long) $A028: deceleration counter (word) $A02C: SH2 object flags (word) $A02E: SH2 object param A (word) $A030: SH2 object param B (word) $A032: SH2 object param C (word) $A034: SH2 object param D (word) $A036: rotation counter (word) $A038: angular offset (word) $C87E: game_state (word, advanced by 4)
-*Source: [camera_demo_palette_sh2_setup.asm](disasm/modules/68k/game/menu/camera_demo_palette_sh2_setup.asm)*
+*Source: [camera_demo_palette_sh2_setup.asm](../disasm/modules/68k/game/menu/camera_demo_palette_sh2_setup.asm)*
 
 ---
 
@@ -2469,7 +2469,7 @@ Data prefix (144 bytes) containing 6 sprite reference longwords at $012BFA, foll
 - **Modifies**: D0
 - **Calls**: MemoryInit: memory initialization
 - **RAM**: $C87E: game_state (word, advanced by 4)
-*Source: [camera_dma_xfer.asm](disasm/modules/68k/game/menu/camera_dma_xfer.asm)*
+*Source: [camera_dma_xfer.asm](../disasm/modules/68k/game/menu/camera_dma_xfer.asm)*
 
 ---
 
@@ -2480,7 +2480,7 @@ Select Scene by Track/Mode Resets the SH2 communication state, reads the player 
 - **Entry**: none | Exit: SH2 scene configured
 - **Modifies**: D1
 - **RAM**: $FFFFC87E = main game state (word, cleared to 0) $FFFFA019 = player 1 selection / track index (byte, read) $FFFFC817 = race mode flag (byte, written from selection) $FFFFC818 = controller config flags (byte, bit 3 tested) $00FF0002 = SH2 scene handler pointer (long, set from table) $00FF0008 = display mode / frame delay (word, set to $0020)
-*Source: [sh2_mode_disp_select_scene_by_track_mode.asm](disasm/modules/68k/game/menu/sh2_mode_disp_select_scene_by_track_mode.asm)*
+*Source: [sh2_mode_disp_select_scene_by_track_mode.asm](../disasm/modules/68k/game/menu/sh2_mode_disp_select_scene_by_track_mode.asm)*
 
 ---
 
@@ -2491,7 +2491,7 @@ Data prefix (28 bytes, 7 longword pointers referenced elsewhere) + SH2 command d
 - **Modifies**: D0, D1, D2
 - **Calls**: $00E3B4: sh2_cmd_27
 - **RAM**: $A019: camera mode index (byte)
-*Source: [camera_sh2_command_27_dispatch.asm](disasm/modules/68k/game/menu/camera_sh2_command_27_dispatch.asm)*
+*Source: [camera_sh2_command_27_dispatch.asm](../disasm/modules/68k/game/menu/camera_sh2_command_27_dispatch.asm)*
 
 ---
 
@@ -2501,7 +2501,7 @@ VDP Tile Fill with Data Table Data prefix ($012F9C-$012FBF) contains structured 
 
 - **Entry**: D0 = VDP base address, D1 = words per row, D2 = row count, D3 = fill value, D4 = row stride, A5 = VDP control, A6 = VDP data
 - **Modifies**: D0, D1, D2, D3, D4, D5, D6
-*Source: [vdp_tile_fill_with_data_table.asm](disasm/modules/68k/game/menu/vdp_tile_fill_with_data_table.asm)*
+*Source: [vdp_tile_fill_with_data_table.asm](../disasm/modules/68k/game/menu/vdp_tile_fill_with_data_table.asm)*
 
 ---
 
@@ -2511,7 +2511,7 @@ SH2 Multi-Parameter Command Send Sends command $21 to SH2 with 4 parameters via 
 
 - **Entry**: A0 = param 4, A1 = param 1, D0 = param 2 hi, D1 = param 2 lo, D2 = param 3
 - **Modifies**: D0, D1, D2, A0, A1
-*Source: [sh2_multi_param_command_send.asm](disasm/modules/68k/game/menu/sh2_multi_param_command_send.asm)*
+*Source: [sh2_multi_param_command_send.asm](../disasm/modules/68k/game/menu/sh2_multi_param_command_send.asm)*
 
 ---
 
@@ -2522,7 +2522,7 @@ Standings Screen Initialization Initializes the championship standings/results s
 - **Modifies**: D0, D1, D2, D3, D4, A0, A1, A5
 - **Calls**: $00E1BC: sh2_palette_load $00E22C: sh2_graphics_cmd $00E2F0: sh2_load_data $00E316: sh2_send_cmd_wait
 - **RAM**: $C87A: vint_dispatch_state $C87E: game_state
-*Source: [standings_screen_init.asm](disasm/modules/68k/game/menu/standings_screen_init.asm)*
+*Source: [standings_screen_init.asm](../disasm/modules/68k/game/menu/standings_screen_init.asm)*
 
 ---
 
@@ -2533,7 +2533,7 @@ Data prefix (128 bytes of object/sprite descriptors) + state dispatcher. Calls i
 - **Modifies**: D0, D4, A0, A1
 - **Calls**: $00B684: object_update $00882080: initialization $0088205E: SH2 scene transition
 - **RAM**: $C87E: game_state (word) $C80E: display control (byte, bit 6 checked)
-*Source: [camera_state_disp.asm](disasm/modules/68k/game/menu/camera_state_disp.asm)*
+*Source: [camera_state_disp.asm](../disasm/modules/68k/game/menu/camera_state_disp.asm)*
 
 ---
 
@@ -2544,7 +2544,7 @@ DMA transfer + 3 static SH2 DMA transfers (header, main display, bottom panel). 
 - **Modifies**: D0, D1, D2, A0, A1
 - **Calls**: $00E35A: sh2_send_cmd $00E3B4: sh2_cmd_27 $00E52C: dma_transfer
 - **RAM**: $A019: camera mode index (byte) $A01A: replay angle counter (word) $A01C: music track counter (word) $A01E: SFX counter A (word) $A020: SFX counter B (word) $A026: blink toggle (word) $C821: display update flag (byte) $C87E: game_state (word, advanced by 4)
-*Source: [camera_render_dma_overlay.asm](disasm/modules/68k/game/menu/camera_render_dma_overlay.asm)*
+*Source: [camera_render_dma_overlay.asm](../disasm/modules/68k/game/menu/camera_render_dma_overlay.asm)*
 
 ---
 
@@ -2555,7 +2555,7 @@ Data prefix (40 bytes) + camera menu orchestrator. DMA transfer + object_update 
 - **Modifies**: D0, D1, D2, A0
 - **Calls**: $00B684: object_update $00B6DA: sprite_update $00E52C: dma_transfer $0135C4: camera_menu_input_handler (camera input handler) $0088179E: controller_poll $0088205E: SH2 scene transition $0088FB36: SH2 completion check
 - **RAM**: $A019: camera mode index (byte) $A022: selection state (word) $A028: action state (word, 0/1/2) $C80E: display control (byte, bits 6/7) $C809: display enable A (byte) $C80A: display enable B (byte) $C802: display enable C (byte) $C86C: controller P1 data (word) $C86E: controller P2 data (word) $C87E: game_state (word)
-*Source: [camera_menu_orch.asm](disasm/modules/68k/game/menu/camera_menu_orch.asm)*
+*Source: [camera_menu_orch.asm](../disasm/modules/68k/game/menu/camera_menu_orch.asm)*
 
 ---
 
@@ -2566,7 +2566,7 @@ Processes controller input for camera selection menu. Entry: D1 = controller dat
 - **Entry**: D1 = controller data
 - **Modifies**: D0, D1, D2, A0
 - **RAM**: $A019: camera mode index (byte, range 0-5) $A022: selection state (word) $A024: blink timer (word) $A026: blink toggle (word, toggled via NEG) $C8A4: sound effect (byte)
-*Source: [camera_menu_input_handler.asm](disasm/modules/68k/game/menu/camera_menu_input_handler.asm)*
+*Source: [camera_menu_input_handler.asm](../disasm/modules/68k/game/menu/camera_menu_input_handler.asm)*
 
 ---
 
@@ -2577,7 +2577,7 @@ Data prefix (24 bytes), then code at $0136C2. If D2 == 0: adds D0 to replay angl
 - **Entry**: D0 = increment/decrement, D2 = action flag
 - **Modifies**: D0, D2
 - **RAM**: $A01A: replay angle counter (word, range 0-2) $C87E: game_state (word)
-*Source: [camera_selection_counter_0136aa.asm](disasm/modules/68k/game/menu/camera_selection_counter_0136aa.asm)*
+*Source: [camera_selection_counter_0136aa.asm](../disasm/modules/68k/game/menu/camera_selection_counter_0136aa.asm)*
 
 ---
 
@@ -2588,7 +2588,7 @@ If D2 == 0: adds D0 to music track counter ($A01C), wraps 0-25. If D2 != 0: chec
 - **Entry**: D0 = increment, D2 = action flag
 - **Modifies**: D0, D2, A0
 - **RAM**: $A01C: music track counter (word, range 0-25) $A022: ranking result (word) $C822: sound effect ID (byte, set to $F3) $C8A5: sound parameter (byte, from table) $C8A7: sound clear flag (byte, cleared) $C87E: game_state (word)
-*Source: [camera_selection_counter_0136ea.asm](disasm/modules/68k/game/menu/camera_selection_counter_0136ea.asm)*
+*Source: [camera_selection_counter_0136ea.asm](../disasm/modules/68k/game/menu/camera_selection_counter_0136ea.asm)*
 
 ---
 
@@ -2599,7 +2599,7 @@ If D2 == 0: adds D0 to SFX counter A ($A01E), wraps 0-12. If D2 != 0: checks ran
 - **Entry**: D0 = increment, D2 = action flag
 - **Modifies**: D0, D2, A0
 - **RAM**: $A01E: SFX counter A (word, range 0-12) $A022: ranking result (word) $C822: sound effect ID (byte, set to $CA) $C8A4: sound parameter (byte, from table) $C87E: game_state (word)
-*Source: [camera_selection_counter_013734.asm](disasm/modules/68k/game/menu/camera_selection_counter_013734.asm)*
+*Source: [camera_selection_counter_013734.asm](../disasm/modules/68k/game/menu/camera_selection_counter_013734.asm)*
 
 ---
 
@@ -2610,7 +2610,7 @@ If D2 == 0: adds D0 to SFX counter B ($A020), wraps 0-9. If D2 != 0: checks rank
 - **Entry**: D0 = increment, D2 = action flag
 - **Modifies**: D0, D2, A0
 - **RAM**: $A020: SFX counter B (word, range 0-9) $A022: ranking result (word) $C822: sound effect ID (byte, set to $CA) $C8A4: sound parameter (byte, from table) $C87E: game_state (word)
-*Source: [camera_selection_counter_01377a.asm](disasm/modules/68k/game/menu/camera_selection_counter_01377a.asm)*
+*Source: [camera_selection_counter_01377a.asm](../disasm/modules/68k/game/menu/camera_selection_counter_01377a.asm)*
 
 ---
 
@@ -2620,7 +2620,7 @@ Tests D2. If zero, returns. Otherwise sets state variable ($C8A4) to $A8, sets $
 
 - **Entry**: D2 = condition value | Exit: flags set or no-op | Uses: D2
 - **RAM**: $FFFFC8A4 = state variable (byte, set to $A8) $FFFFA018 = P1 data (byte, set to $FF via ST) $FFFFC809 = SH2 enable flag (byte, set to $01) $FFFFC80A = display mode flag (byte, set to $01) $FFFFC80E = sync/transition flags (byte, bit 7 set) $FFFFC802 = command flag (byte, set to $01) $FFFFA028 = player data (word, set to $0002)
-*Source: [conditional_state_set_enable_flags_sh2_call_0137c0.asm](disasm/modules/68k/game/menu/conditional_state_set_enable_flags_sh2_call_0137c0.asm)*
+*Source: [conditional_state_set_enable_flags_sh2_call_0137c0.asm](../disasm/modules/68k/game/menu/conditional_state_set_enable_flags_sh2_call_0137c0.asm)*
 
 ---
 
@@ -2630,7 +2630,7 @@ Tests D2. If zero, returns. Otherwise sets state variable ($C8A4) to $A8, enable
 
 - **Entry**: D2 = condition value | Exit: flags set or no-op | Uses: D2
 - **RAM**: $FFFFC8A4 = state variable (byte, set to $A8) $FFFFC809 = SH2 enable flag (byte, set to $01) $FFFFC80A = display mode flag (byte, set to $01) $FFFFC80E = sync/transition flags (byte, bit 7 set) $FFFFC802 = command flag (byte, set to $01) $FFFFA028 = player data (word, set to $0002)
-*Source: [conditional_state_set_enable_flags_sh2_call_0137f4.asm](disasm/modules/68k/game/menu/conditional_state_set_enable_flags_sh2_call_0137f4.asm)*
+*Source: [conditional_state_set_enable_flags_sh2_call_0137f4.asm](../disasm/modules/68k/game/menu/conditional_state_set_enable_flags_sh2_call_0137f4.asm)*
 
 ---
 
@@ -2641,7 +2641,7 @@ Race Config Screen Initialization Initializes the race configuration/car selecti
 - **Modifies**: D0, D1, D2, D3, D4, A0, A1, A5
 - **Calls**: $00E1BC: sh2_palette_load $00E22C: sh2_graphics_cmd $00E2F0: sh2_load_data $00E316: sh2_send_cmd_wait
 - **RAM**: $C87A: vint_dispatch_state $C87E: game_state
-*Source: [race_config_screen_init.asm](disasm/modules/68k/game/menu/race_config_screen_init.asm)*
+*Source: [race_config_screen_init.asm](../disasm/modules/68k/game/menu/race_config_screen_init.asm)*
 
 ---
 
@@ -2651,7 +2651,7 @@ Race Config State Dispatcher Data prefix ($013A88-$013BC5) contains: - 15-bit RG
 
 - **Modifies**: D0, D1, D2, D3, D4, D5, D6, D7
 - **RAM**: $C87E: game_state
-*Source: [race_config_state_disp.asm](disasm/modules/68k/game/menu/race_config_state_disp.asm)*
+*Source: [race_config_state_disp.asm](../disasm/modules/68k/game/menu/race_config_state_disp.asm)*
 
 ---
 
@@ -2662,7 +2662,7 @@ Calls SH2 scene transition, then DMA transfer. Sends COMM protocol (cmd $2C, COM
 - **Modifies**: D0, D1, A0, A1
 - **Calls**: $00E35A: sh2_send_cmd $00E52C: dma_transfer $0088205E: SH2 scene transition
 - **RAM**: $C87E: game_state (word, advanced by 4)
-*Source: [camera_sh2_scene_transition_dual_dma.asm](disasm/modules/68k/game/menu/camera_sh2_scene_transition_dual_dma.asm)*
+*Source: [camera_sh2_scene_transition_dual_dma.asm](../disasm/modules/68k/game/menu/camera_sh2_scene_transition_dual_dma.asm)*
 
 ---
 
@@ -2673,7 +2673,7 @@ Race Config Main Loop Per-frame update for the race configuration / car selectio
 - **Modifies**: D0, D1, D2, D3, D4, A0, A1, A2
 - **Calls**: $00E35A: sh2_send_cmd $00E52C: dma_transfer
 - **RAM**: $C87E: game_state
-*Source: [race_config_main_loop.asm](disasm/modules/68k/game/menu/race_config_main_loop.asm)*
+*Source: [race_config_main_loop.asm](../disasm/modules/68k/game/menu/race_config_main_loop.asm)*
 
 ---
 
@@ -2684,7 +2684,7 @@ Conditionally copies 8-byte I/O port configuration blocks for each controller po
 - **Entry**: none | Exit: port configs backed up, SH2 reset
 - **Modifies**: D0, A0, A1
 - **RAM**: $FFFFFE92 = port 1 status (byte, compared to $06) $FFFFFE93 = port 2 status (byte, compared to $06) $FFFFFE82 = port 1 config source (8 bytes, read) $FFFFFE8A = port 2 config source (8 bytes, read) $FFFFFE94 = port 1 config backup (8 bytes, written) $FFFFFE9C = port 2 config backup (8 bytes, written) $FFFFC87E = main game state (word, cleared to 0) $00FF0002 = SH2 scene handler pointer (long, set) $00FF0008 = display mode / frame delay (word, set to $0020)
-*Source: [i_o_port_config_backup_sh2_scene_reset.asm](disasm/modules/68k/game/menu/i_o_port_config_backup_sh2_scene_reset.asm)*
+*Source: [i_o_port_config_backup_sh2_scene_reset.asm](../disasm/modules/68k/game/menu/i_o_port_config_backup_sh2_scene_reset.asm)*
 
 ---
 
@@ -2694,7 +2694,7 @@ Car/Driver Selection Input Handler Processes input for car/driver selection on t
 
 - **Entry**: D0 = max car count flag, D1 = button state, D2 = player index, D3 = repeat timer flag, A0 = car index ptr, A1 = saved choices, A2 = output buffer, A3 = current selection ptr, A4 = ready flag
 - **Modifies**: D0, D1, D2, D3, D4, A0, A1, A2
-*Source: [car_driver_selection_input_handler.asm](disasm/modules/68k/game/menu/car_driver_selection_input_handler.asm)*
+*Source: [car_driver_selection_input_handler.asm](../disasm/modules/68k/game/menu/car_driver_selection_input_handler.asm)*
 
 ---
 
@@ -2704,7 +2704,7 @@ Table Entry Swap by Index Swaps two entries in array (A1) based on lookup indice
 
 - **Entry**: A1 = sortable array, A3 = pointer to index 1, A4 = pointer to index 2, D0 = table selector (0 = table A, nonzero = table B)
 - **Modifies**: D0, D1, D3, D4, D5, D6, A0, A1
-*Source: [table_entry_swap_by_index.asm](disasm/modules/68k/game/menu/table_entry_swap_by_index.asm)*
+*Source: [table_entry_swap_by_index.asm](../disasm/modules/68k/game/menu/table_entry_swap_by_index.asm)*
 
 ---
 
@@ -2715,7 +2715,7 @@ Sprite Strip Renderer via SH2 Cmd 27 DC.W $AB6E (2 bytes, likely a constant or f
 - **Entry**: A0 = base data, A1 = entity table, D1 = initial Y offset, D3 = row count, D5 = per-row Y offset
 - **Modifies**: D0, D1, D2, D3, D4, D5, A0, A1
 - **Calls**: $00E3B4: sh2_cmd_27
-*Source: [sprite_strip_renderer_via_sh2_cmd_27.asm](disasm/modules/68k/game/menu/sprite_strip_renderer_via_sh2_cmd_27.asm)*
+*Source: [sprite_strip_renderer_via_sh2_cmd_27.asm](../disasm/modules/68k/game/menu/sprite_strip_renderer_via_sh2_cmd_27.asm)*
 
 ---
 
@@ -2725,7 +2725,7 @@ Game Mode Transition Init Initializes hardware state for a game mode transition.
 
 - **Modifies**: D0, D1, D4, D7, A5, A6
 - **RAM**: $C082: menu_state $C87E: game_state
-*Source: [game_mode_transition_init.asm](disasm/modules/68k/game/menu/game_mode_transition_init.asm)*
+*Source: [game_mode_transition_init.asm](../disasm/modules/68k/game/menu/game_mode_transition_init.asm)*
 
 ---
 
@@ -2735,7 +2735,7 @@ Advances the main game state machine by one step (4 = one state entry).
 
 - **Entry**: none | Exit: state advanced | Uses: none
 - **RAM**: $FFFFC87E = main game state index (word)
-*Source: [advance_game_state.asm](disasm/modules/68k/game/menu/advance_game_state.asm)*
+*Source: [advance_game_state.asm](../disasm/modules/68k/game/menu/advance_game_state.asm)*
 
 ---
 
@@ -2746,7 +2746,7 @@ Calls the menu state dispatcher at $01457C, then sets the display mode to $0024 
 - **Entry**: none | Exit: menu dispatched, display mode set
 - **Modifies**: (per called function)
 - **RAM**: $00FF0008 = display mode register (word, set to $0024)
-*Source: [menu_state_dispatch_disp_mode_set.asm](disasm/modules/68k/game/menu/menu_state_dispatch_disp_mode_set.asm)*
+*Source: [menu_state_dispatch_disp_mode_set.asm](../disasm/modules/68k/game/menu/menu_state_dispatch_disp_mode_set.asm)*
 
 ---
 
@@ -2758,7 +2758,7 @@ Menu state dispatcher with 8-entry jump table State 0: clears substate + fade, a
 - **Calls**: $0145F0: menu_state_check
 - **RAM**: $C082: menu_state (dispatch index, increments by 4) $C084: menu_substate $A006: menu_timer $A008: fade_counter
 - **Confidence**: high
-*Source: [menu_state_dispatch_042.asm](disasm/modules/68k/game/menu/menu_state_dispatch_042.asm)*
+*Source: [menu_state_dispatch_042.asm](../disasm/modules/68k/game/menu/menu_state_dispatch_042.asm)*
 
 ---
 
@@ -2769,7 +2769,7 @@ Calls $014566 (check/init); if nonzero sets $C084 = $0F. Loads longword address 
 - **Modifies**: D0, D1, A0, A1
 - **Calls**: $014566: menu check/init $0145F0: menu_state_check Jump table: $01462A: 16 longword entries (menu item addresses)
 - **RAM**: $A006: timer (word, set to $28) $C082: menu_state (word, +4 on completion) $C084: menu_substate (word, 0-$F loop counter)
-*Source: [menu_item_draw_loop.asm](disasm/modules/68k/game/menu/menu_item_draw_loop.asm)*
+*Source: [menu_item_draw_loop.asm](../disasm/modules/68k/game/menu/menu_item_draw_loop.asm)*
 
 ---
 
@@ -2779,7 +2779,7 @@ Loads table address and parameter, calls menu_state_check. Decrements timer ($A0
 
 - **Entry**: none | Exit: timer decremented | Uses: D1, A1
 - **RAM**: $FFFFA006 = countdown timer (word, decremented) $FFFFC082 = menu dispatch index (word, advanced by 4) $FFFFC822 = comm signal (byte, set to $F0) $FFFFA008 = player data (word, set to $0802)
-*Source: [menu_state_check_timer_countdown_0144a8.asm](disasm/modules/68k/game/menu/menu_state_check_timer_countdown_0144a8.asm)*
+*Source: [menu_state_check_timer_countdown_0144a8.asm](../disasm/modules/68k/game/menu/menu_state_check_timer_countdown_0144a8.asm)*
 
 ---
 
@@ -2789,7 +2789,7 @@ Loads table address and parameter, calls menu_state_check. Tests player data ($A
 
 - **Entry**: none | Exit: menu state checked | Uses: D1, A1
 - **RAM**: $FFFFA008 = player data (word, tested, conditionally set to $0801) $FFFFC082 = menu dispatch index (word, advanced by 4)
-*Source: [menu_state_check_cond_advance_0144d0.asm](disasm/modules/68k/game/menu/menu_state_check_cond_advance_0144d0.asm)*
+*Source: [menu_state_check_cond_advance_0144d0.asm](../disasm/modules/68k/game/menu/menu_state_check_cond_advance_0144d0.asm)*
 
 ---
 
@@ -2799,7 +2799,7 @@ Loads alternate table address and parameter, calls menu_state_check. Tests playe
 
 - **Entry**: none | Exit: menu state checked | Uses: D1, A1
 - **RAM**: $FFFFA008 = player data (word, tested, cleared) $FFFFC082 = menu dispatch index (word, advanced by 4) $FFFFA006 = countdown timer (word, set to $0014)
-*Source: [menu_state_check_cond_advance_0144f2.asm](disasm/modules/68k/game/menu/menu_state_check_cond_advance_0144f2.asm)*
+*Source: [menu_state_check_cond_advance_0144f2.asm](../disasm/modules/68k/game/menu/menu_state_check_cond_advance_0144f2.asm)*
 
 ---
 
@@ -2809,7 +2809,7 @@ Loads alternate table address and parameter, calls menu_state_check. Decrements 
 
 - **Entry**: none | Exit: timer decremented | Uses: D1, A1
 - **RAM**: $FFFFA006 = countdown timer (word, decremented) $FFFFC082 = menu dispatch index (word, advanced by 4) $FFFFC822 = comm signal (byte, set to $F0) $FFFFA008 = player data (word, set to $0802)
-*Source: [menu_state_check_timer_countdown_014518.asm](disasm/modules/68k/game/menu/menu_state_check_timer_countdown_014518.asm)*
+*Source: [menu_state_check_timer_countdown_014518.asm](../disasm/modules/68k/game/menu/menu_state_check_timer_countdown_014518.asm)*
 
 ---
 
@@ -2820,7 +2820,7 @@ Reads the start button flag from $C86D. If the current mode ($C810) is $0D (2-pl
 - **Entry**: none | Exit: D0.B bit 7 = start pressed (either player)
 - **Modifies**: D0
 - **RAM**: $FFFFC86D = player 1 input flags (byte, bit 7 = start) $FFFFC810 = current game mode (byte, $0D = 2-player) $FFFFC86F = player 2 input flags (byte, bit 7 = start)
-*Source: [read_combined_start_button_state.asm](disasm/modules/68k/game/menu/read_combined_start_button_state.asm)*
+*Source: [read_combined_start_button_state.asm](../disasm/modules/68k/game/menu/read_combined_start_button_state.asm)*
 
 ---
 
@@ -2831,7 +2831,7 @@ Applies brightness fade to 256-entry CRAM palette Scales R/G/B channels (5-bit e
 - **Modifies**: D0, D1, D2, D3, D4, D5, A1
 - **RAM**: $A008: fade_counter (byte: intensity 0-8; word: nonzero = active) $A009: fade_mode $A100: cram_shadow (256 words)
 - **Confidence**: high
-*Source: [palette_fade_003.asm](disasm/modules/68k/game/menu/palette_fade_003.asm)*
+*Source: [palette_fade_003.asm](../disasm/modules/68k/game/menu/palette_fade_003.asm)*
 
 ---
 
@@ -2841,7 +2841,7 @@ Copies tile data from (A1) to VDP nametable at $00844000 + D1. First reads 3 hea
 
 - **Modifies**: D0, D1, D2, D3, D4, A1, A2, A3
 - **RAM**: $A100: VDP tile work buffer
-*Source: [menu_tile_copy_to_vdp.asm](disasm/modules/68k/game/menu/menu_tile_copy_to_vdp.asm)*
+*Source: [menu_tile_copy_to_vdp.asm](../disasm/modules/68k/game/menu/menu_tile_copy_to_vdp.asm)*
 
 ---
 
@@ -2851,7 +2851,7 @@ Data prefix: 16-entry longword table of menu item data addresses ($0090E732..$00
 
 - **Modifies**: D0
 - **RAM**: $C80D: menu state flag (byte, cleared)
-*Source: [menu_item_address_table_vdp_reg_clear.asm](disasm/modules/68k/game/menu/menu_item_address_table_vdp_reg_clear.asm)*
+*Source: [menu_item_address_table_vdp_reg_clear.asm](../disasm/modules/68k/game/menu/menu_item_address_table_vdp_reg_clear.asm)*
 
 ---
 
@@ -2861,7 +2861,7 @@ Sets the control flag byte at $C30D to 1.
 
 - **Entry**: none | Exit: flag set | Uses: none
 - **RAM**: $FFFFC30D = control flag (byte)
-*Source: [set_control_flag_c30d.asm](disasm/modules/68k/game/menu/set_control_flag_c30d.asm)*
+*Source: [set_control_flag_c30d.asm](../disasm/modules/68k/game/menu/set_control_flag_c30d.asm)*
 
 ---
 
@@ -2871,7 +2871,7 @@ Sets bit 0 of the mode flag at $C30E, then copies the state value from $C096 to 
 
 - **Entry**: none | Exit: flag set, state copied | Uses: none
 - **RAM**: $FFFFC30E = mode flag (bit 0 set) $FFFFC096 = source state value (word) $FFFFC07A = V-INT state counter (word, written)
-*Source: [set_mode_flag_copy_state_counter.asm](disasm/modules/68k/game/menu/set_mode_flag_copy_state_counter.asm)*
+*Source: [set_mode_flag_copy_state_counter.asm](../disasm/modules/68k/game/menu/set_mode_flag_copy_state_counter.asm)*
 
 ---
 
@@ -2881,7 +2881,7 @@ Adds 1 to the horizontal scroll position and copies to SH2 shared memory. Part o
 
 - **Entry**: none | Exit: scroll X incremented | Uses: D0
 - **RAM**: $FFFFC054 = scroll X position (word) $00FF6104 = scroll X shared memory mirror (word)
-*Source: [scroll_x_inc_by_1.asm](disasm/modules/68k/game/menu/scroll_x_inc_by_1.asm)*
+*Source: [scroll_x_inc_by_1.asm](../disasm/modules/68k/game/menu/scroll_x_inc_by_1.asm)*
 
 ---
 
@@ -2891,7 +2891,7 @@ Subtracts 1 from the horizontal scroll position and copies to SH2. Part of a gro
 
 - **Entry**: none | Exit: scroll X decremented | Uses: D0
 - **RAM**: $FFFFC054 = scroll X position (word) $00FF6104 = scroll X shared memory mirror (word)
-*Source: [scroll_x_dec_by_1.asm](disasm/modules/68k/game/menu/scroll_x_dec_by_1.asm)*
+*Source: [scroll_x_dec_by_1.asm](../disasm/modules/68k/game/menu/scroll_x_dec_by_1.asm)*
 
 ---
 
@@ -2901,7 +2901,7 @@ Adds 1 to the vertical scroll position and copies to SH2 shared memory. Part of 
 
 - **Entry**: none | Exit: scroll Y incremented | Uses: D0
 - **RAM**: $FFFFC056 = scroll Y position (word) $00FF6106 = scroll Y shared memory mirror (word)
-*Source: [scroll_y_inc_by_1.asm](disasm/modules/68k/game/menu/scroll_y_inc_by_1.asm)*
+*Source: [scroll_y_inc_by_1.asm](../disasm/modules/68k/game/menu/scroll_y_inc_by_1.asm)*
 
 ---
 
@@ -2911,7 +2911,7 @@ Subtracts 1 from the vertical scroll position and copies to SH2. Part of a group
 
 - **Entry**: none | Exit: scroll Y decremented | Uses: D0
 - **RAM**: $FFFFC056 = scroll Y position (word) $00FF6106 = scroll Y shared memory mirror (word)
-*Source: [scroll_y_dec_by_1.asm](disasm/modules/68k/game/menu/scroll_y_dec_by_1.asm)*
+*Source: [scroll_y_dec_by_1.asm](../disasm/modules/68k/game/menu/scroll_y_dec_by_1.asm)*
 
 ---
 
@@ -2921,7 +2921,7 @@ Adds 32 ($20) to the horizontal scroll position and copies to SH2. Part of a gro
 
 - **Entry**: none | Exit: scroll X incremented by 32 | Uses: D0
 - **RAM**: $FFFFC054 = scroll X position (word) $00FF6104 = scroll X shared memory mirror (word)
-*Source: [scroll_x_inc_by_32.asm](disasm/modules/68k/game/menu/scroll_x_inc_by_32.asm)*
+*Source: [scroll_x_inc_by_32.asm](../disasm/modules/68k/game/menu/scroll_x_inc_by_32.asm)*
 
 ---
 
@@ -2931,7 +2931,7 @@ Subtracts 32 ($20) from the horizontal scroll position and copies to SH2. Part o
 
 - **Entry**: none | Exit: scroll X decremented by 32 | Uses: D0
 - **RAM**: $FFFFC054 = scroll X position (word) $00FF6104 = scroll X shared memory mirror (word)
-*Source: [scroll_x_dec_by_32.asm](disasm/modules/68k/game/menu/scroll_x_dec_by_32.asm)*
+*Source: [scroll_x_dec_by_32.asm](../disasm/modules/68k/game/menu/scroll_x_dec_by_32.asm)*
 
 ---
 
@@ -2941,7 +2941,7 @@ Adds 32 ($20) to the vertical scroll position and copies to SH2. Part of a group
 
 - **Entry**: none | Exit: scroll Y incremented by 32 | Uses: D0
 - **RAM**: $FFFFC056 = scroll Y position (word) $00FF6106 = scroll Y shared memory mirror (word)
-*Source: [scroll_y_inc_by_32.asm](disasm/modules/68k/game/menu/scroll_y_inc_by_32.asm)*
+*Source: [scroll_y_inc_by_32.asm](../disasm/modules/68k/game/menu/scroll_y_inc_by_32.asm)*
 
 ---
 
@@ -2951,7 +2951,7 @@ Subtracts 32 ($20) from the vertical scroll position and copies to SH2. Part of 
 
 - **Entry**: none | Exit: scroll Y decremented by 32 | Uses: D0
 - **RAM**: $FFFFC056 = scroll Y position (word) $00FF6106 = scroll Y shared memory mirror (word)
-*Source: [scroll_y_dec_by_32.asm](disasm/modules/68k/game/menu/scroll_y_dec_by_32.asm)*
+*Source: [scroll_y_dec_by_32.asm](../disasm/modules/68k/game/menu/scroll_y_dec_by_32.asm)*
 
 ---
 
@@ -2961,7 +2961,7 @@ Reads the track segment value from $C8B0 and adds it to the accumulator at $C056
 
 - **Entry**: none | Exit: accumulator updated | Uses: D0
 - **RAM**: $FFFFC8B0 = track segment value (word, read) $FFFFC056 = segment accumulator (word, incremented)
-*Source: [add_track_segment_offset.asm](disasm/modules/68k/game/menu/add_track_segment_offset.asm)*
+*Source: [add_track_segment_offset.asm](../disasm/modules/68k/game/menu/add_track_segment_offset.asm)*
 
 ---
 
@@ -2971,7 +2971,7 @@ Reads the track segment value from $C8B0 and subtracts it from the accumulator a
 
 - **Entry**: none | Exit: accumulator updated | Uses: D0
 - **RAM**: $FFFFC8B0 = track segment value (word, read) $FFFFC056 = segment accumulator (word, decremented)
-*Source: [subtract_track_segment_offset.asm](disasm/modules/68k/game/menu/subtract_track_segment_offset.asm)*
+*Source: [subtract_track_segment_offset.asm](../disasm/modules/68k/game/menu/subtract_track_segment_offset.asm)*
 
 ---
 
@@ -2981,7 +2981,7 @@ Reads track segment value 1 from $C8B2 and adds it to its accumulator at $C086. 
 
 - **Entry**: none | Exit: accumulator updated | Uses: D0
 - **RAM**: $FFFFC8B2 = track segment value 1 (word, read) $FFFFC086 = segment accumulator 1 (word, incremented)
-*Source: [add_track_segment_1_offset.asm](disasm/modules/68k/game/menu/add_track_segment_1_offset.asm)*
+*Source: [add_track_segment_1_offset.asm](../disasm/modules/68k/game/menu/add_track_segment_1_offset.asm)*
 
 ---
 
@@ -2991,7 +2991,7 @@ Reads track segment value 1 from $C8B2 and subtracts it from its accumulator at 
 
 - **Entry**: none | Exit: accumulator updated | Uses: D0
 - **RAM**: $FFFFC8B2 = track segment value 1 (word, read) $FFFFC086 = segment accumulator 1 (word, decremented)
-*Source: [subtract_track_segment_1_offset.asm](disasm/modules/68k/game/menu/subtract_track_segment_1_offset.asm)*
+*Source: [subtract_track_segment_1_offset.asm](../disasm/modules/68k/game/menu/subtract_track_segment_1_offset.asm)*
 
 ---
 
@@ -3001,7 +3001,7 @@ Reads track segment value 2 from $C8B4 and adds it to its accumulator at $C0B0. 
 
 - **Entry**: none | Exit: accumulator updated | Uses: D0
 - **RAM**: $FFFFC8B4 = track segment value 2 (word, read) $FFFFC0B0 = segment accumulator 2 (word, incremented)
-*Source: [add_track_segment_2_offset.asm](disasm/modules/68k/game/menu/add_track_segment_2_offset.asm)*
+*Source: [add_track_segment_2_offset.asm](../disasm/modules/68k/game/menu/add_track_segment_2_offset.asm)*
 
 ---
 
@@ -3011,7 +3011,7 @@ Reads track segment value 2 from $C8B4 and subtracts it from its accumulator at 
 
 - **Entry**: none | Exit: accumulator updated | Uses: D0
 - **RAM**: $FFFFC8B4 = track segment value 2 (word, read) $FFFFC0B0 = segment accumulator 2 (word, decremented)
-*Source: [subtract_track_segment_2_offset.asm](disasm/modules/68k/game/menu/subtract_track_segment_2_offset.asm)*
+*Source: [subtract_track_segment_2_offset.asm](../disasm/modules/68k/game/menu/subtract_track_segment_2_offset.asm)*
 
 ---
 
@@ -3021,7 +3021,7 @@ Reads track segment value 3 from $C8B6 and adds it to its accumulator at $C0AE. 
 
 - **Entry**: none | Exit: accumulator updated | Uses: D0
 - **RAM**: $FFFFC8B6 = track segment value 3 (word, read) $FFFFC0AE = segment accumulator 3 (word, incremented)
-*Source: [add_track_segment_3_offset.asm](disasm/modules/68k/game/menu/add_track_segment_3_offset.asm)*
+*Source: [add_track_segment_3_offset.asm](../disasm/modules/68k/game/menu/add_track_segment_3_offset.asm)*
 
 ---
 
@@ -3031,7 +3031,7 @@ Reads track segment value 3 from $C8B6 and subtracts it from its accumulator at 
 
 - **Entry**: none | Exit: accumulator updated | Uses: D0
 - **RAM**: $FFFFC8B6 = track segment value 3 (word, read) $FFFFC0AE = segment accumulator 3 (word, decremented)
-*Source: [subtract_track_segment_3_offset.asm](disasm/modules/68k/game/menu/subtract_track_segment_3_offset.asm)*
+*Source: [subtract_track_segment_3_offset.asm](../disasm/modules/68k/game/menu/subtract_track_segment_3_offset.asm)*
 
 ---
 
@@ -3041,7 +3041,7 @@ Reads track segment value 4 from $C8B8 and adds it to its accumulator at $C0B2. 
 
 - **Entry**: none | Exit: accumulator updated | Uses: D0
 - **RAM**: $FFFFC8B8 = track segment value 4 (word, read) $FFFFC0B2 = segment accumulator 4 (word, incremented)
-*Source: [add_track_segment_4_offset.asm](disasm/modules/68k/game/menu/add_track_segment_4_offset.asm)*
+*Source: [add_track_segment_4_offset.asm](../disasm/modules/68k/game/menu/add_track_segment_4_offset.asm)*
 
 ---
 
@@ -3051,7 +3051,7 @@ Reads track segment value 4 from $C8B8 and subtracts it from its accumulator at 
 
 - **Entry**: none | Exit: accumulator updated | Uses: D0
 - **RAM**: $FFFFC8B8 = track segment value 4 (word, read) $FFFFC0B2 = segment accumulator 4 (word, decremented)
-*Source: [subtract_track_segment_4_offset.asm](disasm/modules/68k/game/menu/subtract_track_segment_4_offset.asm)*
+*Source: [subtract_track_segment_4_offset.asm](../disasm/modules/68k/game/menu/subtract_track_segment_4_offset.asm)*
 
 ---
 
@@ -3061,7 +3061,7 @@ Reads track segment value 5 from $C8BA and adds it to the scroll X accumulator a
 
 - **Entry**: none | Exit: accumulator updated | Uses: D0
 - **RAM**: $FFFFC8BA = track segment value 5 (word, read) $FFFFC054 = scroll X position / accumulator (word, incremented)
-*Source: [add_track_segment_5_offset.asm](disasm/modules/68k/game/menu/add_track_segment_5_offset.asm)*
+*Source: [add_track_segment_5_offset.asm](../disasm/modules/68k/game/menu/add_track_segment_5_offset.asm)*
 
 ---
 
@@ -3071,7 +3071,7 @@ Reads track segment value 5 from $C8BA and subtracts it from the scroll X accumu
 
 - **Entry**: none | Exit: accumulator updated | Uses: D0
 - **RAM**: $FFFFC8BA = track segment value 5 (word, read) $FFFFC054 = scroll X position / accumulator (word, decremented)
-*Source: [subtract_track_segment_5_offset.asm](disasm/modules/68k/game/menu/subtract_track_segment_5_offset.asm)*
+*Source: [subtract_track_segment_5_offset.asm](../disasm/modules/68k/game/menu/subtract_track_segment_5_offset.asm)*
 
 ---
 
@@ -3081,7 +3081,7 @@ Sets initial values for scroll and track position registers. Scroll X = $F400, S
 
 - **Entry**: none | Exit: scroll/position initialized | Uses: none
 - **RAM**: $FFFFC086 = segment 1 position (word, set to $0000) $FFFFC054 = scroll X (word, set to $F400) $FFFFC056 = scroll Y (word, set to $3400) $FFFFC0AE = segment 3 position (word, set to $0000) $FFFFC0B0 = segment 2 position (word, set to $0800) $FFFFC0B2 = segment 4 position (word, set to $0000)
-*Source: [initialize_scroll_pos_regs.asm](disasm/modules/68k/game/menu/initialize_scroll_pos_regs.asm)*
+*Source: [initialize_scroll_pos_regs.asm](../disasm/modules/68k/game/menu/initialize_scroll_pos_regs.asm)*
 
 ---
 
@@ -3091,7 +3091,7 @@ Sets all 6 track segment variables ($C8B0-$C8BA) to $0080 (center/default). Thes
 
 - **Entry**: none | Exit: all segments centered | Uses: none
 - **RAM**: $FFFFC8B0 = track segment 0 (word, set to $0080) $FFFFC8B2 = track segment 1 (word, set to $0080) $FFFFC8B4 = track segment 2 (word, set to $0080) $FFFFC8B6 = track segment 3 (word, set to $0080) $FFFFC8B8 = track segment 4 (word, set to $0080) $FFFFC8BA = track segment 5 (word, set to $0080)
-*Source: [initialize_track_segment_values_to_center.asm](disasm/modules/68k/game/menu/initialize_track_segment_values_to_center.asm)*
+*Source: [initialize_track_segment_values_to_center.asm](../disasm/modules/68k/game/menu/initialize_track_segment_values_to_center.asm)*
 
 ---
 
@@ -3101,7 +3101,7 @@ Adds $0400 to the word at $903C. One of a group of four related adjustment funct
 
 - **Entry**: none | Exit: value incremented | Uses: none
 - **RAM**: $FFFF903C = adjustable parameter (word)
-*Source: [adjust_903c_add_0400.asm](disasm/modules/68k/game/menu/adjust_903c_add_0400.asm)*
+*Source: [adjust_903c_add_0400.asm](../disasm/modules/68k/game/menu/adjust_903c_add_0400.asm)*
 
 ---
 
@@ -3111,7 +3111,7 @@ Subtracts $0400 from the word at $903C. One of a group of four related adjustmen
 
 - **Entry**: none | Exit: value decremented | Uses: none
 - **RAM**: $FFFF903C = adjustable parameter (word)
-*Source: [adjust_903c_subtract_0400.asm](disasm/modules/68k/game/menu/adjust_903c_subtract_0400.asm)*
+*Source: [adjust_903c_subtract_0400.asm](../disasm/modules/68k/game/menu/adjust_903c_subtract_0400.asm)*
 
 ---
 
@@ -3121,7 +3121,7 @@ Adds $1000 to the word at $903C. One of a group of four related adjustment funct
 
 - **Entry**: none | Exit: value incremented | Uses: none
 - **RAM**: $FFFF903C = adjustable parameter (word)
-*Source: [adjust_903c_add_1000.asm](disasm/modules/68k/game/menu/adjust_903c_add_1000.asm)*
+*Source: [adjust_903c_add_1000.asm](../disasm/modules/68k/game/menu/adjust_903c_add_1000.asm)*
 
 ---
 
@@ -3131,7 +3131,7 @@ Adds $2000 to the word at $903C. One of a group of four related adjustment funct
 
 - **Entry**: none | Exit: value incremented | Uses: none
 - **RAM**: $FFFF903C = adjustable parameter (word)
-*Source: [adjust_903c_add_2000.asm](disasm/modules/68k/game/menu/adjust_903c_add_2000.asm)*
+*Source: [adjust_903c_add_2000.asm](../disasm/modules/68k/game/menu/adjust_903c_add_2000.asm)*
 
 ---
 
@@ -3141,7 +3141,7 @@ Reads the fade level from $C888 (long), increments by 8, and clamps at $00FFFFFF
 
 - **Entry**: none | Exit: fade level incremented | Uses: D0
 - **RAM**: $FFFFC888 = fade level (long, incremented by 8, max $00FFFFFF)
-*Source: [fade_level_inc.asm](disasm/modules/68k/game/menu/fade_level_inc.asm)*
+*Source: [fade_level_inc.asm](../disasm/modules/68k/game/menu/fade_level_inc.asm)*
 
 ---
 
@@ -3151,7 +3151,7 @@ Reads the fade level from $C888 (long), decrements by 8, and clamps at minimum $
 
 - **Entry**: none | Exit: fade level decremented | Uses: D0
 - **RAM**: $FFFFC888 = fade level (long, decremented by 8, min $00FF6000)
-*Source: [fade_level_dec.asm](disasm/modules/68k/game/menu/fade_level_dec.asm)*
+*Source: [fade_level_dec.asm](../disasm/modules/68k/game/menu/fade_level_dec.asm)*
 
 ---
 
@@ -3162,7 +3162,7 @@ Scroll Position Increment Increments a scroll position by $10 (16 pixels). Compa
 - **Entry**: A1 = current position pointer, A2 = target position pointer
 - **Returns**: (A1) updated with incremented value
 - **Modifies**: D0, A1, A2
-*Source: [scroll_pos_increment.asm](disasm/modules/68k/game/menu/scroll_pos_increment.asm)*
+*Source: [scroll_pos_increment.asm](../disasm/modules/68k/game/menu/scroll_pos_increment.asm)*
 
 ---
 
@@ -3173,7 +3173,7 @@ Scroll Position Decrement Decrements a scroll position by $10 (16 pixels). Compa
 - **Entry**: A1 = current position pointer, A2 = target position pointer
 - **Returns**: (A1) updated with decremented value
 - **Modifies**: D0, A1, A2
-*Source: [scroll_pos_decrement.asm](disasm/modules/68k/game/menu/scroll_pos_decrement.asm)*
+*Source: [scroll_pos_decrement.asm](../disasm/modules/68k/game/menu/scroll_pos_decrement.asm)*
 
 ---
 
@@ -3186,7 +3186,7 @@ Computes weighted average: D1 = (D0×29/256 + $1A5E + *A1) / 2. Clamps result to
 - **Entry**: D0 = input value, A1 = position pointer
 - **Modifies**: D0, D1, A1
 - **RAM**: $8760: output position (word)
-*Source: [weighted_average_pos_clamp_0023dc.asm](disasm/modules/68k/game/physics/weighted_average_pos_clamp_0023dc.asm)*
+*Source: [weighted_average_pos_clamp_0023dc.asm](../disasm/modules/68k/game/physics/weighted_average_pos_clamp_0023dc.asm)*
 
 ---
 
@@ -3197,7 +3197,7 @@ Computes weighted average: D1 = (D0×7/64 + $1A5E + *A1) / 2. Clamps result to r
 - **Entry**: D0 = input value, A1 = position pointer
 - **Modifies**: D0, D1, A1
 - **RAM**: $8760: output position (word)
-*Source: [weighted_average_pos_clamp_002426.asm](disasm/modules/68k/game/physics/weighted_average_pos_clamp_002426.asm)*
+*Source: [weighted_average_pos_clamp_002426.asm](../disasm/modules/68k/game/physics/weighted_average_pos_clamp_002426.asm)*
 
 ---
 
@@ -3208,7 +3208,7 @@ Copies velocity data from $C748 to object A1 offset +$24. Sets A1+$64 to 1 (acti
 - **Entry**: A0 = source object, A1 = target object
 - **Returns**: conditional return or fall-through | Uses: A0, A1
 - **RAM**: $FFFFC748 = velocity data source (long)
-*Source: [object_velocity_init_cond_clear.asm](disasm/modules/68k/game/physics/object_velocity_init_cond_clear.asm)*
+*Source: [object_velocity_init_cond_clear.asm](../disasm/modules/68k/game/physics/object_velocity_init_cond_clear.asm)*
 
 ---
 
@@ -3219,7 +3219,7 @@ Copies velocity data from $C748 to both A1+$24 and A2+$128. Sets A1+$64 to 1 (ac
 - **Entry**: A0 = source obj, A1 = target obj 1, A2 = target obj 2
 - **Returns**: conditional return or fall-through | Uses: A0, A1, A2
 - **RAM**: $FFFFC748 = velocity data source (long)
-*Source: [object_velocity_init_002df4.asm](disasm/modules/68k/game/physics/object_velocity_init_002df4.asm)*
+*Source: [object_velocity_init_002df4.asm](../disasm/modules/68k/game/physics/object_velocity_init_002df4.asm)*
 
 ---
 
@@ -3230,7 +3230,7 @@ Copies velocity data from $C710 to both A1+$24 and A2+$128. Sets A1+$64 to 1 (ac
 - **Entry**: A0 = source obj, A1 = target obj 1, A2 = target obj 2
 - **Returns**: velocity set | Uses: A0, A1, A2
 - **RAM**: $FFFFC710 = velocity data source (long)
-*Source: [object_velocity_init_002e14.asm](disasm/modules/68k/game/physics/object_velocity_init_002e14.asm)*
+*Source: [object_velocity_init_002e14.asm](../disasm/modules/68k/game/physics/object_velocity_init_002e14.asm)*
 
 ---
 
@@ -3241,7 +3241,7 @@ Copies velocity data from $C75C to both A1+$24 and A2+$128. Sets A1+$64 to 1 (ac
 - **Entry**: A0 = source obj, A1 = target obj 1, A2 = target obj 2
 - **Returns**: conditional return or fall-through | Uses: A0, A1, A2
 - **RAM**: $FFFFC75C = velocity data source (long)
-*Source: [object_velocity_init_002e5e.asm](disasm/modules/68k/game/physics/object_velocity_init_002e5e.asm)*
+*Source: [object_velocity_init_002e5e.asm](../disasm/modules/68k/game/physics/object_velocity_init_002e5e.asm)*
 
 ---
 
@@ -3252,7 +3252,7 @@ Copies velocity data from $C754 to both A1+$24 and A2+$128. Sets A1+$64 to 1 (ac
 - **Entry**: A0 = source obj, A1 = target obj 1, A2 = target obj 2
 - **Returns**: velocity set | Uses: A0, A1, A2
 - **RAM**: $FFFFC754 = velocity data source (long)
-*Source: [object_velocity_init_002e7e.asm](disasm/modules/68k/game/physics/object_velocity_init_002e7e.asm)*
+*Source: [object_velocity_init_002e7e.asm](../disasm/modules/68k/game/physics/object_velocity_init_002e7e.asm)*
 
 ---
 
@@ -3262,7 +3262,7 @@ Ramps up object speed at $FF6754: increments $C25C by 8 each frame, copies to ob
 
 - **Modifies**: D0, A2
 - **RAM**: $C25C: speed accumulator (word, +8 per frame) $C07C: input_state (word, advanced by 4) $C8AA: scene_state (word, cleared on completion) Object ($FF6754): +$04: speed_index (word, +2 per frame) +$06: speed (word, set from $C25C) +$08: field8 (word, +$01C0 per frame)
-*Source: [object_speed_ramp_up_state_advance.asm](disasm/modules/68k/game/physics/object_speed_ramp_up_state_advance.asm)*
+*Source: [object_speed_ramp_up_state_advance.asm](../disasm/modules/68k/game/physics/object_speed_ramp_up_state_advance.asm)*
 
 ---
 
@@ -3273,7 +3273,7 @@ Conditional Position Add Calls condition check at $006D00, then adds D0 to (A1) 
 - **Entry**: D0 = adjustment value, A1 = target address
 - **Modifies**: D0, A1
 - **Confidence**: high
-*Source: [conditional_pos_add.asm](disasm/modules/68k/game/physics/conditional_pos_add.asm)*
+*Source: [conditional_pos_add.asm](../disasm/modules/68k/game/physics/conditional_pos_add.asm)*
 
 ---
 
@@ -3284,7 +3284,7 @@ Conditional Position Subtract Calls condition check at $006D00, then subtracts D
 - **Entry**: D0 = adjustment value, A1 = target address
 - **Modifies**: D0, A1
 - **Confidence**: high
-*Source: [conditional_pos_subtract.asm](disasm/modules/68k/game/physics/conditional_pos_subtract.asm)*
+*Source: [conditional_pos_subtract.asm](../disasm/modules/68k/game/physics/conditional_pos_subtract.asm)*
 
 ---
 
@@ -3296,7 +3296,7 @@ Conditional Speed Add Calls condition check at $006D00, then adds D0 to A1+$04 (
 - **Modifies**: D0, A1
 - **Object fields**: +$04 speed
 - **Confidence**: high
-*Source: [conditional_speed_add.asm](disasm/modules/68k/game/physics/conditional_speed_add.asm)*
+*Source: [conditional_speed_add.asm](../disasm/modules/68k/game/physics/conditional_speed_add.asm)*
 
 ---
 
@@ -3308,7 +3308,7 @@ Conditional Speed Subtract Calls condition check at $006D00, then subtracts D0 f
 - **Modifies**: D0, A1
 - **Object fields**: +$04 speed
 - **Confidence**: high
-*Source: [conditional_speed_subtract.asm](disasm/modules/68k/game/physics/conditional_speed_subtract.asm)*
+*Source: [conditional_speed_subtract.asm](../disasm/modules/68k/game/physics/conditional_speed_subtract.asm)*
 
 ---
 
@@ -3316,7 +3316,7 @@ Conditional Speed Subtract Calls condition check at $006D00, then subtracts D0 f
 
 Conditional Update Check CODE: 48 bytes — BSR target called by conditional_pos_add, conditional_speed_add, conditional_pos_subtract, conditional_speed_subtract. Tests bit 2 of $C313, selects offset, adds from $C8A0 twice, builds address into $FF301A, and loops comparing entries. Falls through to return_zero_d1 ($006D30) on no match. BEQ.S to return_one_d1 ($006D34) on match.
 
-*Source: [conditional_update_check.asm](disasm/modules/68k/game/physics/conditional_update_check.asm)*
+*Source: [conditional_update_check.asm](../disasm/modules/68k/game/physics/conditional_update_check.asm)*
 
 ---
 
@@ -3328,7 +3328,7 @@ Entity Position Update — Heading-Based Movement Computes entity X/Y position d
 - **Modifies**: D0, D2, D3, D4, D5, D6, A0
 - **Object fields**: +$06 speed, +$30 x_position, +$34 y_position, +$3C heading_mirror, +$40 heading_angle, +$62 mode, +$92 param, +$96 heading_offset
 - **Confidence**: high
-*Source: [entity_pos_update.asm](disasm/modules/68k/game/physics/entity_pos_update.asm)*
+*Source: [entity_pos_update.asm](../disasm/modules/68k/game/physics/entity_pos_update.asm)*
 
 ---
 
@@ -3339,7 +3339,7 @@ If the word at $C0BA is nonzero, loads the word at $C0C2, negates it, and stores
 - **Entry**: A0 = object pointer | Exit: object+$CC set or falls through
 - **Modifies**: D0, A0
 - **RAM**: $FFFFC0BA = velocity enable flag (word, tested) $FFFFC0C2 = velocity value (word, read and negated)
-*Source: [conditional_object_velocity_negate.asm](disasm/modules/68k/game/physics/conditional_object_velocity_negate.asm)*
+*Source: [conditional_object_velocity_negate.asm](../disasm/modules/68k/game/physics/conditional_object_velocity_negate.asm)*
 
 ---
 
@@ -3349,7 +3349,7 @@ Computes a heading value: ($C0CA + $C0B0) * 8 + object+$3C + object+$96, storing
 
 - **Entry**: A0 = object pointer | Exit: +$CC updated | Uses: D0, A0
 - **RAM**: $FFFFC0CA = heading base (word) $FFFFC0B0 = segment 2 position (word)
-*Source: [calculate_object_heading_composite.asm](disasm/modules/68k/game/physics/calculate_object_heading_composite.asm)*
+*Source: [calculate_object_heading_composite.asm](../disasm/modules/68k/game/physics/calculate_object_heading_composite.asm)*
 
 ---
 
@@ -3361,7 +3361,7 @@ Entity Heading Initialization Initializes entity heading angles. Has data prefix
 - **Modifies**: D0, D1, A0
 - **Object fields**: +$32 heading, +$C0 render_flags, +$C6 prev_heading, +$C8 current_heading
 - **Confidence**: high
-*Source: [entity_heading_init.asm](disasm/modules/68k/game/physics/entity_heading_init.asm)*
+*Source: [entity_heading_init.asm](../disasm/modules/68k/game/physics/entity_heading_init.asm)*
 
 ---
 
@@ -3373,7 +3373,7 @@ Entity Speed Guard Guard function with data prefix (4 bytes). Tests if entity sp
 - **Modifies**: D0, A0
 - **Object fields**: +$04 speed
 - **Confidence**: high
-*Source: [entity_speed_guard.asm](disasm/modules/68k/game/physics/entity_speed_guard.asm)*
+*Source: [entity_speed_guard.asm](../disasm/modules/68k/game/physics/entity_speed_guard.asm)*
 
 ---
 
@@ -3385,7 +3385,7 @@ Checks 4 collision/contact channels and triggers screech sound Each channel: tes
 - **Modifies**: D2, A0
 - **RAM**: $C8A4: sound_command Object fields (A0): +$58: contact_flags_a +$59: contact_flags_b +$98: screech_timer_a (bit 3 of +$58) +$9A: screech_timer_b (bit 3 of +$59) +$E6: screech_timer_c (bit 4 of +$58) +$E8: screech_timer_d (bit 4 of +$59)
 - **Confidence**: high
-*Source: [tire_screech_sound_trigger_053.asm](disasm/modules/68k/game/physics/tire_screech_sound_trigger_053.asm)*
+*Source: [tire_screech_sound_trigger_053.asm](../disasm/modules/68k/game/physics/tire_screech_sound_trigger_053.asm)*
 
 ---
 
@@ -3397,7 +3397,7 @@ Plays SFX $B5 (skid sound). Computes absolute difference between heading_angle (
 - **Modifies**: D0, A0
 - **RAM**: $C8A4: sound effect (byte)
 - **Object fields**: A0+$04: speed_index (word) A0+$1E: reference angle (word) A0+$40: heading_angle (word) A0+$8C: velocity_x (word)
-*Source: [object_drift_check_sfx_trigger.asm](disasm/modules/68k/game/physics/object_drift_check_sfx_trigger.asm)*
+*Source: [object_drift_check_sfx_trigger.asm](../disasm/modules/68k/game/physics/object_drift_check_sfx_trigger.asm)*
 
 ---
 
@@ -3410,7 +3410,7 @@ Initiates drift/skid sequence when conditions met Checks race state, collision s
 - **Calls**: $007EA4: obj_collision_response (tail call via JMP) Object fields (A0): +$14: effect_duration +$1C: collision_param +$1D: collision_type +$40: heading_angle +$56: collision_state_a +$57: collision_state_b +$62: drift_active (counter) +$64: drift_angle_delta +$66: drift_target_angle +$68: drift_direction +$72: lateral_velocity +$92: drift_cooldown
 - **RAM**: $C89C: race_substate
 - **Confidence**: medium
-*Source: [drift_init_057.asm](disasm/modules/68k/game/physics/drift_init_057.asm)*
+*Source: [drift_init_057.asm](../disasm/modules/68k/game/physics/drift_init_057.asm)*
 
 ---
 
@@ -3422,7 +3422,7 @@ Initiates drift/skid sequence when conditions met Checks race state, collision s
 - **Modifies**: D0, D1, A0
 - **RAM**: $C02A: frame counter (word, counts to 80)
 - **Object fields**: A0+$06: speed (word, cleared on timeout) A0+$1C: next state param (word, loaded into D0) A0+$55: control flags (byte, bit 1)
-*Source: [object_anim_timer_speed_clear.asm](disasm/modules/68k/game/physics/object_anim_timer_speed_clear.asm)*
+*Source: [object_anim_timer_speed_clear.asm](../disasm/modules/68k/game/physics/object_anim_timer_speed_clear.asm)*
 
 ---
 
@@ -3432,7 +3432,7 @@ Computes per-frame velocity for position interpolation. Copies $C090 → $C07A, 
 
 - **Modifies**: D0, D1, D2, D3, A0, A1
 - **RAM**: $C02C: frame_count (word) $C07A: source copy (word, from $C090) $C090: source param (word) $C700: table_ptr (longword, word-pair table) Object (A0): +$1E: heading (word) +$30: x_position (word) +$34: y_position (word) +$3C: heading_mirror (word) +$4E: x_velocity (word) +$50: y_velocity (word) +$52: heading_velocity (word)
-*Source: [object_movement_velocity_calc.asm](disasm/modules/68k/game/physics/object_movement_velocity_calc.asm)*
+*Source: [object_movement_velocity_calc.asm](../disasm/modules/68k/game/physics/object_movement_velocity_calc.asm)*
 
 ---
 
@@ -3442,7 +3442,7 @@ Two entry points (A2 selects VDP target): Entry 1 ($007EFC): A2 = $FF6940 Entry 
 
 - **Modifies**: D0, A0, A2
 - **RAM**: $C312: heading warning flag (byte) $C8AB: scene flags (byte, bit 2) Object (A0): +$1E: heading (word) +$3C: heading_mirror (word)
-*Source: [object_heading_deviation_check_warning_flag.asm](disasm/modules/68k/game/physics/object_heading_deviation_check_warning_flag.asm)*
+*Source: [object_heading_deviation_check_warning_flag.asm](../disasm/modules/68k/game/physics/object_heading_deviation_check_warning_flag.asm)*
 
 ---
 
@@ -3452,7 +3452,7 @@ Decrements object timer (A0+$62). On expiry (→0): If sh2_comm_state ($C89C) ==
 
 - **Modifies**: D0, A0
 - **RAM**: $C0AC: speed_frames (word) $C89C: sh2_comm_state (word) $C8C8: boost_flag (word) Object (A0): +$24: object_id (word) +$3C: heading_mirror (word) +$40: heading_angle (word, set from mirror) +$62: timer (word, countdown) +$92: speed_param (word, set to $28) +$E5: type_flags (byte, bits 1-2)
-*Source: [object_timer_expire_speed_param_reset.asm](disasm/modules/68k/game/physics/object_timer_expire_speed_param_reset.asm)*
+*Source: [object_timer_expire_speed_param_reset.asm](../disasm/modules/68k/game/physics/object_timer_expire_speed_param_reset.asm)*
 
 ---
 
@@ -3462,7 +3462,7 @@ Calculates speed degradation for entity. Reads speed, clamps, applies to drag fi
 
 - **Entry**: A0 = entity
 - **Modifies**: D0, D1
-*Source: [speed_degrade_calc.asm](disasm/modules/68k/game/physics/speed_degrade_calc.asm)*
+*Source: [speed_degrade_calc.asm](../disasm/modules/68k/game/physics/speed_degrade_calc.asm)*
 
 ---
 
@@ -3472,7 +3472,7 @@ Computes relative position from object to viewport: loads object+$32 minus $C0BC
 
 - **Entry**: A0 = object pointer | Exit: $C0C0 set | Uses: D0, D2, D3
 - **RAM**: $FFFFC0BC = viewport X reference (word, subtracted) $FFFFC0BE = viewport Y reference (word, subtracted) $FFFFC0C0 = result (word, negated value stored)
-*Source: [calculate_relative_pos_negate.asm](disasm/modules/68k/game/physics/calculate_relative_pos_negate.asm)*
+*Source: [calculate_relative_pos_negate.asm](../disasm/modules/68k/game/physics/calculate_relative_pos_negate.asm)*
 
 ---
 
@@ -3484,7 +3484,7 @@ Sine/Cosine Quadrant Lookup Shared sine/cosine lookup with two entry points: $00
 - **Returns**: D0 = sine or cosine value (16-bit signed)
 - **Modifies**: D0, D1, A1
 - **Confidence**: high
-*Source: [sine_cosine_quadrant_lookup.asm](disasm/modules/68k/game/physics/sine_cosine_quadrant_lookup.asm)*
+*Source: [sine_cosine_quadrant_lookup.asm](../disasm/modules/68k/game/physics/sine_cosine_quadrant_lookup.asm)*
 
 ---
 
@@ -3494,7 +3494,7 @@ Computes heading from entity position data. Camera correction applied.
 
 - **Entry**: none
 - **Modifies**: D0
-*Source: [heading_from_position.asm](disasm/modules/68k/game/physics/heading_from_position.asm)*
+*Source: [heading_from_position.asm](../disasm/modules/68k/game/physics/heading_from_position.asm)*
 
 ---
 
@@ -3504,7 +3504,7 @@ Clears heading register at $8000.
 
 - **Entry**: none
 - **Modifies**: none
-*Source: [clear_heading.asm](disasm/modules/68k/game/physics/clear_heading.asm)*
+*Source: [clear_heading.asm](../disasm/modules/68k/game/physics/clear_heading.asm)*
 
 ---
 
@@ -3514,7 +3514,7 @@ Heading calculation with camera rotation offset from $C0B0.
 
 - **Entry**: none
 - **Modifies**: D0
-*Source: [heading_with_camera.asm](disasm/modules/68k/game/physics/heading_with_camera.asm)*
+*Source: [heading_with_camera.asm](../disasm/modules/68k/game/physics/heading_with_camera.asm)*
 
 ---
 
@@ -3524,7 +3524,7 @@ Computes heading and writes to entity table via MOVEM bulk fill. 1 initial + 11 
 
 - **Entry**: A0 = entity, A1 = entity table destination
 - **Modifies**: D0-D7
-*Source: [heading_broadcast.asm](disasm/modules/68k/game/physics/heading_broadcast.asm)*
+*Source: [heading_broadcast.asm](../disasm/modules/68k/game/physics/heading_broadcast.asm)*
 
 ---
 
@@ -3536,7 +3536,7 @@ Entity Speed Acceleration and Braking Manages entity longitudinal speed using ac
 - **Modifies**: D0, D1, D2, A0, A1
 - **Object fields**: +$04 speed, +$6A collision, +$74 raw speed, +$7A speed index, +$7E target speed, +$82 sound timer, +$84 brake timer, +$8C lateral flag, +$AE table offset
 - **Confidence**: high
-*Source: [entity_speed_acceleration_and_braking.asm](disasm/modules/68k/game/physics/entity_speed_acceleration_and_braking.asm)*
+*Source: [entity_speed_acceleration_and_braking.asm](../disasm/modules/68k/game/physics/entity_speed_acceleration_and_braking.asm)*
 
 ---
 
@@ -3548,7 +3548,7 @@ Entity Force Integration and Speed Calculation Integrates forces on entity: comp
 - **Modifies**: D0, D1, D2, D3, A0, A1, A2
 - **Object fields**: +$04 speed, +$06 display speed, +$0C slope, +$0E force, +$10 drag, +$16 calc speed, +$74 raw speed, +$78 grip, +$7A gear, +$80 sound timer, +$82 brake timer
 - **Confidence**: high
-*Source: [entity_force_integration_and_speed_calc.asm](disasm/modules/68k/game/physics/entity_force_integration_and_speed_calc.asm)*
+*Source: [entity_force_integration_and_speed_calc.asm](../disasm/modules/68k/game/physics/entity_force_integration_and_speed_calc.asm)*
 
 ---
 
@@ -3561,7 +3561,7 @@ Computes effective speed ($0016) from velocity index ($0004) via ROM lookup tabl
 - **Calls**: $009B32: wind_resistance_calc
 - **RAM**: $C27C: speed_table_ptr (longword → ROM speed lookup) $C0E6: track_speed_factor (word, signed) $C826: has_boost_flag (byte) $C31B: wind_active (byte)
 - **Object fields**: +$04: velocity_index +$06: base_speed +$0A: min_speed_threshold +$14: boost_timer (countdown) +$16: calc_speed (output) +$8A: boost_modifier +$A8: speed_state
-*Source: [speed_calc_multiplier_chain.asm](disasm/modules/68k/game/physics/speed_calc_multiplier_chain.asm)*
+*Source: [speed_calc_multiplier_chain.asm](../disasm/modules/68k/game/physics/speed_calc_multiplier_chain.asm)*
 
 ---
 
@@ -3573,7 +3573,7 @@ Steering Input Processing and Velocity Update Data prefix (2 bytes) at start. Re
 - **Modifies**: D0, D1, D2, D3, A0, A1
 - **Object fields**: +$8E steering velocity, +$94 drift rate, +$AA drift accum
 - **Confidence**: high
-*Source: [steering_input_processing_and_velocity_update.asm](disasm/modules/68k/game/physics/steering_input_processing_and_velocity_update.asm)*
+*Source: [steering_input_processing_and_velocity_update.asm](../disasm/modules/68k/game/physics/steering_input_processing_and_velocity_update.asm)*
 
 ---
 
@@ -3583,7 +3583,7 @@ Adjusts entity tilt for banking. Checks race condition first. X-tilt clamped to 
 
 - **Entry**: A0 = entity
 - **Modifies**: D0, D1
-*Source: [tilt_adjust.asm](disasm/modules/68k/game/physics/tilt_adjust.asm)*
+*Source: [tilt_adjust.asm](../disasm/modules/68k/game/physics/tilt_adjust.asm)*
 
 ---
 
@@ -3595,7 +3595,7 @@ Lateral Drift Velocity Processing (A) Processes lateral drift/slide physics. Red
 - **Modifies**: D0, D1, D2, A0
 - **Object fields**: +$02 flags, +$10 drag, +$3C heading, +$4C slip angle, +$62 collision, +$6A lateral collision, +$78 grip, +$8C lateral flag, +$92 slide, +$94 lateral velocity, +$96 lateral display
 - **Confidence**: high
-*Source: [lateral_drift_velocity_processing_00987e.asm](disasm/modules/68k/game/physics/lateral_drift_velocity_processing_00987e.asm)*
+*Source: [lateral_drift_velocity_processing_00987e.asm](../disasm/modules/68k/game/physics/lateral_drift_velocity_processing_00987e.asm)*
 
 ---
 
@@ -3607,7 +3607,7 @@ Lateral Drift Velocity Processing (B) Variant of lateral_drift_velocity_processi
 - **Modifies**: D0, D1, D2, D6, D7, A0
 - **Object fields**: +$02 flags, +$04 speed, +$0E force, +$10 drag, +$3C heading, +$4C slip angle, +$62 collision, +$6A lateral collision, +$78 grip, +$80 effect timer, +$8C lateral flag, +$92 slide, +$94 lateral velocity, +$96 lateral display
 - **Confidence**: high
-*Source: [lateral_drift_velocity_processing_0099aa.asm](disasm/modules/68k/game/physics/lateral_drift_velocity_processing_0099aa.asm)*
+*Source: [lateral_drift_velocity_processing_0099aa.asm](../disasm/modules/68k/game/physics/lateral_drift_velocity_processing_0099aa.asm)*
 
 ---
 
@@ -3618,7 +3618,7 @@ Applies speed modification based on ($C31A).W flag. If flag=0: returns 0. If fla
 - **Entry**: A0 = entity
 - **Returns**: D0 = modified speed value
 - **Modifies**: D0, D1 (preserved)
-*Source: [speed_modifier.asm](disasm/modules/68k/game/physics/speed_modifier.asm)*
+*Source: [speed_modifier.asm](../disasm/modules/68k/game/physics/speed_modifier.asm)*
 
 ---
 
@@ -3628,7 +3628,7 @@ Track Physics Parameter Table Loader Data prefix (144 bytes of track configurati
 
 - **Modifies**: D0, D1, A0, A1
 - **Confidence**: high
-*Source: [track_physics_param_table_loader.asm](disasm/modules/68k/game/physics/track_physics_param_table_loader.asm)*
+*Source: [track_physics_param_table_loader.asm](../disasm/modules/68k/game/physics/track_physics_param_table_loader.asm)*
 
 ---
 
@@ -3636,7 +3636,7 @@ Track Physics Parameter Table Loader Data prefix (144 bytes of track configurati
 
 Contains: - physics_lookup_accessor: Index calculation function for table access - Acceleration/speed lookup tables - Sine/cosine table (64 entries, $00A2D8-$00A347)
 
-*Source: [physics_lookup_tables.asm](disasm/modules/68k/game/physics/physics_lookup_tables.asm)*
+*Source: [physics_lookup_tables.asm](../disasm/modules/68k/game/physics/physics_lookup_tables.asm)*
 
 ---
 
@@ -3647,18 +3647,18 @@ Reads speed value from lookup table, optionally divides by 4 based on a RAM flag
 - **Entry**: A0 = object/entity pointer
 - **Modifies**: D0, A1 Fields accessed: A0+$04: Speed table index A0+$14: Effect duration (from effect_timer_mgmt) A0+$16: Calculated speed (output)
 - **RAM**: $C8C8: Mode flag (if == 2, speed is divided by 4)
-*Source: [speed_calculation.asm](disasm/modules/68k/game/physics/speed_calculation.asm)*
+*Source: [speed_calculation.asm](../disasm/modules/68k/game/physics/speed_calculation.asm)*
 
 ---
 
 ### Speed Interpolation (Table-Based with Clamping) ($00A3EA–$00A432, 74 bytes)
 
-Gradually adjusts speed toward a target value read from a lookup table. The delta is divided by 103 for smooth interpolation, then clamped to system-defined acceleration bounds stored in RAM.
+Gradually adjusts speed toward a target value read from a lookup table. The delta is approximately divided by 103 using (x*644)>>16 for smooth interpolation, then clamped to system-defined acceleration bounds in RAM.
 
 - **Entry**: A0 = object/entity pointer
 - **Modifies**: D0, D1, A1 Fields accessed: A0+$04: Speed table index A0+$06: Accumulated speed delta (output, clamped >= 0) A0+$08: Secondary speed field A0+$16: Current speed
 - **RAM**: ($C0F8).W: Upper acceleration limit ($C0FA).W: Lower acceleration limit
-*Source: [speed_interpolation.asm](disasm/modules/68k/game/physics/speed_interpolation.asm)*
+*Source: [speed_interpolation.asm](../disasm/modules/68k/game/physics/speed_interpolation.asm)*
 
 ---
 
@@ -3669,7 +3669,7 @@ Computes distance to target, derives a steering factor, calls ai_steering_calc t
 - **Entry**: A0 = object/entity pointer ($A000).W = target X coordinate (set by collision_avoidance setup) ($A002).W = target Y coordinate (set by collision_avoidance setup)
 - **Modifies**: D0, D1, D2, D3, D6
 - **Calls**: ai_steering_calc ($A7A0), sine_lookup ($8F52), cosine_lookup ($8F4E) Fields accessed: A0+$06: Speed value (used as divisor) A0+$30: X position (updated) A0+$34: Y position (updated) A0+$3C: Heading mirror (written) A0+$40: Current heading angle (read/written) A0+$54: Steering mode flags (bit 0 selects D6=2)
-*Source: [physics_integration.asm](disasm/modules/68k/game/physics/physics_integration.asm)*
+*Source: [physics_integration.asm](../disasm/modules/68k/game/physics/physics_integration.asm)*
 
 ---
 
@@ -3680,7 +3680,7 @@ Loads a value from RAM ($FF907E), scales it via speed_scale_calc, and stores the
 - **Modifies**: D0, D1
 - **Calls**: speed_scale_calc (via BSR.S)
 - **RAM**: ($907E).W: Input value (sign-extended: $FFFF907E) $FF674C: Output scaled value
-*Source: [speed_scale_simple.asm](disasm/modules/68k/game/physics/speed_scale_simple.asm)*
+*Source: [speed_scale_simple.asm](../disasm/modules/68k/game/physics/speed_scale_simple.asm)*
 
 ---
 
@@ -3691,7 +3691,7 @@ Conditionally scales two speed values based on flag bits: If bit 5 of ($C30E).W 
 - **Modifies**: D0, D1
 - **Calls**: speed_scale_calc (via BSR.S)
 - **RAM**: ($C30E).W: Flag byte 1 (bit 5 checked) ($B4EE).W: Flag byte 2 (bit 5 checked) ($907E).W: First input value ($9F7E).W: Second input value $FF6328: First output (scaled) $FF6558: Second output (scaled)
-*Source: [speed_scale_conditional.asm](disasm/modules/68k/game/physics/speed_scale_conditional.asm)*
+*Source: [speed_scale_conditional.asm](../disasm/modules/68k/game/physics/speed_scale_conditional.asm)*
 
 ---
 
@@ -3702,7 +3702,7 @@ Converts a raw distance/speed value to a scaled result: 1. Subtract base offset 
 - **Entry**: D0.W = raw value
 - **Returns**: D0.W = scaled result ($0800-$1000)
 - **Modifies**: D0, D1
-*Source: [speed_scale_calc.asm](disasm/modules/68k/game/physics/speed_scale_calc.asm)*
+*Source: [speed_scale_calc.asm](../disasm/modules/68k/game/physics/speed_scale_calc.asm)*
 
 ---
 
@@ -3714,7 +3714,7 @@ Entity Heading and Turn Rate Calculator Data prefix (3 × 10-byte parameter bloc
 - **Modifies**: D0, D7, A0, A1, A2, A6
 - **Object fields**: +$32 heading, +$3A turn rate, +$3E lateral force, +$46 display scale, +$6E source scale, +$C6 ref angle, +$C8 target angle
 - **Confidence**: high
-*Source: [entity_heading_and_turn_rate_calculator.asm](disasm/modules/68k/game/physics/entity_heading_and_turn_rate_calculator.asm)*
+*Source: [entity_heading_and_turn_rate_calculator.asm](../disasm/modules/68k/game/physics/entity_heading_and_turn_rate_calculator.asm)*
 
 ---
 
@@ -3725,7 +3725,7 @@ Small Increment Source: code_c200 Adjusts D0 toward positive limit. If D0 <= $40
 - **Entry**: D0 = velocity/position value (word)
 - **Returns**: D0 = adjusted value
 - **Modifies**: D0
-*Source: [positive_velocity_step_small_inc.asm](disasm/modules/68k/game/physics/positive_velocity_step_small_inc.asm)*
+*Source: [positive_velocity_step_small_inc.asm](../disasm/modules/68k/game/physics/positive_velocity_step_small_inc.asm)*
 
 ---
 
@@ -3736,7 +3736,7 @@ Small Decrement Source: code_c200 Adjusts D0 toward negative limit. If D0 >= $C0
 - **Entry**: D0 = velocity/position value (word)
 - **Returns**: D0 = adjusted value
 - **Modifies**: D0
-*Source: [negative_velocity_step_small_dec.asm](disasm/modules/68k/game/physics/negative_velocity_step_small_dec.asm)*
+*Source: [negative_velocity_step_small_dec.asm](../disasm/modules/68k/game/physics/negative_velocity_step_small_dec.asm)*
 
 ---
 
@@ -3748,7 +3748,7 @@ Initializes sound driver configuration ($8506 = $03 tempo, $8504 = $30 volume/mo
 
 - **Entry**: none | Exit: sound + comm initialized | Uses: D0
 - **RAM**: $FFFF8506 = sound driver tempo (byte, set to $03) $FFFF8504 = sound driver volume/mode (byte, set to $30) $FFFFC822 = comm/input ready flag (byte, cleared) $FFFFC8A4 = state variable (long, cleared)
-*Source: [sound_state_init_clear_comm_variables.asm](disasm/modules/68k/game/race/sound_state_init_clear_comm_variables.asm)*
+*Source: [sound_state_init_clear_comm_variables.asm](../disasm/modules/68k/game/race/sound_state_init_clear_comm_variables.asm)*
 
 ---
 
@@ -3758,7 +3758,7 @@ Processes pending sound commands from 3 RAM slots: Priority 1 ($C822): if nonzer
 
 - **Modifies**: D0, A5, A6
 - **RAM**: $8509: Z80 sound command A (byte) $850A: Z80 sound command B (byte) $C822: high-priority sound command (byte) $C8A4: low-priority sound command (byte/long, cleared) $C8A5: SFX command (byte) $C8A6: last sent SFX B (byte) $C8A7: last sent SFX A (byte)
-*Source: [sound_command_dispatch_sound_driver_call.asm](disasm/modules/68k/game/race/sound_command_dispatch_sound_driver_call.asm)*
+*Source: [sound_command_dispatch_sound_driver_call.asm](../disasm/modules/68k/game/race/sound_command_dispatch_sound_driver_call.asm)*
 
 ---
 
@@ -3768,7 +3768,7 @@ Updates audio frequency for two channels (A and B). Each channel reads port data
 
 - **Modifies**: D0, D1, A1, A2, A3
 - **RAM**: $8517: ch_b_update_flag $8760: ch_a_frequency $8759: ch_a_stored_level $8790: ch_b_frequency $8789: ch_b_stored_level $9074: port_b_data $9F74: port_a_data $9FE5: port_a_control $90E5: port_b_control $C827: audio_level_raw $C828: audio_level $C8C8: vint_state
-*Source: [audio_frequency_update.asm](disasm/modules/68k/game/race/audio_frequency_update.asm)*
+*Source: [audio_frequency_update.asm](../disasm/modules/68k/game/race/audio_frequency_update.asm)*
 
 ---
 
@@ -3778,7 +3778,7 @@ Manages audio trigger state for channel B. Reads port B control bit 4 to detect 
 
 - **Modifies**: D0, D1, A1
 - **RAM**: $8516: ch_b_update_flag $8760: ch_a_frequency (receives copy) $8789: ch_b_stored_level $8790: ch_b_frequency $9074: port_b_data $90E5: port_b_control $C805: sound_command_id $C80B: audio_mode_flags $C823: audio_trigger_flag $C828: audio_level $C8C8: vint_state (table index for sound lookup)
-*Source: [audio_trigger_frequency_calc.asm](disasm/modules/68k/game/race/audio_trigger_frequency_calc.asm)*
+*Source: [audio_trigger_frequency_calc.asm](../disasm/modules/68k/game/race/audio_trigger_frequency_calc.asm)*
 
 ---
 
@@ -3788,7 +3788,7 @@ Loads base value $1E00 into D1. If current value at (A1) matches the base, calls
 
 - **Entry**: A1 = parameter pointer | Exit: sound param updated | Uses: D0, D1
 - **RAM**: $FFFF8760 = sound register (word, updated)
-*Source: [randomized_sound_param_0023c2.asm](disasm/modules/68k/game/race/randomized_sound_param_0023c2.asm)*
+*Source: [randomized_sound_param_0023c2.asm](../disasm/modules/68k/game/race/randomized_sound_param_0023c2.asm)*
 
 ---
 
@@ -3798,7 +3798,7 @@ Loads base value $21D0 into D1. If current value at (A1) matches the base, calls
 
 - **Entry**: A1 = parameter pointer | Exit: sound param updated | Uses: D0, D1
 - **RAM**: $FFFF8760 = sound register (word, updated)
-*Source: [randomized_sound_param_00240c.asm](disasm/modules/68k/game/race/randomized_sound_param_00240c.asm)*
+*Source: [randomized_sound_param_00240c.asm](../disasm/modules/68k/game/race/randomized_sound_param_00240c.asm)*
 
 ---
 
@@ -3808,7 +3808,7 @@ Loads base value $21A0 into D1. If current value at (A1) matches the base, calls
 
 - **Entry**: A1 = parameter pointer | Exit: sound param updated | Uses: D0, D1
 - **RAM**: $FFFF8760 = sound register (word, updated)
-*Source: [randomized_sound_param_002452.asm](disasm/modules/68k/game/race/randomized_sound_param_002452.asm)*
+*Source: [randomized_sound_param_002452.asm](../disasm/modules/68k/game/race/randomized_sound_param_002452.asm)*
 
 ---
 
@@ -3818,7 +3818,7 @@ Decrements countdown ($C308); when zero: compares $C08E with $C07A — if differ
 
 - **Modifies**: D0, A0, A1
 - **RAM**: $C04E: timer/counter (word) $C07A: bitmask table index (word) $C08E: current param (word, compared with $C07A) $C258: object pointer (long) $C305: sub-counter (byte, reload=4, +4 on clear) $C308: countdown timer (byte, decremented) $C8A5: sound effect (byte)
-*Source: [object_timer_tick_sfx_lookup_field_clear.asm](disasm/modules/68k/game/race/object_timer_tick_sfx_lookup_field_clear.asm)*
+*Source: [object_timer_tick_sfx_lookup_field_clear.asm](../disasm/modules/68k/game/race/object_timer_tick_sfx_lookup_field_clear.asm)*
 
 ---
 
@@ -3828,7 +3828,7 @@ Race Result Recording Records race completion result for single-player. Steps: 1
 
 - **Entry**: A0 = entity pointer (car)
 - **Modifies**: D0, A0, A1, A2, A3
-*Source: [race_result_recording_003272.asm](disasm/modules/68k/game/race/race_result_recording_003272.asm)*
+*Source: [race_result_recording_003272.asm](../disasm/modules/68k/game/race/race_result_recording_003272.asm)*
 
 ---
 
@@ -3838,7 +3838,7 @@ Dispatches via 15-entry longword jump table indexed by dispatch_idx ($C305). Jum
 
 - **Modifies**: D0, D2, D4, A0, A1, A2, A4, A6
 - **RAM**: $C07A: camera_target (word) $C08E: camera_state (word) $C305: dispatch_idx (byte) $C310: total_laps (byte) Object (A0): +$2C: current_lap (word)
-*Source: [lap_check_disp.asm](disasm/modules/68k/game/race/lap_check_disp.asm)*
+*Source: [lap_check_disp.asm](../disasm/modules/68k/game/race/lap_check_disp.asm)*
 
 ---
 
@@ -3848,7 +3848,7 @@ Race Result Recording (2-Player) Records race completion result for 2-player mod
 
 - **Entry**: A0 = entity pointer (car), selects player by address
 - **Modifies**: D0, A0, A1, A2, A3
-*Source: [race_result_recording_003404.asm](disasm/modules/68k/game/race/race_result_recording_003404.asm)*
+*Source: [race_result_recording_003404.asm](../disasm/modules/68k/game/race/race_result_recording_003404.asm)*
 
 ---
 
@@ -3858,7 +3858,7 @@ Extra Flag Check) Like object_timer_tick_sfx_lookup_field_clear but adds extra c
 
 - **Modifies**: D0, A0, A1
 - **RAM**: $C04E: timer/counter (word) $C07A: bitmask table index (word) $C08E: current param (word) $C305: sub-counter (byte, reload=4) $C308: countdown timer (byte, decremented) $C30E: button/control flags (byte, bit 5) $C8A5: sound effect (byte)
-*Source: [object_timer_tick_sfx_lookup.asm](disasm/modules/68k/game/race/object_timer_tick_sfx_lookup.asm)*
+*Source: [object_timer_tick_sfx_lookup.asm](../disasm/modules/68k/game/race/object_timer_tick_sfx_lookup.asm)*
 
 ---
 
@@ -3868,7 +3868,7 @@ Race Result with Leaderboard Update Extended race result recording with leaderbo
 
 - **Entry**: A0 = entity pointer (car)
 - **Modifies**: D0, D1, D2, A0, A1, A2, A3
-*Source: [race_result_with_leaderboard_update.asm](disasm/modules/68k/game/race/race_result_with_leaderboard_update.asm)*
+*Source: [race_result_with_leaderboard_update.asm](../disasm/modules/68k/game/race/race_result_with_leaderboard_update.asm)*
 
 ---
 
@@ -3879,7 +3879,7 @@ If D1 == 4 or D1 == $16: plays SFX $BA via $C8A4. Sets object fields at $FF6128:
 - **Entry**: D1 = event index
 - **Modifies**: D0, D1, A1
 - **RAM**: $C04C: 2-player flag (word) $C8A4: sound effect (byte) Object ($FF6128): +$00/$14/$28/$3C: enable flags (word, set to 1)
-*Source: [sfx_trigger_object_enable_fields.asm](disasm/modules/68k/game/race/sfx_trigger_object_enable_fields.asm)*
+*Source: [sfx_trigger_object_enable_fields.asm](../disasm/modules/68k/game/race/sfx_trigger_object_enable_fields.asm)*
 
 ---
 
@@ -3889,7 +3889,7 @@ If scene_state ($C8AA) == $15 (race checkpoint): copies $C096 → $C07A, advance
 
 - **Modifies**: D0
 - **RAM**: $C07A: bitmask table index (word, set from $C096) $C07C: input_state (word, +4) $C096: source parameter (word) $C30C: race phase (byte, checked == 1) $C89C: SH2 comm state / bit index (word) $C8AA: scene_state (word, checked == $15) $EF07: lap tracking A (byte, bit accumulator) $FDA8: race control (byte, bit 0 = complete, bit 7 = paused) $FDA9: race active flag (byte, 0/1/2) $FEB7: lap tracking B (byte, bit accumulator)
-*Source: [race_completion_check_lap_bit_tracking.asm](disasm/modules/68k/game/race/race_completion_check_lap_bit_tracking.asm)*
+*Source: [race_completion_check_lap_bit_tracking.asm](../disasm/modules/68k/game/race/race_completion_check_lap_bit_tracking.asm)*
 
 ---
 
@@ -3899,7 +3899,7 @@ If SH2 processing flag (bit 7 of $C80E) is clear, queues sound $F3 and advances 
 
 - **Entry**: none
 - **Modifies**: none
-*Source: [sound_advance_check.asm](disasm/modules/68k/game/race/sound_advance_check.asm)*
+*Source: [sound_advance_check.asm](../disasm/modules/68k/game/race/sound_advance_check.asm)*
 
 ---
 
@@ -3909,7 +3909,7 @@ Calls sub at $00B25E, advances input state ($C07C) by 4. If A0 is not $9000, fal
 
 - **Entry**: A0 = address from sub | Exit: conditional return | Uses: A0
 - **RAM**: $FFFFC07C = input state (word, advanced by 4) $FFFFC8A5 = race/mode state (byte, conditionally set to $AA) $00FF6930 = SH2 shared byte (cleared on match)
-*Source: [call_sub_address_check_set_race_mode.asm](disasm/modules/68k/game/race/call_sub_address_check_set_race_mode.asm)*
+*Source: [call_sub_address_check_set_race_mode.asm](../disasm/modules/68k/game/race/call_sub_address_check_set_race_mode.asm)*
 
 ---
 
@@ -3919,7 +3919,7 @@ Queues sound $F2, moves sprite up by 6 pixels, advances state.
 
 - **Entry**: none
 - **Modifies**: none
-*Source: [sound_sprite_advance.asm](disasm/modules/68k/game/race/sound_sprite_advance.asm)*
+*Source: [sound_sprite_advance.asm](../disasm/modules/68k/game/race/sound_sprite_advance.asm)*
 
 ---
 
@@ -3931,7 +3931,7 @@ Race Scene Initialization (1-Player) Initializes a 1-player race scene. Disables
 - **Modifies**: D0, D1, A0, A1, A2, A5 MARS: adapter_ctrl, COMM0, COMM1, VDP_MODE, SYS_INTCTL
 - **RAM**: $C87E game_state, $C89C sh2_comm_state, $C8A0 race_state, $C8AA scene_state, $C8C8 vint_state, $C8CC race_substate
 - **Confidence**: high
-*Source: [race_scene_init_004a32.asm](disasm/modules/68k/game/race/race_scene_init_004a32.asm)*
+*Source: [race_scene_init_004a32.asm](../disasm/modules/68k/game/race/race_scene_init_004a32.asm)*
 
 ---
 
@@ -3943,7 +3943,7 @@ Race Scene Initialization (2-Player) Initializes a 2-player split-screen race sc
 - **Modifies**: D0-D7, A0, A1, A2, A5 MARS: adapter_ctrl, COMM0, COMM1, VDP_MODE, SYS_INTCTL
 - **RAM**: $9F00 obj_table_3, $C87E game_state, $C8A0 race_state, $C8AA scene_state, $C8C8 vint_state, $C8CC race_substate
 - **Confidence**: high
-*Source: [race_scene_init_004d98.asm](disasm/modules/68k/game/race/race_scene_init_004d98.asm)*
+*Source: [race_scene_init_004d98.asm](../disasm/modules/68k/game/race/race_scene_init_004d98.asm)*
 
 ---
 
@@ -3955,7 +3955,7 @@ Race Scene Initialization (Grand Prix) Initializes a Grand Prix race scene. Sets
 - **Modifies**: D0, D1, A0, A1, A2, A5 MARS: adapter_ctrl, COMM0, COMM1, VDP_MODE, SYS_INTCTL
 - **RAM**: $C87E game_state, $C8A0 race_state, $C8AA scene_state, $C8C8 vint_state, $C8CC race_substate
 - **Confidence**: high
-*Source: [race_scene_init_005100.asm](disasm/modules/68k/game/race/race_scene_init_005100.asm)*
+*Source: [race_scene_init_005100.asm](../disasm/modules/68k/game/race/race_scene_init_005100.asm)*
 
 ---
 
@@ -3967,7 +3967,7 @@ Race Scene Initialization (Free Run) Initializes a Free Run / Time Attack race s
 - **Modifies**: D0, D1, A0, A2, A5 MARS: adapter_ctrl, COMM0, COMM1, VDP_MODE, SYS_INTCTL
 - **RAM**: $C87E game_state, $C8A0 race_state, $C8AA scene_state, $C8CC race_substate
 - **Confidence**: high
-*Source: [race_scene_init_0053b0.asm](disasm/modules/68k/game/race/race_scene_init_0053b0.asm)*
+*Source: [race_scene_init_0053b0.asm](../disasm/modules/68k/game/race/race_scene_init_0053b0.asm)*
 
 ---
 
@@ -3977,7 +3977,7 @@ Calls SFX queue process ($0021CA), poll controllers ($00179E), and sub at $00BAD
 
 - **Entry**: none | Exit: controllers polled, frame advanced | Uses: none
 - **RAM**: $FFFFC886 = frame counter (byte, incremented by 1) $00FF0008 = SH2 display mode/frame delay (word, set to $0054)
-*Source: [process_sfx_poll_ctrls_advance_frame.asm](disasm/modules/68k/game/race/process_sfx_poll_ctrls_advance_frame.asm)*
+*Source: [process_sfx_poll_ctrls_advance_frame.asm](../disasm/modules/68k/game/race/process_sfx_poll_ctrls_advance_frame.asm)*
 
 ---
 
@@ -3987,20 +3987,20 @@ Calls the sound queue sub at $002474, enables SH2 flag ($C809), display mode fla
 
 - **Entry**: none | Exit: flags set, state advanced | Uses: none
 - **RAM**: $FFFFC809 = SH2 enable flag (byte, set to $01) $FFFFC80A = display mode flag (byte, set to $01) $FFFFC80E = sync/transition flags (byte, bit 7 set) $FFFFC802 = command flag (byte, set to $01) $FFFFC822 = comm signal (byte, set to $F3) $FFFFC8C5 = sub-sequence timer (byte, advanced by 4)
-*Source: [sound_queue_enable_flags_advance_state.asm](disasm/modules/68k/game/race/sound_queue_enable_flags_advance_state.asm)*
+*Source: [sound_queue_enable_flags_advance_state.asm](../disasm/modules/68k/game/race/sound_queue_enable_flags_advance_state.asm)*
 
 ---
 
 ### race_entity_update_loop ($00593C–$005AB6, 378 bytes)
 
-Race Entity Update Loop Per-frame update for race entities. Selects from two 8-entry jump tables (normal vs special mode, selected by bit 3 of race options). Executes movement calculation, speed, collision avoidance, heading update, and lateral/longitudinal force computation using sine lookup tables.
+Race Entity Update Loop Per-frame update for race entities. Selects from two 10-entry jump tables (normal vs special mode, selected by bit 3 of $C88E). Executes movement calculation, speed, collision avoidance, heading update, and lateral/longitudinal force computation using sine lookup tables.
 
 - **Entry**: A0 = entity base pointer
 - **Modifies**: D0, D1, D7, A0, A1, A2, A4, A6
 - **RAM**: $9F00 obj_table_3, $C89C sh2_comm_state
 - **Object fields**: +$02 flags, +$04 speed, +$18 position, +$24/+$26 heading, +$2C lap counter, +$32 angle, +$3A/+$3E lateral/longitudinal force, +$46 tilt, +$54 collision flags, +$6A lock, +$C6/+$C8 angles
 - **Confidence**: high
-*Source: [race_entity_update_loop.asm](disasm/modules/68k/game/race/race_entity_update_loop.asm)*
+*Source: [race_entity_update_loop.asm](../disasm/modules/68k/game/race/race_entity_update_loop.asm)*
 
 ---
 
@@ -4013,7 +4013,7 @@ Initializes race frame — calls 12 subroutines sequentially Sets up camera, loa
 - **Calls**: $00B770: camera_state_selector (camera init) $0080CC: load_object_params $008548: suspension_steering_damping+offset $009802: suspension_steering_damping (state dispatch) $007E7A: obj_velocity_y $006F98: calc_steering $007CD8: obj_position_x $0070AA: angle_to_sine $00714A: conditional_pos_add $00764E: track_data_index_calc_table_lookup $008032: race_position_check $009B54: fn_8200_065 Object fields (A0): +$44: display_offset +$46: display_scale +$4A: param_4a
 - **RAM**: $C800: race_init_flag $C89A: scene_state $C8AA: frame_counter $C8AC: state_dispatch_idx $C092: camera_state $C07A: camera_target
 - **Confidence**: high
-*Source: [race_init_orch_005.asm](disasm/modules/68k/game/race/race_init_orch_005.asm)*
+*Source: [race_init_orch_005.asm](../disasm/modules/68k/game/race/race_init_orch_005.asm)*
 
 ---
 
@@ -4025,7 +4025,7 @@ Race-mode frame update: calls camera selector, sets game_active, clears display 
 - **Modifies**: D0, A0, A1
 - **Calls**: $006F98: calc_steering (JSR PC-relative) $0070AA: angle_to_sine (JSR PC-relative) $007CD8: obj_position_x (JSR PC-relative) $007E7A: obj_velocity_y (JSR PC-relative) $007F50: obj_velocity_x (JSR PC-relative) $0080CC: load_object_params (JSR PC-relative) $00B770: camera_state_selector (JSR PC-relative) Jump table: external at $006AB4 (5 entries, in next module)
 - **RAM**: $C048: camera_position (set to 1 on dispatch) $C07A: camera_state_copy (receives value from $C092) $C092: camera_state $C800: game_active $C89C: race_substate $C8A0: race_state (jump table index at $006AB4) $C8AA: scene_state (frame counter) $C8AC: state_dispatch_idx
-*Source: [race_frame_update.asm](disasm/modules/68k/game/race/race_frame_update.asm)*
+*Source: [race_frame_update.asm](../disasm/modules/68k/game/race/race_frame_update.asm)*
 
 ---
 
@@ -4038,7 +4038,7 @@ Race Frame Main Dispatch + Entity Updates Main race frame dispatch. First update
 - **RAM**: $9100 obj_table_1, $9700 obj_table_2, $9F00 obj_table_3
 - **Object fields**: +$06 speed, +$18 position, +$44 display_offset, +$46 display_scale, +$4A display_aux, +$74 render_state, +$B2 stored_pos, +$E5 flags
 - **Confidence**: high
-*Source: [race_frame_main_dispatch_entity_updates.asm](disasm/modules/68k/game/race/race_frame_main_dispatch_entity_updates.asm)*
+*Source: [race_frame_main_dispatch_entity_updates.asm](../disasm/modules/68k/game/race/race_frame_main_dispatch_entity_updates.asm)*
 
 ---
 
@@ -4050,7 +4050,7 @@ Checks race_substate, handles camera state transitions, reads object position da
 - **Modifies**: D0, D1, D6, A0, A1
 - **Calls**: $007EB8: speed_calc (JSR PC-relative) $00A1FC: race_state_read (JSR PC-relative)
 - **RAM**: $C004: camera_transition_flag $C048: camera_position $C04C: camera_state_timer $C09A: camera_copy_src $C07A: camera_copy_dest $C312: terrain_type $C708: speed_shift_table_ptr $C826: sound_enable $C89C: race_substate $C8A4: sound_command
-*Source: [race_state_read_sound_trigger.asm](disasm/modules/68k/game/race/race_state_read_sound_trigger.asm)*
+*Source: [race_state_read_sound_trigger.asm](../disasm/modules/68k/game/race/race_state_read_sound_trigger.asm)*
 
 ---
 
@@ -4062,7 +4062,7 @@ Processes lap completion and race finish conditions Increments checkpoint counte
 - **Modifies**: D0, D1, A0
 - **RAM**: $C305: race_phase $C310: total_racers $C30E: race_flags $C80E: race_ctrl $C04E: timer_countdown $C8AA: scene_state Object fields (A0): +$02: flags +$08: sprite_id +$1C: position +$28: checkpoint_count +$2C: lap_count +$2D: racer_index +$2E: checkpoint_total +$AC: race_score
 - **Confidence**: high
-*Source: [lap_complete_check_062.asm](disasm/modules/68k/game/race/lap_complete_check_062.asm)*
+*Source: [lap_complete_check_062.asm](../disasm/modules/68k/game/race/lap_complete_check_062.asm)*
 
 ---
 
@@ -4072,7 +4072,7 @@ Mid-function entry: if D0 >= $FF9C (-100) → returns to caller. Increments posi
 
 - **Modifies**: D0, D1, A0
 - **RAM**: $C04E: timer (word, set to $0050) $C305: dispatch_idx (byte, set to 4) $C30E: race_flags (byte, bit 5 = scoring complete) $C310: total_laps (byte) $C8AA: scene_state (word, cleared) Object (A0): +$02: flags (word, bit 14 = score flag) +$08: sprite_index (word) +$28: work field (word, cleared) +$2C: current_lap (word) +$2D: lap_limit (byte) +$2E: position_counter (word)
-*Source: [object_scoring_lap_advance_check.asm](disasm/modules/68k/game/race/object_scoring_lap_advance_check.asm)*
+*Source: [object_scoring_lap_advance_check.asm](../disasm/modules/68k/game/race/object_scoring_lap_advance_check.asm)*
 
 ---
 
@@ -4083,7 +4083,7 @@ Object Field to Race State Byte Uses the word at object+$2C as an index into a l
 - **Entry**: A0 = object pointer | Exit: table value stored
 - **Modifies**: D0, A0, A1
 - **RAM**: $FFFFC8A5 = race/mode state byte (byte, written from table)
-*Source: [table_lookup_object_field_to_race_state_byte.asm](disasm/modules/68k/game/race/table_lookup_object_field_to_race_state_byte.asm)*
+*Source: [table_lookup_object_field_to_race_state_byte.asm](../disasm/modules/68k/game/race/table_lookup_object_field_to_race_state_byte.asm)*
 
 ---
 
@@ -4096,7 +4096,7 @@ Race Position Comparison with Sound Triggers Compares race positions of two enti
 - **Calls**: $008F4E (cosine_lookup), $008F52 (sine_lookup)
 - **Object fields**: +$04 speed, +$1E heading, +$24 segment, +$2A rank, +$2E lap segment, +$30 x_pos, +$34 y_pos, +$E5 AI flags
 - **Confidence**: high
-*Source: [race_pos_comparison_with_sound_triggers.asm](disasm/modules/68k/game/race/race_pos_comparison_with_sound_triggers.asm)*
+*Source: [race_pos_comparison_with_sound_triggers.asm](../disasm/modules/68k/game/race/race_pos_comparison_with_sound_triggers.asm)*
 
 ---
 
@@ -4108,7 +4108,7 @@ Race Position Sorting and Rank Assignment Data tables (50 bytes) at start, then 
 - **Modifies**: D0, D1, D2, D3, D4, D5, D6, D7, A0-A3
 - **Object fields**: +$04 speed, +$24 segment, +$2A rank, +$2B prev rank, +$2C lap, +$2E lap segment, +$A4 sort key A, +$A6 sort key B, +$C2 sound trigger, +$E5 AI flags
 - **Confidence**: high
-*Source: [race_pos_sorting_and_rank_assignment.asm](disasm/modules/68k/game/race/race_pos_sorting_and_rank_assignment.asm)*
+*Source: [race_pos_sorting_and_rank_assignment.asm](../disasm/modules/68k/game/race/race_pos_sorting_and_rank_assignment.asm)*
 
 ---
 
@@ -4118,7 +4118,7 @@ Race Start Countdown Sequence Multi-phase race start countdown dispatcher. Jump 
 
 - **Modifies**: D0, D6, D7, A0, A1
 - **Confidence**: high
-*Source: [race_start_countdown_sequence.asm](disasm/modules/68k/game/race/race_start_countdown_sequence.asm)*
+*Source: [race_start_countdown_sequence.asm](../disasm/modules/68k/game/race/race_start_countdown_sequence.asm)*
 
 ---
 
@@ -4128,7 +4128,7 @@ Loads 15 parameter words + 1 longword from data table at $00898824 into RAM bloc
 
 - **Modifies**: D0, D1, A1
 - **RAM**: $C0E6-$C0FA: parameter block (14 words: $C0E6..$C0FA) $C278: work param (long, from table) $C27C: work pointer (long, set to $0093925E) $C280: per-race table pointer (long) $C8A0: race_state (word) $C8C8: boost flag (word, used as multiplier) $C8CE-$C8D2: work params (3 words, from table)
-*Source: [race_param_block_load_table_pointer_setup.asm](disasm/modules/68k/game/race/race_param_block_load_table_pointer_setup.asm)*
+*Source: [race_param_block_load_table_pointer_setup.asm](../disasm/modules/68k/game/race/race_param_block_load_table_pointer_setup.asm)*
 
 ---
 
@@ -4138,7 +4138,7 @@ Sets flag at $FF6970 based on bit 2 of ($C8AB).W: If bit 2 set: flag = 0 If bit 
 
 - **Modifies**: D0
 - **RAM**: ($C8AB).W: Mode control bits $FF6970: Race mode flag (output)
-*Source: [race_mode_flag_set.asm](disasm/modules/68k/game/race/race_mode_flag_set.asm)*
+*Source: [race_mode_flag_set.asm](../disasm/modules/68k/game/race/race_mode_flag_set.asm)*
 
 ---
 
@@ -4148,7 +4148,7 @@ Two entry points: Entry 1 ($00B5AE): Sets A1 → $FF689A, reads $902C (lap count
 
 - **Modifies**: D0, A0, A1
 - **RAM**: $902C: lap count / race position (word) $C305: sub-counter (byte, cleared) $C960: current tile pointer (long, compared with A1)
-*Source: [lap_disp_update_vdp_tile_write.asm](disasm/modules/68k/game/race/lap_disp_update_vdp_tile_write.asm)*
+*Source: [lap_disp_update_vdp_tile_write.asm](../disasm/modules/68k/game/race/lap_disp_update_vdp_tile_write.asm)*
 
 ---
 
@@ -4158,7 +4158,7 @@ If flag ($C30F).W is set, loads value from ($907A).W, adds 1, and stores the low
 
 - **Modifies**: D0
 - **RAM**: ($C30F).W: Enable flag (must be non-zero) ($907A).W: Input lap value $FF692B: Output (byte)
-*Source: [lap_value_store_1.asm](disasm/modules/68k/game/race/lap_value_store_1.asm)*
+*Source: [lap_value_store_1.asm](../disasm/modules/68k/game/race/lap_value_store_1.asm)*
 
 ---
 
@@ -4168,7 +4168,7 @@ If flag ($FEB0).W is set, loads value from ($9F7A).W, adds 1, and stores the low
 
 - **Modifies**: D0
 - **RAM**: ($FEB0).W: Enable flag (must be non-zero) ($9F7A).W: Input lap value $FF691B: Output (byte)
-*Source: [lap_value_store_2.asm](disasm/modules/68k/game/race/lap_value_store_2.asm)*
+*Source: [lap_value_store_2.asm](../disasm/modules/68k/game/race/lap_value_store_2.asm)*
 
 ---
 
@@ -4178,7 +4178,7 @@ Three parts: 1) SFX dispatch ($B65A): sets $C802=1, calls dispatch_sfx ($B670) 3
 
 - **Modifies**: D0, D1, A1, A2
 - **RAM**: $C802: sfx_enable (byte) $C809: anim_rate_init (byte) $C80A: anim_rate_counter (byte) $C80E: display_flags (byte, bit 6) $C825: anim_idx (byte, 0-9) $C96C: object_base_ptr (longword)
-*Source: [sfx_dispatch_object_update_anim_seq.asm](disasm/modules/68k/game/race/sfx_dispatch_object_update_anim_seq.asm)*
+*Source: [sfx_dispatch_object_update_anim_seq.asm](../disasm/modules/68k/game/race/sfx_dispatch_object_update_anim_seq.asm)*
 
 ---
 
@@ -4189,7 +4189,7 @@ Race Start Initialization Source: code_c200 Manages the race-start countdown tri
 - **Entry**: No register inputs (reads timeline from RAM)
 - **Returns**: Countdown initialized if frame == 995; otherwise no-op or falls through
 - **Modifies**: D0
-*Source: [countdown_timer_setup_race_start_init.asm](disasm/modules/68k/game/race/countdown_timer_setup_race_start_init.asm)*
+*Source: [countdown_timer_setup_race_start_init.asm](../disasm/modules/68k/game/race/countdown_timer_setup_race_start_init.asm)*
 
 ---
 
@@ -4200,7 +4200,7 @@ Animation and Race Start Trigger Source: code_c200 Called each frame after the c
 - **Entry**: No register inputs
 - **Returns**: Animation state updated; race started if frame >= 1296
 - **Modifies**: D0 (preserved by subroutine call convention — caller saves)
-*Source: [countdown_timer_update_anim_race_start.asm](disasm/modules/68k/game/race/countdown_timer_update_anim_race_start.asm)*
+*Source: [countdown_timer_update_anim_race_start.asm](../disasm/modules/68k/game/race/countdown_timer_update_anim_race_start.asm)*
 
 ---
 
@@ -4211,7 +4211,7 @@ Race Initialization Phases Source: code_c200 Dispatches to the appropriate race 
 - **Entry**: No register inputs (A5 may be VDP control port for state 8)
 - **Returns**: Dispatched to appropriate handler
 - **Modifies**: D0, A1
-*Source: [scene_state_disp_race_init_phases.asm](disasm/modules/68k/game/race/scene_state_disp_race_init_phases.asm)*
+*Source: [scene_state_disp_race_init_phases.asm](../disasm/modules/68k/game/race/scene_state_disp_race_init_phases.asm)*
 
 ---
 
@@ -4222,7 +4222,7 @@ Flag Setup Source: code_c200 First phase of race initialization, called when sce
 - **Entry**: No register inputs
 - **Returns**: Flags configured, scene state advanced to 8
 - **Modifies**: (none modified beyond RAM writes)
-*Source: [race_init_phase_1_flag_setup.asm](disasm/modules/68k/game/race/race_init_phase_1_flag_setup.asm)*
+*Source: [race_init_phase_1_flag_setup.asm](../disasm/modules/68k/game/race/race_init_phase_1_flag_setup.asm)*
 
 ---
 
@@ -4233,7 +4233,7 @@ VDP Scroll Mode Configuration Source: code_c200 Second phase of race initializat
 - **Entry**: A5 = VDP control port
 - **Returns**: VDP register 11 configured, scene state advanced to 12
 - **Modifies**: (none modified beyond VDP write and RAM)
-*Source: [race_init_phase_2_vdp_scroll_mode_config.asm](disasm/modules/68k/game/race/race_init_phase_2_vdp_scroll_mode_config.asm)*
+*Source: [race_init_phase_2_vdp_scroll_mode_config.asm](../disasm/modules/68k/game/race/race_init_phase_2_vdp_scroll_mode_config.asm)*
 
 ---
 
@@ -4243,7 +4243,7 @@ Race Scene Data Loader Race initialization orchestrator. Loads terrain, entity, 
 
 - **Modifies**: D0-D7, A0-A6 (saves/restores via MOVEM)
 - **Confidence**: high
-*Source: [race_scene_data_loader.asm](disasm/modules/68k/game/race/race_scene_data_loader.asm)*
+*Source: [race_scene_data_loader.asm](../disasm/modules/68k/game/race/race_scene_data_loader.asm)*
 
 ---
 
@@ -4253,7 +4253,7 @@ Race Track Overlay Configuration Configures race track overlays and HUD elements
 
 - **Modifies**: D0, D1, D4, D5, D7, A1, A2, A3
 - **Confidence**: high
-*Source: [race_track_overlay_config.asm](disasm/modules/68k/game/race/race_track_overlay_config.asm)*
+*Source: [race_track_overlay_config.asm](../disasm/modules/68k/game/race/race_track_overlay_config.asm)*
 
 ---
 
@@ -4264,7 +4264,7 @@ Data prefix: 4 words ($5041,$4100,$504B,$4600) — ASCII-like scene identifiers 
 - **Modifies**: D0, D1, A0, A1, A3
 - **Calls**: $00D00C: scene pre-init
 - **RAM**: $C8A0: race_state (word, dispatch index)
-*Source: [race_scene_init_jump_table_dispatch.asm](disasm/modules/68k/game/race/race_scene_init_jump_table_dispatch.asm)*
+*Source: [race_scene_init_jump_table_dispatch.asm](../disasm/modules/68k/game/race/race_scene_init_jump_table_dispatch.asm)*
 
 ---
 
@@ -4275,7 +4275,7 @@ Race Sprite Table Initialization Initializes race sprite table. Sets sound param
 - **Modifies**: D0, D1, D7, A1, A2, A3
 - **Calls**: $006C46 (sprite_table_init), $00B43C (word_to_nibble_unpacker)
 - **Confidence**: high
-*Source: [race_sprite_table_init.asm](disasm/modules/68k/game/race/race_sprite_table_init.asm)*
+*Source: [race_sprite_table_init.asm](../disasm/modules/68k/game/race/race_sprite_table_init.asm)*
 
 ---
 
@@ -4287,7 +4287,7 @@ VDP Register Table Load Data prefix ($000512-$0005A5) contains the game's intern
 
 - **Entry**: A0 = VDP register value table (19 bytes)
 - **Modifies**: D0, D1, D7, A0, A1
-*Source: [vdp_reg_table_load.asm](disasm/modules/68k/game/render/vdp_reg_table_load.asm)*
+*Source: [vdp_reg_table_load.asm](../disasm/modules/68k/game/render/vdp_reg_table_load.asm)*
 
 ---
 
@@ -4297,7 +4297,7 @@ VDP VRAM Clear via DMA Clears VDP VRAM using DMA fill operations. Loads DMA para
 
 - **Entry**: D1 = initial DMA fill value
 - **Modifies**: D0, D1, D7, A0, A1
-*Source: [vdp_vram_clear_via_dma.asm](disasm/modules/68k/game/render/vdp_vram_clear_via_dma.asm)*
+*Source: [vdp_vram_clear_via_dma.asm](../disasm/modules/68k/game/render/vdp_vram_clear_via_dma.asm)*
 
 ---
 
@@ -4307,7 +4307,7 @@ Framebuffer Auto-Fill Clear Data prefix ($00063E-$000653): VDP register values f
 
 - **Entry**: Called from system_boot_init at $000654 (NOT at framebuffer_auto_fill_clear label)
 - **Modifies**: D0, D1, D7, A1 Hardware: MARS_VDP_MODE ($A15180): Auto-fill length (+$04), address (+$06), data (+$08)
-*Source: [framebuffer_auto_fill_clear.asm](disasm/modules/68k/game/render/framebuffer_auto_fill_clear.asm)*
+*Source: [framebuffer_auto_fill_clear.asm](../disasm/modules/68k/game/render/framebuffer_auto_fill_clear.asm)*
 
 ---
 
@@ -4317,18 +4317,18 @@ Framebuffer Auto-Fill Clear Data prefix ($00063E-$000653): VDP register values f
 
 - **Entry**: D0 = 32-bit color value to fill (typically 0 for black/clear)
 - **Modifies**: D0, D7, A0 Hardware: MARS_CRAM ($A15200): 32X color RAM (256 x 16-bit entries)
-*Source: [gfx_32x_cram_fill.asm](disasm/modules/68k/game/render/gfx_32x_cram_fill.asm)*
+*Source: [gfx_32x_cram_fill.asm](../disasm/modules/68k/game/render/gfx_32x_cram_fill.asm)*
 
 ---
 
 ### vdp_display_init ($000DD2–$000FEA, 536 bytes)
 
-VDP Display Initialization VDP display initialization and main dispatch loop setup: 1. Requests Z80 bus, configures display mode ($8C00) and scroll ($9010) 2. DMA fill sprite attribute table: 128 entries at VRAM $0000 (regs $9380/$9403/$9500/$9688/$977F, cmd $4000/$0083) 3. DMA fill scroll/nametable: 64x14 entries at VRAM $C000 (regs $9340/$9400/$9540/$96C2/$977F, cmd $C000/$0080) 4. Configures rendering flags and palette transfer 5. Polls completion via subroutine loop 6. Resets Z80 with halt program, silences PSG (4 channels) 7. Calls z80_bus_vdp_init for final VDP/sound setup 8. Fills CRAM with initial palette (64 entries of color $0E) 9. Copies one of two dispatch loop variants to RAM ($FF0000): - $000F92: Normal dispatch (game_tick + frame wait loop) - $000FAA: Alternate dispatch (alternate_tick + flag sync)
+VDP Display Initialization VDP display initialization and main dispatch loop setup: 1. Requests Z80 bus, configures display mode ($8C00) and scroll ($9010) 2. DMA fill sprite attribute table: 128 entries at VRAM $0000 (regs $9380/$9403/$9500/$9688/$977F, cmd $4000/$0083) 3. DMA fill scroll/nametable: 64x14 entries at VRAM $C000 (regs $9340/$9400/$9540/$96C2/$977F, cmd $C000/$0080) 4. Configures rendering flags and palette transfer 5. Polls completion via subroutine loop 6. Resets Z80 with halt program, silences PSG (4 channels) 7. Calls z80_bus_vdp_init for final VDP/sound setup 8. Fills CRAM with initial palette (64 entries of color $0E) 9. Copies one of two dispatch loop variants to RAM ($FF0000): - $000F92: Normal dispatch (game_tick + STOP until V-INT) - $000FAA: Alternate dispatch (alternate_tick + flag sync) SELF-MODIFYING CODE: $FF0008 is the immediate operand of the MOVE.W at $FF0006. Game handlers write to $FF0008 to select V-INT dispatch state (e.g., $0004=common, $0018=fb_toggle, $0054=race render). The MOVE.W position at $FF0006 must NOT be moved.
 
 - **Modifies**: D0, D1, D4, D6, D7, A0, A1, A5
 - **Calls**: $000FEA: z80_bus_vdp_init
 - **RAM**: $C87A: vint_dispatch_state
-*Source: [vdp_display_init.asm](disasm/modules/68k/game/render/vdp_display_init.asm)*
+*Source: [vdp_display_init.asm](../disasm/modules/68k/game/render/vdp_display_init.asm)*
 
 ---
 
@@ -4339,7 +4339,7 @@ Disables interrupts, requests Z80 bus, calls io_port_init ($0018D8), releases Z8
 - **Entry**: A5 = VDP control port | Exit: VDP initialized
 - **Modifies**: D0, D7, A0, A5
 - **RAM**: $FFFFC874 = VDP register cache 1 (byte, set to $81 = mode reg 1) $FFFFC875 = VDP register cache 2 (byte, loaded from table[1])
-*Source: [vdp_reg_init.asm](disasm/modules/68k/game/render/vdp_reg_init.asm)*
+*Source: [vdp_reg_init.asm](../disasm/modules/68k/game/render/vdp_reg_init.asm)*
 
 ---
 
@@ -4350,7 +4350,7 @@ Data prefix: 10 words — VDP DMA config or padding. Code: Disables interrupts, 
 - **Modifies**: D0, D1, D3, D4, D7, A5, A6
 - **Calls**: $0048A8: cram_handler $004888: vsram_handler
 - **RAM**: $C874: vdp_reg (word, read and modified)
-*Source: [vdp_dma_xfer_vram_clear.asm](disasm/modules/68k/game/render/vdp_dma_xfer_vram_clear.asm)*
+*Source: [vdp_dma_xfer_vram_clear.asm](../disasm/modules/68k/game/render/vdp_dma_xfer_vram_clear.asm)*
 
 ---
 
@@ -4361,7 +4361,7 @@ Nametable Copy Dispatcher Data prefix ($00154E-$00155D): 16 bytes of initializat
 - **Entry**: D1 = 4 packed job IDs (one per byte)
 - **Modifies**: D0, D1, D2, D3, A0, A1
 - **Calls**: $001236: nametable_decompressor (JSR PC-relative)
-*Source: [nametable_copy_disp.asm](disasm/modules/68k/game/render/nametable_copy_disp.asm)*
+*Source: [nametable_copy_disp.asm](../disasm/modules/68k/game/render/nametable_copy_disp.asm)*
 
 ---
 
@@ -4372,7 +4372,7 @@ VDP Row Copy Dispatcher Data prefix ($001610-$001637): VDP row copy parameter ta
 - **Entry**: D0 = 4 packed job IDs (one per byte)
 - **Modifies**: D0, D1, D2, A0
 - **Calls**: $0010C4: vdp_copy_rows (JSR PC-relative)
-*Source: [vdp_row_copy_disp.asm](disasm/modules/68k/game/render/vdp_row_copy_disp.asm)*
+*Source: [vdp_row_copy_disp.asm](../disasm/modules/68k/game/render/vdp_row_copy_disp.asm)*
 
 ---
 
@@ -4382,7 +4382,7 @@ Data prefix: 10-word VDP register configuration table. Code: Reads VDP status (A
 
 - **Modifies**: D0, D3, D4, D5, A1, A5, A6
 - **RAM**: $8000: VDP scroll A (word) $8002: VDP scroll B (word) $C874: VDP mode register cache (word) $C876: DMA trigger register cache (word) $C880: VDP parameter A (word) $C882: VDP parameter B (word)
-*Source: [vdp_dma_xfer_setup_0019ea.asm](disasm/modules/68k/game/render/vdp_dma_xfer_setup_0019ea.asm)*
+*Source: [vdp_dma_xfer_setup_0019ea.asm](../disasm/modules/68k/game/render/vdp_dma_xfer_setup_0019ea.asm)*
 
 ---
 
@@ -4392,7 +4392,7 @@ Two sub-entries: first sets V-INT dispatch state to $002C and jumps to a handler
 
 - **Modifies**: D0, A5
 - **RAM**: $FFFFC87A = V-INT dispatch state (word, set to $002C) Entry 1: none | Entry 2: A5 = VDP control port
-*Source: [set_v_int_dispatch_state_vdp_status_read.asm](disasm/modules/68k/game/render/set_v_int_dispatch_state_vdp_status_read.asm)*
+*Source: [set_v_int_dispatch_state_vdp_status_read.asm](../disasm/modules/68k/game/render/set_v_int_dispatch_state_vdp_status_read.asm)*
 
 ---
 
@@ -4403,7 +4403,7 @@ Configures and triggers a VDP DMA transfer. Requests Z80 bus, sets VDP DMA regis
 - **Entry**: A5 = VDP control port, A6 = VDP data port
 - **Modifies**: D0, D4, A5, A6
 - **RAM**: $C874: VDP register cache A (word) $C876: DMA trigger value (word) $C880: VRAM write addr high (word) $C882: VRAM write addr low (word)
-*Source: [vdp_dma_xfer_setup_001a72.asm](disasm/modules/68k/game/render/vdp_dma_xfer_setup_001a72.asm)*
+*Source: [vdp_dma_xfer_setup_001a72.asm](../disasm/modules/68k/game/render/vdp_dma_xfer_setup_001a72.asm)*
 
 ---
 
@@ -4413,7 +4413,7 @@ Requests Z80 bus, configures VDP DMA registers for a transfer, updates the VDP r
 
 - **Entry**: A5 = VDP control port | Exit: DMA configured | Uses: D0, D4, A5
 - **RAM**: $FFFFC874 = VDP register cache 1 (word, read + written to VDP) $FFFFC876 = VDP register cache 2 (word, set to $0083, written to VDP)
-*Source: [vdp_dma_xfer_setup_001aca.asm](disasm/modules/68k/game/render/vdp_dma_xfer_setup_001aca.asm)*
+*Source: [vdp_dma_xfer_setup_001aca.asm](../disasm/modules/68k/game/render/vdp_dma_xfer_setup_001aca.asm)*
 
 ---
 
@@ -4422,7 +4422,7 @@ Requests Z80 bus, configures VDP DMA registers for a transfer, updates the VDP r
 VDP DMA Transfer Setup Sets up VDP DMA transfers for display tables. Two entry points: Entry A ($001B14): Requests Z80 bus, then: 1. Writes window plane data from RAM $8000/$8002 to VRAM $6C00 2. Writes scroll data from RAM $C880/$C882 to VRAM $4000 3. DMA fill sprite attribute table at VRAM $6000 (128 entries) 4. DMA fill nametable at VRAM $C000 (64×14 entries) 5. Releases Z80 bus, jumps to $00179E Entry B ($001BA8): Requests Z80 bus, then: 1. DMA fill sprite table at VRAM $6000 (same as entry A) 2. DMA copy from ROM $08B at VRAM $6000 (sprite data source) 3. DMA fill nametable at VRAM $4000 + $C000 4. Releases Z80 bus, writes window + scroll data, returns
 
 - **Modifies**: D0, D4, A5, A6 Hardware: Z80_BUSREQ: Z80 bus arbitration VDP_CTRL (A5): VDP command/register port VDP_DATA (A6): VDP data port
-*Source: [vdp_dma_transfer_setup.asm](disasm/modules/68k/game/render/vdp_dma_transfer_setup.asm)*
+*Source: [vdp_dma_transfer_setup.asm](../disasm/modules/68k/game/render/vdp_dma_transfer_setup.asm)*
 
 ---
 
@@ -4434,7 +4434,7 @@ Performs VDP register writes, DMA transfer, and palette copy Writes scroll/color
 - **Calls**: $002878: PaletteRAMCopy
 - **RAM**: $8000: vdp_scroll_h $8002: vdp_scroll_v $C874: vdp_reg_cache $C876: vdp_dma_ctrl $C880: vdp_color_a $C882: vdp_color_b $C80C: frame_toggle
 - **Confidence**: high
-*Source: [vdp_dma_palette_xfer_036.asm](disasm/modules/68k/game/render/vdp_dma_palette_xfer_036.asm)*
+*Source: [vdp_dma_palette_xfer_036.asm](../disasm/modules/68k/game/render/vdp_dma_palette_xfer_036.asm)*
 
 ---
 
@@ -4445,7 +4445,7 @@ Performs VDP register writes, DMA transfer, and frame buffer swap Similar to vdp
 - **Modifies**: D0, D4, A5, A6
 - **RAM**: $8000: vdp_scroll_h $8002: vdp_scroll_v $C874: vdp_reg_cache $C876: vdp_dma_ctrl $C880: vdp_color_a $C882: vdp_color_b $C87E: game_state $C80C: frame_toggle
 - **Confidence**: high
-*Source: [vdp_dma_frame_swap_037.asm](disasm/modules/68k/game/render/vdp_dma_frame_swap_037.asm)*
+*Source: [vdp_dma_frame_swap_037.asm](../disasm/modules/68k/game/render/vdp_dma_frame_swap_037.asm)*
 
 ---
 
@@ -4455,7 +4455,7 @@ Saves VDP status, waits 100 NOPs, writes VDP scroll data from RAM $8000/$8002 to
 
 - **Modifies**: D0, D7, A5, A6
 - **RAM**: $8000: scroll_data_A (word) $8002: scroll_data_B (word) $C80C: frame_toggle (byte, bit 0) $C87E: state_dispatch_idx (word, reset on state $18) $C880: cram_data_A (word) $C882: cram_data_B (word) $C8C4: scene_sub_state (byte, cleared) $C8C5: scene_main_state (byte, checked for $18)
-*Source: [vdp_reg_write_32x_adapter_control.asm](disasm/modules/68k/game/render/vdp_reg_write_32x_adapter_control.asm)*
+*Source: [vdp_reg_write_32x_adapter_control.asm](../disasm/modules/68k/game/render/vdp_reg_write_32x_adapter_control.asm)*
 
 ---
 
@@ -4466,7 +4466,7 @@ End-of-frame display update: writes VDP scroll/VRAM data via the VDP ports (A5=c
 - **Entry**: A5 = VDP control port, A6 = VDP data port
 - **Returns**: VDP updated, frame swapped, CRAM copied
 - **Modifies**: D0, A0, A1
-*Source: [vdp_reg_write_frame_swap_cram_copy.asm](disasm/modules/68k/game/render/vdp_reg_write_frame_swap_cram_copy.asm)*
+*Source: [vdp_reg_write_frame_swap_cram_copy.asm](../disasm/modules/68k/game/render/vdp_reg_write_frame_swap_cram_copy.asm)*
 
 ---
 
@@ -4478,7 +4478,7 @@ Performs VDP DMA to CRAM with Z80 bus synchronization. After DMA, checks COMM1 f
 - **Modifies**: D0, D4, A1, A2, A5
 - **Calls**: $0048D6: palette_copy_a (JSR PC-relative) $0048DA: palette_copy_b (JSR PC-relative)
 - **RAM**: $C80C: frame_toggle $C874: vdp_reg_cache $C876: dma_trigger $C87E: game_state $C8C4: frame_counter $C8C5: state_check_val
-*Source: [vdp_dma_cram_xfer.asm](disasm/modules/68k/game/render/vdp_dma_cram_xfer.asm)*
+*Source: [vdp_dma_cram_xfer.asm](../disasm/modules/68k/game/render/vdp_dma_cram_xfer.asm)*
 
 ---
 
@@ -4490,7 +4490,7 @@ Writes H-scroll and V-scroll data to VDP, then performs DMA to CRAM with Z80 bus
 - **Modifies**: D0, D4, A1, A2, A5, A6
 - **Calls**: $0048D6: palette_copy_a (JSR PC-relative) $0048DA: palette_copy_b (JSR PC-relative)
 - **RAM**: $8000: hscroll_a $8002: hscroll_b $C80C: frame_toggle $C874: vdp_reg_cache $C876: dma_trigger $C87E: game_state $C880: vscroll_a $C882: vscroll_b
-*Source: [vdp_dma_scroll_frame_swap.asm](disasm/modules/68k/game/render/vdp_dma_scroll_frame_swap.asm)*
+*Source: [vdp_dma_scroll_frame_swap.asm](../disasm/modules/68k/game/render/vdp_dma_scroll_frame_swap.asm)*
 
 ---
 
@@ -4499,7 +4499,7 @@ Writes H-scroll and V-scroll data to VDP, then performs DMA to CRAM with Z80 bus
 32X VDP Mode Register Setup Data prefix ($002652-$00266B): 32X VDP mode register initialization values (12 bytes: 6 words for bitmap mode, screen shift, auto-fill, etc.). Code at $00266C: Loads A1 = PC-relative pointer to data at $002680 (immediately after this function), loads A2 = MARS_VDP_MODE ($A15180), copies 6 words from table to VDP mode registers.
 
 - **Modifies**: D0, D3, D7, A1, A2 Hardware: MARS_VDP_MODE ($A15180): 32X VDP control registers (6 words)
-*Source: [gfx_32x_vdp_mode_reg_setup.asm](disasm/modules/68k/game/render/gfx_32x_vdp_mode_reg_setup.asm)*
+*Source: [gfx_32x_vdp_mode_reg_setup.asm](../disasm/modules/68k/game/render/gfx_32x_vdp_mode_reg_setup.asm)*
 
 ---
 
@@ -4510,7 +4510,7 @@ Two entry points for MARS framebuffer initialization. Both select framebuffer 0,
 - **Entry**: none | Exit: framebuffers initialized
 - **Modifies**: D0, A4
 - **RAM**: $FFFFC80C = frame buffer toggle flag (byte, cleared to 0) MARS_SYS_BASE+$8B = MARS FB control register (byte, selects buffer) $00A15202 = MARS CRAM entry 1 (word, set to $8000 = priority black)
-*Source: [mars_adapter_state_init_framebuffer_setup.asm](disasm/modules/68k/game/render/mars_adapter_state_init_framebuffer_setup.asm)*
+*Source: [mars_adapter_state_init_framebuffer_setup.asm](../disasm/modules/68k/game/render/mars_adapter_state_init_framebuffer_setup.asm)*
 
 ---
 
@@ -4521,7 +4521,7 @@ Prepares both MARS framebuffers in sequence. Calls three sub-routines for each b
 - **Entry**: none | Exit: both framebuffers prepared
 - **Modifies**: D0, D2, A4
 - **RAM**: $FFFFC80C = frame buffer toggle flag (byte, bit 0 tested) MARS_SYS_BASE+$8B = MARS FB control register (byte, selects buffer)
-*Source: [mars_framebuffer_preparation.asm](disasm/modules/68k/game/render/mars_framebuffer_preparation.asm)*
+*Source: [mars_framebuffer_preparation.asm](../disasm/modules/68k/game/render/mars_framebuffer_preparation.asm)*
 
 ---
 
@@ -4532,7 +4532,7 @@ Prepares both MARS framebuffers in sequence. Calls three sub-routines for each b
 - **Entry**: None (calls VDPPrep internally)
 - **Modifies**: D0, D1, D2, D7, A2, A3, A4 Hardware: MARS_SYS_BASE ($A15100): Adapter control $A15186/$A15188: Palette address/data auto-fill registers
 - **Calls**: $00281E: VDPPrep (BSR)
-*Source: [gfx_32x_framebuffer_palette_fill.asm](disasm/modules/68k/game/render/gfx_32x_framebuffer_palette_fill.asm)*
+*Source: [gfx_32x_framebuffer_palette_fill.asm](../disasm/modules/68k/game/render/gfx_32x_framebuffer_palette_fill.asm)*
 
 ---
 
@@ -4543,7 +4543,7 @@ Checks the CRAM update flag at $C821. If set, loads the palette source (work RAM
 - **Entry**: none | Exit: palette copied if flag set
 - **Modifies**: A1, A2
 - **RAM**: $FFFFC821 = CRAM update flag (byte, tested for nonzero)
-*Source: [v_int_cram_xfer_gate.asm](disasm/modules/68k/game/render/v_int_cram_xfer_gate.asm)*
+*Source: [v_int_cram_xfer_gate.asm](../disasm/modules/68k/game/render/v_int_cram_xfer_gate.asm)*
 
 ---
 
@@ -4553,7 +4553,7 @@ Two entry points: (1) DMA transfer — sets MARS DREQ length/mode, writes comman
 
 - **Modifies**: D0, D1, D2, D7, A1, A2, A3, A4
 - **RAM**: $C8A8: dma_state_timer $C8A9: dma_command_code
-*Source: [mars_dma_xfer_vdp_fill.asm](disasm/modules/68k/game/render/mars_dma_xfer_vdp_fill.asm)*
+*Source: [mars_dma_xfer_vdp_fill.asm](../disasm/modules/68k/game/render/mars_dma_xfer_vdp_fill.asm)*
 
 ---
 
@@ -4563,7 +4563,7 @@ Object Render Dispatcher Dispatches object rendering pipeline for both players. 
 
 - **Modifies**: D0, A0, A1, A2
 - **Calls**: $002C58: render_visibility_check (internal) $002CDC: camera_param_calc_c (JSR PC-relative) $002DCA/$002E34: texture_select (JSR PC-relative) $002F04: position_copy (JSR PC-relative) $003010: render_flags_set (JSR PC-relative) $003130: obj_flags_set (JSR PC-relative)
-*Source: [object_render_disp.asm](disasm/modules/68k/game/render/object_render_disp.asm)*
+*Source: [object_render_disp.asm](../disasm/modules/68k/game/render/object_render_disp.asm)*
 
 ---
 
@@ -4574,7 +4574,7 @@ Loads a display list pointer from $C724 into A1+$24. If the param at A0+$8A is n
 - **Entry**: A0 = param source, A1 = dest struct
 - **Returns**: A1+$24 = display list pointer | Uses: A0, A1
 - **RAM**: $FFFFC724 = display list pointer A (long, read) $FFFFC750 = display list pointer A alt (long, read)
-*Source: [load_disp_list_pointer_002e9e.asm](disasm/modules/68k/game/render/load_disp_list_pointer_002e9e.asm)*
+*Source: [load_disp_list_pointer_002e9e.asm](../disasm/modules/68k/game/render/load_disp_list_pointer_002e9e.asm)*
 
 ---
 
@@ -4585,7 +4585,7 @@ Loads a display list pointer from $C758 into A1+$24. If the param at A0+$8A is n
 - **Entry**: A0 = param source, A1 = dest struct
 - **Returns**: A1+$24 = display list pointer | Uses: A0, A1
 - **RAM**: $FFFFC758 = display list pointer B (long, read) $FFFFC764 = display list pointer B alt (long, read)
-*Source: [load_disp_list_pointer_002eb2.asm](disasm/modules/68k/game/render/load_disp_list_pointer_002eb2.asm)*
+*Source: [load_disp_list_pointer_002eb2.asm](../disasm/modules/68k/game/render/load_disp_list_pointer_002eb2.asm)*
 
 ---
 
@@ -4595,7 +4595,7 @@ Object Visibility Enable Sets visibility flag to 1 for all 5 render slots in the
 
 - **Entry**: A1 = camera/render buffer pointer
 - **Modifies**: D0, A1
-*Source: [object_visibility_enable.asm](disasm/modules/68k/game/render/object_visibility_enable.asm)*
+*Source: [object_visibility_enable.asm](../disasm/modules/68k/game/render/object_visibility_enable.asm)*
 
 ---
 
@@ -4605,7 +4605,7 @@ Object Position Copy with Render Flags Copies entity positions to render buffer 
 
 - **Entry**: A0 = entity, A1 = camera buffer, A2 = render output buffer
 - **Modifies**: D0, D1, D2, D3, A0, A1, A2
-*Source: [object_pos_copy_with_render_flags.asm](disasm/modules/68k/game/render/object_pos_copy_with_render_flags.asm)*
+*Source: [object_pos_copy_with_render_flags.asm](../disasm/modules/68k/game/render/object_pos_copy_with_render_flags.asm)*
 
 ---
 
@@ -4615,17 +4615,17 @@ Writes $0001 to VDP control ($FF6100). Computes display offset D0 = $70 + $C0C6 
 
 - **Modifies**: D0, A1, A2
 - **RAM**: $C0BA: VDP parameter block (6 words) $C0C6: display offset delta (word)
-*Source: [vdp_config_xfer_scaled_params.asm](disasm/modules/68k/game/render/vdp_config_xfer_scaled_params.asm)*
+*Source: [vdp_config_xfer_scaled_params.asm](../disasm/modules/68k/game/render/vdp_config_xfer_scaled_params.asm)*
 
 ---
 
-### object_table_sprite_param_update ($0036DE–$0037B6, 216 bytes)
+### object_table_sprite_param_update_impl ($0036DE–$0037B6, 216 bytes)
 
-Object Table Sprite Parameter Update Iterates through 15 objects (D7=$0E), reading sprite type from entity +$C1 and computing render parameters for the SH2 3D pipeline. For each object with non-zero type: 1. Checks visibility (ghost mode, flag bit 3 at +$E5) 2. Looks up sprite definition from ROM table ($008958E4 + car_index) 3. Doubles type ID and adds +$C2 as sub-index 4. Stores sprite def pointer to output +$10 5. Computes scaled positions: lateral (div8), height with roll (+$6E), depth (div8), and rotation (div8) to output slots 6. Copies speed (+$30) and heading (+$34) as-is 7. Sets visibility flags D5/D6 (type 1 = both visible) Entity stride: $100 bytes. Output stride: $3C bytes.
+Object Table Sprite Parameter Update Originally at code_2200. Relocated to code_1c200 (trampoline space reused by A-1/A-2 camera interpolation code). Iterates through 15 objects (D7=$0E), reading sprite type from entity +$C1 and computing render parameters for the SH2 3D pipeline. For each object with non-zero type: 1. Checks visibility (ghost mode, flag bit 3 at +$E5) 2. Looks up sprite definition from ROM table ($008958E4 + car_index) 3. Doubles type ID and adds +$C2 as sub-index 4. Stores sprite def pointer to output +$10 5. Computes scaled positions: lateral (div8), height with roll (+$6E), depth (div8), and rotation (div8) to output slots 6. Copies speed (+$30) and heading (+$34) as-is 7. Sets visibility flags D5/D6 (type 1 = both visible) Entity stride: $100 bytes. Output stride: $3C bytes.
 
 - **Entry**: Fixed addresses A0=$FF9100, A1=$FF6218
 - **Modifies**: D0, D5, D6, D7, A0, A1, A3
-*Source: [object_table_sprite_param_update.asm](disasm/modules/68k/game/render/object_table_sprite_param_update.asm)*
+*Source: [object_table_sprite_param_update.asm](../disasm/modules/68k/game/render/object_table_sprite_param_update.asm)*
 
 ---
 
@@ -4636,7 +4636,7 @@ Initializes sprite block A at $FF65D8: advances sprite_counter ($C8E2) by $1E, m
 - **Modifies**: D0, D1, D3, A1, A2
 - **Calls**: $0038C0: sprite_param_calc
 - **RAM**: $C8E2: sprite_counter (word, +=$1E each call)
-*Source: [sprite_param_setup.asm](disasm/modules/68k/game/render/sprite_param_setup.asm)*
+*Source: [sprite_param_setup.asm](../disasm/modules/68k/game/render/sprite_param_setup.asm)*
 
 ---
 
@@ -4646,7 +4646,7 @@ Sets up 4 sprite block pointers at $FF66EC (stride $14) from ROM pointer table a
 
 - **Modifies**: D0, D1, A1, A2, A3
 - **RAM**: $C026: race_phase (word) $C04C: display_enable (word) $C8C8: boost_flag (word)
-*Source: [vdp_sprite_pointer_setup_cond_disp_clear.asm](disasm/modules/68k/game/render/vdp_sprite_pointer_setup_cond_disp_clear.asm)*
+*Source: [vdp_sprite_pointer_setup_cond_disp_clear.asm](../disasm/modules/68k/game/render/vdp_sprite_pointer_setup_cond_disp_clear.asm)*
 
 ---
 
@@ -4656,7 +4656,7 @@ At scene_state ($C8AA) == 10: loads SFX from table at $003E52 indexed by $C89C, 
 
 - **Modifies**: D0
 - **RAM**: $C80E: display control (byte, bit 5) $C89C: SH2 comm state (word) $C8A5: sound effect (byte) $C8AA: scene_state (word) $C8AC: state_dispatch_idx (word, cleared)
-*Source: [scene_transition_check_vdp_clear.asm](disasm/modules/68k/game/render/scene_transition_check_vdp_clear.asm)*
+*Source: [scene_transition_check_vdp_clear.asm](../disasm/modules/68k/game/render/scene_transition_check_vdp_clear.asm)*
 
 ---
 
@@ -4666,7 +4666,7 @@ If scene_state ($C8AA) == 5 → plays SFX $98 via $C8A5. Reads bit 2 of $C8AB: c
 
 - **Modifies**: D0
 - **RAM**: $C8AA: scene_state (word) $C8AB: scene flags (byte, bit 2) $C8A5: sound effect (byte) $C8AC: state_dispatch_idx (word, advanced by 4)
-*Source: [scene_state_timer_vdp_output.asm](disasm/modules/68k/game/render/scene_state_timer_vdp_output.asm)*
+*Source: [scene_state_timer_vdp_output.asm](../disasm/modules/68k/game/render/scene_state_timer_vdp_output.asm)*
 
 ---
 
@@ -4677,7 +4677,7 @@ configure 7 trackside object render slots Four entry points for different viewpo
 - **Entry**: A0 = player entity pointer (+$C0=render_flags)
 - **Modifies**: D0, D1, D2, D3, D4, A0, A1, A2
 - **Confidence**: medium
-*Source: [render_slot_setup.asm](disasm/modules/68k/game/render/render_slot_setup.asm)*
+*Source: [render_slot_setup.asm](../disasm/modules/68k/game/render/render_slot_setup.asm)*
 
 ---
 
@@ -4688,18 +4688,30 @@ configure 7 trackside object render slots Four entry points for different viewpo
 - **Modifies**: D0, A0, A1, A2
 - **RAM**: $C07C: display state index (advanced by 4 per transition)
 - **Confidence**: high
-*Source: [display_state_disp_004084.asm](disasm/modules/68k/game/render/display_state_disp_004084.asm)*
+*Source: [display_state_disp_004084.asm](../disasm/modules/68k/game/render/display_state_disp_004084.asm)*
+
+---
+
+### display_state_race_lap_preamble ($0041E4–$004201, 29 bytes)
+
+Race Lap Display State Preamble Display state handler #5 (dispatched from display_state_disp_004084 jump table when $C07C = 20). Sets race state flags, conditionally calls ai_digit_lookup_best_lap for digit/score rendering, then calls vdp_load_and_clear to load VDP table E + zero control bytes. Falls through into sprite_config_setup_001's main body at $004202. CROSS-BOUNDARY: The last instruction (JSR $0088CA20 = vdp_load_and_clear) is 6 bytes, but only 4 bytes fit in code_2200 ($0041FC-$0041FF). The remaining 2 bytes ($CA20) are at $004200 in code_4200 — the same bytes labeled as sprite_config_setup_001's entry point (AND.B -(A0),D5). That AND.B instruction is never executed; it exists only as the JSR's address field. After JSR returns, execution continues at $004202 (MOVEQ #$07,D7).
+
+- **Entry**: JMP from display_state_disp_004084 (jump table at $0040A8)
+- **Returns**: falls through to $004202 (sprite_config_setup_001 body)
+- **Modifies**: D0, D1, D5, D7, A0, A1, A2, A3 (via callees)
+- **Calls**: ai_digit_lookup_best_lap ($00B1B8), vdp_load_and_clear ($00CA20)
+- **RAM**: $C800: race state flag (byte, set to $01) $C822: timer/counter value (byte, set to $F3) $C30E: display condition flags (byte, bit 5 checked)
+*Source: [display_state_race_lap_preamble.asm](../disasm/modules/68k/game/render/display_state_race_lap_preamble.asm)*
 
 ---
 
 ### Sprite Config Setup 001 ($004200–$004280, 128 bytes)
 
-Configures sprite display entries from racer data Looks up sprite graphics pointers from ROM tables Copies position data from work buffers via BSR to next function
+Configures sprite display entries from racer data. Looks up sprite graphics pointers from ROM tables ($008997C4, $00899780) and copies position data from work buffers via BSR to data_unpack_nibbles. NOTE: The label at $004200 exists for structural completeness, but this address is NEVER jumped to directly. The AND.B instruction at $004200 is actually the low address word ($CA20) of a cross-boundary JSR in display_state_race_lap_preamble (code_2200). After that JSR returns, execution enters at $004202 (MOVEQ #$07,D7), skipping the AND.B. See display_state_race_lap_preamble.asm for full explanation.
 
 - **Modifies**: D0, D1, D5, D7, A0, A1, A2, A3
 - **RAM**: $C30C: racer_sprite_id $C254: position_buf_b $C25C: position_stride $C260: position_buf_a $C07C: input_state
-- **Confidence**: medium
-*Source: [sprite_config_setup_001.asm](disasm/modules/68k/game/render/sprite_config_setup_001.asm)*
+*Source: [sprite_config_setup_001.asm](../disasm/modules/68k/game/render/sprite_config_setup_001.asm)*
 
 ---
 
@@ -4709,7 +4721,7 @@ Initializes sprite and checks player score against threshold. Sets player-specif
 
 - **Entry**: A0 = player base, A2 = sprite struct
 - **Modifies**: D0
-*Source: [sprite_position_check.asm](disasm/modules/68k/game/render/sprite_position_check.asm)*
+*Source: [sprite_position_check.asm](../disasm/modules/68k/game/render/sprite_position_check.asm)*
 
 ---
 
@@ -4719,7 +4731,7 @@ Clears position flag and sets alternate sprite attributes.
 
 - **Entry**: A2 = sprite struct
 - **Modifies**: none
-*Source: [sprite_clear_alt.asm](disasm/modules/68k/game/render/sprite_clear_alt.asm)*
+*Source: [sprite_clear_alt.asm](../disasm/modules/68k/game/render/sprite_clear_alt.asm)*
 
 ---
 
@@ -4732,7 +4744,7 @@ Entity Render Pipeline Multi-variant entity render pipeline with 4 entry points.
 - **RAM**: $C89C sh2_comm_state
 - **Object fields**: +$06 speed, +$44 display_offset, +$46 display_scale, +$4A display_aux, +$74 render_state
 - **Confidence**: high
-*Source: [entity_render_pipeline.asm](disasm/modules/68k/game/render/entity_render_pipeline.asm)*
+*Source: [entity_render_pipeline.asm](../disasm/modules/68k/game/render/entity_render_pipeline.asm)*
 
 ---
 
@@ -4744,7 +4756,7 @@ Entity Data Table + Render Pipeline Variant ROM address lookup table (3 longword
 - **Modifies**: D0, A0, A2, A6
 - **Object fields**: +$44 display_offset, +$46 display_scale, +$4A display_aux, +$88 animation data
 - **Confidence**: high
-*Source: [entity_data_table_render_pipeline_variant.asm](disasm/modules/68k/game/render/entity_data_table_render_pipeline_variant.asm)*
+*Source: [entity_data_table_render_pipeline_variant.asm](../disasm/modules/68k/game/render/entity_data_table_render_pipeline_variant.asm)*
 
 ---
 
@@ -4757,7 +4769,7 @@ Entity Render Pipeline with VDP DMA Extended entity render pipeline with VDP reg
 - **RAM**: $C89C sh2_comm_state
 - **Object fields**: +$06 speed, +$44 display_offset, +$46 display_scale, +$4A display_aux, +$74 render_state
 - **Confidence**: high
-*Source: [entity_render_pipeline_with_vdp_dma.asm](disasm/modules/68k/game/render/entity_render_pipeline_with_vdp_dma.asm)*
+*Source: [entity_render_pipeline_with_vdp_dma.asm](../disasm/modules/68k/game/render/entity_render_pipeline_with_vdp_dma.asm)*
 
 ---
 
@@ -4765,7 +4777,7 @@ Entity Render Pipeline with VDP DMA Extended entity render pipeline with VDP reg
 
 Entity Render Frame Orchestrator CODE: 134 bytes — entity field clears, 21 BSR calls, flag tests Called after entity_render_pipeline_with_vdp_dma; orchestrates per-frame entity rendering by testing flags, clearing fields, and dispatching to 21 subsystems via BSR.
 
-*Source: [entity_render_frame_orch.asm](disasm/modules/68k/game/render/entity_render_frame_orch.asm)*
+*Source: [entity_render_frame_orch.asm](../disasm/modules/68k/game/render/entity_render_frame_orch.asm)*
 
 ---
 
@@ -4778,7 +4790,7 @@ Entity Render Pipeline with VDP DMA + 2P Copy Multi-entry entity render pipeline
 - **RAM**: $9F00 obj_table_3
 - **Object fields**: +$18 position, +$44 display_offset, +$46 display_scale, +$4A display_aux, +$88 animation, +$92 render_mode, +$B2 stored_pos
 - **Confidence**: high
-*Source: [entity_render_pipeline_with_vdp_dma_2p_copy.asm](disasm/modules/68k/game/render/entity_render_pipeline_with_vdp_dma_2p_copy.asm)*
+*Source: [entity_render_pipeline_with_vdp_dma_2p_copy.asm](../disasm/modules/68k/game/render/entity_render_pipeline_with_vdp_dma_2p_copy.asm)*
 
 ---
 
@@ -4790,7 +4802,7 @@ Entity Render Pipeline Jump Table Jump table (8 longword ROM addresses) followed
 - **Modifies**: D0, A0
 - **Object fields**: +$06 speed, +$44 display_offset, +$46 display_scale, +$4A display_aux, +$74 render_state
 - **Confidence**: high
-*Source: [entity_render_pipeline_jump_table.asm](disasm/modules/68k/game/render/entity_render_pipeline_jump_table.asm)*
+*Source: [entity_render_pipeline_jump_table.asm](../disasm/modules/68k/game/render/entity_render_pipeline_jump_table.asm)*
 
 ---
 
@@ -4803,7 +4815,7 @@ Entity Render Pipeline with 2-Player Dispatch Large multi-entry entity render pi
 - **RAM**: $9F00 obj_table_3
 - **Object fields**: +$06 speed, +$18 position, +$44 display_offset, +$46 display_scale, +$4A display_aux, +$74 render_state, +$92 render_mode, +$AC param
 - **Confidence**: high
-*Source: [entity_render_pipeline_with_2_player_dispatch.asm](disasm/modules/68k/game/render/entity_render_pipeline_with_2_player_dispatch.asm)*
+*Source: [entity_render_pipeline_with_2_player_dispatch.asm](../disasm/modules/68k/game/render/entity_render_pipeline_with_2_player_dispatch.asm)*
 
 ---
 
@@ -4815,7 +4827,7 @@ Entity Data Table + Full Render Pipeline ROM address lookup table (3 longword en
 - **Modifies**: D0, A0, A2, A6
 - **Object fields**: +$44 display_offset, +$46 display_scale, +$4A display_aux, +$88 animation, +$92 render_mode
 - **Confidence**: high
-*Source: [entity_data_table_full_render_pipeline.asm](disasm/modules/68k/game/render/entity_data_table_full_render_pipeline.asm)*
+*Source: [entity_data_table_full_render_pipeline.asm](../disasm/modules/68k/game/render/entity_data_table_full_render_pipeline.asm)*
 
 ---
 
@@ -4826,7 +4838,7 @@ Tile Block DMA Setup Sets up tile block data for DMA transfers. Initializes 6 gr
 - **Entry**: Called during scene initialization
 - **Modifies**: D5, D6, D7, A1, A2, A3, A4
 - **Confidence**: high
-*Source: [tile_block_dma_setup.asm](disasm/modules/68k/game/render/tile_block_dma_setup.asm)*
+*Source: [tile_block_dma_setup.asm](../disasm/modules/68k/game/render/tile_block_dma_setup.asm)*
 
 ---
 
@@ -4837,7 +4849,7 @@ Object Visibility Collector Computes a camera direction key from an object's own
 - **Entry**: A0 = object pointer (+$30=x_pos, +$34=y_pos, +$CA=cam_key, +$CC=table_index, +$1D=type_field)
 - **Modifies**: D0, D1, D2, D3, D4, D7, A0, A1, A2, A3, A4
 - **RAM**: $C8A0 (race_state)
-*Source: [object_visibility_collector.asm](disasm/modules/68k/game/render/object_visibility_collector.asm)*
+*Source: [object_visibility_collector.asm](../disasm/modules/68k/game/render/object_visibility_collector.asm)*
 
 ---
 
@@ -4848,7 +4860,7 @@ VDP Nametable Setup + Display List Build Configures VDP nametable addresses (scr
 - **Entry**: A5/A6 = VDP register write ports
 - **Modifies**: D0, D4, A2, A5, A6
 - **Confidence**: high
-*Source: [vdp_nametable_setup_display_list_build.asm](disasm/modules/68k/game/render/vdp_nametable_setup_display_list_build.asm)*
+*Source: [vdp_nametable_setup_display_list_build.asm](../disasm/modules/68k/game/render/vdp_nametable_setup_display_list_build.asm)*
 
 ---
 
@@ -4860,7 +4872,7 @@ Track Tile Object Display List Builder Builds display list of visible track obje
 - **Modifies**: D0, D1, D2, D3, D4, D6, D7, A0, A1, A3, A4
 - **Object fields**: +$30 x_position, +$34 y_position, +$CA tile_x, +$CC tile_y
 - **Confidence**: high
-*Source: [track_tile_object_display_list_builder.asm](disasm/modules/68k/game/render/track_tile_object_display_list_builder.asm)*
+*Source: [track_tile_object_display_list_builder.asm](../disasm/modules/68k/game/render/track_tile_object_display_list_builder.asm)*
 
 ---
 
@@ -4871,7 +4883,7 @@ Builds a visible-object list for the current viewpoint. Computes a camera direct
 - **Entry**: A0 = object pointer (reads +$CC for segment index)
 - **Modifies**: D0, D1, D2, D3, D4, D7, A0, A1, A2, A3, A4
 - **RAM**: $C0BA: segment_table_select (word, nonzero = alternate table) $C8A0: racer_index (word, ×4 into jump table) ROM tables: $0089A5D2: segment_table_primary $0089A0D4: segment_table_alternate $007248 (PC-relative): racer_segment_ptr_table
-*Source: [object_geometry_visibility_collect.asm](disasm/modules/68k/game/render/object_geometry_visibility_collect.asm)*
+*Source: [object_geometry_visibility_collect.asm](../disasm/modules/68k/game/render/object_geometry_visibility_collect.asm)*
 
 ---
 
@@ -4884,7 +4896,7 @@ Sets up 3D transformation parameters for rendering Calls matrix/vector routines,
 - **Calls**: $00B3CE: matrix_multiply $00B386: vector_transform
 - **RAM**: $C806: transform_src $C270: vector_buf_a $C274: vector_buf_b $FDAA: matrix_base $C89C: race_substate $C8A0: race_state $C8C8: vint_state $C8CC: race_substate_b
 - **Confidence**: medium
-*Source: [gfx_3d_transform_setup_007.asm](disasm/modules/68k/game/render/gfx_3d_transform_setup_007.asm)*
+*Source: [gfx_3d_transform_setup_007.asm](../disasm/modules/68k/game/render/gfx_3d_transform_setup_007.asm)*
 
 ---
 
@@ -4896,7 +4908,7 @@ If $C313 bit 3 clear: reads obj.$CC, shifts right by 6, writes to $8002. Reads $
 - **Modifies**: D0, A0
 - **RAM**: $C313: control flags (byte, bit 3) $C882: VDP pan offset (word) $8000: VDP scroll A (word, set to $FEC0) $8002: VDP scroll B (word, set from obj.$CC)
 - **Object fields**: A0+$CC: scroll source value (word)
-*Source: [scroll_pan_calc_vdp_write.asm](disasm/modules/68k/game/render/scroll_pan_calc_vdp_write.asm)*
+*Source: [scroll_pan_calc_vdp_write.asm](../disasm/modules/68k/game/render/scroll_pan_calc_vdp_write.asm)*
 
 ---
 
@@ -4908,7 +4920,7 @@ Tire Animation and Smoke Effect Counters Updates tire/wheel animation and smoke 
 - **Modifies**: D0, D1, A0
 - **Object fields**: +$04 speed, +$80-$86 tire timers, +$98-$9A smoke timers, +$BE direction index, +$E6-$E8 wheel timers
 - **Confidence**: high
-*Source: [tire_animation_and_smoke_effect_counters.asm](disasm/modules/68k/game/render/tire_animation_and_smoke_effect_counters.asm)*
+*Source: [tire_animation_and_smoke_effect_counters.asm](../disasm/modules/68k/game/render/tire_animation_and_smoke_effect_counters.asm)*
 
 ---
 
@@ -4919,7 +4931,7 @@ Data prefix: 10-byte descending sequence ($FF..$F8,$F8,$80). If $C80E bit 7 set:
 - **Modifies**: D0, D1, A1
 - **Calls**: $004846: sequence completion handler
 - **RAM**: $8480: work buffer (long, passed to $004846) $C809: countdown reload value (byte) $C80A: countdown timer (byte, decremented) $C80E: control flags (byte, bit 7 = sequence active) $C825: sequence index (byte, 0-9)
-*Source: [animated_seq_player.asm](disasm/modules/68k/game/render/animated_seq_player.asm)*
+*Source: [animated_seq_player.asm](../disasm/modules/68k/game/render/animated_seq_player.asm)*
 
 ---
 
@@ -4929,7 +4941,7 @@ Data prefix: 3 words ($0102,$0304,$0506) — bit test masks. Code: D7-count loop
 
 - **Modifies**: D0, D1, D2, D3, D4, D6, D7, A0
 - **RAM**: $8480: work_buffer (word array indexed by byte)
-*Source: [animation_seq_player.asm](disasm/modules/68k/game/render/animation_seq_player.asm)*
+*Source: [animation_seq_player.asm](../disasm/modules/68k/game/render/animation_seq_player.asm)*
 
 ---
 
@@ -4940,7 +4952,7 @@ Display State Bit 10 Guard Tests bit 10 of D0. If set, falls through to camera_a
 - **Entry**: D0 = flags word
 - **Modifies**: D0
 - **Confidence**: high
-*Source: [display_state_bit_10_guard.asm](disasm/modules/68k/game/render/display_state_bit_10_guard.asm)*
+*Source: [display_state_bit_10_guard.asm](../disasm/modules/68k/game/render/display_state_bit_10_guard.asm)*
 
 ---
 
@@ -4950,7 +4962,7 @@ Computes display viewport parameters from word lookup table. D1 (entry index) �
 
 - **Modifies**: D0, D1, D2, A1, A2
 - **RAM**: $A0E6: display_param (word) $A0F0: display_counter (word) Data table (8 words at $BE50): $0000,$0002,$0004,$0008,$000C,$0012,$001A,$0024
-*Source: [display_param_calc.asm](disasm/modules/68k/game/render/display_param_calc.asm)*
+*Source: [display_param_calc.asm](../disasm/modules/68k/game/render/display_param_calc.asm)*
 
 ---
 
@@ -4960,7 +4972,7 @@ Increments frame counter $A0EC, computes row and column: row = ($A0EC × 2) / 28
 
 - **Modifies**: D0, D1, D2, A1
 - **RAM**: $A0EC: frame counter (word, +1 per call)
-*Source: [vdp_table_entry_write_00bf9e.asm](disasm/modules/68k/game/render/vdp_table_entry_write_00bf9e.asm)*
+*Source: [vdp_table_entry_write_00bf9e.asm](../disasm/modules/68k/game/render/vdp_table_entry_write_00bf9e.asm)*
 
 ---
 
@@ -4970,7 +4982,7 @@ Negated Column) Like vdp_table_entry_write_00bf9e but negates the column value a
 
 - **Modifies**: D0, D1, D2, A1
 - **RAM**: $A0EC: frame counter (word, +1 per call)
-*Source: [vdp_table_entry_write_00bfde.asm](disasm/modules/68k/game/render/vdp_table_entry_write_00bfde.asm)*
+*Source: [vdp_table_entry_write_00bfde.asm](../disasm/modules/68k/game/render/vdp_table_entry_write_00bfde.asm)*
 
 ---
 
@@ -4981,7 +4993,7 @@ Source: code_c200 Copies a 512-byte VDP register configuration table from ROM to
 - **Entry**: No register inputs
 - **Returns**: VDP register table copied to $FF6800
 - **Modifies**: D0, A1, A2
-*Source: [vdp_reg_table_copy.asm](disasm/modules/68k/game/render/vdp_reg_table_copy.asm)*
+*Source: [vdp_reg_table_copy.asm](../disasm/modules/68k/game/render/vdp_reg_table_copy.asm)*
 
 ---
 
@@ -4992,7 +5004,7 @@ Multi-Entry Loader Source: code_c200 Provides five entry points that each load a
 - **Entry**: None (each entry point is self-contained)
 - **Returns**: VDP work area loaded; control words cleared (entry 5 only)
 - **Modifies**: D0, D1, A1, A2
-*Source: [vdp_reg_table_init_multi_entry_loader.asm](disasm/modules/68k/game/render/vdp_reg_table_init_multi_entry_loader.asm)*
+*Source: [vdp_reg_table_init_multi_entry_loader.asm](../disasm/modules/68k/game/render/vdp_reg_table_init_multi_entry_loader.asm)*
 
 ---
 
@@ -5003,7 +5015,7 @@ Loads scene data pointer from $00895BCC indexed by race_substate ($C8CC), calls 
 - **Modifies**: D0, A1, A2, A3
 - **Calls**: $00CFC2: block_copy (4×)
 - **RAM**: $C051: track_param (byte, from table) $C076: scene_type (word, set to $C200) $C254: work_param_A (longword) $C260: work_param_B (longword) $C806: counter block (3 bytes) $C80E: display_flags (byte, bit 3) $C8CC: race_substate (word) $FDA9: race_active (byte, table index)
-*Source: [scene_init_vdp_block_setup_counter_reset.asm](disasm/modules/68k/game/render/scene_init_vdp_block_setup_counter_reset.asm)*
+*Source: [scene_init_vdp_block_setup_counter_reset.asm](../disasm/modules/68k/game/render/scene_init_vdp_block_setup_counter_reset.asm)*
 
 ---
 
@@ -5013,7 +5025,7 @@ VDP DMA Configuration and Display Init Configures VDP via multiple DMA transfers
 
 - **Modifies**: D0, D1, D2, D4, D7, A0, A1, A2
 - **Confidence**: high
-*Source: [vdp_dma_config_and_display_init.asm](disasm/modules/68k/game/render/vdp_dma_config_and_display_init.asm)*
+*Source: [vdp_dma_config_and_display_init.asm](../disasm/modules/68k/game/render/vdp_dma_config_and_display_init.asm)*
 
 ---
 
@@ -5024,7 +5036,7 @@ Data prefix: 48 bytes (12 longword entries) of scene config. Code block A ($D42C
 - **Modifies**: D0, D1, A0, A1, A5
 - **Calls**: $00483E: nametable_init_A $004842: nametable_init_B $0048B8: palette_init
 - **RAM**: $C80F: track_select_flag (byte) $C81A: track_param (byte) $FEA8: track_id_A (byte) $FEAC: track_id_B (byte)
-*Source: [scene_init_vdp_dma_setup_track_param_load.asm](disasm/modules/68k/game/render/scene_init_vdp_dma_setup_track_param_load.asm)*
+*Source: [scene_init_vdp_dma_setup_track_param_load.asm](../disasm/modules/68k/game/render/scene_init_vdp_dma_setup_track_param_load.asm)*
 
 ---
 
@@ -5035,7 +5047,7 @@ SH2 Display and Palette Initialization Major scene initialization orchestrator. 
 - **Modifies**: D0, D1, D2, D3, D4, A0, A1, A5
 - **Calls**: $00E1BC (sh2_palette_load), $00E22C (sh2_graphics_cmd), $00E2F0 (sh2_load_data), $00E316 (sh2_send_cmd_wait)
 - **Confidence**: high
-*Source: [sh2_display_and_palette_init.asm](disasm/modules/68k/game/render/sh2_display_and_palette_init.asm)*
+*Source: [sh2_display_and_palette_init.asm](../disasm/modules/68k/game/render/sh2_display_and_palette_init.asm)*
 
 ---
 
@@ -5045,7 +5057,7 @@ Scene State Dispatcher with Palette Data Data prefix (~178 bytes) containing pal
 
 - **Modifies**: D0, D1, D4, D5, D6, A0, A1, A2
 - **Confidence**: high
-*Source: [scene_state_disp_with_palette_data.asm](disasm/modules/68k/game/render/scene_state_disp_with_palette_data.asm)*
+*Source: [scene_state_disp_with_palette_data.asm](../disasm/modules/68k/game/render/scene_state_disp_with_palette_data.asm)*
 
 ---
 
@@ -5056,7 +5068,7 @@ Palette Data Loader and Cycle Handler Loads palette data from ROM tables $0088DA
 - **Modifies**: D0, D1, D7, A0, A1, A2
 - **Calls**: $00E52C (dma_transfer)
 - **Confidence**: high
-*Source: [palette_data_loader_and_cycle_handler.asm](disasm/modules/68k/game/render/palette_data_loader_and_cycle_handler.asm)*
+*Source: [palette_data_loader_and_cycle_handler.asm](../disasm/modules/68k/game/render/palette_data_loader_and_cycle_handler.asm)*
 
 ---
 
@@ -5067,7 +5079,7 @@ Scene Parameter Adjustment and DMA Upload Data prefix (48 bytes: 6 longword poin
 - **Modifies**: D0, D1, D3, D4, D5, A0, A1, A4
 - **Calls**: $00E35A (sh2_send_cmd), $00E52C (dma_transfer), $00DCAC/$00DCBE/$00DCB8/$00DCCA (increment/decrement helpers)
 - **Confidence**: high
-*Source: [scene_param_adjustment_and_dma_upload.asm](disasm/modules/68k/game/render/scene_param_adjustment_and_dma_upload.asm)*
+*Source: [scene_param_adjustment_and_dma_upload.asm](../disasm/modules/68k/game/render/scene_param_adjustment_and_dma_upload.asm)*
 
 ---
 
@@ -5078,7 +5090,7 @@ Sends two sprite render commands to SH2 via sh2_cmd_27. First sprite: selects so
 - **Modifies**: D0, D1, D2, D3, A0, A1
 - **Calls**: $00E3B4: sh2_cmd_27 (JSR PC-relative)
 - **RAM**: $A019: player_id_a $A025: player_id_b $A026: player_id_c $A027: player_select
-*Source: [sh2_cmd_27_sprite_render.asm](disasm/modules/68k/game/render/sh2_cmd_27_sprite_render.asm)*
+*Source: [sh2_cmd_27_sprite_render.asm](../disasm/modules/68k/game/render/sh2_cmd_27_sprite_render.asm)*
 
 ---
 
@@ -5086,7 +5098,7 @@ Sends two sprite render commands to SH2 via sh2_cmd_27. First sprite: selects so
 
 DATA ($E19E-$E1BA): 5 sprite descriptors (6 bytes each: flags, offset, id) CODE ($E1BC-$E1FE): sh2_palette_load — VDP CRAM init with nested loops Sets up VDP palette transfer ($8F02 auto-inc), writes 28 palette entries in an outer loop of 6 rows × inner loop of 8 colors, then fills 80 entries with $0000.
 
-*Source: [sprite_descriptors_and_palette_load.asm](disasm/modules/68k/game/render/sprite_descriptors_and_palette_load.asm)*
+*Source: [sprite_descriptors_and_palette_load.asm](../disasm/modules/68k/game/render/sprite_descriptors_and_palette_load.asm)*
 
 ---
 
@@ -5095,7 +5107,7 @@ DATA ($E19E-$E1BA): 5 sprite descriptors (6 bytes each: flags, offset, id) CODE 
 Default Palette Color Data Static palette color data table. Contains 12 CRAM color entries ($0EEE = white, $0000 = black) used as default/fallback palette. The RTS at end allows this to be called as a no-op initializer.
 
 - **Confidence**: high
-*Source: [default_palette_color_data.asm](disasm/modules/68k/game/render/default_palette_color_data.asm)*
+*Source: [default_palette_color_data.asm](../disasm/modules/68k/game/render/default_palette_color_data.asm)*
 
 ---
 
@@ -5106,7 +5118,7 @@ SH2 Split-Screen Display Initialization Scene initialization for split-screen mo
 - **Modifies**: D0, D1, D2, D3, D4, A0, A1, A5
 - **Calls**: $00E1BC (sh2_palette_load), $00E22C (sh2_graphics_cmd), $00E2F0 (sh2_load_data), $00E316 (sh2_send_cmd_wait)
 - **Confidence**: high
-*Source: [sh2_split_screen_display_init.asm](disasm/modules/68k/game/render/sh2_split_screen_display_init.asm)*
+*Source: [sh2_split_screen_display_init.asm](../disasm/modules/68k/game/render/sh2_split_screen_display_init.asm)*
 
 ---
 
@@ -5117,7 +5129,7 @@ SH2 Geometry Transfer and Palette Cycle Handler Sends SH2 geometry and sprite da
 - **Modifies**: D0, D1, D7, A0, A1, A2
 - **Calls**: $00E35A (sh2_send_cmd), $00E52C (dma_transfer)
 - **Confidence**: high
-*Source: [sh2_geometry_transfer_and_palette_cycle_handler.asm](disasm/modules/68k/game/render/sh2_geometry_transfer_and_palette_cycle_handler.asm)*
+*Source: [sh2_geometry_transfer_and_palette_cycle_handler.asm](../disasm/modules/68k/game/render/sh2_geometry_transfer_and_palette_cycle_handler.asm)*
 
 ---
 
@@ -5128,7 +5140,7 @@ SH2 Three-Panel Display Initialization Data prefix (12 bytes: 3 longword entry p
 - **Modifies**: D0, D1, D2, D3, D4, A0, A1, A5
 - **Calls**: $00E1BC (sh2_palette_load), $00E22C (sh2_graphics_cmd), $00E2F0 (sh2_load_data), $00E316 (sh2_send_cmd_wait)
 - **Confidence**: high
-*Source: [sh2_three_panel_display_init.asm](disasm/modules/68k/game/render/sh2_three_panel_display_init.asm)*
+*Source: [sh2_three_panel_display_init.asm](../disasm/modules/68k/game/render/sh2_three_panel_display_init.asm)*
 
 ---
 
@@ -5139,7 +5151,7 @@ Multi-Screen Palette Navigation Handler Handles palette navigation for multi-scr
 - **Modifies**: D0, D1, D2, A0, A1, A2
 - **Calls**: $00E35A (sh2_send_cmd), $00F88C (palette_switch)
 - **Confidence**: high
-*Source: [multi_screen_palette_navigation_handler.asm](disasm/modules/68k/game/render/multi_screen_palette_navigation_handler.asm)*
+*Source: [multi_screen_palette_navigation_handler.asm](../disasm/modules/68k/game/render/multi_screen_palette_navigation_handler.asm)*
 
 ---
 
@@ -5150,17 +5162,17 @@ SH2 Multi-Panel Tile Renderer Data prefix (32 bytes: default palette color data,
 - **Modifies**: D0, D1, D2, A0, A1
 - **Calls**: $00E3B4 (sh2_cmd_27)
 - **Confidence**: high
-*Source: [sh2_multi_panel_tile_renderer.asm](disasm/modules/68k/game/render/sh2_multi_panel_tile_renderer.asm)*
+*Source: [sh2_multi_panel_tile_renderer.asm](../disasm/modules/68k/game/render/sh2_multi_panel_tile_renderer.asm)*
 
 ---
 
 ### depth_sort
 
-Depth Sort (Selection Sort + Early Exit + Direction Tie-Break) Sorts a 16-element array of 4-byte entries using selection sort. Primary key: word at entry+$00 (ascending = back-to-front). Tie-break: when keys are equal, compares x/y positions of the referenced objects based on camera direction quadrant (painter's algorithm ordering). QW-4a: Early-exit optimization. D7 tracks whether any swaps occurred in the current outer pass. If no swaps: array is sorted, exit immediately. For nearly-sorted frame-to-frame data (typical in racing), this exits after 1-2 passes instead of 15, saving ~2000+ cycles/frame. Size budget: 2 × LEA→ADDQ saves 4 bytes, dispatch fall-through saves 2, DBEQ consolidation saves 2. Early-exit logic costs 8 bytes. Net: 0. 6 words of priority key pairs used elsewhere as lookup data.
+Depth Sort (Insertion Sort, Descending) Sorts a 16-element array of 4-byte entries using insertion sort. Primary key: word at entry+$00 (descending = largest first). Insertion sort replaces the previous selection sort (QW-4a) for better performance on nearly-sorted frame-to-frame data. Racing entity positions change slowly between frames, so most elements are already in order. Typical cost: 15 fast-path comparisons + 2-4 element shifts vs the previous 2-3 full passes of 15 comparisons each. Camera-quadrant tie-break removed: equal-key elements maintain their relative order from the previous frame (stable sort). The original sort reordered equal-key elements by camera direction, but this only affects overlapping same-depth entities (rare, cosmetic z-ordering). D7 BUG FIX: The previous QW-4a optimization clobbered D7 (swap flag), but the caller (race_pos_sorting_and_rank_assignment) uses D7 to hold old_sort_key_b across the sort calls. Insertion sort does not use D7. 6 words of priority key pairs used elsewhere as lookup data.
 
 - **Entry**: A0 = sort array (16 entries × 4 bytes: word key + word obj_ptr)
-- **Modifies**: D0, D1, D2, D7, A0, A1, A2, A3 Object fields (via indirect pointers at entry+$02): +$1E: direction (used for quadrant computation) +$30: x_position +$34: y_position
-*Source: [depth_sort.asm](disasm/modules/68k/game/render/depth_sort.asm)*
+- **Modifies**: D0, D1, D2, A0, A1, A2 Preserves: D3-D7, A3-A6
+*Source: [depth_sort.asm](../disasm/modules/68k/game/render/depth_sort.asm)*
 
 ---
 
@@ -5173,7 +5185,7 @@ Main system initialization routine. Calls RAM clear, Z80/VDP init, controller po
 - **Entry**: none
 - **Modifies**: D0, D1, D7, A1, A2
 - **Calls**: $000DB0 (RAM clear), $000FEA (z80_bus_vdp_init), $00170C (controller_port_init), $001048 (init sub)
-*Source: [system_init_orch.asm](disasm/modules/68k/game/scene/system_init_orch.asm)*
+*Source: [system_init_orch.asm](../disasm/modules/68k/game/scene/system_init_orch.asm)*
 
 ---
 
@@ -5183,7 +5195,7 @@ Checks COMM1 bit 0 for an SH2 signal. If set, clears the signal and checks if su
 
 - **Entry**: A5 = VDP control port | Exit: D0 = (A5) | Uses: D0, A5
 - **RAM**: $FFFFC8C5 = sub-sequence timer value (byte, compared to $18) $FFFFC8C4 = sub-sequence state flag (byte, cleared) $FFFFC87E = main game state (word, conditionally cleared)
-*Source: [v_int_comm1_signal_handler.asm](disasm/modules/68k/game/scene/v_int_comm1_signal_handler.asm)*
+*Source: [v_int_comm1_signal_handler.asm](../disasm/modules/68k/game/scene/v_int_comm1_signal_handler.asm)*
 
 ---
 
@@ -5193,7 +5205,7 @@ SH2 Frame Sync Wrapper Saves all registers (D0-D7, A0-A6), calls the SH2 frame s
 
 - **Modifies**: D0-D7, A0-A6 (saved/restored)
 - **Calls**: $008B0004: sh2_frame_sync
-*Source: [sh2_frame_sync_wrapper.asm](disasm/modules/68k/game/scene/sh2_frame_sync_wrapper.asm)*
+*Source: [sh2_frame_sync_wrapper.asm](../disasm/modules/68k/game/scene/sh2_frame_sync_wrapper.asm)*
 
 ---
 
@@ -5203,7 +5215,7 @@ Clears five state/communication variables to zero: $C8A4, $C822 (comm ready flag
 
 - **Entry**: none | Exit: variables cleared | Uses: D0
 - **RAM**: $FFFFC8A4 = state variable (word, cleared) $FFFFC822 = comm/input ready flag (byte, cleared) $FFFFC823 = comm flag extension (byte, cleared) $FFFFC8A2 = state variable (word, cleared)
-*Source: [clear_communication_state_variables.asm](disasm/modules/68k/game/scene/clear_communication_state_variables.asm)*
+*Source: [clear_communication_state_variables.asm](../disasm/modules/68k/game/scene/clear_communication_state_variables.asm)*
 
 ---
 
@@ -5214,7 +5226,7 @@ Data prefix (6 bytes) followed by code that clears the scene state ($C8AA) and a
 - **Entry**: none | Exit: scene state reset, dispatch advanced
 - **Modifies**: D2, D7, A1
 - **RAM**: $FFFFC8AA = scene state (word, cleared to 0) $FFFFC8AC = state dispatch index (word, incremented by 4)
-*Source: [clear_scene_state_advance_dispatch_index.asm](disasm/modules/68k/game/scene/clear_scene_state_advance_dispatch_index.asm)*
+*Source: [clear_scene_state_advance_dispatch_index.asm](../disasm/modules/68k/game/scene/clear_scene_state_advance_dispatch_index.asm)*
 
 ---
 
@@ -5224,7 +5236,7 @@ Clears scene state ($C8AA), advances dispatch index ($C8AC) by 4, sends command 
 
 - **Entry**: none | Exit: state advanced | Uses: none
 - **RAM**: $FFFFC8AA = scene state (word, cleared) $FFFFC8AC = state dispatch index (word, advanced by 4) $00FF6980 = SH2 shared command byte (set to $09) $FFFFC8A4 = state variable (byte, set to $C0)
-*Source: [clear_scene_state_advance_dispatch_set_mode.asm](disasm/modules/68k/game/scene/clear_scene_state_advance_dispatch_set_mode.asm)*
+*Source: [clear_scene_state_advance_dispatch_set_mode.asm](../disasm/modules/68k/game/scene/clear_scene_state_advance_dispatch_set_mode.asm)*
 
 ---
 
@@ -5234,7 +5246,7 @@ Checks scene_state counter: - If == 1: calls init sub at $002066 - If == 60 ($3C
 
 - **Calls**: $002066: scene init sub (PC-relative)
 - **RAM**: $C8AA: scene_state counter (word) $C07C: input_state (word, advanced by 4) $C809: display enable A (byte, set to $01) $C80A: display enable B (byte, set to $01) $C80E: display control (byte, bit 7 set) $C802: display enable C (byte, set to $01)
-*Source: [scene_state_check_cond_advance.asm](disasm/modules/68k/game/scene/scene_state_check_cond_advance.asm)*
+*Source: [scene_state_check_cond_advance.asm](../disasm/modules/68k/game/scene/scene_state_check_cond_advance.asm)*
 
 ---
 
@@ -5244,7 +5256,7 @@ Sets race/mode state ($C8A5) to $9A, calls pre_dispatch_common ($002080) and Wai
 
 - **Entry**: none | Exit: SH2 scene initialized | Uses: none
 - **RAM**: $FFFFC8A5 = race/mode state (byte, set to $9A) $00FF0002 = SH2 scene handler pointer (long, set to $00885618) $00FF5FF8 = SH2 shared data (long, cleared) $00FF5FFC = SH2 shared data (long, cleared)
-*Source: [set_state_pre_dispatch_init_sh2_scene.asm](disasm/modules/68k/game/scene/set_state_pre_dispatch_init_sh2_scene.asm)*
+*Source: [set_state_pre_dispatch_init_sh2_scene.asm](../disasm/modules/68k/game/scene/set_state_pre_dispatch_init_sh2_scene.asm)*
 
 ---
 
@@ -5256,18 +5268,15 @@ Main game frame update — calls rendering + logic subroutines Path A: full upda
 - **Calls**: $00212E: vdp_display_init (pre-frame) $00179E: poll_controllers $00B09E: animation_update $00B144: sound_buffer_copy_with_decode $00B504: display_param_calc $00B4DC: ai_object_setup_cond_flag_set $00B522: ai_state_dispatch $00593C: sprite_state_process $00B6DA: sprite_update $00B684: object_update $0056F8: state_disp_00573c (tail call via JMP)
 - **RAM**: $C8AA: frame_counter $C8C0: controller_ptr $C971: input_mask $C973: input_buttons $C87E: game_state $C886: vint_counter
 - **Confidence**: high
-*Source: [game_frame_orch_013.asm](disasm/modules/68k/game/scene/game_frame_orch_013.asm)*
+*Source: [game_frame_orch_013.asm](../disasm/modules/68k/game/scene/game_frame_orch_013.asm)*
 
 ---
 
-### Frame Update Orchestrator (8 Subroutines) ($005070–$00509E, 46 bytes)
+### Frame Update Orchestrator ($005070–$00509E, 46 bytes)
 
-Calls 8 subroutines via bsr.w in sequence: $002180 (frame init), $00179E (controller_poll), $00B09E (animation_update), $00B094, $00B0DE, $00B128, $00B136, $00640E (object handler). Advances game_state by 4, sets display mode $001C.
+ABSORBED by state_disp_005020 (VR60 Phase 8) VR60 Phase 8: This function's work is now inlined in state_disp_005020 which runs all 3 states sequentially every TV frame for 60 FPS. This space is used as overflow for the expanded state dispatcher. The assembler auto-fills with the sequential JSR calls from state_disp_005020. If the dispatcher ends before $00509E, pad with $FF to maintain alignment with frame_orch_00509e at $00509E.
 
-- **Modifies**: D0 (from called routines)
-- **Calls**: $002180: frame init $00179E: controller_poll $00B09E: animation_update $00B094: animation sub B $00B0DE: animation sub C $00B128: animation sub D $00B136: animation sub E $00640E: object handler
-- **RAM**: $C87E: game_state (word, advanced by 4)
-*Source: [frame_update_orch_005070.asm](disasm/modules/68k/game/scene/frame_update_orch_005070.asm)*
+*Source: [frame_update_orch_005070.asm](../disasm/modules/68k/game/scene/frame_update_orch_005070.asm)*
 
 ---
 
@@ -5278,7 +5287,7 @@ Two entry points: Entry 1 ($509E): Full orchestrator — calls 12 subroutines (i
 - **Modifies**: D0, D3, D7, A1, A2
 - **Calls**: $00179E: poll_controllers $0021A4: init handler A $006496: scene logic $00B094: frame_sync $00B09E: animation_update $00B0DE: display_update $00B4F8: sprite_sort $00B504: sprite_build $00B55A: sprite_commit $00B590: sprite_finalize $00B684: object_update $00B6DA: sprite_update
 - **RAM**: $C87E: state_dispatch_idx (word) $C886: scene_counter (byte) $C8AA: scene_state (word)
-*Source: [frame_orch_00509e.asm](disasm/modules/68k/game/scene/frame_orch_00509e.asm)*
+*Source: [frame_orch_00509e.asm](../disasm/modules/68k/game/scene/frame_orch_00509e.asm)*
 
 ---
 
@@ -5289,7 +5298,7 @@ Two entry points: Entry 1 ($00535E): Full frame — calls 9 subroutines (init, c
 - **Modifies**: D0, D2, A0, A1, A2, A6
 - **Calls**: $00179E: poll_controllers $0020D6: init handler (from $00212E) $00212E: frame init $006840: sprite_handler $00B02C: frame_update (from $00B11A) $00B09E: animation_update $00B11A: update_A $00B504: setup_A $00B5A4: setup_B $00B684: object_update $00B6DA: sprite_update
 - **RAM**: $C886: scene counter (byte, +1) $C87E: state_dispatch_idx (word, +4) $C8AA: scene_state (word, +1)
-*Source: [frame_orch_00535e.asm](disasm/modules/68k/game/scene/frame_orch_00535e.asm)*
+*Source: [frame_orch_00535e.asm](../disasm/modules/68k/game/scene/frame_orch_00535e.asm)*
 
 ---
 
@@ -5300,7 +5309,7 @@ Calls 7 subroutines via bsr.w, increments scene_state ($C8AA), advances game_sta
 - **Modifies**: D0 (from called routines)
 - **Calls**: $0021CA: sfx_queue_process $00179E: controller_poll $00593C: sprite_state_process $00BC40: sub D $00BAD4: sub E $00B6DA: sprite_update $00B684: object_update
 - **RAM**: $C8AA: scene_state (word, +1 per frame) $C87E: game_state (word, advanced by 4)
-*Source: [frame_update_orch_0055d0.asm](disasm/modules/68k/game/scene/frame_update_orch_0055d0.asm)*
+*Source: [frame_update_orch_0055d0.asm](../disasm/modules/68k/game/scene/frame_update_orch_0055d0.asm)*
 
 ---
 
@@ -5311,7 +5320,7 @@ Entry 1 ($5676): calls sfx, poll_controllers, 2 sprite handlers, increments scen
 - **Modifies**: D0, D1, A0
 - **Calls**: $00179E: poll_controllers $0021CA: sfx_queue_process $00593C: sprite_state_process $00B504/$00B522/$00B5CA: sprite handlers $00B684: object_update $00B6DA: sprite_update
 - **RAM**: $C87E: state_dispatch_idx (word) $C8C0: controller_ptr (word) $C886: scene_counter (byte) $C8AA: scene_state (word) $C970: work_param (longword, set to $FFFF0000) $C971: ai_input_flags (byte, bits 2,3,4,6) $C973: ai_direction_flags (byte, bits 0-1)
-*Source: [frame_orch_005676.asm](disasm/modules/68k/game/scene/frame_orch_005676.asm)*
+*Source: [frame_orch_005676.asm](../disasm/modules/68k/game/scene/frame_orch_005676.asm)*
 
 ---
 
@@ -5322,7 +5331,7 @@ Two code paths: (1) reads current SH2 handler address from $00FF0002, matches ag
 - **Modifies**: D0, D1, D4, D7, A0, A1, A4, A6
 - **Calls**: $002474: vint_init (JMP PC-relative) $002890: game_init (JMP PC-relative) $0049AA: SetDisplayParams (JSR PC-relative) $006B8A: track_init (JSR PC-relative) $00B4CA: display_digit_extract (JSR PC-relative)
 - **RAM**: $A000: scene_palette_base $C26C: display_config $C81C: control_mode_flags $C89C: race_substate $C8C5: state_counter
-*Source: [sh2_handler_dispatch_scene_init.asm](disasm/modules/68k/game/scene/sh2_handler_dispatch_scene_init.asm)*
+*Source: [sh2_handler_dispatch_scene_init.asm](../disasm/modules/68k/game/scene/sh2_handler_dispatch_scene_init.asm)*
 
 ---
 
@@ -5332,7 +5341,7 @@ Loads base address $A000 into A4, reads $C26C into D0. Checks bit 7 of $C81C —
 
 - **Entry**: none | Exit: conditional return or fall-through | Uses: D0, A4
 - **RAM**: $FFFFA000 = base address (loaded into A4) $FFFFC26C = comm data (word, loaded into D0) $FFFFC81C = comm flag (byte, bit 7 tested) $FFFFC89C = SH2 comm state (word, tested)
-*Source: [sh2_comm_check_cond_guard.asm](disasm/modules/68k/game/scene/sh2_comm_check_cond_guard.asm)*
+*Source: [sh2_comm_check_cond_guard.asm](../disasm/modules/68k/game/scene/sh2_comm_check_cond_guard.asm)*
 
 ---
 
@@ -5344,7 +5353,7 @@ Master frame orchestrator — initializes display params then calls 37 subroutin
 - **Modifies**: D0, A0
 - **RAM**: $C970: display_scale_pair (longword: X|Y = $0010|$0010) Calls (37 subroutines via PC-relative JSR): $00B77C, $00859A, $00A350, $008170, $0080CC, $008548, $0094FA, $009312, $009B12, $009182, $00961E, $009688, $009802, $007E7A, $006F98 (calc_steering), $007CD8, $00A434, $0070AA, $007F04, $007C4E, $00714A, $00764E, $007F50, $009CCE, $009B54, $0086FE, $009040, $00ACD4, $004084, $0075FE, $0071A6, $002984 (palette_update), $0031A6 (display_mode_dispatch), $0036DE (clear_buffer), $0037B6 (memory_copy), $003F86 (clear_display_vars), $0030C6
 - **Object fields**: +$44: display_offset +$46: display_scale +$4A: display_param +$92: param_92
-*Source: [game_frame_orch.asm](disasm/modules/68k/game/scene/game_frame_orch.asm)*
+*Source: [game_frame_orch.asm](../disasm/modules/68k/game/scene/game_frame_orch.asm)*
 
 ---
 
@@ -5354,7 +5363,7 @@ Dispatches via 2-entry jump table at $006240 (BEQ selects D0=0 or D0=4 based on 
 
 - **Modifies**: D0, A1
 - **RAM**: $C07A: bitmask table index (word, set from $C092) $C092: source param (word) $C800: scene flag (byte, cleared) $C81C: control flags (byte, bit 7) $C89C: SH2 comm state (word) $C8AA: scene_state (word) $C8AC: state_dispatch_idx (word, set to 4 or $20)
-*Source: [object_state_disp_scene_transition.asm](disasm/modules/68k/game/scene/object_state_disp_scene_transition.asm)*
+*Source: [object_state_disp_scene_transition.asm](../disasm/modules/68k/game/scene/object_state_disp_scene_transition.asm)*
 
 ---
 
@@ -5367,7 +5376,7 @@ Dispatches via 2-entry jump table at $006240 (BEQ selects D0=0 or D0=4 based on 
 - **RAM**: $9F00 obj_table_3
 - **Object fields**: +$18 position, +$8A param, +$B2 stored_pos, +$E5 flags
 - **Confidence**: high
-*Source: [gfx_2_player_entity_frame_orch.asm](disasm/modules/68k/game/scene/gfx_2_player_entity_frame_orch.asm)*
+*Source: [gfx_2_player_entity_frame_orch.asm](../disasm/modules/68k/game/scene/gfx_2_player_entity_frame_orch.asm)*
 
 ---
 
@@ -5381,7 +5390,7 @@ Dual Time Display Orchestrator Main time display handler for 1P and 2P modes. Ma
 - **RAM**: $68F0 (status_code), $68F8 (time_display_buf), $9F00 (obj_table_3)
 - **Object fields**: +$02 flags (bit 6 = update trigger), +$07 display param
 - **Confidence**: high
-*Source: [dual_time_display_orch.asm](disasm/modules/68k/game/scene/dual_time_display_orch.asm)*
+*Source: [dual_time_display_orch.asm](../disasm/modules/68k/game/scene/dual_time_display_orch.asm)*
 
 ---
 
@@ -5392,7 +5401,7 @@ Scene Menu Initialization and Input Handler Two-phase function: initialization c
 - **Entry**: A0 = entity pointer (during init)
 - **Modifies**: D0, A0
 - **Confidence**: high
-*Source: [scene_menu_init_and_input_handler.asm](disasm/modules/68k/game/scene/scene_menu_init_and_input_handler.asm)*
+*Source: [scene_menu_init_and_input_handler.asm](../disasm/modules/68k/game/scene/scene_menu_init_and_input_handler.asm)*
 
 ---
 
@@ -5403,7 +5412,7 @@ Scene Command Dispatcher Data prefix with 5 BRA.W entries forming a scene comman
 - **Entry**: A0 = scene data pointer, A1 = display object
 - **Modifies**: D0, D6, A0, A1, A6
 - **Confidence**: high
-*Source: [scene_command_disp.asm](disasm/modules/68k/game/scene/scene_command_disp.asm)*
+*Source: [scene_command_disp.asm](../disasm/modules/68k/game/scene/scene_command_disp.asm)*
 
 ---
 
@@ -5413,7 +5422,7 @@ Race Scene Init (VDP Mode Handler) Major scene initialization function for race/
 
 - **Entry**: Called as scene handler when VDP flag ($FEB7) bit 7 is set. Pointer $0088C0F0 stored at $FF0002.
 - **Modifies**: D0-D1, A0, A2
-*Source: [race_scene_init_vdp_mode.asm](disasm/modules/68k/game/scene/race_scene_init_vdp_mode.asm)*
+*Source: [race_scene_init_vdp_mode.asm](../disasm/modules/68k/game/scene/race_scene_init_vdp_mode.asm)*
 
 ---
 
@@ -5425,7 +5434,7 @@ Master scene initialization — calls 9 setup subroutines, configures MARS VDP m
 - **Modifies**: D0, A0, A5
 - **Calls**: $00A1FC: race_state_read $00C974: track_segment_init $00CF0C: scene_param_setup $00CC06: object_array_init $00CFAE: scene_display_init $00C6DA: palette_scene_setup $0058C8: sprite_input_check $005908: sprite_update_check $00593C: sprite_state_process $0088204A, $008820C6: 32X init routines $00882080: frame_sync $00884998: vblank_wait MARS registers: MARS_VDP_MODE+1: bitmap mode (clear bits 1:0, set bit 0 = 240-line) MARS_SYS_INTCTL: set to $8083 (enable H/V/CMD interrupts) COMM1_LO: SH2 ready handshake (bit 0) ROM tables: $008BB1C4: road_geometry_table (longword ptrs, indexed by race_state)
 - **RAM**: $9000: object_base $C802: scene_init_flag (byte, set to 1) $C80A: frame_counter_mode (byte, set to $02) $C80E: scene_config (byte, bit 6 set) $C809: scene_state (byte, set to 1) $C81C: adapter_bit0 (byte, bit 0 cleared) $C874: vdp_state (word, read to A5) $C875: vdp_config (byte, bit 6 set) $C87E: game_state (word, cleared) $C8A0: race_state (word) $C8A4: sound_trigger (byte, set to $C5) $C8A5: sound_param (byte) $C8A8: scene_dispatch_param (word, set to $0102) $C8C0: scene_addr_table (word, set to $C9A0) $C8F4: scene_param_2 (word, cleared) $C96C: road_geometry_ptr (longword) $FEB7: system_ctrl (byte, bit 7 cleared) $A000: frame_delay_counter (word)
-*Source: [scene_init_orch.asm](disasm/modules/68k/game/scene/scene_init_orch.asm)*
+*Source: [scene_init_orch.asm](../disasm/modules/68k/game/scene/scene_init_orch.asm)*
 
 ---
 
@@ -5435,7 +5444,7 @@ Calls four subroutines (3 SH2 + 1 local), increments the frame counter ($C886), 
 
 - **Entry**: none | Exit: scene initialized | Uses: none
 - **RAM**: $FFFFC886 = frame counter (byte, incremented by 1) $FFFFC87E = game state dispatch (word, advanced by 4) $00FF0008 = SH2 display mode/frame delay (word, set to $0010)
-*Source: [scene_init_multiple_sh2_calls.asm](disasm/modules/68k/game/scene/scene_init_multiple_sh2_calls.asm)*
+*Source: [scene_init_multiple_sh2_calls.asm](../disasm/modules/68k/game/scene/scene_init_multiple_sh2_calls.asm)*
 
 ---
 
@@ -5446,7 +5455,7 @@ Entry 1 ($C390): calls init ($21CA), poll_controllers ($179E), increments frame_
 - **Modifies**: D0, D1, A0
 - **Calls**: $00179E: poll_controllers $0021CA: init handler $0024CA: scene handler $00593C: sprite_state_process $00B684: object_update $00B6DA: sprite_update $00C070: handler A $00C416: handler B $00C5AE: handler C
 - **RAM**: $C080: frame_counter (word) $C87E: state_dispatch_idx (word) $C8C0: controller_ptr (word) $C886: scene_counter (byte) $C8AA: scene_state (word) $C970: work_param (longword) $C971: ai_input_flags (byte) $C973: ai_direction_flags (byte)
-*Source: [scene_orch.asm](disasm/modules/68k/game/scene/scene_orch.asm)*
+*Source: [scene_orch.asm](../disasm/modules/68k/game/scene/scene_orch.asm)*
 
 ---
 
@@ -5457,7 +5466,7 @@ Reads scene dispatch index from $C8F5, looks up target scene ID from PC-relative
 - **Modifies**: D0
 - **Calls**: $008849AA: SH2 scene init
 - **RAM**: $C8F5: scene dispatch index (byte) $C080: current scene ID (word) $C87E: game_state (word, set to $0010) $C8C4: sub-sequence state (word, set to $0C00) $C082: menu_state (byte, set to $04)
-*Source: [scene_dispatch.asm](disasm/modules/68k/game/scene/scene_dispatch.asm)*
+*Source: [scene_dispatch.asm](../disasm/modules/68k/game/scene/scene_dispatch.asm)*
 
 ---
 
@@ -5468,7 +5477,7 @@ Data prefix: 9-word parameter table (7 offsets + 2 × $1000). Calls sfx_queue_pr
 - **Modifies**: D0, D2, A1, A2, A4, A6
 - **Calls**: $0021CA: sfx_queue_process $0025B0: init_handler $0028C2: VDPSyncSH2 $006D9C: sprite_setup
 - **RAM**: $C886: scene counter (byte, +1) $C8C4: sub_state (byte, dispatch index)
-*Source: [scene_state_disp.asm](disasm/modules/68k/game/scene/scene_state_disp.asm)*
+*Source: [scene_state_disp.asm](../disasm/modules/68k/game/scene/scene_state_disp.asm)*
 
 ---
 
@@ -5478,7 +5487,7 @@ Calls two SH2 routines, increments the frame counter ($C886), advances the sub-s
 
 - **Entry**: none | Exit: frame updated | Uses: none
 - **RAM**: $FFFFC886 = frame counter (byte, incremented by 1) $FFFFC8C4 = sub-sequence state (byte, advanced by 4) $00FF0008 = SH2 display mode/frame delay (word, set to $0010)
-*Source: [scene_frame_update_disp_mode_set.asm](disasm/modules/68k/game/scene/scene_frame_update_disp_mode_set.asm)*
+*Source: [scene_frame_update_disp_mode_set.asm](../disasm/modules/68k/game/scene/scene_frame_update_disp_mode_set.asm)*
 
 ---
 
@@ -5489,7 +5498,7 @@ Increments frame/scene counters, reads next input byte from replay buffer (split
 - **Modifies**: D0, D1, D2, A0, A1, A2
 - **Calls**: $00B684: object_update (JSR PC-relative) $00B6DA: sprite_update (JSR PC-relative) $00C070: scene_logic (JSR PC-relative) $00C662: frame_finalize (JMP PC-relative)
 - **RAM**: $C080: frame_counter $C082: menu_state (jump table index: 0/4/8/12) $C886: sub_frame $C8AA: scene_state $C8C0: replay_buffer_ptr $C8C4: frame_counter_b $C970: anim_state (init $FFFF0000) $C971: direction_bits (from replay: bits masked $5C) $C973: button_bits (from replay: bits masked $03)
-*Source: [scene_dispatch_input_replay.asm](disasm/modules/68k/game/scene/scene_dispatch_input_replay.asm)*
+*Source: [scene_dispatch_input_replay.asm](../disasm/modules/68k/game/scene/scene_dispatch_input_replay.asm)*
 
 ---
 
@@ -5500,7 +5509,7 @@ Setup Source: code_c200 Initializes a phase-based timer system that drives scene
 - **Entry**: No register inputs
 - **Returns**: Phase timer configured from state flag
 - **Modifies**: D0
-*Source: [scene_phase_timer_setup.asm](disasm/modules/68k/game/scene/scene_phase_timer_setup.asm)*
+*Source: [scene_phase_timer_setup.asm](../disasm/modules/68k/game/scene/scene_phase_timer_setup.asm)*
 
 ---
 
@@ -5511,7 +5520,7 @@ Tick and Data Tables Source: code_c200 Contains two inline data tables used by s
 - **Entry**: No register inputs
 - **Returns**: Phase counter decremented; timeline advanced if phase expired
 - **Modifies**: (none modified beyond RAM writes)
-*Source: [scene_phase_timer_tick_data_tables.asm](disasm/modules/68k/game/scene/scene_phase_timer_tick_data_tables.asm)*
+*Source: [scene_phase_timer_tick_data_tables.asm](../disasm/modules/68k/game/scene/scene_phase_timer_tick_data_tables.asm)*
 
 ---
 
@@ -5522,7 +5531,7 @@ Reset Source: code_c200 Resets the phase timer system to its initial state. Call
 - **Entry**: No register inputs
 - **Returns**: Phase timer system reset
 - **Modifies**: (none)
-*Source: [scene_phase_timer_reset.asm](disasm/modules/68k/game/scene/scene_phase_timer_reset.asm)*
+*Source: [scene_phase_timer_reset.asm](../disasm/modules/68k/game/scene/scene_phase_timer_reset.asm)*
 
 ---
 
@@ -5533,7 +5542,7 @@ Reads race_substate ($C8CC) to index a 6-word data table, storing two config wor
 - **Modifies**: D0, A1, A2, A3, A4
 - **Calls**: $00C9AE: post_dispatch (called 3 times via BSR/BRA)
 - **RAM**: $C8CC: race_substate (word, indexes data table) $C710: track_segment_buffer (destination for first block) $C734: track_transform_ptr (longword pointer) $C754: track_offset_data (longword, copied to $FF6228/$FF6354) ROM tables: $008957A0: track_segment_base_table $008956C8: track_segment_alt_table $008848FE: segment_copy_routine (JMP target)
-*Source: [scene_dispatch_track_data_setup.asm](disasm/modules/68k/game/scene/scene_dispatch_track_data_setup.asm)*
+*Source: [scene_dispatch_track_data_setup.asm](../disasm/modules/68k/game/scene/scene_dispatch_track_data_setup.asm)*
 
 ---
 
@@ -5544,7 +5553,7 @@ Saves/restores $C260 across SH2 init call ($88483A with A1→$C000). Then calls 
 - **Modifies**: D1, D7, A1
 - **Calls**: $0088483A: SH2 init A $00884842: SH2 init B (called 16 times)
 - **RAM**: $C000: SH2 buffer A (via LEA) $C026: control flag (word, set to $FFFF) $C260: saved value (long, preserved via stack) $C30E: control flags (byte, cleared) $C8AA: scene_state (word, cleared) $C8AC: state_dispatch_idx (word, cleared) $C8AE: effect_timer (word, cleared) $9000: SH2 buffer B (via LEA)
-*Source: [scene_init_sh2_buffer_clear_loop.asm](disasm/modules/68k/game/scene/scene_init_sh2_buffer_clear_loop.asm)*
+*Source: [scene_init_sh2_buffer_clear_loop.asm](../disasm/modules/68k/game/scene/scene_init_sh2_buffer_clear_loop.asm)*
 
 ---
 
@@ -5555,7 +5564,7 @@ Initializes scene variables: clears display flags ($C81D/$C81F/$C820), sets work
 - **Modifies**: D1, A1
 - **Calls**: $00884842: SH2 init A $00884846: SH2 init B $00884856: SH2 init C
 - **RAM**: $A800: work buffer base (via LEA) $A9E0: work param A (word, cleared) $A9E2: work param B (long, set to $0000C4C4) $A9E6: work param C (long, set to $0000C4C4) $C819: scene flag (byte, cleared) $C81A: scene source param (byte) $C81D: display flag A (byte, cleared) $C81F: display flag B (byte, cleared) $C820: display flag C (byte, cleared) $C8BE: scene counter (word, cleared) $C310: scene target param (byte, copied from $C81A)
-*Source: [scene_init.asm](disasm/modules/68k/game/scene/scene_init.asm)*
+*Source: [scene_init.asm](../disasm/modules/68k/game/scene/scene_init.asm)*
 
 ---
 
@@ -5566,7 +5575,7 @@ Source: code_c200 Configures the game mode and track selection variables used by
 - **Entry**: D0 = game mode (0-3) D1 = track number
 - **Returns**: All index variables configured
 - **Modifies**: D0, D1, D2
-*Source: [game_mode_track_config.asm](disasm/modules/68k/game/scene/game_mode_track_config.asm)*
+*Source: [game_mode_track_config.asm](../disasm/modules/68k/game/scene/game_mode_track_config.asm)*
 
 ---
 
@@ -5577,7 +5586,7 @@ SH2 Object and Sprite Update Orchestrator Per-frame SH2 communication orchestrat
 - **Modifies**: D0, D1, D2, D3, D4, A0, A1, A2
 - **Calls**: $00B684 (object_update), $00B6DA (sprite_update), $00E35A (sh2_send_cmd), $00E3B4 (sh2_cmd_27), $00E466 (text_render), $00E52C (dma_transfer)
 - **Confidence**: high
-*Source: [sh2_object_and_sprite_update_orch.asm](disasm/modules/68k/game/scene/sh2_object_and_sprite_update_orch.asm)*
+*Source: [sh2_object_and_sprite_update_orch.asm](../disasm/modules/68k/game/scene/sh2_object_and_sprite_update_orch.asm)*
 
 ---
 
@@ -5588,7 +5597,7 @@ SH2 Dual-Screen Object Update Orchestrator Data prefix (54 bytes: display comman
 - **Modifies**: D0, D1, D2, D3, A0, A1, A2, A5
 - **Calls**: $00B684 (object_update), $00B6DA (sprite_update), $00E35A (sh2_send_cmd), $00E52C (dma_transfer)
 - **Confidence**: high
-*Source: [sh2_dual_screen_object_update_orch.asm](disasm/modules/68k/game/scene/sh2_dual_screen_object_update_orch.asm)*
+*Source: [sh2_dual_screen_object_update_orch.asm](../disasm/modules/68k/game/scene/sh2_dual_screen_object_update_orch.asm)*
 
 ---
 
@@ -5599,7 +5608,7 @@ Source: code_c200 Performs a synchronization handshake with the SH2 via 32X comm
 - **Entry**: No register inputs
 - **Returns**: State advanced; SH2 handshake completed if needed
 - **Modifies**: (none modified beyond RAM/register writes)
-*Source: [sh2_handshake_state_advance.asm](disasm/modules/68k/game/scene/sh2_handshake_state_advance.asm)*
+*Source: [sh2_handshake_state_advance.asm](../disasm/modules/68k/game/scene/sh2_handshake_state_advance.asm)*
 
 ---
 
@@ -5610,7 +5619,7 @@ Source: code_c200 Configures the game's scene handler function pointer ($FF0002)
 - **Entry**: No register inputs (reads state from RAM)
 - **Returns**: $FF0002 set to appropriate scene handler
 - **Modifies**: No registers modified (all operands are memory-to-memory)
-*Source: [scene_setup_game_mode_transition.asm](disasm/modules/68k/game/scene/scene_setup_game_mode_transition.asm)*
+*Source: [scene_setup_game_mode_transition.asm](../disasm/modules/68k/game/scene/scene_setup_game_mode_transition.asm)*
 
 ---
 
@@ -5621,7 +5630,7 @@ SH2 Scene Object Update with Lookup Tables Data prefix (~280 bytes: sine/cosine 
 - **Modifies**: D0, D1, D2, D3, D4, D5, D6, D7
 - **Calls**: $00B684 (object_update), $00B6DA (sprite_update), $00E35A (sh2_send_cmd), $00E52C (dma_transfer)
 - **Confidence**: high
-*Source: [sh2_scene_object_update_with_lookup_tables.asm](disasm/modules/68k/game/scene/sh2_scene_object_update_with_lookup_tables.asm)*
+*Source: [sh2_scene_object_update_with_lookup_tables.asm](../disasm/modules/68k/game/scene/sh2_scene_object_update_with_lookup_tables.asm)*
 
 ---
 
@@ -5632,7 +5641,7 @@ Scene State Dispatcher with Color Tables Data prefix (~128 bytes: palette/color 
 - **Modifies**: D0, D1, D5, D6, A1, A2, A3, A4
 - **Calls**: $00B684 (object_update)
 - **Confidence**: high
-*Source: [scene_state_disp_with_color_tables.asm](disasm/modules/68k/game/scene/scene_state_disp_with_color_tables.asm)*
+*Source: [scene_state_disp_with_color_tables.asm](../disasm/modules/68k/game/scene/scene_state_disp_with_color_tables.asm)*
 
 ---
 
@@ -5643,7 +5652,7 @@ SH2 Multi-Panel Object Update Orchestrator Data prefix (~96 bytes: SH2 command t
 - **Modifies**: D0, D1, D2, D3, D6, A0, A1, A2
 - **Calls**: $00B684 (object_update), $00B6DA (sprite_update), $00E35A (sh2_send_cmd), $00F88C (palette_switch)
 - **Confidence**: high
-*Source: [sh2_multi_panel_object_update_orch.asm](disasm/modules/68k/game/scene/sh2_multi_panel_object_update_orch.asm)*
+*Source: [sh2_multi_panel_object_update_orch.asm](../disasm/modules/68k/game/scene/sh2_multi_panel_object_update_orch.asm)*
 
 ---
 
@@ -5654,7 +5663,7 @@ Waits for SH2 to become idle (COMM0 high byte = 0), clears COMM1, resets game st
 - **Entry**: none | Exit: SH2 idle, game state reset, mode configured
 - **Modifies**: none (beyond RAM/register writes)
 - **RAM**: $FFFFC87E = main game state index (word, cleared to 0) $00A15120 = COMM0 high byte (polled until zero) $00A15123 = COMM1 low byte (cleared) $00FF0008 = display mode register (word, set to $0020) $00FF0002 = SH2 entry point vector (long, set to $008909AE)
-*Source: [sh2_comm_reset_mode_set.asm](disasm/modules/68k/game/scene/sh2_comm_reset_mode_set.asm)*
+*Source: [sh2_comm_reset_mode_set.asm](../disasm/modules/68k/game/scene/sh2_comm_reset_mode_set.asm)*
 
 ---
 
@@ -5664,7 +5673,7 @@ Set Handler $88D4A4 Waits for SH2 idle (COMM0 clear), then resets game state and
 
 - **Entry**: none | Exit: SH2 reconfigured | Uses: none
 - **RAM**: $FFFFC87E = main game state (word, cleared to 0) $00FF0002 = SH2 scene handler pointer (long, set) $00FF0008 = display mode / frame delay (word, set to $0020)
-*Source: [sh2_scene_reset_set_handler_88d4a4.asm](disasm/modules/68k/game/scene/sh2_scene_reset_set_handler_88d4a4.asm)*
+*Source: [sh2_scene_reset_set_handler_88d4a4.asm](../disasm/modules/68k/game/scene/sh2_scene_reset_set_handler_88d4a4.asm)*
 
 ---
 
@@ -5675,7 +5684,7 @@ Clears the 512-byte sprite data buffer at $FF6E00, triggers a sprite update via 
 - **Entry**: none | Exit: sprites cleared, SH2 optionally reset
 - **Modifies**: D0, A0
 - **RAM**: $00FF6E00 = sprite data buffer (512 bytes, cleared) $FFFFC821 = sprite update flag (byte, set to 1) $FFFFC80E = sync/transition flags (byte, bit 7 tested) $FFFFC87E = main game state (word, conditionally cleared) $00FF0002 = SH2 scene handler pointer (long, set to $0088D4B8) $00FF0008 = display mode / frame delay (word, set to $0020)
-*Source: [sprite_buffer_clear_sh2_scene_reset.asm](disasm/modules/68k/game/scene/sprite_buffer_clear_sh2_scene_reset.asm)*
+*Source: [sprite_buffer_clear_sh2_scene_reset.asm](../disasm/modules/68k/game/scene/sprite_buffer_clear_sh2_scene_reset.asm)*
 
 ---
 
@@ -5685,7 +5694,7 @@ SH2 Command Sender (Multi-Parameter) Sends multiple parameters to the SH2 via CO
 
 - **Entry**: D0, D1, D2 = parameter words; A0, A1 = parameter pointers
 - **Modifies**: D0, D1, D2, A0, A1 32X registers: COMM0_HI, COMM0_LO, COMM4, COMM5, COMM6
-*Source: [sh2_command_sender.asm](disasm/modules/68k/game/scene/sh2_command_sender.asm)*
+*Source: [sh2_command_sender.asm](../disasm/modules/68k/game/scene/sh2_command_sender.asm)*
 
 ---
 
@@ -5695,7 +5704,7 @@ Set Handler $8926D2 Waits for SH2 idle (COMM0 clear), then resets game state and
 
 - **Entry**: none | Exit: SH2 reconfigured | Uses: none
 - **RAM**: $FFFFC87E = main game state (word, cleared to 0) $00FF0002 = SH2 scene handler pointer (long, set) $00FF0008 = display mode / frame delay (word, set to $0020)
-*Source: [sh2_scene_reset_set_handler_8926d2.asm](disasm/modules/68k/game/scene/sh2_scene_reset_set_handler_8926d2.asm)*
+*Source: [sh2_scene_reset_set_handler_8926d2.asm](../disasm/modules/68k/game/scene/sh2_scene_reset_set_handler_8926d2.asm)*
 
 ---
 
@@ -5706,7 +5715,7 @@ Contains three 16-word track-specific data tables followed by a scene state disp
 - **Entry**: scene_state_disp_track_data_tables -> data tables (not executed directly) fn_12200_023_dispatch -> scene state dispatcher fn_12200_023_complete -> post-dispatch completion check
 - **Modifies**: D0, A1
 - **Calls**: sound_command_dispatch_sound_driver_call: scene setup object_update: object system update Jump table targets: State 0:  camera_demo_palette_sh2_setup State 4:  fn_12200_025_exec (mid-function DMA entry) State 8:  camera_selection_main_loop State 12: sh2_mode_disp_select_scene_by_track_mode
-*Source: [scene_state_disp_track_data_tables.asm](disasm/modules/68k/game/scene/scene_state_disp_track_data_tables.asm)*
+*Source: [scene_state_disp_track_data_tables.asm](../disasm/modules/68k/game/scene/scene_state_disp_track_data_tables.asm)*
 
 ---
 
@@ -5716,7 +5725,7 @@ Conditional Handler by Player 2 Flag Waits for SH2 idle, copies the player 2 act
 
 - **Entry**: none | Exit: SH2 scene configured | Uses: D0
 - **RAM**: $FFFFA01A = player 2 active flag (word, read) $FFFFFDA9 = P2 flag backup (byte, written) $FFFFA018 = player 1 data pointer high byte (byte, tested) $FFFFC87E = main game state (word, cleared to 0) $00FF0002 = SH2 scene handler pointer (long, set) $00FF0008 = display mode / frame delay (word, set to $0020)
-*Source: [sh2_scene_reset_cond_handler_by_player_2_flag.asm](disasm/modules/68k/game/scene/sh2_scene_reset_cond_handler_by_player_2_flag.asm)*
+*Source: [sh2_scene_reset_cond_handler_by_player_2_flag.asm](../disasm/modules/68k/game/scene/sh2_scene_reset_cond_handler_by_player_2_flag.asm)*
 
 ---
 
@@ -5726,7 +5735,7 @@ Tests player data word ($A008). If non-zero, returns immediately. Otherwise rese
 
 - **Entry**: none | Exit: scene reset or early return | Uses: none
 - **RAM**: $FFFFA008 = player data word (tested, non-zero → early return) $00FF0008 = SH2 display mode/frame delay (word, set to $0020) $FFFFC080 = timeline counter (byte, cleared) $00FF0002 = SH2 scene handler pointer (long, set to $008853B0)
-*Source: [conditional_sh2_scene_reset.asm](disasm/modules/68k/game/scene/conditional_sh2_scene_reset.asm)*
+*Source: [conditional_sh2_scene_reset.asm](../disasm/modules/68k/game/scene/conditional_sh2_scene_reset.asm)*
 
 ---
 
@@ -5736,7 +5745,7 @@ Sets VDP update flag ($C80D), saves all registers, raises interrupt priority mas
 
 - **Entry**: none | Exit: SH2 routine called | Uses: all (saved/restored)
 - **RAM**: $FFFFC80D = VDP update flag (byte, set to $01)
-*Source: [sh2_call_interrupt_mask.asm](disasm/modules/68k/game/scene/sh2_call_interrupt_mask.asm)*
+*Source: [sh2_call_interrupt_mask.asm](../disasm/modules/68k/game/scene/sh2_call_interrupt_mask.asm)*
 
 ---
 
@@ -5749,7 +5758,7 @@ Sequence Data Byte Decoder Decodes 3 bytes from sequence stream (A2) into displa
 - **Entry**: D3 = output offset, A1 = output buffer, A2 = source stream
 - **Modifies**: D0, D1, D3, A0, A1, A2
 - **Confidence**: high
-*Source: [sequence_data_byte_decoder.asm](disasm/modules/68k/game/sound/sequence_data_byte_decoder.asm)*
+*Source: [sequence_data_byte_decoder.asm](../disasm/modules/68k/game/sound/sequence_data_byte_decoder.asm)*
 
 ---
 
@@ -5760,7 +5769,7 @@ Sequence Data Word Decoder Decodes 3 bytes from sequence stream (A1) into word-s
 - **Entry**: A1 = source stream, A2 = output buffer
 - **Modifies**: D0, A1, A2, A3
 - **Confidence**: high
-*Source: [sequence_data_word_decoder.asm](disasm/modules/68k/game/sound/sequence_data_word_decoder.asm)*
+*Source: [sequence_data_word_decoder.asm](../disasm/modules/68k/game/sound/sequence_data_word_decoder.asm)*
 
 ---
 
@@ -5770,7 +5779,7 @@ Sound Buffer Copy with Decode Loads decode buffer A3 from $FF68D8, calls shared 
 
 - **Modifies**: A1, A3
 - **Confidence**: high
-*Source: [sound_buffer_copy_with_decode.asm](disasm/modules/68k/game/sound/sound_buffer_copy_with_decode.asm)*
+*Source: [sound_buffer_copy_with_decode.asm](../disasm/modules/68k/game/sound/sound_buffer_copy_with_decode.asm)*
 
 ---
 
@@ -5781,7 +5790,7 @@ Sound Buffer Copy with Offset Variant of sound_buffer_copy_with_decode with D3-b
 - **Entry**: D3 = buffer entry index
 - **Modifies**: D3, A1, A3
 - **Confidence**: high
-*Source: [sound_buffer_copy_with_offset.asm](disasm/modules/68k/game/sound/sound_buffer_copy_with_offset.asm)*
+*Source: [sound_buffer_copy_with_offset.asm](../disasm/modules/68k/game/sound/sound_buffer_copy_with_offset.asm)*
 
 ---
 
@@ -5793,7 +5802,7 @@ decrement timer and reinit on expiry Checks FM sound channel timer at A5+$12. If
 - **Modifies**: A5, A7 (stack pop)
 - **Calls**: $030C8A: fm_init_channel
 - **Confidence**: medium
-*Source: [fm_channel_timer_check.asm](disasm/modules/68k/game/sound/fm_channel_timer_check.asm)*
+*Source: [fm_channel_timer_check.asm](../disasm/modules/68k/game/sound/fm_channel_timer_check.asm)*
 
 ---
 
@@ -5803,7 +5812,7 @@ call fm_set_volume and skip caller Calls fm_set_volume subroutine, then pops ret
 
 - **Calls**: $030FB2: fm_set_volume
 - **Confidence**: medium
-*Source: [fm_set_volume_wrapper.asm](disasm/modules/68k/game/sound/fm_set_volume_wrapper.asm)*
+*Source: [fm_set_volume_wrapper.asm](../disasm/modules/68k/game/sound/fm_set_volume_wrapper.asm)*
 
 ---
 
@@ -5815,7 +5824,7 @@ check channel and write frequency Checks FM channel status (A5+$0A active, bit 1
 - **Modifies**: D0, D1, D6, A0, A4, A5, A6
 - **Calls**: $0302EE: fm_sequence_process $030CCC: fm_write_conditional $030D1C: z80_bus_request
 - **Confidence**: high
-*Source: [fm_sequence_process_orch.asm](disasm/modules/68k/game/sound/fm_sequence_process_orch.asm)*
+*Source: [fm_sequence_process_orch.asm](../disasm/modules/68k/game/sound/fm_sequence_process_orch.asm)*
 
 ---
 
@@ -5826,7 +5835,7 @@ read note/frequency from sequence table Reads FM sequence data from ROM tables. 
 - **Entry**: A5 = FM channel structure pointer
 - **Modifies**: D0, D6, A0, A5
 - **Confidence**: medium
-*Source: [fm_sequence_data_reader.asm](disasm/modules/68k/game/sound/fm_sequence_data_reader.asm)*
+*Source: [fm_sequence_data_reader.asm](../disasm/modules/68k/game/sound/fm_sequence_data_reader.asm)*
 
 ---
 
@@ -5835,7 +5844,7 @@ read note/frequency from sequence table Reads FM sequence data from ROM tables. 
 skip caller's remaining code Pops return address from stack (ADDQ.W #4,A7), then returns. This causes execution to skip the caller's remaining code and return to the grandparent. Used by the sound driver as a tail-call abort.
 
 - **Confidence**: high
-*Source: [stack_pop_return.asm](disasm/modules/68k/game/sound/stack_pop_return.asm)*
+*Source: [stack_pop_return.asm](../disasm/modules/68k/game/sound/stack_pop_return.asm)*
 
 ---
 
@@ -5847,7 +5856,7 @@ process special sequence bytes Multiple entry points for FM sequence special com
 - **Modifies**: D0, D1, D3, D5, D6, A0, A1, A2
 - **Calls**: $030CD8: fm_write_port0 $030D1C: z80_bus_request
 - **Confidence**: high
-*Source: [fm_sequence_command_handler.asm](disasm/modules/68k/game/sound/fm_sequence_command_handler.asm)*
+*Source: [fm_sequence_command_handler.asm](../disasm/modules/68k/game/sound/fm_sequence_command_handler.asm)*
 
 ---
 
@@ -5858,7 +5867,7 @@ panning register data and dispatch 8 FM register bytes used by fm_sequence_comma
 - **Entry**: A5 = FM channel structure pointer
 - **Modifies**: D0, A5
 - **Confidence**: medium
-*Source: [fm_reg_table_state_disp.asm](disasm/modules/68k/game/sound/fm_reg_table_state_disp.asm)*
+*Source: [fm_reg_table_state_disp.asm](../disasm/modules/68k/game/sound/fm_reg_table_state_disp.asm)*
 
 ---
 
@@ -5869,7 +5878,7 @@ panning register data and dispatch 8 FM register bytes used by fm_sequence_comma
 - **Entry**: A5 = FM channel structure pointer
 - **Modifies**: D0, A5
 - **Confidence**: medium
-*Source: [fm_state_disp_b.asm](disasm/modules/68k/game/sound/fm_state_disp_b.asm)*
+*Source: [fm_state_disp_b.asm](../disasm/modules/68k/game/sound/fm_state_disp_b.asm)*
 
 ---
 
@@ -5881,7 +5890,7 @@ step through panning envelope data Processes FM panning envelope: reads envelope
 - **Modifies**: D0, D1, D3, A0, A5
 - **Calls**: $030CA2: fm_conditional_write
 - **Confidence**: medium
-*Source: [fm_panning_envelope_proc.asm](disasm/modules/68k/game/sound/fm_panning_envelope_proc.asm)*
+*Source: [fm_panning_envelope_proc.asm](../disasm/modules/68k/game/sound/fm_panning_envelope_proc.asm)*
 
 ---
 
@@ -5893,7 +5902,7 @@ initialize panning for all channels 4 longword pointers to panning envelope tabl
 - **Modifies**: D0, D1, D2, D3, D4, A5, A6
 - **Calls**: $030CCC: fm_write_conditional $030CD8: fm_write_port0 $030D1C: z80_bus_request
 - **Confidence**: medium
-*Source: [fm_panning_init_channel_stereo_setup.asm](disasm/modules/68k/game/sound/fm_panning_init_channel_stereo_setup.asm)*
+*Source: [fm_panning_init_channel_stereo_setup.asm](../disasm/modules/68k/game/sound/fm_panning_init_channel_stereo_setup.asm)*
 
 ---
 
@@ -5904,7 +5913,7 @@ compare and accept higher-priority commands Reads new sound command from A6+$0A,
 - **Entry**: A6 = sound channel state (+$00=priority, +$09=cmd, +$0A=new_cmd)
 - **Modifies**: D0, D1, D2, D3, A0, A1, A6
 - **Confidence**: medium
-*Source: [fm_sound_priority_check.asm](disasm/modules/68k/game/sound/fm_sound_priority_check.asm)*
+*Source: [fm_sound_priority_check.asm](../disasm/modules/68k/game/sound/fm_sound_priority_check.asm)*
 
 ---
 
@@ -5915,7 +5924,7 @@ route command byte to handler Reads sound command byte from A6+$09, dispatches t
 - **Entry**: A6 = sound channel state (+$09=command byte)
 - **Modifies**: D2, D6, D7, A0, A6
 - **Confidence**: medium
-*Source: [fm_sound_command_disp.asm](disasm/modules/68k/game/sound/fm_sound_command_disp.asm)*
+*Source: [fm_sound_command_disp.asm](../disasm/modules/68k/game/sound/fm_sound_command_disp.asm)*
 
 ---
 
@@ -5927,7 +5936,7 @@ route $F0-$FE system commands Dispatches system commands ($F0-$FE) via 16-entry 
 - **Modifies**: D7
 - **Calls**: $030D1C: z80_bus_request
 - **Confidence**: high
-*Source: [fm_system_command_disp.asm](disasm/modules/68k/game/sound/fm_system_command_disp.asm)*
+*Source: [fm_system_command_disp.asm](../disasm/modules/68k/game/sound/fm_system_command_disp.asm)*
 
 ---
 
@@ -5939,7 +5948,7 @@ load instrument data and configure channels Loads instrument definition from ROM
 - **Modifies**: D0, D1, D4, D5, D6, D7, A0, A1, A2, A3, A4, A5
 - **Calls**: $030C8A: fm_init_channel $030CBA: fm_write_wrapper $030D1C: z80_bus_request $030FB2: fm_set_volume
 - **Confidence**: high
-*Source: [fm_instrument_setup.asm](disasm/modules/68k/game/sound/fm_instrument_setup.asm)*
+*Source: [fm_instrument_setup.asm](../disasm/modules/68k/game/sound/fm_instrument_setup.asm)*
 
 ---
 
@@ -5950,7 +5959,7 @@ $A0-$D2 commands FM/PSG register assignment bytes used by fm_instrument_setup. C
 - **Entry**: A6 = sound driver state pointer; D7 = sound command byte ($A0-$D2)
 - **Modifies**: D0, D1, D2, D3, D4, D5, D6, D7, A0, A1, A2, A3, A5
 - **Confidence**: medium
-*Source: [fm_channel_reg_map_instrument_loader_b.asm](disasm/modules/68k/game/sound/fm_channel_reg_map_instrument_loader_b.asm)*
+*Source: [fm_channel_reg_map_instrument_loader_b.asm](../disasm/modules/68k/game/sound/fm_channel_reg_map_instrument_loader_b.asm)*
 
 ---
 
@@ -5961,7 +5970,7 @@ $D6-$D7 sound effects 16 longword pointers to channel structs within A6 sound dr
 - **Entry**: A6 = sound driver state pointer; D7 = sound command byte ($D6-$D7)
 - **Modifies**: D0, D2, D3, D4, D5, D6, D7, A0, A1, A2, A3, A5
 - **Confidence**: medium
-*Source: [fm_channel_pointer_table_sfx_loader.asm](disasm/modules/68k/game/sound/fm_channel_pointer_table_sfx_loader.asm)*
+*Source: [fm_channel_pointer_table_sfx_loader.asm](../disasm/modules/68k/game/sound/fm_channel_pointer_table_sfx_loader.asm)*
 
 ---
 
@@ -5973,7 +5982,7 @@ silence all active channels channel struct pointer table (used alongside $030852
 - **Modifies**: D0, D1, D3, D4, D6, A0, A1, A3, A5
 - **Calls**: $030C8A: fm_init_channel $030CBA: fm_write_wrapper $030FB2: fm_set_volume
 - **Confidence**: high
-*Source: [fm_channel_stop_reg_map_stop_all.asm](disasm/modules/68k/game/sound/fm_channel_stop_reg_map_stop_all.asm)*
+*Source: [fm_channel_stop_reg_map_stop_all.asm](../disasm/modules/68k/game/sound/fm_channel_stop_reg_map_stop_all.asm)*
 
 ---
 
@@ -5984,7 +5993,7 @@ stop DAC and noise effect channels Handles cleanup of two special sound channels
 - **Entry**: A6 = sound driver state pointer
 - **Modifies**: D0, A1, A5, A6
 - **Confidence**: medium
-*Source: [fm_special_channel_cleanup.asm](disasm/modules/68k/game/sound/fm_special_channel_cleanup.asm)*
+*Source: [fm_special_channel_cleanup.asm](../disasm/modules/68k/game/sound/fm_special_channel_cleanup.asm)*
 
 ---
 
@@ -5995,7 +6004,7 @@ stop all channels and reset tempo Calls channel stop ($03094E) to silence all FM
 - **Entry**: A6 = sound driver state pointer
 - **Modifies**: A6
 - **Confidence**: high
-*Source: [fm_full_silence.asm](disasm/modules/68k/game/sound/fm_full_silence.asm)*
+*Source: [fm_full_silence.asm](../disasm/modules/68k/game/sound/fm_full_silence.asm)*
 
 ---
 
@@ -6007,7 +6016,7 @@ advance all channel envelopes per frame Decrements frame counter (A6+$04); if ze
 - **Modifies**: D6, D7, A5, A6
 - **Calls**: $030DF4: z80_dac_write $03135A: [fm_envelope_write] $030F60: [psg_envelope_write]
 - **Confidence**: medium
-*Source: [fm_envelope_tick_update.asm](disasm/modules/68k/game/sound/fm_envelope_tick_update.asm)*
+*Source: [fm_envelope_tick_update.asm](../disasm/modules/68k/game/sound/fm_envelope_tick_update.asm)*
 
 ---
 
@@ -6018,7 +6027,7 @@ set all operator volumes to maximum attenuation Requests Z80 bus, then writes al
 - **Modifies**: D0, D1, D3, D4
 - **Calls**: $030CCC: fm_write_conditional $030D1C: z80_bus_request
 - **Confidence**: high
-*Source: [fm_total_level_reset.asm](disasm/modules/68k/game/sound/fm_total_level_reset.asm)*
+*Source: [fm_total_level_reset.asm](../disasm/modules/68k/game/sound/fm_total_level_reset.asm)*
 
 ---
 
@@ -6029,7 +6038,7 @@ key-off all channels and zero volumes Requests Z80 bus, writes key-off (register
 - **Modifies**: D0, D1, D2, D3
 - **Calls**: $030CD8: fm_write_port0 $030D1C: z80_bus_request
 - **Confidence**: high
-*Source: [fm_key_off_volume_zero.asm](disasm/modules/68k/game/sound/fm_key_off_volume_zero.asm)*
+*Source: [fm_key_off_volume_zero.asm](../disasm/modules/68k/game/sound/fm_key_off_volume_zero.asm)*
 
 ---
 
@@ -6041,7 +6050,7 @@ full/partial silence and state clear Two entry points: $030B90 (full reset): Wri
 - **Modifies**: D0, D1, A0, A6
 - **Calls**: $030CBA: fm_write_wrapper
 - **Confidence**: high
-*Source: [fm_sound_driver_reset.asm](disasm/modules/68k/game/sound/fm_sound_driver_reset.asm)*
+*Source: [fm_sound_driver_reset.asm](../disasm/modules/68k/game/sound/fm_sound_driver_reset.asm)*
 
 ---
 
@@ -6052,7 +6061,7 @@ load driver and key-on helper Two parts: $030BF6: Requests Z80 bus, uploads soun
 - **Entry**: A5 = FM channel structure pointer (for key-on entry); A6 = sound driver state pointer (loaded at $FF8500 for upload)
 - **Modifies**: D0, D1, A0, A1, A5, A6
 - **Confidence**: high
-*Source: [z80_sound_program_upload_fm_key_on.asm](disasm/modules/68k/game/sound/z80_sound_program_upload_fm_key_on.asm)*
+*Source: [z80_sound_program_upload_fm_key_on.asm](../disasm/modules/68k/game/sound/z80_sound_program_upload_fm_key_on.asm)*
 
 ---
 
@@ -6063,7 +6072,7 @@ key-on with flag checks (fm_init_channel) Two entry points: $030C8A: Checks bit 
 - **Entry**: A5 = FM channel structure pointer (+$01=channel number)
 - **Modifies**: D0, D1, A5
 - **Confidence**: high
-*Source: [fm_init_channel.asm](disasm/modules/68k/game/sound/fm_init_channel.asm)*
+*Source: [fm_init_channel.asm](../disasm/modules/68k/game/sound/fm_init_channel.asm)*
 
 ---
 
@@ -6075,7 +6084,7 @@ write FM register if not key-off Checks bit 2 (key-off) on channel (A5). If set,
 - **Modifies**: D0, D1, A5
 - **Calls**: $030CCC: fm_write_conditional $030D1C: z80_bus_request
 - **Confidence**: high
-*Source: [fm_cond_write_with_bus.asm](disasm/modules/68k/game/sound/fm_cond_write_with_bus.asm)*
+*Source: [fm_cond_write_with_bus.asm](../disasm/modules/68k/game/sound/fm_cond_write_with_bus.asm)*
 
 ---
 
@@ -6086,7 +6095,7 @@ request bus, write port 0, release (fm_write_wrapper) Convenience wrapper: reque
 - **Entry**: D0 = FM register number, D1 = data value
 - **Calls**: $030CD8: fm_write_port0 $030D1C: z80_bus_request
 - **Confidence**: high
-*Source: [fm_write_wrapper.asm](disasm/modules/68k/game/sound/fm_write_wrapper.asm)*
+*Source: [fm_write_wrapper.asm](../disasm/modules/68k/game/sound/fm_write_wrapper.asm)*
 
 ---
 
@@ -6097,7 +6106,7 @@ write port 0 with channel offset (fm_write_conditional) Checks bit 2 in A5+$01 (
 - **Entry**: A5 = FM channel structure pointer (+$01=channel/flags); D0 = FM register number, D1 = data value
 - **Modifies**: D0, D1, A0
 - **Confidence**: high
-*Source: [fm_write_cond.asm](disasm/modules/68k/game/sound/fm_write_cond.asm)*
+*Source: [fm_write_cond.asm](../disasm/modules/68k/game/sound/fm_write_cond.asm)*
 
 ---
 
@@ -6108,7 +6117,7 @@ channel-offset write + direct port 1 write Two entry points: $030CF4 (fm_write_p
 - **Entry**: A5 = FM channel structure pointer (for port 0 entry); D0 = FM register number, D1 = data value
 - **Modifies**: D0, D1, D2, A0
 - **Confidence**: high
-*Source: [fm_write_port_0_1.asm](disasm/modules/68k/game/sound/fm_write_port_0_1.asm)*
+*Source: [fm_write_port_0_1.asm](../disasm/modules/68k/game/sound/fm_write_port_0_1.asm)*
 
 ---
 
@@ -6119,7 +6128,7 @@ adjust all channel volumes per frame Checks fade state at A6+$38 (0=off, 2=done 
 - **Entry**: A6 = sound driver state pointer
 - **Modifies**: D5, D6, D7, A5, A6
 - **Confidence**: medium
-*Source: [fm_fade_in_out_proc.asm](disasm/modules/68k/game/sound/fm_fade_in_out_proc.asm)*
+*Source: [fm_fade_in_out_proc.asm](../disasm/modules/68k/game/sound/fm_fade_in_out_proc.asm)*
 
 ---
 
@@ -6130,7 +6139,7 @@ reset fade state to off Clears fade state byte (A6+$38 = 0) to disable fade proc
 - **Entry**: A6 = sound driver state pointer
 - **Modifies**: A6
 - **Confidence**: high
-*Source: [fm_fade_clear.asm](disasm/modules/68k/game/sound/fm_fade_clear.asm)*
+*Source: [fm_fade_clear.asm](../disasm/modules/68k/game/sound/fm_fade_clear.asm)*
 
 ---
 
@@ -6141,7 +6150,7 @@ tick handler with sequence parser FM/PSG register pair table at $030E20-$030E37.
 - **Entry**: A5 = PSG channel structure pointer
 - **Modifies**: D1, D5, D6, A0, A3, A4, A5, A6
 - **Confidence**: medium
-*Source: [psg_channel_proc.asm](disasm/modules/68k/game/sound/psg_channel_proc.asm)*
+*Source: [psg_channel_proc.asm](../disasm/modules/68k/game/sound/psg_channel_proc.asm)*
 
 ---
 
@@ -6153,7 +6162,7 @@ read frequency and write PSG tone registers Checks channel active (A5+$0A), mute
 - **Modifies**: D0, D1, D6, A5
 - **Calls**: $0302EE: fm_sequence_process
 - **Confidence**: medium
-*Source: [psg_sequence_tick.asm](disasm/modules/68k/game/sound/psg_sequence_tick.asm)*
+*Source: [psg_sequence_tick.asm](../disasm/modules/68k/game/sound/psg_sequence_tick.asm)*
 
 ---
 
@@ -6164,7 +6173,7 @@ step through volume envelope data Reads envelope position (A5+$09) as base volum
 - **Entry**: A5 = PSG channel structure pointer
 - **Modifies**: D0, D6, A0, A5
 - **Confidence**: medium
-*Source: [psg_volume_envelope_proc.asm](disasm/modules/68k/game/sound/psg_volume_envelope_proc.asm)*
+*Source: [psg_volume_envelope_proc.asm](../disasm/modules/68k/game/sound/psg_volume_envelope_proc.asm)*
 
 ---
 
@@ -6175,7 +6184,7 @@ conditional PSG write based on vibrato state Checks vibrato enable (A5+$13). If 
 - **Entry**: A5 = PSG channel structure pointer
 - **Modifies**: A5
 - **Confidence**: medium
-*Source: [psg_vibrato_check.asm](disasm/modules/68k/game/sound/psg_vibrato_check.asm)*
+*Source: [psg_vibrato_check.asm](../disasm/modules/68k/game/sound/psg_vibrato_check.asm)*
 
 ---
 
@@ -6186,7 +6195,7 @@ rewind/mute for volume envelope Two entry points for special envelope command by
 - **Entry**: A5 = PSG channel structure pointer
 - **Modifies**: A5
 - **Confidence**: high
-*Source: [psg_envelope_command_handler.asm](disasm/modules/68k/game/sound/psg_envelope_command_handler.asm)*
+*Source: [psg_envelope_command_handler.asm](../disasm/modules/68k/game/sound/psg_envelope_command_handler.asm)*
 
 ---
 
@@ -6197,7 +6206,7 @@ envelope position set and PSG mute Multiple entry points: $030FA2: Set envelope 
 - **Entry**: A5 = PSG channel structure pointer
 - **Modifies**: D0, A0
 - **Confidence**: high
-*Source: [psg_set_pos_silence.asm](disasm/modules/68k/game/sound/psg_set_pos_silence.asm)*
+*Source: [psg_set_pos_silence.asm](../disasm/modules/68k/game/sound/psg_set_pos_silence.asm)*
 
 ---
 
@@ -6207,7 +6216,7 @@ mute all 4 PSG channels Writes maximum attenuation to all 4 PSG channels via $C0
 
 - **Modifies**: A0
 - **Confidence**: high
-*Source: [psg_all_silence.asm](disasm/modules/68k/game/sound/psg_all_silence.asm)*
+*Source: [psg_all_silence.asm](../disasm/modules/68k/game/sound/psg_all_silence.asm)*
 
 ---
 
@@ -6218,7 +6227,7 @@ data and $E0+ handler Data prefix ($030FE0-$031093): 128-entry PSG frequency loo
 - **Entry**: A5 = channel structure pointer, A4 = sequence pointer; A6 = sound driver state pointer
 - **Modifies**: D0, D1, D3, D4, D5, D7, A0, A1, A4, A5, A6
 - **Confidence**: medium
-*Source: [psg_freq_table_special_command_disp.asm](disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm)*
+*Source: [psg_freq_table_special_command_disp.asm](../disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm)*
 
 ---
 
@@ -6230,7 +6239,7 @@ write sequence byte to Z80 DAC register Reads one byte from sequence pointer (A4
 - **Modifies**: D0, A4
 - **Calls**: $030D1C: z80_bus_request
 - **Confidence**: high
-*Source: [z80_dac_byte_write.asm](disasm/modules/68k/game/sound/z80_dac_byte_write.asm)*
+*Source: [z80_dac_byte_write.asm](../disasm/modules/68k/game/sound/z80_dac_byte_write.asm)*
 
 ---
 
@@ -6241,7 +6250,7 @@ read 16-bit frequency from sequence Reads 2 bytes from sequence pointer (A4) as 
 - **Entry**: A4 = sequence data pointer (advanced by 2); A5 = channel structure pointer
 - **Modifies**: D0, A4
 - **Confidence**: high
-*Source: [set_base_freq.asm](disasm/modules/68k/game/sound/set_base_freq.asm)*
+*Source: [set_base_freq.asm](../disasm/modules/68k/game/sound/set_base_freq.asm)*
 
 ---
 
@@ -6252,7 +6261,7 @@ apply portamento/bend to base frequency Reads channel index from sequence (A4), 
 - **Entry**: A4 = sequence data pointer (advanced by 1); A5 = channel structure pointer; A6 = sound driver state pointer
 - **Modifies**: D0, D1, A4
 - **Confidence**: medium
-*Source: [pitch_bend_apply.asm](disasm/modules/68k/game/sound/pitch_bend_apply.asm)*
+*Source: [pitch_bend_apply.asm](../disasm/modules/68k/game/sound/pitch_bend_apply.asm)*
 
 ---
 
@@ -6263,7 +6272,7 @@ write panning register from sequence byte Reads panning value from sequence (A4)
 - **Entry**: A5 = channel structure pointer, A4 = sequence pointer
 - **Modifies**: D0, D1, A4
 - **Confidence**: high
-*Source: [fm_set_panning.asm](disasm/modules/68k/game/sound/fm_set_panning.asm)*
+*Source: [fm_set_panning.asm](../disasm/modules/68k/game/sound/fm_set_panning.asm)*
 
 ---
 
@@ -6274,7 +6283,7 @@ read multiplier from sequence Reads one byte from sequence pointer (A4), stores 
 - **Entry**: A4 = sequence pointer, A6 = sound driver state pointer
 - **Modifies**: A4
 - **Confidence**: high
-*Source: [set_channel_multiplier.asm](disasm/modules/68k/game/sound/set_channel_multiplier.asm)*
+*Source: [set_channel_multiplier.asm](../disasm/modules/68k/game/sound/set_channel_multiplier.asm)*
 
 ---
 
@@ -6285,7 +6294,7 @@ reset volumes or init envelope Two entry points: $0311E8: Calls TL reset ($030B1
 - **Entry**: A5 = channel structure pointer, A4 = sequence pointer
 - **Modifies**: A4
 - **Confidence**: medium
-*Source: [tl_reset_panning_envelope_setup.asm](disasm/modules/68k/game/sound/tl_reset_panning_envelope_setup.asm)*
+*Source: [tl_reset_panning_envelope_setup.asm](../disasm/modules/68k/game/sound/tl_reset_panning_envelope_setup.asm)*
 
 ---
 
@@ -6296,7 +6305,7 @@ two sequence command handlers Two entry points: $03120C: Writes current panning 
 - **Entry**: A5 = channel structure pointer, A4 = sequence pointer
 - **Modifies**: D0, D1, A4
 - **Confidence**: medium
-*Source: [write_panning_psg_volume_adjust.asm](disasm/modules/68k/game/sound/write_panning_psg_volume_adjust.asm)*
+*Source: [write_panning_psg_volume_adjust.asm](../disasm/modules/68k/game/sound/write_panning_psg_volume_adjust.asm)*
 
 ---
 
@@ -6307,7 +6316,7 @@ add delta and route to channel writer Two entry points: $031228: Reads volume de
 - **Entry**: A5 = channel structure pointer, A4 = sequence pointer; A6 = sound driver state pointer
 - **Modifies**: D0, A4
 - **Confidence**: medium
-*Source: [volume_adjust_write.asm](disasm/modules/68k/game/sound/volume_adjust_write.asm)*
+*Source: [volume_adjust_write.asm](../disasm/modules/68k/game/sound/volume_adjust_write.asm)*
 
 ---
 
@@ -6319,7 +6328,7 @@ load and write 4 operator values Loads instrument data from A6+$30 pointer (or A
 - **Modifies**: D0, D1, D3, D6, A0, A1, A2, A4
 - **Calls**: $030CA2: fm_conditional_write $030CBA: fm_write_wrapper
 - **Confidence**: high
-*Source: [fm_operator_reg_write.asm](disasm/modules/68k/game/sound/fm_operator_reg_write.asm)*
+*Source: [fm_operator_reg_write.asm](../disasm/modules/68k/game/sound/fm_operator_reg_write.asm)*
 
 ---
 
@@ -6330,7 +6339,7 @@ read instrument index from sequence Reads one byte from sequence pointer (A4), s
 - **Entry**: A4 = sequence pointer, A6 = sound driver state pointer
 - **Modifies**: A4
 - **Confidence**: high
-*Source: [set_instrument_number.asm](disasm/modules/68k/game/sound/set_instrument_number.asm)*
+*Source: [set_instrument_number.asm](../disasm/modules/68k/game/sound/set_instrument_number.asm)*
 
 ---
 
@@ -6342,7 +6351,7 @@ full operator + TL register setup Multiple entry points: $0312B4: Write register
 - **Modifies**: D0, D1, D3, D4, D5, A1, A2, A4
 - **Calls**: $030CCC: fm_write_conditional $030D1C: z80_bus_request
 - **Confidence**: high
-*Source: [fm_instrument_reg_write.asm](disasm/modules/68k/game/sound/fm_instrument_reg_write.asm)*
+*Source: [fm_instrument_reg_write.asm](../disasm/modules/68k/game/sound/fm_instrument_reg_write.asm)*
 
 ---
 
@@ -6354,7 +6363,7 @@ update TL with volume 8-byte key scaling table at $031352 (operator TL scaling b
 - **Modifies**: D0, D1, D3, D4, D5, A1, A2
 - **Calls**: $030CCC: fm_write_conditional $030D1C: z80_bus_request
 - **Confidence**: high
-*Source: [fm_tl_scaling_table_volume_reg_writer.asm](disasm/modules/68k/game/sound/fm_tl_scaling_table_volume_reg_writer.asm)*
+*Source: [fm_tl_scaling_table_volume_reg_writer.asm](../disasm/modules/68k/game/sound/fm_tl_scaling_table_volume_reg_writer.asm)*
 
 ---
 
@@ -6365,7 +6374,7 @@ operator registers and vibrato init Data prefix ($0313CA-$0313E1): FM operator r
 - **Entry**: A5 = channel structure pointer, A4 = sequence pointer
 - **Modifies**: D0, A4
 - **Confidence**: medium
-*Source: [fm_reg_table_vibrato_setup.asm](disasm/modules/68k/game/sound/fm_reg_table_vibrato_setup.asm)*
+*Source: [fm_reg_table_vibrato_setup.asm](../disasm/modules/68k/game/sound/fm_reg_table_vibrato_setup.asm)*
 
 ---
 
@@ -6376,7 +6385,7 @@ route by channel type and set envelope number Reads byte from sequence. If FM ch
 - **Entry**: A5 = channel structure pointer, A4 = sequence pointer
 - **Modifies**: D0, A4
 - **Confidence**: medium
-*Source: [psg_set_envelope.asm](disasm/modules/68k/game/sound/psg_set_envelope.asm)*
+*Source: [psg_set_envelope.asm](../disasm/modules/68k/game/sound/psg_set_envelope.asm)*
 
 ---
 
@@ -6388,7 +6397,7 @@ key-off channel and cleanup related channels Clears active (bit 7) and sustain (
 - **Modifies**: D0, D1, A0, A1, A3, A5
 - **Calls**: $030C8A: fm_init_channel $030CBA: fm_write_wrapper $030FB2: fm_set_volume
 - **Confidence**: high
-*Source: [fm_note_off_handler.asm](disasm/modules/68k/game/sound/fm_note_off_handler.asm)*
+*Source: [fm_note_off_handler.asm](../disasm/modules/68k/game/sound/fm_note_off_handler.asm)*
 
 ---
 
@@ -6399,7 +6408,7 @@ read envelope index from sequence Reads one byte from sequence pointer (A4), sto
 - **Entry**: A5 = channel structure pointer, A4 = sequence pointer
 - **Modifies**: A4
 - **Confidence**: high
-*Source: [set_envelope_number.asm](disasm/modules/68k/game/sound/set_envelope_number.asm)*
+*Source: [set_envelope_number.asm](../disasm/modules/68k/game/sound/set_envelope_number.asm)*
 
 ---
 
@@ -6410,7 +6419,7 @@ read instrument number from sequence Reads one byte from sequence pointer (A4), 
 - **Entry**: A5 = channel structure pointer, A4 = sequence pointer
 - **Modifies**: A4
 - **Confidence**: high
-*Source: [set_instrument_index.asm](disasm/modules/68k/game/sound/set_instrument_index.asm)*
+*Source: [set_instrument_index.asm](../disasm/modules/68k/game/sound/set_instrument_index.asm)*
 
 ---
 
@@ -6421,7 +6430,7 @@ decrement loop and skip on exhaust Reads loop index and initial count from seque
 - **Entry**: A5 = channel structure pointer, A4 = sequence pointer
 - **Modifies**: D0, D1, A4
 - **Confidence**: medium
-*Source: [sequence_loop_counter.asm](disasm/modules/68k/game/sound/sequence_loop_counter.asm)*
+*Source: [sequence_loop_counter.asm](../disasm/modules/68k/game/sound/sequence_loop_counter.asm)*
 
 ---
 
@@ -6432,7 +6441,7 @@ push/pop sequence pointer Two entry points: $031528 (call): Reads stack pointer 
 - **Entry**: A5 = channel structure pointer, A4 = sequence pointer
 - **Modifies**: D0, A4
 - **Confidence**: medium
-*Source: [sequence_call_return_stack.asm](disasm/modules/68k/game/sound/sequence_call_return_stack.asm)*
+*Source: [sequence_call_return_stack.asm](../disasm/modules/68k/game/sound/sequence_call_return_stack.asm)*
 
 ---
 
@@ -6443,7 +6452,7 @@ read tempo byte from sequence Reads one byte from sequence pointer (A4), stores 
 - **Entry**: A5 = channel structure pointer, A4 = sequence pointer
 - **Modifies**: A4
 - **Confidence**: high
-*Source: [set_channel_tempo.asm](disasm/modules/68k/game/sound/set_channel_tempo.asm)*
+*Source: [set_channel_tempo.asm](../disasm/modules/68k/game/sound/set_channel_tempo.asm)*
 
 ---
 
@@ -6455,7 +6464,7 @@ write 4 operator SSG-EG values Loads register table from $031590 (8 bytes: 4 pai
 - **Modifies**: D0, D1, D3, A1, A4
 - **Calls**: $030CA2: fm_conditional_write
 - **Confidence**: medium
-*Source: [fm_ssg_eg_reg_write.asm](disasm/modules/68k/game/sound/fm_ssg_eg_reg_write.asm)*
+*Source: [fm_ssg_eg_reg_write.asm](../disasm/modules/68k/game/sound/fm_ssg_eg_reg_write.asm)*
 
 ---
 
@@ -6467,7 +6476,7 @@ data and pause all active channels Data prefix ($031590-$031597): 8 FM register 
 - **Modifies**: D0, D1, D3, D4, A3, A5
 - **Calls**: $030C8A: fm_init_channel $030CA2: fm_conditional_write $030FB2: fm_set_volume
 - **Confidence**: high
-*Source: [fm_reg_table_channel_pause.asm](disasm/modules/68k/game/sound/fm_reg_table_channel_pause.asm)*
+*Source: [fm_reg_table_channel_pause.asm](../disasm/modules/68k/game/sound/fm_reg_table_channel_pause.asm)*
 
 ---
 
@@ -6479,7 +6488,7 @@ restore panning for paused channels Resumes paused channels by restoring panning
 - **Modifies**: D0, D1, D3, D4, A3, A5
 - **Calls**: $030CA2: fm_conditional_write
 - **Confidence**: medium
-*Source: [fm_channel_resume_panning.asm](disasm/modules/68k/game/sound/fm_channel_resume_panning.asm)*
+*Source: [fm_channel_resume_panning.asm](../disasm/modules/68k/game/sound/fm_channel_resume_panning.asm)*
 
 ---
 
@@ -6490,7 +6499,7 @@ Sequence Fade Rate Set Sets fade rate parameters from sequence data. If channel 
 - **Entry**: A4 = sequence data pointer, A6 = channel struct pointer
 - **Modifies**: A4, A6 Channel fields: +$38: fade state (0=idle, 1=fade active, 2=fade complete) +$3A: fade target level +$3B: fade rate
 - **Confidence**: high
-*Source: [sequence_fade_rate_set.asm](disasm/modules/68k/game/sound/sequence_fade_rate_set.asm)*
+*Source: [sequence_fade_rate_set.asm](../disasm/modules/68k/game/sound/sequence_fade_rate_set.asm)*
 
 ---
 
@@ -6502,7 +6511,7 @@ System Boot Initialization Main system boot orchestrator. Performs full hardware
 
 - **Modifies**: D0, D1, D2, D3, D4, D5, D6, D7, A0, A1, A4, A5, A6, A7
 - **Calls**: $000654: framebuffer_auto_fill_clear (BSR) $000694: cram_fill (BSR) $000C5A: register_restore_from_table (JSR PC-relative) $000C80: hardware_init (JSR PC-relative) $000D68: warm_boot_init (JSR PC-relative) $000DC4: sound_update_check (JSR PC-relative) $00203A: sh2_frame_sync (JSR PC-relative) $00263E: adapter_init (JSR PC-relative) Hardware: MARS_SYS_BASE ($A15100): 32X adapter control COMM0-COMM6: SH2 handshake registers Z80_BUSREQ/Z80_RESET/Z80_RAM: Z80 management PSG ($C00011): Sound chip silence VDP_CTRL/VDP_DATA: Video display processor
-*Source: [system_boot_init.asm](disasm/modules/68k/game/state/system_boot_init.asm)*
+*Source: [system_boot_init.asm](../disasm/modules/68k/game/state/system_boot_init.asm)*
 
 ---
 
@@ -6513,7 +6522,7 @@ Register Restore from Table Loads all 68K registers (D0-D7, A0-A6) from a PC-rel
 - **Entry**: None (standalone initialization helper)
 - **Returns**: D0-D7, A0-A6 loaded from table at $000C70
 - **Modifies**: D0-D7, A0-A6
-*Source: [register_restore_from_table.asm](disasm/modules/68k/game/state/register_restore_from_table.asm)*
+*Source: [register_restore_from_table.asm](../disasm/modules/68k/game/state/register_restore_from_table.asm)*
 
 ---
 
@@ -6524,7 +6533,7 @@ Hardware Initialization Data prefix ($000C70-$000C7F): Register initialization v
 - **Entry**: Called from system_boot_init at $000C80
 - **Modifies**: D0, D1, D7, A1
 - **Calls**: $0018D8: io_port_init (JSR PC-relative) $00170C: controller_port_init (JSR PC-relative) Hardware: Z80_BUSREQ/Z80_RESET/Z80_RAM: Z80 management PSG ($C00011): Sound chip silence $A10001: Hardware version register
-*Source: [hardware_init.asm](disasm/modules/68k/game/state/hardware_init.asm)*
+*Source: [hardware_init.asm](../disasm/modules/68k/game/state/hardware_init.asm)*
 
 ---
 
@@ -6535,7 +6544,7 @@ Returns ONLY if $EF05 is nonzero AND $EF06 is zero. In all other cases (both zer
 - **Entry**: none | Exit: returns or falls through
 - **Modifies**: none
 - **RAM**: $FFFFFFEF05 = work RAM flag A (byte, tested) $FFFFFFEF06 = work RAM flag B (byte, tested)
-*Source: [double_cond_guard.asm](disasm/modules/68k/game/state/double_cond_guard.asm)*
+*Source: [double_cond_guard.asm](../disasm/modules/68k/game/state/double_cond_guard.asm)*
 
 ---
 
@@ -6545,7 +6554,7 @@ Input Dispatch Table and Controller Port Init Data prefix ($0016B2-$00170B): Inp
 
 - **Entry**: Called from hardware_init
 - **Modifies**: D0, D7, A0, A1, A3, A4, A5
-*Source: [input_dispatch_table_and_controller_port_init.asm](disasm/modules/68k/game/state/input_dispatch_table_and_controller_port_init.asm)*
+*Source: [input_dispatch_table_and_controller_port_init.asm](../disasm/modules/68k/game/state/input_dispatch_table_and_controller_port_init.asm)*
 
 ---
 
@@ -6556,7 +6565,7 @@ Reads controller port 1 via Z80 bus, remaps buttons. Data prefix: 16-byte contro
 - **Modifies**: D0, D2, A0, A1, A2, A3
 - **Calls**: $0017EE: button_remap $00185E: zbus_request
 - **RAM**: $C810: controller mode P1 (byte, checked == $0D) $C811: controller mode P2 (byte, checked == $0D) $C86C: P1 controller state (long) $C86E: P2 controller byte A (byte, cleared if P2 inactive) $C970: controller work buffer (8 bytes)
-*Source: [controller_read_button_remap.asm](disasm/modules/68k/game/state/controller_read_button_remap.asm)*
+*Source: [controller_read_button_remap.asm](../disasm/modules/68k/game/state/controller_read_button_remap.asm)*
 
 ---
 
@@ -6566,7 +6575,7 @@ Clears both input state flag bytes at $C86C and $C86E to zero. Called during ini
 
 - **Entry**: none | Exit: flags cleared | Uses: none
 - **RAM**: $FFFFC86C = input state flag A (byte, cleared) $FFFFC86E = input state flag B (byte, cleared)
-*Source: [clear_input_state_flags.asm](disasm/modules/68k/game/state/clear_input_state_flags.asm)*
+*Source: [clear_input_state_flags.asm](../disasm/modules/68k/game/state/clear_input_state_flags.asm)*
 
 ---
 
@@ -6577,7 +6586,7 @@ Reads controller IDs via BSR.W to external controller_id_read ($001992) for port
 - **Modifies**: D0, D7, A1
 - **Calls**: $001992: controller_id_read (BSR.W, external) $00185E: zbus_request (JSR PC-relative)
 - **RAM**: $C810: port_a_id $C811: port_b_id $C812: port_c_id $C818: pad_type_flags
-*Source: [controller_input_init.asm](disasm/modules/68k/game/state/controller_input_init.asm)*
+*Source: [controller_input_init.asm](../disasm/modules/68k/game/state/controller_input_init.asm)*
 
 ---
 
@@ -6587,7 +6596,7 @@ Sets the communication flag at $C822 to $F0, signalling that the 68K is ready fo
 
 - **Entry**: none | Exit: flag set | Uses: none
 - **RAM**: $FFFFC822 = comm/input state flag (byte, set to $F0)
-*Source: [set_communication_ready_flag.asm](disasm/modules/68k/game/state/set_communication_ready_flag.asm)*
+*Source: [set_communication_ready_flag.asm](../disasm/modules/68k/game/state/set_communication_ready_flag.asm)*
 
 ---
 
@@ -6597,7 +6606,7 @@ Sound Update Dispatcher Sound command update dispatcher with 7 entry points (one
 
 - **Modifies**: D0, A5, A6
 - **Calls**: $008B0000: sound_driver_update $00232E: next handler (JMP PC-relative) — entries 1-6 $00220C: next handler (JMP PC-relative) — entries 4-6
-*Source: [sound_update_disp.asm](disasm/modules/68k/game/state/sound_update_disp.asm)*
+*Source: [sound_update_disp.asm](../disasm/modules/68k/game/state/sound_update_disp.asm)*
 
 ---
 
@@ -6609,7 +6618,7 @@ Randomized Timer Decrement A If (A1) equals target value $1E00, generates a rand
 - **Returns**: D1 = adjusted timer, (A1) = updated
 - **Modifies**: D0, D1, A1
 - **Calls**: $00496E: random_number_gen (JSR PC-relative)
-*Source: [randomized_timer_decrement_a.asm](disasm/modules/68k/game/state/randomized_timer_decrement_a.asm)*
+*Source: [randomized_timer_decrement_a.asm](../disasm/modules/68k/game/state/randomized_timer_decrement_a.asm)*
 
 ---
 
@@ -6620,7 +6629,7 @@ Weighted Timer Average A Computes weighted average for frame timing smoothing: D
 - **Entry**: D0 = raw timing input, A1 = timer storage pointer
 - **Returns**: D1 = smoothed timing value, (A1) = updated
 - **Modifies**: D0, D1, A1
-*Source: [weighted_timer_average_a.asm](disasm/modules/68k/game/state/weighted_timer_average_a.asm)*
+*Source: [weighted_timer_average_a.asm](../disasm/modules/68k/game/state/weighted_timer_average_a.asm)*
 
 ---
 
@@ -6632,7 +6641,7 @@ Randomized Timer Decrement B If (A1) equals target value $21D0, generates a rand
 - **Returns**: D1 = adjusted timer, (A1) = updated
 - **Modifies**: D0, D1, A1
 - **Calls**: $00496E: random_number_gen (JSR PC-relative)
-*Source: [randomized_timer_decrement_b.asm](disasm/modules/68k/game/state/randomized_timer_decrement_b.asm)*
+*Source: [randomized_timer_decrement_b.asm](../disasm/modules/68k/game/state/randomized_timer_decrement_b.asm)*
 
 ---
 
@@ -6643,7 +6652,7 @@ Weighted Timer Average B Computes weighted average for frame timing smoothing: D
 - **Entry**: D0 = raw timing input, A1 = timer storage pointer
 - **Returns**: D1 = smoothed timing value, (A1) = updated
 - **Modifies**: D0, D1, A1
-*Source: [weighted_timer_average_b.asm](disasm/modules/68k/game/state/weighted_timer_average_b.asm)*
+*Source: [weighted_timer_average_b.asm](../disasm/modules/68k/game/state/weighted_timer_average_b.asm)*
 
 ---
 
@@ -6655,7 +6664,7 @@ Randomized Timer Decrement C If (A1) equals target value $21A0, generates a rand
 - **Returns**: D1 = adjusted timer, (A1) = updated
 - **Modifies**: D0, D1, A1
 - **Calls**: $00496E: random_number_gen (JSR PC-relative)
-*Source: [randomized_timer_decrement_c.asm](disasm/modules/68k/game/state/randomized_timer_decrement_c.asm)*
+*Source: [randomized_timer_decrement_c.asm](../disasm/modules/68k/game/state/randomized_timer_decrement_c.asm)*
 
 ---
 
@@ -6665,7 +6674,7 @@ Sets 5 enable fields on object (A1) to 1 ($00/+$14/+$28/+$3C/+$50). Then dispatc
 
 - **Modifies**: D0, A0, A1
 - **RAM**: $C74C: position value (long) Object (A0): +$8A: param_8a (word, dispatch key) +$8C: velocity_x (word) Object (A1): +$00/+$14/+$28/+$3C/+$50: enable flags (word, set to 1) +$24: position (long, set from $C74C) +$64: direction flag (word, 0 or 1)
-*Source: [object_enable_fields_state_dispatch.asm](disasm/modules/68k/game/state/object_enable_fields_state_dispatch.asm)*
+*Source: [object_enable_fields_state_dispatch.asm](../disasm/modules/68k/game/state/object_enable_fields_state_dispatch.asm)*
 
 ---
 
@@ -6677,7 +6686,7 @@ Reads object param_8a (A0+$8A) and dispatches: param=0 → branches forward to $
 - **Modifies**: D0, A0, A1, A2
 - **RAM**: $C74C: position/transform value (long)
 - **Object fields**: A0+$8A: param_8a (word, dispatch key) A0+$8C: velocity_x (word) A1+$24: field24 (long, set from $C74C) A1+$64: field64 (word, 0 or 1) A2+$128: field128 (long, set from $C74C)
-*Source: [object_param_8a_dispatch_002dca.asm](disasm/modules/68k/game/state/object_param_8a_dispatch_002dca.asm)*
+*Source: [object_param_8a_dispatch_002dca.asm](../disasm/modules/68k/game/state/object_param_8a_dispatch_002dca.asm)*
 
 ---
 
@@ -6689,7 +6698,7 @@ Reads object param_8a (A0+$8A) and dispatches: param=0 → branches forward to $
 - **Modifies**: D0, A0, A1, A2
 - **RAM**: $C760: position/transform value (long)
 - **Object fields**: A0+$8A: param_8a (word, dispatch key) A0+$8C: velocity_x (word) A1+$24: field24 (long, set from $C760) A1+$64: field64 (word, 0 or 1) A2+$128: field128 (long, set from $C760)
-*Source: [object_param_8a_dispatch_002e34.asm](disasm/modules/68k/game/state/object_param_8a_dispatch_002e34.asm)*
+*Source: [object_param_8a_dispatch_002e34.asm](../disasm/modules/68k/game/state/object_param_8a_dispatch_002e34.asm)*
 
 ---
 
@@ -6699,7 +6708,7 @@ Dispatches via 11-entry longword jump table indexed by dispatch_idx ($C305) as b
 
 - **Modifies**: D0, D1, D4, A0, A1, A2, A6
 - **RAM**: $C04E: timer (word) $C258: object_ptr (longword) $C305: dispatch_idx (byte, ×4 for table index)
-*Source: [object_state_disp_0031a6.asm](disasm/modules/68k/game/state/object_state_disp_0031a6.asm)*
+*Source: [object_state_disp_0031a6.asm](../disasm/modules/68k/game/state/object_state_disp_0031a6.asm)*
 
 ---
 
@@ -6709,7 +6718,7 @@ Loads object pointer from $C258 into A1, sets object command byte (offset $00) t
 
 - **Entry**: none | Exit: object + state cleared | Uses: A1
 - **RAM**: $FFFFC258 = object pointer (long, loaded into A1) $00FF6940 = SH2 shared object byte 1 (cleared) $00FF6950 = SH2 shared object byte 2 (cleared) $FFFFC305 = flag byte (byte, cleared)
-*Source: [load_object_pointer_clear_object_state.asm](disasm/modules/68k/game/state/load_object_pointer_clear_object_state.asm)*
+*Source: [load_object_pointer_clear_object_state.asm](../disasm/modules/68k/game/state/load_object_pointer_clear_object_state.asm)*
 
 ---
 
@@ -6719,7 +6728,7 @@ Sets game state byte at $C305 to $34.
 
 - **Entry**: none
 - **Modifies**: none
-*Source: [set_state_0x34.asm](disasm/modules/68k/game/state/set_state_0x34.asm)*
+*Source: [set_state_0x34.asm](../disasm/modules/68k/game/state/set_state_0x34.asm)*
 
 ---
 
@@ -6729,7 +6738,7 @@ Calculates game state from bits 0-1 of flag byte at $C8AB. Maps: 0->$0C, 1->$10,
 
 - **Entry**: none
 - **Modifies**: D0
-*Source: [calc_state_from_flags.asm](disasm/modules/68k/game/state/calc_state_from_flags.asm)*
+*Source: [calc_state_from_flags.asm](../disasm/modules/68k/game/state/calc_state_from_flags.asm)*
 
 ---
 
@@ -6739,7 +6748,7 @@ Dispatches via 12-entry longword jump table indexed by dispatch_idx ($C305) as b
 
 - **Modifies**: D0, A1, A2, A3, A4
 - **RAM**: $C04E: timer (word) $C305: dispatch_idx (byte, ×4 for table index)
-*Source: [object_state_disp_0034e8.asm](disasm/modules/68k/game/state/object_state_disp_0034e8.asm)*
+*Source: [object_state_disp_0034e8.asm](../disasm/modules/68k/game/state/object_state_disp_0034e8.asm)*
 
 ---
 
@@ -6749,7 +6758,7 @@ Clears three object-related bytes: two in SH2 shared memory ($FF6940, $FF6950) a
 
 - **Entry**: none | Exit: 3 bytes cleared | Uses: none
 - **RAM**: $00FF6940 = SH2 shared object byte 1 (cleared) $00FF6950 = SH2 shared object byte 2 (cleared) $FFFFC305 = flag byte (byte, cleared)
-*Source: [clear_object_state_bytes.asm](disasm/modules/68k/game/state/clear_object_state_bytes.asm)*
+*Source: [clear_object_state_bytes.asm](../disasm/modules/68k/game/state/clear_object_state_bytes.asm)*
 
 ---
 
@@ -6759,7 +6768,7 @@ Identical to calc_state_from_flags. Second copy for different code path.
 
 - **Entry**: none
 - **Modifies**: D0
-*Source: [calc_state_from_flags_2.asm](disasm/modules/68k/game/state/calc_state_from_flags_2.asm)*
+*Source: [calc_state_from_flags_2.asm](../disasm/modules/68k/game/state/calc_state_from_flags_2.asm)*
 
 ---
 
@@ -6770,7 +6779,7 @@ Tests the display control byte at $C80F. If nonzero, returns early (RTS). If zer
 - **Entry**: none | Exit: returns if flag set, falls through if clear
 - **Modifies**: condition codes
 - **RAM**: $FFFFC80F = display control byte (tested for zero)
-*Source: [conditional_return_on_disp_flag.asm](disasm/modules/68k/game/state/conditional_return_on_disp_flag.asm)*
+*Source: [conditional_return_on_disp_flag.asm](../disasm/modules/68k/game/state/conditional_return_on_disp_flag.asm)*
 
 ---
 
@@ -6781,7 +6790,7 @@ Resets the frame counter at $C8AA to zero and advances the state machine at $C8A
 - **Entry**: No register inputs
 - **Returns**: Timer cleared, state advanced
 - **Modifies**: (none modified beyond RAM writes)
-*Source: [reset_timer_advance_state.asm](disasm/modules/68k/game/state/reset_timer_advance_state.asm)*
+*Source: [reset_timer_advance_state.asm](../disasm/modules/68k/game/state/reset_timer_advance_state.asm)*
 
 ---
 
@@ -6791,7 +6800,7 @@ Checks if timer at $C8AA has reached 60 frames (1 second). If so, advances game 
 
 - **Entry**: none
 - **Modifies**: none (only modifies memory)
-*Source: [check_timeout_60.asm](disasm/modules/68k/game/state/check_timeout_60.asm)*
+*Source: [check_timeout_60.asm](../disasm/modules/68k/game/state/check_timeout_60.asm)*
 
 ---
 
@@ -6801,7 +6810,7 @@ Waits for frame counter > 20, then initializes a sprite at $FF6754 with position
 
 - **Entry**: none
 - **Modifies**: A2
-*Source: [timer_threshold_init.asm](disasm/modules/68k/game/state/timer_threshold_init.asm)*
+*Source: [timer_threshold_init.asm](../disasm/modules/68k/game/state/timer_threshold_init.asm)*
 
 ---
 
@@ -6811,7 +6820,7 @@ Waits 60 frames, then advances state, resets counter, disables sprite.
 
 - **Entry**: none
 - **Modifies**: none (modifies memory only)
-*Source: [timer_wait_clear.asm](disasm/modules/68k/game/state/timer_wait_clear.asm)*
+*Source: [timer_wait_clear.asm](../disasm/modules/68k/game/state/timer_wait_clear.asm)*
 
 ---
 
@@ -6822,7 +6831,7 @@ Advances the state machine at $C07C by 4 and resets the frame counter at $C8AA t
 - **Entry**: No register inputs
 - **Returns**: State advanced, timer cleared
 - **Modifies**: (none modified beyond RAM writes)
-*Source: [advance_clear_timer.asm](disasm/modules/68k/game/state/advance_clear_timer.asm)*
+*Source: [advance_clear_timer.asm](../disasm/modules/68k/game/state/advance_clear_timer.asm)*
 
 ---
 
@@ -6833,7 +6842,7 @@ Waits for the frame counter at $C8AA to reach 40 ($0028). When the timer expires
 - **Entry**: No register inputs
 - **Returns**: If timer expired: state advanced, flags set
 - **Modifies**: (none modified beyond RAM writes)
-*Source: [timer_flag_set.asm](disasm/modules/68k/game/state/timer_flag_set.asm)*
+*Source: [timer_flag_set.asm](../disasm/modules/68k/game/state/timer_flag_set.asm)*
 
 ---
 
@@ -6845,7 +6854,7 @@ Two entry points: Entry A ($0043D0): Game initialization — clears work buffers
 - **Calls**: $00B4CA: ai_scene_interpolation $002890: v_int_comm1_signal_handler (tail call via JMP)
 - **RAM**: $C30E: race_flags $C260: position_buf_a $C200: work_buf_base $C80E: race_ctrl $C87E: game_state $C880: vdp_color_a $C882: vdp_color_b $C048: camera_state $C07C: input_state $C8AA: frame_counter $C800: race_init_flag
 - **Confidence**: high
-*Source: [game_init_state_dispatch_002.asm](disasm/modules/68k/game/state/game_init_state_dispatch_002.asm)*
+*Source: [game_init_state_dispatch_002.asm](../disasm/modules/68k/game/state/game_init_state_dispatch_002.asm)*
 
 ---
 
@@ -6855,7 +6864,7 @@ Waits for SH2 processing to complete (bit 7 of $C80E clear), then advances state
 
 - **Entry**: none
 - **Modifies**: none
-*Source: [flag_check_advance.asm](disasm/modules/68k/game/state/flag_check_advance.asm)*
+*Source: [flag_check_advance.asm](../disasm/modules/68k/game/state/flag_check_advance.asm)*
 
 ---
 
@@ -6866,7 +6875,7 @@ Full state reset clearing control flags, counters, display parameters, and setti
 - **Entry**: No register inputs
 - **Returns**: All state variables reset, execution vector configured
 - **Modifies**: D0
-*Source: [state_reset_multi.asm](disasm/modules/68k/game/state/state_reset_multi.asm)*
+*Source: [state_reset_multi.asm](../disasm/modules/68k/game/state/state_reset_multi.asm)*
 
 ---
 
@@ -6876,7 +6885,7 @@ Sets camera_active ($C048) = 1. Dispatches via 9-entry longword jump table A ind
 
 - **Modifies**: D0, D2, A1, A2, A4, A6
 - **RAM**: $C048: camera_active (word, set to 1) $C07C: input_state (word) $C8BE: input_sub_state (word)
-*Source: [display_state_disp.asm](disasm/modules/68k/game/state/display_state_disp.asm)*
+*Source: [display_state_disp.asm](../disasm/modules/68k/game/state/display_state_disp.asm)*
 
 ---
 
@@ -6886,7 +6895,7 @@ Advances the input/controller state machine by one step (4 = one entry).
 
 - **Entry**: none | Exit: state advanced | Uses: none
 - **RAM**: $FFFFC07C = input state index (word)
-*Source: [advance_input_state.asm](disasm/modules/68k/game/state/advance_input_state.asm)*
+*Source: [advance_input_state.asm](../disasm/modules/68k/game/state/advance_input_state.asm)*
 
 ---
 
@@ -6896,7 +6905,7 @@ Dispatches via 4-entry longword jump table indexed by input_state ($C819) × 4. 
 
 - **Modifies**: D0, A0, A1, A2, A6
 - **RAM**: $C07C: state_dispatch_idx (word) $C819: input_state (byte) $C816: player_flags (byte)
-*Source: [input_state_disp.asm](disasm/modules/68k/game/state/input_state_disp.asm)*
+*Source: [input_state_disp.asm](../disasm/modules/68k/game/state/input_state_disp.asm)*
 
 ---
 
@@ -6906,7 +6915,7 @@ Resets step counter at $C819 to 3.
 
 - **Entry**: none
 - **Modifies**: none
-*Source: [counter_reset_3.asm](disasm/modules/68k/game/state/counter_reset_3.asm)*
+*Source: [counter_reset_3.asm](../disasm/modules/68k/game/state/counter_reset_3.asm)*
 
 ---
 
@@ -6916,7 +6925,7 @@ Sets effect code $96, moves sprite up by 6 pixels, advances state.
 
 - **Entry**: none
 - **Modifies**: none
-*Source: [flag96_sprite_advance.asm](disasm/modules/68k/game/state/flag96_sprite_advance.asm)*
+*Source: [flag96_sprite_advance.asm](../disasm/modules/68k/game/state/flag96_sprite_advance.asm)*
 
 ---
 
@@ -6926,7 +6935,7 @@ Checks if step counter equals 3; if so, advances secondary state at $C8BE and re
 
 - **Entry**: none
 - **Modifies**: none
-*Source: [counter_check_advance.asm](disasm/modules/68k/game/state/counter_check_advance.asm)*
+*Source: [counter_check_advance.asm](../disasm/modules/68k/game/state/counter_check_advance.asm)*
 
 ---
 
@@ -6937,7 +6946,7 @@ Waits for frame counter $C8AA to reach 40 ($0028). When expired, advances state 
 - **Entry**: No register inputs
 - **Returns**: If timer expired: state advanced, effect selected, flags set
 - **Modifies**: (none modified beyond RAM writes)
-*Source: [timer_complete_flags.asm](disasm/modules/68k/game/state/timer_complete_flags.asm)*
+*Source: [timer_complete_flags.asm](../disasm/modules/68k/game/state/timer_complete_flags.asm)*
 
 ---
 
@@ -6948,7 +6957,7 @@ Two entry points: (1) init path — sets up VDP, sprite table, SH2 command handl
 - **Modifies**: D0, A1, A5
 - **Calls**: $002890: game_init (JMP PC-relative) $00B25E: state_advance (JMP PC-relative)
 - **RAM**: $C048: camera_position $C07C: input_state (jump table index: 0/4/8/12) $C260: sprite_table_init $C30E: state_flags $C800: game_active $C802: init_flag_a $C809: init_flag_b $C80A: init_flag_c $C80E: mode_flags $C87E: game_state $C880: vscroll_a $C882: vscroll_b $C8A8: state_timer $C8AA: scene_state
-*Source: [game_logic_init_state_dispatch.asm](disasm/modules/68k/game/state/game_logic_init_state_dispatch.asm)*
+*Source: [game_logic_init_state_dispatch.asm](../disasm/modules/68k/game/state/game_logic_init_state_dispatch.asm)*
 
 ---
 
@@ -6959,7 +6968,7 @@ SH2 Gate Sets the process flag at $C048, then checks if the SH2 has completed (d
 - **Entry**: No register inputs
 - **Returns**: Process flag set; if SH2 idle: config written, state advanced
 - **Modifies**: (none modified beyond RAM writes)
-*Source: [flag_sound_advance_b.asm](disasm/modules/68k/game/state/flag_sound_advance_b.asm)*
+*Source: [flag_sound_advance_b.asm](../disasm/modules/68k/game/state/flag_sound_advance_b.asm)*
 
 ---
 
@@ -6970,29 +6979,28 @@ Race Mode Full state reset for race mode. Conditionally initializes the lap coun
 - **Entry**: No register inputs
 - **Returns**: State reset for race mode, execution vector configured
 - **Modifies**: D0
-*Source: [full_state_reset_b.asm](disasm/modules/68k/game/state/full_state_reset_b.asm)*
+*Source: [full_state_reset_b.asm](../disasm/modules/68k/game/state/full_state_reset_b.asm)*
 
 ---
 
-### State Dispatcher (5-Entry Jump Table + 6 Subroutines, Data Prefix) ($004CB8–$004D00, 72 bytes)
+### Normal 1P Race State Dispatcher (5-Entry Jump Table + Data Prefix) ($004CB8–$004D00, 72 bytes)
 
-Data prefix: 2 words ($A2A0, $A100) — RAM buffer addresses. Dispatches via 5-entry longword jump table indexed by state_dispatch_idx ($C87E). State 0 handler: calls VDPSyncSH2, init ($0020D6), animation_update, frame_update ($00B02C), sprite_setup ($00B632), sprite_input_check, advances state by 4, writes $10 to SH2 COMM.
+Normal 1-player GP race dispatcher. Data prefix: 2 words ($A2A0, $A100) — RAM buffer addresses. Dispatches via 5-entry longword jump table indexed by state_dispatch_idx ($C87E). State 0 handler: calls VDPSyncSH2, init ($0020D6), animation_update, frame_update ($00B02C), sprite_setup ($00B632), sprite_input_check, advances state by 4, writes $10 to SH2 COMM. State 8 reaches game_frame_orch_013 about once per three TV frames. The VR60 hook there currently enables cmd $3E modes 0/1 only; mode 2 and cmd $3F are disabled, so the 68000 remains authoritative.
 
 - **Modifies**: D0, D3, D7, A1, A2
 - **Calls**: $0020D6: init handler $0028C2: VDPSyncSH2 $0058C8: sprite_input_check $00B02C: frame_update $00B09E: animation_update $00B632: sprite_setup
 - **RAM**: $C87E: state_dispatch_idx (word)
-*Source: [state_disp_004cb8.asm](disasm/modules/68k/game/state/state_disp_004cb8.asm)*
+*Source: [state_disp_004cb8.asm](../disasm/modules/68k/game/state/state_disp_004cb8.asm)*
 
 ---
 
-### State Dispatcher (5-Entry Jump Table + 8 Subroutines, Data Prefix) ($005020–$005070, 80 bytes)
+### 2P Split-Screen Dispatcher ($005020–$00509D, 125 bytes)
 
-Data prefix: 2 words ($A5A3, $A400) — RAM buffer addresses. Dispatches via 5-entry longword jump table indexed by state_dispatch_idx ($C87E). State 0 handler: calls VDPSyncSH2, init ($002154), animation_update, frame_sync, display_update, frame_update ($00B03C), sprite_setup ($00B632), sprite_finalize ($00B646). Advances state by 4, writes $14 to SH2 COMM.
+Experimental VR60 Sequential Execution BUILT BUT UNVALIDATED: this is state_disp_005020, the 2-player path—not normal 1P racing. It runs the historical three states' work sequentially every TV frame, but no trustworthy 2P profiling/behavioral acceptance run has established a 60 FPS result. Historical CPU-margin claims are not current evidence. The 1P cmd $3F trigger and physics bypass are disabled, and normal 1P is controlled by state_disp_004cb8. Data prefix at $005020 MUST be preserved (referenced by other code). Jump table at $00502E is no longer used ($C87E always 0).
 
-- **Modifies**: D0, D2, A0, A1, A6
-- **Calls**: $002154: init handler $0028C2: VDPSyncSH2 $00B03C: frame_update $00B094: frame_sync $00B09E: animation_update $00B0DE: display_update $00B632: sprite_setup $00B646: sprite_finalize
-- **RAM**: $C87E: state_dispatch_idx (word)
-*Source: [state_disp_005020.asm](disasm/modules/68k/game/state/state_disp_005020.asm)*
+- **Entry**: called from scene handler via $FF0002 JSR
+- **Returns**: tail-jumps to pause_menu_handler_ctrl_check+20 V-INT state: always $0054 (unified handler does VDP sync + sprite cfg + swap)
+*Source: [state_disp_005020.asm](../disasm/modules/68k/game/state/state_disp_005020.asm)*
 
 ---
 
@@ -7003,7 +7011,7 @@ Dispatches via 5-entry longword jump table indexed by state_dispatch_idx ($C87E)
 - **Modifies**: D0, A0, A1, A6
 - **Calls**: $0020D6: init handler $0028C2: VDPSyncSH2 $00B02C: frame_update $00B09E: animation_update $00B632: sprite_setup
 - **RAM**: $C87E: state_dispatch_idx (word)
-*Source: [state_disp_005308.asm](disasm/modules/68k/game/state/state_disp_005308.asm)*
+*Source: [state_disp_005308.asm](../disasm/modules/68k/game/state/state_disp_005308.asm)*
 
 ---
 
@@ -7014,7 +7022,7 @@ Dispatches via 4-entry longword jump table indexed by state_dispatch_idx ($C87E)
 - **Modifies**: D0, A0, A1
 - **Calls**: $0021CA: sfx_queue_process $0028C2: VDPSyncSH2 $0058C8: sprite_input_check
 - **RAM**: $C87E: state_dispatch_idx (word)
-*Source: [state_disp_005586.asm](disasm/modules/68k/game/state/state_disp_005586.asm)*
+*Source: [state_disp_005586.asm](../disasm/modules/68k/game/state/state_disp_005586.asm)*
 
 ---
 
@@ -7025,7 +7033,7 @@ Dispatches via 5-entry longword jump table indexed by state_dispatch_idx ($C87E)
 - **Modifies**: D0, D6, A0, A1, A6
 - **Calls**: $0021CA: sfx_queue_process $0028C2: VDPSyncSH2 $0058C8: sprite_input_check $0088BE: handler subroutine
 - **RAM**: $C886: scene counter (byte, +1) $C87E: state_dispatch_idx (word)
-*Source: [state_disp_005618.asm](disasm/modules/68k/game/state/state_disp_005618.asm)*
+*Source: [state_disp_005618.asm](../disasm/modules/68k/game/state/state_disp_005618.asm)*
 
 ---
 
@@ -7036,7 +7044,7 @@ Three entry points: Entry 1 ($0056E4): BCLR bit 7 of $FDA8, tail-jump to $00D48A
 - **Modifies**: D0
 - **Calls**: $0049AA: SetDisplayParams $00D48A: pause handler (tail-jump target)
 - **RAM**: $A510: tick counter (byte, cleared) $C800: scene flag (byte, checked == 0) $C80E: control flags (byte, bit 4 = 2P mode) $C86D: P1 controller byte B (byte) $C86F: P2 controller byte B (byte) $C87E: state_dispatch_idx (word, set to $10) $C8C4: sub_state (word, set to $0C00) $FDA8: pause flag (byte, bit 7)
-*Source: [pause_menu_handler_ctrl_check.asm](disasm/modules/68k/game/state/pause_menu_handler_ctrl_check.asm)*
+*Source: [pause_menu_handler_ctrl_check.asm](../disasm/modules/68k/game/state/pause_menu_handler_ctrl_check.asm)*
 
 ---
 
@@ -7047,7 +7055,7 @@ Calls sfx_queue_process, increments $A510 tick counter, then dispatches via 4-en
 - **Modifies**: D0, A0, A1
 - **Calls**: $0021CA: sfx_queue_process $0028C2: VDPSyncSH2
 - **RAM**: $A510: tick counter (byte, +1 per call) $C8C4: sub_state (byte, dispatch index)
-*Source: [state_disp_00573c.asm](disasm/modules/68k/game/state/state_disp_00573c.asm)*
+*Source: [state_disp_00573c.asm](../disasm/modules/68k/game/state/state_disp_00573c.asm)*
 
 ---
 
@@ -7058,7 +7066,7 @@ Calls poll_controllers, advances sub_state ($C8C4) by 4, writes $44 to SH2 COMM.
 - **Modifies**: D0, D2, A0, A1, A2, A6
 - **Calls**: $00179E: poll_controllers $00B684: object_update (tail-jump) $00B6DA: sprite_update
 - **RAM**: $C886: scene counter (byte, +1) $C8C4: sub_state (byte, +4 per call) $C8C5: frame sub-counter (byte, dispatch index)
-*Source: [state_disp_ctrl_poll_sprite_update.asm](disasm/modules/68k/game/state/state_disp_ctrl_poll_sprite_update.asm)*
+*Source: [state_disp_ctrl_poll_sprite_update.asm](../disasm/modules/68k/game/state/state_disp_ctrl_poll_sprite_update.asm)*
 
 ---
 
@@ -7068,7 +7076,7 @@ Increments the sub-sequence timer byte at $C8C5 by 4.
 
 - **Entry**: none | Exit: timer updated | Uses: none
 - **RAM**: $FFFFC8C5 = sub-sequence timer value (byte, incremented by 4)
-*Source: [advance_sub_seq_timer.asm](disasm/modules/68k/game/state/advance_sub_seq_timer.asm)*
+*Source: [advance_sub_seq_timer.asm](../disasm/modules/68k/game/state/advance_sub_seq_timer.asm)*
 
 ---
 
@@ -7078,7 +7086,7 @@ Two entry points: Entry 1 ($0057D0): increments $C8C5 by 4, tail-jumps to $00246
 
 - **Modifies**: D0
 - **RAM**: $A510: mode flags (byte, bit 5) $C80E: display control (byte, bit 4 = 2P mode) $C86C: P1 controller byte A (byte) $C86D: P1 controller byte B (byte) $C86E: P2 controller byte A (byte) $C86F: P2 controller byte B (byte) $C8C5: frame sub-counter (byte, +4 per call)
-*Source: [controller_input_check_start_button_handler.asm](disasm/modules/68k/game/state/controller_input_check_start_button_handler.asm)*
+*Source: [controller_input_check_start_button_handler.asm](../disasm/modules/68k/game/state/controller_input_check_start_button_handler.asm)*
 
 ---
 
@@ -7088,7 +7096,7 @@ Sets timer/counter at $C8C5 to 20.
 
 - **Entry**: none
 - **Modifies**: none
-*Source: [set_timer_val.asm](disasm/modules/68k/game/state/set_timer_val.asm)*
+*Source: [set_timer_val.asm](../disasm/modules/68k/game/state/set_timer_val.asm)*
 
 ---
 
@@ -7098,7 +7106,7 @@ Waits for SH2 completion, writes VDP register $8B00, clears display mode bytes, 
 
 - **Entry**: A5 = VDP control port
 - **Modifies**: D0
-*Source: [flag_check_clear_init.asm](disasm/modules/68k/game/state/flag_check_clear_init.asm)*
+*Source: [flag_check_clear_init.asm](../disasm/modules/68k/game/state/flag_check_clear_init.asm)*
 
 ---
 
@@ -7108,7 +7116,7 @@ Waits for SH2 completion, writes VDP register $8B00, clears display mode bytes, 
 
 - **Modifies**: D0
 - **RAM**: $C07A: bitmask table index (word, destination of copy) $C098: source parameter (word) $C30E: button/control flags (byte, bits 0/4/5)
-*Source: [object_bitmask_table_button_flag_handler.asm](disasm/modules/68k/game/state/object_bitmask_table_button_flag_handler.asm)*
+*Source: [object_bitmask_table_button_flag_handler.asm](../disasm/modules/68k/game/state/object_bitmask_table_button_flag_handler.asm)*
 
 ---
 
@@ -7118,7 +7126,7 @@ Reads control flag ($C30E), checks bits 0 and 5. If neither set, falls through t
 
 - **Entry**: none | Exit: flag processed | Uses: D0
 - **RAM**: $FFFFC30E = control flag (byte, bits 0/4/5 tested/modified) $FFFFC098 = state parameter source (word, read) $FFFFC07A = state parameter dest (word, conditionally written)
-*Source: [control_flag_check_cond_pos_copy.asm](disasm/modules/68k/game/state/control_flag_check_cond_pos_copy.asm)*
+*Source: [control_flag_check_cond_pos_copy.asm](../disasm/modules/68k/game/state/control_flag_check_cond_pos_copy.asm)*
 
 ---
 
@@ -7128,7 +7136,7 @@ Reads scroll trigger ($C050). If positive, returns. Otherwise sets bit 0 of cont
 
 - **Entry**: none | Exit: scroll state initialized or no-op | Uses: D0
 - **RAM**: $FFFFC050 = scroll trigger (word, tested, conditionally cleared) $FFFFC30E = control flag (byte, bit 0 set) $FFFFC096 = state parameter source (word, read) $FFFFC07A = state parameter dest (word, written) $FFFFC07C = input state (word, set to $0014)
-*Source: [conditional_scroll_state_init.asm](disasm/modules/68k/game/state/conditional_scroll_state_init.asm)*
+*Source: [conditional_scroll_state_init.asm](../disasm/modules/68k/game/state/conditional_scroll_state_init.asm)*
 
 ---
 
@@ -7139,7 +7147,7 @@ If SH2 buffer ($FF3000) == 0: calls sprite_table_init. Reads $C86E (P2 controlle
 - **Modifies**: D0, D1
 - **Calls**: $006C46: sprite_table_init Branch targets (all past fn): $006D38: bit 2 handler $006D3E: bit 3 handler $006D44: bit 1 handler $006D4A: bit 0 handler $006D50: bit 4 handler $006D6E: bit 5 handler $006D8C: bit 7 handler
 - **RAM**: $C86E: P2 controller byte A (byte, tested bit-by-bit)
-*Source: [button_bit_disp.asm](disasm/modules/68k/game/state/button_bit_disp.asm)*
+*Source: [button_bit_disp.asm](../disasm/modules/68k/game/state/button_bit_disp.asm)*
 
 ---
 
@@ -7151,7 +7159,7 @@ Decrements object frame counter at +$1C, then uses it as index into position tab
 - **Modifies**: D0, A2
 - **RAM**: $C700: position table pointer (long)
 - **Object fields**: +$1C: frame counter (word, decremented) +$30: x_position (word, updated from table) +$34: y_position (word, updated from table)
-*Source: [position_table_lookup.asm](disasm/modules/68k/game/state/position_table_lookup.asm)*
+*Source: [position_table_lookup.asm](../disasm/modules/68k/game/state/position_table_lookup.asm)*
 
 ---
 
@@ -7163,7 +7171,7 @@ Object Type Dispatch Reads object type from A2+$18 (low 4 bits), multiplies by 4
 - **Modifies**: D0, D5, A1, A2
 - **Object fields**: +$18 type/flags
 - **Confidence**: high
-*Source: [object_type_dispatch.asm](disasm/modules/68k/game/state/object_type_dispatch.asm)*
+*Source: [object_type_dispatch.asm](../disasm/modules/68k/game/state/object_type_dispatch.asm)*
 
 ---
 
@@ -7173,7 +7181,7 @@ Increments the object pending counter at $C31A and returns D0 = $04. One of thre
 
 - **Entry**: none | Exit: D0 = $04 | Uses: D0
 - **RAM**: $FFFFC31A = object pending counter (byte, incremented)
-*Source: [increment_object_counter_return_04.asm](disasm/modules/68k/game/state/increment_object_counter_return_04.asm)*
+*Source: [increment_object_counter_return_04.asm](../disasm/modules/68k/game/state/increment_object_counter_return_04.asm)*
 
 ---
 
@@ -7183,7 +7191,7 @@ Increments the object pending counter at $C31A and returns D0 = $08. One of thre
 
 - **Entry**: none | Exit: D0 = $08 | Uses: D0
 - **RAM**: $FFFFC31A = object pending counter (byte, incremented)
-*Source: [increment_object_counter_return_08.asm](disasm/modules/68k/game/state/increment_object_counter_return_08.asm)*
+*Source: [increment_object_counter_return_08.asm](../disasm/modules/68k/game/state/increment_object_counter_return_08.asm)*
 
 ---
 
@@ -7193,7 +7201,7 @@ Increments the object pending counter at $C31A and returns D0 = $10. One of thre
 
 - **Entry**: none | Exit: D0 = $10 | Uses: D0
 - **RAM**: $FFFFC31A = object pending counter (byte, incremented)
-*Source: [increment_object_counter_return_10.asm](disasm/modules/68k/game/state/increment_object_counter_return_10.asm)*
+*Source: [increment_object_counter_return_10.asm](../disasm/modules/68k/game/state/increment_object_counter_return_10.asm)*
 
 ---
 
@@ -7205,7 +7213,7 @@ Object Type Dispatch B Reads object type from A2+$18 (low 4 bits), multiplies by
 - **Modifies**: D0, D6, A1, A2
 - **Object fields**: +$18 type/flags
 - **Confidence**: high
-*Source: [object_type_dispatch_b.asm](disasm/modules/68k/game/state/object_type_dispatch_b.asm)*
+*Source: [object_type_dispatch_b.asm](../disasm/modules/68k/game/state/object_type_dispatch_b.asm)*
 
 ---
 
@@ -7216,7 +7224,7 @@ Sets D1 = $14 (object type/size), then compares words at $C07A and $C098. Return
 - **Entry**: none | Exit: D1 = $14, returns if match
 - **Modifies**: D1, D4
 - **RAM**: $FFFFC07A = state variable A (word, read) $FFFFC098 = state variable B (word, compared)
-*Source: [conditional_return_on_state_match.asm](disasm/modules/68k/game/state/conditional_return_on_state_match.asm)*
+*Source: [conditional_return_on_state_match.asm](../disasm/modules/68k/game/state/conditional_return_on_state_match.asm)*
 
 ---
 
@@ -7226,7 +7234,7 @@ Clears bit 14 of the object flags at A0+$02, then zeroes out state variable $C04
 
 - **Entry**: A0 = object pointer | Exit: flags/state reset | Uses: A0
 - **RAM**: $FFFFC04E = state variable (word, cleared) $FFFFC305 = flag byte (byte, cleared)
-*Source: [clear_object_flags_reset_state.asm](disasm/modules/68k/game/state/clear_object_flags_reset_state.asm)*
+*Source: [clear_object_flags_reset_state.asm](../disasm/modules/68k/game/state/clear_object_flags_reset_state.asm)*
 
 ---
 
@@ -7237,7 +7245,7 @@ Compares D0 with object+$2D. If they match AND object+$1C < $0064, sets $C8A4 to
 - **Entry**: A0 = object pointer, D0 = comparison value
 - **Returns**: $C8A4 optionally set | Uses: D0, A0
 - **RAM**: $FFFFC8A4 = state byte (byte, conditionally set to $BE)
-*Source: [conditional_set_state_byte_object_cmp.asm](disasm/modules/68k/game/state/conditional_set_state_byte_object_cmp.asm)*
+*Source: [conditional_set_state_byte_object_cmp.asm](../disasm/modules/68k/game/state/conditional_set_state_byte_object_cmp.asm)*
 
 ---
 
@@ -7249,7 +7257,7 @@ Compares object fields $2C/$2E (current/target position). If equal: compares $24
 - **Modifies**: D0, A0
 - **RAM**: $C319: control flag (byte, bit 7 = sign) $C04E: timer/counter (word, set to $0050)
 - **Object fields**: A0+$02: flags (word, bit 14 set on trigger) A0+$24: progress value (word) A0+$28: threshold value (word) A0+$2C: current position (word) A0+$2E: target position (word)
-*Source: [object_pos_compare_flag_set.asm](disasm/modules/68k/game/state/object_pos_compare_flag_set.asm)*
+*Source: [object_pos_compare_flag_set.asm](../disasm/modules/68k/game/state/object_pos_compare_flag_set.asm)*
 
 ---
 
@@ -7261,7 +7269,7 @@ Guards against large position differences. If input_state is active or obj+$2C >
 - **Modifies**: D0
 - **RAM**: $C07C: input_state (word)
 - **Object fields**: +$24: position value A (word) +$26: position value B (word) +$2C: guard threshold (word) +$2E: adjustment counter (word, decremented)
-*Source: [input_guard_cond_dec.asm](disasm/modules/68k/game/state/input_guard_cond_dec.asm)*
+*Source: [input_guard_cond_dec.asm](../disasm/modules/68k/game/state/input_guard_cond_dec.asm)*
 
 ---
 
@@ -7271,7 +7279,7 @@ Compares D0 with object+$2D. If mismatch, returns. Then checks $C08E against $C0
 
 - **Entry**: A0 = object, D0 = comparison value | Exit: state set | Uses: D0
 - **RAM**: $FFFFC08E = position value (word, compared) $FFFFC07A = state parameter (word, compared) $FFFFC819 = display config flag (byte, tested) $FFFFC8A4 = state variable (byte, conditionally set to $BE)
-*Source: [triple_guard_set_state_to_be.asm](disasm/modules/68k/game/state/triple_guard_set_state_to_be.asm)*
+*Source: [triple_guard_set_state_to_be.asm](../disasm/modules/68k/game/state/triple_guard_set_state_to_be.asm)*
 
 ---
 
@@ -7281,7 +7289,7 @@ ANDs -(A4) with D4 (flag check); if result nonzero writes $BF to $C8A4 (SFX). De
 
 - **Modifies**: D0, D4, A0, A4
 - **RAM**: $C04E: display timer (word, decremented) $C305: sub-counter (byte, checked nonzero) $C8A4: SFX/sound command (byte) $C8AB: scene flags (byte, bit 2)
-*Source: [display_state_timer_flag_update.asm](disasm/modules/68k/game/state/display_state_timer_flag_update.asm)*
+*Source: [display_state_timer_flag_update.asm](../disasm/modules/68k/game/state/display_state_timer_flag_update.asm)*
 
 ---
 
@@ -7291,7 +7299,7 @@ Data prefix (6 bytes: $85 $86 $87 $88 $89 $00), then object flag processing. Tes
 
 - **Entry**: A0 = object pointer | Exit: flags processed | Uses: A0
 - **RAM**: $FFFFC04E = display/scroll value (word, conditionally cleared)
-*Source: [object_flag_process_cond_clear.asm](disasm/modules/68k/game/state/object_flag_process_cond_clear.asm)*
+*Source: [object_flag_process_cond_clear.asm](../disasm/modules/68k/game/state/object_flag_process_cond_clear.asm)*
 
 ---
 
@@ -7304,7 +7312,7 @@ Updates race timer display via num_to_decimal conversion Dispatches through jump
 - **Calls**: $00839A: num_to_decimal Jump table at digit_extraction_via_division Object fields (A0): +$02: flags
 - **RAM**: $C319: controller_raw $C04E: timer_countdown $C305: race_phase $C8AB: scene_state_hi $C8AA: scene_state (cleared)
 - **Confidence**: medium
-*Source: [timer_disp_update_004.asm](disasm/modules/68k/game/state/timer_disp_update_004.asm)*
+*Source: [timer_disp_update_004.asm](../disasm/modules/68k/game/state/timer_disp_update_004.asm)*
 
 ---
 
@@ -7316,7 +7324,7 @@ Write Status Code to RAM Stores D7 as the current status code at RAM $68F0. Used
 - **Modifies**: D7
 - **RAM**: $68F0 (status_code)
 - **Confidence**: high
-*Source: [write_status_code_to_ram.asm](disasm/modules/68k/game/state/write_status_code_to_ram.asm)*
+*Source: [write_status_code_to_ram.asm](../disasm/modules/68k/game/state/write_status_code_to_ram.asm)*
 
 ---
 
@@ -7327,7 +7335,7 @@ Three-Way Value Comparison Router Compares D5 with longword at (A3). If equal: c
 - **Entry**: D5 = value to compare, A3 = reference pointer, A4 = state output
 - **Modifies**: D0, D1, D5, A3, A4
 - **Confidence**: high
-*Source: [three_way_value_comparison_router.asm](disasm/modules/68k/game/state/three_way_value_comparison_router.asm)*
+*Source: [three_way_value_comparison_router.asm](../disasm/modules/68k/game/state/three_way_value_comparison_router.asm)*
 
 ---
 
@@ -7339,7 +7347,7 @@ Object State Assignment — Less-Than Case Less-than handler for the three-way c
 - **Modifies**: D0, D1, D5, A3, A4
 - **Object fields**: +$00 state, +$04 speed
 - **Confidence**: high
-*Source: [object_state_assignment_00837a.asm](disasm/modules/68k/game/state/object_state_assignment_00837a.asm)*
+*Source: [object_state_assignment_00837a.asm](../disasm/modules/68k/game/state/object_state_assignment_00837a.asm)*
 
 ---
 
@@ -7351,7 +7359,7 @@ Object State Assignment — Greater-Than Case Greater-than handler for the three
 - **Modifies**: D0, D1, D5, A3, A4
 - **Object fields**: +$00 state, +$04 speed
 - **Confidence**: high
-*Source: [object_state_assignment_00838a.asm](disasm/modules/68k/game/state/object_state_assignment_00838a.asm)*
+*Source: [object_state_assignment_00838a.asm](../disasm/modules/68k/game/state/object_state_assignment_00838a.asm)*
 
 ---
 
@@ -7361,7 +7369,7 @@ Loads and increments spawn counter ($A9E0), sets up table base addresses ($A9E3 
 
 - **Entry**: A0 = object pointer | Exit: setup or guard | Uses: D0, A0-A2
 - **RAM**: $FFFFA9E0 = spawn counter (byte, loaded then incremented) $FFFFA9E3 = table base offset (address loaded into A1) $FFFFA800 = object table base (address loaded into A2)
-*Source: [object_spawn_counter_table_setup.asm](disasm/modules/68k/game/state/object_spawn_counter_table_setup.asm)*
+*Source: [object_spawn_counter_table_setup.asm](../disasm/modules/68k/game/state/object_spawn_counter_table_setup.asm)*
 
 ---
 
@@ -7372,7 +7380,7 @@ Time Array Entry Comparison Compares indexed longword entries from two arrays (A
 - **Entry**: D1 = entry count, A2 = array 1 base, A3 = array 2 base
 - **Modifies**: D0, D1, D4, D5, A2, A3
 - **Confidence**: high
-*Source: [time_array_entry_comparison.asm](disasm/modules/68k/game/state/time_array_entry_comparison.asm)*
+*Source: [time_array_entry_comparison.asm](../disasm/modules/68k/game/state/time_array_entry_comparison.asm)*
 
 ---
 
@@ -7382,7 +7390,7 @@ Return Success Flag Returns D0=1 (success/true). Fallthrough target from time_ar
 
 - **Modifies**: D0
 - **Confidence**: high
-*Source: [return_success_flag.asm](disasm/modules/68k/game/state/return_success_flag.asm)*
+*Source: [return_success_flag.asm](../disasm/modules/68k/game/state/return_success_flag.asm)*
 
 ---
 
@@ -7393,7 +7401,7 @@ Fixed-Point Threshold State Marker Compares D5 against fixed-point threshold $60
 - **Entry**: D5 = fixed-point value, A4 = object pointer
 - **Modifies**: D0, D1, D5, A4
 - **Confidence**: high
-*Source: [fixed_point_threshold_state_marker.asm](disasm/modules/68k/game/state/fixed_point_threshold_state_marker.asm)*
+*Source: [fixed_point_threshold_state_marker.asm](../disasm/modules/68k/game/state/fixed_point_threshold_state_marker.asm)*
 
 ---
 
@@ -7404,7 +7412,7 @@ Value Equality Check with State Clear Compares D4 and D5. If not equal, branches
 - **Entry**: D4, D5 = values to compare, A4 = state output pointer
 - **Modifies**: D0, D1, D4, D5, A4
 - **Confidence**: high
-*Source: [value_equality_check_with_state_clear.asm](disasm/modules/68k/game/state/value_equality_check_with_state_clear.asm)*
+*Source: [value_equality_check_with_state_clear.asm](../disasm/modules/68k/game/state/value_equality_check_with_state_clear.asm)*
 
 ---
 
@@ -7416,7 +7424,7 @@ Object State Assignment — Not-Equal Case Not-equal handler paired with value_e
 - **Modifies**: D0, D1, D4, D5, A4
 - **Object fields**: +$00 state, +$04 speed
 - **Confidence**: high
-*Source: [object_state_assignment_008532.asm](disasm/modules/68k/game/state/object_state_assignment_008532.asm)*
+*Source: [object_state_assignment_008532.asm](../disasm/modules/68k/game/state/object_state_assignment_008532.asm)*
 
 ---
 
@@ -7426,7 +7434,7 @@ Decrements 8 timer fields in entity (A0) if positive. Offsets: $98, $9A, $86, $8
 
 - **Entry**: A0 = entity
 - **Modifies**: none (modifies entity fields)
-*Source: [timer_decrement_multi.asm](disasm/modules/68k/game/state/timer_decrement_multi.asm)*
+*Source: [timer_decrement_multi.asm](../disasm/modules/68k/game/state/timer_decrement_multi.asm)*
 
 ---
 
@@ -7436,7 +7444,7 @@ Decrements 8 timer fields in entity (A0) if positive. Offsets: $98, $9A, $86, $8
 
 - **Modifies**: D0, D2, D5, D6, D7, A0, A2, A3
 - **RAM**: $C0BA: waypoint_angle (cleared) $C0C6: camera_offset (cleared) $C313: steering_flags (bit 1 set, bit 3 cleared) $C896: ai_timer (cleared)
-*Source: [state_handler_table_init.asm](disasm/modules/68k/game/state/state_handler_table_init.asm)*
+*Source: [state_handler_table_init.asm](../disasm/modules/68k/game/state/state_handler_table_init.asm)*
 
 ---
 
@@ -7447,7 +7455,7 @@ Reads state index from $C896, dispatches via PC-relative word-offset jump table 
 - **Modifies**: D0
 - **Calls**: $00888DC0: shared exit
 - **RAM**: $C896: state index (byte, 0/2/4/6) $C0BA: source param A (word) $C0BC: source param B (word) $C0BE: source param C (word) $C892: target param B (word) $C894: target param C (word) $C8F6: counter/flag (byte, set to 5) $C8F8: target param A (word)
-*Source: [state_disp_reg_copy_handler.asm](disasm/modules/68k/game/state/state_disp_reg_copy_handler.asm)*
+*Source: [state_disp_reg_copy_handler.asm](../disasm/modules/68k/game/state/state_disp_reg_copy_handler.asm)*
 
 ---
 
@@ -7458,7 +7466,7 @@ Mode Advance Decrements a countdown counter at $C8F6. When it reaches zero, adva
 - **Entry**: No register inputs
 - **Returns**: Counter decremented; mode advanced if counter reached zero
 - **Modifies**: (none modified beyond RAM writes)
-*Source: [counter_check_flag_8200.asm](disasm/modules/68k/game/state/counter_check_flag_8200.asm)*
+*Source: [counter_check_flag_8200.asm](../disasm/modules/68k/game/state/counter_check_flag_8200.asm)*
 
 ---
 
@@ -7470,7 +7478,7 @@ Timer Decrement and Rank Check Guard Decrements timer +$A8 if nonzero. Then chec
 - **Modifies**: A0
 - **Object fields**: +$2A rank, +$A8 countdown timer
 - **Confidence**: high
-*Source: [timer_decrement_and_rank_check_guard.asm](disasm/modules/68k/game/state/timer_decrement_and_rank_check_guard.asm)*
+*Source: [timer_decrement_and_rank_check_guard.asm](../disasm/modules/68k/game/state/timer_decrement_and_rank_check_guard.asm)*
 
 ---
 
@@ -7480,7 +7488,7 @@ Manages animation effect timers using sine table lookups. When timer is active: 
 
 - **Entry**: A0 = object/entity pointer
 - **Modifies**: D0, A1 Fields accessed: A0+$02: Flag word (bits 13/12 = effect triggers) A0+$0E: Effect state A0+$14: Effect duration A0+$6A: Timer countdown A0+$6C: Sine table index A0+$6E: Current sine value (animation output)
-*Source: [effect_timer_mgmt.asm](disasm/modules/68k/game/state/effect_timer_mgmt.asm)*
+*Source: [effect_timer_mgmt.asm](../disasm/modules/68k/game/state/effect_timer_mgmt.asm)*
 
 ---
 
@@ -7491,7 +7499,7 @@ Manages an effect countdown timer at ($C8AE). When timer expires, clears 4 RAM e
 - **Entry**: A0 = object/entity pointer
 - **Modifies**: D0, A1 Fields accessed: A0+$AC: Entity effect countdown (decremented) A0+$AE: Entity slot index
 - **RAM**: ($C8AE).W: Effect duration timer ($C026).W: Effect active flag (set to $FFFF on expiry) ($C319).W: Game state (require & $3F == $0D) ($C30E).W: Flag byte (require & $21 == 0, bit 1 set on trigger) ($C05C).W: Slot table base pointer ($C312).W: Busy flag (require == 0) ($C8AA).W: Cleared on trigger ($C08E).W: Value copied to ($C07A).W ($C8A5).W: Set to $90 on trigger
-*Source: [effect_countdown.asm](disasm/modules/68k/game/state/effect_countdown.asm)*
+*Source: [effect_countdown.asm](../disasm/modules/68k/game/state/effect_countdown.asm)*
 
 ---
 
@@ -7501,7 +7509,7 @@ Two entry points (A0 selects counter block, D0 = flags byte): Entry 1 ($B094): A
 
 - **Modifies**: D0, A0
 - **RAM**: $B4EE: input flags A (byte) $C050: work counter (word, decremented) $C30D: race sub-flag (byte) $C30E: race_flags (byte) Counter blocks (3 bytes each): $C806: counter B (+0=main, +1=tick, +2=sub-tick) $C813: counter A (+0=main, +1=tick, +2=sub-tick)
-*Source: [cascaded_frame_counter.asm](disasm/modules/68k/game/state/cascaded_frame_counter.asm)*
+*Source: [cascaded_frame_counter.asm](../disasm/modules/68k/game/state/cascaded_frame_counter.asm)*
 
 ---
 
@@ -7512,7 +7520,7 @@ Tests the display config flag at $C819. If nonzero, returns to caller. If zero, 
 - **Entry**: none | Exit: returns if flag set, falls through if clear
 - **Modifies**: none
 - **RAM**: $FFFFC819 = display config flag (byte, tested)
-*Source: [conditional_return_on_disp_config_flag.asm](disasm/modules/68k/game/state/conditional_return_on_disp_config_flag.asm)*
+*Source: [conditional_return_on_disp_config_flag.asm](../disasm/modules/68k/game/state/conditional_return_on_disp_config_flag.asm)*
 
 ---
 
@@ -7522,7 +7530,7 @@ Three sequential dispatches, each loading a controller byte ($C86C/$C86D/$C86E),
 
 - **Modifies**: D0, A1
 - **RAM**: $C86C: controller byte A (byte, ×4 → jump table index) $C86D: controller byte B (byte, ×4 → jump table index) $C86E: controller byte C (byte, ×4 → jump table index) Jump tables (absolute long addresses): $00894888: dispatch table A $00894C88: dispatch table B $00895088: dispatch table C
-*Source: [triple_dispatch.asm](disasm/modules/68k/game/state/triple_dispatch.asm)*
+*Source: [triple_dispatch.asm](../disasm/modules/68k/game/state/triple_dispatch.asm)*
 
 ---
 
@@ -7533,7 +7541,7 @@ Clears scene_state and menu_substate, then copies 6 words from object data at A0
 - **Entry**: A0 = object pointer
 - **Modifies**: A1
 - **RAM**: $C8AA: scene_state (word, cleared) $C084: menu_substate (word, cleared) $C086: scroll register 1 (word) $C054: scroll register 2 (word) $C056: scroll register 3 (word) $C0AE: position register 1 (word) $C0B0: position register 2 (word) $C0B2: position register 3 (word)
-*Source: [clear_state_copy_scroll_data_object.asm](disasm/modules/68k/game/state/clear_state_copy_scroll_data_object.asm)*
+*Source: [clear_state_copy_scroll_data_object.asm](../disasm/modules/68k/game/state/clear_state_copy_scroll_data_object.asm)*
 
 ---
 
@@ -7543,7 +7551,7 @@ Pops the caller's return address from stack (ADDQ #4,SP), sets flag ($C308).W = 
 
 - **Modifies**: (modifies SP)
 - **RAM**: ($C308).W: Flag byte (set to 1)
-*Source: [abort_with_flag.asm](disasm/modules/68k/game/state/abort_with_flag.asm)*
+*Source: [abort_with_flag.asm](../disasm/modules/68k/game/state/abort_with_flag.asm)*
 
 ---
 
@@ -7553,7 +7561,7 @@ Initializes counter ($A0F0).W to 1 if currently zero.
 
 - **Modifies**: (none modified)
 - **RAM**: ($A0F0).W: Counter (set to 1 if zero)
-*Source: [counter_init_check.asm](disasm/modules/68k/game/state/counter_init_check.asm)*
+*Source: [counter_init_check.asm](../disasm/modules/68k/game/state/counter_init_check.asm)*
 
 ---
 
@@ -7564,7 +7572,7 @@ Dispatches via 5-entry longword jump table indexed by state_dispatch_idx ($C87E)
 - **Modifies**: D0, D1, D2, A0, A1, A6
 - **Calls**: $0021CA: init handler $0028C2: VDPSyncSH2 $0058C8: sprite_input_check $0088BE: sfx_queue_process
 - **RAM**: $C81C: scene_flags (byte, bit 0) $C86C: controller_state (word, saved/restored) $C87E: state_dispatch_idx (word) $C886: scene_counter (byte)
-*Source: [state_disp_00c30a.asm](disasm/modules/68k/game/state/state_disp_00c30a.asm)*
+*Source: [state_disp_00c30a.asm](../disasm/modules/68k/game/state/state_disp_00c30a.asm)*
 
 ---
 
@@ -7572,7 +7580,7 @@ Dispatches via 5-entry longword jump table indexed by state_dispatch_idx ($C87E)
 
 Palette Scene Dispatch CODE ($E90C-$E91A): JSR to init function, MOVE.W from ($C87E) index, MOVEA.L indexed (d0,PC) into A1, JMP (A1) DATA ($E91C-$E926): 3 longword handler pointers: Index 0: $0088E93A — sh2_geometry_transfer_and_palette_cycle_handler Index 4: $0088EDDA — sh2_scene_object_update_with_lookup_tables+$11C Index 8: $0088EEF2 — sh2_scene_object_update_with_lookup_tables+$234
 
-*Source: [palette_scene_dispatch.asm](disasm/modules/68k/game/state/palette_scene_dispatch.asm)*
+*Source: [palette_scene_dispatch.asm](../disasm/modules/68k/game/state/palette_scene_dispatch.asm)*
 
 ---
 
@@ -7583,7 +7591,7 @@ Calls SH2 init ($882080), reads game_state ($C87E), dispatches via 3-entry longw
 - **Modifies**: D0, A1
 - **Calls**: $00882080: SH2 init $0088179E: controller_poll $01440E: input handler (via bsr.w)
 - **RAM**: $C87E: game_state (word)
-*Source: [state_disp_ctrl_init.asm](disasm/modules/68k/game/state/state_disp_ctrl_init.asm)*
+*Source: [state_disp_ctrl_init.asm](../disasm/modules/68k/game/state/state_disp_ctrl_init.asm)*
 
 ---
 
@@ -7595,7 +7603,7 @@ Computes track segment index from D1/D2 velocity components and D3 base offset. 
 
 - **Modifies**: D0, D1, D2, D3, D4, D5, A0, A1, A2
 - **RAM**: $C8A0: race_state (word) Object (A0): +$E4: table select flag (byte, 0=normal)
-*Source: [track_data_index_calc_table_lookup.asm](disasm/modules/68k/game/track/track_data_index_calc_table_lookup.asm)*
+*Source: [track_data_index_calc_table_lookup.asm](../disasm/modules/68k/game/track/track_data_index_calc_table_lookup.asm)*
 
 ---
 
@@ -7607,7 +7615,7 @@ Extracts signed byte pairs from 3D track data pages Reads from 3 pages ($800 apa
 - **Modifies**: D0, D2, A1, A2
 - **RAM**: $C268: track_data_ptr $C02E: track_work_buf Object fields (A2 → work buffer at $C02E): +$00, +$04: page 0 signed byte pair +$06, +$0A: page 1 signed byte pair +$0C, +$10: page 2 signed byte pair +$12, +$16: page 3 signed byte pair
 - **Confidence**: high
-*Source: [track_data_extract_033.asm](disasm/modules/68k/game/track/track_data_extract_033.asm)*
+*Source: [track_data_extract_033.asm](../disasm/modules/68k/game/track/track_data_extract_033.asm)*
 
 ---
 
@@ -7619,7 +7627,7 @@ Loads track segment data from ROM into work buffers Reads position pair via inde
 - **Modifies**: D0, A1, A2
 - **RAM**: $C744: segment_table_ptr $C8BC: segment_base_index $C303: segment_sub_index $C054: track_pos_hi $C056: track_pos_lo $C710-$C720: segment_data (5 longwords) $C734: segment_word_ptr $C04C: track_mode
 - **Confidence**: medium
-*Source: [track_segment_load_031.asm](disasm/modules/68k/game/track/track_segment_load_031.asm)*
+*Source: [track_segment_load_031.asm](../disasm/modules/68k/game/track/track_segment_load_031.asm)*
 
 ---
 
@@ -7630,7 +7638,7 @@ Track Graphics and Sound Loader Data prefix (animation frame table, 30 bytes). L
 - **Modifies**: D0, D1, D3, D4, D7, A0, A1, A2
 - **Calls**: $0048EA (data_copy), $004922 (FastCopy16)
 - **Confidence**: high
-*Source: [track_graphics_and_sound_loader.asm](disasm/modules/68k/game/track/track_graphics_and_sound_loader.asm)*
+*Source: [track_graphics_and_sound_loader.asm](../disasm/modules/68k/game/track/track_graphics_and_sound_loader.asm)*
 
 ---
 
@@ -7642,7 +7650,7 @@ Unpacks 2 bytes into 4 pixels (4bpp packed pixel format). Each byte has two nibb
 
 - **Entry**: A0 = source data, A6 = VDP data port
 - **Modifies**: D0, D1, D6, A0 (advances by 2)
-*Source: [pixel_unpack_2pairs.asm](disasm/modules/68k/graphics/pixel_unpack_2pairs.asm)*
+*Source: [pixel_unpack_2pairs.asm](../disasm/modules/68k/graphics/pixel_unpack_2pairs.asm)*
 
 ---
 
@@ -7652,7 +7660,7 @@ Unpacks 1 byte into 2 pixels (4bpp packed pixel format).
 
 - **Entry**: A0 = source data, A6 = VDP data port
 - **Modifies**: D0, D1, D6, A0 (advances by 1)
-*Source: [pixel_unpack_1pair.asm](disasm/modules/68k/graphics/pixel_unpack_1pair.asm)*
+*Source: [pixel_unpack_1pair.asm](../disasm/modules/68k/graphics/pixel_unpack_1pair.asm)*
 
 ---
 
@@ -7660,7 +7668,7 @@ Unpacks 1 byte into 2 pixels (4bpp packed pixel format).
 
 Sprite table initialization and management. Creates the sprite attribute table structure in work RAM from ROM templates. SPRITE TABLE STRUCTURE Work RAM at $FF3000+: | Address    | Purpose                              | |------------|--------------------------------------| | $FF3000    | Sprite system initialized flag       | | $FF3002    | Sprite attribute pointers (6 entries)| | $FF301A    | Sprite chain pointers                | | $FF304A    | Sprite data storage                  | ROM DATA Sprite templates at $0089B844 contain predefined sprite configurations. Dependencies: Memory cleared before init Related: VDP operations Format: Proper mnemonics with original bytes in comments for verification
 
-*Source: [sprite_system.asm](disasm/modules/68k/graphics/sprite_system.asm)*
+*Source: [sprite_system.asm](../disasm/modules/68k/graphics/sprite_system.asm)*
 
 ---
 
@@ -7668,7 +7676,7 @@ Sprite table initialization and management. Creates the sprite attribute table s
 
 Calculates screen coordinates for 3D objects, mapping world positions to 2D screen locations for rendering. Called 9 times per frame. OBJECT STRUCTURE OFFSETS | Offset | Size | Name         | Purpose                         | |--------|------|--------------|--------------------------------| | $001D  | B    | obj_type     | Object type for table lookup    | | $0030  | W    | world_y      | World Y position                | | $0034  | W    | world_x      | World X position                | | $00CA  | W    | screen_idx   | Screen position index           | | $00CC  | W    | depth_val    | Depth value for perspective     | WORK RAM | Address    | Name           | Purpose                        | |------------|----------------|--------------------------------| | $FFFFC060  | VIEW_MODE      | Current view mode (word)       | | $FF6000    | COORD_BUFFER   | Screen coordinate buffer       | | $FF610E    | COORD_COUNT    | Number of calculated coords    | ROM TABLES | Address    | Name           | Purpose                        | |------------|----------------|--------------------------------| | $0089A0D4  | DEPTH_TABLE    | Depth-to-index lookup          | | $0089A434  | ALT_TABLE      | Alternative depth table        | | $007248    | MODE_TABLES    | View mode table pointers       | Dependencies: Object system, view setup Related: sprite_system.asm, object_system.asm Format: Proper mnemonics with original bytes in comments for verification
 
-*Source: [screen_coord.asm](disasm/modules/68k/graphics/screen_coord.asm)*
+*Source: [screen_coord.asm](../disasm/modules/68k/graphics/screen_coord.asm)*
 
 ---
 
@@ -7680,13 +7688,13 @@ Copies 13 words from a data table (following this function) to MARS system regis
 
 - **Entry**: none (data table at PC+$12)
 - **Modifies**: A1, A2, D7
-*Source: [mars_regs_init_13.asm](disasm/modules/68k/hardware-regs/mars_regs_init_13.asm)*
+*Source: [mars_regs_init_13.asm](../disasm/modules/68k/hardware-regs/mars_regs_init_13.asm)*
 
 ---
 
 ### Hw Reg Init
 
-*Source: [hw_reg_init.asm](disasm/modules/68k/hardware-regs/hw_reg_init.asm)*
+*Source: [hw_reg_init.asm](../disasm/modules/68k/hardware-regs/hw_reg_init.asm)*
 
 ---
 
@@ -7696,7 +7704,7 @@ Copies 13 words from a data table (following this function) to MARS system regis
 
 Controller initialization and polling for both Mega Drive controller ports. Supports standard 3-button and 6-button controllers. CONTROLLER PORTS | Address   | Name      | Purpose                     | |-----------|-----------|------------------------------| | $A10003   | MD_DATA1  | Controller 1 data port       | | $A10005   | MD_DATA2  | Controller 2 data port       | | $A10009   | MD_CTRL1  | Controller 1 control         | | $A1000B   | MD_CTRL2  | Controller 2 control         | CONTROLLER STATE MEMORY | Address | Name       | Purpose                       | |---------|------------|-------------------------------| | $C810   | CTRL_TYPE1 | Controller 1 type (byte)      | | $C811   | CTRL_TYPE2 | Controller 2 type (byte)      | | $C86C   | CTRL_STATE1| Controller 1 state (byte)     | | $C86E   | CTRL_STATE2| Controller 2 state (byte)     | | $C970   | INPUT_BUF1 | Input buffer 1 (long)         | | $C974   | INPUT_BUF2 | Input buffer 2 (long)         | | $FE82   | BTN_MAP    | Button remapping table        | | $FE92   | PORT_STATE1| Port 1 state                  | | $FE93   | PORT_STATE2| Port 2 state                  | | $FE94   | PORT_CFG   | Port configuration            | BUTTON MAPPING Standard 3-button: Up, Down, Left, Right, A, B, C, Start 6-button adds: X, Y, Z, Mode Button map values: $04 = A button $06 = B button $01 = C button $00 = Start $05 = X button $0A = Y button $09 = Z button $08 = Mode Dependencies: V-INT handler calls poll_controllers Related: vint_handler.asm Format: Proper mnemonics with original bytes in comments for verification
 
-*Source: [controller.asm](disasm/modules/68k/input/controller.asm)*
+*Source: [controller.asm](../disasm/modules/68k/input/controller.asm)*
 
 ---
 
@@ -7708,7 +7716,7 @@ Reads joypad via joypad_read_hw, maps raw button/direction bits to a standardize
 - **Returns**: Button states written to (A0) and (A2)
 - **Modifies**: D0-D2, D6, D7, A0-A3
 - **Calls**: joypad_read_hw
-*Source: [joypad_process.asm](disasm/modules/68k/input/joypad_process.asm)*
+*Source: [joypad_process.asm](../disasm/modules/68k/input/joypad_process.asm)*
 
 ---
 
@@ -7719,7 +7727,7 @@ Low-level Genesis/Mega Drive joypad hardware read using the standard TH-toggle p
 - **Entry**: A1 = joypad data port address (e.g., $A10003 or $A10005)
 - **Returns**: D0 = button state word (1 = pressed) Format: ZYXM_SACBRLDU (6-btn) or 00000000_SACBRLDU (3-btn)
 - **Modifies**: D0, D1, D5, D6, D7 Hardware: $A11100 (Z80 bus), A1 (joypad port)
-*Source: [joypad_read_hw.asm](disasm/modules/68k/input/joypad_read_hw.asm)*
+*Source: [joypad_read_hw.asm](../disasm/modules/68k/input/joypad_read_hw.asm)*
 
 ---
 
@@ -7729,7 +7737,7 @@ Low-level Genesis/Mega Drive joypad hardware read using the standard TH-toggle p
 
 - **Entry**: D0 = raw button state, D5 = $00FF mask, D7 = $40 (TH=1) A1 = joypad data port
 - **Returns**: D0 = masked button state (low 8 bits only)
-*Source: [joypad_read_3btn.asm](disasm/modules/68k/input/joypad_read_3btn.asm)*
+*Source: [joypad_read_3btn.asm](../disasm/modules/68k/input/joypad_read_3btn.asm)*
 
 ---
 
@@ -7740,7 +7748,7 @@ Generic joypad port reader with configurable I/O protocol. Uses a 6-byte protoco
 - **Entry**: D0 = port index (0-2)
 - **Returns**: D0 = 8-bit button data
 - **Modifies**: D0, D1, D2, A0, A1 (D1/D2/A1 saved/restored) Hardware: $A11100 (Z80 bus), I/O ports
-*Source: [joypad_read_port.asm](disasm/modules/68k/input/joypad_read_port.asm)*
+*Source: [joypad_read_port.asm](../disasm/modules/68k/input/joypad_read_port.asm)*
 
 ---
 
@@ -7751,7 +7759,7 @@ Both Players Clears input state for both players. Sets P1/P2 input words to $FF0
 - **Entry**: No register inputs
 - **Returns**: Both player inputs cleared
 - **Modifies**: (none modified beyond RAM writes)
-*Source: [input_clear_both.asm](disasm/modules/68k/input/input_clear_both.asm)*
+*Source: [input_clear_both.asm](../disasm/modules/68k/input/input_clear_both.asm)*
 
 ---
 
@@ -7762,7 +7770,7 @@ Both Players + P1 Extended Clears P1/P2 input words to $FF00 and resets P1 exten
 - **Entry**: No register inputs
 - **Returns**: P1/P2 inputs + P1 extended cleared
 - **Modifies**: (none modified beyond RAM writes)
-*Source: [input_clear_partial_a.asm](disasm/modules/68k/input/input_clear_partial_a.asm)*
+*Source: [input_clear_partial_a.asm](../disasm/modules/68k/input/input_clear_partial_a.asm)*
 
 ---
 
@@ -7773,7 +7781,7 @@ P2 + P2 Extended Clears P2 input word to $FF00 and resets P2 extended input only
 - **Entry**: No register inputs
 - **Returns**: P2 input + P2 extended cleared
 - **Modifies**: (none modified beyond RAM writes)
-*Source: [input_clear_partial_b.asm](disasm/modules/68k/input/input_clear_partial_b.asm)*
+*Source: [input_clear_partial_b.asm](../disasm/modules/68k/input/input_clear_partial_b.asm)*
 
 ---
 
@@ -7784,7 +7792,7 @@ Both Players Masks both player input words to retain only direction bits (AND wi
 - **Entry**: No register inputs
 - **Returns**: Both inputs masked, extended cleared
 - **Modifies**: (none modified beyond RAM writes)
-*Source: [input_mask_both.asm](disasm/modules/68k/input/input_mask_both.asm)*
+*Source: [input_mask_both.asm](../disasm/modules/68k/input/input_mask_both.asm)*
 
 ---
 
@@ -7795,7 +7803,7 @@ Both Players + P1 Extended Clear Masks P1/P2 input words to direction bits ($FF8
 - **Entry**: No register inputs
 - **Returns**: Both inputs masked, P1 extended cleared
 - **Modifies**: (none modified beyond RAM writes)
-*Source: [input_mask_partial_a.asm](disasm/modules/68k/input/input_mask_partial_a.asm)*
+*Source: [input_mask_partial_a.asm](../disasm/modules/68k/input/input_mask_partial_a.asm)*
 
 ---
 
@@ -7806,7 +7814,7 @@ P2 + P2 Extended Clear Masks P2 input word to direction bits ($FF80) and clears 
 - **Entry**: No register inputs
 - **Returns**: P2 input masked, P2 extended cleared
 - **Modifies**: (none modified beyond RAM writes)
-*Source: [input_mask_partial_b.asm](disasm/modules/68k/input/input_mask_partial_b.asm)*
+*Source: [input_mask_partial_b.asm](../disasm/modules/68k/input/input_mask_partial_b.asm)*
 
 ---
 
@@ -7817,7 +7825,7 @@ P2 + P2 Extended Clear Masks P2 input word to direction bits ($FF80) and clears 
 The Vertical Interrupt handler is called every frame (~60Hz NTSC) during VBlank. It manages the main game state machine via a jump table dispatcher. STATE MACHINE Uses state flag at $FFC87A (also written as $C87A.W with signed offset). State 0 = idle/no work, handler exits immediately via RTE. Non-zero states dispatch through jump table at $0016B2. State | Address    | Handler Name           | Purpose ------+------------+------------------------+---------------------------------- 0   | $000819FE  | vint_state_common      | VDP sync + work RAM updates 1   | $000819FE  | vint_state_common      | (same) 2   | $000819FE  | vint_state_common      | (same) 4   | $00081A6E  | vint_state_minimal     | Quick VDP status read 5   | $00081A72  | vint_state_vdp_sync    | Full VDP synchronization 6   | $00081C66  | vint_state_fb_toggle   | Frame buffer toggle 7   | $00081ACA  | vint_state_sprite_cfg  | Sprite configuration 9   | $00081E42  | vint_state_fb_setup    | Frame buffer setup 10   | $00081B14  | vint_state_vdp_config  | VDP configuration 11   | $00081A64  | vint_state_transition  | Set next state 12   | $00081BA8  | vint_state_complex     | Complex VDP operations 13   | $00081E94  | vint_state_fb_palette  | FB + palette update 14   | $00081F4A  | vint_state_fb_dma      | Frame buffer DMA 15   | $00082010  | vint_state_cleanup     | Clear SH2 flags FRAME COUNTER $FFC964 (also $C964.W) is incremented every frame the handler runs. REGISTER USAGE All registers D0-D7/A0-A6 are saved on entry and restored on exit. Status register set to $2700 (interrupts disabled) during handler. TIMING CONSTRAINTS Must complete within VBlank period (~4500 68K cycles at 7.67MHz). Heavy processing deferred to state handlers after VBlank. Dependencies: State handlers in other modules Related: analysis/architecture/STATE_MACHINES.md Format: Proper mnemonics with original bytes in comments for verification
 
 - **Entry**: Vector at $000078-$00007B points to $00001684 (vint_handler)
-*Source: [vint_handler.asm](disasm/modules/68k/main-loop/vint_handler.asm)*
+*Source: [vint_handler.asm](../disasm/modules/68k/main-loop/vint_handler.asm)*
 
 ---
 
@@ -7830,7 +7838,7 @@ Linear congruential PRNG. State stored at ($EF00).W. Seed: $2A6D365A. Returns ra
 - **Entry**: none
 - **Returns**: D0.W = random value
 - **Modifies**: D0 (D1 preserved)
-*Source: [random_number_gen.asm](disasm/modules/68k/math/random_number_gen.asm)*
+*Source: [random_number_gen.asm](../disasm/modules/68k/math/random_number_gen.asm)*
 
 ---
 
@@ -7838,7 +7846,7 @@ Linear congruential PRNG. State stored at ($EF00).W. Seed: $2A6D365A. Returns ra
 
 High-frequency sine/cosine lookup and velocity calculations for objects. Called 29 times per frame - the most frequently called function in the game. TRIG TABLE SYSTEM Two 1024-entry tables in ROM: - Sine table at $0093A02C (1024 words = 2KB) - Cosine table at $0093A42C (1024 words = 2KB) Each table covers 360 degrees in 1024 steps (0.35 degrees per step). Values are signed 16-bit fixed-point. OBJECT STRUCTURE OFFSETS (for this function) | Offset | Size | Purpose                              | |--------|------|--------------------------------------| | $0004  | W    | Scaling factor                       | | $003A  | W    | Cosine result                        | | $003E  | W    | Sine result                          | | $0044  | W    | Copied from $009E                    | | $0046  | W    | Calculated velocity component        | | $004A  | W    | Speed-adjusted value                 | | $004C  | W    | Final velocity component             | | $005A  | W    | Reference angle                      | | $005C  | W    | Y-axis angle                         | | $005E  | W    | X-axis angle                         | | $006E  | W    | Speed base value                     | | $008E  | W    | Rotation speed                       | | $0094  | W    | Velocity modifier                    | | $009E  | W    | Position offset                      | | $00A0  | W    | Mode flag                            | | $00A2  | W    | Acceleration factor                  | ALGORITHM 1. Calculate angle difference (obj+$5C - obj+$5A) 2. Look up sine, store at obj+$3E 3. Calculate angle difference (obj+$5E - obj+$5A) 4. Look up cosine, store at obj+$3A 5. Calculate velocity components using rotation and speed 6. Apply scaling and store final values Dependencies: Sine/cosine ROM tables Related: calc_steering, obj_velocity_y/x Format: Proper mnemonics with original bytes in comments for verification
 
-*Source: [trig_lookup.asm](disasm/modules/68k/math/trig_lookup.asm)*
+*Source: [trig_lookup.asm](../disasm/modules/68k/math/trig_lookup.asm)*
 
 ---
 
@@ -7849,7 +7857,7 @@ Normalizes viewing angles to a 512-step rotation system and performs BSP-style v
 - **Entry**: D1 = viewing angle 1, D2 = viewing angle 2, A1 = BSP data ptr
 - **Returns**: D0 = 1 if visible, 0 if culled
 - **Modifies**: D0-D7, A1-A2 Dependencies: None (pure math, no external calls)
-*Source: [angle_normalize_bsp.asm](disasm/modules/68k/math/angle_normalize_bsp.asm)*
+*Source: [angle_normalize_bsp.asm](../disasm/modules/68k/math/angle_normalize_bsp.asm)*
 
 ---
 
@@ -7857,7 +7865,7 @@ Normalizes viewing angles to a 512-step rotation system and performs BSP-style v
 
 Normalizes angles to a 512-step rotation and performs BSP-style visibility testing for polygon culling. Two variants handle different test conditions. ANGLE SYSTEM The game uses a 512-step angle system: - Full rotation = 512 steps ($200) - Quarter rotation = 128 steps ($80) - The $4000 offset shifts the reference frame - $01FF mask keeps angle in 0-511 range INPUT PARAMETERS D1 = Viewing angle 1 (raw) D2 = Viewing angle 2 (raw) A1 = Polygon data pointer (BSP node structure) BSP NODE STRUCTURE | Offset | Size | Purpose                              | |--------|------|--------------------------------------| | +0     | W    | Flag word (negative = skip)          | | +2     | W    | Plane coefficient A                  | | +4     | W    | Plane coefficient B                  | | +6     | W    | Plane constant C                     | | ...    | ...  | Additional plane data                | ALGORITHM 1. Normalize input angles to 0-511 range, multiply by 2 2. Check polygon flag - if negative, return 0 (not visible) 3. For each of 10 BSP planes: a. Read plane coefficients from (A1)+ b. Compute: result = (D1 * A + C) >> 5 c. Compare result with D2 to determine side d. Follow appropriate BSP branch 4. Return 1 if visible, 0 if culled Dependencies: None (pure math) Related: sprite_list_process ($74A4), 3D rendering pipeline Format: Proper mnemonics with original bytes in comments for verification
 
-*Source: [angle_visibility.asm](disasm/modules/68k/math/angle_visibility.asm)*
+*Source: [angle_visibility.asm](../disasm/modules/68k/math/angle_visibility.asm)*
 
 ---
 
@@ -7868,7 +7876,7 @@ Two BSP plane evaluation helpers for visibility testing. Computes: result = (D1*
 - **Entry**: D1 = normalized angle 1, D2 = normalized angle 2, A2 = plane data ptr
 - **Returns**: D1 = evaluation result
 - **Modifies**: D1, D2 Fields accessed: A2+$12: Plane coefficient A (word, used as MULS operand) A2+$14: Plane coefficient B (word, used as MULS operand) A2+$16: Plane constant C (word) A2+$19: Sign flag (byte, tested by signed variant)
-*Source: [plane_eval_pair.asm](disasm/modules/68k/math/plane_eval_pair.asm)*
+*Source: [plane_eval_pair.asm](../disasm/modules/68k/math/plane_eval_pair.asm)*
 
 ---
 
@@ -7879,7 +7887,7 @@ Looks up sine value from ROM table at $930000. Input angle offset by -$200 and n
 - **Entry**: D0.W = angle
 - **Returns**: D0.W = sine value
 - **Modifies**: D0, A1
-*Source: [sin_lookup.asm](disasm/modules/68k/math/sin_lookup.asm)*
+*Source: [sin_lookup.asm](../disasm/modules/68k/math/sin_lookup.asm)*
 
 ---
 
@@ -7890,7 +7898,7 @@ Looks up cosine value from ROM table at $930000.
 - **Entry**: D0.W = angle
 - **Returns**: D0.W = cosine value
 - **Modifies**: D0, A1
-*Source: [cos_lookup.asm](disasm/modules/68k/math/cos_lookup.asm)*
+*Source: [cos_lookup.asm](../disasm/modules/68k/math/cos_lookup.asm)*
 
 ---
 
@@ -7901,7 +7909,7 @@ Looks up negated sine value (offset by -$400).
 - **Entry**: D0.W = angle
 - **Returns**: D0.W = -sin(angle - $400)
 - **Modifies**: D0, A1
-*Source: [sin_neg_lookup.asm](disasm/modules/68k/math/sin_neg_lookup.asm)*
+*Source: [sin_neg_lookup.asm](../disasm/modules/68k/math/sin_neg_lookup.asm)*
 
 ---
 
@@ -7912,7 +7920,7 @@ Segmented arctangent calculation using 3 ROM lookup tables. Input in D0 (signed)
 - **Entry**: D0.L = input value (signed)
 - **Returns**: D0.W = angle result
 - **Modifies**: D0, D1, D2, A1
-*Source: [atan2_calc.asm](disasm/modules/68k/math/atan2_calc.asm)*
+*Source: [atan2_calc.asm](../disasm/modules/68k/math/atan2_calc.asm)*
 
 ---
 
@@ -7924,7 +7932,7 @@ Copies 1024 bytes from $B400 to $A400 using MOVEM block copy. Only executes if S
 
 - **Entry**: none
 - **Modifies**: D0-D6, A1-A3, D7
-*Source: [block_copy_with_check.asm](disasm/modules/68k/memory/block_copy_with_check.asm)*
+*Source: [block_copy_with_check.asm](../disasm/modules/68k/memory/block_copy_with_check.asm)*
 
 ---
 
@@ -7932,7 +7940,7 @@ Copies 1024 bytes from $B400 to $A400 using MOVEM block copy. Only executes if S
 
 Highly optimized unrolled memory copy and fill routines. These functions are critical for performance, using loop unrolling to minimize branch overhead and maximize bus utilization. DESIGN PATTERN These functions use a "waterfall" entry point pattern: - Multiple JSR calls at the top cascade through the unrolled operations - Each entry point copies/fills a different number of bytes - Example: FastCopy20 copies 20 bytes, FastCopy16 copies 16 bytes REGISTER CONVENTIONS | Register | Purpose                                    | |----------|-------------------------------------------| | A1       | Source pointer (for copy)                  | | A2       | Destination pointer (increment mode)       | | A6       | Destination pointer (fixed mode, e.g. VDP) | | D1       | Fill value (long)                          | Dependencies: None (standalone utility functions) Related: VDP operations, sprite system, game logic Format: Proper mnemonics with original bytes in comments for verification
 
-*Source: [fast_copy.asm](disasm/modules/68k/memory/fast_copy.asm)*
+*Source: [fast_copy.asm](../disasm/modules/68k/memory/fast_copy.asm)*
 
 ---
 
@@ -7940,7 +7948,7 @@ Highly optimized unrolled memory copy and fill routines. These functions are cri
 
 High-performance unrolled memory operations for buffer initialization and data transfer. All routines are optimized for speed using unrolled MOVE.L instructions. Fill Operations: - QuadMemoryFill: Waterfall entry for 4-level fill - UnrolledFill32: 8 MOVE.L ops = 32 bytes (to A6) - UnrolledFill60: 15 MOVE.L ops = 60 bytes (A1->A2 copy pattern) - UnrolledFill96: 24 MOVE.L ops = 96 bytes - UnrolledFill112: 28 MOVE.L ops = 112 bytes Copy Operations: - FastCopy16: 4 MOVE.L ops = 16 bytes (A1->A2) - FastCopy20: 5 MOVE.L ops = 20 bytes (A1->A2) Register Usage: D1 - Fill value (longword) A1 - Source/destination pointer (context-dependent) A2 - Destination pointer (copy operations) A6 - Destination pointer (UnrolledFill32) Called from: Multiple subsystems (display, game logic, init) Dependencies: None (standalone utilities) Originally at $004836-$004996 in sections/code_4200.asm
 
-*Source: [fill_copy_operations.asm](disasm/modules/68k/memory/fill_copy_operations.asm)*
+*Source: [fill_copy_operations.asm](../disasm/modules/68k/memory/fill_copy_operations.asm)*
 
 ---
 
@@ -7950,7 +7958,7 @@ High-speed memory fill using JSR cascade trick. 4 cascading JSRs multiply the 32
 
 - **Entry**: D1 = fill value, A1 = destination
 - **Modifies**: A1 (advances), stack (cascade returns)
-*Source: [quad_memory_fill.asm](disasm/modules/68k/memory/quad_memory_fill.asm)*
+*Source: [quad_memory_fill.asm](../disasm/modules/68k/memory/quad_memory_fill.asm)*
 
 ---
 
@@ -7960,7 +7968,7 @@ Writes D1 to fixed address (A6) 32 times (128 bytes). A6 has no post-increment -
 
 - **Entry**: D1 = fill value, A6 = destination (fixed)
 - **Modifies**: none
-*Source: [fast_fill_128_fixed.asm](disasm/modules/68k/memory/fast_fill_128_fixed.asm)*
+*Source: [fast_fill_128_fixed.asm](../disasm/modules/68k/memory/fast_fill_128_fixed.asm)*
 
 ---
 
@@ -7970,7 +7978,7 @@ High-speed memory copy using JSR cascade trick. 3 cascading JSRs + 1 skip-ahead 
 
 - **Entry**: A1 = source, A2 = destination
 - **Modifies**: A1, A2 (advance), stack (cascade returns)
-*Source: [triple_memory_copy.asm](disasm/modules/68k/memory/triple_memory_copy.asm)*
+*Source: [triple_memory_copy.asm](../disasm/modules/68k/memory/triple_memory_copy.asm)*
 
 ---
 
@@ -7980,7 +7988,7 @@ Copies 32 longs from (A1)+ to fixed address (A6). Suitable for writing data to F
 
 - **Entry**: A1 = source, A6 = destination (fixed)
 - **Modifies**: A1 (advances)
-*Source: [fast_copy_128_fixed.asm](disasm/modules/68k/memory/fast_copy_128_fixed.asm)*
+*Source: [fast_copy_128_fixed.asm](../disasm/modules/68k/memory/fast_copy_128_fixed.asm)*
 
 ---
 
@@ -7992,7 +8000,7 @@ Sets entity model pointer from lookup table at $C710 and conditionally sets visi
 
 - **Entry**: A0 = source entity, A1 = destination entity
 - **Modifies**: none (only modifies memory)
-*Source: [entity_set_model_type0.asm](disasm/modules/68k/object/entity_set_model_type0.asm)*
+*Source: [entity_set_model_type0.asm](../disasm/modules/68k/object/entity_set_model_type0.asm)*
 
 ---
 
@@ -8000,7 +8008,7 @@ Sets entity model pointer from lookup table at $C710 and conditionally sets visi
 
 Functions for managing object visibility state. These check various flags to determine if an object should be rendered. OBJECT STRUCTURE OFFSETS | Offset | Name     | Purpose                              | |--------|----------|--------------------------------------| | $00E5  | OBJ_FLAG | Object flags (bit 3 = visibility)    | OUTPUT BUFFER OFFSETS (A1) | Offset | Purpose                                        | |--------|------------------------------------------------| | $0000  | Visibility slot 0                              | | $0014  | Visibility slot 1 ($14 = 20 bytes per slot)    | | $0028  | Visibility slot 2                              | | $003C  | Visibility slot 3                              | | $0050  | Visibility slot 4                              | | $0064  | Visibility slot 5                              | WORK RAM | Address    | Name           | Purpose                    | |------------|----------------|----------------------------| | $FFFFC31C  | VISIBILITY_FLAG| Global visibility control  | Dependencies: Object system initialization Related: obj_render_check, obj_transform_copy Format: Proper mnemonics with original bytes in comments for verification
 
-*Source: [object_visibility.asm](disasm/modules/68k/object/object_visibility.asm)*
+*Source: [object_visibility.asm](../disasm/modules/68k/object/object_visibility.asm)*
 
 ---
 
@@ -8009,7 +8017,7 @@ Functions for managing object visibility state. These check various flags to det
 Six tiny leaf functions for return values and position adjustment. Contiguous cluster used by object/entity processing.
 
 - **Modifies**: D0, D1 (position helpers use D0 on A0 entity) Fields accessed: A0+$30: Position X A0+$34: Position Y
-*Source: [position_adjust_helpers.asm](disasm/modules/68k/object/position_adjust_helpers.asm)*
+*Source: [position_adjust_helpers.asm](../disasm/modules/68k/object/position_adjust_helpers.asm)*
 
 ---
 
@@ -8019,7 +8027,7 @@ Decrements a counter at A0+$92, tests object type field at A0+$06. If type is no
 
 - **Entry**: A0 = object pointer
 - **Modifies**: none (only modifies A0+$92) Fields accessed: A0+$06: Object type field (tested) A0+$92: Counter (decremented)
-*Source: [counter_guard.asm](disasm/modules/68k/object/counter_guard.asm)*
+*Source: [counter_guard.asm](../disasm/modules/68k/object/counter_guard.asm)*
 
 ---
 
@@ -8029,7 +8037,7 @@ Smooths camera/entity position using interpolation and trig-based movement. Two 
 
 - **Entry**: A0 = entity/camera object
 - **Modifies**: D0-D3, D6 Fields accessed: A0+$1E: Target position A0+$30: World position X (updated) A0+$34: World position Y (updated) A0+$3C: Intermediate position (updated) A0+$40: Display position (updated) A0+$64: Rotation offset (updated) A0+$66: Damping value A0+$68: Direction flag A0+$72: Slope direction
-*Source: [camera_position_smooth.asm](disasm/modules/68k/object/camera_position_smooth.asm)*
+*Source: [camera_position_smooth.asm](../disasm/modules/68k/object/camera_position_smooth.asm)*
 
 ---
 
@@ -8039,7 +8047,7 @@ Applies velocity components to object position fields. Updates both raw position
 
 - **Entry**: A0 = object pointer
 - **Modifies**: D0 Fields accessed: A0+$30: Position X (updated) A0+$34: Position Y (updated) A0+$3C: Intermediate position A0+$40: Display position (written) A0+$4E: Velocity Z component A0+$50: Velocity Y component A0+$52: Velocity X component A0+$96: Position offset
-*Source: [position_velocity_update.asm](disasm/modules/68k/object/position_velocity_update.asm)*
+*Source: [position_velocity_update.asm](../disasm/modules/68k/object/position_velocity_update.asm)*
 
 ---
 
@@ -8050,7 +8058,7 @@ Computes distance value and stores at A0+$CC. Two paths based on ($C04C).W flag:
 - **Entry**: A0 = object pointer
 - **Modifies**: D0 Fields accessed: A0+$3C: Base position A0+$46: Subtraction offset (used in non-zero path) A0+$96: Position offset A0+$CC: Distance result (written)
 - **RAM**: ($C04C).W: Mode flag (zero = simple, non-zero = with offset)
-*Source: [obj_distance_calc.asm](disasm/modules/68k/object/obj_distance_calc.asm)*
+*Source: [obj_distance_calc.asm](../disasm/modules/68k/object/obj_distance_calc.asm)*
 
 ---
 
@@ -8060,7 +8068,7 @@ Loads object position, calls angle normalization and BSP visibility test. If vis
 
 - **Entry**: A0 = object pointer, A2 = BSP data pointer (set by caller)
 - **Modifies**: D0-D2, A2 Fields accessed: A0+$30: Position X (angle input 1) A0+$32: Position Y / averaging field (read/updated) A0+$34: Position Z (angle input 2) A0+$55: Visibility result flag (set to 1 before test, updated) A0+$CE: BSP plane data pointer (stored if visible)
-*Source: [visibility_eval_caller.asm](disasm/modules/68k/object/visibility_eval_caller.asm)*
+*Source: [visibility_eval_caller.asm](../disasm/modules/68k/object/visibility_eval_caller.asm)*
 
 ---
 
@@ -8070,7 +8078,7 @@ ANDs four flag bytes together and tests bit 1 of the result. Returns via RTS if 
 
 - **Entry**: A0 = object pointer
 - **Modifies**: D0, D1 Fields accessed: A0+$56: Flag byte 1 A0+$57: Flag byte 2 A0+$58: Flag byte 3 A0+$59: Flag byte 4
-*Source: [multi_flag_test.asm](disasm/modules/68k/object/multi_flag_test.asm)*
+*Source: [multi_flag_test.asm](../disasm/modules/68k/object/multi_flag_test.asm)*
 
 ---
 
@@ -8080,7 +8088,7 @@ Compares difference of two position fields against threshold 100. If difference 
 
 - **Entry**: A0 = object pointer
 - **Modifies**: D0 Fields accessed: A0+$24: Position value A A0+$26: Position value B A0+$2E: Counter (decremented if threshold exceeded)
-*Source: [position_threshold_check.asm](disasm/modules/68k/object/position_threshold_check.asm)*
+*Source: [position_threshold_check.asm](../disasm/modules/68k/object/position_threshold_check.asm)*
 
 ---
 
@@ -8091,7 +8099,7 @@ Loads A0+$8C into D2. If non-zero, falls through to next function. If zero, retu
 - **Entry**: A0 = object pointer
 - **Returns**: D2 = field value (non-zero if falls through)
 - **Modifies**: D2 Fields accessed: A0+$8C: Guard field (word)
-*Source: [field_check_guard.asm](disasm/modules/68k/object/field_check_guard.asm)*
+*Source: [field_check_guard.asm](../disasm/modules/68k/object/field_check_guard.asm)*
 
 ---
 
@@ -8102,7 +8110,15 @@ Loads A0+$8C into D2. If non-zero, falls through to next function. If zero, retu
 Identifies 68K access path to expansion ROM Location: Optimization area (code_1c200 section) The expansion ROM ($300000-$3FFFFF) contains 1MB of mostly-free space. This probe determines HOW the 68K can access it. Three paths tested: D = DIRECT:  68K reads $300000 as a normal ROM address A = BANK A:  $A130F1 (Genesis bank/SRAM register, byte write) B = BANK B:  $A15104 (32X Bank Set Register, word write, bits 0-1) For bank registers, bank 3 maps ROM $300000-$3FFFFF → $900000-$9FFFFF. EXPECTED VALUES ROM $000000: $01000000 (Initial SP from header — known good baseline) ROM $300000: $FFFFFFFF (expansion padding — 40 bytes of $FF) RESULTS ($FFFFF080, 32 bytes) +$00: $50524F42 ("PROB") — probe ran +$04: Direct read from $300000 +$08: Bank A, bank 0 → read $900000 +$0C: Bank A, bank 3 → read $900000 +$10: Bank B, bank 0 → read $900000 +$14: Bank B, bank 3 → read $900000 +$18: Winner byte: 'D'=$44, 'A'=$41, 'B'=$42, '?'=$3F +$19: Padding +$1A: $DEAD — probe completed without crash CALLING CONVENTION Called from: adapter_init (boot, interrupts disabled) Parameters: None
 
 - **Returns**: Nothing Clobbers: D0-D1, A0
-*Source: [bank_probe.asm](disasm/modules/68k/optimization/bank_probe.asm)*
+*Source: [bank_probe.asm](../disasm/modules/68k/optimization/bank_probe.asm)*
+
+---
+
+### Camera Interpolation
+
+60 FPS Rendering (A-2) Relocated from code_2200.asm trampoline to code_1c200 expansion area. Implements 3 frame swaps per game frame (60 FPS display, 20 FPS game logic): State 0: block-copy prev interp → swap → snapshot → DMA (this file) State 4: block-copy current → swap → interpolate → re-DMA (this file) State 8: block-copy interp → swap (existing vdp_dma_frame_swap_037) All cross-section calls use absolute 68K addresses (JSR $0088xxxx) since PC-relative cannot reach from code_1c200 to lower ROM sections. RAM usage: $FF6080: prev camera snapshot (16 bytes) $FF6090: curr camera snapshot (16 bytes) $FF6100: camera parameter buffer (populated by render pipeline)
+
+*Source: [camera_interpolation_60fps.asm](../disasm/modules/68k/optimization/camera_interpolation_60fps.asm)*
 
 ---
 
@@ -8114,7 +8130,7 @@ Writes a command to SH2 via communication registers (COMM0/COMM1). Implements sp
 
 - **Entry**: Command bytes in $C8A8/$C8A9
 - **Modifies**: none (only modifies MARS registers and RAM)
-*Source: [mars_comm_write.asm](disasm/modules/68k/sh2/mars_comm_write.asm)*
+*Source: [mars_comm_write.asm](../disasm/modules/68k/sh2/mars_comm_write.asm)*
 
 ---
 
@@ -8124,7 +8140,7 @@ Sets up SH2 COMM transfer block at $FF6100 with world coordinate data from $FF20
 
 - **Entry**: D0 = parameter value
 - **Modifies**: A1
-*Source: [comm_transfer_setup_a.asm](disasm/modules/68k/sh2/comm_transfer_setup_a.asm)*
+*Source: [comm_transfer_setup_a.asm](../disasm/modules/68k/sh2/comm_transfer_setup_a.asm)*
 
 ---
 
@@ -8134,7 +8150,7 @@ Sets up SH2 COMM transfer block at $FF6100 with world coordinate data from $FF20
 
 - **Entry**: D0 = parameter value
 - **Modifies**: A1
-*Source: [comm_transfer_setup_b.asm](disasm/modules/68k/sh2/comm_transfer_setup_b.asm)*
+*Source: [comm_transfer_setup_b.asm](../disasm/modules/68k/sh2/comm_transfer_setup_b.asm)*
 
 ---
 
@@ -8144,7 +8160,7 @@ Sets up SH2 COMM transfer block at $FF6100 with world coordinate data from $FF20
 
 - **Entry**: D0 = parameter value
 - **Modifies**: A1
-*Source: [comm_transfer_setup_c.asm](disasm/modules/68k/sh2/comm_transfer_setup_c.asm)*
+*Source: [comm_transfer_setup_c.asm](../disasm/modules/68k/sh2/comm_transfer_setup_c.asm)*
 
 ---
 
@@ -8153,7 +8169,7 @@ Sets up SH2 COMM transfer block at $FF6100 with world coordinate data from $FF20
 Waits for SH2 to finish (polls $A15120), clears SH2 status, resets state counter, and selects function pointer based on ($A018) flag.
 
 - **Modifies**: None (modifies memory only)
-*Source: [sync_wait_reset.asm](disasm/modules/68k/sh2/sync_wait_reset.asm)*
+*Source: [sync_wait_reset.asm](../disasm/modules/68k/sh2/sync_wait_reset.asm)*
 
 ---
 
@@ -8162,15 +8178,15 @@ Waits for SH2 to finish (polls $A15120), clears SH2 status, resets state counter
 Sends command $2D and transfers 28 words from buffer via FIFO. Waits for COMM0 clear, sets count, sends command, polls COMM1_LO bit 1 for ready, then copies 28 words from ($FF60C8) to MARS_FIFO.
 
 - **Modifies**: D7, A1, A2
-*Source: [comm_transfer_block.asm](disasm/modules/68k/sh2/comm_transfer_block.asm)*
+*Source: [comm_transfer_block.asm](../disasm/modules/68k/sh2/comm_transfer_block.asm)*
 
 ---
 
 ### Virtua Racing Deluxe - SH2 Code Section
 
-Module: 68k/sh2/section_24200.asm Address: $024200-$0261FF (8192 bytes) SH2 EXECUTABLE CODE This section contains SH2 code that is copied to SH2 SDRAM at runtime. The 68000 stores this as raw data which gets DMA'd to SH2 memory. SH2 Address Mapping: ROM offset $024200 -> SH2 SDRAM $02024200 (when loaded) Disassembly notes: - DC.W data preserved for byte-perfect builds - SH2 mnemonics shown in comments for reference - Entries marked "DW $xxxx" are embedded data or unrecognized opcodes
+Module: 68k/sh2/section_24200.asm Address: $024200-$0261FF (8192 bytes) SH2 EXECUTABLE CODE This section contains SH2 code that is copied to SH2 SDRAM at runtime. The 68000 stores this as raw data which gets DMA'd to SH2 memory. SH2 Address Mapping: ROM offset $024200 -> runtime SH2 SDRAM $06004200 (boot-loaded image) Per-function "Address: $02024xxx" labels below name the SH2 cartridge-ROM view of the boot image, not execution addresses. In this section the corresponding runtime labels are $06004xxx (for example $02024200 -> $06004200). Disassembly notes: - DC.W data preserved for byte-perfect builds - SH2 mnemonics shown in comments for reference - Entries marked "DW $xxxx" are embedded data or unrecognized opcodes
 
-*Source: [section_24200.asm](disasm/modules/68k/sh2/section_24200.asm)*
+*Source: [section_24200.asm](../disasm/modules/68k/sh2/section_24200.asm)*
 
 ---
 
@@ -8178,7 +8194,126 @@ Module: 68k/sh2/section_24200.asm Address: $024200-$0261FF (8192 bytes) SH2 EXEC
 
 Module: 68k/sh2/section_26200.asm Address: $026200-$0281FF (8192 bytes) SINE/COSINE LOOKUP TABLE This section contains fixed-point trigonometric lookup tables used by the SH2 3D engine for rotation and transformation calculations. Format: Q2.14 fixed-point (14 fractional bits) - $4000 = 1.0 (16384 decimal) - $3FFF = 0.999939 (approx 1.0) - Values range from ~$3D2F to $4000 (sine wave pattern) Used for: - 3D rotation matrices - Camera angle calculations - Object orientation
 
-*Source: [section_26200.asm](disasm/modules/68k/sh2/section_26200.asm)*
+*Source: [section_26200.asm](../disasm/modules/68k/sh2/section_26200.asm)*
+
+---
+
+### vr60_1p_ai_entity_transfer
+
+1P-exclusive DREQ Transfer of 15 AI Entities 1P-exclusive copy of vr60_ai_entity_transfer.asm, with the same bounded retry as vr60_1p_entity_transfer.asm (see that file's header for the full rationale). Separate file so this can never again affect the shared 2P path (state4_epilogue). Transfers 3,840 bytes (15 × 256B) from WRAM staging ($FF6B40) to SH2 SDRAM ($06010000) via DREQ FIFO. Uses cmd $3E mode 2. Called from: vr60_1p_staging_hook (first frame only, after vr60_ai_entity_stage)
+
+*Source: [vr60_1p_ai_entity_transfer.asm](../disasm/modules/68k/sh2/vr60_1p_ai_entity_transfer.asm)*
+
+---
+
+### vr60_1p_comm_trigger
+
+1P-exclusive COMM relay trigger (cmd $3F) 1P-exclusive copy of vr60_comm_trigger.asm's protocol, with BOUNDED retries against the same Master-SH2 poll-detection race documented in analysis/VR60_PHASE1_CMD3E_ACK_HANG.md §13. Separate file so this can never again affect the shared 2P path (state4_epilogue calls the original vr60_comm_trigger unconditionally every frame). This trigger is fire-and-forget by design (Phase 2B's async pipeline depends on the caller NOT blocking on cmd $3F's full completion), so unlike the entity/globals transfers this cannot wait on a "done" signal -- but the handler (cmd3f_vr60_gameframe.asm) clears COMM0_LO back to $00 the moment it's entered, well before its block-copy/physics/AI work, as a fast "params consumed" signal. Used here as a low-latency entry-ack: force a genuine 0->1 transition on COMM0_HI, then check whether Master has already cleared COMM0_LO; if not, re-assert and retry, bounded to 16 attempts. If exhausted, give up silently (matches the original's fire-and-forget contract -- a dropped cmd $3F this frame is a missed SH2 update, not a hang). The initial "wait for Master idle" spin is ALSO now bounded (was unbounded in the original) -- if Master never clears COMM0_HI, this gives up and skips the trigger for this frame rather than hanging. Preserves D0/D1 (scratch registers used for the retry), matching the original's "clobbers nothing visible to caller" contract. Called from: vr60_1p_staging_hook
+
+*Source: [vr60_1p_comm_trigger.asm](../disasm/modules/68k/sh2/vr60_1p_comm_trigger.asm)*
+
+---
+
+### vr60_1p_entity_transfer
+
+1P-exclusive DREQ Transfer of Entity+Globals 1P-exclusive copy of vr60_entity_transfer.asm's protocol, with a BOUNDED retry against the Master-SH2 poll-detection race documented in analysis/VR60_PHASE1_CMD3E_ACK_HANG.md §13: a one-shot COMM0 trigger can land while Master is transiently busy elsewhere and never wake it. The original (unbounded) retry fix hard-hung the 68K when it was applied to the SHARED vr60_entity_transfer.asm (also used every frame by 2P's state4_epilogue) — see §13.2-§13.3. This is a SEPARATE file specifically so that risk can never recur: this function is called ONLY from the 1P hook, never from the 2P path. Bounded to 16 attempts (~600-cycle settle delay each, ~9,600 cycles worst case -- negligible next to the ~127,833-cycle 68K frame budget). If all attempts are exhausted without an ACK, the FIFO push is skipped entirely (DREQ_LEN is left programmed but unconsumed -- harmless, reprogrammed by the next call) rather than pushing data nothing will drain. Transfers 320 bytes (256B entity + 64B globals) from WRAM staging to SH2 SDRAM via DREQ FIFO. Uses cmd $3E on the Master SH2 which configures DMAC channel 0. Data lands at: Entity:  $0600F20C (256 bytes) Globals: $0600F30C (64 bytes) Called from: vr60_1p_staging_hook (after vr60_globals_stage)
+
+- **Entry**: none (uses hardcoded addresses) Clobbers: COMM0, COMM1 bit 1 (restored by SH2 handler)
+*Source: [vr60_1p_entity_transfer.asm](../disasm/modules/68k/sh2/vr60_1p_entity_transfer.asm)*
+
+---
+
+### vr60_1p_globals_transfer
+
+1P-exclusive DREQ Transfer of Globals-Only 1P-exclusive copy of vr60_globals_transfer.asm, with the same bounded retry as vr60_1p_entity_transfer.asm (see that file's header for the full rationale). Separate file so this can never again affect the shared 2P path (state4_epilogue). Transfers 64 bytes of globals from WRAM staging ($FF6B00) to SH2 SDRAM ($0600F30C) via DREQ FIFO. Uses cmd $3E mode 1 (COMM3_HI = $01). Called from: vr60_1p_staging_hook (subsequent frames, after vr60_globals_stage)
+
+*Source: [vr60_1p_globals_transfer.asm](../disasm/modules/68k/sh2/vr60_1p_globals_transfer.asm)*
+
+---
+
+### vr60_1p_staging_hook
+
+VR60 1P interactive racing: staging + cmd $3F trigger Full Phase 1 body: mirrors state4_epilogue (code_2200.asm, the built but unvalidated 2P integration) in staging/transfer/relay call order, but calls the 1P-EXCLUSIVE copies of the transfer/trigger functions (vr60_1p_entity_ transfer.asm, vr60_1p_ai_entity_transfer.asm, vr60_1p_globals_transfer.asm, vr60_1p_comm_trigger.asm) rather than the shared vr60_*_transfer.asm/ vr60_comm_trigger.asm files that state4_epilogue (2P) also uses. This hook's insertion point (game_frame_orch_013, "Path A", state 8 of state_disp_004cb8) was investigated at length this session (2026-07-13): briefly suspected dead code (a false negative from PC-histogram top-200 truncation), then confirmed via VRD_CALLER_TRACE (an exact, non-truncated JSR-return-address counter) to fire reliably every ~3 frames (20 Hz), exactly matching the documented game-tick rate. See analysis/VR60_PHASE1_ CMD3E_ACK_HANG.md §15-§20 for the full investigation -- this hook's location is confirmed valid, no relocation needed. The 1P-exclusive transfer/trigger functions use a BOUNDED retry (max 16 attempts, ~600-cycle settle delay each) defensively around a suspected, unproven Master-SH2 poll-detection race discussed in that analysis (§13). The bounded retry is defensive; it is not proof that the race is the root cause. An earlier attempt applied an UNBOUNDED version of this same retry directly to the SHARED vr60_*_transfer.asm/vr60_comm_trigger.asm files (also called unconditionally every frame by 2P's state4_epilogue) and hard-hung the 68K in real gameplay (black screen, §13.2-13.3) -- hence separate, bounded, 1P-exclusive copies here. If any attempt is exhausted without an ACK, the affected transfer/trigger is skipped for that frame rather than blocking -- a dropped SH2 update, not a hang. Physics bypass stays OFF (vr60_physics_bypass_trampoline's flag is untouched here) -- this phase only proves the staging+trigger chain reaches the SH2 side; gameplay logic remains on the 68K. CURRENT STATE (2026-07-21): entity_transfer + globals_transfer (cmd $3E modes 0/1) are ENABLED, with bounded failure behavior, but are not yet validated over a trustworthy full run. The prior ~724-unique-hash baseline is retracted: the saved-state fixture later freezes with this entire hook bypassed. AI entity transfer (mode 2) and the cmd $3F trigger are DISABLED and UNVERIFIED -- neither is proven safe nor proven to cause the freeze. See analysis/VR60_PHASE1_CMD3E_ACK_HANG.md §22 and VR60_STATUS.md.
+
+*Source: [vr60_1p_staging_hook.asm](../disasm/modules/68k/sh2/vr60_1p_staging_hook.asm)*
+
+---
+
+### vr60_ai_bypass_trampoline_variant_b
+
+Phase 4: AI Entity Physics Bypass Size: ~30 bytes Called via JMP from entity_render_pipeline Variant B (first 8 bytes). Replaces: JSR camera_state_selector+12 + JSR effect_timer_mgmt When $C8D2 = 0 (68K physics): runs the replaced instructions, then jumps back to Variant B+8 (object_timer_expire_speed_param_reset). 68K physics+AI pipeline runs normally. When $C8D2 != 0 (SH2 physics): jumps directly to rendering section (entity_render_pipeline_varb_rendering). SH2 cmd $3F entity loop handles orchestrator + physics for AI entities.
+
+- **Entry**: A0 = entity base pointer (from entity dispatch) Preserves: A0, all registers (same contract as entity_render_pipeline)
+*Source: [vr60_ai_bypass_trampoline.asm](../disasm/modules/68k/sh2/vr60_ai_bypass_trampoline.asm)*
+
+---
+
+### vr60_ai_entity_stage
+
+Stage 15 AI Entities for DREQ Transfer to SDRAM Size: ~30 bytes Phase 4: Copies 3,840 bytes (15 × 256B) of AI entities from WRAM $FF9100 to staging area $FF6B40 for DREQ transfer to SDRAM $06010000. Uses the existing block copy routine at $008988EC (128× MOVE.W (A1)+,(A2)) called 15 times (once per 256B entity). Each call copies 256B. Actually — the staging area $FF6B40 + 3840 = $FF7A40 (not $FF7B40 — an earlier version of this comment had a $100 arithmetic slip), which is between $FF6B00 (globals) and $FF9000 (entity tables). Verify this is free. $FF6B40 to $FF7B3F = 4,096B (a rounder reserved allocation than the 3,840B actually used, leaving $FF7A40-$FF7B3F, 256B, as spare slack within it). The display object array starts at $FF6218 and goes to ~$FF6960. Globals are at $FF6B00-$FF6B3F. So $FF6B40-$FF8FFF (~9KB) is free. ✓ HOWEVER: DREQ transfer of 3,840B takes ~15K 68K cycles for FIFO writes. This runs ONLY on the first racing frame ($C8D2 = 0). Acceptable. Called from: state4_epilogue (first frame only, before vr60_entity_transfer)
+
+- **Entry**: none (uses hardcoded addresses) Preserves: all (pushes/pops D0-D7/A0-A1)
+*Source: [vr60_ai_entity_stage.asm](../disasm/modules/68k/sh2/vr60_ai_entity_stage.asm)*
+
+---
+
+### vr60_ai_entity_transfer
+
+DREQ Transfer of 15 AI Entities to SDRAM Size: ~60 bytes Phase 4: Transfers 3,840 bytes (15 × 256B) from WRAM staging ($FF6B40) to SH2 SDRAM ($06010000) via DREQ FIFO. Uses cmd $3E mode 2. Protocol: 1. Set DREQ_LEN = $0780 (1920 words = 3840 bytes) 2. Set DREQ mode = CPU write 3. Set COMM3_HI = $02 (AI entities mode) 4. Trigger cmd $3E via COMM0 ($01/$3E) 5. Wait for SH2 ACK (COMM1_LO bit 1) 6. Push 3840 bytes to FIFO from $FF6B40 7. DMAC drains FIFO to $06010000 automatically Called from: state4_epilogue (first frame only, after vr60_ai_entity_stage) Preserves: all (pushes/pops D0/A1-A2)
+
+*Source: [vr60_ai_entity_transfer.asm](../disasm/modules/68k/sh2/vr60_ai_entity_transfer.asm)*
+
+---
+
+### vr60_comm_trigger
+
+VR60 Phase 1B: COMM relay trigger ROM address: assigned by assembler (included in code_2200.asm) Size: 50 bytes Writes game state to COMM3-5, then triggers cmd $3F on Master SH2. Master SH2 handler copies COMM3-5 to SDRAM mailbox at $0600BC00. COMM register usage: COMM0_HI ($A15120) = $01 trigger (written LAST — proven safe pattern) COMM0_LO ($A15121) = $3F dispatch index (written BEFORE trigger) COMM2    ($A15124) = UNTOUCHED (Slave polls COMM2_HI — must stay $00) COMM3    ($A15126) = frame_counter from ($C964).w COMM4    ($A15128) = game_state from ($C87E).w COMM5    ($A1512A) = frame_toggle from ($C80C).w COMM6-7            = UNTOUCHED (COMM7 = Slave doorbell, never write) Evidence for COMM safety: COMM2_HI must stay $00 — definitions.asm:58 note, COMM_REGISTERS_HARDWARE_ANALYSIS.md COMM7 doorbell only  — KNOWN_ISSUES.md, B-006 crash root cause Params before trigger — B-004 proven pattern (cmd22_single_shot.asm comment) Evidence for data source addresses: $C964 = FRAME_COUNTER — vint_handler.asm:59 (equ), :95 (addq.l #1) $C87E = game state    — code_2200.asm:171 (addq.w #4), SCENE_HANDLER_ARCHITECTURE.md $C80C = frame toggle  — code_2200.asm:159 (bchg #0) Called from: state4_epilogue in code_2200.asm via BSR.W Clobbers: nothing visible to caller (COMM regs are I/O, not caller state) Instruction sizes (68K, verified): tst.b (abs.l)           = 2+4         = 6 bytes bne.s                   = 2           = 2 bytes move.w (abs.w),(abs.l)  = 2+2+4       = 8 bytes  (×3) move.b #imm,(abs.l)     = 2+2+4       = 8 bytes  (×2) rts                     = 2           = 2 bytes Total: 6+2+(3×8)+(2×8)+2 = 50 bytes
+
+*Source: [vr60_comm_trigger.asm](../disasm/modules/68k/sh2/vr60_comm_trigger.asm)*
+
+---
+
+### vr60_entity_stage
+
+Stage Player Entity for DREQ Transfer to SDRAM Size: 40 bytes Phase 3A: Copies 256 bytes of player entity 0 from $FF9000 (WRAM) to $FF6A00 (WRAM staging area, immediately after the 2560B DREQ source). When DREQ DMA is extended by 1 block copy call, the entity data piggybacks on the existing transfer and arrives at $0600CA00 (SDRAM). Uses MOVEM.L for fast 64-longword copy (256 bytes). A0 is preserved via push/pop since the orchestrator expects A0 = entity pointer. Staging address $FF6A00 verified free: between display entries ($FF6960) and entity tables ($FF9000). No code references this range. Called from: entity_render_pipeline Variant A (before entity_pos_update)
+
+- **Entry**: A0 = entity base pointer (must be entity 0 = $FF9000 for staging) Preserves: A0, D0-D7 (MOVEM saves/restores) Clobbers: A1 (staging destination pointer)
+*Source: [vr60_entity_stage.asm](../disasm/modules/68k/sh2/vr60_entity_stage.asm)*
+
+---
+
+### vr60_entity_transfer
+
+VR60 Phase 3A: DREQ Transfer of Entity+Globals to SDRAM Size: 66 bytes Transfers 320 bytes (256B entity + 64B globals) from WRAM staging to SH2 SDRAM via DREQ FIFO. Uses cmd $3E on the Master SH2 which configures DMAC channel 0. Data lands at: Entity:  $0600F20C (256 bytes) Globals: $0600F30C (64 bytes) Protocol: 1. Set DREQ_LEN = $00A0 (160 words = 320 bytes) 2. Set DREQ mode = CPU write 3. Trigger cmd $3E via COMM0 ($01/$3E) 4. Wait for SH2 ACK (COMM1_LO bit 1) 5. Push 320 bytes to FIFO: entity (256B) + globals (64B) 6. DMAC drains FIFO to $0600F20C automatically Called from: state4_epilogue in code_2200.asm (after vr60_globals_stage)
+
+- **Entry**: none (uses hardcoded addresses) Preserves: all (pushes/pops A1-A2) Clobbers: COMM0, COMM1 bit 1 (restored by SH2 handler)
+*Source: [vr60_entity_transfer.asm](../disasm/modules/68k/sh2/vr60_entity_transfer.asm)*
+
+---
+
+### vr60_globals_stage
+
+Stage Per-Frame Globals for SDRAM Transfer Size: ~120 bytes Gathers 48 bytes of scattered WRAM physics globals into a contiguous staging block at $FF6B00, immediately after the entity staging area ($FF6A00). The extended cmd $3E DREQ transfer sends 320 bytes total (256B entity + 64B globals), so globals land at $0600F30C in SDRAM. Layout matches VR60_ROADMAP.md §7.4 SDRAM globals block: +$00  track_tilt (word)           from $FFC0AC +$02  track_speed_factor (word)   from $FFC0E6 +$04  upper_accel_limit (word)    from $FFC0F8 +$06  lower_accel_limit (word)    from $FFC0FA +$08  speed_table_ptr (long)      from $FFC27C +$0C  gear_table_ptr (long)       from $FFC048 +$10  surface_drivability (byte)  from $FFC0D4 +$11  wind_active (byte)          from $FFC31B +$12  has_boost_flag (byte)       from $FFC826 +$13  banking_direction (byte)    from $FFC971 +$14  steering_velocity (word)    from $FFC000 +$16  steering_direction (word)   from $FFC00A +$18  input_state (byte)          from $FFC010 +$19  ai_control_flag (byte)      from $FFC018 +$1A  mode_flag (word)            from $FFC8C8 +$1C  race_substate_b (word)      from $FFC8CC +$1E  heading_correction (word)   from $FFBBA0 +$20  lateral_drag (word)         from $FFBBA2 +$22  spin_threshold (word)       from $FFBBA4 +$24  high_vel_threshold (word)   from $FFBBA6 +$26  drift_divisor (word)        from $FFBBA8 +$28  min_speed_threshold (word)  from $FFBBB0 +$2A  max_speed_threshold (word)  from $FFBBB2 +$2C  sound_trigger_out (byte)    from $FFC8A4  (output: cleared after staging) +$2D  ai_boost_control (byte)     from $FFBFC0 +$2E  slide_indicator (byte)      from $FFBF7B  (output) +$2F  (padding byte) +$30-$3F  reserved (16 bytes, zeroed) Called from: state4_epilogue (after vr60_entity_stage, before vr60_entity_transfer)
+
+- **Entry**: none Preserves: A0 (entity pointer used by orchestrator) Clobbers: D0, A1
+*Source: [vr60_globals_stage.asm](../disasm/modules/68k/sh2/vr60_globals_stage.asm)*
+
+---
+
+### vr60_globals_transfer
+
+VR60 Phase 3B: DREQ Transfer of Globals-Only to SDRAM Size: ~56 bytes Transfers 64 bytes of globals from WRAM staging ($FF6B00) to SH2 SDRAM ($0600F30C) via DREQ FIFO. Uses cmd $3E mode 1 (COMM3_HI = $01). Protocol: 1. Set DREQ_LEN = $0020 (32 words = 64 bytes) 2. Set DREQ mode = CPU write 3. Set COMM3_HI = $01 (globals-only mode) 4. Trigger cmd $3E via COMM0 ($01/$3E) 5. Wait for SH2 ACK (COMM1_LO bit 1) 6. Push 64 bytes to FIFO from $FF6B00 7. DMAC drains FIFO to $0600F30C automatically Called from: state4_epilogue (subsequent frames, after vr60_globals_stage) Preserves: all (pushes/pops D0/A1-A2) Clobbers: COMM0, COMM3_HI, COMM1 bit 1 (restored by SH2 handler)
+
+*Source: [vr60_globals_transfer.asm](../disasm/modules/68k/sh2/vr60_globals_transfer.asm)*
+
+---
+
+### vr60_physics_bypass_trampoline
+
+VR60 Phase 3B: Orchestrator Bypass Size: ~30 bytes Called via JMP from entity_render_pipeline (Variant A, first 6 bytes). Replaces: JSR camera_state_selector+12(PC) + MOVEQ #$00,D0 When $C8D2 = 0 (68K physics): runs the replaced instructions, then jumps back to entity_render_pipeline+6 (MOVE.W D0,$0044(A0)). 68K physics pipeline runs normally. When $C8D2 != 0 (SH2 physics): runs the replaced instructions, then jumps to entity_render_pipeline_position_ai (after all physics/timer calls). SH2 handles physics+timers via cmd $3F.
+
+- **Entry**: A0 = entity base pointer (from caller) Preserves: A0, all registers (same contract as entity_render_pipeline)
+*Source: [vr60_physics_bypass_trampoline.asm](../disasm/modules/68k/sh2/vr60_physics_bypass_trampoline.asm)*
 
 ---
 
@@ -8190,7 +8325,7 @@ Looks up a sound effect by index from entity data and plays it. Sound table at $
 
 - **Entry**: A0 = entity
 - **Modifies**: D0, A1
-*Source: [sound_lookup_play.asm](disasm/modules/68k/sound/sound_lookup_play.asm)*
+*Source: [sound_lookup_play.asm](../disasm/modules/68k/sound/sound_lookup_play.asm)*
 
 ---
 
@@ -8200,7 +8335,7 @@ Checks lateral speed and triggers tire squeal sound effect. Manages cooldown tim
 
 - **Entry**: A0 = entity
 - **Modifies**: D0
-*Source: [tire_squeal_check.asm](disasm/modules/68k/sound/tire_squeal_check.asm)*
+*Source: [tire_squeal_check.asm](../disasm/modules/68k/sound/tire_squeal_check.asm)*
 
 ---
 
@@ -8210,7 +8345,7 @@ Two-player version of tire squeal check. Reads P1 speed from ($9094).W and P2 fr
 
 - **Entry**: none
 - **Modifies**: D0, D2
-*Source: [tire_squeal_check_2p.asm](disasm/modules/68k/sound/tire_squeal_check_2p.asm)*
+*Source: [tire_squeal_check_2p.asm](../disasm/modules/68k/sound/tire_squeal_check_2p.asm)*
 
 ---
 
@@ -8220,7 +8355,7 @@ Reads sequential bytes from a data stream (A0)+ into channel state fields at A5+
 
 - **Entry**: A0 = data stream pointer, A5 = channel state pointer
 - **Modifies**: D0 Fields written: A5+$18, A5+$19, A5+$1A, A5+$1B, A5+$1C
-*Source: [sound_stream_load.asm](disasm/modules/68k/sound/sound_stream_load.asm)*
+*Source: [sound_stream_load.asm](../disasm/modules/68k/sound/sound_stream_load.asm)*
 
 ---
 
@@ -8230,7 +8365,7 @@ Tests bit 7 of A5+$0A. If clear, branches to RTS at $030290. If set, tests timer
 
 - **Entry**: A5 = channel state pointer
 - **Modifies**: none Fields accessed: A5+$0A (bit test), A5+$18 (timer)
-*Source: [sound_timer_check.asm](disasm/modules/68k/sound/sound_timer_check.asm)*
+*Source: [sound_timer_check.asm](../disasm/modules/68k/sound/sound_timer_check.asm)*
 
 ---
 
@@ -8240,7 +8375,7 @@ Decrements counter at A5+$19. If result is zero, falls through to sound_state_re
 
 - **Entry**: A5 = channel state pointer
 - **Modifies**: none Fields accessed: A5+$19 (counter)
-*Source: [sound_timer_dec.asm](disasm/modules/68k/sound/sound_timer_dec.asm)*
+*Source: [sound_timer_dec.asm](../disasm/modules/68k/sound/sound_timer_dec.asm)*
 
 ---
 
@@ -8250,7 +8385,7 @@ Reloads channel state from a pointer at A5+$14. Copies byte at (A0)+$01 to A5+$1
 
 - **Entry**: A5 = channel state pointer
 - **Modifies**: A0 Fields accessed: A5+$14 (pointer), A5+$19, A5+$1A, A5+$1B
-*Source: [sound_state_reload.asm](disasm/modules/68k/sound/sound_state_reload.asm)*
+*Source: [sound_state_reload.asm](../disasm/modules/68k/sound/sound_state_reload.asm)*
 
 ---
 
@@ -8261,7 +8396,7 @@ Decrements field $1B, then accumulates a signed byte from field $1A into the wor
 - **Entry**: A5 = channel state pointer
 - **Returns**: D6 = accumulated value + field $10
 - **Modifies**: D6 Fields accessed: A5+$1A, A5+$1B, A5+$1C, A5+$10
-*Source: [sound_accumulate.asm](disasm/modules/68k/sound/sound_accumulate.asm)*
+*Source: [sound_accumulate.asm](../disasm/modules/68k/sound/sound_accumulate.asm)*
 
 ---
 
@@ -8271,7 +8406,7 @@ Tests word at A5+$10. If zero, sets bit 1 of (A5) and returns. If non-zero, bran
 
 - **Entry**: A5 = channel state pointer
 - **Modifies**: D6 Fields accessed: A5+$10, (A5) bit 1
-*Source: [sound_field_test.asm](disasm/modules/68k/sound/sound_field_test.asm)*
+*Source: [sound_field_test.asm](../disasm/modules/68k/sound/sound_field_test.asm)*
 
 ---
 
@@ -8281,7 +8416,7 @@ Reads A6+$04 status byte. If zero, returns immediately. If non-zero, reads count
 
 - **Entry**: A6 = sound state pointer
 - **Modifies**: D0 Fields accessed: A6+$04 (status), A6+$06 (counter)
-*Source: [sound_counter_check.asm](disasm/modules/68k/sound/sound_counter_check.asm)*
+*Source: [sound_counter_check.asm](../disasm/modules/68k/sound/sound_counter_check.asm)*
 
 ---
 
@@ -8291,7 +8426,7 @@ Reads byte from A6+$02, adds to A6+$01. If carry (overflow), scans 10 entries at
 
 - **Entry**: A6 = sound state pointer
 - **Modifies**: D0, D1, A0 Fields accessed: A6+$01, A6+$02, A6+$40+n*$30
-*Source: [sound_overflow_scan.asm](disasm/modules/68k/sound/sound_overflow_scan.asm)*
+*Source: [sound_overflow_scan.asm](../disasm/modules/68k/sound/sound_overflow_scan.asm)*
 
 ---
 
@@ -8301,7 +8436,7 @@ Clears 120 longwords ($1E0 bytes) starting at A6+$40, then sets byte at A6+$09 t
 
 - **Entry**: A6 = sound state pointer
 - **Modifies**: D0, A0 Fields written: A6+$40 through A6+$21F, A6+$09
-*Source: [sound_buffer_clear.asm](disasm/modules/68k/sound/sound_buffer_clear.asm)*
+*Source: [sound_buffer_clear.asm](../disasm/modules/68k/sound/sound_buffer_clear.asm)*
 
 ---
 
@@ -8311,7 +8446,7 @@ Requests Z80 bus, waits for grant, then checks sound driver status at Z80 RAM $A
 
 - **Entry**: none
 - **Modifies**: none (all implicit via hardware registers) Hardware: $A11100 (Z80 bus request), $A00FFF (sound driver status)
-*Source: [z80_bus_wait.asm](disasm/modules/68k/sound/z80_bus_wait.asm)*
+*Source: [z80_bus_wait.asm](../disasm/modules/68k/sound/z80_bus_wait.asm)*
 
 ---
 
@@ -8321,7 +8456,7 @@ Requests Z80 bus, waits for grant, reads channel volume from A5+$09, shifts righ
 
 - **Entry**: A5 = channel state pointer
 - **Modifies**: D0 Hardware: $A11100 (Z80 bus request), $A00FFD (Z80 sound parameter) Fields accessed: A5+$09 (channel volume)
-*Source: [z80_sound_write.asm](disasm/modules/68k/sound/z80_sound_write.asm)*
+*Source: [z80_sound_write.asm](../disasm/modules/68k/sound/z80_sound_write.asm)*
 
 ---
 
@@ -8331,7 +8466,7 @@ Reads an indexed word from A6 structure, subtracts it from A5+$1E, then clears t
 
 - **Entry**: D0 = index*2, A5 = channel state, A6 = sound state
 - **Modifies**: D1 Fields accessed: A6+$12+D0.W (word), A5+$1E, A6+$10+D0.W (byte)
-*Source: [sound_subtract_field.asm](disasm/modules/68k/sound/sound_subtract_field.asm)*
+*Source: [sound_subtract_field.asm](../disasm/modules/68k/sound/sound_subtract_field.asm)*
 
 ---
 
@@ -8341,7 +8476,7 @@ Reads a byte from stream (A4)+, sign-extends to word, and stores to A5+$1E (posi
 
 - **Entry**: A4 = data stream pointer, A5 = channel state
 - **Modifies**: D0 Fields written: A5+$1E
-*Source: [sound_set_position.asm](disasm/modules/68k/sound/sound_set_position.asm)*
+*Source: [sound_set_position.asm](../disasm/modules/68k/sound/sound_set_position.asm)*
 
 ---
 
@@ -8351,7 +8486,7 @@ Reads one byte from (A4) without increment to A5+$12, then reads (A4)+ with incr
 
 - **Entry**: A4 = data stream pointer, A5 = channel state
 - **Modifies**: none Fields written: A5+$12, A5+$13
-*Source: [sound_load_pair.asm](disasm/modules/68k/sound/sound_load_pair.asm)*
+*Source: [sound_load_pair.asm](../disasm/modules/68k/sound/sound_load_pair.asm)*
 
 ---
 
@@ -8361,7 +8496,7 @@ Reads a byte from stream (A4)+ and adds it to A5+$09 (transpose).
 
 - **Entry**: A4 = data stream, A5 = channel state
 - **Modifies**: D0 Fields modified: A5+$09
-*Source: [sound_add_transpose.asm](disasm/modules/68k/sound/sound_add_transpose.asm)*
+*Source: [sound_add_transpose.asm](../disasm/modules/68k/sound/sound_add_transpose.asm)*
 
 ---
 
@@ -8371,7 +8506,7 @@ Sets A5+$01 to $E0 (PSG latch byte), reads stream byte to A5+$25, then if bit 2 
 
 - **Entry**: A4 = data stream, A5 = channel state
 - **Modifies**: none Fields modified: A5+$01, A5+$25 Hardware: $C00011 (PSG data port)
-*Source: [sound_psg_write.asm](disasm/modules/68k/sound/sound_psg_write.asm)*
+*Source: [sound_psg_write.asm](../disasm/modules/68k/sound/sound_psg_write.asm)*
 
 ---
 
@@ -8381,7 +8516,7 @@ Reads a big-endian 16-bit word from the data stream (A4), adds it as a signed di
 
 - **Entry**: A4 = data stream pointer
 - **Modifies**: D0, A4 (repositioned)
-*Source: [sound_stream_jump.asm](disasm/modules/68k/sound/sound_stream_jump.asm)*
+*Source: [sound_stream_jump.asm](../disasm/modules/68k/sound/sound_stream_jump.asm)*
 
 ---
 
@@ -8391,7 +8526,7 @@ Reads a byte from stream (A4)+ and adds it to A5+$08 (volume).
 
 - **Entry**: A4 = data stream, A5 = channel state
 - **Modifies**: D0 Fields modified: A5+$08
-*Source: [sound_add_volume.asm](disasm/modules/68k/sound/sound_add_volume.asm)*
+*Source: [sound_add_volume.asm](../disasm/modules/68k/sound/sound_add_volume.asm)*
 
 ---
 
@@ -8401,7 +8536,7 @@ Sets bit 7 of field $0A at A5 (enables channel processing).
 
 - **Entry**: A5 = channel state pointer
 - **Modifies**: none Fields modified: A5+$0A (bit 7 set)
-*Source: [sound_flag_set.asm](disasm/modules/68k/sound/sound_flag_set.asm)*
+*Source: [sound_flag_set.asm](../disasm/modules/68k/sound/sound_flag_set.asm)*
 
 ---
 
@@ -8411,7 +8546,7 @@ Clears bit 7 of field $0A at A5 (disables channel processing).
 
 - **Entry**: A5 = channel state pointer
 - **Modifies**: none Fields modified: A5+$0A (bit 7 cleared)
-*Source: [sound_flag_clear.asm](disasm/modules/68k/sound/sound_flag_clear.asm)*
+*Source: [sound_flag_clear.asm](../disasm/modules/68k/sound/sound_flag_clear.asm)*
 
 ---
 
@@ -8421,7 +8556,7 @@ Clears byte at A6+$00 (mutes channel by zeroing status).
 
 - **Entry**: A6 = sound state pointer
 - **Modifies**: D0 Fields modified: A6+$00
-*Source: [sound_channel_mute.asm](disasm/modules/68k/sound/sound_channel_mute.asm)*
+*Source: [sound_channel_mute.asm](../disasm/modules/68k/sound/sound_channel_mute.asm)*
 
 ---
 
@@ -8431,7 +8566,7 @@ Reads a byte from stream (A4)+ and writes it to offset $02 of each of 10 channel
 
 - **Entry**: A4 = data stream, A6 = sound state
 - **Modifies**: D0, D1, D2, A0 Fields modified: A6+$40+n*$30+$02 for n=0..9
-*Source: [sound_set_all_channels.asm](disasm/modules/68k/sound/sound_set_all_channels.asm)*
+*Source: [sound_set_all_channels.asm](../disasm/modules/68k/sound/sound_set_all_channels.asm)*
 
 ---
 
@@ -8441,13 +8576,13 @@ Sets byte at A6+$38 to $80 (master sound flag).
 
 - **Entry**: A6 = sound state pointer
 - **Modifies**: none Fields modified: A6+$38
-*Source: [sound_master_flag.asm](disasm/modules/68k/sound/sound_master_flag.asm)*
+*Source: [sound_master_flag.asm](../disasm/modules/68k/sound/sound_master_flag.asm)*
 
 ---
 
 ### Z80 Commands
 
-*Source: [z80_commands.asm](disasm/modules/68k/sound/z80_commands.asm)*
+*Source: [z80_commands.asm](../disasm/modules/68k/sound/z80_commands.asm)*
 
 ---
 
@@ -8459,7 +8594,7 @@ LZSS/LZ77-variant decompression algorithm. Uses a 16-bit flag word to distinguis
 
 - **Entry**: A0 = compressed source, A1 = decompression destination
 - **Modifies**: D0-D6, A0, A1 (A7 for 2-byte flag buffer) Preserves: A2-A6 (except A7 modified then restored)
-*Source: [lzss_decompress.asm](disasm/modules/68k/util/lzss_decompress.asm)*
+*Source: [lzss_decompress.asm](../disasm/modules/68k/util/lzss_decompress.asm)*
 
 ---
 
@@ -8470,7 +8605,7 @@ Increments a byte counter at $C828 and sets bit 1 of the control flag byte at $C
 - **Entry**: No register inputs
 - **Returns**: Counter incremented, flag bit set
 - **Modifies**: (none modified beyond RAM writes)
-*Source: [counter_decrement_flag_set.asm](disasm/modules/68k/util/counter_decrement_flag_set.asm)*
+*Source: [counter_decrement_flag_set.asm](../disasm/modules/68k/util/counter_decrement_flag_set.asm)*
 
 ---
 
@@ -8480,7 +8615,7 @@ Unpacks packed nibble data from (A1)+ into byte fields at A2+$09 through A2+$0F.
 
 - **Entry**: A1 = source data, A2 = destination structure
 - **Modifies**: D0, A1 (advances)
-*Source: [data_unpack_nibbles.asm](disasm/modules/68k/util/data_unpack_nibbles.asm)*
+*Source: [data_unpack_nibbles.asm](../disasm/modules/68k/util/data_unpack_nibbles.asm)*
 
 ---
 
@@ -8491,7 +8626,7 @@ Packs D0 value with VDP flag bit: shift left 2, shift low word right 2, set bit 
 - **Entry**: D0 = value
 - **Returns**: D0 = packed VDP command
 - **Modifies**: D0
-*Source: [word_pack_swap.asm](disasm/modules/68k/util/word_pack_swap.asm)*
+*Source: [word_pack_swap.asm](../disasm/modules/68k/util/word_pack_swap.asm)*
 
 ---
 
@@ -8501,7 +8636,7 @@ Unpacks 4 bytes from (A4) into 7 nibble-separated bytes at (A1)+. Bytes 0,1,3 sp
 
 - **Entry**: A4 = source (4 bytes), A1 = destination (7 bytes)
 - **Modifies**: D1, D2, A1 (advances)
-*Source: [nibble_unpack.asm](disasm/modules/68k/util/nibble_unpack.asm)*
+*Source: [nibble_unpack.asm](../disasm/modules/68k/util/nibble_unpack.asm)*
 
 ---
 
@@ -8509,7 +8644,7 @@ Unpacks 4 bytes from (A4) into 7 nibble-separated bytes at (A1)+. Bytes 0,1,3 sp
 
 Pseudo-random number generator using Linear Congruential Generator (LCG). The algorithm multiplies the seed by 41 using shifts and adds, then combines the high and low words for the output. ALGORITHM new_seed = old_seed * 41 output = (new_seed.low + new_seed.high) & $FFFF Multiplication by 41 is computed as: ((seed << 2) + seed) << 3) + seed = (5 << 3 + 1) * seed = 41 * seed MEMORY | Address | Name        | Purpose                    | |---------|-------------|----------------------------| | $EF00   | RANDOM_SEED | 32-bit seed storage        | - Seed of 0 is replaced with default $2A6D365A - D0 returns random value, D1 preserved - Called 6 times per frame Dependencies: None (standalone utility) Related: game_logic.asm Format: Proper mnemonics with original bytes in comments for verification
 
-*Source: [random.asm](disasm/modules/68k/util/random.asm)*
+*Source: [random.asm](../disasm/modules/68k/util/random.asm)*
 
 ---
 
@@ -8517,7 +8652,7 @@ Pseudo-random number generator using Linear Congruential Generator (LCG). The al
 
 General-purpose utility functions used throughout the game: - Random number generation - V-blank synchronization - Display parameter initialization RANDOM NUMBER GENERATOR Uses a Linear Congruential Generator (LCG) stored at $EF00.W (4 bytes). Algorithm: seed = seed * 41 (via shifts and adds) Returns 16-bit random value in D0 V-BLANK SYNCHRONIZATION WaitForVBlank sets V-INT state to 4 and waits for the V-INT handler to process it, providing frame synchronization. Dependencies: V-INT handler Related: vint_handler.asm Format: Proper mnemonics with original bytes in comments for verification
 
-*Source: [utilities.asm](disasm/modules/68k/util/utilities.asm)*
+*Source: [utilities.asm](../disasm/modules/68k/util/utilities.asm)*
 
 ---
 
@@ -8529,7 +8664,7 @@ General-purpose utility functions used throughout the game: - Random number gene
 
 - **Entry**: A0 = source data, A5 = VDP control port, A6 = VDP data port D0 = VDP address command, D1 = inner count, D2 = outer count
 - **Modifies**: D0, D1, D3, D4, A0
-*Source: [vdp_data_fill.asm](disasm/modules/68k/vdp/vdp_data_fill.asm)*
+*Source: [vdp_data_fill.asm](../disasm/modules/68k/vdp/vdp_data_fill.asm)*
 
 ---
 
@@ -8539,7 +8674,7 @@ Fills VDP region with a constant word value D3. Same structure as vdp_data_fill 
 
 - **Entry**: A5 = VDP control port, A6 = VDP data port D0 = VDP address command, D1 = inner count, D2 = outer count D3 = constant value to fill
 - **Modifies**: D0, D1, D4, D5
-*Source: [vdp_data_fill_constant.asm](disasm/modules/68k/vdp/vdp_data_fill_constant.asm)*
+*Source: [vdp_data_fill_constant.asm](../disasm/modules/68k/vdp/vdp_data_fill_constant.asm)*
 
 ---
 
@@ -8549,7 +8684,7 @@ Converts a linear VRAM address in D0 to VDP command format and writes it atomica
 
 - **Entry**: D0 = 24-bit VRAM address, A5 = VDP control port
 - **Modifies**: D0, D6, D7 (saved/restored)
-*Source: [vdp_reg_write_multi.asm](disasm/modules/68k/vdp/vdp_reg_write_multi.asm)*
+*Source: [vdp_reg_write_multi.asm](../disasm/modules/68k/vdp/vdp_reg_write_multi.asm)*
 
 ---
 
@@ -8559,7 +8694,7 @@ Compact VDP VRAM write command builder. Converts D0 low 14 bits to VDP command f
 
 - **Entry**: D0 = VRAM address, A5 = VDP control port
 - **Modifies**: D0 (saved/restored)
-*Source: [vdp_reg_write_simple.asm](disasm/modules/68k/vdp/vdp_reg_write_simple.asm)*
+*Source: [vdp_reg_write_simple.asm](../disasm/modules/68k/vdp/vdp_reg_write_simple.asm)*
 
 ---
 
@@ -8569,7 +8704,7 @@ Sets up VDP for CRAM read access. Masks address to 7 bits (CRAM has 128 bytes / 
 
 - **Entry**: D0 = CRAM address, A5 = VDP control port
 - **Modifies**: D0 (saved/restored)
-*Source: [vdp_reg_write_read.asm](disasm/modules/68k/vdp/vdp_reg_write_read.asm)*
+*Source: [vdp_reg_write_read.asm](../disasm/modules/68k/vdp/vdp_reg_write_read.asm)*
 
 ---
 
@@ -8577,7 +8712,7 @@ Sets up VDP for CRAM read access. Masks address to 7 bits (CRAM has 128 bytes / 
 
 Expands packed nibble tile data to VDP format. Each source byte contains two 4-bit tile indices that are expanded to 16-bit VDP tile references. Called 24 times per frame - highest frequency VDP function. MEMORY MAP | Address    | Name           | Purpose                        | |------------|----------------|--------------------------------| | $C00000    | VDP_DATA       | VDP data port (A6 register)    | | $C00004    | VDP_CTRL       | VDP control port (A5 register) | ALGORITHM For each input byte at (A0)+: 1. Extract high nibble (bits 7-4) → D0 2. Extract low nibble (bits 3-0) → D1 3. Add tile base ($E001) to each → VDP tile reference 4. Write both words to VDP data port TILE FORMAT VDP tile reference word: Bits 15-13: Priority, palette, V/H flip Bits 10-0:  Tile index in VRAM $E001 = 1110 0000 0000 0001 = Priority=1, Palette=3, VFlip=0, HFlip=0, Tile=1 Dependencies: VDP initialized, A5=VDP_CTRL, A6=VDP_DATA Related: vdp_handlers.asm Format: Proper mnemonics with original bytes in comments for verification
 
-*Source: [tile_expand.asm](disasm/modules/68k/vdp/tile_expand.asm)*
+*Source: [tile_expand.asm](../disasm/modules/68k/vdp/tile_expand.asm)*
 
 ---
 
@@ -8587,7 +8722,7 @@ Fills the entire 32X VDP frame buffer with zeros (screen clear). Uses hardware f
 
 - **Entry**: none
 - **Modifies**: A2, A3, A4, D0, D1, D2, D7
-*Source: [vdp_fill_framebuffer.asm](disasm/modules/68k/vdp/vdp_fill_framebuffer.asm)*
+*Source: [vdp_fill_framebuffer.asm](../disasm/modules/68k/vdp/vdp_fill_framebuffer.asm)*
 
 ---
 
@@ -8597,7 +8732,7 @@ Clears all 256 CRAM palette entries to 0 (black).
 
 - **Entry**: D0 = fill value (typically 0)
 - **Modifies**: A2, D7
-*Source: [vdp_clear_palette.asm](disasm/modules/68k/vdp/vdp_clear_palette.asm)*
+*Source: [vdp_clear_palette.asm](../disasm/modules/68k/vdp/vdp_clear_palette.asm)*
 
 ---
 
@@ -8607,7 +8742,7 @@ Fills VDP line table with constant value for all 224 display lines.
 
 - **Entry**: none
 - **Modifies**: A1, D2, D7
-*Source: [vdp_fill_line_table_flat.asm](disasm/modules/68k/vdp/vdp_fill_line_table_flat.asm)*
+*Source: [vdp_fill_line_table_flat.asm](../disasm/modules/68k/vdp/vdp_fill_line_table_flat.asm)*
 
 ---
 
@@ -8617,7 +8752,7 @@ Fills line table with incrementing addresses for linear scanline display.
 
 - **Entry**: none
 - **Modifies**: A1, D0, D1, D7
-*Source: [vdp_fill_line_table_ramp.asm](disasm/modules/68k/vdp/vdp_fill_line_table_ramp.asm)*
+*Source: [vdp_fill_line_table_ramp.asm](../disasm/modules/68k/vdp/vdp_fill_line_table_ramp.asm)*
 
 ---
 
@@ -8625,7 +8760,7 @@ Fills line table with incrementing addresses for linear scanline display.
 
 VDP (Video Display Processor) access functions for the 32X. These functions use the MARS system registers at $A15100 to control the 32X VDP. 32X VDP REGISTERS (MARS) | Address   | Name           | Purpose                              | |-----------|----------------|--------------------------------------| | $A15100   | MARS_SYS_BASE  | System register base                 | | $A15184   | +$84           | VDP fill length                      | | $A15186   | +$86           | VDP fill address                     | | $A15188   | +$88           | VDP fill data                        | | $A1518B   | +$8B           | VDP status (bit 1 = busy)            | | $A15200   | CRAM_BASE      | Color RAM base (palette)             | FILL OPERATION VDP fill writes a pattern to VRAM. The process: 1. Set fill length at $A15184 2. Write address to $A15186 3. Write data to $A15188 4. Wait for busy bit to clear 5. Repeat for next address Dependencies: 32X adapter must be initialized Related: adapter_init.asm Format: Proper mnemonics with original bytes in comments for verification
 
-*Source: [vdp_operations.asm](disasm/modules/68k/vdp/vdp_operations.asm)*
+*Source: [vdp_operations.asm](../disasm/modules/68k/vdp/vdp_operations.asm)*
 
 ---
 
@@ -8635,7 +8770,7 @@ Fills a VDP region at address $1F00 with pattern $0101.
 
 - **Entry**: none
 - **Modifies**: A2, A3, A4, D0, D1
-*Source: [vdp_fill_pattern.asm](disasm/modules/68k/vdp/vdp_fill_pattern.asm)*
+*Source: [vdp_fill_pattern.asm](../disasm/modules/68k/vdp/vdp_fill_pattern.asm)*
 
 ---
 
@@ -8645,7 +8780,7 @@ Copies 512 bytes from (A2) to CRAM palette (full 256 entries).
 
 - **Entry**: A2 = source palette data
 - **Modifies**: A2, A3, D7
-*Source: [palette_copy_full.asm](disasm/modules/68k/vdp/palette_copy_full.asm)*
+*Source: [palette_copy_full.asm](../disasm/modules/68k/vdp/palette_copy_full.asm)*
 
 ---
 
@@ -8655,7 +8790,7 @@ Copies 128 bytes to CRAM starting at offset $40 (entries 32-63).
 
 - **Entry**: A2 = source palette data
 - **Modifies**: A2, A3, D7
-*Source: [palette_copy_partial.asm](disasm/modules/68k/vdp/palette_copy_partial.asm)*
+*Source: [palette_copy_partial.asm](../disasm/modules/68k/vdp/palette_copy_partial.asm)*
 
 ---
 
@@ -8666,7 +8801,7 @@ Loads frame buffer base address into A2, calls a setup subroutine, then stores D
 - **Entry**: D4 = value to store
 - **Modifies**: A2
 - **Calls**: Subroutine at $7280 (via BSR.S)
-*Source: [framebuffer_setup.asm](disasm/modules/68k/vdp/framebuffer_setup.asm)*
+*Source: [framebuffer_setup.asm](../disasm/modules/68k/vdp/framebuffer_setup.asm)*
 
 ---
 
@@ -8676,7 +8811,34 @@ Loads frame buffer base address into A2, calls a setup subroutine, then stores D
 
 Helper functions called by the V-INT handler for cleanup and state management at the end of vertical blank processing. MEMORY MAP | Address    | Name              | Purpose                       | |------------|-------------------|-------------------------------| | $FFFFC87E  | VINT_STATE_FLAG   | V-INT state flag (word)       | | $FFFFC8C4  | COMM_DONE_FLAG    | Communication done flag       | | $FFFFC8C5  | CURRENT_STATE     | Current V-INT state byte      | MARS REGISTERS | Address    | Name              | Purpose                       | |------------|-------------------|-------------------------------| | $A15123    | MARS_COMM_CTRL    | COMM control (bit 0 = flag)   | Dependencies: V-INT handler, SH2 communication Related: frame_sync.asm, sh2_communication.asm Format: Proper mnemonics with original bytes in comments for verification
 
-*Source: [vint_handlers.asm](disasm/modules/68k/vint/vint_handlers.asm)*
+*Source: [vint_handlers.asm](../disasm/modules/68k/vint/vint_handlers.asm)*
+
+---
+
+### vint_sprite_cfg_with_swap
+
+V-INT State $001C: Sprite Config + Frame Swap Wrapper for the original vdp_dma_xfer_setup_001aca handler. Called from V-INT dispatch during VBlank (VBLK=1). Phase 8: 60 FPS triggers REMOVED. The state dispatcher now runs all states per frame, and the unified V-INT handler ($0054) does all VDP work. This wrapper is kept for non-racing modes that still use V-INT $001C.
+
+- **Entry**: A5 = VDP control port (from V-INT dispatch)
+*Source: [vint_sprite_cfg_with_swap.asm](../disasm/modules/68k/vint/vint_sprite_cfg_with_swap.asm)*
+
+---
+
+### vint_unified_60fps
+
+VR60 Phase 8: Unified 60 FPS V-INT Handler Combines ALL VDP work into a single V-INT handler that runs every VBlank: 1. VDP sync (original $0014 handler at $001A72) 2. Sprite config (original $001C handler at $001ACA) 3. Frame swap (from vdp_dma_frame_swap_037 at $001D0C) Replaces the 3-handler rotation ($0014/$001C/$0054) with a single handler that does everything every frame. The state dispatcher always writes $0054 to $FF0008, so this handler runs every VBlank. Total VBlank time: ~5-10K cycles (budget: ~30K). Ample margin.
+
+- **Entry**: A5 = VDP control port, A6 = VDP data port (from V-INT dispatch)
+*Source: [vint_unified_60fps.asm](../disasm/modules/68k/vint/vint_unified_60fps.asm)*
+
+---
+
+### vint_vdp_sync_with_swap
+
+V-INT State $0014: VDP Sync + Frame Swap Wrapper for vdp_dma_xfer_setup_001a72 (state $0014 handler). Called from V-INT dispatch during VBlank. Phase 8: 60 FPS triggers REMOVED. The state dispatcher now runs all states per frame, and the unified V-INT handler ($0054) does all VDP work. This wrapper is kept for non-racing modes that still use V-INT $0014.
+
+- **Entry**: A5 = VDP control port
+*Source: [vint_vdp_sync_with_swap.asm](../disasm/modules/68k/vint/vint_vdp_sync_with_swap.asm)*
 
 ---
 

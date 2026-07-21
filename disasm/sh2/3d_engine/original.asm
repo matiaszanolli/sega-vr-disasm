@@ -104,7 +104,9 @@ func_021:
  * HOOK STATUS (Current: DISABLED)
  *
  * When enabled, func_021 is replaced by a trampoline that:
- * 1. Captures parameters (R14, R7, R8, R5) to shared memory at $2203E000
+ * 1. Historical design attempted to capture parameters at $2203E000. That
+ *    literal is cartridge ROM, not shared SDRAM; the disabled hook is invalid
+ *    until redesigned around verified $260xxxxx storage and synchronization.
  * 2. Signals Slave via COMM7 = 0x16
  * 3. Returns immediately (Master continues with other work)
  * 4. Slave executes func_021_optimized at $300100

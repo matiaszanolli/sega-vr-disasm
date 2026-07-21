@@ -164,8 +164,10 @@ $00C00000-$00DFFFFF  2MB     VDP (Video Display Processor)
 $00FF0000-$00FFFFFF  64KB    Work RAM (68000)
 
 32X-Specific Memory:
-$20000000-$203FFFFF  4MB     32X ROM (from SH2 perspective)
-$22000000-$2203FFFF  256KB   SDRAM (2 Mbit)
+$02000000-$023FFFFF  4MB     32X ROM (cached SH2 view)
+$22000000-$223FFFFF  4MB     32X ROM (cache-through SH2 view)
+$06000000-$0603FFFF  256KB   SDRAM (cached SH2 view)
+$26000000-$2603FFFF  256KB   SDRAM (cache-through SH2 view)
 $24000000-$2401FFFF  128KB   Frame Buffer
 $24020000-$2403FFFF  128KB   Overwrite Image
 ```

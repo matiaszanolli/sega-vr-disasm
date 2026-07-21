@@ -1,9 +1,38 @@
 # VR60 Roadmap — Ground-Up Architectural Redesign
 
 **Created:** 2026-03-17
-**Branch:** vr60 (independent, no backwards compatibility constraints)
-**Goal:** Redesign the game's core to use all three CPUs optimally with zero bottlenecks
+**Branch:** `60fps_project` (original byte-identical baseline: `v5.0-freeze`)
+**Goal:** Redesign the game's core for true 60 Hz game logic and display while preserving real-time behavior
 **Pace:** Methodical. Every decision backed by evidence. No rushing.
+
+---
+
+## Canonical status (2026-07-21)
+
+The project is in **integration and validation**, not “one blocker from 60 FPS.” The current
+normal-1P path still uses the original 68000 physics, AI, collision, and render preparation as
+the authority. The 1P state-8 hook is valid and executes at about 20 Hz; cmd `$3E` modes 0/1
+(player entity and globals) are enabled there. AI staging (mode 2), cmd `$3F`, and the 68000
+physics bypass are disabled. Therefore the assembled SH2 physics/AI/collision ports do not
+currently control normal 1P gameplay.
+
+The last apparent long-run baseline is invalid: `savestate_1p_gp_racing.bin` eventually stops
+advancing `$C87E` even with the 1P hook physically bypassed. The earlier “724 unique hashes”
+comparison and its attribution of freezes to AI transfer/cmd `$3F` are retracted. Those stages
+are **unverified**, not proven broken.
+
+The immediate blocker is a trustworthy 1P fixture or deterministic input harness, not a single
+frame-buffer-swap patch. It must keep `$C87E` cycling for the whole control run and confirm the
+scene, hook, COMM activity, and framebuffer liveness independently. After that, re-enable one
+stage at a time: cmd `$3E` modes 0/1, AI transfer, cmd `$3F` in shadow mode, a bridge into the
+renderer-consumed C128/C178/C254 descriptors, and only then subsystem authority/bypass changes.
+Cadence and fixed-step scaling for true 60 Hz come after the data path is proven.
+
+See [`VR60_STATUS.md`](VR60_STATUS.md) for the concise status matrix and definition of done.
+
+The dated sections below are a **historical correction log**. They deliberately preserve false
+starts, but no older “COMPLETE,” “ACTIVE,” FPS, utilization, or causality claim overrides this
+canonical status.
 
 ---
 
@@ -11,8 +40,9 @@
 
 **The entire cmd `$3F` VR60 pipeline (Phases 3–8: physics, AI, collision, the render bridge)
 was wired into `state_disp_005020` — the 2-PLAYER split-screen race dispatcher — not the
-1-player interactive dispatcher (`state_disp_004cb8`) that autoplay, profiling, and normal
-play actually use. cmd `$3F` has never fired during any 1P racing session measured on this
+normal 1-player interactive dispatcher (`state_disp_004cb8`) used by manual GP play and
+saved-state 1P profiling. Autoplay instead parks in scene `$5586`. cmd `$3F` has never fired
+during any 1P racing session measured on this
 branch.** Full evidence: `analysis/VR60_IMPLEMENTATION_AUDIT.md` +
 `analysis/VR60_DISPATCHER_ROUTING.md`. Discovered via three render-bridge validation probes
 (5F-1b) that produced zero visible effect, tracked down with headless watches of COMM0, the
@@ -22,9 +52,8 @@ handler.
 - **Mis-targeted from the start** (commit `b5bd8a3`, 2026-06-17), not a regression — and
   self-contradictory with Q-009/R-008 (already correctly identified `gfx_2_player_entity_
   frame_orch`, which `state_disp_005020` calls, as 2P-only and deferred).
-- **Player physics is NOT currently broken** — checked explicitly: the physics-bypass
-  trampoline shares the same dead `$C8D2` gate, so it always falls through to the unmodified
-  68K physics chain in 1P. Confirmed safe, not assumed.
+- **Player physics is NOT currently bypassed** — the current 1P hook leaves the bypass off,
+  so the unmodified 68000 physics chain remains authoritative.
 - **Open, unresolved:** whether the Phase 3/4/5 "measured improvement" profiling deltas
   recorded below were ever real in 1P, given cmd `$3F` + the bypass trampolines are no-ops
   there. Not yet re-investigated — treat every "ACTIVE"/"done" status below as **unvalidated
@@ -35,14 +64,15 @@ handler.
 
 ---
 
-## ⚠ STATUS UPDATE (2026-07-13) — 1P wiring attempted and reverted; read before resuming Phase 1
+## ⚠ HISTORICAL STATUS UPDATE (2026-07-13) — later superseded in this log
 
 An approved plan (`/home/matias/.claude/plans/eventual-greeting-wadler.md`) began wiring 1P
 racing (`game_frame_orch_013.asm`, via `state_disp_004cb8`'s state 8) with staging + DREQ
 transfer + a cmd `$3F` trigger, mirroring the 2P `state4_epilogue` pattern. **All of that wiring
-has been fully reverted** — `vr60_1p_staging_hook.asm` is currently an inert passthrough (just
-re-issues the two displaced calls, no SH2 offload of any kind). Do not assume any part of Phase 1
-is live. See Q-017, R-020, R-021, and `analysis/VR60_PHASE1_CMD3E_ACK_HANG.md` §13 for the full
+was fully reverted at that point** — `vr60_1p_staging_hook.asm` briefly became an inert
+passthrough. Modes 0/1 were later reintroduced with bounded, 1P-exclusive helpers; see the
+later correction and canonical status above. See Q-017, R-020, R-021, and
+`analysis/VR60_PHASE1_CMD3E_ACK_HANG.md` §13 for the full
 story: a retry-based fix for a suspected cmd `$3E` ACK race was headlessly "verified" but the
 verification never exercised real GP racing (`--autoplay` can't reach it — it parks in Free Run
 instead), and when tested against real GP racing it hard-hung the 68K (black screen). The two
@@ -51,7 +81,7 @@ width, CHCR0 address-mode fields) were kept since they don't depend on the rever
 Before resuming: get a real GP-racing savestate (`VRD_LOAD_STATE` now supports this), and bound
 any retry logic with a hard attempt cap.
 
-## ⚠ BIGGER STATUS UPDATE (2026-07-13, later same session) — the hook's insertion point itself is dead code
+## ⚠ RETRACTED INTERIM CONCLUSION (2026-07-13) — the hook was incorrectly called dead code
 
 Following up on the above with real GP-racing savestates (finally obtained — see R-021), extensive
 `VRD_PROFILE_PC=1` histogram testing across four independent savestates/conditions (mid-race,
@@ -95,17 +125,15 @@ negative and an overcomplicated intermediate hypothesis, both now fully resolved
 `analysis/VR60_PHASE1_CMD3E_ACK_HANG.md` §17-§20.
 
 **Practical conclusion: `game_frame_orch_013`'s Path A (state 8) is a valid, reliable, ~20 Hz hook
-location — the original Phase 1 plan's insertion point stands.** `vr60_1p_staging_hook.asm` can be
-safely re-populated with the full staging/transfer/cmd-`$3F`-trigger body at its current location,
-once the retry-loop logic from the black-screen incident (Q-017/R-020) is redone with a **hard
-attempt cap** and tested via `VRD_CALLER_TRACE` against the real savestate before ever reaching
-live gameplay again — and implemented in 1P-exclusive copies of the transfer functions, not the
-shared `vr60_*_transfer.asm`/`vr60_comm_trigger.asm` files, per that incident's hard lesson.
+location — the original Phase 1 plan's insertion point stands.** This was subsequently implemented
+with bounded, 1P-exclusive helpers: cmd `$3E` modes 0/1 are enabled, while AI transfer mode 2 and
+the cmd `$3F` trigger remain disabled. The insertion point is proven; the enabled transfers still
+need a trustworthy long-run behavioral baseline.
 **Standing rule for all future sessions**: do not trust "dead code"/"never executes" claims from a
 `VRD_PROFILE_PC` histogram alone — always cross-check with `VRD_CALLER_TRACE` (exact, non-
 truncated) before concluding a code path doesn't run.
 
-## ⚠ IMPLEMENTATION STATUS (2026-07-16, corrected 2026-07-16) — code unchanged and safe; the "724-unique baseline" test result is RETRACTED
+## ⚠ IMPLEMENTATION STATUS (2026-07-16, corrected 2026-07-21) — bounded integration retained; behavioral validation RETRACTED
 
 `vr60_1p_staging_hook.asm` was populated with four new 1P-exclusive files
 (`vr60_1p_entity_transfer.asm`, `vr60_1p_ai_entity_transfer.asm`, `vr60_1p_globals_transfer.asm`,
@@ -122,7 +150,8 @@ dispatcher (`$C87E`) cycles cleanly for almost exactly one lap after the savesta
 permanently stops advancing — independent of any VR60 code being reachable at all. Full writeup:
 `analysis/VR60_PHASE1_CMD3E_ACK_HANG.md` §22 (retracts §21's isolation conclusions about AI
 transfer/cmd `$3F` specifically, though the *code* §21 shipped — bounded retries, both disabled —
-was and remains correct and safe regardless).
+has bounded failure behavior and remains the least invasive integration state; its long-run
+behavioral correctness has not been established).
 
 **Practical upshot**: AI transfer (cmd `$3E` mode 2) and cmd `$3F` are neither proven safe nor
 proven unsafe — §21's "both cause a freeze" conclusion doesn't hold up, because the reference
@@ -145,8 +174,8 @@ Use the SH2-space cache-through COMM addresses instead (`$20004020`=COMM0_HI, et
 2. [Target Architecture](#2-target-architecture)
 3. [Hard Hardware Constraints](#3-hard-hardware-constraints)
 4. [Phase 0: Infrastructure](#4-phase-0-infrastructure)
-5. [Phase 1: Entity Table Relocation](#5-phase-1-entity-table-relocation)
-6. [Phase 2: Entity Projection Port](#6-phase-2-entity-projection-port)
+5. [Phase 1: SDRAM Path Validation](#5-phase-1-sdram-path-validation)
+6. [Phase 2: Async Producer-Consumer Pipeline](#6-phase-2-async-producer-consumer-pipeline)
 7. [Phase 3: Physics Port](#7-phase-3-physics-port)
 8. [Phase 4: AI Port](#8-phase-4-ai-port)
 9. [Phase 5: Collision Port](#9-phase-5-collision-port)
@@ -162,7 +191,10 @@ Use the SH2-space cache-through COMM addresses instead (`$20004020`=COMM0_HI, et
 
 ## 1. Current State Baseline
 
-### 1.1 CPU Utilization (Profiled March 2026, 40 FPS Camera Interpolation)
+### 1.1 Historical CPU Utilization (Profiled March 2026, camera-interpolation experiment)
+
+> **Historical only.** This predates the dispatcher-routing correction and is not the current
+> 1P acceptance baseline.
 
 | CPU | Clock | Budget/Frame | Used/Frame | Utilization | Role |
 |-----|-------|-------------|-----------|-------------|------|
@@ -172,38 +204,45 @@ Use the SH2-space cache-through COMM addresses instead (`$20004020`=COMM0_HI, et
 
 **Evidence:** `analysis/ARCHITECTURAL_BOTTLENECK_ANALYSIS.md`, `analysis/profiling/68K_BOTTLENECK_ANALYSIS.md`
 
-### 1.1b CPU Utilization — RACING-ISOLATED (Profiled 2026-06-17, current VR60 build, scene `0x4CBC`)
+### 1.1b Historical Racing-Isolated Profile (2026-06-17, scene `0x4CBC`)
 
 Measured with the rebuilt VRD profiler (Tier 1+2: exact idle/useful split, SH2 PC
-capture fixed via DRC-off, 3D + scene gating). **Supersedes §1.1 for the VR60 build.**
+capture fixed via DRC-off, 3D + scene gating). It superseded §1.1 at the time, but **does not
+serve as the current integration baseline**: cmd `$3F` was not active in this 1P route, so the
+recorded Master-SH2 work cannot be attributed to the VR60 physics/AI pipeline as the old notes do.
 Tooling + recipes: [tools/libretro-profiling/VRD_PROFILING.md](tools/libretro-profiling/VRD_PROFILING.md).
 
 | CPU | Useful/Frame | % of budget | Notes |
 |-----|-------------|-------------|-------|
 | 68K | 45,481 (36.6% of frame) | — | **63% V-blank idle**; `sh2_send_cmd` sync-wait negligible in racing |
-| Master SH2 | 158,977 (99.7% of executed) | ~41% | cmd $3F physics/AI/copies; **~59% headroom** |
+| Master SH2 | 158,977 (99.7% of executed) | ~41% | Historical total; old cmd `$3F` attribution is invalid |
 | Slave SH2 | 231,056 (75.3% of executed) | ~60% | ~80% util — busiest CPU; **renders every TV frame** |
 
-**Key finding:** racing is **neither compute-bound nor sync-bound**. The 20 FPS cap is
+**Historical interpretation:** racing appeared **neither compute-bound nor sync-bound**. The 20 FPS cap is
 the **state machine (one state per V-INT, 0→4→8 = 3 TV-frames per game-tick)** while the
 68K idles 63%/frame and the Slave already renders every TV frame (states 0/8 produce
 changing images; state 4 is a constant framebuffer; effective display ≈ 45 FPS). The
 ~13% `sh2_send_cmd` wait seen in **mixed-mode** profiling is a **car-select/attract
-artifact**, NOT racing — always scene-isolate (`VRD_SCENE=0x4CBC`).
+artifact**, NOT racing — always scene-isolate (`VRD_SCENE=0x4CBC`). Re-measure after the
+validation gate in `VR60_STATUS.md` is satisfied.
 
-### 1.2 68K Time Breakdown
+### 1.2 Historical Mixed-Scene 68K Profile — Not a Racing Baseline
+
+This March profile mixed menus/attract with gameplay. Its 14-call and 10.52% attribution is
+retained as research history only; scene-isolated racing later disproved it as a current normal-1P
+bottleneck. Re-profile after the fixture gate.
 
 | Component | Cycles | % | Source |
 |-----------|--------|---|--------|
 | V-blank STOP spin | 66,243 | 51.89% | Idle wait — unavoidable frame barrier |
-| COMM0_HI handshake wait | 13,437 | 10.52% | 14× sh2_send_cmd per frame |
+| COMM0_HI handshake wait | 13,437 | 10.52% | historical 14-call mixed-scene attribution |
 | Physics integration | 2,438 | 1.91% | entity_force_integration |
 | Angle normalize + visibility | 2,953 | 2.31% | Trig lookups |
 | Collision avoidance | 1,712 | 1.34% | AI speed calc |
 | All other game logic | ~41,204 | 32.03% | Entity mgmt, state, rendering prep, sound |
 
-**Key insight:** Only ~48K cycles are actual compute. 62% is wasted waiting.
-**Evidence:** `tools/libretro-profiling/` PC-level profiling, March 2026
+**Historical interpretation (retracted for racing):** the old run called 62% “wasted waiting.”
+**Evidence:** mixed-scene `tools/libretro-profiling/` PC-level profile, March 2026
 
 ### 1.3 Slave SH2 Rendering Breakdown
 
@@ -218,9 +257,14 @@ artifact**, NOT racing — always scene-isolate (`VRD_SCENE=0x4CBC`).
 
 **Evidence:** `analysis/sh2-analysis/SH2_3D_ENGINE_DEEP_DIVE.md`, PC profiling at $06000608
 
-### 1.4 Communication Bottleneck
+### 1.4 Historical 2P-Targeted Communication Profile
 
-**CORRECTED (Phase 2A, 2026-03-17):** Only 2 sh2_send_cmd calls per race frame, not 14. sh2_cmd_27 = 0 during racing.
+This profile describes `state4_epilogue` under `state_disp_005020`, the 2-player path. It is
+not a current normal-1P measurement: normal 1P uses `state_disp_004cb8`, and its cmd `$3F`
+trigger is disabled. The values remain useful as historical implementation evidence only.
+
+**CORRECTED (Phase 2A, 2026-03-17):** Only 2 `sh2_send_cmd` calls per 2P-path race tick, not
+14. `sh2_cmd_27` was not observed in that racing profile.
 
 | Sync Point | Who Blocks | Duration | Fundamental? |
 |-----------|-----------|----------|-------------|
@@ -233,22 +277,26 @@ artifact**, NOT racing — always scene-isolate (`VRD_SCENE=0x4CBC`).
 
 **Evidence:** `code_2200.asm:145-154` (only 2 calls), `code_e200.asm:306-329` (function), Phase 2A timing analysis
 
-### 1.5 Current Data Flow
+### 1.5 Current Normal-1P Data Flow
 
 ```
 68K WRAM $FF9000 (entity tables, 25 entities × 256B)
   → [68K: physics, AI, collision @ 7.67 MHz]
-  → 68K WRAM $FF6218 (display objects, 15 × 60B)
+  → 68K WRAM display/camera state
   → [68K: object_table_sprite_param_update]
   → 68K WRAM $FF6000 (2560B FIFO source)
   → [68K: mars_dma_xfer_vdp_fill via DREQ FIFO]
-  → [2× sh2_send_cmd — constant params, 10.52% = SH2 copy execution wait]
-  → SH2 SDRAM $0600C000+ (entity descriptors)
+  → SH2 SDRAM descriptor families C128 / C178 / C254
   → [Slave: Pipeline 1 (SRAM) + Pipeline 2 (SDRAM)]
   → Frame Buffer $04000000
+
+state 8: 1P hook → cmd $3E modes 0/1 staging only
+                    cmd $3E mode 2 disabled
+                    cmd $3F disabled
 ```
 
-**Every step serialized through the 68K and COMM registers.**
+The 68000 remains authoritative for gameplay and render preparation. The staging copies are
+experimental inputs with no active SH2 gameplay consumer; `render_state_patcher` is a no-op.
 **Evidence:** `analysis/ENTITY_OBJECT_ARCHITECTURE.md` §7, `analysis/RENDERING_PIPELINE.md`
 
 ---
@@ -318,15 +366,15 @@ Every constraint below is verified against hardware documentation. **These canno
 
 ## 4. Phase 0: Infrastructure
 
-**Status: COMPLETE** (2026-03-17)
+**Status: STRUCTURALLY BUILT; MAILBOX ADDRESS FIX REQUIRED** (corrected 2026-07-21)
 
 ### 4.1 What Was Built
 
 | Component | Location | Size | Purpose |
 |-----------|----------|------|---------|
-| cmd $3F handler | $301500 (expansion ROM) | 44 bytes | Reads SDRAM mailbox, signals completion |
-| Jump table patch | $02087C (SDRAM) | 4 bytes | Entry $3F → $02301500 |
-| SDRAM mailbox | $0600BC00 | 16 bytes | Zero-initialized from ROM copy |
+| cmd $3F handler | $301500 (expansion ROM) | 428 bytes | Built; current 1P trigger disabled |
+| Jump table patch | ROM file `$02087C` → runtime SDRAM `$0600087C` | 4 bytes | Entry $3F → $02301500 |
+| Intended SDRAM mailbox | $0600BC00 | 16 bytes | **Not usable yet:** handler literal is invalid ROM alias `$2200BC00`; fix to `$2600BC00` before enable |
 | Makefile rules | Makefile lines 559-562, 2211-2225 | — | Full asm→bin→inc pipeline |
 
 ### 4.2 Verification
@@ -335,7 +383,7 @@ Every constraint below is verified against hardware documentation. **These canno
 |-------|--------|--------|
 | Jump table entry | `python3` ROM byte check at $02087C | $02301500 ✓ |
 | Handler prologue | ROM byte check at $301500 | $4F22 (STS.L PR,@-R15) ✓ |
-| Mailbox zeroed | ROM byte check at $02BC00 | 16× $00 ✓ |
+| Mailbox backing bytes zeroed | ROM byte check at $02BC00 | Structural only; does not validate current `$2200BC00` runtime writes |
 | Full ROM builds | `make clean && make all` | 4MB ROM, clean ✓ |
 
 ### 4.3 Design Decisions Made
@@ -348,16 +396,16 @@ Every constraint below is verified against hardware documentation. **These canno
 
 ### 4.4 What Was NOT Built (Deferred)
 
-- [ ] 68K-side test trigger for cmd $3F (not needed until Phase 1)
-- [ ] SDRAM mailbox write from 68K (not needed until Phase 1)
+- [ ] Trustworthy live cmd `$3F` trigger/fixture (current 1P call disabled)
+- [ ] Correct handler mailbox access to `$2600BC00`; the 68000 cannot write SDRAM directly
 - [ ] Controller input relay to mailbox (not needed until Phase 2)
 
 ---
 
 ## 5. Phase 1: SDRAM Path Validation
 
-**Status: COMPLETE** (2026-03-18)
-**Prerequisite: Phase 0 (done)
+**Status: PARTIALLY INTEGRATED IN 1P; RUNTIME ACCEPTANCE BLOCKED** (corrected 2026-07-21)
+**Prerequisite:** Phase 0 structural pieces built; mailbox alias correction still blocks cmd `$3F`
 **Baseline tag:** `vr60-phase0-baseline`
 
 ### 5.1 Goal (Revised)
@@ -365,6 +413,11 @@ Every constraint below is verified against hardware documentation. **These canno
 Validate that the Master SH2 can read and write entity data at the new SDRAM location. Split into two sub-phases:
 - **Phase 1A:** Master SH2 copies existing cmd $02 entity data to new SDRAM area (validates addressing)
 - **Phase 1B:** 68K writes controller input to SDRAM mailbox (validates communication path)
+
+The underlying handlers and bounded 1P-exclusive transfers are built. In the current 1P hook,
+cmd `$3E` modes 0/1 are enabled and mode 2 is disabled. The original acceptance claim is no
+longer valid because the saved-state fixture freezes independently of the hook. Treat the
+unchecked criteria below as the current gate, regardless of older completion text.
 
 **Key insight (Phase 1 planning):** DREQ FIFO is unnecessary for entity tables. The Master SH2 will own them directly in SDRAM once game logic is ported (Phases 3-5). During migration, Master reads from the existing cmd $02 DMA landing area ($0600C000+).
 
@@ -394,7 +447,7 @@ Validate that the Master SH2 can read and write entity data at the new SDRAM loc
 | Step | Description | Files | Risk |
 |------|-------------|-------|------|
 | 1A-1 | Update this roadmap (SDRAM addresses, lessons) | VR60_ROADMAP.md | None |
-| 1A-2 | Expand cmd $3F handler: memcpy from $2200C800 → $2200F20C + canary | cmd3f_vr60_gameframe.asm | Low |
+| 1A-2 | Historical plan: memcpy from `$2600C800` → `$2600F20C` + canary | cmd3f_vr60_gameframe.asm | Low |
 | 1A-3 | Rebuild: `make sh2-assembly && make all` | Makefile (update size) | Low |
 | 1A-4 | Add 68K test trigger after mars_dma_xfer_vdp_fill | TBD racing module | Medium |
 | 1A-5 | Autoplay 3600 frames + canary verify + profile | — | Low |
@@ -406,8 +459,8 @@ Q-010 resolved: 68K CANNOT write SDRAM directly ($88xxxx = ROM, read-only). Must
 | Step | Description | Risk |
 |------|-------------|------|
 | 1B-1 | 68K writes controller input + game state to COMM2-6 as part of cmd $3F trigger | Low (proven COMM pattern) |
-| 1B-2 | cmd $3F handler copies COMM2-6 to SDRAM mailbox at $2200BC00 | Low (same handler, add reads) |
-| 1B-3 | Verify controller input arrives at $2200BC00 via diagnostic dump | Low |
+| 1B-2 | Fix cmd `$3F` mailbox literal from invalid ROM alias `$2200BC00` to SDRAM cache-through `$2600BC00`, then copy COMM2-6 | Blocking before cmd `$3F` enable |
+| 1B-3 | Verify controller input arrives at `$2600BC00` via diagnostic dump | Low |
 
 **COMM2-6 layout for cmd $3F (10 usable bytes):**
 
@@ -435,7 +488,7 @@ Q-010 resolved: 68K CANNOT write SDRAM directly ($88xxxx = ROM, read-only). Must
 
 ## 6. Phase 2: Async Producer-Consumer Pipeline
 
-**Status: PHASE 2B IMPLEMENTED** (2026-03-18)
+**Status: IMPLEMENTED IN THE HISTORICAL 2P-TARGETED PATH; NOT ACTIVE IN CURRENT 1P** (corrected 2026-07-21)
 **Full architecture:** [analysis/ASYNC_PIPELINE_ARCHITECTURE.md](analysis/ASYNC_PIPELINE_ARCHITECTURE.md)
 **Design decisions:** Producer-consumer pipeline + frame fence (lock-free) + display-objects-only transfer
 
@@ -480,8 +533,8 @@ Entity projection port deferred to Phase 3+ (saves only 0.1%, requires entity da
 |------|-------------|
 | 2a | Port `object_table_sprite_param_update` to SH2 assembly (expansion ROM) |
 | 2b | Master SH2 cmd $3F handler calls the ported function after reading entity data from SDRAM |
-| 2c | Master SH2 performs block copies to frame buffer internally (absorbs the 14× sh2_send_cmd work) |
-| 2d | 68K stops calling `object_table_sprite_param_update` and `sh2_send_cmd` ×14 |
+| 2c | Historical 2P design: Master SH2 absorbs the two `state4_epilogue` block copies |
+| 2d | Remove only the calls proven to belong to the validated target path; normal 1P must be re-profiled first |
 | 2e | Byte-comparison gate: verify SH2 output matches 68K output for 100 frames |
 
 ### 6.4 Unknowns to Resolve
@@ -501,7 +554,10 @@ Entity projection port deferred to Phase 3+ (saves only 0.1%, requires entity da
 - [ ] 68K utilization drops by ~10% (from 100.1% to ~90%)
 - [ ] No visual differences (A/B comparison screenshots)
 
-### 6.6 Phase 2B: Async Fire-and-Forget Block Copies
+### 6.6 Historical Phase 2B Design: Async Fire-and-Forget Block Copies
+
+This section records the implementation built around the 2P `state4_epilogue`. It is not the
+current normal-1P data flow and its autoplay-based live claims are not acceptance evidence.
 
 **The concrete change:** Remove the two `sh2_send_cmd` calls and inline frame swap from `state4_epilogue`. Reorder: camera re-DMA BEFORE cmd $3F. cmd $3F becomes fire-and-forget (last COMM0 command in frame). cmd $3F handler does the block copies in background while 68K runs state 8 game logic.
 
@@ -522,7 +578,7 @@ Entity projection port deferred to Phase 3+ (saves only 0.1%, requires entity da
 2. Clear COMM0_LO (params consumed)
 3. Geometry copy: $2200[3]8000 → $04012010, 288×48
 4. Sprite copy: $2200[3]B600 → $0401B010, 288×24
-5. Entity data copy: $2200C800 → $2200F20C (Phase 1A validation)
+5. Historical entity-copy plan: `$2600C800` → `$2600F20C` (not current acceptance evidence)
 6. Write canary $DEADBEEF
 7. Clear COMM1, set COMM1_LO bit 0 ("frame done")
 8. Clear COMM0_HI (idle)
@@ -549,7 +605,7 @@ Entity projection port deferred to Phase 3+ (saves only 0.1%, requires entity da
 | U-007 | Does camera_avg_and_redma depend on block copies? | **No** — reads WRAM ($FF6080/$FF6090), not framebuffer. No dependency. |
 | U-008 | Data dependencies in reordered state4_epilogue? | **None** — camera avg reads WRAM, copies read SDRAM. Independent data sources. |
 
-### 6.7 Phase 2B Implementation Steps
+### 6.7 Historical Phase 2B Implementation Record
 
 | Step | Description | Files | Status |
 |------|-------------|-------|--------|
@@ -557,44 +613,47 @@ Entity projection port deferred to Phase 3+ (saves only 0.1%, requires entity da
 | 2B-2 | Expand cmd $3F handler: add geometry + sprite block copy loops (reuse cmd $22 algorithm) | cmd3f_vr60_gameframe.asm | **DONE** — 100B→172B (longword copy, stride $0200) |
 | 2B-3 | Update Makefile expected size for expanded cmd $3F | Makefile | **N/A** — no size assertion exists |
 | 2B-4 | Build: `make clean && make all` | — | **DONE** — clean build, 4.0M ROM |
-| 2B-5 | Autoplay regression: 3600 frames (menus + race) | — | **DONE** — no crashes, clean shutdown |
-| 2B-6 | Profile: verify sh2_send_cmd drops from 10.52% to ~0% | — | **PARTIAL** — overall 10.52%→10.29% (menu-masked); binary verified no racing calls |
+| 2B-5 | Autoplay regression: 3600 frames | — | **HISTORICAL SMOKE ONLY** — autoplay did not exercise the 2P path and its `racing` label was frame-count based |
+| 2B-6 | Profile: verify sh2_send_cmd drops from 10.52% to ~0% | — | **INVALID ATTRIBUTION** — mixed-scene/autoplay data did not validate this path |
 | 2B-7 | Visual comparison: A/B screenshots at same frame count | — | **DEFERRED** — requires manual emulator comparison |
 
-### 6.8 Phase 2B Acceptance Criteria
+### 6.8 Historical Phase 2B Acceptance Record — Live Claims Reopened
 
 - [x] state4_epilogue has zero sh2_send_cmd calls (verified: binary at $003738 has no $4EB9 $0000E35A)
 - [x] cmd $3F handler performs both block copies + entity data copy + canary (172 bytes, 10 pool entries)
-- [x] V-INT $54 correctly swaps frame buffer (COMM1_LO bit 0 set by cmd $3F — 3600 frames, no hangs)
-- [x] 3600-frame autoplay passes without crashes (menus + racing, clean shutdown)
+- [ ] V-INT $54 / cmd `$3F` interaction validated while the intended 2P path is actually active
+- [ ] Long-run 2P regression passes with scene, state, COMM, and framebuffer liveness observed
 - [ ] sh2_send_cmd hotspot drops from 10.52% to <1% in **racing-only** profiling (overall profile: 10.52%→10.29%, delta is menu-masked; racing-only profiler not available)
-- [x] Mode transitions (race→results, menu→race) work correctly (autoplay exercises all transitions)
-- [x] Game logic frame rate unchanged (20 FPS, verified via autoplay timing)
+- [ ] Intended mode transitions validated on the 2P path
+- [ ] Game-logic cadence measured from real state/caller counters, not autoplay timing labels
 
-**Profiling note:** The overall sh2_send_cmd hotspot (10.52%→10.29%) shows minimal change because menus dominate the sh2_send_cmd call volume across a mixed autoplay. During racing, the 2 sh2_send_cmd calls are confirmed removed (binary verified). A racing-only profiler would show the expected ~0% racing-mode improvement.
+**Profiling note:** The binary proves the two calls were removed from `state4_epilogue`; it does
+not prove a runtime improvement. The 10.52%→10.29% mixed-autoplay result is retained only as a
+historical measurement and must not be projected onto normal 1P or unmeasured 2P racing.
 
 ---
 
 ## 7. Phase 3: Physics Port
 
-**Status: PHASE 3 COMPLETE** (2026-03-27)
+**Status: PORT BUILT; CMD `$3F` AND 1P AUTHORITY SWITCH DISABLED** (corrected 2026-07-21)
 **Prerequisite: Phase 2 (done)**
 
 ### 7.0 Implementation Status
 
-**What's built (13 functions, ~2,440B SH2 code, fully operational):**
+**What's built (13 functions, ~2,440B SH2 code; historical addresses/statuses):**
 
 | Component | ROM Address | Size | Status |
 |-----------|------------|------|--------|
-| cmd $3F (game frame + physics + sound relay) | $301500 | 300B | ACTIVE — 13 JSR calls + COMM6 relay |
-| cmd $3E (DREQ entity+globals, dual mode) | $301640 | 132B | ACTIVE — mode 0: 320B, mode 1: 64B |
-| physics_divide (sdiv16 + reciprocal tables) | $3016D0 | 80B | ACTIVE |
-| physics_group1 (f1+f5+f2+f3) | $301720 | 884B | ACTIVE |
-| physics_group2_accel (f6+f7) | $301AA0 | 496B | ACTIVE |
-| physics_timers (5 timer/guard functions) | $301CA0 | 280B | ACTIVE |
-| physics_pos_update (16.16 fixed-point) | $301DC0 | 184B | ACTIVE |
+| cmd $3F (game frame + physics + sound relay) | $301500 | 428B | BUILT/JT-INSTALLED; 1P trigger disabled |
+| cmd $3E (DREQ entity+globals, three modes) | $3016B0 | 176B | BUILT; 1P modes 0/1 enabled, mode 2 disabled |
+| physics_divide (sdiv16 + reciprocal tables) | $301760 | 80B | BUILT; reached only through disabled cmd `$3F` in 1P |
+| physics_group1 (f1+f5+f2+f3) | $3017C0 | 884B | BUILT; reached only through disabled cmd `$3F` in 1P |
+| physics_group2_accel (f6+f7) | $301B40 | 496B | BUILT; reached only through disabled cmd `$3F` in 1P |
+| physics_timers (5 timer/guard functions) | $301D40 | 284B | BUILT; reached only through disabled cmd `$3F` in 1P |
+| physics_pos_update (16.16 fixed-point) | $301E60 | 184B | BUILT; reached only through disabled cmd `$3F` in 1P |
 
-**Mode:** SH2-ONLY — 68K physics bypassed via trampoline. Entity persists in SDRAM. Globals transferred per-frame via DREQ. Sound triggers relayed via COMM6_HI.
+**Current 1P mode:** 68000-authoritative. The SH2-only description below records the intended
+and historically 2P-targeted integration; the 1P cmd `$3F` call and physics bypass are disabled.
 
 **Profiling (March 2026, Phase 3D complete):**
 
@@ -654,7 +713,10 @@ The orchestrator at $005AB6 calls these physics functions in order (lines 27-42)
 - `timer_decrement_multi` (L32) — **CO-PORTED** (decrements 8 timers: +$80-$86, +$98-$9A, +$E6-$E8)
 - `object_anim_timer_speed_clear+6` (L40) — **CO-PORTED** (clears +$06; frame counter at entity+$F0)
 
-**Decision: CO-PORT** — All entity-modifying timer/guard functions run on SH2 alongside physics. This solves the entity ownership problem: entity lives permanently in SDRAM after initial frame, no per-frame WRAM→SDRAM staging needed. See §7.8 for details.
+**Design decision: CO-PORT** — All entity-modifying timer/guard functions are implemented on
+SH2 alongside physics. They are dormant while cmd `$3F` is disabled; the current 1P build keeps
+the 68000/WRAM entity authoritative. If live equivalence is established, the intended ownership
+model can switch to initial-only staging. See §7.8.
 
 ### 7.3 Critical Translation Issues (Verified)
 
@@ -748,10 +810,13 @@ Once physics runs on SH2, entity tables must be in SDRAM (already allocated at $
 > 1. **Dropped-zero literals** — `$020A1F0`/`$020A1E2`/`$0202A2D8` were written with a missing/extra digit, resolving *below* the `$02000000` ROM window (e.g. `0x020A1F0` parses as `$0020A1F0` = garbage). Found and fixed in `physics_group2_accel.asm`, `ai_orchestrator.asm`, `physics_timers.asm`. **Any 7-hex-digit `0x020xxxxx` literal in SH2 source is almost certainly this bug** — it should be 8 digits (`0x0200xxxx`).
 > 2. **Mislabeled 68K addresses** — the `$0093xxxx`/`$00A2D8` *68K* labels were wrong; the tables actually live at file offsets `$13xxxx`/`$A2D8`. The SH2 literals (`$0213xxxx`) were nonetheless correct because they were derived to point at the real file offset. Verify table identity by ROM content, not by the 68K label.
 
-### 7.7 Acceptance Criteria (Phase 3B+3D — ALL COMPLETE)
+### 7.7 Historical Phase 3 Acceptance Record
+
+The checked boxes below record what the 2026-03 experiment claimed at the time. They do not
+establish current 1P execution or authority; the live-integration criteria are reopened below.
 
 - [x] All 7 physics functions assembled and linked into expansion ROM (884B + 496B)
-- [x] 5 timer/guard functions co-ported (280B, interleaved in correct orchestrator order)
+- [x] 5 timer/guard functions co-ported (284B, interleaved in correct orchestrator order)
 - [x] DIVU reciprocal accuracy verified: exact for all 6 gear ratios (zero diff)
 - [x] 3600-frame autoplay in dual-path mode — no crashes
 - [x] cmd $3F calls physics in correct order with GBR/R13 setup
@@ -765,11 +830,21 @@ Once physics runs on SH2, entity tables must be in SDRAM (already allocated at $
 - [x] Initial-frame-only entity staging ($C8D2 flag, cmd $3E dual mode)
 - [x] 3600-frame autoplay with SH2-only physics — no crashes, clean shutdown
 
+**Current live-integration criteria:**
+
+- [ ] cmd `$3F` observed executing in the intended 1P scene over a trustworthy fixture
+- [ ] SH2 and 68000 physics outputs compared frame-by-frame while the 68000 remains authoritative
+- [ ] Renderer shown to consume SH2-derived state through a verified descriptor bridge
+- [ ] 68000 bypass enabled only after equivalence, collision, and long-run behavior pass
+
 ### 7.8 Entity Ownership Resolution
 
 **Problem (identified 2026-03-26):** The entity staging function copies 256B from WRAM ($FF9000) to SDRAM ($0600F20C) every frame. When SH2 physics writes results to SDRAM, the next frame's staging OVERWRITES them with stale WRAM data. Physics fields are accumulated (speed, position, grip) — resetting them breaks the simulation.
 
-**Solution: Co-port all entity-modifying functions to SH2.** With physics + timer/guard functions all running on SH2, the SDRAM entity is the sole authoritative copy. Entity staging switches to initial-frame-only mode:
+**Intended solution (not active in current 1P): Co-port all entity-modifying functions to SH2.**
+Only after physics + timer/guard functions and the render bridge are validated can the SDRAM
+entity become authoritative. The current 1P build keeps the 68000/WRAM entity authoritative.
+The planned staging model is:
 
 - **First racing frame:** Full 256B WRAM → SDRAM copy (seed initial state)
 - **Subsequent frames:** Entity persists in SDRAM, modified only by SH2 physics+timers
@@ -812,23 +887,24 @@ Once physics runs on SH2, entity tables must be in SDRAM (already allocated at $
 
 ```
 $301300-$30148F  coord_transform_batched (388B)       — ACTIVE (S-6 Phase B)
-$301500-$301683  cmd $3F (388B)                       — ACTIVE (Phase 4: 15 JSR + AI entity loop + relays)
-$3016A0-$301748  cmd $3E (168B)                       — ACTIVE (3-mode DMAC: player/globals/AI)
-$301760-$3017AF  physics_divide (80B)                 — ACTIVE (sh2_sdiv16 + gear reciprocal table)
-$3017C0-$301B33  physics_group1 (884B)                — ACTIVE (speed_degrade + speed_clamp + steering + force_integration)
-$301B40-$301D2F  physics_group2_accel (496B)          — ACTIVE (speed_accel_braking + tilt_adjust)
-$301D40-$301E57  physics_timers (280B)                — ACTIVE (5 timer/guard co-ports)
-$301E60-$301F17  physics_pos_update (184B)            — ACTIVE (16.16 fixed-point position + sine lookup)
-$301F20-$3025D3  physics_drift (1716B)                — ACTIVE (drift_physics + suspension + lateral_A + lateral_B)
-$3025E0-$3026EF  ai_steering (272B)                   — ACTIVE (Phase 4: atan2 + steering calc)
-$302700-$3029FB  ai_orchestrator (764B)               — ACTIVE (Phase 4: 3 entry points — main/spawn/finish)
+$301500-$3016AB  cmd $3F (428B)                       — BUILT/JT-INSTALLED; 1P trigger disabled
+$3016B0-$30175F  cmd $3E (176B)                       — BUILT; 1P modes 0/1 enabled, mode 2 disabled
+$301760-$3017AF  physics_divide (80B)                 — BUILT; dormant in current 1P
+$3017C0-$301B33  physics_group1 (884B)                — BUILT; dormant in current 1P
+$301B40-$301D2F  physics_group2_accel (496B)          — BUILT; dormant in current 1P
+$301D40-$301E5B  physics_timers (284B)                — BUILT; dormant in current 1P
+$301E60-$301F17  physics_pos_update (184B)            — BUILT; dormant in current 1P
+$301F20-$3025D3  physics_drift (1716B)                — BUILT; dormant in current 1P
+$3025E0-$3026EF  ai_steering (272B)                   — BUILT; dormant in current 1P
+$302700-$3029EB  ai_orchestrator (748B)               — BUILT; dormant in current 1P
 $302B00-$302C7F  render_state_patcher (384B)          — NO-OP (Phase 7 dead-end; writes addresses renderer never reads)
 $302D00-$303013  collision_leaf (788B)                — ASSEMBLED ONLY (Phase 5A: angle_normalize×3 + plane_eval×2 + rotational_offset_calc; not yet wired to cmd $3F)
 $303100-$3031EF  collision_track_data (240B)          — ASSEMBLED ONLY (Phase 5B: track_data_index_calc + track_data_extract_033; pointer-translation convention defined; ref-model verified 0 mismatch; not yet wired to cmd $3F)
 $303200-$303407  collision_boundary (520B)            — ASSEMBLED ONLY (Phase 5C: object_type_dispatch $303200 + track_boundary_collision_detection $303250; puzzle resolved [trap nibbles -> $02 per dispatch_b]; A2-capture fix [store angle_normalize advanced A2, not input tile]; packer globals +$38/+$3A WIRED; ref-model verified 0 mismatch incl. A2 fidelity 63,219 cases; cmd $3F dispatch DEFERRED)
 $303410-$30361F  collision_response (528B)            — ASSEMBLED ONLY (Phase 5D: collision_response_surface_tracking $303410; 4-iter binary search + EMA surface tracking; calls track_boundary $303250 5x + plane_eval_signed $302F3A 4x; deltas+iter on stack across calls; reads COLL_POS $06011030 + tile ptrs +$CE/$D2/$D6/$DA; verify_5d.py 0 mismatch [bin search 60k + EMA 160k]; cmd $3F dispatch DEFERRED — authoritative-copy unresolved, render_state_patcher no-op)
-$303640-$3039D8  collision_object (920B)              — ASSEMBLED ONLY (Phase 5E: object_collision_detection $303640 + position_separation $303768 + zone_check_inner $3037C4 + proximity_zone_loop $303964; entity-TABLE layer over SDRAM copies [player $0600F20C, AI $06010000+(i-1)*$100, entity-15 $06010E00]; $C268 = SAME ptr as 5C track_seg_base → reuses globals +$3A; OBJ_COLL_GLOBALS $06011050 [thresholds+bounds]; sound $B8 → globals +$2C; directional_collision_probe EXCLUDED [dead]; 5E bug-fix: pass-2 A2-clobber [.zc_zb_bytes] + neg.w exts.w; verify_5e.py 0 mismatch w/ teeth-proofs A=316/B=5105; cmd $3F dispatch DEFERRED)
-$303994-$3FFFFF  Free (~968KB)                         — Reserved for Phase 5F+ (switchover)
+$303640-$3039D7  collision_object (920B)              — ASSEMBLED ONLY (Phase 5E: object_collision_detection $303640 + position_separation $303768 + zone_check_inner $3037C4 + proximity_zone_loop $303964; entity-TABLE layer over SDRAM copies [player $0600F20C, AI $06010000+(i-1)*$100, entity-15 $06010E00]; $C268 = SAME ptr as 5C track_seg_base → reuses globals +$3A; OBJ_COLL_GLOBALS $06011050 [thresholds+bounds]; sound $B8 → globals +$2C; directional_collision_probe EXCLUDED [dead]; 5E bug-fix: pass-2 A2-clobber [.zc_zb_bytes] + neg.w exts.w; verify_5e.py 0 mismatch w/ teeth-proofs A=316/B=5105; cmd $3F dispatch DEFERRED)
+$3039E0-$303A03  bridge_probe (36B)                    — ASSEMBLED, corrected C254 Run C; dormant
+$303A10-$3EFFFF  Free (~966KB)                         — ROM padded to $3F0000
 
 SDRAM TRACK_WORK region (native): $06011000 work buf (24B) / $06011020 surf-type
 / $06011021 surf-cnt / $06011024 A4 scratch (8B) / $06011030 coll-pos (20B) /
@@ -849,7 +925,7 @@ but NOT dispatched from cmd $3F.
 
 ## 8. Phase 4: AI Port
 
-**Status: PHASE 4 CORE COMPLETE** (2026-03-27)
+**Status: CORE PORT BUILT; 1P AI TRANSFER AND CMD `$3F` DISABLED** (corrected 2026-07-21)
 **Prerequisite: Phase 3 (done)**
 
 ### 8.0 Implementation Status
@@ -858,10 +934,10 @@ but NOT dispatched from cmd $3F.
 
 | Component | ROM Address | Size | Status |
 |-----------|------------|------|--------|
-| ai_steering + atan2 | $3025E0 | 272B | ACTIVE — heading from position deltas |
-| ai_orchestrator (3 entries) | $302700 | 764B | ACTIVE — spawn, steering, speed, position |
-| cmd $3F AI entity loop | (inline) | ~60B | ACTIVE — iterates 15 entities per frame |
-| Variant B bypass trampoline | code_1c200 | ~30B | ACTIVE — skips 68K physics+AI for AI entities |
+| ai_steering + atan2 | $3025E0 | 272B | BUILT; not reached by current 1P path |
+| ai_orchestrator (3 entries) | $302700 | 748B | BUILT; not reached by current 1P path |
+| cmd $3F AI entity loop | (inline) | ~60B | BUILT; 1P cmd `$3F` trigger disabled |
+| Variant B bypass trampoline | code_1c200 | ~30B | BUILT; bypass disabled in current 1P path |
 
 **AI entity SDRAM:** $06010000 (15 × 256B = 3,840B, first-frame DREQ staging)
 **AI globals:** $0600FC10 (16B: countdown, visibility, race_counter, slot table)
@@ -920,10 +996,11 @@ Move the 15-state AI machine to Master SH2.
 
 ## 9. Phase 5: Collision Port
 
-**Status: 5A–5E DONE (additive port complete, all ref-verified, cmd $3F dispatch deferred).
-5F-0 render-input trace DONE — GO (2026-06-18). 5F-1 (build SH2→render bridge) is NEXT.**
-KEY FINDING: Phases 3–5 are currently SHADOW computation (68K WRAM entity drives the
-screen; SH2 SDRAM entity is inert) — the render bridge, not collision wiring, is 5F's real
+**Status: 5A–5E ADDITIVE PORT BUILT/REFERENCE-TESTED; NOT DISPATCHED.
+5F-0's C218 “GO” IS SUPERSEDED; C128/C178/C254 ARE THE LIVE DESCRIPTOR FAMILIES.**
+KEY FINDING: Phases 3–5 are built but dormant in current 1P. When cmd `$3F` is enabled,
+they must first run as observable shadow computation while the 68K WRAM entity drives the
+screen. The render bridge, not collision wiring, is 5F's real
 prerequisite. See §9.0b 5F + `analysis/VR60_PHASE5F_SCOPING.md` + `VR60_PHASE5F0_RENDER_INPUT.md`.
 Function inventory + addresses verified against disassembly and ROM bytes.
 5A leaf-math ported to SH2 $302D00 (2c0f603). 5B track-data addressing layer ported to
@@ -1084,47 +1161,27 @@ model before deleting the 68K collision call.
   collision 40k → **0 mismatch**. Auditor review pending.
 - **5F — Switchover. RECAST after 5F-0 scoping+trace (2026-06-18).** Scoping
   (`analysis/VR60_PHASE5F_SCOPING.md`) established the load-bearing fact: **Phases 3–5
-  are currently SHADOW computation** — the on-screen car is driven entirely by the 68K
+  are built but dormant in current 1P; their next valid mode is SHADOW computation** — the
+  on-screen car is driven entirely by the 68K
   WRAM entity; the SH2 SDRAM entity ($0600F20C/$06010000) reaches nothing visible
   (`sh2_render_state_patch` is a verified no-op; the Phase 3 bypass re-enters at
   `entity_render_pipeline_position_ai`, so the 68K still builds display objects from
   WRAM). **Therefore wiring collision alone changes nothing on screen — the SH2→render
   bridge is the real prerequisite.** Collision ports 5A–5E are correct + ready but inert
   until the bridge lands.
-  - **5F-0 — Render-input trace. ✅ DONE (2026-06-18), GO** (`analysis/VR60_PHASE5F0_RENDER_INPUT.md`).
-    The Slave 3D engine reads per-entity 48B transform/position state from **SDRAM**
-    `$0600CA60`/`CB20`/`CD30` (batches 1/2/3, via R13 before each `JSR $060024DC`), copied
-    transiently into on-chip SRAM `$C0000740` per iteration (NOT authoritative → **H-9 does
-    NOT block** a Master bridge). Those SDRAM state arrays are regenerated EVERY frame by
-    the descriptor→state transform **`$06000DC8`** (batch C: `$0600C218` → `$06001D34` →
-    `$0600CCA0`, 15 entities; corrected by 5F-1a — the 5F-0 doc's `$06002494`/`$06002394`
-    were the on-chip-context routines, not the descriptor→state writer) out of the SDRAM
-    descriptor tables `$0600C1xx`/`C218`/`C254` — the DREQ landing of the 68K display
-    objects built by `object_table_sprite_param_update` ($0036DE).
-    *Address discrepancy resolved:* patcher's `$0600CA00`/`CCA0` (`render_state_patcher.asm:307,310`)
-    are the batch-0 setup base / $90-short-of-batch-3 — never read by the loop (built against
-    a guessed layout) → the measured 0% render change. `CA60=CA00+$60`, `CD30=CCA0+$90`.
-    `$0600C800` = Huffman/cmd $23 (different class).
-  - **5F-1a — Decode the descriptor pipeline. ✅ DONE (2026-06-18)** (`analysis/VR60_PHASE5F1_BRIDGE_SPEC.md`).
-    Established: the port must emit the **60B ($3C-stride) display-object record ×15** that
-    `object_table_sprite_param_update` writes to `$FF6218` (key offsets: +$00/$14/$28 visibility,
-    +$02 = entity world X, +$06 = world Y, +$04 = camera-offset+entity+$32, +$08/$0A/$0C
-    lateral/height/depth >>3, +$10 sprite-def ptr). **Injection: write 15×$3C to SDRAM
-    `$0600C218`** (Master cache-through `$2600C218`) — *proved to be literally the DREQ landing
-    of `$FF6218`*. **No hard DREQ gate needed:** 68K DREQ runs in state 0; cmd $3F runs in
-    state 4 (later) → Master write is the last writer before the Slave reads. 16.16-vs-word
-    risk resolved LOW (+$30/$34 are integer world words). **Q-2 (must-resolve in the port):**
-    5 inputs `object_table_sprite_param_update` reads from 68K WRAM ($FFC8CC car-index, $FFC0E4
-    camera offset [load-bearing — shifts every car's +$04], $FF9064/$FFC31C ghost, $FF9065 flip)
-    are Master-unreachable → must be staged to SDRAM/COMM. **Q-3:** player descriptor is in
-    batch A (`$06001BD4`/`$06001A6C`, not yet decoded) → **AI-only (15 @ C218) is the safe
-    first cut**; player deferred.
-  - **5F-1b-probe — Bridge validation probe (NEXT).** Before the full port, a minimal
-    revertable Master write to `$2600C218` in cmd $3F (replacing the no-op patcher call at
-    `cmd3f_vr60_gameframe.asm:252`) that makes an unmistakable visual change to one AI car
-    (e.g. clear its visibility flag / large world-X offset). Proves the state-4 injection
-    actually reaches the screen. Visual confirmation = Matias (headless can't see it). GO →
-    5F-1c (full object_table_sprite_param_update port, AI-only, + Q-2 staging).
+  - **5F-0/5F-1a — HISTORICAL, C218 inference superseded.** These reports correctly found
+    that the patcher's CA00/CCA0 writes were ineffective, but they followed the non-racing
+    `$06000DC8` transform and incorrectly promoted C218 as the per-frame racing descriptor
+    input. Preserve them as evidence, not as an implementation specification.
+  - **5F-1b diagnosis — static target family corrected.** Decoding the actual cmd `$02`
+    handler `$06000FA8` shows that its entity loop consumes descriptors from **C128 (4),
+    C178 (8), and C254 (56)** with `$14` stride. C218 is absent from that handler and is
+    used by other render modes. See `analysis/VR60_PHASE5F1B_PROBE_DIAGNOSIS.md`.
+  - **Corrected bridge probe — BUILT BUT DORMANT.** `bridge_probe.asm` implements reversible
+    Run C by clearing the C254 visibility words through cache-through `$2600C254`. The current
+    cmd `$3F` binary still calls `.patcher_addr`, not `.bridge_addr`, and the 1P cmd `$3F`
+    trigger is disabled. After the trustworthy-baseline and shadow-cmd-`$3F` gates pass,
+    select the probe and visually identify which live descriptor batch contains the cars.
   - **5F-2 — Wire collision + gate 68K path (AFTER the bridge is live).** Now meaningful:
     JSR collision after `.phys_f12` (5D entry covers 5C+5D; object_collision per §5E plan;
     stage OBJ_COLL_GLOBALS); $C8D2-gate the 68K collision tail off. Honor A-1/A-2/A-3/A-4.
@@ -1157,7 +1214,7 @@ Move collision detection to Master SH2. This is the most complex port — binary
 
 Collision uses `track_data_index_calc_table_lookup`, which reads **PC-relative** pointer tables at file `$742C`/`$745C` (the tables themselves are SH2 `$0200742C`/`$0200745C`). The table *contents* are **68K CPU addresses** (e.g. `$0094C000`, `$009D0000`) that must be translated at dereference time.
 
-**RESOLVED (verified 2026-06-17, ROM content checked):** SH2 address = `68K_addr − $880000 + $02000000` (= `68K_addr + $01780000`). Worked example: `$0094C000 − $880000 = file $CC000` → SH2 `$0200CC000` (data present in ROM). Highest track-data base referenced is `$009D0000` → file `$150000` → SH2 `$02150000`, well within the 4MB ROM (`$3F0000`). No banking/mirroring involved. **The earlier "$0294C000 / file $C4000" values in this section were wrong arithmetic** ($0094C000 is **not** $02000000+$0094C000, and $94C000−$880000 is **not** $C4000). See Q-002.
+**RESOLVED (verified 2026-06-17, ROM content checked):** SH2 address = `68K_addr − $880000 + $02000000` (= `68K_addr + $01780000`). Worked example: `$0094C000 − $880000 = file $CC000` → SH2 `$020CC000` (data present in ROM). Highest track-data base referenced is `$009D0000` → file `$150000` → SH2 `$02150000`, well within the 4MB ROM (`$3F0000`). No banking/mirroring involved. **The earlier "$0294C000 / file $C4000" values in this section were wrong arithmetic** ($0094C000 is **not** $02000000+$0094C000, and $94C000−$880000 is **not** $C4000). See Q-002.
 
 **Porting hazard (the keystone risk):** `track_data_index_calc` returns A1/A2 as **68K CPU addresses** (`adda.l D3,A1` onto a base read from the 68K-addr table). These are stored into entity +$CE/$D2/$D6/$DA and re-dereferenced by `collision_response_surface_tracking`. On SH2 **every such pointer must be +$01780000-translated at dereference** (or the table base pre-translated once at scene init). Getting it wrong reads 68K code as tile data → garbage collision.
 
@@ -1258,18 +1315,13 @@ Frame N+1:
 
 ## 11. Phase 7: 60 FPS Game Logic
 
-**Status: THE 60 FPS LEVER (confirmed by profiling 2026-06-17).** Racing-isolated data
-(§1.1b) shows the cap is the state machine (1 state/V-INT), not CPU budget: the 68K is
-63% idle and the Slave already renders every TV frame. The path is running game logic
-per-TV-frame. **Budget check:** a full game-tick's 68K compute (~3×45,481 ≈ 136k cyc) is
-~7-10% over one TV-frame (127,833) → needs **~10% 68K relief** (finish offloading the
-AI-entity physics/collision remnants — `Physics Integration $0088A68C`,
-`AI Steering $0088A7B8`, `collision_avoidance_speed_calc` — to the ~59%-idle Master SH2).
-The hard part remains **per-frame constant scaling** (the original Phase 7 revert reason),
-now more tractable with physics/AI in one SH2 codebase. Verify each step with the budget
-+ `fb_crc` tools (Slave must stay <100%; all 3 frames must become unique).
-**~~Prerequisite: Phase 6 (pipeline overlap stable)~~** — Phase 6 is NOT a prerequisite
-(racing isn't sync-bound). Real prereq: finish the AI/collision offload (Phase 4/5 tail).
+**Status: FINAL OBJECTIVE; NOT READY TO ACTIVATE.** The state-machine cadence remains the
+architectural lever for true 60 Hz logic, but the June CPU budgets and cmd `$3F` attribution
+are not a trusted current baseline. Before changing cadence, complete the validation and
+ownership sequence: durable 1P control fixture → cmd `$3E` modes 0/1 → AI staging → cmd
+`$3F` shadow execution → renderer-consumed descriptor bridge → collision → output equivalence
+→ authority/bypass. Re-profile only then. Framebuffer hashes must be paired with `$C87E`,
+scene, hook, and COMM liveness checks; uniqueness alone is not acceptance evidence.
 
 ### 11.1 Goal
 
@@ -1319,22 +1371,28 @@ These must be resolved before their respective phases. Add new questions as they
 | # | Question | Affects Phase | Status | Resolution |
 |---|----------|--------------|--------|------------|
 | Q-001 | Can DREQ FIFO target arbitrary SDRAM addresses ($06008000)? | Phase 1 | **RESOLVED (moot)** | DREQ FIFO destination is SH2 DMAC-controlled (DAR0 at $FFFFFF84). Entity tables don't need FIFO — Master SH2 copies from existing cmd $02 landing area. |
-| Q-002 | What is the SH2 address for ROM data above $300000 (e.g., $0094C000 track tiles)? | Phase 5 | **RESOLVED: 68K CPU addresses** | All collision ROM refs are 68K CPU addresses ($0088xxxx+). Formula: `SH2_addr = 68K_addr + $01780000` (= 68K - $880000 + $02000000). Example (corrected 2026-06-17): $0094C000 → file offset **$CC000** → SH2 **$0200CC000** (verified in ROM). Highest base ref: $009D0000 → file **$150000** → SH2 $02150000 (within 4MB, $3F0000). *Prior "$C4000/$020C4000/$0294C000" and "$00970000→$0EF000" figures were arithmetic errors — recompute, don't copy.* R-005 mitigated. |
+| Q-002 | What is the SH2 address for ROM data above $300000 (e.g., $0094C000 track tiles)? | Phase 5 | **RESOLVED: 68K CPU addresses** | All collision ROM refs are 68K CPU addresses ($0088xxxx+). Formula: `SH2_addr = 68K_addr + $01780000` (= 68K - $880000 + $02000000). Example (corrected 2026-06-17): $0094C000 → file offset **$CC000** → SH2 **$020CC000** (verified in ROM). Highest base ref: $009D0000 → file **$150000** → SH2 $02150000 (within 4MB, $3F0000). *Prior "$C4000/$020C4000/$0294C000" and "$00970000→$0EF000" figures were arithmetic errors — recompute, don't copy.* R-005 mitigated. |
 | Q-003 | Can Master SH2 write to frame buffer ($04xxxxxx) when FM=1? | Phase 2 | **RESOLVED: YES, time-separated** | FM=1 gives both SH2s access. BUT current design prevents simultaneous access: Slave writes SDRAM during state 0, Master writes framebuffer during state 4. They never write the same memory at the same time. HW manual §4.2: both SH2s CAN write framebuffer concurrently (same bus), but must not write the same bank simultaneously. |
 | Q-004 | Does SDRAM bus contention degrade Slave rendering measurably? | Phase 6 | **OPEN** | Profile Slave utilization before and after Master SDRAM writes. Compare render times. |
 | Q-005 | Is the `entity_type_dispatch` RAM table at $C05C written only during scene init? | Phase 4 | **RESOLVED: init-only** | No MOVE/CLR writes to $C05C found in any per-frame code. Used as LEA base in 3 functions (entity_type_dispatch_tables, effect_countdown, hw_reg_init). Table is populated during scene init. Can be snapshot once to SDRAM. |
-| Q-006 | How does camera_snapshot_wrapper (A-1 hook) interact with the new architecture? | Phase 2 | **RESOLVED: no conflict** | Camera snapshot runs in state 0 (BEFORE physics in same frame). Reads entity position from WRAM. When physics moves to SH2, camera reads PREVIOUS frame's output — same 1-frame-behind behavior that already exists. No architectural change needed. |
+| Q-006 | How does camera_snapshot_wrapper (A-1 hook) interact with the new architecture? | Phase 2 | **RECLASSIFIED: HISTORICAL 2P HOOK** | A-1 belongs to the `state_disp_005020`/2P experiment, not the current normal-1P path. It is therefore N/A to the present 1P integration. Any future generalized camera interpolation needs a fresh per-dispatcher dependency analysis. |
 | Q-007 | What happens to the 68K entity render pipeline variants (A/B/C/D, 2P)? | Phase 2 | **RESOLVED: phase 3 = Variant A only** | Variant A (player entity, all 9 physics steps) ports to SH2. Variants B/C/D (AI, replay) continue on 68K — they use reduced physics subsets. Variant selection driven by entity_type_dispatch_tables (indexes jump table at $C05C), stays on 68K. |
-| Q-008 | Can we keep menus on 68K while racing logic is on SH2? | All | **PARTIALLY REFUTED (2026-07-06) — see correction banner** | Menu/racing separation claim stands (menu WRAM is separate, no conflicts). But **"`state_disp_005020` = active racing" is FALSE** — it's the 2-PLAYER dispatcher; interactive 1P racing uses `state_disp_004cb8` (`race_scene_init_004a32`), which has no cmd $3F trigger. cmd $3F has never fired during 1P racing on this branch. Root-caused in `analysis/VR60_IMPLEMENTATION_AUDIT.md` + `VR60_DISPATCHER_ROUTING.md`. Re-wiring must hook each active-race dispatcher (1P/Free-Run/GP) individually — no single choke point. |
+| Q-008 | Can we keep menus on 68K while racing logic is on SH2? | All | **PARTIALLY REFUTED (2026-07-06) — see correction banner** | Menu/racing separation claim stands (menu WRAM is separate, no conflicts). But **"`state_disp_005020` = active racing" is FALSE** — it is the 2-player dispatcher; interactive 1P racing uses `state_disp_004cb8` (`race_scene_init_004a32`). Its later 1P hook contains a cmd `$3F` call, but that call is currently disabled and has never fired during an accepted 1P run. Root-caused in `analysis/VR60_IMPLEMENTATION_AUDIT.md` + `VR60_DISPATCHER_ROUTING.md`. Each race dispatcher still needs explicit coverage; there is no single universal choke point. |
 | Q-009 | What about the 2-player mode? | Phase 2+ | **RESOLVED: defer to post-Phase 3** | 2P uses Table 3 ($FF9F00) — single 256B entity record (NOT a 15-entry table). Same physics functions as 1P (A0-parameterized). Split-screen viewport at $FF6178. MOVEM block copy in `gfx_2_player_entity_frame_orch` assumes both entities updated on same CPU. Phase 3 = 1P racing only. Porting both players requires either: (A) both on SH2 (2× physics cost) or (B) explicit DMA synchronization barrier. R-008 updated. |
 | Q-010 | Can 68K write to SDRAM at $88BC00 (adapter-mapped)? | Phase 1B | **RESOLVED: NO** | $880000-$8FFFFF = cartridge ROM (read-only). SDRAM is SH2-exclusive (HW manual §2, §3.1). Must use COMM relay: 68K writes COMM2-6, cmd $3F copies to SDRAM. |
-| Q-011 | Where exactly does cmd $02 write entity visibility data in SDRAM? | Phase 1A | **RESOLVED: $0600C800** | Confirmed: 32 entries × 16 bytes = 512B at $0600C800 ($2200C800 cache-through). Handler $04 reads visibility flag at byte offset +0. Already validated by cmd $3F entity copy ($2200C800 → $2200F20C). |
-| Q-012 | Can the cmd $3F trigger be inserted after mars_dma_xfer_vdp_fill? | Phase 1A | **RESOLVED: YES (implemented)** | vr60_comm_trigger inserted in state4_epilogue (code_2200.asm). 78 bytes freed by Phase 2B async conversion. Working in current build. |
+| Q-011 | Where exactly does cmd $02 write entity visibility data in SDRAM? | Phase 1A | **RESOLVED: $0600C800** | Confirmed: 32 entries × 16 bytes = 512B at `$0600C800` (`$2600C800` cache-through). The old `$2200xxxx` aliases were cartridge ROM and cannot validate an SDRAM copy. |
+| Q-012 | Can the cmd $3F trigger be inserted after mars_dma_xfer_vdp_fill? | Phase 1A | **RESOLVED ONLY FOR THE 2P PATH** | `vr60_comm_trigger` is inserted in `state4_epilogue`, reached by `state_disp_005020` (2P). It is built but does not validate normal 1P. The separate 1P cmd `$3F` call is currently disabled. |
 | Q-013 | How many gears does the game use? | Phase 3 | **RESOLVED: 6** | Gear ratio ROM table at $88A1F0 has 6 entries: {171, 192, 205, 213, 219, 224}. 7th slot is code, not data. Gear index +$7A ranges 0-5. |
 | Q-014 | Does the DIVU use constant or runtime divisors? | Phase 3 | **RESOLVED: table lookup** | DIVU in entity_speed_accel uses 6 known gear ratios from ROM table. Pre-computable reciprocals. DIVS D0,D1 in entity_force_integration IS runtime (max_speed from RAM). |
-| Q-015 | What are the 5 interleaved timer/guard functions between physics calls? | Phase 3 | **RESOLVED: 3 safe, 2 conflict** | **Safe** (no physics-input writes): tire_squeal_check (76B), effect_timer_mgmt (106B), timer_decrement_multi (82B). **Conflict** (write physics-input fields): object_timer_expire_speed_param_reset (80B, writes +$40 heading), object_anim_timer_speed_clear+6 (48B, writes +$06 speed). Conflicts are safe because these run BEFORE physics in orchestrator order — keep on 68K. field_check_guard (10B) only reads +$8C, no writes. |
+| Q-015 | What are the interleaved timer/guard dependencies between physics calls? | Phase 3 | **DESIGN RESOLVED; LIVE UNVERIFIED** | Two writers (`object_timer_expire_speed_param_reset`, `object_anim_timer_speed_clear+6`) made split ownership unsafe, so the SH2 design co-ports the five entity-modifying guard/timer routines in original order. Those ports are currently dormant because cmd `$3F` is disabled; the 68000 routines remain authoritative. |
 | Q-016 | Is lateral_drift_velocity_B ($0099AA) structurally different from A ($00987E)? | Phase 3 | **RESOLVED: YES, fundamentally different** | B = 358B (not ~300B). Different math: force calc order (mul-then-div vs div-first), AI boost logic (speed > $C8 + AI flag → extra grip loss from +$0E), different grip clamp range ([$40,$FF] vs [$7F,∞]), 2× damping threshold (±$200 vs ±$100), viewport shimmer ($FF617A/$FF618E writes), 2× display scaling. 3 extra entity fields (+$04, +$0E, +$80), 1 extra global ($FFBFC0 AI control flag). Both variants must be ported independently. SH2 estimate: ~420B. |
-| Q-017 | Does `--autoplay` actually reach real 1P GP racing (`state_disp_004cb8`, scene `$4CBC`)? | Phase 1 (1P wiring) | **RESOLVED: NO** | Confirmed 2026-07-13 by watching `$FF0004` directly across 1800- and 3600-frame `--autoplay` runs (and with no input at all): the game settles into scene `$5586` (`state_disp_005586`, Free Run/TT) by frame ~395 and never leaves. `--autoplay`'s canned input (press START blindly, then hold A after frame 1200) does not reach GP. Every prior headless "verification" of 1P-hook code was actually run against Free Run, which doesn't call the hooked function at all. See `analysis/VR60_PHASE1_CMD3E_ACK_HANG.md` §13.1. Fix needed: a real GP-racing savestate (`VRD_LOAD_STATE`, added this session) or a corrected autoplay input script — neither done yet. |
+| Q-017 | Does `--autoplay` actually reach real 1P GP racing (`state_disp_004cb8`, scene `$4CBC`)? | Phase 1 (1P wiring) | **RESOLVED: NO** | It settles in scene `$5586`; its `[racing]` label is only frame-count based. `VRD_LOAD_STATE` was added to reach GP, but the available `savestate_1p_gp_racing.bin` later stops advancing `$C87E` even with the VR60 hook bypassed, so it is useful for short traces—not a valid long-run baseline. |
+| Q-018 | Does `game_frame_orch_013` state 8 recur during real 1P racing? | Phase 1 | **RESOLVED: YES, ABOUT 20 HZ** | Exact `VRD_CALLER_TRACE` found a regular one-hit-per-three-TV-frame cadence. The earlier zero-hit top-200 PC histogram was a false negative; the current hook location is valid. |
+| Q-019 | Can we produce a deterministic 1P fixture that stays live for the full validation window? | All live integration | **OPEN — CURRENT BLOCKER** | Capture a fresh savestate or deterministic input sequence. Before testing VR60 code, bypass the hook and prove scene `$4CBC`, continuing `$C87E` cycles, repeating state-8 caller traces, and framebuffer liveness over multiple laps or an equivalent stress run. |
+| Q-020 | Are cmd `$3E` modes 0/1 correct over a trustworthy 1P run? | Phase 1 | **OPEN** | They are enabled and bounded, but the former 724-hash acceptance result is retracted with the invalid fixture. Re-test modes separately after Q-019. |
+| Q-021 | Are AI transfer mode 2 and cmd `$3F` safe in 1P? | Phases 1, 3, 4 | **OPEN; NEITHER PROVEN SAFE NOR UNSAFE** | §21's freeze attribution is retracted by §22. Enable one stage at a time only after Q-019; keep the 68000 authoritative while cmd `$3F` first runs as observable shadow computation. |
+| Q-022 | Which racing descriptor block should carry the SH2-authoritative car state? | Phase 5F | **PARTIALLY RESOLVED** | Static decode proves cmd `$02` reads C128/C178/C254, not C218. The C254 probe is built but dormant because current cmd `$3F` still calls the no-op patcher and the 1P trigger is disabled. Run reversible A/B/C probes after Q-019/Q-021. |
+| Q-023 | Is cmd `$3F`'s COMM mailbox actually in SDRAM? | Phase 1B/3 | **RESOLVED: NO; FIX REQUIRED BEFORE ENABLE** | The current literal is `$2200BC00`, the cache-through cartridge-ROM alias, so its writes are ineffective. Change to `$2600BC00` (or native `$0600BC00` where coherent), then observe the data directly. |
 
 ---
 
@@ -1366,6 +1424,8 @@ Record every significant design decision here. Include date, what was decided, w
 | 2026-03-26 | Dual-path verification before SH2-only activation | Both 68K and SH2 run physics simultaneously. Game uses 68K results. SH2 results can be compared for correctness without risk. Only disable 68K physics after SH2 output is verified. | Direct switchover — high risk, no fallback if SH2 output is wrong. |
 | 2026-07-13 | Full revert of the cmd $3E/$3F retry fix from `vr60_entity_transfer.asm`/`vr60_ai_entity_transfer.asm`/`vr60_globals_transfer.asm`/`vr60_comm_trigger.asm`, back to `HEAD` (original synchronous `wait_ack`) | The retry fix (force 0→1 transition on COMM0_HI, retry until ACK) was headlessly "verified working" but that verification never exercised real GP racing (Q-017) — it only ran against Free Run, which never calls these functions' 1P caller at all. When Matias tested real GP racing manually, the game hard-hung (black screen, 68K frozen, audio still running) — the unbounded retry loop spinning forever. These 4 functions are also called unconditionally by the always-active 2P path (`state4_epilogue`), so the unverified change broke already-working functionality, not just the dormant 1P hook. | Keep the "fixed" retry version live and just bound the loop — rejected: the underlying race-condition theory itself was never proven against the real failing context, so patching the symptom (unbounded loop) without re-deriving the actual fix risks another silent failure mode. Full revert to the known-shipped baseline is the only safe starting point. |
 | 2026-07-13 | Added `VRD_LOAD_STATE=path` to `tools/libretro-profiling/profiling_frontend.c` (loads a real savestate via `retro_unserialize` before the frame loop starts) | `--autoplay` cannot reach real GP racing (Q-017), so headless verification of any 1P-specific fix needs a manually-captured savestate. Confirmed format-compatible with standalone PicoDrive's own savestates (both funnel through the same `PicoStateFP`/`pico_state_internal` serialization in `pico/state.c`; standalone only differs by an optional `.gz` wrapper). | Fixing the `--autoplay` input script instead — rejected for now (higher effort, still headless-only guesswork until visually confirmed); savestate loading is faster and lets Matias capture the exact scenario visually. |
+| 2026-07-21 | Make `VR60_STATUS.md` and this dated status block authoritative; reclassify phase work as built, active, authoritative, and validated separately | Dispatcher routing and the invalid saved-state baseline showed that “present in ROM,” “executed,” and “proven” had been conflated. The current build must be described without inheriting obsolete phase completion claims. | Continue appending corrections without a canonical status — rejected because readers encountered stale conclusions before their retractions. |
+| 2026-07-21 | Require a control fixture with continuing `$C87E` cycles before any new 1P offload validation | The existing GP savestate freezes independently of VR60 code and invalidates framebuffer-hash causality. | Treat the freeze as a cmd `$3F` or AI regression — rejected by the hook-bypass control. |
 
 ---
 
@@ -1377,24 +1437,24 @@ Record every significant design decision here. Include date, what was decided, w
 | R-002 | SDRAM bus contention degrades Slave | High | Phase 6 | **OPEN** | Pipeline writes during Slave Pipeline 1 (on-chip SRAM period). Measure before/after. |
 | R-003 | DIVU/DIVS reciprocal rounding mismatch | Medium | Phase 3 | **RESOLVED** | Gear reciprocal table verified exact for all 6 ratios (zero diff). DIVS #$0190 and #$0497 reciprocals verified at 2^24 precision. Software divide sh2_sdiv16 uses same shift-subtract algorithm as hardware. |
 | R-004 | Entity field access slower on SDRAM (2-6 wait states vs 0) | Medium | Phase 1 | **OPEN** | SH2 clock is 3× faster, compensating for wait states. Profile to verify net effect. |
-| R-005 | Track tile ROM addresses are 68K-relative (not file offsets) | Blocking | Phase 5 | **RESOLVED** | Confirmed: all collision ROM refs are 68K CPU addresses. SH2 conversion: `addr + $01780000`. Highest ref $00970000 = file offset $EF000 (within 4MB ROM). Pointer tables at $742C/$745C contain mode-indexed segment_map/base_data pairs. |
-| R-006 | Camera interpolation (A-1) conflicts with new architecture | High | Phase 2 | **OPEN** | A-1 hooks into 68K scene state 0. If state machine moves to SH2, camera must move too. May need interim hybrid (camera on 68K, physics on SH2). |
+| R-005 | Track tile ROM addresses are 68K-relative (not file offsets) | Blocking | Phase 5 | **RESOLVED** | Confirmed: all collision ROM refs are 68K CPU addresses. SH2 conversion: `addr + $01780000`. Highest base ref `$009D0000` = file offset `$150000` = SH2 `$02150000` (within the 4MB ROM). Pointer tables at $742C/$745C contain mode-indexed segment-map/base-data pairs. |
+| R-006 | Camera interpolation (A-1) conflicts with new architecture | High | Phase 2 | **DEFERRED / HISTORICAL** | A-1 is a 2P-path experiment and does not cover normal 1P. Re-evaluate camera ownership only after the 1P fixture and shadow integration are trustworthy. |
 | R-007 | Scene transitions corrupt double-buffer state | High | Phase 6 | **OPEN** | Flush both buffers on mode change. Single-buffer fallback during transitions. |
 | R-008 | 2-player mode has different entity/render paths | Medium | All | **CHARACTERIZED** | 2P uses same physics (A0-parameterized), Table 3 ($FF9F00, 1 entity), split-screen viewport. MOVEM block copy in `gfx_2_player_entity_frame_orch` assumes same-CPU update. Phase 3 = 1P only. 2P requires either both players on SH2 or explicit sync barrier. Defer to post-Phase 3. |
 | R-009 | Sound timing drift when game logic runs ahead of display | Medium | Phase 6 | **OPEN** | Timestamp sound events in SDRAM queue. 68K plays at correct V-INT timing. |
 | R-010 | Gradient strip B ($060086D4) invalidated original SDRAM address plan | Medium | Phase 1 | **RESOLVED** | All addresses moved to $0600F20C+. Always grep before allocating SDRAM. |
-| R-011 | cmd $3F trigger in state 4 adds COMM0_HI blocking time | Low | Phase 1A | **OPEN** | Temporary for validation only. In Phase 2+, cmd $3F replaces cmd $02. |
+| R-011 | cmd $3F trigger in state 4 adds COMM0_HI blocking time | Low | Phase 1A | **HISTORICAL 2P PATH; LIVE UNVERIFIED** | The state-4 trigger belongs to `state_disp_005020`. Current 1P uses a separate state-8 hook whose cmd `$3F` call is disabled. Re-measure the intended path before reasoning about blocking time. |
 | R-012 | 68K→SDRAM direct write at $88xxxx may be read-only ROM mapping | Medium | Phase 1B | **RESOLVED: confirmed ROM (read-only)** | $88xxxx = cartridge ROM per HW manual §3.1. COMM relay is the ONLY option. |
 | R-013 | Physics port scope 50% larger than estimated (2,642B vs 1,760B) | Medium | Phase 3 | **IDENTIFIED** | 3 previously unlisted functions: drift_physics_and_camera_offset_calc (378B), suspension_steering_damping (124B), lateral_drift_B (~300B). Budget SH2 expansion space accordingly (~3,700B). |
 | R-014 | Runtime DIVS in entity_force_integration — no reciprocal possible | Low | Phase 3 | **MITIGATED** | SH2 software signed divide (~64 cycles). Called once per entity per frame. Total overhead: 25 entities × 64 cycles = 1,600 cycles/frame. Negligible vs 383K cycle budget. |
-| R-015 | 2 timer/guard functions write physics-input fields (+$40, +$06) | Low | Phase 3 | **RESOLVED** | Co-ported all 5 timer/guard functions to SH2 (Phase 3B-5). Entity ownership problem solved — entity lives permanently in SDRAM. Timer/guard calls interleaved with physics in cmd $3F, matching 68K orchestrator order. |
+| R-015 | 2 timer/guard functions write physics-input fields (+$40, +$06) | Low | Phase 3 | **DESIGN RESOLVED; LIVE UNVERIFIED** | All five entity-modifying timer/guard routines were co-ported in original order. The ports are dormant while cmd `$3F` is disabled, so this resolves the design dependency—not current runtime authority. |
 | R-016 | entity_pos_update JMP→collision boundary creates split-CPU execution | Medium | Phase 3/5 | **OPEN** | Position update on SH2, collision on 68K. 68K must call collision after reading SH2-updated position from SDRAM. Adds ~1 frame latency to collision response unless pipelined. |
 | R-017 | SH2 timer_expire_reset simplified for entity 0 only | Low | Phase 3B | **ACCEPTED** | Object type check chain ($C89C/$C8C8/object_id $69-$6F) skipped. For entity 0, object_id=$00 < $69 always reaches .set_speed. If called for other entities, would produce incorrect behavior. Safe: cmd $3F only processes entity 0. |
 | R-018 | SH2 anim_timer_speed_clear lacks conditional_return_on_state_match fallthrough | Low | Phase 3B | **ACCEPTED** | 68K JMPs to a state-check function that either returns or falls through. SH2 always returns (RTS). The fallthrough path handles edge-case state transitions during animation timer expiry — not observed during normal player racing. Monitor during extended testing. |
-| R-019 | Entity staging overwrites SH2 physics results | Critical | Phase 3B | **RESOLVED** | Staging copies WRAM→SDRAM every frame, overwriting accumulated SH2 physics. Fix: initial-frame-only staging (first racing frame seeds SDRAM, subsequent frames entity persists in SDRAM). Timer/guard co-port to SH2 completes the solution. |
+| R-019 | Entity staging overwrites SH2 physics results | Critical | Phase 3B | **DESIGN RESOLVED; LIVE UNVERIFIED** | Initial-only entity staging plus co-ported writers is the intended ownership model. It has not been validated live; current 1P keeps WRAM/68000 authoritative and cmd `$3F` disabled. |
 | R-020 | Unbounded retry loops on a COMM ACK can hard-hang the 68K if the underlying race theory is wrong | Critical | Phase 1 (1P wiring) | **RESOLVED (reverted)** | A retry fix for a suspected Master-SH2 poll-detection race (`.retrigger: ... beq.s .retrigger`, no attempt cap) was applied to `vr60_entity_transfer.asm` and 3 siblings, "verified" headlessly, but that verification never actually exercised the real GP-racing call path (Q-017). Real GP racing hard-hung (black screen, frozen 68K). Fully reverted to `HEAD`. If retried: bound every retry loop with a hard attempt cap (give up and skip the frame's SH2 offload rather than loop forever), and implement any new logic in 1P-exclusive copies of these functions — they are also called unconditionally by the always-active 2P path (`state4_epilogue`), so editing them for "1P" silently changes 2P/demo behavior too. |
-| R-021 | `--autoplay` cannot reach real GP racing — headless verification of 1P-specific code is currently impossible without a manual savestate | High | Phase 1 (1P wiring) | **RESOLVED** | See Q-017. `VRD_LOAD_STATE` was added to `profiling_frontend.c`. A real GP-racing savestate (scene `$4CBC`, confirmed via `$FF0004`) is at `tools/libretro-profiling/savestate_1p_gp_racing.bin` (gitignored, mid-race — this is fine: state 8/Path A was confirmed, via `VRD_CALLER_TRACE`, to recur reliably every ~3 frames throughout the race, not just at the loading→driving transition as an earlier pass in this session incorrectly concluded from a truncated PC histogram). See `analysis/VR60_PHASE1_CMD3E_ACK_HANG.md` §14, §17-§20. |
-| Q-018 | Does `game_frame_orch_013`'s Path A (state 8) actually recur during real racing, or fire once? | Phase 1 (1P wiring) | **RESOLVED: recurs every ~3 frames (20 Hz)** | An earlier pass this session concluded Path A never executes (zero hits across 28.5M PC-histogram samples) and recommended abandoning this hook location. That was a false negative — the histogram is top-200/cycle-sorted and missed this address despite real execution. `VRD_CALLER_TRACE` (added this session, reads the JSR return address off the 68K stack) proved Path A fires 50+ times in a 600-frame window, with a clean, regular 3-frame period (60÷3=20 Hz, matching CLAUDE.md's documented game-tick rate exactly). The dispatch mechanism is simple: `state_disp_004cb8` (constant at `$FF0002`) uses `JMP` (not `JSR`) to reach state handlers, so `$C87E` genuinely cycles 0→4→8→12→reset repeatedly, as originally assumed. **The original Phase 1 hook location is valid — no relocation needed.** See `analysis/VR60_PHASE1_CMD3E_ACK_HANG.md` §17-§20. |
+| R-021 | `--autoplay` cannot reach real GP racing, and the available GP savestate is not a valid long-run control | Critical | Phase 1 (1P wiring) | **OPEN** | `VRD_LOAD_STATE` solves scene access, and the saved state is adequate for short exact traces, but it later stops advancing `$C87E` even with the hook bypassed. Capture a fresh fixture or deterministic input harness and prove liveness before using framebuffer hashes for causality. See Q-017/Q-019 and `VR60_PHASE1_CMD3E_ACK_HANG.md` §22. |
+| R-022 | Historical status/profiling claims can be misread as current 1P behavior | High | All | **MITIGATED; audit continuously** | `VR60_STATUS.md` is canonical. Phase documents keep their evidence but must carry correction banners; tables must distinguish built, active, authoritative, and validated. |
 
 ---
 
@@ -1402,7 +1462,7 @@ Record every significant design decision here. Include date, what was decided, w
 
 ### 15.1 Baseline Measurements (Before Any Changes)
 
-**Capture before starting Phase 1:**
+**Historical recipe (not valid for normal 1P):**
 
 ```bash
 # Frame-level profiling (1800 frames, 30 seconds)
@@ -1414,6 +1474,10 @@ VRD_PROFILE_PC=1 VRD_PROFILE_PC_LOG=baseline_vr60.csv \
   ./profiling_frontend ../../build/vr_rebuild.32x 2400 --autoplay
 python3 analyze_pc_profile.py baseline_vr60.csv
 ```
+
+`--autoplay` reaches Free Run/TT (`$5586`), not normal 1P GP (`$4CBC`). For a new
+decision-grade baseline, use a fresh durable fixture/input harness and first prove the scene,
+continuing `$C87E` cycles, exact hook recurrence, framebuffer liveness, and command execution.
 
 **Record:**
 - 68K cycles/frame (total, active, STOP)
@@ -1440,12 +1504,12 @@ After each phase:
 3. Compare blocks. If any byte differs, stop and investigate.
 4. Run for 100 frames minimum before declaring correctness.
 
-**Autoplay regression test:**
+**Generic autoplay smoke test (Free Run/TT, not 1P GP acceptance):**
 
 ```bash
 ./profiling_frontend ../../build/vr_rebuild.32x 3600 --autoplay
 # Must complete without crashes or hangs
-# Check: menu navigation + track selection + race start + 30s racing + results
+# Check only the modes actually reached; confirm scene values in the log
 ```
 
 ---
@@ -1472,7 +1536,7 @@ Record discoveries, gotchas, and insights as the project progresses. These help 
 | 2026-03-17 | Phase 2A | **COMM0 contention prevents async copies.** mars_dma_xfer_vdp_fill and cmd $3F both use COMM0. They cannot overlap. This means the 68K must wait for cmd $3F completion before re-DMA. | Any architecture with multiple COMM0 users must serialize them. Future design should minimize COMM0 usage. |
 | 2026-03-17 | Phase 2A | **Always re-verify profiling numbers before planning optimizations.** The "14× sh2_send_cmd" and "21× sh2_cmd_27" figures were from old profiling or non-racing modes. Fresh profiling with the current build is essential. | Re-profile after every phase before planning the next one. |
 | 2026-03-18 | Phase 2B | **The V-INT $54 handler is the natural async synchronization gate.** It stalls the state machine at state 8 until COMM1_LO bit 0 is set. This means fire-and-forget is safe: the gate prevents state 0's DREQ DMA from firing while cmd $3F is still running. No new synchronization needed. | The existing architecture already has the primitive we need. We just needed 7 research investigations to see it. |
-| 2026-03-18 | Phase 2B | **camera_avg_and_redma produces zero visible change** (FRAME_RATE_ARCHITECTURE.md §9.4). The re-DMA sends interpolated camera data to SH2, but the SH2 doesn't re-render with it. The "40 FPS" is reduced latency (inline swap shows render 1 TV frame earlier), not two unique frames per game tick. | Interpolation infrastructure exists but is non-functional. This may be an opportunity for future activation once pipeline overlap (Phase 6) enables true dual rendering. |
+| 2026-03-18 — **RECLASSIFIED 2026-07-21** | Phase 2B | `camera_avg_and_redma` produced no visible change in the historical 2P experiment, but the intended dispatcher/consumer path was not proved. “The SH2 does not re-render” was an unsupported causal leap. | Preserve the observation only. Any future interpolation test must trace the live DREQ consumer, render trigger, descriptor changes, and framebuffer liveness. |
 | 2026-03-18 | Phase 2B | **45+ sh2_send_cmd call sites exist across ALL game modes.** Not just racing. Menus have 1-7 per frame, HUD has per-digit calls, name entry has 10+. Async only targets racing state4_epilogue (the 2 largest calls). All other modes stay synchronous. | Never assume a "global" change — always map all call sites first. |
 | 2026-03-18 | Phase 2B | **4 mode transition hazards found but all protected by V-INT gate.** mars_dma_xfer_vdp_fill has no COMM0 idle check, but can't fire while cmd $3F runs (state stalls at 8). Handler replacement is deferred to next frame. C8A8 reset only happens during menu transitions (not racing). | The synchronous model's implicit barriers protect the async model too. |
 | 2026-03-24 | Phase 3 research | **Physics pipeline has 13 functions, not 9.** Three were missing from the roadmap: `drift_physics_and_camera_offset_calc` (378B, contains DIVS #$0497), `suspension_steering_damping` (124B, jump table dispatches lateral_drift variants), and `lateral_drift_velocity_B` (~300B, AI variant). Total: 2,642B 68K → ~3,700B SH2. | Always trace the orchestrator call-by-call before planning ports. The roadmap's function list was assembled from documentation, not from reading the actual orchestrator source. |
@@ -1483,8 +1547,8 @@ Record discoveries, gotchas, and insights as the project progresses. These help 
 | 2026-03-24 | Phase 3 research | **Timer/guard functions between physics calls: 3 safe, 2 write physics inputs.** object_timer_expire_speed_param_reset writes +$40 (heading), object_anim_timer_speed_clear writes +$06 (speed). Both run BEFORE physics in orchestrator call order. No co-porting needed — keep on 68K, natural ordering ensures correct values reach SH2 physics. | When analyzing function dependencies for CPU migration, check WRITE→READ ordering, not just which fields are accessed. Same-CPU ordering is free synchronization. |
 | 2026-03-24 | Phase 3 research | **lateral_drift_velocity_B is structurally different from A — NOT a subset.** Different math (mul-then-div vs div-first), different grip range ([$40,$FF] vs [$7F,∞]), AI boost logic (speed-gated), viewport shimmer writes, 2× damping, 2× display scaling. 358B (not ~300B). Must port independently. | Never assume "variant" means "minor parameter change." Read both implementations fully before estimating scope. |
 | 2026-03-24 | Phase 3 research | **$C05C entity_type_dispatch table is init-only.** No per-frame writes found. Can be snapshot once to SDRAM during scene init. Confirms Phase 4 (AI port) can use a static copy. | Verified by grep: no MOVE/CLR writes to $C05C in any per-frame code path. |
-| 2026-03-24 | Q-002 | **All collision ROM addresses are 68K CPU addresses, not file offsets.** Conversion: `SH2_addr = 68K_addr + $01780000`. Highest reference: $00970000 → file offset $EF000 (within 4MB). Track pointer tables at $742C/$745C contain mode-indexed segment_map/base_data address pairs. | R-005 resolved. No ROM boundary issues. Phase 5 collision port can proceed with simple address arithmetic. |
-| 2026-03-24 | Q-008 | **cmd $3F only fires during active racing (`state_disp_005020`).** The other 4 dispatchers (countdown, results, attract, replay) have entirely different state 4 handlers with no physics trigger. Menu scene handlers are completely separate. | No mode-gate needed for cmd $3F — the scene handler architecture IS the gate. Menus stay on 68K with zero SH2 interaction. |
+| 2026-03-24 | Q-002 | **All collision ROM addresses are 68K CPU addresses, not file offsets.** Conversion: `SH2_addr = 68K_addr + $01780000`. Highest base reference: `$009D0000` → file offset `$150000` → SH2 `$02150000` (within 4MB). Track pointer tables at $742C/$745C contain mode-indexed segment-map/base-data address pairs. | R-005 resolved. No ROM boundary issues. Phase 5 collision port can proceed with simple address arithmetic. |
+| 2026-03-24 | Q-008 — **SUPERSEDED 2026-07-06** | The historical decision called `state_disp_005020` active 1P racing and placed cmd `$3F` there. It is actually the 2P split-screen dispatcher. | Current 1P uses `state_disp_004cb8`; its separate hook has only cmd `$3E` modes 0/1 enabled. Do not reuse the old mode-gate conclusion. |
 | 2026-03-24 | Q-009 | **2P uses identical physics functions as 1P (A0-parameterized).** Table 3 ($FF9F00) is a single 256B entity, not a 15-entity table. `gfx_2_player_entity_frame_orch` MOVEM block copy assumes both entities updated on same CPU — splitting P1/P2 across CPUs creates race conditions in display DMA. | Phase 3 = 1P only. 2P deferred. When porting 2P, either both players on SH2 or add explicit sync barrier. |
 | 2026-03-26 | Phase 3B | **GBR as entity base: 510-byte displacement covers the entire 256B entity record.** `MOV.W @(disp,GBR),R0` uses 8-bit disp × 2 = 0-510 byte range. Every entity field is reachable in a single instruction. The constraint: only R0 can be source/destination for GBR access. Work around by `MOV R0,Rn` after load or `MOV Rn,R0` before store. | SH2 ISA docs §6 (displacement modes). The Rn-displacement form (`MOV.W @(disp,Rn),R0`) has only 4-bit disp × 2 = 0-30 byte range — grossly insufficient for entity fields. GBR is the correct choice. |
 | 2026-03-26 | Phase 3B | **SH2 CMP/PL = strictly > 0, not >= 0.** "Compare PLus" sets T=1 when Rn > 0 (signed). This matches 68K TST+BLE exactly (BLE branches when value ≤ 0, fall-through when > 0). A code review agent flagged this as a bug, but verification against the ISA docs confirmed correctness. | Always verify SH2 instruction semantics against the primary source (sh1-sh2-cpu-core-architecture.md), not agent reasoning. Subtle instruction names like "PL" (plus) can mislead — it means "positive", not "plus-or-zero". |
@@ -1505,7 +1569,7 @@ Record discoveries, gotchas, and insights as the project progresses. These help 
 | 2026-07-13 | Phase 1 (1P wiring) | **A passing headless test is not evidence the tested code path executed at all.** `profiling_frontend`'s `[racing]` progress label is a naive frame-count heuristic (`frame < 1200 ? "menus" : "racing"`), not derived from real game state. `--autoplay` actually parks the game in Free Run (`$5586`) and never reaches GP (`$4CBC`) — confirmed by watching `$FF0004` directly, not by trusting the label. Every "verified working" headless result for the 1P hook this session was measured against Free Run, which never calls the hooked function. | Always confirm the scene/state word directly for any scenario-specific headless test; never trust a frame-count-based label or an assumption about what an autoplay script reaches. |
 | 2026-07-13 | Phase 1 (1P wiring) | **Editing a function shared by a working caller and an experimental caller risks breaking the working one.** `vr60_entity_transfer.asm` and 3 siblings are called both by the untested 1P hook AND by the always-active, already-working `state4_epilogue` (2P/demo path). A retry-loop "fix" scoped mentally to "fix 1P" was actually a live change to 2P's behavior, and hard-hung the 68K in real GP racing (unbounded retry, no ACK ever arriving in that real context). Fully reverted to `HEAD`. | Before changing a shared function for one caller's problem, check every caller. If a fix is genuinely caller-specific, implement it as a caller-specific copy rather than editing the shared function. |
 | 2026-07-13 | Tooling | **`VRD_LOAD_STATE=path` added to `profiling_frontend.c`** — loads a real savestate (`retro_unserialize`) before the frame loop, letting headless tests target scenes `--autoplay` can't reach. Confirmed compatible with standalone PicoDrive's own savestate files (same underlying `pico/state.c` serialization; standalone only adds an optional `.gz` wrapper). | Use this for any future 1P-specific (or other autoplay-unreachable) headless verification — capture the scenario once manually, then iterate headlessly against the saved state. |
-| 2026-07-13 | Phase 1 (1P wiring), later same session | **`game_frame_orch_013`'s "Path A" (state 8) — the entire Phase 1 plan's hook insertion point — is dead code during real 1-player gameplay.** Zero PC-histogram hits across four independent savestates and 28.5M sampled instructions. `$C87E` transits 0→4→8→12 at most once, likely during scene init; Path B (state `$0C`) persists for the rest of the race but is itself lightweight (no entity/physics calls) and isn't the real driver either. The real per-frame physics/AI driver was traced (partially) to `race_frame_main_dispatch_entity_updates` via `race_entity_update_loop` (confirmed heavy execution), but its exact recurring trigger isn't pinned down yet. | A PC histogram's absence-of-evidence, checked precisely by address range across multiple independent test conditions, is strong evidence of non-execution — but always include ALL histogram categories (`WRAM_CALLER`, not just `68K`) or you'll draw the opposite wrong conclusion from someone else's return addresses. Any future 1P SH2-offload hook must target `race_frame_main_dispatch_entity_updates`'s real per-frame entry point, not `game_frame_orch_013`. |
+| 2026-07-13 | Phase 1 (1P wiring), later same session — **RETRACTED** | A top-200 PC histogram appeared to show state-8 Path A was dead. Exact `VRD_CALLER_TRACE` subsequently proved it recurs once per about three TV frames (20 Hz). | Never infer non-execution from a truncated ranking. Use exact address/caller counters; `game_frame_orch_013` remains the valid 1P hook. |
 | 2026-07-13 | Tooling | **`VRD_HOLD_INPUT=mask` added to `profiling_frontend.c`** — holds a joypad bitmask from frame 0, independent of `--autoplay`'s menu-navigation timing logic (which assumes frame 0 = boot, not frame 0 = savestate resume). Used to rule out "does reaching this code path require player input" as a hypothesis. | Use for any headless test resuming from a savestate where sustained input (e.g. holding accelerate) needs to start immediately, not 1200 frames in. |
 | 2026-07-13 | Profiling methodology | **The PC histogram CSV has a `WRAM_CALLER` category (JSR return addresses from self-modified WRAM code) separate from the plain `68K` category** — filtering on `$1=="68K"` alone silently discards it, and its addresses are return-addresses-after-a-call, not necessarily inside the function you think they are (verify against the actual source, e.g. Path B vs Path A confusion this session). | Always `cut -d',' -f1 file.csv \| sort -u` to see every category present before drawing conclusions from a PC histogram. |
 

@@ -1,5 +1,9 @@
 # Motorola 68000 Memory Map - Sega 32X
 
+> **2026-07-21 correction:** Any `$2203E000` “shared parameter block” below is a
+> retracted historical design. It is SH2 cartridge ROM, not writable SDRAM; SH2
+> SDRAM is `$06000000/$26000000`, and the 68000 cannot address it directly.
+
 **Reference**: Super Mega Drive Manual, 32X Hardware Manual
 **Project**: Virtua Racing Deluxe (USA).32x
 

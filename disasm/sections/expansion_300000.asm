@@ -22,16 +22,18 @@
 ;   0x0016 = Vertex transform (vertex_transform parallel processing)
 ;   0x0027 = Queue drain (cmd $27 async processing)
 ;
-; Shared Counter Block (cache-through SDRAM):
+; Historical B-006 counter block (INVALID ADDRESS; dormant code only):
 ;   0x2203E010 = Master call counter (word) - incremented by shadow_path_wrapper
 ;   0x2203E012 = Slave completion counter (word) - incremented by slave_work_wrapper
 ;   0x2203E014 = Frame counter (word) - incremented by slave_work_wrapper on frame sync
 ;   0x2203E016 = Reserved (word)
+; 0x22xxxxxx is the cache-through cartridge-ROM alias, not SDRAM; these writes
+; cannot provide shared counters. The B-006 callers are reverted/dormant.
 ;
 ; FIXED: Moved counters from COMM4/COMM5/COMM6 to dedicated RAM to avoid conflicts
 ;        Original game uses COMM4-COMM6 for command protocol
 ;
-; MEMORY LAYOUT (status as of March 2026):
+; MEMORY LAYOUT (status corrected 2026-07-21):
 ;   0x300000-0x300027  Padding (40 bytes)
 ;   0x300028-0x30003F  handler_frame_sync (22 bytes)           — DORMANT (B-006 reverted)
 ;   0x300050-0x30007B  master_dispatch_hook (44 bytes)         — DORMANT (B-006 reverted)
@@ -53,17 +55,19 @@
 ;   0x3011E0-0x30123F  vertex_transform_optimized (96 bytes)  — ACTIVE  (S-6 Phase A, trampoline $0234C8)
 ;   0x301300-0x30148F  coord_transform_batched (388 bytes)   — ACTIVE  (S-6 Phase B, trampolines $02338A-$02349F)
 ;   0x301490-0x3014FF  Free (padding to cmd $3F)
-;   0x301500-0x3015FF  cmd3f_vr60_gameframe (~228 bytes)      — ACTIVE  (VR60 Phase 3B, JT $02087C)
-;   0x301600-0x30165F  cmd3e_entity_transfer (~96 bytes)      — ACTIVE  (VR60 Phase 3A, JT $020878)
-;   0x301660-0x3016BF  physics_divide (~80 bytes)             — ACTIVE  (VR60 Phase 3B, division infra)
-;   0x3016C0-0x301A3F  physics_group1 (~884 bytes)            — ACTIVE  (VR60 Phase 3B, functions 1+5+2+3)
-;   0x301A40-0x301C3F  physics_group2_accel (~496 bytes)     — ACTIVE  (VR60 Phase 3B, functions 6+7)
-;   0x301C40-0x301DFF  physics_timers (~450 bytes)            — ACTIVE  (VR60 Phase 3B, timer/guard co-port)
-;   0x301E00-0x3026FF  physics_pos, physics_drift, ai_steering, ai_orchestrator
-;   0x302B00-0x302BFF  render_state_patcher (~200 bytes)   — ACTIVE  (VR60 Phase 7, 60 FPS render bridge)
-;   0x302C00-0x3FFFFF  Free space (remaining ~1013KB)
+;   0x301500-0x3016AB  cmd3f_vr60_gameframe (428 bytes)       — BUILT/JT-INSTALLED; 1P trigger disabled
+;   0x3016B0-0x30175F  cmd3e_entity_transfer (176 bytes)      — BUILT; 1P modes 0/1 enabled, mode 2 disabled
+;   0x301760-0x3017AF  physics_divide (80 bytes)              — BUILT; dormant in current 1P
+;   0x3017C0-0x301B33  physics_group1 (884 bytes)             — BUILT; dormant in current 1P
+;   0x301B40-0x301D2F  physics_group2_accel (496 bytes)       — BUILT; dormant in current 1P
+;   0x301D40-0x301E5B  physics_timers (284 bytes)             — BUILT; dormant in current 1P
+;   0x301E60-0x3029EB  physics_pos/drift + AI ports           — BUILT; dormant in current 1P
+;   0x302B00-0x302C7F  render_state_patcher (384 bytes)       — BUILT; verified no-op
+;   0x302D00-0x3039D7  collision ports (end label 0x3039D8)   — ASSEMBLED/reference-tested; not wired
+;   0x3039E0-0x303A03  corrected C254 bridge probe (36 bytes) — ASSEMBLED; dormant
+;   0x303A10-0x3EFFFF  Free space (ROM padded to $3F0000)
 ;
-; Shared Data Structures (cache-through SDRAM, NOT in expansion ROM):
+; Historical B-006 data addresses (0x22xxxxxx = cartridge ROM alias, not SDRAM):
 ;   0x2203E000-0x2203E00F  Parameter block (16 bytes: R14, R7, R8, R5)
 ;   0x2203E010-0x2203E017  Counter block (8 bytes: Master, Slave, Frame, Reserved)
 ;
@@ -161,10 +165,13 @@ slave_work_wrapper:
 ; ============================================================================
 ; SLAVE TEST FUNCTION: 0x300280 — STATUS: DORMANT (B-006 reverted)
 ; ============================================================================
-; Reads parameters from shared memory at 0x2203E000, then calls vertex_transform_optimized.
+; Reads parameters from the historical 0x2203E000 literal, then calls vertex_transform_optimized.
 ; Adds 100 to COMM5 on successful return.
 ;
-; Parameter block at 0x2203E000 (cache-through SDRAM, written by Master):
+; WARNING: 0x2203E000 is cache-through cartridge ROM, not SDRAM. This dormant
+; B-006 experiment cannot use that address as a writable parameter block. A
+; future revival must use 0x2603E000 (cache-through SDRAM) and revalidate it.
+; Historical parameter layout:
 ;   +0x00: R14 (context pointer)
 ;   +0x04: R7 (loop counter)
 ;   +0x08: R8 (data pointer)
@@ -243,7 +250,7 @@ shadow_path_wrapper:
 ; Replaces the 3-phase COMM6 handshake protocol with single-shot dispatch.
 ;
 ; Protocol (command $25 - single-shot):
-;   COMM3:4 = A0 source ptr (with $02000000 SDRAM prefix from 68K)
+;   COMM3:4 = A0 source ptr (with $02000000 cartridge-ROM prefix from 68K)
 ;   COMM5:6 = A1 dest ptr (full SH2 address, e.g. $0601xxxx)
 ;   COMM0_LO = $25 (dispatch index), COMM0_HI = $01 (trigger)
 ;   SH2 clears COMM0_LO=$00 after reading params (handshake)
@@ -360,10 +367,10 @@ cmd22_single_shot:
         include "sh2/generated/cmd22_single_shot.inc"
 
 ; ============================================================================
-; VISIBILITY BITMASK HANDLER: 0x3011A0 — STATUS: DORMANT (S-1c reverted)
+; VISIBILITY BITMASK HANDLER: 0x3011A0 — STATUS: DORMANT/INVALID (S-1c reverted)
 ; ============================================================================
 ; Was: Entity visibility descriptor patcher. Reads 15-bit bitmask from COMM3,
-; patches 15 entity descriptor flag words at $2200C344 (stride $14).
+; attempted to patch flags at invalid ROM alias $2200C344 (stride $14).
 ; Reverted: S-1d profiling proved entity descriptors at $0600C344 are unused
 ; during racing. Jump table entry $07 restored to original handler ($06000490).
 ;
@@ -413,14 +420,15 @@ coord_transform_batched:
         include "sh2/expansion/coord_transform_batched.inc"
 
 ; ============================================================================
-; VR60 GAME FRAME HANDLER: 0x301500 — STATUS: ACTIVE (VR60 Phase 0)
+; VR60 GAME FRAME HANDLER: 0x301500 — BUILT/JT-INSTALLED; 1P TRIGGER DISABLED
 ; ============================================================================
-; Master SH2 command handler for the VR60 architectural redesign.
-; Phase 0: No-op that reads SDRAM mailbox and signals completion.
-; Future phases add game logic (physics, AI, collision).
+; Master SH2 handler containing block copies plus the ported physics/AI pipeline.
+; Collision remains additive/unwired. Normal 1P does not trigger this handler,
+; so none of this work is authoritative there.
 ;
 ; Jump table entry at $02087C = $02301500 (cmd $3F).
-; SDRAM mailbox at $0600BC00 (cache-through: $2200BC00).
+; Intended SDRAM mailbox is $0600BC00 (cache-through $2600BC00). The handler
+; still contains the invalid legacy $2200BC00 ROM-alias literal; fix before enable.
 ;
 ; See: disasm/sh2/expansion/cmd3f_vr60_gameframe.asm for source
 ;
@@ -429,21 +437,21 @@ cmd3f_vr60_gameframe:
         include "sh2/generated/cmd3f_vr60_gameframe.inc"
 
 ; ============================================================================
-; VR60 ENTITY TRANSFER HANDLER: 0x3015B0 — STATUS: ACTIVE (VR60 Phase 3A)
+; VR60 ENTITY TRANSFER HANDLER: 0x3016B0 — BUILT; 1P MODES 0/1 ENABLED
 ; ============================================================================
 ; Configures SH2 DMAC channel 0 to receive 256 bytes of player entity data
 ; from the 68K via DREQ FIFO. Data lands at $0600F20C (entity working copy).
 ;
-; Jump table entry at $020878 = $023015B0 (cmd $3E).
+; Jump table entry at $020878 = $023016B0 (cmd $3E).
 ;
 ; See: disasm/sh2/expansion/cmd3e_entity_transfer.asm for source
 ;
-        dcb.b   ($3016B0 - *),$FF      ; Pad to 0x3016B0 (cmd $3F = 424B, cmd $3E = 168B, fits before $301760)
+        dcb.b   ($3016B0 - *),$FF      ; Pad to 0x3016B0 (cmd $3F = 428B; cmd $3E is 176B and fits before $301760)
 cmd3e_entity_transfer:
         include "sh2/generated/cmd3e_entity_transfer.inc"
 
 ; ============================================================================
-; VR60 PHYSICS DIVISION INFRASTRUCTURE: 0x301610 — STATUS: ACTIVE (VR60 Phase 3B)
+; VR60 PHYSICS DIVISION INFRASTRUCTURE: 0x301760 — BUILT; DORMANT IN CURRENT 1P
 ; ============================================================================
 ; SH2 division support for physics port:
 ;   - sh2_sdiv16: Software signed 16-bit divide (~50 cycles)
@@ -457,31 +465,31 @@ physics_divide:
         include "sh2/generated/physics_divide.inc"
 
 ; ============================================================================
-; VR60 PHYSICS GROUP 1: 0x301680 — STATUS: ACTIVE (VR60 Phase 3B)
+; VR60 PHYSICS GROUP 1: 0x3017C0 — BUILT; DORMANT IN CURRENT 1P
 ; ============================================================================
 ; SH2 translations of physics functions 1 (speed_degrade_calc) and 5
 ; (entity_speed_clamp). Uses GBR as entity base pointer.
 ;
 ; See: disasm/sh2/expansion/physics_group1.asm for source
 ;
-        dcb.b   ($3017C0 - *), $FF      ; Pad to 0x301740
+        dcb.b   ($3017C0 - *), $FF      ; Pad to 0x3017C0
 physics_group1:
         include "sh2/generated/physics_group1.inc"
 
 ; ============================================================================
-; VR60 PHYSICS GROUP 2 (ACCEL): 0x301A00 — STATUS: ACTIVE (VR60 Phase 3B)
+; VR60 PHYSICS GROUP 2 (ACCEL): 0x301B40 — BUILT; DORMANT IN CURRENT 1P
 ; ============================================================================
 ; SH2 translations of functions 6 (speed_accel_braking) and 7 (tilt_adjust).
 ; DIVU replaced with gear reciprocal table multiply.
 ;
 ; See: disasm/sh2/expansion/physics_group2_accel.asm for source
 ;
-        dcb.b   ($301B40 - *), $FF      ; Pad to 0x301AC0
+        dcb.b   ($301B40 - *), $FF      ; Pad to 0x301B40
 physics_group2_accel:
         include "sh2/generated/physics_group2_accel.inc"
 
 ; ============================================================================
-; VR60 TIMER/GUARD FUNCTIONS: 0x301C40 — STATUS: ACTIVE (VR60 Phase 3B)
+; VR60 TIMER/GUARD FUNCTIONS: 0x301D40 — BUILT; DORMANT IN CURRENT 1P
 ; ============================================================================
 ; Co-ported from 68K to solve entity ownership problem. These functions
 ; modify entity fields that physics depends on, so they must run on the
@@ -492,12 +500,12 @@ physics_group2_accel:
 ;
 ; See: disasm/sh2/expansion/physics_timers.asm for source
 ;
-        dcb.b   ($301D40 - *), $FF      ; Pad to 0x301CC0
+        dcb.b   ($301D40 - *), $FF      ; Pad to 0x301D40
 physics_timers:
         include "sh2/generated/physics_timers.inc"
 
 ; ============================================================================
-; VR60 16.16 POSITION UPDATE: 0x301DA0 — STATUS: ACTIVE (VR60 Phase 3D)
+; VR60 16.16 POSITION UPDATE: 0x301E60 — BUILT; DORMANT IN CURRENT 1P
 ; ============================================================================
 ; 16.16 fixed-point position update. Replaces 68K entity_pos_update with
 ; sub-pixel precision accumulation. Integer part at +$30/+$34 (rendering-
@@ -505,46 +513,47 @@ physics_timers:
 ;
 ; See: disasm/sh2/expansion/physics_pos_update.asm for source
 ;
-        dcb.b   ($301E60 - *), $FF      ; Pad to 0x301DE0
+        dcb.b   ($301E60 - *), $FF      ; Pad to 0x301E60
 physics_pos_update:
         include "sh2/generated/physics_pos_update.inc"
 
 ; ============================================================================
-; VR60 DRIFT SYSTEM: 0x301E00 — STATUS: ACTIVE (VR60 Phase 3C)
+; VR60 DRIFT SYSTEM: 0x301F20 — BUILT; DORMANT IN CURRENT 1P
 ; ============================================================================
 ; 4 functions: drift_physics, suspension_damping, lateral_drift_A, lateral_drift_B
 ; See: disasm/sh2/expansion/physics_drift.asm for source
 ;
-        dcb.b   ($301F20 - *), $FF      ; Pad to 0x301EA0
+        dcb.b   ($301F20 - *), $FF      ; Pad to 0x301F20
 physics_drift:
         include "sh2/generated/physics_drift.inc"
 
 ; ============================================================================
-; VR60 AI STEERING: 0x3025A0 — STATUS: ACTIVE (VR60 Phase 4)
+; VR60 AI STEERING: 0x3025E0 — BUILT; DORMANT IN CURRENT 1P
 ; ============================================================================
 ; AI steering + atan2 calculation (shared with camera system)
 ; See: disasm/sh2/expansion/ai_steering.asm for source
 ;
-        dcb.b   ($3025E0 - *), $FF      ; Pad to 0x3025A0
+        dcb.b   ($3025E0 - *), $FF      ; Pad to 0x3025E0
 ai_steering:
         include "sh2/generated/ai_steering.inc"
 
 ; ============================================================================
-; VR60 AI ORCHESTRATOR: 0x3026C0 — STATUS: ACTIVE (VR60 Phase 4)
+; VR60 AI ORCHESTRATOR: 0x302700 — BUILT; DORMANT IN CURRENT 1P
 ; ============================================================================
 ; AI entity main update: spawn positioning, steering, speed, position.
 ; 3 entry points: main (active racing), spawn (timer), finish (retirement).
 ; See: disasm/sh2/expansion/ai_orchestrator.asm for source
 ;
-        dcb.b   ($302700 - *), $FF      ; Pad to 0x3026C0
+        dcb.b   ($302700 - *), $FF      ; Pad to 0x302700
 ai_orchestrator:
         include "sh2/generated/ai_orchestrator.inc"
 
 ; ============================================================================
-; RENDER STATE PATCHER: VR60 Phase 7 — 60 FPS render bridge
+; RENDER STATE PATCHER: VR60 Phase 7 — BUILT, VERIFIED NO-OP
 ; ============================================================================
-; Bridges physics entity data ($0600F20C) to Slave render state ($0600CA00+).
-; Applies camera correction from player movement to all entity states.
+; Intended to bridge physics entity data ($0600F20C) to Slave render state, but
+; writes CA00/CCA0 locations that do not affect the per-frame racing consumer.
+; Retained as historical code; the corrected descriptor probe is separate.
 ; Called from cmd3f_vr60_gameframe after physics pipeline.
 ;
 ; See: disasm/sh2/expansion/render_state_patcher.asm for source
@@ -675,8 +684,9 @@ collision_object:
 ; ============================================================================
 ; Tiny SH2 routine that clears the descriptor +$00 visibility word on the
 ; racing display-object block $0600C254 (56 entries, $14 stride; cache-through
-; $2600C254 — Run C), called from cmd $3F in place of the no-op
-; sh2_render_state_patch. Per VR60_PHASE5F1B_PROBE_DIAGNOSIS.md the racing
+; $2600C254 — Run C). It is assembled/selectable but currently DORMANT: cmd $3F
+; still selects sh2_render_state_patch, and the normal-1P cmd $3F trigger is
+; disabled. Per VR60_PHASE5F1B_PROBE_DIAGNOSIS.md the racing
 ; render (Slave cmd $02, $06000FA8) reads C128/C178/C254 via entity loop
 ; $060024DC, NOT C218. If C254 holds the opponent cars they VANISH in racing.
 ; Run A/B/C selectable by editing two lines in bridge_probe.asm.

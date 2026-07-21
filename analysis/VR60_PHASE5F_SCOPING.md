@@ -1,5 +1,11 @@
 # VR60 Phase 5F — Collision Switchover: Scoping & Design
 
+> **Current integration correction (2026-07-21):** This report describes the intended/
+> historically 2P-targeted cmd `$3F` pipeline as if it runs in normal 1P. Current 1P has
+> cmd `$3F` disabled, so SH2 physics/AI do not even run as shadow computation there; the
+> 68000 remains authoritative. The authority/bridge problem is still valid, but the bridge
+> must target the cmd `$02` renderer's C128/C178/C254 descriptors, not C218/CA00/CCA0.
+
 **Created:** 2026-06-18
 **Author:** Worker (research/scoping role — NO code written)
 **Status:** SCOPING. This document answers the Phase 5F central question and scopes A–G.

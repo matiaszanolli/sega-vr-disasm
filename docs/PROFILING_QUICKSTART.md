@@ -9,7 +9,7 @@ VRD runs at **60 Hz V-INT** (Mega Drive timer) but only renders **~20 FPS SH2 fr
 ## Current Setup
 
 ### Frame Counter Location
-- **Memory**: SDRAM address `0x22000400`
+- **Memory**: cache-through SDRAM address `0x26000400` (cached alias `0x06000400`)
 - **Size**: 32-bit word
 - **Increments**: Once per SH2 frame (at `final_exit`)
 - **Expected baseline**: ~1200 frames (20 FPS × 60s)
@@ -31,7 +31,7 @@ BASELINE MEASUREMENT:
 2. Start PicoDrive, navigate to your test scenario (racing, menu, etc.)
 3. Note wall clock time at exactly start of gameplay
 4. Play for exactly 60 seconds (use timer on phone/watch)
-5. Check memory at 0x22000400 (emulator debugger if available)
+5. Check cache-through SDRAM at 0x26000400 (emulator debugger if available)
 6. Record the value → this is your baseline frame count
 
 OPTIMIZED MEASUREMENT:
@@ -57,14 +57,14 @@ V-INT Handler (16.67ms total):
 
 | Address | Purpose | Expected Value |
 |---------|---------|-----------------|
-| `0x22000400` | SH2 frame counter | ~1200 after 60s |
+| `0x26000400` | SH2 frame counter (cache-through SDRAM) | ~1200 after 60s |
 | `$C964` | V-INT counter | 3600 after 60s (not useful) |
 
 ## Summary
 
 The profiling phase is complete:
 - ✓ Frame completion point identified
-- ✓ Measurement location ready (0x22000400)
+- ✓ Measurement location planned (`0x26000400`; verify hook before trusting it)
 - ✓ Benchmark methodology documented
 - → Run manual 60-second test for baseline
 - → Next: VDP polling optimization

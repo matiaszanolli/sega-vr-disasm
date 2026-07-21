@@ -1,5 +1,8 @@
 # 68K Architecture & Design Patterns - Virtua Racing Deluxe
 
+> **2026-07-21 correction:** `$2203E000` examples in the historical parallel-work
+> pattern are invalid ROM aliases, not shared SDRAM. Do not copy that pattern.
+
 **Analysis Date**: 2026-01-07
 **Functions Analyzed**: 182/797 (22.8%)
 **Primary Focus**: Priority 1-8 (91 Priority 8 functions detailed)

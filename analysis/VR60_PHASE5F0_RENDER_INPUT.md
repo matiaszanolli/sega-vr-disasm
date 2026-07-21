@@ -1,5 +1,9 @@
 # VR60 Phase 5F-0 — Render-Input Layout Verification (the SH2→render bridge go/no-go)
 
+> **Inference correction (2026-07-21):** The state-array trace remains useful, but its
+> promotion of C218 as the per-frame racing bridge input is superseded. The actual cmd `$02`
+> handler consumes C128/C178/C254. See `VR60_PHASE5F1B_PROBE_DIAGNOSIS.md`.
+
 **Created:** 2026-06-18
 **Author:** Worker (READ-ONLY research role — NO code written, no asm/Makefile modified)
 **Status:** RESOLVED. This document answers Phase 5F-0 (the FIRST sub-step of `VR60_PHASE5F_SCOPING.md` §G).

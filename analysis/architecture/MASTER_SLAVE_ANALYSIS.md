@@ -4,6 +4,10 @@
 **Discovery**: Slave SH2 CPU is **severely underutilized** during 3D rendering
 **Optimization Potential**: **+30-50% performance gain** by distributing work to Slave
 
+> **2026-07-21 correction:** This historical v4.0 path is inactive and unvalidated.
+> `$2203E000` is cartridge ROM, not SDRAM; the built literal cannot be a writable
+> parameter block. Intended SH2-shared SDRAM would be `$2603E000` and requires a fresh test.
+
 ---
 
 ## 📋 Revision History
@@ -47,7 +51,7 @@ Game calls vertex_transform → Trampoline captures R14/R7/R8/R5 → COMM7=0x16
 **What's ready (infrastructure complete, activation pending):**
 - ✅ vertex_transform_optimized at $300100 (96 bytes, coord_transform inlined)
 - ✅ slave_work_wrapper at $300200 (COMM7 polling loop)
-- ✅ Parameter block design at 0x2203E000 (cache-through SDRAM, 16 bytes)
+- ⚠ Historical parameter-block literal 0x2203E000 is invalid ROM alias (intended: 0x2603E000)
 - ✅ Shadow path validated (non-live testing)
 - ⏳ **Live activation deferred** - Timing concerns need validation
 
@@ -55,7 +59,7 @@ Game calls vertex_transform → Trampoline captures R14/R7/R8/R5 → COMM7=0x16
 - Infrastructure is built and tested via shadow path
 - Live activation not yet enabled in gameplay
 - vertex_transform_optimized ready at $300100 (coordinate transform with coord_transform inlined)
-- Parameter block ready at $2203E000 (R14, R7, R8, R5 - 16 bytes)
+- Parameter block path is not ready: the built `$2203E000` literal is a ROM alias
 
 | Aspect | Before v4.0 | After v4.0 (when activated) |
 |--------|-------------|------------------------------|
@@ -347,7 +351,7 @@ The transform code uses addresses like 0xC0000740, 0xC0000760. This is NOT a sta
 
 ### ⚠️ Phase v4.0: Parallel Processing Infrastructure (COMPLETE - ACTIVATION PENDING)
 - ✅ vertex_transform trampoline design (captures R14/R7/R8/R5 parameters)
-- ✅ Parameter block at $2203E000 (SDRAM, shared between SH2s)
+- ⚠ Parameter literal `$2203E000` is invalid ROM alias; no writable block was established
 - ✅ Master dispatch hook at $300050 (skips COMM7 cmd $16)
 - ✅ Slave work wrapper at $300200 (COMM7 polling)
 - ✅ vertex_transform_optimized at $300100 (with coord_transform inlined)

@@ -80,15 +80,16 @@ The transform code uses addresses like:
 
 From `SH2_3D_ENGINE_DATA_STRUCTURES.md`:
 ```
-- 0xC0000000 - Likely SDRAM base (maps to 0x22000000?)
+- 0xC0000000 - Historical speculation; **not** a documented SDRAM alias
 - Note: 0xC0000000 is in the cache region
 ```
 
 From SH2 address space analysis:
 ```
 Cache Address     Cache-Through     Contents
-0x02000000        0x22000000       SDRAM
+0x02000000        0x22000000       Cartridge ROM
 0x04000000        0x24000000       Frame Buffer
+0x06000000        0x26000000       SDRAM
 ```
 
 **CONCLUSION:** 0xC0000000 is **NOT a standard 32X mapping**. It appears the game uses a non-standard or undocumented address mirror. Most likely:
@@ -239,8 +240,8 @@ For Strategy A, staging area needs:
 - ~8 KB for vertex output
 - Total: ~16 KB in cache-through SDRAM
 
-**Available SDRAM at 0x22000000:** 256 KB
-**Our test area 0x22000100-0x22000300:** 512 bytes (plenty of room to expand)
+**Available cache-through SDRAM at 0x26000000:** 256 KB
+**Prospective test area 0x26000100-0x26000300:** 512 bytes (must be collision-checked before use)
 
 ---
 

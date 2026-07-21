@@ -292,7 +292,7 @@ struct PolygonDescriptor {
 
 **Synchronization Points**:
 - COMM registers ($20004020-$2000402E) — 16 bytes shared
-- SDRAM ($02000000-$0203FFFF) — shared data buffers
+- SDRAM (`$06000000-$0603FFFF`, cache-through `$26000000-$2603FFFF`) — shared between SH2s
 - COMM0_HI = global busy flag, COMM0_LO = dispatch index
 - COMM7 = Slave doorbell (must NOT receive game command bytes)
 
@@ -300,13 +300,13 @@ struct PolygonDescriptor {
 
 ## Memory Map
 
-### ROM (Cached)
-- 0x06000000 - Code execution space (uncached)
-- 0x20000000 - ROM data access (cached)
+### Cartridge ROM
+- `0x02000000` - cached
+- `0x22000000` - cache-through
 
-### SDRAM (0x22000000 - 0x2203FFFF, 256KB)
+### SDRAM (`0x06000000-$0603FFFF` cached / `0x26000000-$2603FFFF` cache-through)
 ```
-0x22000000 +----------------+
+0x26000000 +----------------+
            | Stack          |  ~8KB
            +----------------+
            | Transform      |  ~32KB
@@ -319,7 +319,7 @@ struct PolygonDescriptor {
            +----------------+
            | Work Space     |  Remainder
            +----------------+
-0x2203FFFF
+0x2603FFFF
 ```
 
 ### Frame Buffer (Dual-Buffer, 128KB per buffer)

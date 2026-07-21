@@ -244,7 +244,7 @@ Same single-shot pattern as B-004, applied to `sh2_send_cmd_wait` (cmd $25 = RLE
  │                                    └─ Return to dispatch loop
 ```
 
-- **COMM layout**: COMM0_HI=$01 (trigger), COMM0_LO=$25 (dispatch index); COMM3:4=A0 (source, $02xxxxxx SDRAM cache-through); COMM5:6=A1 (dest, full SH2 address); COMM2_HI=NEVER WRITTEN; COMM1+COMM7=untouched
+- **COMM layout**: COMM0_HI=$01 (trigger), COMM0_LO=$25 (dispatch index); COMM3:4=A0 (cached cartridge-ROM source, `$02xxxxxx`); COMM5:6=A1 (SDRAM destination, `$06xxxxxx`); COMM2_HI=NEVER WRITTEN; COMM1+COMM7=untouched
 - **Dispatch mechanism**: Same as B-004. COMM0_LO=$25 → shll2 → offset $94 → jump table entry $25 at $06000814 → $02300500.
 - **8 calls during scene init**, ~100 cycles each (was ~350 with 3-phase COMM6 handshake)
 - **`sh2_wait_response` ($E342) removed**: Address slot overwritten by B-005 NOP padding — function no longer exists

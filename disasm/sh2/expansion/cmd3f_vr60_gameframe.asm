@@ -2,6 +2,12 @@
  * cmd3f_vr60_gameframe — VR60 Game Frame Handler (Phase 2B: Async Block Copies)
  * Expansion ROM Address: $301500 (SH2: $02301500)
  *
+ * CURRENT INTEGRATION STATUS (2026-07-21): assembled and installed at Master
+ * command $3F, but the normal-1P trigger is disabled. Physics/AI work below is
+ * therefore dormant in current 1P gameplay and the 68000 remains authoritative.
+ * The current call site still selects sh2_render_state_patch (a verified no-op);
+ * the corrected C254 bridge_probe is assembled at .bridge_addr but is dormant.
+ *
  * Phase 3B: Fire-and-forget handler + SH2 physics pipeline.
  * 68K triggers cmd $3F and continues immediately. This handler performs:
  *   1. Read COMM3-5 game state, write to SDRAM mailbox
@@ -11,7 +17,7 @@
  *      - Set GBR = entity base, R13 = globals base
  *      - JSR: speed_degrade → steering → force_integration → speed_clamp
  *             → speed_accel → tilt_adjust
- *   5. Post-physics canary at $2200FC00
+ *   5. Post-physics canary at $2600FC00
  *   6. COMM cleanup: COMM1_LO bit 0 = "frame done" signal
  *
  * Phase 3B: Physics runs in DUAL-PATH mode. 68K physics also runs on WRAM.
@@ -64,8 +70,8 @@ cmd3f_vr60_gameframe:
     /* offset 14 */ mov     #0,r0
     /* offset 16 */ mov.b   r0,@(1,r8)           /* COMM0_LO = $00 */
 
-    /* === WRITE COMM DATA TO SDRAM MAILBOX === */
-    /* offset 18 */ mov.l   @(.mailbox_addr,pc),r4  /* R4 = $2200BC00 */
+    /* === HISTORICAL MAILBOX WRITE (INVALID ADDRESS; FIX BEFORE ENABLE) === */
+    /* offset 18 */ mov.l   @(.mailbox_addr,pc),r4  /* $2200BC00 = ROM alias, not SDRAM */
     /* offset 20 */ mov     r1,r0                /* R0 = frame_counter */
     /* offset 22 */ mov.w   r0,@(6,r4)           /* mailbox+$06 */
     /* offset 24 */ mov     r2,r0                /* R0 = game_state */
@@ -246,23 +252,18 @@ cmd3f_vr60_gameframe:
     mov.l   @(.ent_dst,pc),r0
     ldc     r0,gbr
 
-    /* === 5F-1b PROBE (DIAGNOSTIC) — bridge validation, REVERTABLE =========
-     * Replaces the no-op sh2_render_state_patch call with bridge_probe, which
-     * clears the visibility flags on all 15 C218 display-object descriptors
-     * (cache-through $2600C218) so opponent cars VANISH if the Master->Slave
-     * render bridge works. See bridge_probe.asm + VR60_PHASE5F1_BRIDGE_SPEC.md.
+    /* === RENDER BRIDGE SELECTION ===========================================
+     * CURRENT: calls .patcher_addr (sh2_render_state_patch), known to have no
+     * effect on the renderer-consumed inputs.
      *
-     * REVERT (one line): swap the .bridge_addr literal below back to
-     * .patcher_addr (sh2_render_state_patch). Leave bridge_probe inert.
+     * DORMANT DIAGNOSTIC: .bridge_addr selects the corrected Run-C probe, which
+     * clears 56 visibility words in the live cmd-$02 descriptor family at
+     * cache-through $2600C254. The older C218 probe/spec is superseded.
+     * Do not select the probe until a trustworthy 1P control fixture exists
+     * and cmd $3F has independently passed shadow-mode validation.
      */
     mov.l   @(.patcher_addr,pc),r0
-    jsr     @r0                    /* sh2_render_state_patch (bridge_probe reverted for
-                                       Phase 1 verification -- 2026-07-16, see
-                                       analysis/VR60_PHASE1_CMD3E_ACK_HANG.md §20:
-                                       cmd $3F now fires for real in 1P, and
-                                       bridge_probe's visibility-clear was causing
-                                       an fb_crc freeze that isn't Phase 1's concern.
-                                       Swap back to .bridge_addr for Phase 2. */
+    jsr     @r0                    /* sh2_render_state_patch; corrected probe dormant */
     nop
     /* --- bridge_probe (restore for Phase 2): -------------------------------------
      * mov.l   @(.bridge_addr,pc),r0
@@ -337,7 +338,9 @@ cmd3f_vr60_gameframe:
  */
 .align 2
 .mailbox_addr:
-    .long   0x2200BC00              /* SDRAM mailbox (cache-through) */
+    .long   0x2200BC00              /* INVALID legacy literal: cache-through ROM alias.
+                                       Intended shared SDRAM alias is 0x2600BC00.
+                                       Kept unchanged while cmd $3F is disabled. */
 .geo_src:
     .long   0x06038000              /* Geometry source (SDRAM, native read) */
 .geo_dst:

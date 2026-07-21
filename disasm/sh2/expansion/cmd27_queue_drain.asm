@@ -1,5 +1,5 @@
 /*
- * cmd27_queue_drain - Async Queue Processor for cmd $27
+ * cmd27_queue_drain - DORMANT/INVALID historical queue design
  * ======================================================
  * Location: Expansion ROM at $300600 (suggested)
  * Size: ~150 bytes (including literal pool and diagnostic)
@@ -12,12 +12,11 @@
  * This replaces 21 × 3-phase handshakes with 1 doorbell signal,
  * eliminating ~8,400 cycles of polling overhead per frame.
  *
- * QUEUE LAYOUT (68K Work RAM, shared with SH2)
+ * INVALID QUEUE LAYOUT (68K Work RAM is not shared with SH2)
  * ---------------------------------------------
  * 68K address:  $FFFB00  (in 68K Work RAM)
- * SH2 address:  $02FFFB00 (68K WRAM via CS0 address decode in PicoDrive
- *               — $22FFFB00 does NOT work because PicoDrive limits the
- *               cache-through decode to 256KB SDRAM range only)
+ * Historical SH2 address attempt: `$02FFFB00`; this is unmapped on hardware.
+ * The experiment is reverted and must remain dormant.
  *
  *   +0x00: write_idx (16-bit, 0-31, wraps)
  *   +0x02: read_idx  (16-bit, 0-31, wraps)

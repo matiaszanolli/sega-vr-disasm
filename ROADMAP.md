@@ -1,5 +1,9 @@
 # Virtua Racing 32X - Optimization Roadmap
 
+> **ARCHIVED ROADMAP.** This February 2026 plan predates the VR60 redesign, later profiling,
+> and dispatcher-routing corrections. Do not select current work from it. See
+> [`VR60_STATUS.md`](VR60_STATUS.md) and [`VR60_ROADMAP.md`](VR60_ROADMAP.md).
+
 **Created:** February 7, 2026
 **Baseline:** ~20-24 FPS | **Target:** 60 FPS
 **Constraint:** 68K at 100.1% utilization (127,987 cycles/frame)

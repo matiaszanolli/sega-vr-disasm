@@ -123,7 +123,7 @@ Writes all params at once using separate COMM slots. **Eliminates 2 waits.**
 Bypasses Master SH2 entirely. 68K writes params to COMM2-6, rings COMM7 doorbell, Slave processes.
 
 ```
-68K                    Slave SH2 (SDRAM $020608)
+68K                    Slave SH2 (runtime SDRAM $06000608; ROM image $020608)
  │                          │
  ├─ 🔴 wait COMM7==0 <─────┤  ← WAIT #1 (Slave read prev params)
  ├─ A0→COMM4:5 ───────────>│
@@ -290,12 +290,15 @@ The Slave interprets COMM7 as expansion signals. Writing game cmd `$27` to COMM7
 
 ### SH2 Cannot Access 68K Work RAM
 
-The SH2 memory map has a gap between SDRAM ($0203FFFF) and Frame Buffer ($04000000). Addresses like `$02FFFB00` and `$22FFFB00` are **unmapped** — reads return garbage, writes go nowhere.
+The SH2 memory map has a gap between cartridge ROM (ends at `$023FFFFF`) and Frame Buffer (`$04000000`). Addresses like `$02FFFB00` and `$22FFFB00` are **unmapped** — reads return garbage, writes go nowhere.
 
-**Shared memory options (exhaustive list):**
+**68000↔SH2 writable mechanisms:**
 1. **COMM registers** — 16 bytes, always accessible, no caching issues
-2. **SDRAM** — 256KB ($02000000-$0203FFFF), both CPUs can read/write
+2. **DREQ FIFO** — bulk 68000→SH2 transfer; SH2 DMAC selects the SDRAM destination
 3. **Frame Buffer** — 128KB per bank, access controlled by FM bit
+
+The two SH2s also share SDRAM at `$06000000-$0603FFFF` (cache-through
+`$26000000-$2603FFFF`), but the 68000 cannot address it directly.
 
 ### Cache-Through for Shared Data
 

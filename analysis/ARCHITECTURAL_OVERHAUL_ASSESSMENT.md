@@ -1,8 +1,13 @@
 # Architectural Overhaul Assessment — Virtua Racing Deluxe 32X
 
 **Date:** March 11, 2026
-**Status:** Living document — updated as ideas are evaluated
+**Status:** Historical architecture survey; current execution truth is in `../VR60_STATUS.md`
 **Purpose:** Comprehensive catalog of WHY the engine architecture limits performance, and EVERY opportunity for improvement. No idea dismissed without evidence.
+
+> **2026-07-21 correction:** Early sections preserve obsolete 14-command, CPU-bottleneck,
+> and memory-map assumptions. They are research history, not the current roadmap. Normal 1P
+> cadence is dispatcher-controlled, the 68000 remains authoritative, and SH2 cartridge ROM is
+> `$02000000` while SDRAM is `$06000000` (cache-through `$26000000`).
 
 ---
 
@@ -106,7 +111,7 @@ Each opportunity is rated on:
 
 **How it works:**
 1. 68K writes command params directly to SDRAM via... wait. Can the 68K write to SDRAM?
-   - **68K cannot directly access SH2 SDRAM.** SDRAM is at $02000000-$0203FFFF on SH2, not mapped to any 68K address.
+   - **68K cannot directly access SH2 SDRAM.** SDRAM is at `$06000000-$0603FFFF` on SH2, not mapped to any 68K address.
    - Shared writable memory: COMM registers (16 bytes), SDRAM (via SH2 only), Frame Buffer (FM-controlled).
    - The 68K CAN access ROM at banked addresses, but ROM is read-only.
 
@@ -383,7 +388,7 @@ The 68K already has camera position and orientation. A simple dot product + thre
 
 #### 7B. SDRAM Layout Optimization
 
-**Concept:** The SH2 SDRAM ($02000000-$0203FFFF, 256KB) holds both code and data. Layout affects cache performance and bus contention.
+**Concept:** The SH2 SDRAM (`$06000000-$0603FFFF`, 256KB) holds runtime code/data loaded by the boot process. Layout affects cache performance and bus contention.
 
 **Approach:**
 - Separate hot code from hot data in SDRAM to reduce cache line conflicts

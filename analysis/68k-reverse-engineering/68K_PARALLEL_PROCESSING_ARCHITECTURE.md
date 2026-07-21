@@ -1,5 +1,9 @@
 # 68K ↔ SH2 Parallel Processing Architecture (v4.0)
 
+> **HISTORICAL / INVALID MEMORY MAP:** `$2203E000` is cache-through cartridge ROM,
+> not SDRAM. The inactive design below never established writable parameter sharing;
+> intended SH2 SDRAM would be `$2603E000`. See `../../VR60_STATUS.md`.
+
 **Project**: Virtua Racing Deluxe (USA).32x - Performance Optimization
 **Implementation**: v4.0 - Infrastructure ready, activation pending
 **Status**: ⚠️ EXPERIMENTAL - Shadow path validated, live activation deferred due to timing concerns

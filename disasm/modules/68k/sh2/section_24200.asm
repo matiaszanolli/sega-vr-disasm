@@ -10,7 +10,10 @@
 ; The 68000 stores this as raw data which gets DMA'd to SH2 memory.
 ;
 ; SH2 Address Mapping:
-;   ROM offset $024200 -> SH2 SDRAM $02024200 (when loaded)
+;   ROM offset $024200 -> runtime SH2 SDRAM $06004200 (boot-loaded image)
+;   Per-function "Address: $02024xxx" labels below name the SH2 cartridge-ROM
+;   view of the boot image, not execution addresses. In this section the
+;   corresponding runtime labels are $06004xxx (for example $02024200 -> $06004200).
 ;
 ; Disassembly notes:
 ;   - DC.W data preserved for byte-perfect builds

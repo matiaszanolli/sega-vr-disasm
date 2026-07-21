@@ -1,7 +1,13 @@
 # PicoDrive Performance Testing - v4.0
 
 **Date**: January 25, 2026
+**Status**: Historical/invalid experiment; do not use as current performance evidence
 **Purpose**: Compare performance between original ROM and v4.0 parallel processing ROM
+
+> **2026-07-21 correction:** `$2203E000` is cache-through cartridge ROM, not writable
+> SDRAM, and the Slave remained in its original idle loop. The claimed parameter sharing and
+> expected speedup below were therefore never established. A revival would need `$2603E000`
+> plus an independently verified Slave boot/dispatch path.
 
 ---
 
@@ -102,13 +108,13 @@ COMM7: Alternates 0x0000 / 0x0016 (signals sent to Slave)
 ```
 
 The vertex_transform trampoline at $0234C8:
-1. Captures parameters (R14, R7, R8, R5) to 0x2203E000
+1. Attempts to capture parameters (R14, R7, R8, R5) to invalid ROM alias 0x2203E000
 2. Writes COMM7 = 0x16 (signals Slave)
 3. Returns immediately (Master continues)
 
 The Slave SH2:
 1. Polls COMM7 in loop at $300200
-2. When COMM7 = 0x16, loads parameters from 0x2203E000
+2. When COMM7 = 0x16, attempts to load parameters from invalid ROM alias 0x2203E000
 3. Executes `vertex_transform_optimized` at $300100
 4. Increments COMM5 by 101 on completion
 
@@ -196,7 +202,7 @@ Even with fixed PicoDrive, v4.0 ROM Slave remains stuck at PC=0x06000596:
 
 The expansion ROM infrastructure is complete:
 - ✅ `slave_work_wrapper` at 0x02300200 polls COMM7
-- ✅ `slave_test_func` at 0x02300280 reads parameters from 0x2203E000
+- ⚠ `slave_test_func` at 0x02300280 contains the invalid 0x2203E000 ROM-alias literal
 - ✅ `vertex_transform_optimized` at 0x02300100 executes transform
 
 Missing piece: **Redirect Slave to expansion ROM at boot**

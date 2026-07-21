@@ -1,5 +1,5 @@
 /*
- * Queue Processor - Dequeue and Forward Commands to Slave SH2
+ * Queue Processor - DORMANT/INVALID historical design
  * ROM File Offset: Expansion ROM $300C00
  * SH2 Address: 0x02300C00 (expansion ROM cached)
  *
@@ -11,7 +11,10 @@
  * Uses the EXACT SAME 3-phase COMM protocol as the original 68K code
  * (see sh2_cmd_27 at $00E3B4 in sh2_communication.asm).
  *
- * RING BUFFER LAYOUT (SDRAM $2203F000)
+ * INVALID LAYOUT: $2203F000 is cartridge ROM, not SDRAM. Even correcting
+ * it to $2603F000 would not let the 68000 producer write SH2 SDRAM. This
+ * reserved handler was never activated and must remain dormant.
+ * HISTORICAL RING BUFFER LAYOUT
  * -------------------------------------
  * $2203F000-$2203F1FF: 64 entries × 8 bytes = 512 bytes
  *   Each entry: [cmd:16][param1:16][param2:16][param3:16]
@@ -130,11 +133,11 @@ queue_processor:
  * ======================================================================== */
 .align 4
 head_ptr_addr:
-    .long 0x2203F200            /* Head pointer address (cache-through SDRAM) */
+    .long 0x2203F200            /* INVALID legacy ROM alias; dormant */
 tail_ptr_addr:
-    .long 0x2203F204            /* Tail pointer address (cache-through SDRAM) */
+    .long 0x2203F204            /* INVALID legacy ROM alias; dormant */
 ring_buf_base:
-    .long 0x2203F000            /* Ring buffer base address (cache-through SDRAM) */
+    .long 0x2203F000            /* INVALID legacy ROM alias; dormant */
 comm_base:
     .long 0x20004020            /* COMM base address (COMM0) */
 handshake_ready:

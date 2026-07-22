@@ -37,12 +37,12 @@ This file is the short, current answer to “what works now?” Older roadmap en
 ## Current milestone: restore a trustworthy baseline
 
 The [fail-closed validator](tools/libretro-profiling/VRD_PROFILING.md#normal-1p-control-validator),
-reviewed hook-bypass control pair, and a fresh normal-1P candidate fixture are now implemented.
-The milestone remains open because the deterministic replay and full 18,000-frame control do not
-yet exist. The old GP state remains blocked by SHA-256. Acceptance policy is fixed, and
-diagnostic/offline-analysis overrides always force a failing result. Normal runs also require a
-new output path and the reviewed frontend/core identities, so stale artifacts or arbitrary
-binaries cannot produce PASS.
+reviewed hook-bypass control pair, fresh normal-1P candidate fixture, and complete deterministic
+replay are now implemented. The milestone remains open because the short preflight and full
+18,000-frame control have not run. The old GP state remains blocked by SHA-256. Acceptance policy
+is fixed, and diagnostic/offline-analysis overrides always force a failing result. Normal runs
+also require a new output path and the reviewed frontend/core identities, so stale artifacts or
+arbitrary binaries cannot produce PASS.
 
 **VR60-002 is complete:** the canonical libretro/PicoDrive frontend now has a real-ROM debugger
 whose CPU/game-memory inspection remains read-only. It advances frames, reads Master/Slave SH2
@@ -74,11 +74,19 @@ only because short diagnostics can never qualify as a control. This operationall
 fixture for the next issue; it does not establish the root cause or generic semantics of the
 initial cmd `$02`/COMM0 interval.
 
-The current work item is **VR60-006**: record one complete deterministic replay for this state.
-Because the accepted recipe has 360 warmup frames before 18,000 validation frames, the canonical
-CSV must contain exactly 18,360 rows numbered `0..18359`. The short preflight and full control
-remain separate follow-up issues (VR60-007 and VR60-008); see the near-term issue queue in
-`VR60_ROADMAP.md`.
+**VR60-006 is complete:**
+`tools/libretro-profiling/fixtures/vr60_006_control_replay.csv` was recorded through the real
+frontend from the VR60-005 state with the same held-A (`0x0100`) recipe. It is 227,581 bytes and
+has SHA-256 `07e71d174468de98f3327efdfd70116ae92500add08911b376aaa40b12994ab5`.
+Its exact header is `frame,mask`; its 18,360 data rows are contiguous and ordered `0..18359`.
+The validator parser accepted it, and a complete `VRD_INPUT_SCRIPT` replay re-recorded the same
+18,360 rows byte-for-byte with the same hash. This proves deterministic capture/replay, not
+five-minute gameplay liveness.
+
+The current work item is **VR60-007**: run the exact first 2,160 rows of that replay as a
+360-frame-warmup plus 1,800-frame preflight. It must meet every functional liveness criterion and
+still fail only the mandatory short-run rule. The full control remains the separate VR60-008
+follow-up; see the near-term issue queue in `VR60_ROADMAP.md`.
 
 Do not enable another offload stage until a test fixture or deterministic input harness passes all of these checks with the VR60 hook bypassed:
 

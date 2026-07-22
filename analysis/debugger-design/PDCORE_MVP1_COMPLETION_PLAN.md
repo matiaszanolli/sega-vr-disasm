@@ -1,9 +1,14 @@
 # pdcore MVP-1 Completion Plan - Haiku Execution Guide
 
+> **Superseded implementation plan (2026-07-21).** Do not execute these steps against the
+> archived PDCORE tree. It cannot load or schedule the real 32X ROM. Debugger work now extends
+> the canonical libretro/PicoDrive frontend; its first read-only slice is documented in
+> `tools/libretro-profiling/VRD_PROFILING.md#real-rom-debugger-mode`.
+
 **Date:** 2026-01-21
 **Target:** Complete pdcore debugger for Phase 11 Slave hook integration
 **Estimated Effort:** 8-12 hours
-**Status:** 85% complete - requires PicoDrive integration and testing
+**Historical status:** Claimed 85% complete; real PicoDrive integration was never achieved
 
 ---
 
@@ -789,4 +794,3 @@ Once MVP-1 is complete, Phase 11 can use pdcore to:
 
 **Status:** Ready for Haiku execution
 **Estimated completion:** 8-12 hours of focused work
-

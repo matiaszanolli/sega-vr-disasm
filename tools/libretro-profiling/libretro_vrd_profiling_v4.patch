@@ -84,10 +84,10 @@ index 0078522..eabb5eb 100644
    SekCyclesLeft = 0;
  }
 diff --git a/platform/libretro/libretro.c b/platform/libretro/libretro.c
-index a6f2bf6..ad3a641 100644
+index a6f2bf6..b8b2f39 100644
 --- a/platform/libretro/libretro.c
 +++ b/platform/libretro/libretro.c
-@@ -94,6 +94,215 @@ static retro_input_state_t input_state_cb;
+@@ -94,6 +94,314 @@ static retro_input_state_t input_state_cb;
  static retro_environment_t environ_cb;
  static retro_audio_sample_batch_t audio_batch_cb;
  
@@ -154,6 +154,66 @@ index a6f2bf6..ad3a641 100644
 +extern u32 REGPARM(2) p32x_sh2_read8(u32 a, SH2 *sh2);
 +extern u32 REGPARM(2) p32x_sh2_read16(u32 a, SH2 *sh2);
 +
++/* Stable, read-only debugger ABI for the repository's headless frontend.
++ * Keep this independent of SH2's internal layout so frontend and core can
++ * validate their ABI explicitly. CPU ids: 0=68K, 1=Master SH2, 2=Slave SH2. */
++struct vrd_debug_sh2_regs {
++    u32 r[16];
++    u32 pc, pr, sr, gbr, vbr, mach, macl;
++    u32 state, poll_addr;
++    int poll_cnt;
++};
++
++unsigned vrd_debug_abi_version(void)
++{
++    return 1;
++}
++
++size_t vrd_debug_sh2_regs_size(void)
++{
++    return sizeof(struct vrd_debug_sh2_regs);
++}
++
++int vrd_debug_get_sh2_regs(unsigned cpu_id, struct vrd_debug_sh2_regs *out)
++{
++    SH2 *sh2;
++
++    if (!out || !(PicoIn.AHW & PAHW_32X) || (cpu_id != 1 && cpu_id != 2))
++        return 0;
++    sh2 = cpu_id == 1 ? &msh2 : &ssh2;
++    memcpy(out->r, sh2->r, sizeof(out->r));
++    out->pc = sh2->pc;
++    out->pr = sh2->pr;
++    out->sr = sh2->sr;
++    out->gbr = sh2->gbr;
++    out->vbr = sh2->vbr;
++    out->mach = sh2->mach;
++    out->macl = sh2->macl;
++    out->state = sh2->state;
++    out->poll_addr = sh2->poll_addr;
++    out->poll_cnt = sh2->poll_cnt;
++    return 1;
++}
++
++int vrd_debug_read(unsigned cpu_id, u32 addr, void *data, size_t size)
++{
++    unsigned char *out = data;
++    size_t i;
++
++    if (!out || size == 0 || cpu_id > 2)
++        return 0;
++    if (cpu_id != 0 && !(PicoIn.AHW & PAHW_32X))
++        return 0;
++    for (i = 0; i < size; i++) {
++        if (cpu_id == 0)
++            out[i] = PicoCpuFM68k.read_byte((addr + (u32)i) & 0x00ffffff);
++        else
++            out[i] = p32x_sh2_read8(addr + (u32)i,
++                cpu_id == 1 ? &msh2 : &ssh2);
++    }
++    return 1;
++}
++
 +/* Generic read routed to the right bus: 68K (ROM/WRAM) vs SH2 (FB/SDRAM/etc). */
 +static unsigned vrd_r16(unsigned addr) {
 +    extern M68K_CONTEXT PicoCpuFM68k;
@@ -187,6 +247,27 @@ index a6f2bf6..ad3a641 100644
 +static char  vrd_dump_file[256] = "";
 +static int   vrd_fb_crc_on = 0;
 +static unsigned vrd_scene_addr = 0xC87E;   /* 68K game-state word ($FFC87E) */
++static int   vrd_sh2_state_on = 0;   /* VRD_SH2_STATE=1: append Master SH2 core
++                                        scheduling state to the watch log --
++                                        diagnostic-tool-only, no game ROM
++                                        touched. See
++                                        analysis/VR60_PHASE1_CMD3E_ACK_HANG.md
++                                        Session 7. */
++static long  vrd_caller_trace_addr = -1;  /* VRD_CALLER_TRACE=hex: 68K PC to watch;
++                                        on hit, log the JSR return address found
++                                        at A7 (top of stack) -- empirically finds
++                                        a function's real caller when static
++                                        grep can't (self-modified/dynamic call
++                                        sites). Emulator-only, no game ROM
++                                        touched. See
++                                        analysis/VR60_PHASE1_CMD3E_ACK_HANG.md
++                                        Session 2026-07-13 §16. */
++static FILE *vrd_caller_trace_log = NULL;
++static unsigned int vrd_caller_trace_hits = 0;
++static unsigned int vrd_caller_trace_logged = 0;
++/* Zero means unlimited. A non-zero cap exists only for ad-hoc diagnostics; the
++ * control validator rejects a trace whose footer reports dropped hits. */
++static unsigned int vrd_caller_trace_max = 0;
 +
 +static void vrd_parse_watch(const char *s) {
 +    while (s && *s && vrd_watch_n < VRD_MAX_WATCH) {
@@ -280,6 +361,24 @@ index a6f2bf6..ad3a641 100644
 +        }
 +    }
 +
++    /* VRD_CALLER_TRACE: on hitting the watched PC, read the JSR return
++     * address off the top of the 68K stack (A7) -- reveals the real caller
++     * even for self-modified/dynamic call sites static grep can't find. */
++    if (cpu_id == 0 && vrd_caller_trace_addr >= 0 &&
++        (unsigned)vrd_caller_trace_addr == pc) {
++        extern M68K_CONTEXT PicoCpuFM68k;
++        unsigned int sp = PicoCpuFM68k.areg[7].D;
++        unsigned int ret = PicoCpuFM68k.read_long(sp);
++        vrd_caller_trace_hits++;
++        if (vrd_caller_trace_log &&
++            (vrd_caller_trace_max == 0 ||
++             vrd_caller_trace_logged < vrd_caller_trace_max)) {
++            fprintf(vrd_caller_trace_log, "%d,0x%X,0x%X\n", vrd_profile_frame, sp, ret);
++            fflush(vrd_caller_trace_log);
++            vrd_caller_trace_logged++;
++        }
++    }
++
 +    t = vrd_pc_table[cpu_id];
 +    hash = (pc >> 1) & VRD_PC_HASH_MASK;
 +
@@ -303,7 +402,7 @@ index a6f2bf6..ad3a641 100644
  #define VOUT_MAX_WIDTH 320
  #define VOUT_MAX_HEIGHT 240
  
-@@ -1960,6 +2169,8 @@ static void update_variables(bool first_run)
+@@ -1960,6 +2208,8 @@ static void update_variables(bool first_run)
        else
           PicoIn.opt &= ~POPT_EN_DRC;
     }
@@ -312,7 +411,7 @@ index a6f2bf6..ad3a641 100644
  #endif
  #ifdef _3DS
     if(!ctr_svchack_successful)
-@@ -2406,8 +2617,211 @@ void retro_run(void)
+@@ -2406,8 +2656,235 @@ void retro_run(void)
        update_audio_latency = false;
     }
  
@@ -355,9 +454,22 @@ index a6f2bf6..ad3a641 100644
 +      { const char *fc = getenv("VRD_FB_CRC");     if (fc && atoi(fc) > 0) vrd_fb_crc_on = 1; }
 +      { const char *sa = getenv("VRD_SCENE_ADDR"); vrd_scene_addr = sa ? (unsigned)strtoul(sa,0,16) : 0xFFC87E; }
 +      { const char *sf = getenv("VRD_SCENE");      if (sf) vrd_scene_filter = (long)strtoul(sf,0,16); }
++      { const char *ss = getenv("VRD_SH2_STATE");  if (ss && atoi(ss) > 0) vrd_sh2_state_on = 1; }
++      { const char *ct = getenv("VRD_CALLER_TRACE"); if (ct) vrd_caller_trace_addr = (long)strtoul(ct, 0, 16); }
++      { const char *cm = getenv("VRD_CALLER_TRACE_MAX"); if (cm) vrd_caller_trace_max = (unsigned)strtoul(cm, 0, 0); }
++      { const char *cl = getenv("VRD_CALLER_TRACE_LOG"); if (cl) vrd_caller_trace_log = fopen(cl, "w"); }
++      if (vrd_caller_trace_log) {
++         fprintf(vrd_caller_trace_log,
++                 "# VRD_CALLER_TRACE addr=0x%lX pc_enabled=%d max_hits=%u\n",
++                 vrd_caller_trace_addr, vrd_profile_pc_enabled,
++                 vrd_caller_trace_max);
++         fprintf(vrd_caller_trace_log, "frame,sp,return_addr\n");
++      }
 +      if (vrd_watch_log) {
 +         int wi; fprintf(vrd_watch_log, "frame");
 +         for (wi = 0; wi < vrd_watch_n; wi++) fprintf(vrd_watch_log, ",0x%X", vrd_watch_addr[wi]);
++         if (vrd_sh2_state_on)
++            fprintf(vrd_watch_log, ",msh2_state,msh2_poll_addr,msh2_poll_cnt");
 +         fprintf(vrd_watch_log, "\n");
 +      }
 +   }
@@ -382,6 +494,8 @@ index a6f2bf6..ad3a641 100644
 +         int wi; fprintf(vrd_watch_log, "%d", vrd_profile_frame);
 +         for (wi = 0; wi < vrd_watch_n; wi++)
 +            fprintf(vrd_watch_log, ",0x%X", vrd_readN(vrd_watch_addr[wi], vrd_watch_size[wi]));
++         if (vrd_sh2_state_on)
++            fprintf(vrd_watch_log, ",0x%X,0x%X,0x%X", msh2.state, msh2.poll_addr, msh2.poll_cnt);
 +         fprintf(vrd_watch_log, "\n");
 +      }
 +      if ((long)vrd_profile_frame == vrd_dump_frame) vrd_dump_regions();
@@ -516,6 +630,15 @@ index a6f2bf6..ad3a641 100644
 +
 +            fclose(vrd_profile_pc_log); vrd_profile_pc_log = NULL;
 +            vrd_profile_pc_enabled = 0;
++         }
++         if (vrd_caller_trace_log) {
++            fprintf(vrd_caller_trace_log,
++                    "# COMPLETE frames=%d hits=%u logged=%u dropped=%u\n",
++                    vrd_profile_max_frames, vrd_caller_trace_hits,
++                    vrd_caller_trace_logged,
++                    vrd_caller_trace_hits - vrd_caller_trace_logged);
++            fclose(vrd_caller_trace_log);
++            vrd_caller_trace_log = NULL;
 +         }
 +      }
 +   }

@@ -13,6 +13,28 @@ Run the game headlessly with `profiling_frontend <rom> <frames> [--autoplay]`.
 `--autoplay` navigates into Free Run/TT (`$5586`), not normal 1P GP racing
 (`$4CBC`); **omit it** to let the attract/demo 3D sequence run.
 
+## Real-ROM debugger mode
+
+`profiling_frontend` is also the supported PicoDrive debugger. This replaces the false
+“MVP complete” status of `_archive/pdcore`, whose ROM loader is a stub. Interactive and scripted
+modes use the same real libretro core as profiling:
+
+```bash
+cd tools/libretro-profiling
+./profiling_frontend ../../build/vr_rebuild.32x --debug
+./profiling_frontend ../../build/vr_rebuild.32x \
+  --debug-script debugger_smoke.commands
+```
+
+Commands are `run [frames]`, `regs [master|slave]`,
+`read <68k|master|slave> <address> [size]`, `save <path>`, `load <path>`, `status`,
+`help`, and `quit`. Reads are capped at 4096 bytes per command. This first slice is intentionally
+read-only with respect to CPU/game memory; writes, breakpoints, input recording, and disassembly
+remain independent issues. `save` uses the core's current serialization size; `load` accepts a
+bounded file and fails if PicoDrive's `retro_unserialize` rejects it. Older compatible sizes are
+therefore preserved—the current known GP fixture is smaller than a newly saved state but remains
+load-compatible.
+
 ## Mandatory validity gate for 1P results
 
 Do not call an FPS, CPU-budget, or regression result “current” until its control run proves:
@@ -27,6 +49,67 @@ Do not call an FPS, CPU-budget, or regression result “current” until its con
 long-run control**: it eventually stops advancing `$C87E` even when the VR60 1P hook is
 physically bypassed. The former 724-unique-hash result and freeze attribution are retracted.
 Capture a fresh durable fixture or deterministic input sequence before publishing a new baseline.
+
+## Normal-1P control validator
+
+`validate_1p_control.py` is the fail-closed gate for this milestone. A PASS requires at least
+18,000 validation frames (about five minutes, 100 independent 180-frame windows). It runs the
+frontend and checks the full `$FF0002 = $00884CBC` pointer, contiguous frames, the `$C87E`
+`0→4→8→C→0` cycle in every fixed window, an unlimited exact trace of
+`game_frame_orch_013` at `$884D1A` (expected return address `$FF0006`), framebuffer
+changes, non-stuck COMM0/COMM2/COMM7 lanes, and non-idle work on both SH2s. It records
+the candidate/reference ROM, tooling, input, and savestate SHA-256 values plus all raw artifacts
+in the output directory. Acceptance uses fixed 180-frame windows and fixed reviewed liveness
+thresholds; these values, the scene pointer, hook address, hook return, and canonical fixture
+blacklist are not replaceable from the command line.
+
+A control ROM is eligible only when it is compared with a preserved live branch build. The
+reference must contain the live VR60 jump `4EF90001C8B04E71` at file offset `$4D62`; the
+candidate must contain the reviewed original two-JSR bypass `4EBA69764EBA691C`; their sizes and
+every byte outside that eight-byte span must match exactly. Produce the bypass from assembly
+source in a disposable diagnostic branch/worktree, preserving the live ROM first. This proves
+that hook isolation—not merely plausible bytes at one offset—defines the control. Do not
+raw-patch the production ROM.
+
+The SHA-256 policy in `control_fixtures.json` permanently marks the existing GP savestate as
+`invalid_control`, even if it is renamed. Diagnostic override switches permit reproducing an
+invalid state or active-hook ROM, but inject an unconditional failure so that such a run can
+never be blessed accidentally.
+
+```bash
+# Candidate control (requires a reviewed hook-bypass ROM and a fresh candidate state):
+python3 tools/libretro-profiling/validate_1p_control.py /path/to/bypass.32x \
+  --reference-rom /path/to/preserved-live-branch.32x \
+  --savestate /path/to/candidate.bin --input-script /path/to/replay.csv \
+  --frames 18000 --output-dir /tmp/vrd-control
+
+# Reproduce the known invalid combination; non-zero exit is required:
+python3 tools/libretro-profiling/validate_1p_control.py build/vr_rebuild.32x \
+  --reference-rom build/vr_rebuild.32x \
+  --savestate tools/libretro-profiling/savestate_1p_gp_racing.bin \
+  --frames 1800 --output-dir /tmp/vrd-known-bad \
+  --diagnose-invalid-fixture --diagnose-rom-mismatch --diagnose-short-run
+
+# Focused analyzer tests, from the repository root:
+python3 -m unittest tools/libretro-profiling/test_validate_1p_control.py -v
+```
+
+An input replay is a complete CSV with header `frame,mask` and exactly one row for every
+emulated frame from `0` through `warmup + validation - 1`; masks use the libretro joypad bitset
+(`0x100` is A/accelerate). Sparse, duplicate, out-of-order, or short replays are rejected before
+emulation. With no replay, the validator uses the fixed `--hold-input` mask, which is useful for
+diagnostics but may not be enough to drive a five-minute multi-lap control.
+
+`--analyze-only` can inspect an existing artifact directory without replacing its `run.json` or
+`result.json`; it writes `analysis-result.json` and always injects a diagnostic failure. It also
+reports whether the current ROM/tool hashes and run arguments match the recorded provenance.
+Offline CSVs therefore cannot be promoted into a control PASS.
+
+The COMM watch is sampled only after each emulated frame. It can prove that a command or
+doorbell lane became stuck, but it can miss a valid set/clear handshake that completes within
+one frame. It therefore does not require a sampled COMM1 done bit and does not claim direct
+per-command observation; later `$3E`/`$3F` stages still need access-event instrumentation or an
+execution sentinel.
 
 ## Environment variables
 
@@ -46,12 +129,16 @@ Capture a fresh durable fixture or deterministic input sequence before publishin
 | `VRD_SCENE_ADDR=hex` | 68K game-state word logged as `state` (default `FFC87E`) |
 | `VRD_LOAD_STATE=path` | Load a savestate (`retro_unserialize`) before the frame loop starts. Use this for scenes `--autoplay` cannot reach. Format-compatible with standalone PicoDrive savestates; gunzip `.gz` first. Validate the fixture independently—loading successfully does not make it a durable control. The current GP fixture eventually stalls `$C87E`. |
 | `VRD_HOLD_INPUT=mask` | Hold a joypad bitmask from frame 0, independent of `--autoplay`'s menu-navigation timing (which assumes frame 0 = boot). E.g. `0x100` = hold A/accelerate. Use when resuming from a savestate that needs sustained input immediately, not 1200 frames in. |
-| `VRD_CALLER_TRACE=hex_addr` (+ `VRD_CALLER_TRACE_LOG=path`) | On every 68K PC sample that exactly matches `hex_addr`, read the JSR return address off the top of the 68K stack (A7) and log `frame,sp,return_addr` (capped at 50 hits). Reveals a function's *real* caller even when it's reached via a self-modified/dynamic call site static grep can't find. **Important**: this is an exact counter, unlike the PC histogram — use it to confirm/refute "does this code path ever execute," since the histogram is top-200/cycle-sorted and can silently miss real-but-low-cycle-cost addresses (see `analysis/VR60_PHASE1_CMD3E_ACK_HANG.md` §17 for a case where this caused a false "dead code" conclusion). Requires `VRD_PROFILE_PC=1` **and** `VRD_PROFILE_PC_LOG=path` both set — `VRD_PROFILE_PC` alone silently no-ops without a log path. |
+| `VRD_INPUT_SCRIPT=path` | Complete deterministic CSV replay (`frame,mask`) covering every frontend frame. It takes precedence over autoplay/hold input; missing or duplicate frames fail before emulation. |
+| `VRD_CALLER_TRACE=hex_addr` (+ `VRD_CALLER_TRACE_LOG=path`) | On every exact 68K PC match, read A7 and log `frame,sp,return_addr`. The tracked v4 patch now defaults to an unlimited trace and writes a `COMPLETE` footer with total/logged/dropped counts, so late-window recurrence can be proved. Requires `VRD_PROFILE_PC=1` and `VRD_PROFILE_PC_LOG=path`. |
+| `VRD_CALLER_TRACE_MAX=N` | Optional diagnostic cap; `0` (default) is unlimited. The control validator rejects any non-zero cap, missing completion footer, or dropped hit. |
 
 Addresses route by bus automatically: `<0x400000` or `$FF0000-$FFFFFF` → 68K;
 other addresses at or above `$400000` → SH2. Consequently, do **not** watch 68K-side
 COMM addresses such as `$A15120`; they are routed to the SH2 reader. Use cache-through
 SH2 COMM aliases instead (`$20004020` = COMM0_HI, then the documented register offsets).
+COMM7 is a 16-bit doorbell and must be watched as `$2000402E:2`; watching only byte
+`$2000402E:1` sees its usually-zero high byte and can miss a stuck `$0027` value.
 
 ## Recipes
 

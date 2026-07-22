@@ -36,6 +36,27 @@ This file is the short, current answer to “what works now?” Older roadmap en
 
 ## Current milestone: restore a trustworthy baseline
 
+The [fail-closed validator](tools/libretro-profiling/VRD_PROFILING.md#normal-1p-control-validator)
+is now implemented; the milestone remains open because no fresh
+fixture plus reviewed hook-bypass ROM has passed it. The known GP state is blocked by SHA-256,
+and the current live-hook ROM is ineligible for a control run. A candidate must be byte-identical
+to a preserved live branch ROM outside the reviewed eight-byte hook delta; both ROM hashes and
+the comparison are recorded. Acceptance policy is fixed, and diagnostic/offline-analysis
+overrides always force a failing result. Normal runs also require a new output path and the
+reviewed frontend/core identities, so stale artifacts or arbitrary binaries cannot produce PASS.
+
+**VR60-002 is complete:** the canonical libretro/PicoDrive frontend now has a real-ROM,
+read-only debugger mode. It advances frames, reads Master/Slave SH2 registers, reads 68K or SH2
+memory, and saves/loads matching libretro states. Its tracked smoke script reached non-zero live
+SH2 state after 120 frames; the old `_archive/pdcore` stub remains retired because its ROM loader
+is still `Not implemented`.
+
+The current work item is **VR60-003**: add explicit joypad control and exact per-frame input
+recording to debugger mode, then prove a recorded 600-frame session replays byte-for-byte. The
+control ROM, fresh state, full replay capture, short preflight, and full control are separate
+follow-up issues (VR60-004 through VR60-008); see the near-term issue queue in
+`VR60_ROADMAP.md`.
+
 Do not enable another offload stage until a test fixture or deterministic input harness passes all of these checks with the VR60 hook bypassed:
 
 1. It enters the intended 1P scene (`$FF0002 = $00884CBC`).

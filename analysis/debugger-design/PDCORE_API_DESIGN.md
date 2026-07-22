@@ -1,5 +1,9 @@
 # PicoDrive Debugger Core API Design (`pdcore.h`)
 
+> **Historical API research (2026-07-21).** The archived PDCORE implementation never loaded
+> the real ROM. Current debugger work uses the libretro/PicoDrive ABI documented in
+> `tools/libretro-profiling/VRD_PROFILING.md#real-rom-debugger-mode`.
+
 **Date**: 2026-01-10
 **Purpose**: Stable C interface for 32X/SH2 deterministic debugging and profiling
 **Target**: MVP-1 implementation (1-2 evenings)

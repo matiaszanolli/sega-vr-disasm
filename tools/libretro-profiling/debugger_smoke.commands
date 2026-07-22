@@ -1,0 +1,12 @@
+# VR60-002: minimum real-ROM debugger acceptance script.
+run 120
+regs master
+regs slave
+read 68k 0x000000 16
+read master 0x02000000 16
+read slave 0x06000000 16
+save /tmp/vrd-debugger-smoke.state
+run 1
+load /tmp/vrd-debugger-smoke.state
+status
+quit

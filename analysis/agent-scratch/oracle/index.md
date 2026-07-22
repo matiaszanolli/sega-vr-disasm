@@ -73,6 +73,8 @@
 | Path | Purpose | Key Topics | Note |
 |------|---------|-----------|------|
 | tools/libretro-profiling/README_68K_PC_PROFILING.md | How to profile VRD | Frame-level + PC-level hotspots, toolchain, baseline setup | Profiling how-to |
+| tools/libretro-profiling/VRD_PROFILING.md | Current profiling and normal-1P control gate | `validate_1p_control.py`, complete input replay, ≥18K-frame minimum, fixed acceptance policy, canonical fixture SHA blacklist, exact live-reference/hook-bypass ROM comparison, state/hook/FB/COMM liveness | Current VR60 measurement authority |
+| tools/libretro-profiling/profiling_frontend.c | Canonical real-ROM debugger and profiling frontend | `--debug`, `--debug-script`, frame advance, Master/Slave registers, bus-explicit memory reads, exact-size savestate save/load | Read-only debugger foundation; archived PDCORE cannot load ROM |
 | analysis/profiling/68K_BOTTLENECK_ANALYSIS.md | THE critical finding: 68K at 100.1% | Cycle counts, utilization proof, SH2 optimization futility | Performance root cause evidence |
 | analysis/optimization/COMM_REGISTER_USAGE_ANALYSIS.md | COMM usage per call site (async safety) | 15 safe / 2 unsafe sites, buffer dependency analysis | ⚠ SH2 addresses offset by 2 for COMM1+ (known error) |
 | analysis/VDP_POLLING_ANALYSIS.md | VDP polling locations in 68K code | ~71 polling sites, $FFFFC80E dependency, async safety | VDP optimization prerequisite |
@@ -496,6 +498,8 @@ $020476: NOP
 
 17. **`VRD_PROFILE_PC`'s exported histogram is top-200, cycle-sorted — absence of an address there does NOT prove it never executes.** A real address (`game_frame_orch_013`, `$884D1A`) was declared "dead code" after showing zero hits across 28.5M samples, then proven to fire 50+ times in a 600-frame window using `VRD_CALLER_TRACE` (an exact, non-truncated JSR-return-address counter added 2026-07-13). The address simply had low enough per-hit cycle cost to fall outside the top 200 entries by total cycles. Also: `VRD_PROFILE_PC=1` silently disables itself if `VRD_PROFILE_PC_LOG` isn't also set (a fallback in `libretro.c` forces `vrd_profile_pc_enabled=0` when the log file didn't open) — always pass both together. Before concluding any code path "never executes," cross-check with `VRD_CALLER_TRACE=<hex addr>` (reads the JSR return address off the 68K stack when the watched PC is hit), not just histogram absence.
 
+18. **A per-frame COMM watch is a stuck-lane detector, not an access-event trace.** A command can set and clear COMM0/COMM1/COMM2 entirely inside one emulated frame, so absence of sampled variation or COMM1_LO=1 is not failure. Check long non-zero streaks at cache-through SH2 aliases, corroborate with non-idle SH2 work, and use access-event instrumentation or an execution sentinel when a later phase must prove a specific command ran. COMM7 is a word doorbell: watch `$2000402E:2`, not its usually-zero high byte alone.
+
 ---
 
 ## Section 4: Where-to-Find Cross-Reference
@@ -510,6 +514,7 @@ $020476: NOP
 | Slave SH2 behavior (polling, dispatch, pixel processing) | analysis/ARCHITECTURAL_BOTTLENECK_ANALYSIS.md | analysis/SYSTEM_EXECUTION_FLOW.md |
 | Frame execution flow (V-INT, main loop, state dispatch) | analysis/SYSTEM_EXECUTION_FLOW.md | analysis/ARCHITECTURAL_BOTTLENECK_ANALYSIS.md |
 | Profiling methodology + tool usage | tools/libretro-profiling/README_68K_PC_PROFILING.md | analysis/profiling/68K_BOTTLENECK_ANALYSIS.md |
+| Normal-1P durable control validation | tools/libretro-profiling/VRD_PROFILING.md § Normal-1P control validator | VR60_STATUS.md § Current milestone; candidate/reference ROMs must match outside the reviewed 8-byte hook delta |
 | Expansion ROM layout + active handlers | disasm/sections/expansion_300000.asm | BACKLOG.md §B-003/B-004 |
 | B-003 async cmd_27 design | BACKLOG.md §B-003 | analysis/68K_SH2_COMMUNICATION.md §B-003 |
 | B-004 single-shot cmd_22 design | BACKLOG.md §B-004 | analysis/68K_SH2_COMMUNICATION.md §B-004 |

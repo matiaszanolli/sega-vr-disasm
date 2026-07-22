@@ -1,12 +1,16 @@
 # PicoDrive Debugger Core (pdcore)
 
+> **Archived stub, not a working emulator debugger.** Despite the historical completion claims
+> below, `pd_load_rom()` returns `Not implemented` and the green tests use bridge stubs. Use the
+> real libretro/PicoDrive debugger in `tools/libretro-profiling/` instead.
+
 **Frame-perfect, deterministic debugger for Sega 32X emulation**
 
 A production-grade debugging layer for PicoDrive that provides cycle-accurate breakpoints, memory introspection, CPU state manipulation, and execution control for Sega 32X development.
 
 ## Features
 
-### Core Capabilities (MVP-1 Complete)
+### Historically claimed capabilities (stub-tested only)
 - ✅ **Execution Breakpoints** - Handler-based breakpoints with HALT/CONTINUE/DISABLE actions
 - ✅ **Memory Access** - Bus-aware read/write across all 32X memory regions
 - ✅ **CPU State Inspection** - Full access to all SH2 registers (16 GPRs + special regs)
@@ -362,7 +366,7 @@ Part of the 32x-playground project. See parent directory for license.
 
 ---
 
-**Status:** MVP-1 Complete (8/8 phases) - Ready for PicoDrive integration
+**Historical status:** Stub MVP complete; real PicoDrive integration not implemented
 
 **Library Size:** 26 KB
 **Test Coverage:** 53/55 tests (96.4%)

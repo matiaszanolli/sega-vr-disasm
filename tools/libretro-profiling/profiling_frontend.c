@@ -30,8 +30,10 @@
 /* Autoplay state */
 static int autoplay_enabled = 0;
 static int current_frame = 0;
-static int16_t current_input = 0;
-static int16_t hold_input_mask = 0;   /* VRD_HOLD_INPUT: bitmask held from frame 0, independent of --autoplay's menu-timing logic */
+static uint16_t current_input = 0;
+static uint16_t hold_input_mask = 0;   /* VRD_HOLD_INPUT: bitmask held from frame 0, independent of --autoplay's menu-timing logic */
+static uint16_t *input_script_masks = NULL;
+static int input_script_frames = 0;
 
 /* Libretro types (minimal subset) */
 typedef void (*lr_video_refresh_t)(const void *data, unsigned width,
@@ -87,7 +89,22 @@ typedef void (*fn_retro_unload_game)(void);
 typedef void (*fn_retro_run)(void);
 typedef void (*fn_retro_get_system_info)(struct lr_system_info *);
 typedef size_t (*fn_retro_serialize_size)(void);
+typedef bool (*fn_retro_serialize)(void *data, size_t size);
 typedef bool (*fn_retro_unserialize)(const void *data, size_t size);
+
+struct vrd_debug_sh2_regs {
+    uint32_t r[16];
+    uint32_t pc, pr, sr, gbr, vbr, mach, macl;
+    uint32_t state, poll_addr;
+    int poll_cnt;
+};
+
+typedef int (*fn_vrd_debug_get_sh2_regs)(unsigned cpu_id,
+                                         struct vrd_debug_sh2_regs *out);
+typedef int (*fn_vrd_debug_read)(unsigned cpu_id, uint32_t address,
+                                 void *data, size_t size);
+typedef unsigned (*fn_vrd_debug_abi_version)(void);
+typedef size_t (*fn_vrd_debug_sh2_regs_size)(void);
 
 /* Function pointers */
 static fn_retro_init core_init;
@@ -103,24 +120,41 @@ static fn_retro_unload_game core_unload_game;
 static fn_retro_run core_run;
 static fn_retro_get_system_info core_get_system_info;
 static fn_retro_serialize_size core_serialize_size;
+static fn_retro_serialize core_serialize;
 static fn_retro_unserialize core_unserialize;
+static fn_vrd_debug_get_sh2_regs core_debug_get_sh2_regs;
+static fn_vrd_debug_read core_debug_read;
+static fn_vrd_debug_abi_version core_debug_abi_version;
+static fn_vrd_debug_sh2_regs_size core_debug_sh2_regs_size;
 
 /* Stub callbacks */
 static void stub_video_refresh(const void *data, unsigned width,
                                unsigned height, size_t pitch) {
+    (void)data;
+    (void)width;
+    (void)height;
+    (void)pitch;
     /* Do nothing - headless mode */
 }
 
 static void stub_audio_sample(int16_t left, int16_t right) {
+    (void)left;
+    (void)right;
     /* Do nothing - headless mode */
 }
 
 static size_t stub_audio_sample_batch(const int16_t *data, size_t frames) {
+    (void)data;
     /* Do nothing - headless mode */
     return frames;
 }
 
 static void stub_input_poll(void) {
+    if (input_script_masks && current_frame < input_script_frames) {
+        current_input = input_script_masks[current_frame];
+        return;
+    }
+
     /* Update input state for autoplay */
     if (!autoplay_enabled) {
         current_input = hold_input_mask;
@@ -149,7 +183,6 @@ static void stub_input_poll(void) {
         current_input = (1 << RETRO_DEVICE_ID_JOYPAD_A);
     } else if (current_frame >= 120) {
         /* Menu navigation - press START every 90 frames */
-        int menu_phase = (current_frame - 120) / 90;
         int phase_frame = (current_frame - 120) % 90;
         if (phase_frame < 5) {
             current_input = (1 << RETRO_DEVICE_ID_JOYPAD_START);
@@ -159,6 +192,8 @@ static void stub_input_poll(void) {
 
 static int16_t stub_input_state(unsigned port, unsigned device,
                                 unsigned index, unsigned id) {
+    (void)device;
+    (void)index;
     if (port != 0) return 0;  /* Only player 1 */
 
     /* Return button state from autoplay */
@@ -166,6 +201,7 @@ static int16_t stub_input_state(unsigned port, unsigned device,
 }
 
 static void log_printf(int level, const char *fmt, ...) {
+    (void)level;
     va_list args;
     va_start(args, fmt);
     vprintf(fmt, args);
@@ -203,20 +239,289 @@ static void *load_symbol(void *handle, const char *name) {
     return sym;
 }
 
+/* Load a complete per-frame joypad replay. Sparse scripts are rejected so a
+ * missing row can never silently become zero input during a control run. */
+static bool load_input_script(const char *path, int frame_count) {
+    FILE *stream = fopen(path, "r");
+    uint16_t *masks;
+    unsigned char *seen;
+    char line[128];
+    int line_number = 0;
+
+    if (!stream) {
+        fprintf(stderr, "Failed to open input script: %s\n", path);
+        return false;
+    }
+    masks = (uint16_t *)calloc((size_t)frame_count, sizeof(*masks));
+    seen = (unsigned char *)calloc((size_t)frame_count, sizeof(*seen));
+    if (!masks || !seen) {
+        fprintf(stderr, "Failed to allocate input script for %d frames\n", frame_count);
+        free(masks);
+        free(seen);
+        fclose(stream);
+        return false;
+    }
+
+    while (fgets(line, sizeof(line), stream)) {
+        char *cursor = line;
+        char *end;
+        long frame;
+        unsigned long mask;
+        line_number++;
+        while (*cursor == ' ' || *cursor == '\t') cursor++;
+        if (*cursor == '\0' || *cursor == '\n' || *cursor == '#') continue;
+        if (strncmp(cursor, "frame,mask", 10) == 0) continue;
+        frame = strtol(cursor, &end, 0);
+        if (end == cursor || *end != ',') goto malformed;
+        cursor = end + 1;
+        mask = strtoul(cursor, &end, 0);
+        while (*end == ' ' || *end == '\t' || *end == '\r' || *end == '\n') end++;
+        if (*end != '\0' || frame < 0 || frame >= frame_count || mask > 0xFFFF || seen[frame])
+            goto malformed;
+        masks[frame] = (uint16_t)mask;
+        seen[frame] = 1;
+        continue;
+
+malformed:
+        fprintf(stderr, "Invalid input script row %d: %s", line_number, line);
+        free(masks);
+        free(seen);
+        fclose(stream);
+        return false;
+    }
+    fclose(stream);
+    for (int frame = 0; frame < frame_count; frame++) {
+        if (!seen[frame]) {
+            fprintf(stderr, "Input script is missing frame %d (requires 0..%d)\n",
+                    frame, frame_count - 1);
+            free(masks);
+            free(seen);
+            return false;
+        }
+    }
+    free(seen);
+    input_script_masks = masks;
+    input_script_frames = frame_count;
+    return true;
+}
+
+static bool debug_parse_u32(const char *text, uint32_t *out) {
+    char *end;
+    unsigned long value;
+
+    if (!text || !out || *text == '-') return false;
+    value = strtoul(text, &end, 0);
+    if (end == text || *end != '\0' || value > UINT32_MAX) return false;
+    *out = (uint32_t)value;
+    return true;
+}
+
+static bool debug_save_state(const char *path) {
+    size_t size;
+    void *data;
+    FILE *stream;
+    bool ok;
+
+    if (!path || !core_serialize_size || !core_serialize) return false;
+    size = core_serialize_size();
+    data = malloc(size);
+    if (!data) return false;
+    ok = core_serialize(data, size);
+    if (!ok) {
+        free(data);
+        return false;
+    }
+    stream = fopen(path, "wb");
+    if (!stream) {
+        free(data);
+        return false;
+    }
+    ok = fwrite(data, 1, size, stream) == size;
+    if (fclose(stream) != 0) ok = false;
+    free(data);
+    if (ok) printf("Saved state: %s (%zu bytes)\n", path, size);
+    return ok;
+}
+
+static bool debug_load_state(const char *path) {
+    FILE *stream;
+    long length;
+    void *data;
+    bool ok;
+
+    if (!path || !core_unserialize) return false;
+    stream = fopen(path, "rb");
+    if (!stream) return false;
+    if (fseek(stream, 0, SEEK_END) != 0 || (length = ftell(stream)) < 0 ||
+        fseek(stream, 0, SEEK_SET) != 0) {
+        fclose(stream);
+        return false;
+    }
+    if (length == 0 || (unsigned long)length > 16UL * 1024UL * 1024UL) {
+        fprintf(stderr, "Invalid savestate size: %ld\n", length);
+        fclose(stream);
+        return false;
+    }
+    data = malloc((size_t)length);
+    if (!data) {
+        fclose(stream);
+        return false;
+    }
+    ok = fread(data, 1, (size_t)length, stream) == (size_t)length;
+    fclose(stream);
+    if (ok) ok = core_unserialize(data, (size_t)length);
+    free(data);
+    if (ok) {
+        current_frame = 0;
+        printf("Loaded state: %s (%ld bytes)\n", path, length);
+    }
+    return ok;
+}
+
+static bool debug_run_frames(uint32_t count) {
+    for (uint32_t i = 0; i < count; i++) {
+        core_run();
+        current_frame++;
+    }
+    printf("Advanced %u frame%s; session frame=%d\n",
+           count, count == 1 ? "" : "s", current_frame);
+    return true;
+}
+
+static bool debug_print_regs(const char *cpu_name) {
+    struct vrd_debug_sh2_regs regs;
+    unsigned cpu_id;
+
+    if (!cpu_name || strcmp(cpu_name, "master") == 0) cpu_id = 1;
+    else if (strcmp(cpu_name, "slave") == 0) cpu_id = 2;
+    else return false;
+    if (!core_debug_get_sh2_regs(cpu_id, &regs)) return false;
+    printf("%s SH2: PC=%08X PR=%08X SR=%08X GBR=%08X VBR=%08X\n",
+           cpu_id == 1 ? "Master" : "Slave", regs.pc, regs.pr, regs.sr,
+           regs.gbr, regs.vbr);
+    printf("  MACH=%08X MACL=%08X state=%08X poll_addr=%08X poll_cnt=%d\n",
+           regs.mach, regs.macl, regs.state, regs.poll_addr, regs.poll_cnt);
+    for (int i = 0; i < 16; i += 2)
+        printf("  R%-2d=%08X  R%-2d=%08X\n", i, regs.r[i], i + 1, regs.r[i + 1]);
+    return true;
+}
+
+static bool debug_read_memory(const char *cpu_name, const char *address_text,
+                              const char *size_text) {
+    uint32_t cpu_id, address, size = 16;
+    unsigned char *data;
+
+    if (!cpu_name || !address_text) return false;
+    if (strcmp(cpu_name, "68k") == 0) cpu_id = 0;
+    else if (strcmp(cpu_name, "master") == 0) cpu_id = 1;
+    else if (strcmp(cpu_name, "slave") == 0) cpu_id = 2;
+    else return false;
+    if (!debug_parse_u32(address_text, &address) ||
+        (size_text && !debug_parse_u32(size_text, &size)) ||
+        size == 0 || size > 4096)
+        return false;
+    data = malloc(size);
+    if (!data) return false;
+    if (!core_debug_read(cpu_id, address, data, size)) {
+        free(data);
+        return false;
+    }
+    for (uint32_t i = 0; i < size; i += 16) {
+        printf("%08X:", address + i);
+        for (uint32_t j = 0; j < 16 && i + j < size; j++)
+            printf(" %02X", data[i + j]);
+        printf("\n");
+    }
+    free(data);
+    return true;
+}
+
+static void debug_print_help(void) {
+    printf("Commands:\n");
+    printf("  run [frames]                    Advance emulation (default 1)\n");
+    printf("  regs [master|slave]             Read SH2 registers\n");
+    printf("  read <68k|master|slave> <addr> [size]\n");
+    printf("  save <path>                     Save a libretro savestate\n");
+    printf("  load <path>                     Load a matching savestate\n");
+    printf("  status                          Show session frame\n");
+    printf("  help                            Show this help\n");
+    printf("  quit                            Exit debugger\n");
+}
+
+static int debug_repl(FILE *input, bool scripted) {
+    char line[1024];
+    char original[1024];
+
+    debug_print_help();
+    while (true) {
+        char *cmd;
+        char *arg1;
+        char *arg2;
+        char *arg3;
+        char *arg4;
+        bool ok = true;
+
+        if (!scripted) {
+            printf("vrd-dbg> ");
+            fflush(stdout);
+        }
+        if (!fgets(line, sizeof(line), input)) break;
+        line[strcspn(line, "\r\n")] = '\0';
+        snprintf(original, sizeof(original), "%s", line);
+        cmd = strtok(line, " \t");
+        if (!cmd || cmd[0] == '#') continue;
+        if (scripted) printf("vrd-dbg> %s\n", original);
+        arg1 = strtok(NULL, " \t");
+        arg2 = strtok(NULL, " \t");
+        arg3 = strtok(NULL, " \t");
+        arg4 = strtok(NULL, " \t");
+
+        if ((strcmp(cmd, "quit") == 0 || strcmp(cmd, "exit") == 0) && !arg1) break;
+        if (strcmp(cmd, "help") == 0 && !arg1) debug_print_help();
+        else if (strcmp(cmd, "status") == 0 && !arg1)
+            printf("Session frame: %d\n", current_frame);
+        else if (strcmp(cmd, "run") == 0) {
+            uint32_t count = 1;
+            ok = !arg2 && (!arg1 || debug_parse_u32(arg1, &count)) && count > 0;
+            if (ok) ok = debug_run_frames(count);
+        } else if (strcmp(cmd, "regs") == 0) {
+            ok = !arg2 && debug_print_regs(arg1);
+        } else if (strcmp(cmd, "read") == 0) {
+            ok = !arg4 && debug_read_memory(arg1, arg2, arg3);
+        } else if (strcmp(cmd, "save") == 0) {
+            ok = arg1 && !arg2 && debug_save_state(arg1);
+        } else if (strcmp(cmd, "load") == 0) {
+            ok = arg1 && !arg2 && debug_load_state(arg1);
+        } else {
+            ok = false;
+        }
+        if (!ok) {
+            fprintf(stderr, "Debugger command failed: %s\n", cmd);
+            if (scripted) return 1;
+        }
+    }
+    return 0;
+}
+
 int main(int argc, char **argv) {
     if (argc < 2) {
-        fprintf(stderr, "Usage: VRD_PROFILE_LOG=/path/to/log.csv %s /path/to/rom.32x [max_frames] [--autoplay]\n", argv[0]);
+        fprintf(stderr, "Usage: VRD_PROFILE_LOG=/path/to/log.csv %s /path/to/rom.32x [max_frames] [--autoplay|--debug|--debug-script file]\n", argv[0]);
         fprintf(stderr, "\nEnvironment variables:\n");
         fprintf(stderr, "  VRD_PROFILE_LOG - Path to CSV output file (required for profiling)\n");
         fprintf(stderr, "  VRD_LOAD_STATE  - Path to a savestate to load before running (see VRD_PROFILING.md)\n");
         fprintf(stderr, "  VRD_HOLD_INPUT  - Joypad bitmask held from frame 0, independent of --autoplay (e.g. 0x100 = hold A/accelerate)\n");
+        fprintf(stderr, "  VRD_INPUT_SCRIPT - Complete CSV replay: frame,mask for every frame 0..N-1\n");
         fprintf(stderr, "\nOptions:\n");
         fprintf(stderr, "  --autoplay  Inject inputs to navigate menus and start a race\n");
+        fprintf(stderr, "  --debug     Start the interactive read-only PicoDrive debugger\n");
+        fprintf(stderr, "  --debug-script file  Run debugger commands from a file\n");
         return 1;
     }
 
     const char *rom_path = argv[1];
     const char *profile_log = getenv("VRD_PROFILE_LOG");
+    const char *debug_script_path = NULL;
+    int debug_enabled = 0;
     int max_frames = 600; /* 10 seconds @ 60fps */
     { const char *hi = getenv("VRD_HOLD_INPUT"); if (hi) hold_input_mask = (int16_t)strtoul(hi, 0, 0); }
 
@@ -224,9 +529,30 @@ int main(int argc, char **argv) {
     for (int i = 2; i < argc; i++) {
         if (strcmp(argv[i], "--autoplay") == 0) {
             autoplay_enabled = 1;
+        } else if (strcmp(argv[i], "--debug") == 0) {
+            debug_enabled = 1;
+        } else if (strcmp(argv[i], "--debug-script") == 0) {
+            if (i + 1 >= argc) {
+                fprintf(stderr, "--debug-script requires a file\n");
+                return 1;
+            }
+            debug_enabled = 1;
+            debug_script_path = argv[++i];
         } else if (argv[i][0] != '-') {
             max_frames = atoi(argv[i]);
+        } else {
+            fprintf(stderr, "Unknown option: %s\n", argv[i]);
+            return 1;
         }
+    }
+    if (max_frames <= 0) {
+        fprintf(stderr, "Frame count must be positive\n");
+        return 1;
+    }
+
+    const char *input_script_path = getenv("VRD_INPUT_SCRIPT");
+    if (input_script_path && !load_input_script(input_script_path, max_frames)) {
+        return 1;
     }
 
     if (profile_log) {
@@ -235,11 +561,13 @@ int main(int argc, char **argv) {
         printf("  Profile log: %s\n", profile_log);
         printf("  Max frames: %d\n", max_frames);
         printf("  Autoplay: %s\n", autoplay_enabled ? "ENABLED" : "disabled");
+        printf("  Input: %s\n", input_script_path ? input_script_path : "fixed hold mask");
     } else {
         printf("VRD Test frontend (no profiling - set VRD_PROFILE_LOG to enable)\n");
         printf("  ROM: %s\n", rom_path);
         printf("  Max frames: %d\n", max_frames);
         printf("  Autoplay: %s\n", autoplay_enabled ? "ENABLED" : "disabled");
+        printf("  Input: %s\n", input_script_path ? input_script_path : "fixed hold mask");
     }
 
     /* Load libretro core */
@@ -263,10 +591,30 @@ int main(int argc, char **argv) {
     core_run = (fn_retro_run)load_symbol(handle, "retro_run");
     core_get_system_info = (fn_retro_get_system_info)load_symbol(handle, "retro_get_system_info");
     core_serialize_size = (fn_retro_serialize_size)load_symbol(handle, "retro_serialize_size");
+    core_serialize = (fn_retro_serialize)load_symbol(handle, "retro_serialize");
     core_unserialize = (fn_retro_unserialize)load_symbol(handle, "retro_unserialize");
+    if (debug_enabled) {
+        core_debug_get_sh2_regs = (fn_vrd_debug_get_sh2_regs)
+            load_symbol(handle, "vrd_debug_get_sh2_regs");
+        core_debug_read = (fn_vrd_debug_read)load_symbol(handle, "vrd_debug_read");
+        core_debug_abi_version = (fn_vrd_debug_abi_version)
+            load_symbol(handle, "vrd_debug_abi_version");
+        core_debug_sh2_regs_size = (fn_vrd_debug_sh2_regs_size)
+            load_symbol(handle, "vrd_debug_sh2_regs_size");
+    }
 
-    if (!core_init || !core_run || !core_load_game) {
+    if (!core_init || !core_run || !core_load_game ||
+        (debug_enabled && (!core_debug_get_sh2_regs || !core_debug_read ||
+                           !core_debug_abi_version || !core_debug_sh2_regs_size ||
+                           !core_serialize_size || !core_serialize || !core_unserialize))) {
         fprintf(stderr, "Failed to load required symbols\n");
+        dlclose(handle);
+        return 1;
+    }
+    if (debug_enabled &&
+        (core_debug_abi_version() != 1 ||
+         core_debug_sh2_regs_size() != sizeof(struct vrd_debug_sh2_regs))) {
+        fprintf(stderr, "PicoDrive debugger ABI mismatch\n");
         dlclose(handle);
         return 1;
     }
@@ -302,9 +650,22 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    fseek(f, 0, SEEK_END);
-    game_info.size = ftell(f);
-    fseek(f, 0, SEEK_SET);
+    if (fseek(f, 0, SEEK_END) != 0) {
+        fprintf(stderr, "Failed to seek ROM: %s\n", rom_path);
+        fclose(f);
+        core_deinit();
+        dlclose(handle);
+        return 1;
+    }
+    long rom_size = ftell(f);
+    if (rom_size <= 0 || fseek(f, 0, SEEK_SET) != 0) {
+        fprintf(stderr, "Invalid ROM size: %ld\n", rom_size);
+        fclose(f);
+        core_deinit();
+        dlclose(handle);
+        return 1;
+    }
+    game_info.size = (size_t)rom_size;
 
     void *rom_data = malloc(game_info.size);
     if (!rom_data) {
@@ -315,7 +676,14 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    fread(rom_data, 1, game_info.size, f);
+    if (fread(rom_data, 1, game_info.size, f) != game_info.size) {
+        fprintf(stderr, "Failed to read complete ROM: %s\n", rom_path);
+        free(rom_data);
+        fclose(f);
+        core_deinit();
+        dlclose(handle);
+        return 1;
+    }
     fclose(f);
     game_info.data = rom_data;
 
@@ -339,71 +707,60 @@ int main(int argc, char **argv) {
      * not game-ROM data. */
     const char *load_state_path = getenv("VRD_LOAD_STATE");
     if (load_state_path) {
-        if (!core_serialize_size || !core_unserialize) {
-            fprintf(stderr, "Core does not export retro_serialize_size/retro_unserialize\n");
+        if (!debug_load_state(load_state_path)) {
+            fprintf(stderr, "Failed to load matching savestate: %s\n", load_state_path);
             free(rom_data);
             core_deinit();
             dlclose(handle);
             return 1;
         }
-        FILE *sf = fopen(load_state_path, "rb");
-        if (!sf) {
-            fprintf(stderr, "Failed to open savestate: %s\n", load_state_path);
-            free(rom_data);
-            core_deinit();
-            dlclose(handle);
-            return 1;
-        }
-        fseek(sf, 0, SEEK_END);
-        long state_size = ftell(sf);
-        fseek(sf, 0, SEEK_SET);
-        void *state_data = malloc(state_size);
-        fread(state_data, 1, state_size, sf);
-        fclose(sf);
-
-        if (!core_unserialize(state_data, (size_t)state_size)) {
-            fprintf(stderr, "retro_unserialize failed (size=%ld) -- state file may not match this core build\n", state_size);
-            free(state_data);
-            free(rom_data);
-            core_deinit();
-            dlclose(handle);
-            return 1;
-        }
-        free(state_data);
-        printf("Savestate loaded: %s (%ld bytes)\n", load_state_path, state_size);
     }
 
-    printf("Running %d frames...\n", max_frames);
-
-    /* Run emulation frames */
-    for (int frame = 0; frame < max_frames; frame++) {
-        current_frame = frame;  /* Update for autoplay */
-        core_run();
-
-        /* Progress indicator */
-        if ((frame + 1) % 60 == 0) {
-            const char *phase = "";
-            if (autoplay_enabled) {
-                if (frame < 120) phase = " [boot]";
-                else if (frame < 1200) phase = " [menus]";
-                else phase = " [racing]";
+    int run_status = 0;
+    if (debug_enabled) {
+        FILE *debug_input = stdin;
+        if (debug_script_path) {
+            debug_input = fopen(debug_script_path, "r");
+            if (!debug_input) {
+                fprintf(stderr, "Failed to open debugger script: %s\n", debug_script_path);
+                run_status = 1;
             }
-            printf("  Frame %d/%d (%.0f%%)%s\n", frame + 1, max_frames,
-                   (frame + 1) * 100.0 / max_frames, phase);
         }
-    }
+        if (debug_input) run_status = debug_repl(debug_input, debug_script_path != NULL);
+        if (debug_script_path && debug_input) fclose(debug_input);
+    } else {
+        printf("Running %d frames...\n", max_frames);
 
-    printf("Emulation complete.\n");
+        /* Run emulation frames */
+        for (int frame = 0; frame < max_frames; frame++) {
+            current_frame = frame;  /* Update for autoplay */
+            core_run();
+
+            /* Progress indicator */
+            if ((frame + 1) % 60 == 0) {
+                const char *phase = "";
+                if (autoplay_enabled) {
+                    if (frame < 120) phase = " [boot]";
+                    else if (frame < 1200) phase = " [menus]";
+                    else phase = " [racing]";
+                }
+                printf("  Frame %d/%d (%.0f%%)%s\n", frame + 1, max_frames,
+                       (frame + 1) * 100.0 / max_frames, phase);
+            }
+        }
+        printf("Emulation complete.\n");
+    }
 
     /* Cleanup */
     core_unload_game();
     free(rom_data);
     core_deinit();
     dlclose(handle);
+    free(input_script_masks);
 
     if (profile_log) {
         printf("Profile data written to: %s\n", profile_log);
     }
 
-    return 0;
+    return run_status;
 }

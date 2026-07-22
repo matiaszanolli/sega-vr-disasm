@@ -27,6 +27,24 @@ python3 analyze_pc_profile.py pc.csv
 See `README_68K_PC_PROFILING.md` and `README_COMM56_PROFILING.md` for details, and
 the `VRD_*` env vars documented at the top of `libretro.c`.
 
+## Real-ROM debugger
+
+The same frontend now has a read-only debugger mode, so debugger observations and profiler
+observations execute the same PicoDrive core:
+
+```bash
+cd tools/libretro-profiling
+./profiling_frontend ../../build/vr_rebuild.32x --debug
+
+# Reproducible minimum debugger smoke test:
+./profiling_frontend ../../build/vr_rebuild.32x \
+  --debug-script debugger_smoke.commands
+```
+
+The first slice supports `run`, Master/Slave `regs`, bus-explicit `read`, `save`, `load`,
+`status`, and `quit`. It does not yet provide writes, breakpoints, input recording, or
+disassembly; track those as separate additions rather than reviving the stub PDCORE library.
+
 ## Abandoned tools (do NOT revive — see `_archive/`)
 
 | Tool | Why it's dead |
@@ -34,5 +52,6 @@ the `VRD_*` env vars documented at the top of `libretro.c`.
 | `_archive/pdcore/` (`pdcore_cli`) | Custom debugger built on **stub emulation** (`bridge_stubs`) — it does **not** run the real game (`Failed to load ROM: Not implemented`). |
 | `_archive/gdb_profiler.py`, `_archive/run_profiling_session.sh` | Target the **Gens** emulator's GDB stub. This project uses PicoDrive, not Gens. |
 
-If you need debugger-grade inspection (memory read/write, watchpoints, register
-state), add it to the libretro/PicoDrive path — that is where the real game runs.
+Extend debugger-grade inspection only in the libretro/PicoDrive path—that is where the real
+game runs. The archived PDCORE design documents remain useful API research, not implementation
+status.

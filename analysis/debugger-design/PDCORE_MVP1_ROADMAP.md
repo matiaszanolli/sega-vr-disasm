@@ -1,5 +1,9 @@
 # PicoDrive Debugger Core (pdcore) - MVP-1 Implementation Roadmap
 
+> **Superseded roadmap (2026-07-21).** The archived implementation is a stub harness, not a
+> real-ROM debugger. Incremental debugger issues now target `profiling_frontend --debug` on the
+> canonical libretro/PicoDrive core.
+
 **Target Duration**: 5-7 evenings (20-25 hours)
 **Goal**: Frame-perfect SH2 debugging with Python interface
 **Approach**: Incremental - test at each milestone before proceeding
@@ -999,4 +1003,3 @@ make -C pdcore clean && make -C pdcore all && \
 ---
 
 **Status**: Roadmap complete. Ready to implement!
-

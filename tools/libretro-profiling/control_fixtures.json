@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "fixtures": [
+    {
+      "name": "savestate_1p_gp_racing.bin",
+      "sha256": "67f715cdc48559b2be718bc580a7889d43005d70a4184f701815a77e425d69bb",
+      "status": "invalid_control",
+      "reason": "Eventually stops advancing $C87E with the VR60 hook bypassed; COMM0_HI remains busy. It is diagnostic-only and must never be accepted as a control fixture."
+    }
+  ]
+}

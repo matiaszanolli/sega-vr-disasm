@@ -1,6 +1,11 @@
 # PicoDrive + pdcore Integration
 
-**Status:** Phase 3 Complete - Conditional compilation guards in place
+> **Historical proposal (2026-07-21).** The conditional PDCORE bridge described below was not
+> the path that actually ran VRD and must not be treated as completed integration. Current
+> debugger exports live in the tracked libretro instrumentation patch and are consumed by
+> `profiling_frontend --debug`. See `tools/TOOLING.md`.
+
+**Historical status:** Proposed conditional guards; not the canonical real-ROM integration
 
 ---
 
@@ -294,4 +299,3 @@ make ENABLE_PDCORE=1
 - pdcore can be enabled/disabled per-build without code changes
 - All modifications are clearly marked with `// Debug hook` comments
 - No changes to core emulation logic (read-only access only)
-

@@ -1,5 +1,9 @@
 # PicoDrive Surgical Insertion Checklist - MVP-1
 
+> **Superseded checklist (2026-07-21).** Do not apply this historical PDCORE hook design as the
+> current debugger integration. The tracked libretro instrumentation patch is canonical; see
+> `tools/TOOLING.md`.
+
 **Purpose**: Exact, minimal, non-invasive modifications to PicoDrive to enable debugger hooks
 **Philosophy**: Add ~5 lightweight hooks; preserve all existing functionality
 **Estimated Impact**: <2% performance overhead when no breakpoints active
@@ -517,4 +521,3 @@ This checklist provides:
 **Key principle**: Hooks are OPTIONAL. When pdcore is not used, PicoDrive runs at full speed with zero overhead.
 
 ---
-

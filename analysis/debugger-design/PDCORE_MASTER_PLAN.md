@@ -1,7 +1,13 @@
 # PicoDrive 32X Debugger (pdcore) - Master Plan
 
-**Status**: ✅ Research & Design Complete
-**Next Phase**: Implementation Ready
+> **Historical design, not current implementation status (2026-07-21).** The PDCORE code was
+> archived after proving to be a stub harness: `pd_load_rom()` returns `Not implemented`, and
+> its passing tests do not run the game. The supported real-ROM debugger is now
+> `tools/libretro-profiling/profiling_frontend --debug`; see `tools/TOOLING.md`. Keep this
+> document as API/design research only.
+
+**Historical status**: Research & design complete
+**Historical next phase**: Implementation was proposed but is now superseded
 **Date**: 2026-01-10
 
 ---
@@ -438,4 +444,3 @@ The research and planning are complete. **Execution is next.**
 ---
 
 **Status**: ✅ Design Complete - Ready for Implementation
-

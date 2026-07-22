@@ -27,6 +27,21 @@ python3 analyze_pc_profile.py pc.csv
 See `README_68K_PC_PROFILING.md` and `README_COMM56_PROFILING.md` for details, and
 the `VRD_*` env vars documented at the top of `libretro.c`.
 
+## Assembly-built 1P control pair
+
+The default build remains the live VR60 ROM. The dedicated target preserves that image, assembles
+the equal-size original two-JSR hook branch from the same source, and fails unless the validator
+finds zero changes outside `$4D62-$4D69`:
+
+```bash
+make clean
+make control-rom
+python3 -m unittest tools/libretro-profiling/test_verify_control_rom.py -v
+```
+
+Artifacts are `build/vr60_live_reference.32x`, `build/vr60_control_bypass.32x`, and the tracked
+`tools/libretro-profiling/control_rom_pair.json`. Do not raw-patch either ROM.
+
 ## Real-ROM debugger
 
 The same frontend now has a debugger mode, so debugger observations and profiler observations

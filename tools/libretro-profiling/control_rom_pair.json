@@ -1,0 +1,17 @@
+{
+  "candidate_hook_bytes": "4eba69764eba691c",
+  "candidate_path": "build/vr60_control_bypass.32x",
+  "candidate_sha256": "6a4c89cffa7df47a946b340d39492df05f2be316c76343cf7e4e932a8ca17672",
+  "candidate_size": 4128768,
+  "eligible": true,
+  "first_outside_hook_difference": null,
+  "hook_site_offset": "0x4D62",
+  "hook_size": 8,
+  "outside_hook_difference_count": 0,
+  "reason": "candidate is byte-for-byte equal to the live reference outside the reviewed eight-byte hook delta",
+  "reference_hook_bytes": "4ef90001c8b04e71",
+  "reference_path": "build/vr60_live_reference.32x",
+  "reference_sha256": "14632a23804b6043921f0e66d3f9ff84cf2ae58c66c04617d933fd7874b93183",
+  "reference_size": 4128768,
+  "schema": "vrd-vr60-control-rom-pair-v1"
+}

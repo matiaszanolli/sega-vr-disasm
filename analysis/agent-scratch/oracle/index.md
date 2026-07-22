@@ -73,7 +73,8 @@
 | Path | Purpose | Key Topics | Note |
 |------|---------|-----------|------|
 | tools/libretro-profiling/README_68K_PC_PROFILING.md | How to profile VRD | Frame-level + PC-level hotspots, toolchain, baseline setup | Profiling how-to |
-| tools/libretro-profiling/VRD_PROFILING.md | Current profiling and normal-1P control gate | `validate_1p_control.py`, complete input replay, ≥18K-frame minimum, fixed acceptance policy, canonical fixture SHA blacklist, exact live-reference/hook-bypass ROM comparison, state/hook/FB/COMM liveness | Current VR60 measurement authority |
+| tools/libretro-profiling/VRD_PROFILING.md | Current profiling and normal-1P control gate | `validate_1p_control.py`, `make control-rom`, complete input replay, ≥18K-frame minimum, exact live-reference/hook-bypass comparison, state/hook/FB/COMM liveness | Current VR60 measurement authority; VR60-004 control pair complete |
+| tools/libretro-profiling/verify_control_rom.py | Assembly-built control-ROM evidence writer | Imports the validator's fixed hook policy, atomically records both hashes and the exact outside-hook comparison | `control_rom_pair.json` is the reviewed VR60-004 manifest |
 | tools/libretro-profiling/profiling_frontend.c | Canonical real-ROM debugger and profiling frontend | `--debug`, `--debug-script`, frame advance, exact `joypad` control/recording, Master/Slave registers, bus-explicit memory reads, exact-size savestate save/load | VR60-003 input capture complete; CPU/game-memory inspection remains read-only; archived PDCORE cannot load ROM |
 | analysis/profiling/68K_BOTTLENECK_ANALYSIS.md | THE critical finding: 68K at 100.1% | Cycle counts, utilization proof, SH2 optimization futility | Performance root cause evidence |
 | analysis/optimization/COMM_REGISTER_USAGE_ANALYSIS.md | COMM usage per call site (async safety) | 15 safe / 2 unsafe sites, buffer dependency analysis | ⚠ SH2 addresses offset by 2 for COMM1+ (known error) |

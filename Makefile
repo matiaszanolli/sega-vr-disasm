@@ -15,6 +15,10 @@ DISASM_DIR = disasm
 TOOLS_DIR = tools
 ORIGINAL_ROM = Virtua Racing Deluxe (USA).32x
 OUTPUT_ROM = $(BUILD_DIR)/vr_rebuild.32x
+CONTROL_ROM = $(BUILD_DIR)/vr60_control_bypass.32x
+CONTROL_REFERENCE_ROM = $(BUILD_DIR)/vr60_live_reference.32x
+CONTROL_ROM_MANIFEST = $(TOOLS_DIR)/libretro-profiling/control_rom_pair.json
+CONTROL_ROM_VERIFY = $(TOOLS_DIR)/libretro-profiling/verify_control_rom.py
 
 # Assembly flags
 # -Fbin = binary output
@@ -25,24 +29,48 @@ ASMFLAGS = -Fbin -m68000 -no-opt -spaces -quiet
 
 # Source files
 M68K_SRC = $(DISASM_DIR)/vrd.asm
-.PHONY: all clean disasm tools test profile-frame profile-pc
+VR60_1P_HOOK_SITE_SRC = $(DISASM_DIR)/modules/68k/game/scene/game_frame_orch_013.asm
+.PHONY: all control-rom clean disasm tools test profile-frame profile-pc
 
 # ============================================================================
 # Main targets
 # ============================================================================
 
-all: dirs sh2-assembly $(OUTPUT_ROM)
+all: $(OUTPUT_ROM)
 
 dirs:
 	@mkdir -p $(BUILD_DIR)
 
 # Build the ROM from original sections/
 # Depends on SH2 assembly to ensure generated includes exist
-$(OUTPUT_ROM): $(M68K_SRC) $(SH2_FUNC000_INC) $(SH2_FUNC022_INC) $(SH2_FUNC017_INC) $(SH2_FUNC018_INC) $(SH2_FUNC019_INC) $(SH2_FUNC020_INC) $(SH2_FUNC021_ORIG_INC) $(SH2_FUNC023_INC) $(SH2_FUNC040_INC) $(SH2_FUNC032_INC) $(SH2_FUNC011_INC) $(SH2_FUNC012_INC) $(SH2_FUNC013_INC) $(SH2_FUNC014_015_INC) $(SH2_FUNC024_INC) $(SH2_FUNC025_INC) $(SH2_FUNC026_INC) $(SH2_FUNC001_INC) $(SH2_FUNC002_INC) $(SH2_FUNC003_004_INC) $(SH2_FUNC029_030_031_INC) $(SH2_FUNC033_INC) $(SH2_FUNC034_INC) $(SH2_FUNC036_INC) $(SH2_FUNC037_038_039_INC) $(SH2_FUNC005_INC) $(SH2_FUNC007_INC) $(SH2_FUNC006_INC) $(SH2_FUNC008_INC) $(SH2_FUNC016_INC) $(SH2_FUNC065_INC) $(SH2_FUNC066_INC) $(SH2_FUNC021_OPT_INC) $(SH2_BATCH_COPY_INC) $(SH2_CMD27_DRAIN_INC) $(SH2_SLAVE_WRAPPER_V2_INC) $(SH2_HANDLER_FRAME_SYNC_INC) $(SH2_MASTER_DISPATCH_HOOK_INC) $(SH2_SLAVE_TEST_FUNC_INC) $(SH2_SHADOW_PATH_WRAPPER_INC) $(SH2_CMDINT_HANDLER_INC) $(SH2_QUEUE_PROCESSOR_INC) $(SH2_GEN_DRAIN_INC)
+$(OUTPUT_ROM): $(M68K_SRC) sh2-assembly $(VR60_1P_HOOK_SITE_SRC) $(SH2_FUNC000_INC) $(SH2_FUNC022_INC) $(SH2_FUNC017_INC) $(SH2_FUNC018_INC) $(SH2_FUNC019_INC) $(SH2_FUNC020_INC) $(SH2_FUNC021_ORIG_INC) $(SH2_FUNC023_INC) $(SH2_FUNC040_INC) $(SH2_FUNC032_INC) $(SH2_FUNC011_INC) $(SH2_FUNC012_INC) $(SH2_FUNC013_INC) $(SH2_FUNC014_015_INC) $(SH2_FUNC024_INC) $(SH2_FUNC025_INC) $(SH2_FUNC026_INC) $(SH2_FUNC001_INC) $(SH2_FUNC002_INC) $(SH2_FUNC003_004_INC) $(SH2_FUNC029_030_031_INC) $(SH2_FUNC033_INC) $(SH2_FUNC034_INC) $(SH2_FUNC036_INC) $(SH2_FUNC037_038_039_INC) $(SH2_FUNC005_INC) $(SH2_FUNC007_INC) $(SH2_FUNC006_INC) $(SH2_FUNC008_INC) $(SH2_FUNC016_INC) $(SH2_FUNC065_INC) $(SH2_FUNC066_INC) $(SH2_FUNC021_OPT_INC) $(SH2_BATCH_COPY_INC) $(SH2_CMD27_DRAIN_INC) $(SH2_SLAVE_WRAPPER_V2_INC) $(SH2_HANDLER_FRAME_SYNC_INC) $(SH2_MASTER_DISPATCH_HOOK_INC) $(SH2_SLAVE_TEST_FUNC_INC) $(SH2_SHADOW_PATH_WRAPPER_INC) $(SH2_CMDINT_HANDLER_INC) $(SH2_QUEUE_PROCESSOR_INC) $(SH2_GEN_DRAIN_INC)
 	@echo "==> Assembling 68000 code (from sections/)..."
 	$(ASM) $(ASMFLAGS) -o $@ $<
 	@echo "==> Build complete: $@"
 	@ls -lh $@
+
+# Build a preserved live reference and an assembly-selected hook-bypass ROM.
+# The verifier imports the validator's fixed eight-byte ROM policy, records
+# both hashes, and fails unless every byte outside the hook is identical.
+control-rom: $(CONTROL_ROM_MANIFEST)
+	@echo "==> VR60 control ROM ready: $(CONTROL_ROM)"
+	@echo "==> Preserved live reference: $(CONTROL_REFERENCE_ROM)"
+	@echo "==> Pair manifest: $(CONTROL_ROM_MANIFEST)"
+
+$(CONTROL_REFERENCE_ROM): $(OUTPUT_ROM) | dirs
+	@echo "==> Preserving live VR60 reference ROM..."
+	cp $(OUTPUT_ROM) $@
+
+$(CONTROL_ROM): $(CONTROL_REFERENCE_ROM) sh2-assembly $(M68K_SRC) $(VR60_1P_HOOK_SITE_SRC) | dirs
+	@echo "==> Assembling VR60 hook-bypass control ROM from source..."
+	$(ASM) $(ASMFLAGS) -D VR60_CONTROL_ROM=1 -o $@ $(M68K_SRC)
+
+$(CONTROL_ROM_MANIFEST): $(CONTROL_ROM) $(CONTROL_REFERENCE_ROM) $(CONTROL_ROM_VERIFY) $(TOOLS_DIR)/libretro-profiling/validate_1p_control.py
+	@echo "==> Verifying isolated control-ROM delta..."
+	$(PYTHON) $(CONTROL_ROM_VERIFY) \
+		--candidate $(CONTROL_ROM) \
+		--reference $(CONTROL_REFERENCE_ROM) \
+		--manifest $(CONTROL_ROM_MANIFEST)
 
 
 # ============================================================================
@@ -3048,6 +3076,7 @@ help:
 	@echo ""
 	@echo "Build Targets:"
 	@echo "  all            - Build the ROM from sections/ (original disasm)"
+	@echo "  control-rom    - Build and verify the VR60 1P hook-bypass control pair"
 	@echo ""
 	@echo "SH2 Assembly:"
 	@echo "  sh2-assembly   - Build SH2 sources to dc.w includes"

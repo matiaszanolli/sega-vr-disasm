@@ -45,9 +45,9 @@ two-JSR hook bypass at file `$4D62`, while the branch ROM contains the live VR60
 validator now requires both ROMs and proves they are byte-identical outside that exact eight-byte
 delta, recording both hashes. Acceptance addresses, thresholds, 180-frame window, and canonical
 fixture blacklist are fixed; offline analysis and every diagnostic override force failure. It also
-rejects `savestate_1p_gp_racing.bin` by SHA-256 from `control_fixtures.json`. A new 1P state and
-reviewed assembly-built bypass ROM are still required to close Q-019. In a diagnostic 1,800-frame
-run of the known invalid
+rejects `savestate_1p_gp_racing.bin` by SHA-256 from `control_fixtures.json`. The reviewed
+assembly-built bypass/reference pair now exists; a new 1P state and full replay are still required
+to close Q-019. In a diagnostic 1,800-frame run of the known invalid
 combination, `$C87E` omitted state `$000C` in every later 180-frame window and COMM0_HI remained
 non-zero for 1,755 consecutive frames; the caller trace itself completed with 595 hits and zero
 drops. A normal PASS requires at least 18,000 frames; shorter diagnostics are permanently marked
@@ -80,7 +80,27 @@ explicitly finalized.
 exactly 600 frames, verifies rows `0..599`, replays the resulting CSV in a second process, and
 re-records it byte-for-byte. It also verifies replay exhaustion, script-error/EOF/quit cleanup,
 and overwrite refusal. This changes frontend input orchestration only; no game assembly or core
-debug ABI changed. The next issue is the assembly-built hook-bypass control ROM (VR60-004).
+debug ABI changed.
+
+### Assembly-built hook-bypass control ROM (2026-07-21)
+
+VR60-004 is complete. `make control-rom` first builds and preserves the default live ROM, then
+defines `VR60_CONTROL_ROM` for a second vasm pass. The source selector in
+`game_frame_orch_013.asm` emits the original PC-relative `JSR animated_seq_player+10` / `JSR
+object_update` pair instead of the live `JMP vr60_1p_staging_hook` / `NOP`; both branches occupy
+exactly eight bytes. No built ROM is raw-patched.
+
+`verify_control_rom.py` imports the validator's fixed ROM-pair policy and atomically records the
+result in `control_rom_pair.json`. The preserved live reference is SHA-256
+`14632a23804b6043921f0e66d3f9ff84cf2ae58c66c04617d933fd7874b93183`; the hook-bypass
+candidate is `6a4c89cffa7df47a946b340d39492df05f2be316c76343cf7e4e932a8ca17672`.
+Both are 4,128,768 bytes, their hook bytes are respectively `4EF90001C8B04E71` and
+`4EBA69764EBA691C`, and the validator found zero differences outside file `$4D62-$4D69`.
+The candidate also boots and passes the existing 120-frame real-core debugger smoke. A real
+180-frame diagnostic recorded `control_rom_eligible: true` for this pair, then exited non-zero as
+required for the forced short run and blocked fixture (with the known state-order and COMM0
+failures); no ROM-policy failure was present. The next issue is a fresh normal-1P GP savestate
+(VR60-005).
 
 ### Near-term issue queue
 
@@ -92,8 +112,8 @@ test; do not combine it with the next issue just because both are convenient in 
 | VR60-001 | Build the fail-closed validator, deterministic input replay, and tracked full-window profiler trace | Focused tests pass, the known-bad state fails diagnostically, and the active-hook ROM cannot produce a control PASS | **Done** |
 | VR60-002 | Restore a minimum debugger on the real libretro/PicoDrive execution path | The current ROM advances 120 frames; both SH2 register sets and 68K/SH2 memory are readable; a matching state saves and reloads from a tracked command script | **Done** |
 | VR60-003 | Add debugger joypad control and exact input recording | A scripted 600-frame session records one `frame,mask` row per frame, and replaying it produces the same input sequence with no sparse/default frames | **Done** |
-| VR60-004 | Produce one assembly-built control ROM from a preserved live branch ROM, changing only the eight-byte 1P hook site | The validator proves the candidate/reference pair is identical outside file offset `$4D62-$4D69` and records both hashes | **Next** |
-| VR60-005 | Capture one fresh normal-1P GP savestate | A short diagnostic loads it at `$FF0002 = $00884CBC`; its SHA-256 is recorded and it is not the blocked fixture | Open |
+| VR60-004 | Produce one assembly-built control ROM from a preserved live branch ROM, changing only the eight-byte 1P hook site | The validator proves the candidate/reference pair is identical outside file offset `$4D62-$4D69` and records both hashes | **Done** |
+| VR60-005 | Capture one fresh normal-1P GP savestate | A short diagnostic loads it at `$FF0002 = $00884CBC`; its SHA-256 is recorded and it is not the blocked fixture | **Next** |
 | VR60-006 | Capture one complete 18,000-frame controller replay for that state | The `frame,mask` CSV covers every frame exactly once, passes parser validation, and its SHA-256 is recorded | Open |
 | VR60-007 | Run a 1,800-frame preflight using VR60-004/005/006 | Scene, state order, hook cadence, framebuffer, SH2 work, and COMM lanes are healthy; the run still exits non-zero because short diagnostics can never qualify as a control | Open |
 | VR60-008 | Run the full control without changing code or thresholds | The exact same ROM/state/replay combination passes all 18,000 frames and 100 fixed windows | Open |
@@ -1462,7 +1482,7 @@ These must be resolved before their respective phases. Add new questions as they
 | Q-016 | Is lateral_drift_velocity_B ($0099AA) structurally different from A ($00987E)? | Phase 3 | **RESOLVED: YES, fundamentally different** | B = 358B (not ~300B). Different math: force calc order (mul-then-div vs div-first), AI boost logic (speed > $C8 + AI flag → extra grip loss from +$0E), different grip clamp range ([$40,$FF] vs [$7F,∞]), 2× damping threshold (±$200 vs ±$100), viewport shimmer ($FF617A/$FF618E writes), 2× display scaling. 3 extra entity fields (+$04, +$0E, +$80), 1 extra global ($FFBFC0 AI control flag). Both variants must be ported independently. SH2 estimate: ~420B. |
 | Q-017 | Does `--autoplay` actually reach real 1P GP racing (`state_disp_004cb8`, scene `$4CBC`)? | Phase 1 (1P wiring) | **RESOLVED: NO** | It settles in scene `$5586`; its `[racing]` label is only frame-count based. `VRD_LOAD_STATE` was added to reach GP, but the available `savestate_1p_gp_racing.bin` later stops advancing `$C87E` even with the VR60 hook bypassed, so it is useful for short traces—not a valid long-run baseline. |
 | Q-018 | Does `game_frame_orch_013` state 8 recur during real 1P racing? | Phase 1 | **RESOLVED: YES, ABOUT 20 HZ** | Exact `VRD_CALLER_TRACE` found a regular one-hit-per-three-TV-frame cadence. The earlier zero-hit top-200 PC histogram was a false negative; the current hook location is valid. |
-| Q-019 | Can we produce a deterministic 1P fixture that stays live for the full validation window? | All live integration | **HARNESS BUILT; PASSING FIXTURE OPEN — CURRENT BLOCKER** | The fail-closed validator, complete per-frame input replay, canonical hash blacklist, full-window caller trace, exact control/live-reference ROM comparison, and synthetic tests are complete. Capture a fresh savestate/replay and build a reviewed source-level hook-bypass ROM; it must equal a preserved live build outside the eight-byte hook delta and pass at least 18,000 frames (100 × 180-frame windows) before testing VR60 code. The known state is SHA-blocked and its diagnostic run fails on state-cycle and COMM0 liveness. |
+| Q-019 | Can we produce a deterministic 1P fixture that stays live for the full validation window? | All live integration | **HARNESS + CONTROL ROM BUILT; PASSING FIXTURE OPEN — CURRENT BLOCKER** | The fail-closed validator, complete per-frame input replay, canonical hash blacklist, full-window caller trace, and assembly-built hook-bypass/live-reference pair are complete. Capture a fresh savestate and full replay, then pass at least 18,000 frames (100 × 180-frame windows) before testing VR60 code. The known state is SHA-blocked and its diagnostic run fails on state-cycle and COMM0 liveness. |
 | Q-020 | Are cmd `$3E` modes 0/1 correct over a trustworthy 1P run? | Phase 1 | **OPEN** | They are enabled and bounded, but the former 724-hash acceptance result is retracted with the invalid fixture. Re-test modes separately after Q-019. |
 | Q-021 | Are AI transfer mode 2 and cmd `$3F` safe in 1P? | Phases 1, 3, 4 | **OPEN; NEITHER PROVEN SAFE NOR UNSAFE** | §21's freeze attribution is retracted by §22. Enable one stage at a time only after Q-019; keep the 68000 authoritative while cmd `$3F` first runs as observable shadow computation. |
 | Q-022 | Which racing descriptor block should carry the SH2-authoritative car state? | Phase 5F | **PARTIALLY RESOLVED** | Static decode proves cmd `$02` reads C128/C178/C254, not C218. The C254 probe is built but dormant because current cmd `$3F` still calls the no-op patcher and the 1P trigger is disabled. Run reversible A/B/C probes after Q-019/Q-021. |
@@ -1501,6 +1521,7 @@ Record every significant design decision here. Include date, what was decided, w
 | 2026-07-21 | Make `VR60_STATUS.md` and this dated status block authoritative; reclassify phase work as built, active, authoritative, and validated separately | Dispatcher routing and the invalid saved-state baseline showed that “present in ROM,” “executed,” and “proven” had been conflated. The current build must be described without inheriting obsolete phase completion claims. | Continue appending corrections without a canonical status — rejected because readers encountered stale conclusions before their retractions. |
 | 2026-07-21 | Require a control fixture with continuing `$C87E` cycles before any new 1P offload validation | The existing GP savestate freezes independently of VR60 code and invalidates framebuffer-hash causality. | Treat the freeze as a cmd `$3F` or AI regression — rejected by the hook-bypass control. |
 | 2026-07-21 | Make the 1P control validator's acceptance policy immutable and prove the control ROM's exact isolation | A control must not run the code it isolates or contain unrelated changes. The validator enforces the canonical fixture blacklist, fixed scene/hook/threshold/window policy, and an exact comparison: the reference has live bytes `4EF90001C8B04E71`, the candidate has stock bytes `4EBA69764EBA691C`, and all bytes outside file `$4D62-$4D69` match. Offline analysis and diagnostic overrides always inject failure. | Trust filenames, inspect only the candidate hook bytes, accept user-relaxed thresholds/addresses, promote stale CSV, accept the active-hook ROM, or infer late liveness from a 50-hit trace — all can produce a false baseline. |
+| 2026-07-21 | Build the 1P control pair from one conditional assembly source and verify it automatically | A raw-patched candidate or an unpreserved reference cannot prove isolation. `make control-rom` preserves the live build, assembles the stock two-JSR branch with `VR60_CONTROL_ROM`, and records the validator comparison plus both hashes. | Manually patch eight bytes after assembly, keep an unverified copy by filename, or maintain a second drifting source tree. |
 
 ---
 
@@ -1528,7 +1549,7 @@ Record every significant design decision here. Include date, what was decided, w
 | R-018 | SH2 anim_timer_speed_clear lacks conditional_return_on_state_match fallthrough | Low | Phase 3B | **ACCEPTED** | 68K JMPs to a state-check function that either returns or falls through. SH2 always returns (RTS). The fallthrough path handles edge-case state transitions during animation timer expiry — not observed during normal player racing. Monitor during extended testing. |
 | R-019 | Entity staging overwrites SH2 physics results | Critical | Phase 3B | **DESIGN RESOLVED; LIVE UNVERIFIED** | Initial-only entity staging plus co-ported writers is the intended ownership model. It has not been validated live; current 1P keeps WRAM/68000 authoritative and cmd `$3F` disabled. |
 | R-020 | Unbounded retry loops on a COMM ACK can hard-hang the 68K if the underlying race theory is wrong | Critical | Phase 1 (1P wiring) | **RESOLVED (reverted)** | A retry fix for a suspected Master-SH2 poll-detection race (`.retrigger: ... beq.s .retrigger`, no attempt cap) was applied to `vr60_entity_transfer.asm` and 3 siblings, "verified" headlessly, but that verification never actually exercised the real GP-racing call path (Q-017). Real GP racing hard-hung (black screen, frozen 68K). Fully reverted to `HEAD`. If retried: bound every retry loop with a hard attempt cap (give up and skip the frame's SH2 offload rather than loop forever), and implement any new logic in 1P-exclusive copies of these functions — they are also called unconditionally by the always-active 2P path (`state4_epilogue`), so editing them for "1P" silently changes 2P/demo behavior too. |
-| R-021 | `--autoplay` cannot reach real GP racing, and the available GP savestate is not a valid long-run control | Critical | Phase 1 (1P wiring) | **MITIGATED BY FAIL-CLOSED HARNESS; FIXTURE STILL OPEN** | `VRD_LOAD_STATE` solves scene access. The validator blocks the known state by canonical SHA, requires the hook-bypass candidate to match a preserved live reference outside the exact hook delta, fixes acceptance thresholds/addresses, and checks state/hook/framebuffer/COMM liveness in every window. Capture a fresh fixture and obtain the first passing control before using framebuffer hashes for causality. See Q-017/Q-019 and `VR60_PHASE1_CMD3E_ACK_HANG.md` §22. |
+| R-021 | `--autoplay` cannot reach real GP racing, and the available GP savestate is not a valid long-run control | Critical | Phase 1 (1P wiring) | **MITIGATED BY FAIL-CLOSED HARNESS + ISOLATED CONTROL ROM; FIXTURE STILL OPEN** | `VRD_LOAD_STATE` solves scene access. The validator blocks the known state by canonical SHA; the assembly-built hook-bypass candidate now matches its preserved live reference outside the exact hook delta. Acceptance thresholds/addresses are fixed and state/hook/framebuffer/COMM liveness is checked in every window. Capture a fresh fixture and obtain the first passing control before using framebuffer hashes for causality. See Q-017/Q-019 and `VR60_PHASE1_CMD3E_ACK_HANG.md` §22. |
 | R-022 | Historical status/profiling claims can be misread as current 1P behavior | High | All | **MITIGATED; audit continuously** | `VR60_STATUS.md` is canonical. Phase documents keep their evidence but must carry correction banners; tables must distinguish built, active, authoritative, and validated. |
 
 ---
@@ -1551,10 +1572,11 @@ python3 analyze_pc_profile.py baseline_vr60.csv
 ```
 
 `--autoplay` reaches Free Run/TT (`$5586`), not normal 1P GP (`$4CBC`). For a new
-decision-grade baseline, run `tools/libretro-profiling/validate_1p_control.py` with a fresh state
-and an assembly-built ROM containing the reviewed original hook-bypass bytes, compared against
-the preserved live branch ROM. The two images must match byte-for-byte outside the eight-byte
-hook delta. The validator must pass all 180-frame windows across at least 18,000 frames. Its
+decision-grade baseline, first reproduce the reviewed pair with `make control-rom`, then run
+`tools/libretro-profiling/validate_1p_control.py` with a fresh state and replay using
+`build/vr60_control_bypass.32x` against `build/vr60_live_reference.32x`. The tracked manifest
+records their hashes and proves byte equality outside the eight-byte hook delta. The validator
+must pass all 180-frame windows across at least 18,000 frames. Its
 end-of-frame COMM watches establish
 non-stuck lanes only; direct `$3E`/`$3F` command execution remains a separate later-stage sentinel
 requirement.
@@ -1655,6 +1677,7 @@ Record discoveries, gotchas, and insights as the project progresses. These help 
 | 2026-07-21 | Control methodology | **Plausible stock bytes at the hook are not sufficient proof of an isolated control ROM.** A candidate could contain unrelated changes, while configurable thresholds or offline CSV analysis could still manufacture an apparent PASS. | Preserve the live branch ROM, require exact equality outside the reviewed hook delta, record both hashes, keep acceptance policy immutable, and make every offline/diagnostic path fail closed. |
 | 2026-07-21 | Tooling | **The archived PDCORE was a stub test harness, not a PicoDrive debugger.** `pd_load_rom()` returns `Not implemented`; its passing tests never execute the real dual-SH2 game. | Keep it archived. Add debugger capabilities incrementally to the canonical libretro/PicoDrive path and close each slice with a real-ROM command script. |
 | 2026-07-21 | Tooling | **Debugger input is now resolved once per emulated frame and can be captured exactly.** The 600-frame acceptance fixture replays and re-records byte-for-byte; replay exhaustion cannot silently fall through to another input source. | Use `joypad` plus explicit `record start`/`record stop` for new controller captures. Keep each capture complete and feed the resulting `frame,mask` file directly to `VRD_INPUT_SCRIPT`. |
+| 2026-07-21 | Control methodology | **The source-built control pair is exact and reproducible.** vasm emits either the live eight-byte jump or the original equal-size two-JSR sequence; the reviewed policy found zero differences elsewhere and recorded both hashes. | Use `make control-rom` and the tracked manifest. Never raw-patch the ROM or compare against an unpreserved reference. |
 
 ---
 

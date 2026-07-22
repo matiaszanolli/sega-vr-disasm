@@ -54,11 +54,20 @@ game_frame_orch_013:
         move.w  A0,($FFFFC8C0).w                ; $004D5A  update controller_ptr
 .skip_record:
         jsr     race_entity_update_loop(pc); $4EBA $0BDC
-; --- VR60 Phase 1P isolation test (equal-size swap, 8B for 8B — see
-; vr60_1p_staging_hook.asm). Entered via JMP (no return address pushed), so
-; the hook must exit via JMP back to .vr60_1p_tail, never RTS. ---
+; --- VR60 1P hook / assembly-built control selector (8B for 8B) ---
+; The default live ROM enters the staging hook. `make control-rom` defines
+; VR60_CONTROL_ROM and assembles the original two JSRs instead; this is a
+; source-level isolation build, never a raw ROM patch. Both branches are
+; exactly eight bytes, so every following address remains unchanged.
+        ifd     VR60_CONTROL_ROM
+        jsr     animated_seq_player+10(pc)              ; $4EBA $6976
+        jsr     object_update(pc)                        ; $4EBA $691C
+        else
+; Entered via JMP (no return address pushed), so the live hook must exit via
+; JMP back to game_frame_orch_013_tail, never RTS.
         jmp     vr60_1p_staging_hook                     ; 6B abs.l
         nop                                              ; 2B pad (8B total)
+        endif
 game_frame_orch_013_tail:
         addq.w  #4,($FFFFC87E).w                ; $004D6A  game_state += 4
         move.w  #$0054,$00FF0008                ; $004D6E  display list cmd = $54

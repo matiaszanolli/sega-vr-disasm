@@ -37,13 +37,11 @@ This file is the short, current answer to “what works now?” Older roadmap en
 ## Current milestone: restore a trustworthy baseline
 
 The [fail-closed validator](tools/libretro-profiling/VRD_PROFILING.md#normal-1p-control-validator)
-is now implemented; the milestone remains open because no fresh
-fixture plus reviewed hook-bypass ROM has passed it. The known GP state is blocked by SHA-256,
-and the current live-hook ROM is ineligible for a control run. A candidate must be byte-identical
-to a preserved live branch ROM outside the reviewed eight-byte hook delta; both ROM hashes and
-the comparison are recorded. Acceptance policy is fixed, and diagnostic/offline-analysis
-overrides always force a failing result. Normal runs also require a new output path and the
-reviewed frontend/core identities, so stale artifacts or arbitrary binaries cannot produce PASS.
+and reviewed hook-bypass control pair are now implemented; the milestone remains open because no
+fresh fixture has passed them. The known GP state is blocked by SHA-256. Acceptance policy is
+fixed, and diagnostic/offline-analysis overrides always force a failing result. Normal runs also
+require a new output path and the reviewed frontend/core identities, so stale artifacts or
+arbitrary binaries cannot produce PASS.
 
 **VR60-002 is complete:** the canonical libretro/PicoDrive frontend now has a real-ROM debugger
 whose CPU/game-memory inspection remains read-only. It advances frames, reads Master/Slave SH2
@@ -57,10 +55,16 @@ frames `0..599`, replayed the CSV through `VRD_INPUT_SCRIPT`, and captured the s
 exhaustion fails before advancing, and partial/error recordings cannot masquerade as complete
 fixtures.
 
-The current work item is **VR60-004**: produce an assembly-built control ROM from a preserved
-live branch ROM, changing only the reviewed eight-byte 1P hook site. The fresh state, full replay
-capture, short preflight, and full control remain separate follow-up issues (VR60-005 through
-VR60-008); see the near-term issue queue in `VR60_ROADMAP.md`.
+**VR60-004 is complete:** `make control-rom` preserves the default live build and assembles a
+second ROM from the same source with the original two-JSR hook bypass. The validator records zero
+differences outside `$4D62-$4D69`. Live SHA-256 is `14632a…b93183`; control SHA-256 is
+`6a4c89…17672`; the full evidence is tracked in
+`tools/libretro-profiling/control_rom_pair.json`. No ROM was raw-patched.
+
+The current work item is **VR60-005**: capture one fresh normal-1P GP savestate and prove a short
+diagnostic loads it at `$FF0002 = $00884CBC`. Full replay capture, the short preflight, and the
+full control remain separate follow-up issues (VR60-006 through VR60-008); see the near-term issue
+queue in `VR60_ROADMAP.md`.
 
 Do not enable another offload stage until a test fixture or deterministic input harness passes all of these checks with the VR60 hook bypassed:
 

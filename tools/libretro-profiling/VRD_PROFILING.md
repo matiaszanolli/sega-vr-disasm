@@ -78,10 +78,20 @@ blacklist are not replaceable from the command line.
 A control ROM is eligible only when it is compared with a preserved live branch build. The
 reference must contain the live VR60 jump `4EF90001C8B04E71` at file offset `$4D62`; the
 candidate must contain the reviewed original two-JSR bypass `4EBA69764EBA691C`; their sizes and
-every byte outside that eight-byte span must match exactly. Produce the bypass from assembly
-source in a disposable diagnostic branch/worktree, preserving the live ROM first. This proves
-that hook isolation—not merely plausible bytes at one offset—defines the control. Do not
-raw-patch the production ROM.
+every byte outside that eight-byte span must match exactly. The tracked source selector and build
+target produce this pair without raw patching:
+
+```bash
+make clean
+make control-rom
+python3 -m unittest tools/libretro-profiling/test_verify_control_rom.py -v
+```
+
+The target preserves `build/vr60_live_reference.32x`, then assembles
+`build/vr60_control_bypass.32x` with `VR60_CONTROL_ROM` defined. It imports this validator's fixed
+ROM policy and records the result in `control_rom_pair.json`. The reviewed hashes are live
+`14632a23804b6043921f0e66d3f9ff84cf2ae58c66c04617d933fd7874b93183` and control
+`6a4c89cffa7df47a946b340d39492df05f2be316c76343cf7e4e932a8ca17672`.
 
 The SHA-256 policy in `control_fixtures.json` permanently marks the existing GP savestate as
 `invalid_control`, even if it is renamed. Diagnostic override switches permit reproducing an
@@ -89,9 +99,9 @@ invalid state or active-hook ROM, but inject an unconditional failure so that su
 never be blessed accidentally.
 
 ```bash
-# Candidate control (requires a reviewed hook-bypass ROM and a fresh candidate state):
-python3 tools/libretro-profiling/validate_1p_control.py /path/to/bypass.32x \
-  --reference-rom /path/to/preserved-live-branch.32x \
+# Candidate control (requires a fresh candidate state and complete replay):
+python3 tools/libretro-profiling/validate_1p_control.py build/vr60_control_bypass.32x \
+  --reference-rom build/vr60_live_reference.32x \
   --savestate /path/to/candidate.bin --input-script /path/to/replay.csv \
   --frames 18000 --output-dir /tmp/vrd-control
 

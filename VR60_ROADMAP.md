@@ -7,7 +7,7 @@
 
 ---
 
-## Canonical status (2026-07-21)
+## Canonical status (2026-07-22)
 
 The project is in **integration and validation**, not “one blocker from 60 FPS.” The current
 normal-1P path still uses the original 68000 physics, AI, collision, and render preparation as
@@ -21,18 +21,22 @@ advancing `$C87E` even with the 1P hook physically bypassed. The earlier “724 
 comparison and its attribution of freezes to AI transfer/cmd `$3F` are retracted. Those stages
 are **unverified**, not proven broken.
 
-The immediate blocker is a trustworthy 1P fixture or deterministic input harness, not a single
-frame-buffer-swap patch. It must keep `$C87E` cycling for the whole control run and confirm the
-scene, hook, non-stuck COMM lanes, and framebuffer liveness independently. After that, re-enable one
+The fresh normal-1P state required by VR60-005 now exists and passes a 360-frame-warmup plus
+1,800-frame diagnostic on every liveness signal. The immediate blocker is its complete
+deterministic replay and the resulting preflight/full control, not a single frame-buffer-swap
+patch. The control must keep `$C87E` cycling for the whole validation run and confirm the scene,
+hook, non-stuck COMM lanes, and framebuffer liveness independently. After that, re-enable one
 stage at a time: cmd `$3E` modes 0/1, AI transfer, cmd `$3F` in shadow mode, a bridge into the
 renderer-consumed C128/C178/C254 descriptors, and only then subsystem authority/bypass changes.
 Cadence and fixed-step scaling for true 60 Hz come after the data path is proven.
 
 See [`VR60_STATUS.md`](VR60_STATUS.md) for the concise status matrix and definition of done.
 
-### Milestone 1 tooling update (2026-07-21)
+### Milestone 1 tooling and fixture update (2026-07-22)
 
-The deterministic control **validator is implemented**, but no fixture has passed it yet.
+The deterministic control **validator is implemented**, and the first fresh fixture satisfied
+every bounded liveness check; the diagnostic still failed by policy because it was short, and no
+full replay/control has passed yet.
 `tools/libretro-profiling/validate_1p_control.py` accepts a complete per-frame input replay and
 records/checks the full normal-1P scene
 pointer, contiguous frames, every `$C87E` cycle window, an unlimited exact state-8 caller trace,
@@ -46,8 +50,8 @@ validator now requires both ROMs and proves they are byte-identical outside that
 delta, recording both hashes. Acceptance addresses, thresholds, 180-frame window, and canonical
 fixture blacklist are fixed; offline analysis and every diagnostic override force failure. It also
 rejects `savestate_1p_gp_racing.bin` by SHA-256 from `control_fixtures.json`. The reviewed
-assembly-built bypass/reference pair now exists; a new 1P state and full replay are still required
-to close Q-019. In a diagnostic 1,800-frame run of the known invalid
+assembly-built bypass/reference pair and a new 1P state now exist; the full replay/control are
+still required to close Q-019. In a diagnostic 1,800-frame run of the known invalid
 combination, `$C87E` omitted state `$000C` in every later 180-frame window and COMM0_HI remained
 non-zero for 1,755 consecutive frames; the caller trace itself completed with 595 hits and zero
 drops. A normal PASS requires at least 18,000 frames; shorter diagnostics are permanently marked
@@ -99,8 +103,29 @@ Both are 4,128,768 bytes, their hook bytes are respectively `4EF90001C8B04E71` a
 The candidate also boots and passes the existing 120-frame real-core debugger smoke. A real
 180-frame diagnostic recorded `control_rom_eligible: true` for this pair, then exited non-zero as
 required for the forced short run and blocked fixture (with the known state-order and COMM0
-failures); no ROM-policy failure was present. The next issue is a fresh normal-1P GP savestate
-(VR60-005).
+failures); no ROM-policy failure was present. VR60-005 subsequently supplied the fresh state
+described below; VR60-006 is now next.
+
+### Fresh normal-1P candidate fixture (2026-07-22)
+
+VR60-005 is complete. PicoDrive state
+`/home/matias/.picodrive/mds/vr60_control_bypass.mds` is 678,514 bytes with SHA-256
+`16a007b460f8f568615e7f6c13a3d22f06d82a5acbfa8011e23929f8861eb1cb`. It is distinct from
+the blacklisted fixture and loaded the full normal-1P scene pointer `$00884CBC`.
+
+A diagnostic beginning at state-load frame zero found COMM0_HI non-zero for frames 7-205. A
+second run changed no code, threshold, ROM, state, or input: it classified the first 360 frames as
+fixture warmup and validated the following 1,800 frames. That window passed all functional
+signals and failed only the mandatory short-run rule. Metrics were: state maximum stall 1; 450
+exact hook hits, maximum gap 4, zero drops; 1,039 framebuffer hashes, maximum stall 1; COMM0,
+COMM2, and COMM7 maximum non-zero runs 3, 2, and 0; and useful work on both SH2s. This demonstrates
+that the fixed warmup is sufficient for bounded candidate qualification. It does not prove why the initial cmd
+`$02`/COMM0 interval lasts 199 sampled frames, so no generic COMM claim or threshold change is
+accepted from this result.
+
+The full replay must cover warmup plus validation: exactly 18,360 `frame,mask` rows numbered
+`0..18359`. VR60-007 will use the exact first 2,160-row prefix (360 warmup + 1,800 validation);
+VR60-008 will use the complete replay (360 warmup + 18,000 validation).
 
 ### Near-term issue queue
 
@@ -113,10 +138,10 @@ test; do not combine it with the next issue just because both are convenient in 
 | VR60-002 | Restore a minimum debugger on the real libretro/PicoDrive execution path | The current ROM advances 120 frames; both SH2 register sets and 68K/SH2 memory are readable; a matching state saves and reloads from a tracked command script | **Done** |
 | VR60-003 | Add debugger joypad control and exact input recording | A scripted 600-frame session records one `frame,mask` row per frame, and replaying it produces the same input sequence with no sparse/default frames | **Done** |
 | VR60-004 | Produce one assembly-built control ROM from a preserved live branch ROM, changing only the eight-byte 1P hook site | The validator proves the candidate/reference pair is identical outside file offset `$4D62-$4D69` and records both hashes | **Done** |
-| VR60-005 | Capture one fresh normal-1P GP savestate | A short diagnostic loads it at `$FF0002 = $00884CBC`; its SHA-256 is recorded and it is not the blocked fixture | **Next** |
-| VR60-006 | Capture one complete 18,000-frame controller replay for that state | The `frame,mask` CSV covers every frame exactly once, passes parser validation, and its SHA-256 is recorded | Open |
-| VR60-007 | Run a 1,800-frame preflight using VR60-004/005/006 | Scene, state order, hook cadence, framebuffer, SH2 work, and COMM lanes are healthy; the run still exits non-zero because short diagnostics can never qualify as a control | Open |
-| VR60-008 | Run the full control without changing code or thresholds | The exact same ROM/state/replay combination passes all 18,000 frames and 100 fixed windows | Open |
+| VR60-005 | Capture one fresh normal-1P GP savestate | A short diagnostic loads it at `$FF0002 = $00884CBC`; its SHA-256 is recorded and it is not the blocked fixture | **Done** |
+| VR60-006 | Capture one complete 18,360-frame controller replay for that state (360 warmup + 18,000 validation) | The `frame,mask` CSV covers frames `0..18359` exactly once, passes parser validation, and its SHA-256 is recorded | **Next** |
+| VR60-007 | Run a 360-frame-warmup + 1,800-frame preflight using VR60-004/005 and the exact first 2,160-row prefix of VR60-006 | Scene, state order, hook cadence, framebuffer, SH2 work, and COMM lanes are healthy; the run still exits non-zero because short diagnostics can never qualify as a control | Open |
+| VR60-008 | Run the full control without changing code or thresholds | The exact same ROM/state and complete VR60-006 replay pass all 360 warmup + 18,000 validation frames and 100 fixed validation windows | Open |
 
 If VR60-007 fails, open one issue for the first failing signal and keep VR60-008 blocked; do
 not repair the fixture, profiler, input, and game code in one change. After VR60-008 passes,

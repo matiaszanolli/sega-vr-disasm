@@ -73,7 +73,7 @@
 | Path | Purpose | Key Topics | Note |
 |------|---------|-----------|------|
 | tools/libretro-profiling/README_68K_PC_PROFILING.md | How to profile VRD | Frame-level + PC-level hotspots, toolchain, baseline setup | Profiling how-to |
-| tools/libretro-profiling/VRD_PROFILING.md | Current profiling and normal-1P control gate | `validate_1p_control.py`, `make control-rom`, complete input replay, ≥18K-frame minimum, exact live-reference/hook-bypass comparison, state/hook/FB/COMM liveness | Current VR60 measurement authority; VR60-004 control pair complete |
+| tools/libretro-profiling/VRD_PROFILING.md | Current profiling and normal-1P control gate | `validate_1p_control.py`, `make control-rom`, complete input replay, ≥18K-frame minimum, exact live-reference/hook-bypass comparison, state/hook/FB/COMM liveness | Current VR60 measurement authority; VR60-005 fixture qualifies with a fixed 360-frame warmup; next replay is 18,360 total rows |
 | tools/libretro-profiling/verify_control_rom.py | Assembly-built control-ROM evidence writer | Imports the validator's fixed hook policy, atomically records both hashes and the exact outside-hook comparison | `control_rom_pair.json` is the reviewed VR60-004 manifest |
 | tools/libretro-profiling/profiling_frontend.c | Canonical real-ROM debugger and profiling frontend | `--debug`, `--debug-script`, frame advance, exact `joypad` control/recording, Master/Slave registers, bus-explicit memory reads, exact-size savestate save/load | VR60-003 input capture complete; CPU/game-memory inspection remains read-only; archived PDCORE cannot load ROM |
 | analysis/profiling/68K_BOTTLENECK_ANALYSIS.md | THE critical finding: 68K at 100.1% | Cycle counts, utilization proof, SH2 optimization futility | Performance root cause evidence |
@@ -501,6 +501,8 @@ $020476: NOP
 
 18. **A per-frame COMM watch is a stuck-lane detector, not an access-event trace.** A command can set and clear COMM0/COMM1/COMM2 entirely inside one emulated frame, so absence of sampled variation or COMM1_LO=1 is not failure. Check long non-zero streaks at cache-through SH2 aliases, corroborate with non-idle SH2 work, and use access-event instrumentation or an execution sentinel when a later phase must prove a specific command ran. COMM7 is a word doorbell: watch `$2000402E:2`, not its usually-zero high byte alone.
 
+19. **Separate fixture warmup from the validation window; do not loosen liveness thresholds to absorb startup transients.** The accepted VR60-005 state (`vr60_control_bypass.mds`, SHA-256 `16a007b4…eb1cb`) showed a 199-frame COMM0_HI non-zero interval immediately after restore. With the same state, ROMs, fixed input, and thresholds, a 360-frame warmup followed by 1,800 validation frames passed every liveness check and failed only the mandatory short-run rule (state stall 1; hook gap 4; framebuffer stall 1; COMM0/2/7 runs 3/2/0). This operationally qualifies the fixture recipe but does not establish the initial cmd `$02`/COMM0 root cause. Full deterministic input must therefore contain 18,360 rows: 360 warmup plus 18,000 validation.
+
 ---
 
 ## Section 4: Where-to-Find Cross-Reference
@@ -515,7 +517,7 @@ $020476: NOP
 | Slave SH2 behavior (polling, dispatch, pixel processing) | analysis/ARCHITECTURAL_BOTTLENECK_ANALYSIS.md | analysis/SYSTEM_EXECUTION_FLOW.md |
 | Frame execution flow (V-INT, main loop, state dispatch) | analysis/SYSTEM_EXECUTION_FLOW.md | analysis/ARCHITECTURAL_BOTTLENECK_ANALYSIS.md |
 | Profiling methodology + tool usage | tools/libretro-profiling/README_68K_PC_PROFILING.md | analysis/profiling/68K_BOTTLENECK_ANALYSIS.md |
-| Normal-1P durable control validation | tools/libretro-profiling/VRD_PROFILING.md § Normal-1P control validator | VR60_STATUS.md § Current milestone; candidate/reference ROMs must match outside the reviewed 8-byte hook delta |
+| Normal-1P durable control validation | tools/libretro-profiling/VRD_PROFILING.md § Normal-1P control validator | VR60_STATUS.md § Current milestone; VR60-005 candidate uses a fixed 360-frame warmup and requires an 18,360-row replay; candidate/reference ROMs must match outside the reviewed 8-byte hook delta |
 | Expansion ROM layout + active handlers | disasm/sections/expansion_300000.asm | BACKLOG.md §B-003/B-004 |
 | B-003 async cmd_27 design | BACKLOG.md §B-003 | analysis/68K_SH2_COMMUNICATION.md §B-003 |
 | B-004 single-shot cmd_22 design | BACKLOG.md §B-004 | analysis/68K_SH2_COMMUNICATION.md §B-004 |

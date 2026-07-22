@@ -1,6 +1,6 @@
 # VR60 Current Status
 
-**Canonical as of:** 2026-07-21
+**Canonical as of:** 2026-07-22
 
 **Branch:** `60fps_project`
 
@@ -36,12 +36,13 @@ This file is the short, current answer to “what works now?” Older roadmap en
 
 ## Current milestone: restore a trustworthy baseline
 
-The [fail-closed validator](tools/libretro-profiling/VRD_PROFILING.md#normal-1p-control-validator)
-and reviewed hook-bypass control pair are now implemented; the milestone remains open because no
-fresh fixture has passed them. The known GP state is blocked by SHA-256. Acceptance policy is
-fixed, and diagnostic/offline-analysis overrides always force a failing result. Normal runs also
-require a new output path and the reviewed frontend/core identities, so stale artifacts or
-arbitrary binaries cannot produce PASS.
+The [fail-closed validator](tools/libretro-profiling/VRD_PROFILING.md#normal-1p-control-validator),
+reviewed hook-bypass control pair, and a fresh normal-1P candidate fixture are now implemented.
+The milestone remains open because the deterministic replay and full 18,000-frame control do not
+yet exist. The old GP state remains blocked by SHA-256. Acceptance policy is fixed, and
+diagnostic/offline-analysis overrides always force a failing result. Normal runs also require a
+new output path and the reviewed frontend/core identities, so stale artifacts or arbitrary
+binaries cannot produce PASS.
 
 **VR60-002 is complete:** the canonical libretro/PicoDrive frontend now has a real-ROM debugger
 whose CPU/game-memory inspection remains read-only. It advances frames, reads Master/Slave SH2
@@ -61,10 +62,23 @@ differences outside `$4D62-$4D69`. Live SHA-256 is `14632a…b93183`; control SH
 `6a4c89…17672`; the full evidence is tracked in
 `tools/libretro-profiling/control_rom_pair.json`. No ROM was raw-patched.
 
-The current work item is **VR60-005**: capture one fresh normal-1P GP savestate and prove a short
-diagnostic loads it at `$FF0002 = $00884CBC`. Full replay capture, the short preflight, and the
-full control remain separate follow-up issues (VR60-006 through VR60-008); see the near-term issue
-queue in `VR60_ROADMAP.md`.
+**VR60-005 is complete:** the fresh state
+`/home/matias/.picodrive/mds/vr60_control_bypass.mds` has SHA-256
+`16a007b460f8f568615e7f6c13a3d22f06d82a5acbfa8011e23929f8861eb1cb`, is not the blocked
+fixture, and loads at `$FF0002 = $00884CBC`. A zero-warmup diagnostic exposed one initial
+199-frame COMM0_HI non-zero interval. Keeping every reviewed threshold fixed but excluding a
+fixed 360-frame fixture warmup, the next 1,800 frames met every liveness criterion: state stall 1;
+450 exact hook hits with maximum gap 4; 1,039 framebuffer hashes with maximum stall 1; COMM0,
+COMM2, and COMM7 maximum non-zero runs 3, 2, and 0; and useful work on both SH2s. The run failed
+only because short diagnostics can never qualify as a control. This operationally qualifies the
+fixture for the next issue; it does not establish the root cause or generic semantics of the
+initial cmd `$02`/COMM0 interval.
+
+The current work item is **VR60-006**: record one complete deterministic replay for this state.
+Because the accepted recipe has 360 warmup frames before 18,000 validation frames, the canonical
+CSV must contain exactly 18,360 rows numbered `0..18359`. The short preflight and full control
+remain separate follow-up issues (VR60-007 and VR60-008); see the near-term issue queue in
+`VR60_ROADMAP.md`.
 
 Do not enable another offload stage until a test fixture or deterministic input harness passes all of these checks with the VR60 hook bypassed:
 

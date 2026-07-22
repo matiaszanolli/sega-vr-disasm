@@ -28,7 +28,7 @@ CANONICAL_CORE = SCRIPT_DIR / "picodrive_libretro.so"
 # These binaries were rebuilt from the reviewed tracked frontend source and
 # libretro_vrd_profiling_v4.patch.  Changing either identity requires an
 # explicit review and constant update before the new tool can produce PASS.
-CANONICAL_FRONTEND_SHA256 = "31bddb9e49951ee447640f71a0ec4fab5858a6e8f8d35adc1c4b16e5c72eecf0"
+CANONICAL_FRONTEND_SHA256 = "cf93393318db52a1d0071b35c708bf10710ed6dfbc617c22e8e339eedac87e9f"
 CANONICAL_CORE_SHA256 = "1375814edb9d7a487ff11b4a7cec4eb9fb24ea10e3f5e4f99a80bce4875dcb92"
 DEFAULT_SCENE_POINTER = 0x00884CBC
 DEFAULT_HOOK_ADDRESS = 0x00884D1A

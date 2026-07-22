@@ -24,16 +24,28 @@ cd tools/libretro-profiling
 ./profiling_frontend ../../build/vr_rebuild.32x --debug
 ./profiling_frontend ../../build/vr_rebuild.32x \
   --debug-script debugger_smoke.commands
+
+# From the repository root: real-core 600-frame input record/replay acceptance
+cd ../..
+python3 -m unittest tools/libretro-profiling/test_frontend_input_recording.py -v
 ```
 
-Commands are `run [frames]`, `regs [master|slave]`,
-`read <68k|master|slave> <address> [size]`, `save <path>`, `load <path>`, `status`,
-`help`, and `quit`. Reads are capped at 4096 bytes per command. This first slice is intentionally
-read-only with respect to CPU/game memory; writes, breakpoints, input recording, and disassembly
-remain independent issues. `save` uses the core's current serialization size; `load` accepts a
-bounded file and fails if PicoDrive's `retro_unserialize` rejects it. Older compatible sizes are
-therefore preserved—the current known GP fixture is smaller than a newly saved state but remains
+Commands are `run [frames]`, `joypad <mask>`, `record start <path>`, `record stop`,
+`regs [master|slave]`, `read <68k|master|slave> <address> [size]`, `save <path>`,
+`load <path>`, `status`, `help`, and `quit`. Reads are capped at 4096 bytes per command, and
+CPU/game-memory inspection remains read-only; writes, breakpoints, and disassembly remain
+independent issues. `save` uses the core's current serialization size; `load` accepts a bounded
+file and fails if PicoDrive's `retro_unserialize` rejects it. Older compatible sizes are therefore
+preserved—the current known GP fixture is smaller than a newly saved state but remains
 load-compatible.
+
+`joypad` selects the complete P1 libretro mask used by subsequent debugger frames and disables
+autoplay. A loaded `VRD_INPUT_SCRIPT` takes precedence and cannot be overridden. Input is
+resolved exactly once before each `core_run`; debugger advance fails at replay exhaustion rather
+than falling through to the hold mask. Recording writes that same resolved mask after every
+completed frame, with recording-local indices beginning at zero. `record start` creates a new
+file only, so it cannot overwrite an existing fixture; `record stop` is the only successful
+finalization path. A script error, EOF, or `quit` while recording removes the partial file.
 
 ## Mandatory validity gate for 1P results
 
@@ -99,6 +111,9 @@ emulated frame from `0` through `warmup + validation - 1`; masks use the libretr
 (`0x100` is A/accelerate). Sparse, duplicate, out-of-order, or short replays are rejected before
 emulation. With no replay, the validator uses the fixed `--hold-input` mask, which is useful for
 diagnostics but may not be enough to drive a five-minute multi-lap control.
+
+Debugger recordings use this exact format and can be passed directly to `VRD_INPUT_SCRIPT`.
+The loader requires one exact `frame,mask` header as well as complete, unique, ordered frame rows.
 
 `--analyze-only` can inspect an existing artifact directory without replacing its `run.json` or
 `result.json`; it writes `analysis-result.json` and always injects a diagnostic failure. It also

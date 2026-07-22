@@ -63,7 +63,24 @@ first deliberately bounded slice: frame advance, Master/Slave register inspectio
 memory reads, and matching savestate save/load. `debugger_smoke.commands` advances 120 frames,
 observes live Master PC `$0600424E` and Slave PC `$06000592`, reads all three address spaces,
 and round-trips a state. Memory/register writes, execution breakpoints, input recording, and
-disassembly are separate follow-up issues; none is implied by this foundation.
+disassembly were not part of that foundation. Input capture is the independently tested slice
+described below; memory/register writes, execution breakpoints, and disassembly remain separate.
+
+### Deterministic debugger input capture (2026-07-21)
+
+VR60-003 is complete. Debugger command `joypad <mask>` selects an explicit P1 mask for
+subsequent frames, while `record start <path>` / `record stop` capture the exact mask exposed to
+PicoDrive as one local zero-based `frame,mask` row per completed frame. Input is resolved once
+immediately before `core_run`; a loaded `VRD_INPUT_SCRIPT` cannot be overridden and debugger
+advance fails before the first frame beyond the replay instead of falling back to held/default
+input. Recordings refuse to overwrite an existing file, flush every row, and are deleted unless
+explicitly finalized.
+
+`test_frontend_input_recording.py` drives the real core through six non-zero mask segments over
+exactly 600 frames, verifies rows `0..599`, replays the resulting CSV in a second process, and
+re-records it byte-for-byte. It also verifies replay exhaustion, script-error/EOF/quit cleanup,
+and overwrite refusal. This changes frontend input orchestration only; no game assembly or core
+debug ABI changed. The next issue is the assembly-built hook-bypass control ROM (VR60-004).
 
 ### Near-term issue queue
 
@@ -74,8 +91,8 @@ test; do not combine it with the next issue just because both are convenient in 
 |---|---|---|---|
 | VR60-001 | Build the fail-closed validator, deterministic input replay, and tracked full-window profiler trace | Focused tests pass, the known-bad state fails diagnostically, and the active-hook ROM cannot produce a control PASS | **Done** |
 | VR60-002 | Restore a minimum debugger on the real libretro/PicoDrive execution path | The current ROM advances 120 frames; both SH2 register sets and 68K/SH2 memory are readable; a matching state saves and reloads from a tracked command script | **Done** |
-| VR60-003 | Add debugger joypad control and exact input recording | A scripted 600-frame session records one `frame,mask` row per frame, and replaying it produces the same input sequence with no sparse/default frames | **Next** |
-| VR60-004 | Produce one assembly-built control ROM from a preserved live branch ROM, changing only the eight-byte 1P hook site | The validator proves the candidate/reference pair is identical outside file offset `$4D62-$4D69` and records both hashes | Open |
+| VR60-003 | Add debugger joypad control and exact input recording | A scripted 600-frame session records one `frame,mask` row per frame, and replaying it produces the same input sequence with no sparse/default frames | **Done** |
+| VR60-004 | Produce one assembly-built control ROM from a preserved live branch ROM, changing only the eight-byte 1P hook site | The validator proves the candidate/reference pair is identical outside file offset `$4D62-$4D69` and records both hashes | **Next** |
 | VR60-005 | Capture one fresh normal-1P GP savestate | A short diagnostic loads it at `$FF0002 = $00884CBC`; its SHA-256 is recorded and it is not the blocked fixture | Open |
 | VR60-006 | Capture one complete 18,000-frame controller replay for that state | The `frame,mask` CSV covers every frame exactly once, passes parser validation, and its SHA-256 is recorded | Open |
 | VR60-007 | Run a 1,800-frame preflight using VR60-004/005/006 | Scene, state order, hook cadence, framebuffer, SH2 work, and COMM lanes are healthy; the run still exits non-zero because short diagnostics can never qualify as a control | Open |
@@ -1637,6 +1654,7 @@ Record discoveries, gotchas, and insights as the project progresses. These help 
 | 2026-07-13 | Profiling methodology | **The PC histogram CSV has a `WRAM_CALLER` category (JSR return addresses from self-modified WRAM code) separate from the plain `68K` category** — filtering on `$1=="68K"` alone silently discards it, and its addresses are return-addresses-after-a-call, not necessarily inside the function you think they are (verify against the actual source, e.g. Path B vs Path A confusion this session). | Always `cut -d',' -f1 file.csv \| sort -u` to see every category present before drawing conclusions from a PC histogram. |
 | 2026-07-21 | Control methodology | **Plausible stock bytes at the hook are not sufficient proof of an isolated control ROM.** A candidate could contain unrelated changes, while configurable thresholds or offline CSV analysis could still manufacture an apparent PASS. | Preserve the live branch ROM, require exact equality outside the reviewed hook delta, record both hashes, keep acceptance policy immutable, and make every offline/diagnostic path fail closed. |
 | 2026-07-21 | Tooling | **The archived PDCORE was a stub test harness, not a PicoDrive debugger.** `pd_load_rom()` returns `Not implemented`; its passing tests never execute the real dual-SH2 game. | Keep it archived. Add debugger capabilities incrementally to the canonical libretro/PicoDrive path and close each slice with a real-ROM command script. |
+| 2026-07-21 | Tooling | **Debugger input is now resolved once per emulated frame and can be captured exactly.** The 600-frame acceptance fixture replays and re-records byte-for-byte; replay exhaustion cannot silently fall through to another input source. | Use `joypad` plus explicit `record start`/`record stop` for new controller captures. Keep each capture complete and feed the resulting `frame,mask` file directly to `VRD_INPUT_SCRIPT`. |
 
 ---
 

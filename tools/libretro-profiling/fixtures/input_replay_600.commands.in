@@ -1,0 +1,6 @@
+# VR60-003: re-record the loaded replay, then prove frame 600 cannot fall through.
+record start @OUTPUT@
+run 600
+record stop
+run 1
+quit

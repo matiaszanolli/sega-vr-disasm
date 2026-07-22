@@ -29,8 +29,8 @@ the `VRD_*` env vars documented at the top of `libretro.c`.
 
 ## Real-ROM debugger
 
-The same frontend now has a read-only debugger mode, so debugger observations and profiler
-observations execute the same PicoDrive core:
+The same frontend now has a debugger mode, so debugger observations and profiler observations
+execute the same PicoDrive core. CPU/game-memory inspection remains read-only:
 
 ```bash
 cd tools/libretro-profiling
@@ -39,11 +39,18 @@ cd tools/libretro-profiling
 # Reproducible minimum debugger smoke test:
 ./profiling_frontend ../../build/vr_rebuild.32x \
   --debug-script debugger_smoke.commands
+
+# Exact 600-frame joypad record/replay acceptance test (from the repository root):
+cd ../..
+python3 -m unittest tools/libretro-profiling/test_frontend_input_recording.py -v
 ```
 
-The first slice supports `run`, Master/Slave `regs`, bus-explicit `read`, `save`, `load`,
-`status`, and `quit`. It does not yet provide writes, breakpoints, input recording, or
-disassembly; track those as separate additions rather than reviving the stub PDCORE library.
+Commands include `run`, `joypad`, `record start` / `record stop`, Master/Slave `regs`,
+bus-explicit `read`, `save`, `load`, `status`, and `quit`. The recorder writes a complete replay
+CSV using the same `frame,mask` format as `VRD_INPUT_SCRIPT`; it refuses existing targets and
+discards any file not explicitly stopped. The debugger does not yet provide CPU/game-memory
+writes, breakpoints, or disassembly; track those as separate additions rather than reviving the
+stub PDCORE library.
 
 ## Abandoned tools (do NOT revive — see `_archive/`)
 

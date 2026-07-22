@@ -1,0 +1,17 @@
+# VR60-003: record six non-default joypad masks across exactly 600 frames.
+record start @OUTPUT@
+joypad 0x0008
+run 73
+joypad 0x0100
+run 127
+joypad 0x0140
+run 89
+joypad 0x0180
+run 111
+joypad 0x0001
+run 95
+joypad 0x0101
+run 105
+record stop
+status
+quit

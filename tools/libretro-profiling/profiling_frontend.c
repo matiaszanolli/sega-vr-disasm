@@ -14,6 +14,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdarg.h>
+#include <limits.h>
 
 /* Libretro input device IDs */
 #define RETRO_DEVICE_ID_JOYPAD_B        0
@@ -34,6 +35,9 @@ static uint16_t current_input = 0;
 static uint16_t hold_input_mask = 0;   /* VRD_HOLD_INPUT: bitmask held from frame 0, independent of --autoplay's menu-timing logic */
 static uint16_t *input_script_masks = NULL;
 static int input_script_frames = 0;
+static FILE *input_record_stream = NULL;
+static char *input_record_path = NULL;
+static unsigned int input_record_frame = 0;
 
 /* Libretro types (minimal subset) */
 typedef void (*lr_video_refresh_t)(const void *data, unsigned width,
@@ -150,44 +154,7 @@ static size_t stub_audio_sample_batch(const int16_t *data, size_t frames) {
 }
 
 static void stub_input_poll(void) {
-    if (input_script_masks && current_frame < input_script_frames) {
-        current_input = input_script_masks[current_frame];
-        return;
-    }
-
-    /* Update input state for autoplay */
-    if (!autoplay_enabled) {
-        current_input = hold_input_mask;
-        return;
-    }
-
-    current_input = hold_input_mask;
-
-    /*
-     * VRD menu navigation - press START repeatedly every 90 frames (1.5 sec)
-     * to get through all menus. The game has many screens:
-     * - Sega/32X logos
-     * - Title screen
-     * - Main menu
-     * - Mode selection (Grand Prix default)
-     * - Track selection
-     * - Car selection
-     * - Transmission selection
-     * - Loading screen
-     * - Race countdown
-     *
-     * After 1200 frames (20 seconds), assume we're racing and hold A.
-     */
-    if (current_frame >= 1200) {
-        /* Racing mode - hold accelerate */
-        current_input = (1 << RETRO_DEVICE_ID_JOYPAD_A);
-    } else if (current_frame >= 120) {
-        /* Menu navigation - press START every 90 frames */
-        int phase_frame = (current_frame - 120) % 90;
-        if (phase_frame < 5) {
-            current_input = (1 << RETRO_DEVICE_ID_JOYPAD_START);
-        }
-    }
+    /* current_input is resolved exactly once immediately before core_run(). */
 }
 
 static int16_t stub_input_state(unsigned port, unsigned device,
@@ -247,6 +214,8 @@ static bool load_input_script(const char *path, int frame_count) {
     unsigned char *seen;
     char line[128];
     int line_number = 0;
+    int expected_frame = 0;
+    bool saw_header = false;
 
     if (!stream) {
         fprintf(stderr, "Failed to open input script: %s\n", path);
@@ -268,28 +237,43 @@ static bool load_input_script(const char *path, int frame_count) {
         long frame;
         unsigned long mask;
         line_number++;
+        line[strcspn(line, "\r\n")] = '\0';
         while (*cursor == ' ' || *cursor == '\t') cursor++;
-        if (*cursor == '\0' || *cursor == '\n' || *cursor == '#') continue;
-        if (strncmp(cursor, "frame,mask", 10) == 0) continue;
+        if (*cursor == '\0' || *cursor == '#') continue;
+        if (!saw_header) {
+            if (strcmp(cursor, "frame,mask") != 0) goto malformed;
+            saw_header = true;
+            continue;
+        }
+        if (strcmp(cursor, "frame,mask") == 0) goto malformed;
         frame = strtol(cursor, &end, 0);
         if (end == cursor || *end != ',') goto malformed;
         cursor = end + 1;
         mask = strtoul(cursor, &end, 0);
         while (*end == ' ' || *end == '\t' || *end == '\r' || *end == '\n') end++;
-        if (*end != '\0' || frame < 0 || frame >= frame_count || mask > 0xFFFF || seen[frame])
+        if (*end != '\0' || frame < 0 || frame >= frame_count ||
+            frame != expected_frame || mask > 0xFFFF || seen[frame])
             goto malformed;
         masks[frame] = (uint16_t)mask;
         seen[frame] = 1;
+        expected_frame++;
         continue;
 
 malformed:
-        fprintf(stderr, "Invalid input script row %d: %s", line_number, line);
+        fprintf(stderr, "Invalid input script row %d: %s\n", line_number, line);
         free(masks);
         free(seen);
         fclose(stream);
         return false;
     }
-    fclose(stream);
+    bool read_ok = !ferror(stream) && saw_header;
+    if (fclose(stream) != 0) read_ok = false;
+    if (!read_ok) {
+        fprintf(stderr, "Failed to read complete input script: %s\n", path);
+        free(masks);
+        free(seen);
+        return false;
+    }
     for (int frame = 0; frame < frame_count; frame++) {
         if (!seen[frame]) {
             fprintf(stderr, "Input script is missing frame %d (requires 0..%d)\n",
@@ -303,6 +287,122 @@ malformed:
     input_script_masks = masks;
     input_script_frames = frame_count;
     return true;
+}
+
+static char *copy_string(const char *text) {
+    size_t length;
+    char *copy;
+
+    if (!text) return NULL;
+    length = strlen(text) + 1;
+    copy = malloc(length);
+    if (copy) memcpy(copy, text, length);
+    return copy;
+}
+
+static void input_record_abort(void) {
+    if (input_record_stream) fclose(input_record_stream);
+    input_record_stream = NULL;
+    if (input_record_path) remove(input_record_path);
+    free(input_record_path);
+    input_record_path = NULL;
+    input_record_frame = 0;
+}
+
+static bool input_record_start(const char *path) {
+    FILE *stream;
+    char *path_copy;
+
+    if (!path || !*path || input_record_stream) return false;
+    path_copy = copy_string(path);
+    if (!path_copy) return false;
+    stream = fopen(path, "wx");
+    if (!stream) {
+        fprintf(stderr, "Cannot create new input recording: %s\n", path);
+        free(path_copy);
+        return false;
+    }
+    if (fprintf(stream, "frame,mask\n") < 0 || fflush(stream) != 0) {
+        fprintf(stderr, "Cannot initialize input recording: %s\n", path);
+        fclose(stream);
+        remove(path);
+        free(path_copy);
+        return false;
+    }
+    input_record_stream = stream;
+    input_record_path = path_copy;
+    input_record_frame = 0;
+    printf("Recording joypad input: %s\n", path);
+    return true;
+}
+
+static bool input_record_stop(void) {
+    FILE *stream;
+    char *path;
+    unsigned int frames;
+    bool ok;
+
+    if (!input_record_stream || !input_record_path) return false;
+    stream = input_record_stream;
+    path = input_record_path;
+    frames = input_record_frame;
+    input_record_stream = NULL;
+    input_record_path = NULL;
+    input_record_frame = 0;
+    ok = fflush(stream) == 0 && !ferror(stream);
+    if (fclose(stream) != 0) ok = false;
+    if (!ok) {
+        fprintf(stderr, "Failed to finalize input recording: %s\n", path);
+        remove(path);
+    } else {
+        printf("Recorded %u frame%s: %s\n", frames, frames == 1 ? "" : "s", path);
+    }
+    free(path);
+    return ok;
+}
+
+static bool input_record_current_frame(void) {
+    if (!input_record_stream) return true;
+    if (fprintf(input_record_stream, "%u,0x%04X\n",
+                input_record_frame, current_input) < 0 ||
+        fflush(input_record_stream) != 0) {
+        fprintf(stderr, "Failed while writing input recording: %s\n", input_record_path);
+        input_record_abort();
+        return false;
+    }
+    input_record_frame++;
+    return true;
+}
+
+static bool resolve_frame_input(void) {
+    if (input_script_masks) {
+        if (current_frame < 0 || current_frame >= input_script_frames) {
+            fprintf(stderr,
+                    "Input replay exhausted at frame %d (script covers 0..%d)\n",
+                    current_frame, input_script_frames - 1);
+            return false;
+        }
+        current_input = input_script_masks[current_frame];
+        return true;
+    }
+
+    current_input = hold_input_mask;
+    if (!autoplay_enabled) return true;
+    if (current_frame >= 1200) {
+        current_input = (1 << RETRO_DEVICE_ID_JOYPAD_A);
+    } else if (current_frame >= 120) {
+        int phase_frame = (current_frame - 120) % 90;
+        if (phase_frame < 5)
+            current_input = (1 << RETRO_DEVICE_ID_JOYPAD_START);
+    }
+    return true;
+}
+
+static bool run_emulated_frame(void) {
+    if (current_frame == INT_MAX || !resolve_frame_input()) return false;
+    core_run();
+    current_frame++;
+    return input_record_current_frame();
 }
 
 static bool debug_parse_u32(const char *text, uint32_t *out) {
@@ -378,10 +478,24 @@ static bool debug_load_state(const char *path) {
     return ok;
 }
 
+static bool debug_set_joypad(const char *mask_text) {
+    uint32_t mask;
+
+    if (!debug_parse_u32(mask_text, &mask) || mask > 0xFFFF) return false;
+    if (input_script_masks) {
+        fprintf(stderr, "Cannot override joypad while VRD_INPUT_SCRIPT is active\n");
+        return false;
+    }
+    autoplay_enabled = 0;
+    hold_input_mask = (uint16_t)mask;
+    current_input = hold_input_mask;
+    printf("Joypad mask: 0x%04X\n", hold_input_mask);
+    return true;
+}
+
 static bool debug_run_frames(uint32_t count) {
     for (uint32_t i = 0; i < count; i++) {
-        core_run();
-        current_frame++;
+        if (!run_emulated_frame()) return false;
     }
     printf("Advanced %u frame%s; session frame=%d\n",
            count, count == 1 ? "" : "s", current_frame);
@@ -439,6 +553,9 @@ static bool debug_read_memory(const char *cpu_name, const char *address_text,
 static void debug_print_help(void) {
     printf("Commands:\n");
     printf("  run [frames]                    Advance emulation (default 1)\n");
+    printf("  joypad <mask>                   Set the P1 mask used by subsequent frames\n");
+    printf("  record start <path>             Start a new frame,mask recording\n");
+    printf("  record stop                     Finalize the active recording\n");
     printf("  regs [master|slave]             Read SH2 registers\n");
     printf("  read <68k|master|slave> <addr> [size]\n");
     printf("  save <path>                     Save a libretro savestate\n");
@@ -451,6 +568,7 @@ static void debug_print_help(void) {
 static int debug_repl(FILE *input, bool scripted) {
     char line[1024];
     char original[1024];
+    int status = 0;
 
     debug_print_help();
     while (true) {
@@ -484,6 +602,15 @@ static int debug_repl(FILE *input, bool scripted) {
             uint32_t count = 1;
             ok = !arg2 && (!arg1 || debug_parse_u32(arg1, &count)) && count > 0;
             if (ok) ok = debug_run_frames(count);
+        } else if (strcmp(cmd, "joypad") == 0) {
+            ok = arg1 && !arg2 && debug_set_joypad(arg1);
+        } else if (strcmp(cmd, "record") == 0) {
+            if (arg1 && strcmp(arg1, "start") == 0)
+                ok = arg2 && !arg3 && input_record_start(arg2);
+            else if (arg1 && strcmp(arg1, "stop") == 0)
+                ok = !arg2 && input_record_stop();
+            else
+                ok = false;
         } else if (strcmp(cmd, "regs") == 0) {
             ok = !arg2 && debug_print_regs(arg1);
         } else if (strcmp(cmd, "read") == 0) {
@@ -497,10 +624,17 @@ static int debug_repl(FILE *input, bool scripted) {
         }
         if (!ok) {
             fprintf(stderr, "Debugger command failed: %s\n", cmd);
-            if (scripted) return 1;
+            status = 1;
+            if (scripted) break;
         }
     }
-    return 0;
+    if (input_record_stream) {
+        fprintf(stderr, "Input recording was not stopped; discarding partial file: %s\n",
+                input_record_path ? input_record_path : "(unknown)");
+        input_record_abort();
+        status = 1;
+    }
+    return status;
 }
 
 int main(int argc, char **argv) {
@@ -513,7 +647,7 @@ int main(int argc, char **argv) {
         fprintf(stderr, "  VRD_INPUT_SCRIPT - Complete CSV replay: frame,mask for every frame 0..N-1\n");
         fprintf(stderr, "\nOptions:\n");
         fprintf(stderr, "  --autoplay  Inject inputs to navigate menus and start a race\n");
-        fprintf(stderr, "  --debug     Start the interactive read-only PicoDrive debugger\n");
+        fprintf(stderr, "  --debug     Start the PicoDrive debugger (inspection is read-only)\n");
         fprintf(stderr, "  --debug-script file  Run debugger commands from a file\n");
         return 1;
     }
@@ -733,8 +867,10 @@ int main(int argc, char **argv) {
 
         /* Run emulation frames */
         for (int frame = 0; frame < max_frames; frame++) {
-            current_frame = frame;  /* Update for autoplay */
-            core_run();
+            if (!run_emulated_frame()) {
+                run_status = 1;
+                break;
+            }
 
             /* Progress indicator */
             if ((frame + 1) % 60 == 0) {
@@ -748,10 +884,11 @@ int main(int argc, char **argv) {
                        (frame + 1) * 100.0 / max_frames, phase);
             }
         }
-        printf("Emulation complete.\n");
+        if (run_status == 0) printf("Emulation complete.\n");
     }
 
     /* Cleanup */
+    if (input_record_stream) input_record_abort();
     core_unload_game();
     free(rom_data);
     core_deinit();

@@ -45,17 +45,22 @@ the comparison are recorded. Acceptance policy is fixed, and diagnostic/offline-
 overrides always force a failing result. Normal runs also require a new output path and the
 reviewed frontend/core identities, so stale artifacts or arbitrary binaries cannot produce PASS.
 
-**VR60-002 is complete:** the canonical libretro/PicoDrive frontend now has a real-ROM,
-read-only debugger mode. It advances frames, reads Master/Slave SH2 registers, reads 68K or SH2
-memory, and saves/loads matching libretro states. Its tracked smoke script reached non-zero live
-SH2 state after 120 frames; the old `_archive/pdcore` stub remains retired because its ROM loader
-is still `Not implemented`.
+**VR60-002 is complete:** the canonical libretro/PicoDrive frontend now has a real-ROM debugger
+whose CPU/game-memory inspection remains read-only. It advances frames, reads Master/Slave SH2
+registers, reads 68K or SH2 memory, and saves/loads matching libretro states. Its tracked smoke
+script reached non-zero live SH2 state after 120 frames; the old `_archive/pdcore` stub remains
+retired because its ROM loader is still `Not implemented`.
 
-The current work item is **VR60-003**: add explicit joypad control and exact per-frame input
-recording to debugger mode, then prove a recorded 600-frame session replays byte-for-byte. The
-control ROM, fresh state, full replay capture, short preflight, and full control are separate
-follow-up issues (VR60-004 through VR60-008); see the near-term issue queue in
-`VR60_ROADMAP.md`.
+**VR60-003 is complete:** debugger mode now has explicit `joypad` control and exact per-frame
+input recording. A tracked real-core integration test recorded six varying non-zero masks across
+frames `0..599`, replayed the CSV through `VRD_INPUT_SCRIPT`, and captured the same bytes. Replay
+exhaustion fails before advancing, and partial/error recordings cannot masquerade as complete
+fixtures.
+
+The current work item is **VR60-004**: produce an assembly-built control ROM from a preserved
+live branch ROM, changing only the reviewed eight-byte 1P hook site. The fresh state, full replay
+capture, short preflight, and full control remain separate follow-up issues (VR60-005 through
+VR60-008); see the near-term issue queue in `VR60_ROADMAP.md`.
 
 Do not enable another offload stage until a test fixture or deterministic input harness passes all of these checks with the VR60 hook bypassed:
 

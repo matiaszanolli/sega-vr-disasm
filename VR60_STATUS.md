@@ -38,11 +38,11 @@ This file is the short, current answer to “what works now?” Older roadmap en
 
 The [fail-closed validator](tools/libretro-profiling/VRD_PROFILING.md#normal-1p-control-validator),
 reviewed hook-bypass control pair, fresh normal-1P candidate fixture, and complete deterministic
-replay are now implemented. The milestone remains open because the short preflight and full
-18,000-frame control have not run. The old GP state remains blocked by SHA-256. Acceptance policy
-is fixed, and diagnostic/offline-analysis overrides always force a failing result. Normal runs
-also require a new output path and the reviewed frontend/core identities, so stale artifacts or
-arbitrary binaries cannot produce PASS.
+replay are now implemented, and the exact-prefix short preflight met every functional liveness
+criterion. The milestone remains open because the full 18,000-frame control has not run. The old
+GP state remains blocked by SHA-256. Acceptance policy is fixed, and diagnostic/offline-analysis
+overrides always force a failing result. Normal runs also require a new output path and the
+reviewed frontend/core identities, so stale artifacts or arbitrary binaries cannot produce PASS.
 
 **VR60-002 is complete:** the canonical libretro/PicoDrive frontend now has a real-ROM debugger
 whose CPU/game-memory inspection remains read-only. It advances frames, reads Master/Slave SH2
@@ -83,10 +83,19 @@ The validator parser accepted it, and a complete `VRD_INPUT_SCRIPT` replay re-re
 18,360 rows byte-for-byte with the same hash. This proves deterministic capture/replay, not
 five-minute gameplay liveness.
 
-The current work item is **VR60-007**: run the exact first 2,160 rows of that replay as a
-360-frame-warmup plus 1,800-frame preflight. It must meet every functional liveness criterion and
-still fail only the mandatory short-run rule. The full control remains the separate VR60-008
-follow-up; see the near-term issue queue in `VR60_ROADMAP.md`.
+**VR60-007 is complete:** the exact first 2,160 rows of VR60-006, SHA-256
+`d71ac7f484b7ed15978425b3f7ab18256a2a2860918dd5060f623cb8d244a87a`, drove a fixed
+360-frame warmup plus 1,800-frame preflight. All ten 180-frame windows stayed in the full 1P scene
+and visited states `$0000/$0004/$0008/$000C` in order. The validation window recorded 450 exact
+hook hits (maximum gap 4), 1,039 unique framebuffer hashes (maximum stall 1), COMM0/COMM2/COMM7
+maximum non-zero runs 3/2/0, and useful work from both SH2s in every window. The trace completed 2,160
+frames with 539 hits and zero drops. Exit status was the required 1, with `short_control_window`
+as the only finding; this is a successful bounded preflight, not a control PASS.
+
+The current work item is **VR60-008**: run the unchanged control ROM, live reference, VR60-005
+state, and complete VR60-006 replay with the same 360-frame warmup and all 18,000 validation
+frames. It must pass all 100 fixed windows without code, policy, threshold, or input changes; see
+the near-term issue queue in `VR60_ROADMAP.md`.
 
 Do not enable another offload stage until a test fixture or deterministic input harness passes all of these checks with the VR60 hook bypassed:
 

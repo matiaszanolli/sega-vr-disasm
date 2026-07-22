@@ -23,21 +23,21 @@ are **unverified**, not proven broken.
 
 The fresh normal-1P state required by VR60-005 now exists and passes a 360-frame-warmup plus
 1,800-frame diagnostic on every liveness signal, and VR60-006 has captured its complete
-deterministic replay. The immediate blocker is the exact-prefix preflight and resulting full
-control, not a single frame-buffer-swap patch. The control must keep `$C87E` cycling for the whole
-validation run and confirm the scene, hook, non-stuck COMM lanes, and framebuffer liveness
-independently. After that, re-enable one stage at a time: cmd `$3E` modes 0/1, AI transfer, cmd
-`$3F` in shadow mode, a bridge into the
-renderer-consumed C128/C178/C254 descriptors, and only then subsystem authority/bypass changes.
+deterministic replay. VR60-007 then confirmed the exact-prefix bounded preflight. The immediate
+blocker is the full 18,000-frame control, not a single frame-buffer-swap patch. It must keep
+`$C87E` cycling for the whole validation run and confirm the scene, hook, non-stuck COMM lanes,
+and framebuffer liveness independently. After that, re-enable one stage at a time: cmd `$3E`
+modes 0/1, AI transfer, cmd `$3F` in shadow mode, a bridge into the renderer-consumed
+C128/C178/C254 descriptors, and only then subsystem authority/bypass changes.
 Cadence and fixed-step scaling for true 60 Hz come after the data path is proven.
 
 See [`VR60_STATUS.md`](VR60_STATUS.md) for the concise status matrix and definition of done.
 
 ### Milestone 1 tooling and fixture update (2026-07-22)
 
-The deterministic control **validator is implemented**, and the first fresh fixture satisfied
-every bounded liveness check; the diagnostic still failed by policy because it was short, and no
-full replay/control has passed yet.
+The deterministic control **validator is implemented**, and the exact-prefix VR60-007 preflight
+satisfied every bounded liveness check. Its result still failed by policy because it was short;
+no full 18,000-frame control has passed yet.
 `tools/libretro-profiling/validate_1p_control.py` accepts a complete per-frame input replay and
 records/checks the full normal-1P scene
 pointer, contiguous frames, every `$C87E` cycle window, an unlimited exact state-8 caller trace,
@@ -51,9 +51,9 @@ validator now requires both ROMs and proves they are byte-identical outside that
 delta, recording both hashes. Acceptance addresses, thresholds, 180-frame window, and canonical
 fixture blacklist are fixed; offline analysis and every diagnostic override force failure. It also
 rejects `savestate_1p_gp_racing.bin` by SHA-256 from `control_fixtures.json`. The reviewed
-assembly-built bypass/reference pair, a new 1P state, and its full deterministic replay now
-exist; the preflight and full control are still required to close Q-019. In a diagnostic
-1,800-frame run of the known invalid
+assembly-built bypass/reference pair, a new 1P state, its full deterministic replay, and the
+exact-prefix preflight now exist; the full control is still required to close Q-019. In a
+diagnostic 1,800-frame run of the known invalid
 combination, `$C87E` omitted state `$000C` in every later 180-frame window and COMM0_HI remained
 non-zero for 1,755 consecutive frames; the caller trace itself completed with 595 hits and zero
 drops. A normal PASS requires at least 18,000 frames; shorter diagnostics are permanently marked
@@ -105,8 +105,9 @@ Both are 4,128,768 bytes, their hook bytes are respectively `4EF90001C8B04E71` a
 The candidate also boots and passes the existing 120-frame real-core debugger smoke. A real
 180-frame diagnostic recorded `control_rom_eligible: true` for this pair, then exited non-zero as
 required for the forced short run and blocked fixture (with the known state-order and COMM0
-failures); no ROM-policy failure was present. VR60-005 subsequently supplied the fresh state
-described below, and VR60-006 supplied its complete replay; VR60-007 is now next.
+failures); no ROM-policy failure was present. VR60-005 subsequently supplied the fresh state,
+VR60-006 supplied its complete replay, and VR60-007 supplied the exact-prefix preflight described
+below; VR60-008 is now next.
 
 ### Fresh normal-1P candidate fixture (2026-07-22)
 
@@ -125,8 +126,8 @@ that the fixed warmup is sufficient for bounded candidate qualification. It does
 `$02`/COMM0 interval lasts 199 sampled frames, so no generic COMM claim or threshold change is
 accepted from this result.
 
-The full replay must cover warmup plus validation: exactly 18,360 `frame,mask` rows numbered
-`0..18359`. VR60-007 will use the exact first 2,160-row prefix (360 warmup + 1,800 validation);
+The full replay covers warmup plus validation: exactly 18,360 `frame,mask` rows numbered
+`0..18359`. VR60-007 used the exact first 2,160-row prefix (360 warmup + 1,800 validation);
 VR60-008 will use the complete replay (360 warmup + 18,000 validation).
 
 ### Deterministic full replay (2026-07-22)
@@ -140,9 +141,42 @@ validator parser accepted it.
 
 A second real-frontend session loaded the CSV through `VRD_INPUT_SCRIPT`, replayed all 18,360
 frames, and re-recorded the resolved input. The re-recording was byte-for-byte identical and had
-the same SHA-256. This establishes complete deterministic capture and replay only. Because every
-mask is `0x0100`, whether this recipe preserves scene, state, hook, framebuffer, SH2, and COMM
-liveness remains an explicit VR60-007 question; no control result is inferred from VR60-006.
+the same SHA-256. This establishes complete deterministic capture and replay only. VR60-007
+subsequently established bounded scene, state, hook, framebuffer, SH2, and COMM liveness for the
+`0x0100` recipe; full-run durability remains an explicit VR60-008 question.
+
+### Exact-prefix liveness preflight (2026-07-22)
+
+VR60-007 is complete. An untracked temporary input file was derived as the exact header plus first
+2,160 data rows of the committed VR60-006 replay. It covered frames `0..2159`, contained only
+`0x0100`, passed the fixed parser, and had SHA-256
+`d71ac7f484b7ed15978425b3f7ab18256a2a2860918dd5060f623cb8d244a87a`. Hashing the first
+2,161 physical lines of the committed replay produced the same value; a redundant tracked prefix
+was therefore not added.
+
+The exact command was:
+
+```bash
+python3 tools/libretro-profiling/validate_1p_control.py \
+  build/vr60_control_bypass.32x \
+  --reference-rom build/vr60_live_reference.32x \
+  --savestate /home/matias/.picodrive/mds/vr60_control_bypass.mds \
+  --input-script /tmp/vr60-007-prefix-anjn0C.csv \
+  --warmup-frames 360 --frames 1800 \
+  --output-dir /tmp/vr60-007-preflight-Snp1v2/artifacts \
+  --diagnose-short-run
+```
+
+The validator exited 1 as required, and `result.json` contained only `short_control_window`.
+Result SHA-256 was `8330e40e43168e782bbe1604f472dfebc622e441c13a9e35878ef19765c938d8`;
+`run.json` SHA-256 was `d63455872b9f6a0e27ae3758f83e7637a330ced0a4eac03601b8cd0383e2f7ea`.
+The validation range was `360..2159`: ten complete 180-frame windows, full scene pointer
+`$00884CBC` throughout, 450 visits to each expected state in correct order, maximum state stall
+1, 450 exact hook hits with maximum gap 4, 1,039 unique framebuffer hashes with maximum stall 1,
+COMM0/COMM2/COMM7 maximum non-zero runs 3/2/0, Master useful work on all 1,800 frames, and Slave
+useful work on 1,350 frames (135 in every window). The caller footer reported 2,160 frames, 539
+hits logged, and zero drops. These are bounded liveness results only; VR60-008 must test the same
+artifacts over all 18,000 validation frames without changing code, policy, thresholds, or input.
 
 ### Near-term issue queue
 
@@ -157,8 +191,8 @@ test; do not combine it with the next issue just because both are convenient in 
 | VR60-004 | Produce one assembly-built control ROM from a preserved live branch ROM, changing only the eight-byte 1P hook site | The validator proves the candidate/reference pair is identical outside file offset `$4D62-$4D69` and records both hashes | **Done** |
 | VR60-005 | Capture one fresh normal-1P GP savestate | A short diagnostic loads it at `$FF0002 = $00884CBC`; its SHA-256 is recorded and it is not the blocked fixture | **Done** |
 | VR60-006 | Capture one complete 18,360-frame controller replay for that state (360 warmup + 18,000 validation) | The `frame,mask` CSV covers frames `0..18359` exactly once, passes parser validation, and its SHA-256 is recorded | **Done** |
-| VR60-007 | Run a 360-frame-warmup + 1,800-frame preflight using VR60-004/005 and the exact first 2,160-row prefix of VR60-006 | Scene, state order, hook cadence, framebuffer, SH2 work, and COMM lanes are healthy; the run still exits non-zero because short diagnostics can never qualify as a control | **Next** |
-| VR60-008 | Run the full control without changing code or thresholds | The exact same ROM/state and complete VR60-006 replay pass all 360 warmup + 18,000 validation frames and 100 fixed validation windows | Open |
+| VR60-007 | Run a 360-frame-warmup + 1,800-frame preflight using VR60-004/005 and the exact first 2,160-row prefix of VR60-006 | Scene, state order, hook cadence, framebuffer, SH2 work, and COMM lanes are healthy; the run still exits non-zero because short diagnostics can never qualify as a control | **Done** |
+| VR60-008 | Run the full control without changing code or thresholds | The exact same ROM/state and complete VR60-006 replay pass all 360 warmup + 18,000 validation frames and 100 fixed validation windows | **Next** |
 
 If VR60-007 fails, open one issue for the first failing signal and keep VR60-008 blocked; do
 not repair the fixture, profiler, input, and game code in one change. After VR60-008 passes,
@@ -1524,7 +1558,7 @@ These must be resolved before their respective phases. Add new questions as they
 | Q-016 | Is lateral_drift_velocity_B ($0099AA) structurally different from A ($00987E)? | Phase 3 | **RESOLVED: YES, fundamentally different** | B = 358B (not ~300B). Different math: force calc order (mul-then-div vs div-first), AI boost logic (speed > $C8 + AI flag → extra grip loss from +$0E), different grip clamp range ([$40,$FF] vs [$7F,∞]), 2× damping threshold (±$200 vs ±$100), viewport shimmer ($FF617A/$FF618E writes), 2× display scaling. 3 extra entity fields (+$04, +$0E, +$80), 1 extra global ($FFBFC0 AI control flag). Both variants must be ported independently. SH2 estimate: ~420B. |
 | Q-017 | Does `--autoplay` actually reach real 1P GP racing (`state_disp_004cb8`, scene `$4CBC`)? | Phase 1 (1P wiring) | **RESOLVED: NO** | It settles in scene `$5586`; its `[racing]` label is only frame-count based. `VRD_LOAD_STATE` was added to reach GP, but the available `savestate_1p_gp_racing.bin` later stops advancing `$C87E` even with the VR60 hook bypassed, so it is useful for short traces—not a valid long-run baseline. |
 | Q-018 | Does `game_frame_orch_013` state 8 recur during real 1P racing? | Phase 1 | **RESOLVED: YES, ABOUT 20 HZ** | Exact `VRD_CALLER_TRACE` found a regular one-hit-per-three-TV-frame cadence. The earlier zero-hit top-200 PC histogram was a false negative; the current hook location is valid. |
-| Q-019 | Can we produce a deterministic 1P fixture that stays live for the full validation window? | All live integration | **FIXTURE + REPLAY COMPLETE; PREFLIGHT/FULL CONTROL OPEN — CURRENT BLOCKER** | The fail-closed validator, canonical blacklist, caller trace, assembly-built ROM pair, fresh VR60-005 state, and exact 18,360-row VR60-006 replay are complete. Run the exact-prefix VR60-007 preflight, then pass the unchanged state/replay/ROM combination for 18,000 validation frames (100 × 180-frame windows) in VR60-008 before testing later VR60 stages. The old state remains SHA-blocked; the new candidate has only bounded liveness evidence so far. |
+| Q-019 | Can we produce a deterministic 1P fixture that stays live for the full validation window? | All live integration | **PREFLIGHT COMPLETE; FULL CONTROL OPEN — CURRENT BLOCKER** | The fail-closed validator, canonical blacklist, caller trace, assembly-built ROM pair, fresh VR60-005 state, exact VR60-006 replay, and exact-prefix VR60-007 preflight are complete. Pass the unchanged state/replay/ROM combination for 18,000 validation frames (100 × 180-frame windows) in VR60-008 before testing later VR60 stages. The old state remains SHA-blocked; the new candidate still has only bounded liveness evidence. |
 | Q-020 | Are cmd `$3E` modes 0/1 correct over a trustworthy 1P run? | Phase 1 | **OPEN** | They are enabled and bounded, but the former 724-hash acceptance result is retracted with the invalid fixture. Re-test modes separately after Q-019. |
 | Q-021 | Are AI transfer mode 2 and cmd `$3F` safe in 1P? | Phases 1, 3, 4 | **OPEN; NEITHER PROVEN SAFE NOR UNSAFE** | §21's freeze attribution is retracted by §22. Enable one stage at a time only after Q-019; keep the 68000 authoritative while cmd `$3F` first runs as observable shadow computation. |
 | Q-022 | Which racing descriptor block should carry the SH2-authoritative car state? | Phase 5F | **PARTIALLY RESOLVED** | Static decode proves cmd `$02` reads C128/C178/C254, not C218. The C254 probe is built but dormant because current cmd `$3F` still calls the no-op patcher and the 1P trigger is disabled. Run reversible A/B/C probes after Q-019/Q-021. |

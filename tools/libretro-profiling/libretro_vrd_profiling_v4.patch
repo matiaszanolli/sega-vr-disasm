@@ -1,3 +1,38 @@
+diff --git a/cpu/fame/fame.h b/cpu/fame/fame.h
+index ee1140b..93ade4d 100644
+--- a/cpu/fame/fame.h
++++ b/cpu/fame/fame.h
+@@ -158,6 +158,10 @@ typedef struct
+ 	unsigned char  pad[3];
+ 
+ 	uintptr_t      Fetch[M68K_FETCHBANK1];
++
++	/* Optional PicoDrive diagnostic hook. Appended so all existing member
++	 * offsets remain stable; called with the exact PC before opcode fetch. */
++	void           (*instruction_start)(unsigned int pc);
+ } M68K_CONTEXT;
+ 
+ typedef enum
+diff --git a/cpu/fame/famec.c b/cpu/fame/famec.c
+index b0ee0f0..6e48969 100644
+--- a/cpu/fame/famec.c
++++ b/cpu/fame/famec.c
+@@ -229,6 +229,7 @@
+ 
+ #ifndef FAMEC_NO_GOTOS
+ #define NEXT {               \
++    if (ctx->instruction_start) ctx->instruction_start(GET_PC); \
+     FETCH_WORD(Opcode);         \
+     goto *JumpTable[Opcode];    \
+ }
+@@ -256,6 +257,7 @@
+ 
+ #define NEXT \
+     do { \
++        if (ctx->instruction_start) ctx->instruction_start(GET_PC); \
+         FETCH_WORD(Opcode); \
+         JumpTable[Opcode](ctx); \
+     } while (ctx->io_cycle_counter > 0);
 diff --git a/pico/32x/32x.c b/pico/32x/32x.c
 index f7d58be..0fa0b3f 100644
 --- a/pico/32x/32x.c
@@ -84,10 +119,18 @@ index 0078522..eabb5eb 100644
    SekCyclesLeft = 0;
  }
 diff --git a/platform/libretro/libretro.c b/platform/libretro/libretro.c
-index a6f2bf6..b8b2f39 100644
+index a6f2bf6..50edb66 100644
 --- a/platform/libretro/libretro.c
 +++ b/platform/libretro/libretro.c
-@@ -94,6 +94,314 @@ static retro_input_state_t input_state_cb;
+@@ -22,6 +22,7 @@
+ #include "libretro-common/include/formats/image.h" // really, for IMAGE_PROCESS_NEXT?!?
+ #include "libretro-common/include/formats/rpng.h"
+ #include "libretro-common/include/file/file_path.h"
++#include "libretro-common/include/streams/file_stream.h"
+ 
+ #include "libretro-common/include/memmap.h"
+ /* Ouf, libretro-common defines  replacement functions, but not the flags :-| */
+@@ -94,6 +95,606 @@ static retro_input_state_t input_state_cb;
  static retro_environment_t environ_cb;
  static retro_audio_sample_batch_t audio_batch_cb;
  
@@ -269,6 +312,298 @@ index a6f2bf6..b8b2f39 100644
 + * control validator rejects a trace whose footer reports dropped hits. */
 +static unsigned int vrd_caller_trace_max = 0;
 +
++/* VR60-009 diagnostic-only 68K memory-write trace. The write callbacks are
++ * installed after PicoDrive has completed ROM/memory setup and are inactive
++ * unless VRD_WRITE_TRACE names both required targets and VRD_WRITE_TRACE_LOG
++ * names a new output file. */
++#define VRD_WRITE_TRACE_MAX_TARGETS 8
++typedef struct {
++    unsigned int addr;
++    unsigned int size;
++} vrd_write_trace_target_t;
++static vrd_write_trace_target_t
++    vrd_write_trace_targets[VRD_WRITE_TRACE_MAX_TARGETS];
++static int vrd_write_trace_target_count = 0;
++static FILE *vrd_write_trace_log = NULL;
++static unsigned int vrd_write_trace_pc = 0;
++static int vrd_write_trace_installed = 0;
++static unsigned int vrd_write_trace_errors = 0;
++static unsigned long long vrd_write_trace_events = 0;
++static void (*vrd_write_trace_orig_byte)(unsigned int, unsigned char) = NULL;
++static void (*vrd_write_trace_orig_word)(unsigned int, unsigned short) = NULL;
++static void (*vrd_write_trace_orig_long)(unsigned int, unsigned int) = NULL;
++static void (*vrd_write_trace_orig_instruction_start)(unsigned int) = NULL;
++
++static void vrd_write_trace_instruction_start(unsigned int pc)
++{
++    if (vrd_write_trace_orig_instruction_start)
++        vrd_write_trace_orig_instruction_start(pc);
++    vrd_write_trace_pc = pc;
++}
++
++static void vrd_write_trace_error(const char *message)
++{
++    if (log_cb)
++        log_cb(RETRO_LOG_ERROR, "VRD_WRITE_TRACE: %s\n", message);
++    else
++        printf("VRD_WRITE_TRACE: %s\n", message);
++}
++
++static int vrd_write_trace_parse(const char *spec)
++{
++    const char *p = spec;
++
++    vrd_write_trace_target_count = 0;
++    while (p && *p) {
++        char *end;
++        unsigned long addr, size;
++        int i;
++
++        if (vrd_write_trace_target_count >= VRD_WRITE_TRACE_MAX_TARGETS) {
++            vrd_write_trace_error("too many targets");
++            return 0;
++        }
++        errno = 0;
++        addr = strtoul(p, &end, 0);
++        if (errno || end == p || *end != ':') {
++            vrd_write_trace_error("invalid target address; expected addr:size");
++            return 0;
++        }
++        p = end + 1;
++        errno = 0;
++        size = strtoul(p, &end, 0);
++        if (errno || end == p || (size != 1 && size != 2 && size != 4) ||
++            addr > 0x00ffffffUL || addr + size > 0x01000000UL) {
++            vrd_write_trace_error("invalid target size/range; size must be 1, 2, or 4");
++            return 0;
++        }
++        for (i = 0; i < vrd_write_trace_target_count; i++) {
++            if (vrd_write_trace_targets[i].addr == (unsigned int)addr &&
++                vrd_write_trace_targets[i].size == (unsigned int)size) {
++                vrd_write_trace_error("duplicate target");
++                return 0;
++            }
++        }
++        vrd_write_trace_targets[vrd_write_trace_target_count].addr =
++            (unsigned int)addr;
++        vrd_write_trace_targets[vrd_write_trace_target_count].size =
++            (unsigned int)size;
++        vrd_write_trace_target_count++;
++        if (*end == '\0')
++            break;
++        if (*end != ',' || end[1] == '\0') {
++            vrd_write_trace_error("invalid target separator; expected comma");
++            return 0;
++        }
++        p = end + 1;
++    }
++
++    if (vrd_write_trace_target_count == 0) {
++        vrd_write_trace_error("empty target list");
++        return 0;
++    }
++    return 1;
++}
++
++static int vrd_write_trace_has_target(unsigned int addr, unsigned int size)
++{
++    int i;
++    for (i = 0; i < vrd_write_trace_target_count; i++) {
++        if (vrd_write_trace_targets[i].addr == addr &&
++            vrd_write_trace_targets[i].size == size)
++            return 1;
++    }
++    return 0;
++}
++
++static unsigned int vrd_write_trace_read_target(int target)
++{
++    unsigned int value = 0;
++    unsigned int i;
++    for (i = 0; i < vrd_write_trace_targets[target].size; i++) {
++        value = (value << 8) |
++            (PicoCpuFM68k.read_byte(
++                vrd_write_trace_targets[target].addr + i) & 0xff);
++    }
++    return value;
++}
++
++static unsigned int vrd_write_trace_collect(unsigned int access_addr,
++    unsigned int access_size, unsigned int *old_values)
++{
++    unsigned int matches = 0;
++    int i;
++
++    for (i = 0; i < vrd_write_trace_target_count; i++) {
++        unsigned int target_addr = vrd_write_trace_targets[i].addr;
++        unsigned int target_size = vrd_write_trace_targets[i].size;
++        if (access_addr < target_addr + target_size &&
++            target_addr < access_addr + access_size) {
++            old_values[i] = vrd_write_trace_read_target(i);
++            matches |= 1u << i;
++        }
++    }
++    return matches;
++}
++
++static void vrd_write_trace_log_matches(unsigned int matches,
++    unsigned int access_addr, unsigned int access_size,
++    const unsigned int *old_values)
++{
++    int i;
++
++    for (i = 0; i < vrd_write_trace_target_count; i++) {
++        unsigned int new_value;
++        int digits;
++        if (!(matches & (1u << i)))
++            continue;
++        new_value = vrd_write_trace_read_target(i);
++        digits = (int)vrd_write_trace_targets[i].size * 2;
++        if (fprintf(vrd_write_trace_log,
++                "%d,0x%06X,0x%06X,%u,0x%06X,%u,0x%0*X,0x%0*X\n",
++                vrd_profile_frame, vrd_write_trace_pc,
++                vrd_write_trace_targets[i].addr,
++                vrd_write_trace_targets[i].size,
++                access_addr, access_size, digits, old_values[i],
++                digits, new_value) < 0) {
++            vrd_write_trace_errors++;
++        }
++        vrd_write_trace_events++;
++    }
++    if (fflush(vrd_write_trace_log) != 0)
++        vrd_write_trace_errors++;
++}
++
++static void vrd_write_trace_byte(unsigned int addr, unsigned char data)
++{
++    unsigned int old_values[VRD_WRITE_TRACE_MAX_TARGETS];
++    unsigned int effective_addr = addr & 0x00ffffff;
++    unsigned int matches = vrd_write_trace_collect(effective_addr, 1, old_values);
++    vrd_write_trace_orig_byte(addr, data);
++    if (matches)
++        vrd_write_trace_log_matches(matches, effective_addr, 1, old_values);
++}
++
++static void vrd_write_trace_word(unsigned int addr, unsigned short data)
++{
++    unsigned int old_values[VRD_WRITE_TRACE_MAX_TARGETS];
++    unsigned int effective_addr = addr & 0x00fffffe;
++    unsigned int matches = vrd_write_trace_collect(effective_addr, 2, old_values);
++    vrd_write_trace_orig_word(addr, data);
++    if (matches)
++        vrd_write_trace_log_matches(matches, effective_addr, 2, old_values);
++}
++
++static void vrd_write_trace_long(unsigned int addr, unsigned int data)
++{
++    unsigned int old_values[VRD_WRITE_TRACE_MAX_TARGETS];
++    unsigned int effective_addr = addr & 0x00fffffe;
++    unsigned int matches = vrd_write_trace_collect(effective_addr, 4, old_values);
++    vrd_write_trace_orig_long(addr, data);
++    if (matches)
++        vrd_write_trace_log_matches(matches, effective_addr, 4, old_values);
++}
++
++static void vrd_write_trace_uninstall(void)
++{
++    if (!vrd_write_trace_installed)
++        return;
++    PicoCpuFM68k.write_byte = vrd_write_trace_orig_byte;
++    PicoCpuFM68k.write_word = vrd_write_trace_orig_word;
++    PicoCpuFM68k.write_long = vrd_write_trace_orig_long;
++    PicoCpuFM68k.instruction_start =
++        vrd_write_trace_orig_instruction_start;
++    vrd_write_trace_installed = 0;
++}
++
++static void vrd_write_trace_finish(int complete, int frames,
++    const char *reason)
++{
++    if (vrd_write_trace_log) {
++        if (complete) {
++            fprintf(vrd_write_trace_log,
++                "# COMPLETE frames=%d events=%llu errors=%u\n",
++                frames, vrd_write_trace_events, vrd_write_trace_errors);
++        } else {
++            fprintf(vrd_write_trace_log,
++                "# INCOMPLETE frames=%d events=%llu errors=%u reason=%s\n",
++                frames, vrd_write_trace_events, vrd_write_trace_errors,
++                reason ? reason : "unknown");
++        }
++        fflush(vrd_write_trace_log);
++        fclose(vrd_write_trace_log);
++        vrd_write_trace_log = NULL;
++    }
++    vrd_write_trace_uninstall();
++}
++
++static void vrd_write_trace_init(const char *spec, const char *path)
++{
++    int i;
++
++    if (!spec || !*spec)
++        return;
++    if (!path || !*path) {
++        vrd_write_trace_error("VRD_WRITE_TRACE_LOG is required");
++        return;
++    }
++    if (!vrd_write_trace_parse(spec))
++        return;
++    if (!vrd_write_trace_has_target(0x00ffc87e, 2) ||
++        !vrd_write_trace_has_target(0x00ff0002, 4)) {
++        vrd_write_trace_error(
++            "required targets are 0xFFC87E:2 and 0xFF0002:4");
++        return;
++    }
++    if (filestream_exists(path)) {
++        char message[256];
++        snprintf(message, sizeof(message),
++            "refusing to overwrite existing trace log %s", path);
++        vrd_write_trace_error(message);
++        return;
++    }
++    vrd_write_trace_log = fopen(path, "w");
++    if (!vrd_write_trace_log) {
++        char message[256];
++        snprintf(message, sizeof(message), "cannot create %s: %s",
++            path, strerror(errno));
++        vrd_write_trace_error(message);
++        return;
++    }
++    vrd_write_trace_orig_byte = PicoCpuFM68k.write_byte;
++    vrd_write_trace_orig_word = PicoCpuFM68k.write_word;
++    vrd_write_trace_orig_long = PicoCpuFM68k.write_long;
++    vrd_write_trace_orig_instruction_start =
++        PicoCpuFM68k.instruction_start;
++    if (!vrd_write_trace_orig_byte || !vrd_write_trace_orig_word ||
++        !vrd_write_trace_orig_long) {
++        vrd_write_trace_error("68K memory callbacks are not initialized");
++        vrd_write_trace_finish(0, 0, "callbacks_unavailable");
++        return;
++    }
++    fprintf(vrd_write_trace_log,
++        "# VRD_WRITE_TRACE version=2 instruction_start_hook=1 targets=%d\n",
++        vrd_write_trace_target_count);
++    for (i = 0; i < vrd_write_trace_target_count; i++) {
++        fprintf(vrd_write_trace_log, "# TARGET index=%d addr=0x%06X size=%u\n",
++            i, vrd_write_trace_targets[i].addr,
++            vrd_write_trace_targets[i].size);
++    }
++    fprintf(vrd_write_trace_log,
++        "frame,pc,target_addr,target_size,access_addr,access_size,old_value,new_value\n");
++    if (fflush(vrd_write_trace_log) != 0) {
++        vrd_write_trace_error("cannot write trace header");
++        vrd_write_trace_finish(0, 0, "header_write_failed");
++        return;
++    }
++    PicoCpuFM68k.write_byte = vrd_write_trace_byte;
++    PicoCpuFM68k.write_word = vrd_write_trace_word;
++    PicoCpuFM68k.write_long = vrd_write_trace_long;
++    PicoCpuFM68k.instruction_start =
++        vrd_write_trace_instruction_start;
++    vrd_write_trace_installed = 1;
++}
++
 +static void vrd_parse_watch(const char *s) {
 +    while (s && *s && vrd_watch_n < VRD_MAX_WATCH) {
 +        unsigned a = 0, sz = 2;
@@ -402,7 +737,7 @@ index a6f2bf6..b8b2f39 100644
  #define VOUT_MAX_WIDTH 320
  #define VOUT_MAX_HEIGHT 240
  
-@@ -1960,6 +2208,8 @@ static void update_variables(bool first_run)
+@@ -1960,6 +2561,8 @@ static void update_variables(bool first_run)
        else
           PicoIn.opt &= ~POPT_EN_DRC;
     }
@@ -411,7 +746,7 @@ index a6f2bf6..b8b2f39 100644
  #endif
  #ifdef _3DS
     if(!ctr_svchack_successful)
-@@ -2406,8 +2656,235 @@ void retro_run(void)
+@@ -2406,8 +3009,241 @@ void retro_run(void)
        update_audio_latency = false;
     }
  
@@ -421,6 +756,8 @@ index a6f2bf6..b8b2f39 100644
 +      const char *max_frames_str = getenv("VRD_PROFILE_FRAMES");
 +      const char *pc_profile_path = getenv("VRD_PROFILE_PC_LOG");
 +      const char *pc_enabled_str = getenv("VRD_PROFILE_PC");
++      const char *write_trace_spec = getenv("VRD_WRITE_TRACE");
++      const char *write_trace_path = getenv("VRD_WRITE_TRACE_LOG");
 +
 +      if (max_frames_str) {
 +         int custom_max = atoi(max_frames_str);
@@ -465,6 +802,7 @@ index a6f2bf6..b8b2f39 100644
 +                 vrd_caller_trace_max);
 +         fprintf(vrd_caller_trace_log, "frame,sp,return_addr\n");
 +      }
++      vrd_write_trace_init(write_trace_spec, write_trace_path);
 +      if (vrd_watch_log) {
 +         int wi; fprintf(vrd_watch_log, "frame");
 +         for (wi = 0; wi < vrd_watch_n; wi++) fprintf(vrd_watch_log, ",0x%X", vrd_watch_addr[wi]);
@@ -642,8 +980,20 @@ index a6f2bf6..b8b2f39 100644
 +         }
 +      }
 +   }
++   if (vrd_write_trace_log &&
++       vrd_profile_frame == vrd_profile_max_frames - 1)
++      vrd_write_trace_finish(1, vrd_profile_max_frames, NULL);
 +   vrd_profile_frame++;
 +
     /* Check whether frontend needs to be notified
      * of timing/geometry changes */
     if (libretro_update_av_info || libretro_update_geometry) {
+@@ -2615,6 +3451,8 @@ void retro_deinit(void)
+ {
+    size_t i;
+ 
++   if (vrd_write_trace_log || vrd_write_trace_installed)
++      vrd_write_trace_finish(0, vrd_profile_frame, "core_deinit");
+    PicoExit();
+ 
+    disk_init();

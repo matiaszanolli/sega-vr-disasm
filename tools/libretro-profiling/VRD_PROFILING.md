@@ -60,7 +60,10 @@ Do not call an FPS, CPU-budget, or regression result “current” until its con
 `savestate_1p_gp_racing.bin` is suitable for short routing/caller traces, but **not a
 long-run control**: it eventually stops advancing `$C87E` even when the VR60 1P hook is
 physically bypassed. The former 724-unique-hash result and freeze attribution are retracted.
-Capture a fresh durable fixture or deterministic input sequence before publishing a new baseline.
+The newer `vr60_control_bypass.mds` plus VR60-006 replay is also bounded-only: VR60-009 proves
+that its timed-race counter expires and it intentionally enters results at frame 5128. VR60-010
+must capture a state/input that remain in normal 1P for all 18,360 control frames before a new
+baseline can be published.
 
 ## Normal-1P control validator
 
@@ -74,6 +77,13 @@ the candidate/reference ROM, tooling, input, and savestate SHA-256 values plus a
 in the output directory. Acceptance uses fixed 180-frame windows and fixed reviewed liveness
 thresholds; these values, the scene pointer, hook address, hook return, and canonical fixture
 blacklist are not replaceable from the command line.
+
+State and scene values in `frames.csv`/`watch.csv` are sampled only after each emulated frame.
+They are liveness observations, not exact intra-frame chronology. VR60-009 records two legitimate
+`$C87E` writes (`$0000 -> $0004 -> $0008`) within frame 4536 even though adjacent samples look
+like one `$0000 -> $0008` transition. Use `VRD_WRITE_TRACE` when diagnosis requires exact writer
+order. Do not loosen the current validator's scene rule, thresholds, or state policy on the basis
+of that alias; any sampling-safe acceptance change belongs in a separate reviewed issue.
 
 A control ROM is eligible only when it is compared with a preserved live branch build. The
 reference must contain the live VR60 jump `4EF90001C8B04E71` at file offset `$4D62`; the
@@ -157,6 +167,8 @@ execution sentinel.
 | `VRD_INPUT_SCRIPT=path` | Complete deterministic CSV replay (`frame,mask`) covering every frontend frame. It takes precedence over autoplay/hold input; missing or duplicate frames fail before emulation. |
 | `VRD_CALLER_TRACE=hex_addr` (+ `VRD_CALLER_TRACE_LOG=path`) | On every exact 68K PC match, read A7 and log `frame,sp,return_addr`. The tracked v4 patch now defaults to an unlimited trace and writes a `COMPLETE` footer with total/logged/dropped counts, so late-window recurrence can be proved. Requires `VRD_PROFILE_PC=1` and `VRD_PROFILE_PC_LOG=path`. |
 | `VRD_CALLER_TRACE_MAX=N` | Optional diagnostic cap; `0` (default) is unlimited. The control validator rejects any non-zero cap, missing completion footer, or dropped hit. |
+| `VRD_WRITE_TRACE=0xFFC87E:2,0xFF0002:4` | VR60-009 diagnostic-only complete 68K memory-write trace. Both targets are mandatory. A nullable FAME instruction-start hook captures the exact PC before opcode fetch without changing normal execution batching; wrapped byte, word, and long callbacks retain partial overlaps and same-value writes with the full target old/new value. Default execution is unchanged. Do not substitute the rejected single-instruction-batch tracer, which shifted the fixture's scene transition from frame 5128 to frame 4981. |
+| `VRD_WRITE_TRACE_LOG=path` | New output path for the write trace. Initialization checks existence through the libretro VFS before opening for write and refuses an existing path; it does not rely on unsupported C `x` mode semantics. The CSV ends in `COMPLETE` only after `VRD_PROFILE_FRAMES`; early core shutdown writes `INCOMPLETE`, and any missing footer or non-zero `errors` is unusable evidence. This trace finalizes independently of `VRD_PROFILE_LOG` and `VRD_PROFILE_PC`. |
 
 Addresses route by bus automatically: `<0x400000` or `$FF0000-$FFFFFF` → 68K;
 other addresses at or above `$400000` → SH2. Consequently, do **not** watch 68K-side
@@ -191,7 +203,22 @@ VRD_WATCH=0x0600CA00:4,0xFFC87E:2 VRD_WATCH_LOG=watch.csv \
 VRD_PROFILE_LOG=f.csv VRD_PROFILE_FRAMES=2010 \
 VRD_DUMP_FRAME=2000 VRD_DUMP=0x06004240:32,0x0600CA00:64 VRD_DUMP_FILE=dump.txt \
   ./profiling_frontend ../../build/vr_rebuild.32x 2010 --autoplay
+
+# Complete writes to the VR60-009 state/scene targets (use an instrumented core
+# in a fresh temporary directory; do not replace the reviewed control core):
+VRD_WRITE_TRACE=0xFFC87E:2,0xFF0002:4 VRD_WRITE_TRACE_LOG=write.csv \
+VRD_PROFILE_FRAMES=5160 VRD_LOAD_STATE=/path/to/vr60_control_bypass.mds \
+VRD_INPUT_SCRIPT=/path/to/exact-5160-row-replay-prefix.csv \
+  ./profiling_frontend /path/to/vr60_control_bypass.32x 5160
+
+# Focused real-core tracer tests (point VRD_TEST_CORE at the temporary core if
+# it is not at third_party/picodrive/picodrive_libretro.so):
+python3 -m unittest test_write_trace.py -v
 ```
+
+The accepted VR60-009 command, source-address classification, raw artifact hashes, and normalized
+archive are recorded in
+[`analysis/evidence/vr60-009-write-trace/README.md`](../../analysis/evidence/vr60-009-write-trace/README.md).
 
 ## Notes on accuracy
 
@@ -205,6 +232,8 @@ VRD_DUMP_FRAME=2000 VRD_DUMP=0x06004240:32,0x0600CA00:64 VRD_DUMP_FILE=dump.txt 
   mirrored in `vrd_budget.py` (`IDLE`).
 - PC profiling forces the SH2 **interpreter** (DRC off). Frame-level cycle counts
   are valid under DRC too.
+- Per-frame watches run after `PicoFrame()`. Multiple writes can occur between adjacent samples;
+  use the exact write tracer before claiming a skipped intermediate state or naming a writer.
 
 ## Historical racing profile — not a current baseline (`VRD_SCENE=0x4CBC`, 1131 frames)
 

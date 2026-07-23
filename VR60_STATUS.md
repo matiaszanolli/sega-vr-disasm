@@ -39,13 +39,15 @@ This file is the short, current answer to “what works now?” Older roadmap en
 The [fail-closed validator](tools/libretro-profiling/VRD_PROFILING.md#normal-1p-control-validator),
 reviewed hook-bypass control pair, fresh normal-1P candidate fixture, and complete deterministic
 replay are now implemented, and the exact-prefix short preflight met every functional liveness
-criterion. The unchanged full 18,000-frame control then ran to completion but failed. Its first
-chronological liveness error is a `$C87E` state-order discontinuity at frame 4536 while the full
-normal-1P scene pointer is still active; the scene transition and rendering/SH2 stalls are later
-observations with no established causal relationship. The milestone therefore remains open. The
-old GP state remains blocked by SHA-256. Acceptance policy is fixed, and diagnostic/offline-analysis
-overrides always force a failing result. Normal runs also require a new output path and the reviewed
-frontend/core identities, so stale artifacts or arbitrary binaries cannot produce PASS.
+criterion. The unchanged full 18,000-frame control then ran to completion but failed because this
+fixture deterministically reaches its timed-race finish and leaves the normal-1P scene. VR60-009's
+exact write trace proves that frame 4536 contains ordinary `$C87E` writes `$0000 -> $0004 ->
+$0008`; the apparent skip was an end-of-frame sampling alias. The independent display sequence
+then intentionally writes `$FF0002 = $0088FB98` at frame 5128. The milestone remains open because
+the fixture is bounded diagnostic evidence, not an 18,360-frame control. The old GP state remains
+blocked by SHA-256. Acceptance policy is fixed, and diagnostic/offline-analysis overrides always
+force a failing result. Normal runs also require a new output path and the reviewed frontend/core
+identities, so stale artifacts or arbitrary binaries cannot produce PASS.
 
 **VR60-002 is complete:** the canonical libretro/PicoDrive frontend now has a real-ROM debugger
 whose CPU/game-memory inspection remains read-only. It advances frames, reads Master/Slave SH2
@@ -74,8 +76,9 @@ fixed 360-frame fixture warmup, the next 1,800 frames met every liveness criteri
 450 exact hook hits with maximum gap 4; 1,039 framebuffer hashes with maximum stall 1; COMM0,
 COMM2, and COMM7 maximum non-zero runs 3, 2, and 0; and useful work on both SH2s. The run failed
 only because short diagnostics can never qualify as a control. This operationally qualifies the
-fixture for the next issue; it does not establish the root cause or generic semantics of the
-initial cmd `$02`/COMM0 interval.
+fixture for bounded diagnostics; VR60-009 later proved that it expires into results too early for
+the full control. It does not establish the root cause or generic semantics of the initial cmd
+`$02`/COMM0 interval.
 
 **VR60-006 is complete:**
 `tools/libretro-profiling/fixtures/vr60_006_control_replay.csv` was recorded through the real
@@ -95,31 +98,39 @@ maximum non-zero runs 3/2/0, and useful work from both SH2s in every window. The
 frames with 539 hits and zero drops. Exit status was the required 1, with `short_control_window`
 as the only finding; this is a successful bounded preflight, not a control PASS.
 
-**VR60-008 is blocked:** the unchanged control ROM, live reference, VR60-005 state, and complete
-VR60-006 replay ran with the fixed 360-frame warmup and all 18,000 validation frames, without a
-diagnostic, analysis, threshold, policy, or input override. The frontend and both traces completed,
-but the validator exited 1 with 300 findings. Raw samples show the first failure at frame 4536:
-`$C87E` jumps from `$0000` to `$0008`, skipping `$0004`, while `$FF0002` is still `$00884CBC`.
-COMM0 first becomes continuously busy at frame 4539, and the full scene pointer does not change
-until frame 5128. Later samples also report hook, framebuffer, and Slave-SH2 stalls. No root cause
-or causal link between these observations is established yet. The complete output is in the
-tracked [VR60-008 evidence archive](analysis/evidence/vr60-008-full-control/README.md), whose
+**VR60-008 remains blocked by VR60-010:** the unchanged control ROM, live reference, VR60-005
+state, and complete VR60-006 replay ran with the fixed 360-frame warmup and all 18,000 validation
+frames, without a diagnostic, analysis, threshold, policy, or input override. The frontend and
+both traces completed, but the validator exited 1 with 300 findings. VR60-009 reclassified the
+apparent frame-4536 state skip as two legitimate writes within one sampled frame and the
+frame-5128 scene change as the
+intentional timeout/results transition. Later COMM, hook, framebuffer, and Slave-SH2 stalls are
+out-of-scene observations, not normal-1P defects. The validator correctly rejects the fixture
+because it does not remain in `$00884CBC` for the required window. The complete original output is
+in the tracked [VR60-008 evidence archive](analysis/evidence/vr60-008-full-control/README.md), whose
 deterministic `artifacts.tar.gz` SHA-256 is
 `8bd15a1836686d9fcd9e027e2991bcc14ee794a1337fc6ff3f375ba5c9ef00b3`. Within it, `run.json`
 SHA-256 is
 `361104d02e876e2dff7c69aeb980f06e196d0c63b6e9097dc22e8c82e5794cca` and `result.json`
 SHA-256 is `bcdaf92a44749a3ade515d7c4ae052ecbb89a96226ecbeaaa3e89563ef02d991`.
 
-The current work item is **VR60-009**: diagnose the first state-order discontinuity. Trace the
-writer and transition mechanism that produces `$0000 -> $0008` at frame 4536 while the normal-1P
-scene is still active, then determine whether and how it relates to the later scene transition.
-The diagnosis must add complete emulator-side memory-write tracing for writes overlapping both
-`$C87E` and `$FF0002`, across every byte, word, and long write width and every memory-write path.
-Each event must record the emulated frame, exact writer PC, access address/width, old value, and new
-value. Replay the deterministic input only far enough to cross the historical frame-4536 and
-frame-5128 boundaries; do not repeat the full 18,000-frame control. Do not change thresholds or
-patch a later finding before that evidence exists; see the near-term issue queue in
-`VR60_ROADMAP.md`.
+**VR60-009 is complete:** a nullable FAME instruction-start hook now gives the diagnostic write
+tracer the exact pre-fetch 68K PC without changing normal execution batches. Its focused
+byte/word/long tests pass, and a 5,160-frame active-trace replay byte-matches the trace-disabled
+control. At frame 4536, PC `$884CF2` writes `$C87E` `$0000 -> $0004` and PC `$884D0C` writes
+`$0004 -> $0008`; no state handler is skipped. The timed-race counter has expired and the display
+controller advances through `$C07C = $14/$18/$1C/$20/$24/$28/$2C/$30`. At frame 5128, state 12
+at PC `$8843D0` intentionally writes `$FF0002` `$00884CBC -> $0088FB98`. The complete trace and
+finish classification are preserved in
+[the VR60-009 evidence archive](analysis/evidence/vr60-009-write-trace/README.md).
+
+The current work item is **VR60-010**: replace the bounded timed-race fixture. Capture a new
+normal-1P savestate and deterministic input with enough remaining race time, or an equivalent
+repeatable driving recipe, to remain in `$FF0002 = $00884CBC` for all 360 warmup plus 18,000
+validation frames. Then run the unchanged full validator. Do not loosen scene invariance, accept
+post-race output, or change policy/thresholds. End-of-frame state samples must not be described as
+exact write chronology. Any sampling-safe validator-policy change, if needed, belongs in a
+separate later reviewed issue, not VR60-010, and must preserve fail-closed acceptance.
 
 Do not enable another offload stage until a test fixture or deterministic input harness passes all of these checks with the VR60 hook bypassed:
 
@@ -158,4 +169,5 @@ The project is complete only when a reproducible 1P run demonstrates all of the 
 - `analysis/VR60_PHASE1_CMD3E_ACK_HANG.md` §§20–22 — exact hook trace and invalid-savestate retraction
 - `analysis/VR60_PHASE5F1B_PROBE_DIAGNOSIS.md` — C128/C178/C254 renderer inputs
 - `analysis/VR60_PHASE5F_SCOPING.md` — authority/bridge problem, read with its current correction banner
+- `analysis/evidence/vr60-009-write-trace/README.md` — exact state/scene writers, timed-finish classification, and fixture remedy
 - `tools/libretro-profiling/VRD_PROFILING.md` — measurement procedure and validity gates

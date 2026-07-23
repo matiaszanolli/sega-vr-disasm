@@ -24,11 +24,14 @@ are **unverified**, not proven broken.
 The fresh normal-1P state required by VR60-005 now exists and passes a 360-frame-warmup plus
 1,800-frame diagnostic on every liveness signal, and VR60-006 has captured its complete
 deterministic replay. VR60-007 then confirmed the exact-prefix bounded preflight. VR60-008 ran the
-unchanged full 18,000-frame control and failed; the first chronological error is a `$C87E`
-`$0000 -> $0008` transition at frame 4536, skipping `$0004` while the full normal-1P scene is
-still active. The immediate blocker is to trace that transition, not to patch the later scene,
-COMM, hook, framebuffer, or Slave-SH2 failures independently. After a durable control passes,
-re-enable one stage at a time: cmd `$3E`
+unchanged full 18,000-frame control and failed. VR60-009's non-perturbing exact write trace proves
+that the apparent frame-4536 `$C87E` `$0000 -> $0008` transition is an end-of-frame sampling
+alias: PCs `$884CF2` and `$884D0C` perform `$0000 -> $0004 -> $0008` during the same emulated
+frame. The fixture's timed-race counter had expired, its display controller intentionally entered
+the finish sequence, and state 12 wrote the results scene at frame 5128. VR60-010 must replace
+this bounded diagnostic fixture with one that remains in normal 1P for the full 18,360 frames;
+VR60-008 remains blocked until that unchanged control passes. Then re-enable one stage at a time:
+cmd `$3E`
 modes 0/1, AI transfer, cmd `$3F` in shadow mode, a bridge into the renderer-consumed
 C128/C178/C254 descriptors, and only then subsystem authority/bypass changes.
 Cadence and fixed-step scaling for true 60 Hz come after the data path is proven.
@@ -39,8 +42,10 @@ See [`VR60_STATUS.md`](VR60_STATUS.md) for the concise status matrix and definit
 
 The deterministic control **validator is implemented**, and the exact-prefix VR60-007 preflight
 satisfied every bounded liveness check. Its result still failed by policy because it was short;
-the unchanged VR60-008 full run subsequently failed at frame 4536, so no full 18,000-frame control
-has passed yet.
+the unchanged VR60-008 full run subsequently failed because the fixture reaches timed results, so
+no full 18,000-frame control has passed yet. VR60-009 closed the apparent frame-4536 state-order
+fault without changing the validator: exact writes prove no skipped handler, and the frame-5128
+scene exit is intentional gameplay.
 `tools/libretro-profiling/validate_1p_control.py` accepts a complete per-frame input replay and
 records/checks the full normal-1P scene
 pointer, contiguous frames, every `$C87E` cycle window, an unlimited exact state-8 caller trace,
@@ -55,8 +60,9 @@ delta, recording both hashes. Acceptance addresses, thresholds, 180-frame window
 fixture blacklist are fixed; offline analysis and every diagnostic override force failure. It also
 rejects `savestate_1p_gp_racing.bin` by SHA-256 from `control_fixtures.json`. The reviewed
 assembly-built bypass/reference pair, a new 1P state, its full deterministic replay, and the
-exact-prefix preflight now exist; the attempted full control failed and VR60-009 must diagnose its
-first state-order discontinuity before Q-019 can close. In a
+exact-prefix preflight now exist; the attempted full control failed and VR60-009 proved the state
+sample was an alias inside an expiring timed-race session. VR60-010 must replace the fixture before
+Q-019 can close. In a
 diagnostic 1,800-frame run of the known invalid
 combination, `$C87E` omitted state `$000C` in every later 180-frame window and COMM0_HI remained
 non-zero for 1,755 consecutive frames; the caller trace itself completed with 595 hits and zero
@@ -111,7 +117,8 @@ The candidate also boots and passes the existing 120-frame real-core debugger sm
 required for the forced short run and blocked fixture (with the known state-order and COMM0
 failures); no ROM-policy failure was present. VR60-005 subsequently supplied the fresh state,
 VR60-006 supplied its complete replay, and VR60-007 supplied the exact-prefix preflight described
-below. VR60-008 then ran the complete unchanged control and failed; VR60-009 is now next.
+below. VR60-008 then ran the complete unchanged control and failed; VR60-009 classified the
+fixture's timed finish, and VR60-010 is now next.
 
 ### Fresh normal-1P candidate fixture (2026-07-22)
 
@@ -184,9 +191,9 @@ hits logged, and zero drops. These are bounded liveness results only; VR60-008 s
 the same artifacts over all 18,000 validation frames without changing code, policy, thresholds, or
 input and failed as documented below.
 
-### Full-control failure (2026-07-22)
+### Full-control failure and VR60-009 classification (2026-07-22)
 
-VR60-008 is blocked. It ran the exact artifacts above with no code, policy, threshold, input,
+VR60-008 remains blocked by VR60-010. It ran the exact artifacts above with no code, policy, threshold, input,
 diagnostic, or offline-analysis override:
 
 ```bash
@@ -209,16 +216,15 @@ output is preserved in the tracked
 SHA-256 is `361104d02e876e2dff7c69aeb980f06e196d0c63b6e9097dc22e8c82e5794cca` and `result.json`
 SHA-256 is `bcdaf92a44749a3ade515d7c4ae052ecbb89a96226ecbeaaa3e89563ef02d991`.
 
-Chronological raw samples identify the state-order failure, not the JSON finding-list order, as
-the first signal. Frames 4531-4535 complete `$0000/$0004/$0008/$000C/$0000`; frame 4536 is
-`$0008`, skipping the expected `$0004`, while `$FF0002` remains `$00884CBC`. COMM0 becomes
-continuously busy at frame 4539 and stays so through frame 5129. The full scene pointer remains
-`$00884CBC` through frame 5127, then changes at frame 5128; the hook, framebuffer, and Slave-SH2
-stalls are later findings. The result contains one state-order finding, one state-stall finding, 74
-state-window findings, one scene finding plus one scene-pointer finding, one hook-gap plus 73 hook-window
-findings, one framebuffer-stall plus 73 framebuffer-window findings, one COMM0-busy finding, and
-73 Slave-SH2-no-useful-work findings. These observations establish sequence only: they do not yet
-identify the writer, gameplay condition, or causal relationship. The run was not retried.
+VR60-009 corrected the chronological interpretation. The validator's state value is sampled only
+after each frame. The exact trace records PC `$884CF2` writing `$C87E` `$0000 -> $0004` and PC
+`$884D0C` writing `$0004 -> $0008` during frame 4536, so no handler was skipped. The fixture is a
+timed 1P race: `$C050` expires, `conditional_scroll_state_init` selects display state `$14`, and
+the display sequence advances through `$18/$1C/$20/$24/$28/$2C/$30`. Lap-completion flags remain
+clear. At frame 5128, state 12 PC `$8843D0` deliberately writes `$FF0002` `$00884CBC ->
+$0088FB98`. COMM, hook, framebuffer, and Slave-SH2 findings after that point are out-of-scene
+observations, not skipped-state fallout. Full evidence is in
+[the VR60-009 archive](analysis/evidence/vr60-009-write-trace/README.md).
 
 ### Near-term issue queue
 
@@ -234,11 +240,13 @@ test; do not combine it with the next issue just because both are convenient in 
 | VR60-005 | Capture one fresh normal-1P GP savestate | A short diagnostic loads it at `$FF0002 = $00884CBC`; its SHA-256 is recorded and it is not the blocked fixture | **Done** |
 | VR60-006 | Capture one complete 18,360-frame controller replay for that state (360 warmup + 18,000 validation) | The `frame,mask` CSV covers frames `0..18359` exactly once, passes parser validation, and its SHA-256 is recorded | **Done** |
 | VR60-007 | Run a 360-frame-warmup + 1,800-frame preflight using VR60-004/005 and the exact first 2,160-row prefix of VR60-006 | Scene, state order, hook cadence, framebuffer, SH2 work, and COMM lanes are healthy; the run still exits non-zero because short diagnostics can never qualify as a control | **Done** |
-| VR60-008 | Run the full control without changing code or thresholds | The exact same ROM/state and complete VR60-006 replay pass all 360 warmup + 18,000 validation frames and 100 fixed validation windows | **Blocked by VR60-009** |
-| VR60-009 | Add complete emulator-side memory-write tracing for both `$C87E` and `$FF0002`, then run the deterministic replay only through the historical frame-4536 and frame-5128 boundaries | Every write overlapping either target is captured across all byte/word/long widths and memory-write paths with emulated frame, exact writer PC, access address/width, old value, and new value; the `$C87E` `$0000 -> $0008` writer/transition and `$FF0002` scene change are identified; their relationship, if any, is determined; and an evidence-backed next remedy is specified without changing validator thresholds or rerunning the full control | **Next** |
+| VR60-008 | Run the full control without changing code or thresholds | The exact same ROM/state and complete replay pass all 360 warmup + 18,000 validation frames and 100 fixed validation windows | **Blocked by VR60-010** |
+| VR60-009 | Add complete emulator-side memory-write tracing for both `$C87E` and `$FF0002`, then run the deterministic replay only through the historical frame-4536 and frame-5128 boundaries | The non-perturbing trace identifies both ordinary frame-4536 state writes and the intentional frame-5128 results-scene writer; the timed-finish relationship and fixture remedy are preserved in a deterministic evidence archive | **Done** |
+| VR60-010 | Replace the timed-race fixture and rerun the unchanged full control | A new normal-1P state plus deterministic 18,360-frame input stay in `$FF0002 = $00884CBC` throughout, exercise the expected state/hook/render/COMM/SH2 liveness, and pass the existing validator without policy, threshold, or diagnostic overrides | **Next** |
 
-VR60-008 failed, so VR60-009 is the only current diagnosis issue. Do not repair the fixture,
-profiler, input, and game code in one change or treat later findings as independent bugs.
+VR60-009 is closed. VR60-010 replaces only the fixture/input and reruns the unchanged validator;
+do not combine it with profiler policy, threshold, or game-code changes. The present fixture stays
+available for bounded diagnostics but is ineligible for full-control acceptance.
 After VR60-008 eventually passes,
 cmd `$3E` mode 0, mode 1, mode 2, the cmd `$3F` mailbox correction, cmd `$3F` shadow execution,
 and each renderer/authority transition become separate issues with their own sentinel and
@@ -1602,12 +1610,12 @@ These must be resolved before their respective phases. Add new questions as they
 | Q-016 | Is lateral_drift_velocity_B ($0099AA) structurally different from A ($00987E)? | Phase 3 | **RESOLVED: YES, fundamentally different** | B = 358B (not ~300B). Different math: force calc order (mul-then-div vs div-first), AI boost logic (speed > $C8 + AI flag → extra grip loss from +$0E), different grip clamp range ([$40,$FF] vs [$7F,∞]), 2× damping threshold (±$200 vs ±$100), viewport shimmer ($FF617A/$FF618E writes), 2× display scaling. 3 extra entity fields (+$04, +$0E, +$80), 1 extra global ($FFBFC0 AI control flag). Both variants must be ported independently. SH2 estimate: ~420B. |
 | Q-017 | Does `--autoplay` actually reach real 1P GP racing (`state_disp_004cb8`, scene `$4CBC`)? | Phase 1 (1P wiring) | **RESOLVED: NO** | It settles in scene `$5586`; its `[racing]` label is only frame-count based. `VRD_LOAD_STATE` was added to reach GP, but the available `savestate_1p_gp_racing.bin` later stops advancing `$C87E` even with the VR60 hook bypassed, so it is useful for short traces—not a valid long-run baseline. |
 | Q-018 | Does `game_frame_orch_013` state 8 recur during real 1P racing? | Phase 1 | **RESOLVED: YES, ABOUT 20 HZ** | Exact `VRD_CALLER_TRACE` found a regular one-hit-per-three-TV-frame cadence. The earlier zero-hit top-200 PC histogram was a false negative; the current hook location is valid. |
-| Q-019 | Can we produce a deterministic 1P fixture that stays live for the full validation window? | All live integration | **FULL CONTROL FAILED; FIRST SIGNAL UNDER INVESTIGATION — CURRENT BLOCKER** | The unchanged VR60-008 run completed all 18,360 frames but failed. The first raw error is `$C87E` `$0000 -> $0008` at frame 4536 while `$FF0002` remains `$00884CBC`; the scene changes only at frame 5128 and later liveness signals stall. VR60-009 must trace that first transition before another full control or later VR60 stage. |
+| Q-019 | Can we produce a deterministic 1P fixture that stays live for the full validation window? | All live integration | **OPEN — BLOCKED BY VR60-010 FIXTURE REPLACEMENT** | VR60-009 proves the existing candidate is deterministic but bounded: its timed-race counter expires, its display controller intentionally enters results at frame 5128, and post-race samples cannot satisfy normal-1P scene invariance. Capture a new state/input with enough remaining race time to stay in `$00884CBC` for all 18,360 frames, then run the unchanged validator. |
 | Q-020 | Are cmd `$3E` modes 0/1 correct over a trustworthy 1P run? | Phase 1 | **OPEN** | They are enabled and bounded, but the former 724-hash acceptance result is retracted with the invalid fixture. Re-test modes separately after Q-019. |
 | Q-021 | Are AI transfer mode 2 and cmd `$3F` safe in 1P? | Phases 1, 3, 4 | **OPEN; NEITHER PROVEN SAFE NOR UNSAFE** | §21's freeze attribution is retracted by §22. Enable one stage at a time only after Q-019; keep the 68000 authoritative while cmd `$3F` first runs as observable shadow computation. |
 | Q-022 | Which racing descriptor block should carry the SH2-authoritative car state? | Phase 5F | **PARTIALLY RESOLVED** | Static decode proves cmd `$02` reads C128/C178/C254, not C218. The C254 probe is built but dormant because current cmd `$3F` still calls the no-op patcher and the 1P trigger is disabled. Run reversible A/B/C probes after Q-019/Q-021. |
 | Q-023 | Is cmd `$3F`'s COMM mailbox actually in SDRAM? | Phase 1B/3 | **RESOLVED: NO; FIX REQUIRED BEFORE ENABLE** | The current literal is `$2200BC00`, the cache-through cartridge-ROM alias, so its writes are ineffective. Change to `$2600BC00` (or native `$0600BC00` where coherent), then observe the data directly. |
-| Q-024 | Why does the exact full replay skip `$0004` at frame 4536 while the normal-1P scene is still active? | All live integration | **OPEN — VR60-009** | Raw state samples establish the first discontinuity and place it before the later COMM0 interval and scene transition, but the writer, gameplay condition, and causal relationship are unknown. Use complete emulator-side tracing of every byte/word/long write overlapping `$C87E` and `$FF0002`, recording frame, writer PC, address/width, old value, and new value through the historical 4536/5128 boundaries before proposing a remedy. |
+| Q-024 | Why does the exact full replay skip `$0004` at frame 4536 while the normal-1P scene is still active? | All live integration | **RESOLVED — END-OF-FRAME SAMPLING ALIAS DURING TIMED FINISH** | It does not skip state 4. The exact trace records PC `$884CF2` writing `$0000 -> $0004` and PC `$884D0C` writing `$0004 -> $0008` in frame 4536. `$C050` had expired and `conditional_scroll_state_init` launched the intentional display/results sequence; state 12 PC `$8843D0` changes `$FF0002` at frame 5128. End-of-frame samples establish liveness, not intra-frame write chronology. |
 
 ---
 
@@ -1644,6 +1652,7 @@ Record every significant design decision here. Include date, what was decided, w
 | 2026-07-21 | Make the 1P control validator's acceptance policy immutable and prove the control ROM's exact isolation | A control must not run the code it isolates or contain unrelated changes. The validator enforces the canonical fixture blacklist, fixed scene/hook/threshold/window policy, and an exact comparison: the reference has live bytes `4EF90001C8B04E71`, the candidate has stock bytes `4EBA69764EBA691C`, and all bytes outside file `$4D62-$4D69` match. Offline analysis and diagnostic overrides always inject failure. | Trust filenames, inspect only the candidate hook bytes, accept user-relaxed thresholds/addresses, promote stale CSV, accept the active-hook ROM, or infer late liveness from a 50-hit trace — all can produce a false baseline. |
 | 2026-07-21 | Build the 1P control pair from one conditional assembly source and verify it automatically | A raw-patched candidate or an unpreserved reference cannot prove isolation. `make control-rom` preserves the live build, assembles the stock two-JSR branch with `VR60_CONTROL_ROM`, and records the validator comparison plus both hashes. | Manually patch eight bytes after assembly, keep an unverified copy by filename, or maintain a second drifting source tree. |
 | 2026-07-22 | Preserve the failed VR60-008 run and diagnose its first chronological signal before retrying or patching | Raw samples place the `$C87E` state-order discontinuity at frame 4536, before continuous COMM0 busy and the scene transition. Later hook/framebuffer/Slave stalls are additional findings whose causal relationship is unknown; changing thresholds or addressing them independently would destroy chronological evidence. | Retry unchanged without diagnosis, loosen the validator, infer chronology from finding-list order, address-shop for a patch, or treat every later finding as a separate defect. |
+| 2026-07-22 | Retire the VR60-005/006 timed-race state/replay as a full-window control and create VR60-010 for fixture replacement | VR60-009 proves that the apparent state skip is a sampling alias and the later scene exit is the game's intentional timeout/results sequence. A control cannot accept post-race output or weaken scene invariance. The existing artifacts remain useful for bounded diagnostics. | Loosen the scene rule, accept post-race liveness, patch game code to suppress the finish, or change validator policy inside the diagnosis issue. |
 
 ---
 
@@ -1671,9 +1680,10 @@ Record every significant design decision here. Include date, what was decided, w
 | R-018 | SH2 anim_timer_speed_clear lacks conditional_return_on_state_match fallthrough | Low | Phase 3B | **ACCEPTED** | 68K JMPs to a state-check function that either returns or falls through. SH2 always returns (RTS). The fallthrough path handles edge-case state transitions during animation timer expiry — not observed during normal player racing. Monitor during extended testing. |
 | R-019 | Entity staging overwrites SH2 physics results | Critical | Phase 3B | **DESIGN RESOLVED; LIVE UNVERIFIED** | Initial-only entity staging plus co-ported writers is the intended ownership model. It has not been validated live; current 1P keeps WRAM/68000 authoritative and cmd `$3F` disabled. |
 | R-020 | Unbounded retry loops on a COMM ACK can hard-hang the 68K if the underlying race theory is wrong | Critical | Phase 1 (1P wiring) | **RESOLVED (reverted)** | A retry fix for a suspected Master-SH2 poll-detection race (`.retrigger: ... beq.s .retrigger`, no attempt cap) was applied to `vr60_entity_transfer.asm` and 3 siblings, "verified" headlessly, but that verification never actually exercised the real GP-racing call path (Q-017). Real GP racing hard-hung (black screen, frozen 68K). Fully reverted to `HEAD`. If retried: bound every retry loop with a hard attempt cap (give up and skip the frame's SH2 offload rather than loop forever), and implement any new logic in 1P-exclusive copies of these functions — they are also called unconditionally by the always-active 2P path (`state4_epilogue`), so editing them for "1P" silently changes 2P/demo behavior too. |
-| R-021 | `--autoplay` cannot reach real GP racing, and the available GP savestate is not a valid long-run control | Critical | Phase 1 (1P wiring) | **MITIGATED BY FAIL-CLOSED HARNESS + ISOLATED CONTROL ROM; DURABLE FIXTURE STILL OPEN** | `VRD_LOAD_STATE` solves scene access. The validator blocks the known state by canonical SHA; the assembly-built hook-bypass candidate matches its preserved live reference outside the exact hook delta. VR60-005/006 supplied a fresh state and deterministic replay, VR60-007 proved bounded liveness, and VR60-008 then failed the full window. Diagnose its first state-order discontinuity before replacing the fixture or retrying the control. See Q-017/Q-019/Q-024 and `VR60_PHASE1_CMD3E_ACK_HANG.md` §22. |
+| R-021 | `--autoplay` cannot reach real GP racing, and the available GP savestate is not a valid long-run control | Critical | Phase 1 (1P wiring) | **MITIGATED BY FAIL-CLOSED HARNESS + ISOLATED CONTROL ROM; VR60-010 FIXTURE OPEN** | `VRD_LOAD_STATE` solves scene access. The validator blocks the old state by canonical SHA, and the source-built hook-bypass candidate remains isolated. VR60-009 proves the newer state/replay reaches a legitimate timed finish and is bounded-only. VR60-010 must capture enough remaining race time and deterministic input to stay in the normal-1P scene for the full window. See Q-017/Q-019/Q-024. |
 | R-022 | Historical status/profiling claims can be misread as current 1P behavior | High | All | **MITIGATED; audit continuously** | `VR60_STATUS.md` is canonical. Phase documents keep their evidence but must carry correction banners; tables must distinguish built, active, authoritative, and validated. |
-| R-023 | A healthy short replay prefix can hide a deterministic later state/scene transition | Critical | Baseline validation | **OPEN — VR60-009** | Preserve and inspect the complete hash-verified run archive. Diagnose the earliest raw divergence at frame 4536 before retrying, changing thresholds, replacing the fixture, or repairing later findings. |
+| R-023 | A healthy short replay prefix can hide a deterministic later state/scene transition | Critical | Baseline validation | **MITIGATED; VR60-010 MUST PROVE THE FULL WINDOW** | The full run and exact trace exposed a deterministic timed finish hidden beyond the preflight. Preserve complete hash-verified artifacts, require all 18,360 frames in scene, and never promote prefix health into durability. |
+| R-024 | End-of-frame state samples can alias multiple legitimate writes within one emulated frame | High | Baseline validation | **IDENTIFIED; POLICY UNCHANGED IN VR60-009** | Do not describe sampled transitions as exact write chronology. Use the complete writer tracer for diagnosis. Any sampling-safe liveness rule belongs to a separate reviewed issue, not fixture/input-only VR60-010, and must remain fail-closed without weakening full-scene acceptance. |
 
 ---
 
@@ -1801,7 +1811,10 @@ Record discoveries, gotchas, and insights as the project progresses. These help 
 | 2026-07-21 | Tooling | **The archived PDCORE was a stub test harness, not a PicoDrive debugger.** `pd_load_rom()` returns `Not implemented`; its passing tests never execute the real dual-SH2 game. | Keep it archived. Add debugger capabilities incrementally to the canonical libretro/PicoDrive path and close each slice with a real-ROM command script. |
 | 2026-07-21 | Tooling | **Debugger input is now resolved once per emulated frame and can be captured exactly.** The 600-frame acceptance fixture replays and re-records byte-for-byte; replay exhaustion cannot silently fall through to another input source. | Use `joypad` plus explicit `record start`/`record stop` for new controller captures. Keep each capture complete and feed the resulting `frame,mask` file directly to `VRD_INPUT_SCRIPT`. |
 | 2026-07-21 | Control methodology | **The source-built control pair is exact and reproducible.** vasm emits either the live eight-byte jump or the original equal-size two-JSR sequence; the reviewed policy found zero differences elsewhere and recorded both hashes. | Use `make control-rom` and the tracked manifest. Never raw-patch the ROM or compare against an unpreserved reference. |
-| 2026-07-22 | Control methodology | **A bounded preflight establishes only early liveness.** The exact replay remained healthy through frame 2159, but the full run first skipped state `$0004` at frame 4536 while still in the normal-1P scene; scene and renderer findings were observed later. | Preserve full-run artifacts and diagnose the earliest chronological event. Do not promote a prefix to durable control or fix later findings independently. |
+| 2026-07-22 | Control methodology | **A bounded preflight establishes only early liveness.** The exact replay remained healthy through frame 2159, but the full run later reached its deterministic timed finish. The apparent frame-4536 state skip was subsequently resolved as two writes in one sampled frame. | Preserve full-run artifacts and diagnose the earliest observation. Do not promote a prefix to durable control or fix later findings independently. |
+| 2026-07-22 | Profiling methodology | **An end-of-frame sample is not an intra-frame write trace.** At frame 4536, `$C87E` was sampled as `$0008` after being `$0000` on the prior frame, but exact PCs `$884CF2` and `$884D0C` wrote `$0004` and then `$0008` during that frame. | Use sampled state for window liveness and the exact writer tracer for chronology. If acceptance needs a sampling-safe rule, change it in a separate reviewed issue without weakening fail-closed policy. |
+| 2026-07-22 | Emulator instrumentation | **Single-instruction execution batches perturb this timing-sensitive fixture.** The rejected tracer shifted the scene transition to frame 4981. A nullable pre-opcode-fetch FAME callback preserved normal batching and byte-matched the trace-disabled 5,160-frame control. | Instrument instruction boundaries inside the existing execution loop; never treat a timing-shifted diagnostic run as acceptance evidence. |
+| 2026-07-22 | Fixture methodology | **Deterministic input can deterministically finish the race.** The VR60-005/006 artifacts are reproducible and healthy over a prefix, yet `$C050` expires and the display controller deliberately enters results at frame 5128. | Keep the fixture for bounded diagnostics; VR60-010 must capture enough race time/input to remain in `$00884CBC` for every full-control frame. |
 
 ---
 

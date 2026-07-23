@@ -1,0 +1,3 @@
+# Carries upstream FAME CRLF/diff-marker whitespace verbatim for exact
+# `git apply` reproduction while leaving other checks enabled.
+tools/libretro-profiling/libretro_vrd_profiling_v4.patch whitespace=-trailing-space,-space-before-tab,cr-at-eol

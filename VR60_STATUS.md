@@ -39,10 +39,13 @@ This file is the short, current answer to “what works now?” Older roadmap en
 The [fail-closed validator](tools/libretro-profiling/VRD_PROFILING.md#normal-1p-control-validator),
 reviewed hook-bypass control pair, fresh normal-1P candidate fixture, and complete deterministic
 replay are now implemented, and the exact-prefix short preflight met every functional liveness
-criterion. The milestone remains open because the full 18,000-frame control has not run. The old
-GP state remains blocked by SHA-256. Acceptance policy is fixed, and diagnostic/offline-analysis
-overrides always force a failing result. Normal runs also require a new output path and the
-reviewed frontend/core identities, so stale artifacts or arbitrary binaries cannot produce PASS.
+criterion. The unchanged full 18,000-frame control then ran to completion but failed. Its first
+chronological liveness error is a `$C87E` state-order discontinuity at frame 4536 while the full
+normal-1P scene pointer is still active; the scene transition and rendering/SH2 stalls are later
+observations with no established causal relationship. The milestone therefore remains open. The
+old GP state remains blocked by SHA-256. Acceptance policy is fixed, and diagnostic/offline-analysis
+overrides always force a failing result. Normal runs also require a new output path and the reviewed
+frontend/core identities, so stale artifacts or arbitrary binaries cannot produce PASS.
 
 **VR60-002 is complete:** the canonical libretro/PicoDrive frontend now has a real-ROM debugger
 whose CPU/game-memory inspection remains read-only. It advances frames, reads Master/Slave SH2
@@ -92,10 +95,31 @@ maximum non-zero runs 3/2/0, and useful work from both SH2s in every window. The
 frames with 539 hits and zero drops. Exit status was the required 1, with `short_control_window`
 as the only finding; this is a successful bounded preflight, not a control PASS.
 
-The current work item is **VR60-008**: run the unchanged control ROM, live reference, VR60-005
-state, and complete VR60-006 replay with the same 360-frame warmup and all 18,000 validation
-frames. It must pass all 100 fixed windows without code, policy, threshold, or input changes; see
-the near-term issue queue in `VR60_ROADMAP.md`.
+**VR60-008 is blocked:** the unchanged control ROM, live reference, VR60-005 state, and complete
+VR60-006 replay ran with the fixed 360-frame warmup and all 18,000 validation frames, without a
+diagnostic, analysis, threshold, policy, or input override. The frontend and both traces completed,
+but the validator exited 1 with 300 findings. Raw samples show the first failure at frame 4536:
+`$C87E` jumps from `$0000` to `$0008`, skipping `$0004`, while `$FF0002` is still `$00884CBC`.
+COMM0 first becomes continuously busy at frame 4539, and the full scene pointer does not change
+until frame 5128. Later samples also report hook, framebuffer, and Slave-SH2 stalls. No root cause
+or causal link between these observations is established yet. The complete output is in the
+tracked [VR60-008 evidence archive](analysis/evidence/vr60-008-full-control/README.md), whose
+deterministic `artifacts.tar.gz` SHA-256 is
+`8bd15a1836686d9fcd9e027e2991bcc14ee794a1337fc6ff3f375ba5c9ef00b3`. Within it, `run.json`
+SHA-256 is
+`361104d02e876e2dff7c69aeb980f06e196d0c63b6e9097dc22e8c82e5794cca` and `result.json`
+SHA-256 is `bcdaf92a44749a3ade515d7c4ae052ecbb89a96226ecbeaaa3e89563ef02d991`.
+
+The current work item is **VR60-009**: diagnose the first state-order discontinuity. Trace the
+writer and transition mechanism that produces `$0000 -> $0008` at frame 4536 while the normal-1P
+scene is still active, then determine whether and how it relates to the later scene transition.
+The diagnosis must add complete emulator-side memory-write tracing for writes overlapping both
+`$C87E` and `$FF0002`, across every byte, word, and long write width and every memory-write path.
+Each event must record the emulated frame, exact writer PC, access address/width, old value, and new
+value. Replay the deterministic input only far enough to cross the historical frame-4536 and
+frame-5128 boundaries; do not repeat the full 18,000-frame control. Do not change thresholds or
+patch a later finding before that evidence exists; see the near-term issue queue in
+`VR60_ROADMAP.md`.
 
 Do not enable another offload stage until a test fixture or deterministic input harness passes all of these checks with the VR60 hook bypassed:
 

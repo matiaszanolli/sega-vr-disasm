@@ -73,7 +73,8 @@
 | Path | Purpose | Key Topics | Note |
 |------|---------|-----------|------|
 | tools/libretro-profiling/README_68K_PC_PROFILING.md | How to profile VRD | Frame-level + PC-level hotspots, toolchain, baseline setup | Profiling how-to |
-| tools/libretro-profiling/VRD_PROFILING.md | Current profiling and normal-1P control gate | `validate_1p_control.py`, `make control-rom`, complete input replay, ≥18K-frame minimum, exact live-reference/hook-bypass comparison, state/hook/FB/COMM liveness | Current VR60 measurement authority; VR60-009 proved the apparent frame-4536 skip was a sampling alias inside a timed finish; VR60-010 fixture replacement is next |
+| tools/libretro-profiling/VRD_PROFILING.md | Current profiling and normal-1P control gate | `validate_1p_control.py`, `make control-rom`, complete input replay, ≥18K-frame minimum, exact live-reference/hook-bypass comparison, state/hook/FB/COMM liveness | Current VR60 measurement authority; VR60-009 proved the apparent frame-4536 skip was a sampling alias inside a timed finish; VR60-010 fixture replacement is in progress |
+| tools/libretro-profiling/retroarch_replay_to_csv.py | Strict visual replay bridge for VR60-010 | RetroArch 1.22.2 v2, commit `4c3793f36c`, exact P1/P2 joypad-mask events, no checkpoints/key events, exact frame count/EOF, ROM CRC32 check, replay/raw-state/ROM/CSV hashes | 899-frame real replay converted and byte-replayed through the canonical frontend; bridge evidence only, never gameplay acceptance |
 | analysis/evidence/vr60-009-write-trace/README.md | VR60-009 exact writer and finish classification | Non-perturbing FAME instruction-start hook, `$C87E`/`$FF0002` writers, timed-race display sequence, deterministic evidence archive | Decision-grade diagnosis; present state/replay is bounded-only, VR60-008 remains blocked by VR60-010 |
 | tools/libretro-profiling/verify_control_rom.py | Assembly-built control-ROM evidence writer | Imports the validator's fixed hook policy, atomically records both hashes and the exact outside-hook comparison | `control_rom_pair.json` is the reviewed VR60-004 manifest |
 | tools/libretro-profiling/profiling_frontend.c | Canonical real-ROM debugger and profiling frontend | `--debug`, `--debug-script`, frame advance, exact `joypad` control/recording, Master/Slave registers, bus-explicit memory reads, exact-size savestate save/load | VR60-003 input capture complete; CPU/game-memory inspection remains read-only; archived PDCORE cannot load ROM |
@@ -512,6 +513,21 @@ $020476: NOP
 
 23. **Do not obtain exact PCs by changing FAME into single-instruction execution batches.** That rejected VR60-009 attempt shifted the results transition from frame 5128 to frame 4981, so it is not acceptance evidence. The accepted tracer uses a nullable callback immediately before opcode fetch in the normal FAME loop, preserves the existing approximately 32-cycle profiling batches, and byte-matches the trace-disabled 5,160-frame control.
 
+24. **A visual replay needs two independent qualifications: format identity and gameplay
+liveness.** The pinned RetroArch 1.22.2 v2 bridge converted a real 899-frame capture (replay
+SHA-256 `665d710f…f1724`) to canonical CSV (SHA-256 `6c51ad27…cf08`), and the headless frontend
+re-recorded identical bytes from the matching raw state. That closes only the format/input bridge.
+A manifest also binds the replay, exact raw state, hook-bypass ROM, and CSV hashes after checking
+the replay header's content CRC32 against that ROM.
+A later 4,680-frame capture from a state saved 32 seconds into Big Forest still left normal 1P at
+frame 3984. Never promote replay parse/re-record success into fixture durability.
+
+25. **RetroArch's standalone `.state` and the canonical frontend's raw core state are not the
+same outer container.** RetroArch 1.22.2 saved the core serialization inside a `RASTATE` `MEM `
+block; feeding the wrapper directly to `retro_unserialize` failed with `bad header`, while its
+exact `MEM ` payload loaded. Preserve and hash the raw payload used by the validator, and do not
+substitute a replay's embedded state as acceptance evidence.
+
 ---
 
 ## Section 4: Where-to-Find Cross-Reference
@@ -526,7 +542,7 @@ $020476: NOP
 | Slave SH2 behavior (polling, dispatch, pixel processing) | analysis/ARCHITECTURAL_BOTTLENECK_ANALYSIS.md | analysis/SYSTEM_EXECUTION_FLOW.md |
 | Frame execution flow (V-INT, main loop, state dispatch) | analysis/SYSTEM_EXECUTION_FLOW.md | analysis/ARCHITECTURAL_BOTTLENECK_ANALYSIS.md |
 | Profiling methodology + tool usage | tools/libretro-profiling/README_68K_PC_PROFILING.md | analysis/profiling/68K_BOTTLENECK_ANALYSIS.md |
-| Normal-1P durable control validation | tools/libretro-profiling/VRD_PROFILING.md § Normal-1P control validator | VR60_STATUS.md § Current milestone; VR60-009 exact evidence is under `analysis/evidence/vr60-009-write-trace/`; the current fixture reaches timed results and is bounded-only; VR60-010 must replace it before retry; candidate/reference ROMs must match outside the reviewed 8-byte hook delta |
+| Normal-1P durable control validation | tools/libretro-profiling/VRD_PROFILING.md § Normal-1P control validator | VR60_STATUS.md § Current milestone; VR60-009 exact evidence is under `analysis/evidence/vr60-009-write-trace/`; the current fixture reaches timed results and is bounded-only; VR60-010's visual replay bridge is qualified but the replacement state/input remain open; candidate/reference ROMs must match outside the reviewed 8-byte hook delta |
 | Expansion ROM layout + active handlers | disasm/sections/expansion_300000.asm | BACKLOG.md §B-003/B-004 |
 | B-003 async cmd_27 design | BACKLOG.md §B-003 | analysis/68K_SH2_COMMUNICATION.md §B-003 |
 | B-004 single-shot cmd_22 design | BACKLOG.md §B-004 | analysis/68K_SH2_COMMUNICATION.md §B-004 |

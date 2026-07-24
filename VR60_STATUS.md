@@ -1,6 +1,6 @@
 # VR60 Current Status
 
-**Canonical as of:** 2026-07-22
+**Canonical as of:** 2026-07-23
 
 **Branch:** `60fps_project`
 
@@ -132,6 +132,22 @@ post-race output, or change policy/thresholds. End-of-frame state samples must n
 exact write chronology. Any sampling-safe validator-policy change, if needed, belongs in a
 separate later reviewed issue, not VR60-010, and must preserve fail-closed acceptance.
 
+**VR60-010 is in progress:** visual input capture now has a reviewed bridge into the canonical
+headless frontend. `retroarch_replay_to_csv.py` accepts only the exact RetroArch 1.22.2 v2 event
+shape used by this capture path, rejects checkpoints/keyboard or ambiguous controller events,
+requires the requested frame count and exact EOF, verifies the replay's content CRC32 against the
+exact control ROM, and binds the replay, raw state, ROM, and CSV hashes in a new-file-only
+manifest. A real 899-frame replay (SHA-256 `665d710f…f1724`)
+converted to 899 ordered rows (SHA-256 `6c51ad27…cf08`); replaying those rows from the same raw
+state through `profiling_frontend` re-recorded byte-identical CSV. This proves the capture bridge,
+not gameplay durability.
+
+The first replacement state attempt is ineligible: it was saved 32 seconds into Big Forest with
+`$C050 = $0035`. Its 4,680-frame visual-input preflight left `$00884CBC` at frame 3984 and failed
+the unchanged validator, as expected. A second setup attempt produced no state. No new fixture or
+input has been promoted or tracked, and VR60-008 remains blocked. The next capture must save at
+the first live race frame and qualify its exact replay prefix before attempting 18,360 frames.
+
 Do not enable another offload stage until a test fixture or deterministic input harness passes all of these checks with the VR60 hook bypassed:
 
 1. It enters the intended 1P scene (`$FF0002 = $00884CBC`).
@@ -170,4 +186,5 @@ The project is complete only when a reproducible 1P run demonstrates all of the 
 - `analysis/VR60_PHASE5F1B_PROBE_DIAGNOSIS.md` — C128/C178/C254 renderer inputs
 - `analysis/VR60_PHASE5F_SCOPING.md` — authority/bridge problem, read with its current correction banner
 - `analysis/evidence/vr60-009-write-trace/README.md` — exact state/scene writers, timed-finish classification, and fixture remedy
+- `tools/libretro-profiling/retroarch_replay_to_csv.py` — fail-closed visual replay to canonical input bridge
 - `tools/libretro-profiling/VRD_PROFILING.md` — measurement procedure and validity gates

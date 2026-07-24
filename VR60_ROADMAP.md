@@ -7,7 +7,7 @@
 
 ---
 
-## Canonical status (2026-07-22)
+## Canonical status (2026-07-23)
 
 The project is in **integration and validation**, not “one blocker from 60 FPS.” The current
 normal-1P path still uses the original 68000 physics, AI, collision, and render preparation as
@@ -226,6 +226,40 @@ $0088FB98`. COMM, hook, framebuffer, and Slave-SH2 findings after that point are
 observations, not skipped-state fallout. Full evidence is in
 [the VR60-009 archive](analysis/evidence/vr60-009-write-trace/README.md).
 
+### VR60-010 visual replay bridge and rejected captures (2026-07-23)
+
+VR60-010 is in progress and the validator remains unchanged. The installed RetroArch 1.22.2
+build can record visual controller input from an entry savestate, but its v2 replay is not itself
+an acceptance artifact. The reviewed host-only
+`tools/libretro-profiling/retroarch_replay_to_csv.py` bridge is pinned to RetroArch commit
+`4c3793f36c`. It requires the v2 magic/version and requested frame count, parses the complete
+stream to exact EOF, accepts only one P1 joypad-mask event followed by a neutral P2 mask per
+regular frame, and rejects checkpoints, keyboard events, malformed back-references, unexpected
+devices/IDs/padding, a replay/control-ROM CRC32 mismatch, and existing output paths. It requires
+the exact control ROM and raw state, then publishes canonical `frame,mask` CSV plus a manifest
+binding their hashes to the replay, reviewed source identity, and output. It changes no ROM,
+core, validator, policy, or threshold.
+
+A real 899-frame capture, replay SHA-256
+`665d710f5cf47a97e3a8bf130919d4ed20d3c3bf6f35b2e55118a6cdad0f1724`, converted to 899
+ordered rows with CSV SHA-256
+`6c51ad27ee7ee137e61d848161d63f631910cc5d56d025325dd44f88a4e8cf08`.
+The canonical `profiling_frontend` loaded the matching raw state, replayed those rows, and
+re-recorded byte-identical CSV. This qualifies the bridge only.
+
+The candidate-state inventory did not produce a durable replacement. The two Jul-13 normal-1P
+states with raw hashes `67f715cd…9bb` and `7047ebe4…11dc` leave `$00884CBC` at frames 4877 and
+5025 under their qualifying held input; the third candidate starts in `$00884A3E`. A new visual
+state was then saved in the correct scene but its thumbnail and memory established that it was
+already 32 seconds into Big Forest with `$C050 = $0035`. Its first complete visual preflight had
+4,680 frames: replay SHA-256 `6e519f48…a8be`, converted CSV SHA-256 `bca70d72…84d0`.
+The unchanged validator correctly failed and first observed the scene exit at frame 3984. That
+state and input remain temporary rejected diagnostics. A later setup window produced no state.
+
+The next attempt must save at the first live normal-1P race frame, convert and byte-replay the
+exact prefix, then require the bounded liveness preflight before spending a full 18,360-frame
+capture. No artifact is promoted until the existing full validator passes all 100 windows.
+
 ### Near-term issue queue
 
 The baseline blocker is split into small issues. Each issue has one output and one closing
@@ -242,7 +276,7 @@ test; do not combine it with the next issue just because both are convenient in 
 | VR60-007 | Run a 360-frame-warmup + 1,800-frame preflight using VR60-004/005 and the exact first 2,160-row prefix of VR60-006 | Scene, state order, hook cadence, framebuffer, SH2 work, and COMM lanes are healthy; the run still exits non-zero because short diagnostics can never qualify as a control | **Done** |
 | VR60-008 | Run the full control without changing code or thresholds | The exact same ROM/state and complete replay pass all 360 warmup + 18,000 validation frames and 100 fixed validation windows | **Blocked by VR60-010** |
 | VR60-009 | Add complete emulator-side memory-write tracing for both `$C87E` and `$FF0002`, then run the deterministic replay only through the historical frame-4536 and frame-5128 boundaries | The non-perturbing trace identifies both ordinary frame-4536 state writes and the intentional frame-5128 results-scene writer; the timed-finish relationship and fixture remedy are preserved in a deterministic evidence archive | **Done** |
-| VR60-010 | Replace the timed-race fixture and rerun the unchanged full control | A new normal-1P state plus deterministic 18,360-frame input stay in `$FF0002 = $00884CBC` throughout, exercise the expected state/hook/render/COMM/SH2 liveness, and pass the existing validator without policy, threshold, or diagnostic overrides | **Next** |
+| VR60-010 | Replace the timed-race fixture and rerun the unchanged full control | A new normal-1P state plus deterministic 18,360-frame input stay in `$FF0002 = $00884CBC` throughout, exercise the expected state/hook/render/COMM/SH2 liveness, and pass the existing validator without policy, threshold, or diagnostic overrides | **In progress — replay bridge qualified; replacement capture still open** |
 
 VR60-009 is closed. VR60-010 replaces only the fixture/input and reruns the unchanged validator;
 do not combine it with profiler policy, threshold, or game-code changes. The present fixture stays
@@ -1653,6 +1687,7 @@ Record every significant design decision here. Include date, what was decided, w
 | 2026-07-21 | Build the 1P control pair from one conditional assembly source and verify it automatically | A raw-patched candidate or an unpreserved reference cannot prove isolation. `make control-rom` preserves the live build, assembles the stock two-JSR branch with `VR60_CONTROL_ROM`, and records the validator comparison plus both hashes. | Manually patch eight bytes after assembly, keep an unverified copy by filename, or maintain a second drifting source tree. |
 | 2026-07-22 | Preserve the failed VR60-008 run and diagnose its first chronological signal before retrying or patching | Raw samples place the `$C87E` state-order discontinuity at frame 4536, before continuous COMM0 busy and the scene transition. Later hook/framebuffer/Slave stalls are additional findings whose causal relationship is unknown; changing thresholds or addressing them independently would destroy chronological evidence. | Retry unchanged without diagnosis, loosen the validator, infer chronology from finding-list order, address-shop for a patch, or treat every later finding as a separate defect. |
 | 2026-07-22 | Retire the VR60-005/006 timed-race state/replay as a full-window control and create VR60-010 for fixture replacement | VR60-009 proves that the apparent state skip is a sampling alias and the later scene exit is the game's intentional timeout/results sequence. A control cannot accept post-race output or weaken scene invariance. The existing artifacts remain useful for bounded diagnostics. | Loosen the scene rule, accept post-race liveness, patch game code to suppress the finish, or change validator policy inside the diagnosis issue. |
+| 2026-07-23 | Use a pinned, fail-closed RetroArch v2 replay converter only as the visual-input bridge for VR60-010 | The canonical frontend is headless, while a visual race needs manual control. A real 899-frame replay converted and re-recorded byte-identically; strict event-shape/EOF checks, ROM CRC32 verification, and replay/raw-state/ROM/CSV hashes prevent ambiguity from reaching the validator. The replay's embedded state is not acceptance evidence. | Add GUI/video behavior to the validator, accept arbitrary replay variants, loosen the CSV parser, or treat a successful conversion as gameplay liveness. |
 
 ---
 
@@ -1815,6 +1850,8 @@ Record discoveries, gotchas, and insights as the project progresses. These help 
 | 2026-07-22 | Profiling methodology | **An end-of-frame sample is not an intra-frame write trace.** At frame 4536, `$C87E` was sampled as `$0008` after being `$0000` on the prior frame, but exact PCs `$884CF2` and `$884D0C` wrote `$0004` and then `$0008` during that frame. | Use sampled state for window liveness and the exact writer tracer for chronology. If acceptance needs a sampling-safe rule, change it in a separate reviewed issue without weakening fail-closed policy. |
 | 2026-07-22 | Emulator instrumentation | **Single-instruction execution batches perturb this timing-sensitive fixture.** The rejected tracer shifted the scene transition to frame 4981. A nullable pre-opcode-fetch FAME callback preserved normal batching and byte-matched the trace-disabled 5,160-frame control. | Instrument instruction boundaries inside the existing execution loop; never treat a timing-shifted diagnostic run as acceptance evidence. |
 | 2026-07-22 | Fixture methodology | **Deterministic input can deterministically finish the race.** The VR60-005/006 artifacts are reproducible and healthy over a prefix, yet `$C050` expires and the display controller deliberately enters results at frame 5128. | Keep the fixture for bounded diagnostics; VR60-010 must capture enough race time/input to remain in `$00884CBC` for every full-control frame. |
+| 2026-07-23 | Fixture methodology | **Capture time is part of fixture eligibility.** A visually correct normal-1P state was still unusable because it was saved 32 seconds into Big Forest with only `$0035` on the timer; its input replay left the scene at frame 3984. | Inspect the saved thumbnail, scene pointer, and timer immediately. Save at the first live race frame, qualify a bounded exact replay, and only then record the full horizon. |
+| 2026-07-23 | Tooling | **RetroArch v2 visual replays can be bridged without modifying the canonical frontend or validator.** The strict converter's 899-row smoke replay re-recorded byte-for-byte through `VRD_INPUT_SCRIPT`. | Keep the converter pinned to the reviewed RetroArch source identity, reject unrecognized events/checkpoints/trailing data or a wrong ROM CRC32, and preserve replay/raw-state/ROM/CSV hashes in its manifest. |
 
 ---
 

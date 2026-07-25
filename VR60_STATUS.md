@@ -1,6 +1,6 @@
 # VR60 Current Status
 
-**Canonical as of:** 2026-07-23
+**Canonical as of:** 2026-07-25
 
 **Branch:** `60fps_project`
 
@@ -144,9 +144,32 @@ not gameplay durability.
 
 The first replacement state attempt is ineligible: it was saved 32 seconds into Big Forest with
 `$C050 = $0035`. Its 4,680-frame visual-input preflight left `$00884CBC` at frame 3984 and failed
-the unchanged validator, as expected. A second setup attempt produced no state. No new fixture or
-input has been promoted or tracked, and VR60-008 remains blocked. The next capture must save at
-the first live race frame and qualify its exact replay prefix before attempting 18,360 frames.
+the unchanged validator, as expected. A second setup attempt produced no state.
+
+A new 3,526-frame RetroArch v2 capture (replay SHA-256 `32246bf7…a91bc0`) from slot 0 converted
+to canonical CSV (SHA-256 `393b6f85…f23481`) against the exact control-ROM CRC32. RetroArch's
+`RASTATE` wrapper was not passed to the core; its exact `MEM ` payload (SHA-256
+`c74277f2…a06993`) was preserved as the raw source state. Its tested 3,526-frame replay remained
+in `$00884CBC`, but the initial COMM0_HI interval lasted through frame 896. Replaying the same
+input under the validator's PC/interpreter configuration, advancing through post-frame sample
+897, and saving after exactly 898 frames produced raw state SHA-256 `c6640c78…fd5216`. The next
+2,160 resolved masks were reindexed to frame 0 (SHA-256 `d0d2d482…1856ad`) and re-recorded
+byte-for-byte from that state.
+
+The unchanged 360-warmup + 1,800-frame validator then failed only with the mandatory
+`short_control_window` finding. Its functional metrics were: state stall 1; ten complete state
+windows; 450 exact hook hits with maximum gap 4; 456 framebuffer hashes with maximum stall 1;
+and COMM0/COMM2/COMM7 maximum non-zero runs 3/2/0. This qualifies the derived state/input for
+bounded diagnostics only. A DRC-derived state at the same nominal frame was rejected because it
+did not reproduce the validator's interpreter trajectory; fixture derivation must preserve the
+acceptance execution mode.
+
+No replacement artifact has been promoted or tracked, and VR60-008 remains blocked. The next
+step is a full 18,360-frame visual input capture from the exact interpreter-derived state,
+followed by conversion, byte-replay, and the unchanged full validator. The input must keep the
+timed race in normal 1P for all 100 validation windows. Any `RASTATE` wrapper used to load the
+derived state in RetroArch must extract to a `MEM ` payload byte-identical to
+`c6640c78…fd5216`.
 
 Do not enable another offload stage until a test fixture or deterministic input harness passes all of these checks with the VR60 hook bypassed:
 

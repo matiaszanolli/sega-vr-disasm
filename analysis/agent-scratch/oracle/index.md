@@ -73,7 +73,7 @@
 | Path | Purpose | Key Topics | Note |
 |------|---------|-----------|------|
 | tools/libretro-profiling/README_68K_PC_PROFILING.md | How to profile VRD | Frame-level + PC-level hotspots, toolchain, baseline setup | Profiling how-to |
-| tools/libretro-profiling/VRD_PROFILING.md | Current profiling and normal-1P control gate | `validate_1p_control.py`, `make control-rom`, complete input replay, ≥18K-frame minimum, exact live-reference/hook-bypass comparison, state/hook/FB/COMM liveness | Current VR60 measurement authority; VR60-009 proved the apparent frame-4536 skip was a sampling alias inside a timed finish; VR60-010 fixture replacement is in progress |
+| tools/libretro-profiling/VRD_PROFILING.md | Current profiling and normal-1P control gate | `validate_1p_control.py`, `make control-rom`, complete input replay, ≥18K-frame minimum, exact live-reference/hook-bypass comparison, state/hook/FB/COMM liveness | Current VR60 measurement authority; VR60-009 proved the apparent frame-4536 skip was a sampling alias inside a timed finish; VR60-010 now has an interpreter-matched replacement candidate with a successful bounded preflight, while the full 18,360-frame capture remains open |
 | tools/libretro-profiling/retroarch_replay_to_csv.py | Strict visual replay bridge for VR60-010 | RetroArch 1.22.2 v2, commit `4c3793f36c`, exact P1/P2 joypad-mask events, no checkpoints/key events, exact frame count/EOF, ROM CRC32 check, replay/raw-state/ROM/CSV hashes | 899-frame real replay converted and byte-replayed through the canonical frontend; bridge evidence only, never gameplay acceptance |
 | analysis/evidence/vr60-009-write-trace/README.md | VR60-009 exact writer and finish classification | Non-perturbing FAME instruction-start hook, `$C87E`/`$FF0002` writers, timed-race display sequence, deterministic evidence archive | Decision-grade diagnosis; present state/replay is bounded-only, VR60-008 remains blocked by VR60-010 |
 | tools/libretro-profiling/verify_control_rom.py | Assembly-built control-ROM evidence writer | Imports the validator's fixed hook policy, atomically records both hashes and the exact outside-hook comparison | `control_rom_pair.json` is the reviewed VR60-004 manifest |
@@ -528,6 +528,15 @@ block; feeding the wrapper directly to `retro_unserialize` failed with `bad head
 exact `MEM ` payload loaded. Preserve and hash the raw payload used by the validator, and do not
 substitute a replay's embedded state as acceptance evidence.
 
+26. **Fixture derivation must use the validator's execution mode, not merely the same ROM, state,
+input, and nominal frame.** A VR60-010 state derived after frame 897 under PicoDrive's DRC replayed
+the same input but diverged when the validator enabled `VRD_PROFILE_PC=1` and forced the SH2
+interpreter: `$C87E` omitted state `$000C` in later windows and COMM0_HI stayed non-zero for 1,617
+frames. Re-deriving at the same `K = 898` boundary under the PC/interpreter configuration produced
+a byte-replayable 2,160-frame prefix whose unchanged bounded validator had
+`short_control_window` as its only finding. Preserve execution mode across discovery, state
+serialization, replay verification, and acceptance.
+
 ---
 
 ## Section 4: Where-to-Find Cross-Reference
@@ -542,7 +551,7 @@ substitute a replay's embedded state as acceptance evidence.
 | Slave SH2 behavior (polling, dispatch, pixel processing) | analysis/ARCHITECTURAL_BOTTLENECK_ANALYSIS.md | analysis/SYSTEM_EXECUTION_FLOW.md |
 | Frame execution flow (V-INT, main loop, state dispatch) | analysis/SYSTEM_EXECUTION_FLOW.md | analysis/ARCHITECTURAL_BOTTLENECK_ANALYSIS.md |
 | Profiling methodology + tool usage | tools/libretro-profiling/README_68K_PC_PROFILING.md | analysis/profiling/68K_BOTTLENECK_ANALYSIS.md |
-| Normal-1P durable control validation | tools/libretro-profiling/VRD_PROFILING.md § Normal-1P control validator | VR60_STATUS.md § Current milestone; VR60-009 exact evidence is under `analysis/evidence/vr60-009-write-trace/`; the current fixture reaches timed results and is bounded-only; VR60-010's visual replay bridge is qualified but the replacement state/input remain open; candidate/reference ROMs must match outside the reviewed 8-byte hook delta |
+| Normal-1P durable control validation | tools/libretro-profiling/VRD_PROFILING.md § Normal-1P control validator | VR60_STATUS.md § Current milestone; VR60-009 exact evidence is under `analysis/evidence/vr60-009-write-trace/`; the old fixture reaches timed results and is bounded-only; VR60-010's interpreter-matched replacement state/prefix passed the bounded gate, but the full 18,360-frame input and unchanged control PASS remain open; candidate/reference ROMs must match outside the reviewed 8-byte hook delta |
 | Expansion ROM layout + active handlers | disasm/sections/expansion_300000.asm | BACKLOG.md §B-003/B-004 |
 | B-003 async cmd_27 design | BACKLOG.md §B-003 | analysis/68K_SH2_COMMUNICATION.md §B-003 |
 | B-004 single-shot cmd_22 design | BACKLOG.md §B-004 | analysis/68K_SH2_COMMUNICATION.md §B-004 |

@@ -73,7 +73,9 @@
 | Path | Purpose | Key Topics | Note |
 |------|---------|-----------|------|
 | tools/libretro-profiling/README_68K_PC_PROFILING.md | How to profile VRD | Frame-level + PC-level hotspots, toolchain, baseline setup | Profiling how-to |
-| tools/libretro-profiling/VRD_PROFILING.md | Current profiling and normal-1P control gate | `validate_1p_control.py`, `make control-rom`, complete input replay, ≥18K-frame minimum, exact live-reference/hook-bypass comparison, state/hook/FB/COMM liveness | Current VR60 measurement authority; VR60-009 proved the apparent frame-4536 skip was a sampling alias inside a timed finish; VR60-010 now has an interpreter-matched replacement candidate with a successful bounded preflight, while the full 18,360-frame capture remains open |
+| tools/libretro-profiling/VRD_PROFILING.md | Current profiling and normal-1P control gates | Unchanged continuous `validate_1p_control.py`; separate `validate_1p_lifecycle_suite.py`; exact capture/provenance, terminal signature, per-window/tail checks, lifecycle/count/span/aggregate floors | Current VR60 measurement authority; VR60-011 tooling is complete but reviewed real lifecycle-suite evidence remains open; VR60-010 remains the unchanged continuous alternative |
+| tools/libretro-profiling/validate_1p_lifecycle_suite.py | VR60-011 complete-lifecycle capture and aggregate validator | Fresh sterile capture, canonical fixture blacklist provenance, strict closed write-trace grammar, exact C07C PC/access/old/new chain, predeclared terminal/results frames, duplicate rejection, 3/1800/3960/18000 floors | Separate policy; does not alter VR60-010. All 26 focused tests and fresh Auditor review pass; no reviewed real suite PASS yet |
+| tools/libretro-profiling/vr60_lifecycle_suite.schema.json | VR60-011 reviewed manifest schema | Exact ROM/tool/state/input/source/raw artifact pins, predeclared lifecycle boundaries, no extra policy fields | Use with the lifecycle validator; generated fixture entries require review before suite inclusion |
 | tools/libretro-profiling/retroarch_replay_to_csv.py | Strict visual replay bridge for VR60-010 | RetroArch 1.22.2 v2, commit `4c3793f36c`, exact P1/P2 joypad-mask events, no checkpoints/key events, exact frame count/EOF, ROM CRC32 check, replay/raw-state/ROM/CSV hashes | 899-frame real replay converted and byte-replayed through the canonical frontend; bridge evidence only, never gameplay acceptance |
 | analysis/evidence/vr60-009-write-trace/README.md | VR60-009 exact writer and finish classification | Non-perturbing FAME instruction-start hook, `$C87E`/`$FF0002` writers, timed-race display sequence, deterministic evidence archive | Decision-grade diagnosis; present state/replay is bounded-only, VR60-008 remains blocked by VR60-010 |
 | tools/libretro-profiling/verify_control_rom.py | Assembly-built control-ROM evidence writer | Imports the validator's fixed hook policy, atomically records both hashes and the exact outside-hook comparison | `control_rom_pair.json` is the reviewed VR60-004 manifest |
@@ -537,6 +539,22 @@ a byte-replayable 2,160-frame prefix whose unchanged bounded validator had
 `short_control_window` as its only finding. Preserve execution mode across discovery, state
 serialization, replay verification, and acceptance.
 
+27. **Lifecycle aggregation is a separate acceptance shape, not a disguised continuous run.**
+VR60-011 counts only frames after the fixed 360-frame warmup and before the predeclared exact
+`$886C38` write of `$C07C=$0014`; finish-display and results frames count zero. Each lifecycle,
+aligned window, final rolling window, and substantial tail must pass independently. Duplicate
+source/state/input provenance is rejected, and aggregate coverage is reported beside the
+per-lifecycle and longest-contiguous floors. The reviewed constants are 3 complete lifecycles,
+1,800 active frames each, one 3,960-frame span, and 18,000 aggregate frames. The harness is
+operational, but no real suite PASS exists yet.
+Capture and offline analysis also apply the canonical `control_fixtures.json` blacklist and bind
+its exact path, hash, and matched entry into `run.json`. Terminal acceptance pins the full word
+write chain: `$886C38:$0000->$0014`, then `$88427A/$8842CE/$884322/$884336/$884384/$884398/$8843CA`
+through `$0030`; the surprising initial zero comes from archived VR60-009 watch frames 4533/4534.
+The trace parser accepts only one init, the exact ordered indexed targets, one header, data, and
+one final `COMPLETE` record. Fresh Auditor review approved these boundaries after reproducing
+and closing the prior blacklist, duplicate-record, and arbitrary-terminal-writer bypasses.
+
 ---
 
 ## Section 4: Where-to-Find Cross-Reference
@@ -551,7 +569,7 @@ serialization, replay verification, and acceptance.
 | Slave SH2 behavior (polling, dispatch, pixel processing) | analysis/ARCHITECTURAL_BOTTLENECK_ANALYSIS.md | analysis/SYSTEM_EXECUTION_FLOW.md |
 | Frame execution flow (V-INT, main loop, state dispatch) | analysis/SYSTEM_EXECUTION_FLOW.md | analysis/ARCHITECTURAL_BOTTLENECK_ANALYSIS.md |
 | Profiling methodology + tool usage | tools/libretro-profiling/README_68K_PC_PROFILING.md | analysis/profiling/68K_BOTTLENECK_ANALYSIS.md |
-| Normal-1P durable control validation | tools/libretro-profiling/VRD_PROFILING.md § Normal-1P control validator | VR60_STATUS.md § Current milestone; VR60-009 exact evidence is under `analysis/evidence/vr60-009-write-trace/`; the old fixture reaches timed results and is bounded-only; VR60-010's interpreter-matched replacement state/prefix passed the bounded gate, but the full 18,360-frame input and unchanged control PASS remain open; candidate/reference ROMs must match outside the reviewed 8-byte hook delta |
+| Normal-1P durable control validation | tools/libretro-profiling/VRD_PROFILING.md §§ Normal-1P control validator; VR60-011 lifecycle suite | VR60_STATUS.md § Current milestone; either the unchanged VR60-010/008 continuous path or a reviewed VR60-011 lifecycle-suite PASS may clear the blocker; neither exists yet |
 | Expansion ROM layout + active handlers | disasm/sections/expansion_300000.asm | BACKLOG.md §B-003/B-004 |
 | B-003 async cmd_27 design | BACKLOG.md §B-003 | analysis/68K_SH2_COMMUNICATION.md §B-003 |
 | B-004 single-shot cmd_22 design | BACKLOG.md §B-004 | analysis/68K_SH2_COMMUNICATION.md §B-004 |

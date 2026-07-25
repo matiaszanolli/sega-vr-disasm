@@ -124,7 +124,8 @@ at PC `$8843D0` intentionally writes `$FF0002` `$00884CBC -> $0088FB98`. The com
 finish classification are preserved in
 [the VR60-009 evidence archive](analysis/evidence/vr60-009-write-trace/README.md).
 
-The current work item is **VR60-010**: replace the bounded timed-race fixture. Capture a new
+The continuous-control alternative remains **VR60-010**: replace the bounded timed-race fixture.
+Capture a new
 normal-1P savestate and deterministic input with enough remaining race time, or an equivalent
 repeatable driving recipe, to remain in `$FF0002 = $00884CBC` for all 360 warmup plus 18,000
 validation frames. Then run the unchanged full validator. Do not loosen scene invariance, accept
@@ -164,12 +165,44 @@ bounded diagnostics only. A DRC-derived state at the same nominal frame was reje
 did not reproduce the validator's interpreter trajectory; fixture derivation must preserve the
 acceptance execution mode.
 
-No replacement artifact has been promoted or tracked, and VR60-008 remains blocked. The next
-step is a full 18,360-frame visual input capture from the exact interpreter-derived state,
+No replacement artifact has been promoted or tracked, and VR60-008 remains blocked. VR60-010's
+next step is a full 18,360-frame visual input capture from the exact interpreter-derived state,
 followed by conversion, byte-replay, and the unchanged full validator. The input must keep the
 timed race in normal 1P for all 100 validation windows. Any `RASTATE` wrapper used to load the
 derived state in RetroArch must extract to a `MEM ` payload byte-identical to
 `c6640c78…fd5216`.
+
+**VR60-011 now provides a separate lifecycle-aware control policy; it does not change
+VR60-010.** `validate_1p_lifecycle_suite.py` can capture fresh, complete timeout/results
+lifecycles and aggregate only immutable raw artifacts described by
+`vr60_lifecycle_suite.schema.json`. A qualifying suite needs at least three distinct lifecycles,
+at least 1,800 active frames in each, at least one 3,960-frame contiguous active span, and at
+least 18,000 aggregate active frames after the fixed 360-frame warmup. Every aligned 180-frame
+window, an overlapping final 180-frame window, and any substantial final partial tail are checked
+individually; a bad lifecycle contributes zero aggregate coverage.
+
+The counted active epoch ends at the predeclared first exact PC `$886C38` write of
+`$C07C = $0014`, not at the later results-scene write. Complete lifecycle classification then
+requires predeclared terminal/results frames, `$C050 = $FFFF -> $0000`, zero lap-completion flags,
+and exact word-write tuples `$0000->$0014` at `$886C38`, then the `$14/$18/$1C/$20/$24/$28/$2C/$30`
+chain at `$88427A/$8842CE/$884322/$884336/$884384/$884398/$8843CA`. The initial zero is
+confirmed by the archived VR60-009 watch samples at frames 4533/4534; `$C30E`, not `$C07C`,
+is the field that changes `$10->$11`. PC `$8843D0` must then install
+`$FF0002 = $0088FB98`. ROM, profiler tools, state, input, source capture, the exact
+`control_fixtures.json` identity/matched entry, run metadata, and every raw artifact are
+hash-pinned. Blacklisted states, duplicate identities, malformed/incomplete/extended traces,
+unknown writers, broken old/new chains, diagnostic mode, or self-asserted summaries fail closed.
+All 26 focused synthetic tests pass, and fresh Auditor review approved the harness after
+adversarial blacklist, trace-grammar, and terminal-writer checks. No
+reviewed real lifecycle-suite manifest exists yet, so VR60-011 has not produced an acceptance
+PASS and does not unblock VR60-008. VR60-010's unchanged continuous control remains open in
+parallel.
+
+The current active work item is **VR60-011 evidence collection**: use the fresh-capture command
+with boundaries established by a prior diagnostic replay, review and pin each complete lifecycle,
+then build a distinct suite until all lifecycle-count, per-lifecycle, longest-span, aggregate, and
+exact-terminal-signature requirements pass. Either a reviewed VR60-011 PASS or the unchanged
+VR60-010/008 continuous PASS may clear the baseline blocker; neither exists yet.
 
 Do not enable another offload stage until a test fixture or deterministic input harness passes all of these checks with the VR60 hook bypassed:
 

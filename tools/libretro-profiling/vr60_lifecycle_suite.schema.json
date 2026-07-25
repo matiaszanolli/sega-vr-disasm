@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vrd.example.invalid/schemas/vr60-lifecycle-suite-v1.json",
+  "title": "VR60-011 normal-1P lifecycle suite manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "policy_id",
+    "diagnostic",
+    "rom",
+    "reference_rom",
+    "frontend",
+    "core",
+    "fixtures"
+  ],
+  "properties": {
+    "schema": {
+      "const": 1
+    },
+    "policy_id": {
+      "const": "VR60-011-lifecycle-suite-v1"
+    },
+    "diagnostic": {
+      "const": false
+    },
+    "rom": {
+      "$ref": "#/$defs/pinnedFile"
+    },
+    "reference_rom": {
+      "$ref": "#/$defs/pinnedFile"
+    },
+    "frontend": {
+      "$ref": "#/$defs/pinnedFile"
+    },
+    "core": {
+      "$ref": "#/$defs/pinnedFile"
+    },
+    "fixtures": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/fixture"
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "pinnedFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "run.json",
+        "frames.csv",
+        "watch.csv",
+        "caller.csv",
+        "write.csv",
+        "pc.csv",
+        "frontend.log"
+      ],
+      "properties": {
+        "run.json": {
+          "$ref": "#/$defs/sha256"
+        },
+        "frames.csv": {
+          "$ref": "#/$defs/sha256"
+        },
+        "watch.csv": {
+          "$ref": "#/$defs/sha256"
+        },
+        "caller.csv": {
+          "$ref": "#/$defs/sha256"
+        },
+        "write.csv": {
+          "$ref": "#/$defs/sha256"
+        },
+        "pc.csv": {
+          "$ref": "#/$defs/sha256"
+        },
+        "frontend.log": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "artifact_dir",
+        "savestate",
+        "input_script",
+        "source_capture",
+        "total_frames",
+        "expected_terminal_entry_frame",
+        "expected_results_scene_frame",
+        "artifacts"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "artifact_dir": {
+          "type": "string",
+          "minLength": 1
+        },
+        "savestate": {
+          "$ref": "#/$defs/pinnedFile"
+        },
+        "input_script": {
+          "$ref": "#/$defs/pinnedFile"
+        },
+        "source_capture": {
+          "$ref": "#/$defs/pinnedFile"
+        },
+        "total_frames": {
+          "type": "integer",
+          "minimum": 362
+        },
+        "expected_terminal_entry_frame": {
+          "type": "integer",
+          "minimum": 361
+        },
+        "expected_results_scene_frame": {
+          "type": "integer",
+          "minimum": 362
+        },
+        "artifacts": {
+          "$ref": "#/$defs/artifacts"
+        }
+      }
+    }
+  }
+}

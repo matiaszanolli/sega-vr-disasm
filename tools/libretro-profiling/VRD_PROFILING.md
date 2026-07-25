@@ -85,6 +85,90 @@ like one `$0000 -> $0008` transition. Use `VRD_WRITE_TRACE` when diagnosis requi
 order. Do not loosen the current validator's scene rule, thresholds, or state policy on the basis
 of that alias; any sampling-safe acceptance change belongs in a separate reviewed issue.
 
+### VR60-011 lifecycle suite (separate policy)
+
+`validate_1p_lifecycle_suite.py` is a separate fail-closed alternative; it does not modify,
+wrap, or weaken `validate_1p_control.py`. It has two explicit operations:
+
+```bash
+python3 tools/libretro-profiling/validate_1p_lifecycle_suite.py capture \
+  build/vr60_control_bypass.32x \
+  --reference-rom build/vr60_live_reference.32x \
+  --savestate /path/to/lifecycle-start.mds \
+  --input-script /path/to/full-input.csv \
+  --source-capture /path/to/reviewed-source.replay \
+  --frames N \
+  --expected-terminal-entry-frame E \
+  --expected-results-scene-frame R \
+  --fixture-id stable-id \
+  --output-dir /new/capture/directory
+
+python3 tools/libretro-profiling/validate_1p_lifecycle_suite.py validate \
+  /path/to/reviewed-suite.json \
+  --result /new/result.json
+```
+
+The capture command refuses an existing directory, uses only the canonical hash-pinned frontend
+and core, rejects any savestate marked `invalid_control` by the canonical
+`control_fixtures.json`, starts a sterile environment, and records exact
+frame/watch/PC/caller/write traces.
+Both terminal frames must come from a prior diagnostic replay and be supplied before the capture;
+the acceptance run cannot discover and retroactively bless an early exit. It writes exact
+`run.json` provenance and a convenience `fixture-entry.json`. The latter is not an acceptance
+summary: review its raw artifacts and copy the entry into a suite manifest conforming to
+`vr60_lifecycle_suite.schema.json`.
+
+The suite validator verifies the manifest and `run.json` exact key sets, on-disk hashes for the
+ROM pair, profiler tools, savestate, complete input, source capture, canonical fixture-policy
+manifest, matched fixture-policy entry, and all raw artifacts, then recomputes every result.
+Capture and offline analysis both reject a manifest-blacklisted savestate. It rejects duplicate
+source hashes and duplicate combined state/input/source identities. Diagnostic mode is an
+unconditional failure.
+
+Reviewed coverage floors are:
+
+- at least 3 eligible distinct complete lifecycles;
+- at least 1,800 active frames in every lifecycle;
+- at least one 3,960-frame contiguous active span (22 × 180);
+- at least 18,000 aggregate eligible active frames.
+
+The 3,960-frame floor is evidence-based: VR60-009 measured 4,174 countable active frames after
+the fixed 360-frame warmup and before the timeout display sequence. Aggregation is reported
+separately and must not be described as equivalent to one continuous 18,000-frame run.
+
+Each active epoch is checked with the existing state/hook/framebuffer/COMM/SH2 thresholds.
+Aligned 180-frame windows are checked independently; a final partial interval participates in
+an overlapping final 180-frame window, and a substantial partial tail receives its own liveness
+checks. One failed lifecycle contributes zero coverage, so no average can hide a bad window.
+
+Coverage ends at the first exact PC `$886C38` write of `$C07C = $0014`, after the 360-frame
+warmup. The `$14` through `$30` finish display and results scene contribute zero active frames.
+The complete capture is eligible only when all of the following match the predeclared reviewed
+timeout route:
+
+- watch data shows `$C050 = $FFFF -> $0000`, while `$FFEF07`, `$FFFEB7`, and `$FFFDA8`
+  remain zero;
+- the complete version-2 write trace contains exactly `$FFC87E:2`, `$FFC07C:2`, and
+  `$FF0002:4`, and the first terminal event is PC `$886C38` writing `$C07C = $0014`;
+- exact word-write PC/old/new tuples are `$886C38:$0000->$0014`,
+  `$88427A:$0014->$0018`, `$8842CE:$0018->$001C`, `$884322:$001C->$0020`,
+  `$884336:$0020->$0024`, `$884384:$0024->$0028`, `$884398:$0028->$002C`, and
+  `$8843CA:$002C->$0030`, with corresponding post-frame watches. The initial zero is confirmed
+  by the archived VR60-009 frames 4533/4534; `$C30E` is the field that changes `$10->$11`;
+- at the separately predeclared results frame, PC `$8843D0` writes
+  `$FF0002:4` from `$00884CBC` to `$0088FB98`.
+
+The write trace is parsed as one strict record sequence: one exact init record, ordered unique
+target declarations `0/1/2` mapped to `$FFC87E/$FFC07C/$FF0002`, one exact CSV header, data
+records only, then one `COMPLETE` record as the final nonblank line. Duplicate, reordered,
+malformed, unknown, `INCOMPLETE`, or trailing records are rejected.
+
+Missing/incomplete traces, an unknown writer or target, a broken old/new chain, a boundary
+mismatch, an early exit, extra policy fields, artifact mutation, or post-results coverage all
+fail closed. The 26-test focused artifact suite is
+`test_validate_1p_lifecycle_suite.py`. No reviewed real lifecycle manifest has passed yet;
+VR60-010's unchanged continuous control therefore remains open.
+
 A control ROM is eligible only when it is compared with a preserved live branch build. The
 reference must contain the live VR60 jump `4EF90001C8B04E71` at file offset `$4D62`; the
 candidate must contain the reviewed original two-JSR bypass `4EBA69764EBA691C`; their sizes and

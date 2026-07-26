@@ -1,0 +1,54 @@
+{
+  "schema": "vrd-vr60-mmio-gate-a-policy-v1",
+  "eligible": true,
+  "source_manifest": {
+    "path": "mode0_rom_pair.json",
+    "schema": "vrd-vr60-mode0-rom-pair-v2",
+    "sha256": "2c4f68b702573c358ba0128c04a8712c1ea46836129134f67c754df42d935a62"
+  },
+  "range_semantics": "end-exclusive",
+  "pc_allowlist": {
+    "m68k": [
+      {
+        "start": "0x0001C6FE",
+        "end": "0x0001C76C",
+        "source": "static_evidence.entity_transfer"
+      }
+    ],
+    "master": [
+      {
+        "start": "0x023016B0",
+        "end": "0x02301760",
+        "source": "static_evidence.cmd3e_handler"
+      }
+    ]
+  },
+  "gate_a_mode0_witness": {
+    "trigger_reset_pc": "0x0001C716",
+    "trigger_set_pc": "0x0001C724",
+    "master_ack_pc": "0x023016B0",
+    "ack_clear_pc": "0x0001C744",
+    "fifo_tail_writer_pc": "0x0001C760",
+    "completion_pc": "0x02301714",
+    "fifo_words_visible_in_allowlist": 32,
+    "expected_active_transactions": 1,
+    "expected_control_transactions": 0
+  },
+  "gate_b_manifest_dependency": {
+    "status": "BLOCKED_UNTIL_MODE1_CODE_IS_BUILT",
+    "required_fields": [
+      "mode1_helper_range",
+      "mode1_reset_range",
+      "master_alternate_handler_range",
+      "trigger_reset_pc",
+      "trigger_set_pc",
+      "master_ack_pc",
+      "ack_clear_pc",
+      "fifo_full_read_pcs",
+      "fifo_write_pcs",
+      "completion_pc"
+    ],
+    "note": "Gate A must not broaden its ranges to discover mode-1 acquisition PCs."
+  },
+  "findings": []
+}

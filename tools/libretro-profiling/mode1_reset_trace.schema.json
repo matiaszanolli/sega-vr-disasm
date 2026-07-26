@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vrd.local/schemas/mode1-reset-trace-v1.json",
+  "title": "VR60 mode-1 reset route trace",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "route",
+    "arm",
+    "repetition",
+    "capture_start",
+    "events",
+    "complete",
+    "dropped",
+    "errors"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "route": {
+      "enum": [
+        "normal_entry",
+        "name_entry_reentry"
+      ]
+    },
+    "arm": {
+      "enum": [
+        "active",
+        "control"
+      ]
+    },
+    "repetition": {
+      "enum": [
+        1,
+        2
+      ]
+    },
+    "capture_start": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "frame",
+        "pc",
+        "flag",
+        "scene_pointer",
+        "before_pointer_writer"
+      ],
+      "properties": {
+        "frame": {
+          "const": 0
+        },
+        "pc": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16777215
+        },
+        "flag": {
+          "enum": [
+            0,
+            1
+          ]
+        },
+        "scene_pointer": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16777215
+        },
+        "before_pointer_writer": {
+          "const": true
+        }
+      }
+    },
+    "events": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "$ref": "#/$defs/event"
+      }
+    },
+    "complete": {
+      "const": true
+    },
+    "dropped": {
+      "const": 0
+    },
+    "errors": {
+      "const": 0
+    }
+  },
+  "$defs": {
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sequence",
+        "frame",
+        "kind",
+        "cpu",
+        "source",
+        "pc",
+        "address",
+        "width",
+        "old_value",
+        "new_value"
+      ],
+      "properties": {
+        "sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4
+        },
+        "frame": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "kind": {
+          "enum": [
+            "pointer_write",
+            "wrapper_entry",
+            "flag_reset_write",
+            "racing_handler_entry",
+            "hook_flag_write"
+          ]
+        },
+        "cpu": {
+          "const": "m68k"
+        },
+        "source": {
+          "enum": [
+            "instruction_start",
+            "cpu_write_callback"
+          ]
+        },
+        "pc": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16777215
+        },
+        "address": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 16777215
+        },
+        "width": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "enum": [
+            1,
+            4,
+            null
+          ]
+        },
+        "old_value": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "new_value": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 4294967295
+        }
+      }
+    }
+  }
+}

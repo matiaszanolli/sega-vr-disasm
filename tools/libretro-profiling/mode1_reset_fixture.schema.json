@@ -1,0 +1,251 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vrd.local/schemas/mode1-reset-fixture-v1.json",
+  "title": "VR60 mode-1 reset and re-entry fixture manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "eligible",
+    "status",
+    "blockers",
+    "policy",
+    "expected_mode1_pcs",
+    "arms"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "eligible": {
+      "type": "boolean"
+    },
+    "status": {
+      "enum": [
+        "PLACEHOLDER_ONLY",
+        "CAPTURED_UNVALIDATED",
+        "VALIDATED"
+      ]
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scene_pointer_address",
+        "flag_address",
+        "racing_handler_pc",
+        "repetitions_per_route_per_arm",
+        "routes"
+      ],
+      "properties": {
+        "scene_pointer_address": {
+          "const": 16711682
+        },
+        "flag_address": {
+          "const": 16743232
+        },
+        "racing_handler_pc": {
+          "const": 8932540
+        },
+        "repetitions_per_route_per_arm": {
+          "const": 2
+        },
+        "routes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "normal_entry",
+            "name_entry_reentry"
+          ],
+          "properties": {
+            "normal_entry": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "pointer_writer_pc",
+                "required_initial_flag"
+              ],
+              "properties": {
+                "pointer_writer_pc": {
+                  "const": 57556
+                },
+                "required_initial_flag": {
+                  "type": "null"
+                }
+              }
+            },
+            "name_entry_reentry": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "pointer_writer_pc",
+                "required_initial_flag"
+              ],
+              "properties": {
+                "pointer_writer_pc": {
+                  "const": 71714
+                },
+                "required_initial_flag": {
+                  "const": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "expected_mode1_pcs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "wrapper_entry_pc",
+        "flag_reset_writer_pc",
+        "hook_flag_writer_pc"
+      ],
+      "properties": {
+        "wrapper_entry_pc": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 16777215
+        },
+        "flag_reset_writer_pc": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 16777215
+        },
+        "hook_flag_writer_pc": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 16777215
+        }
+      }
+    },
+    "arms": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "active",
+        "control"
+      ],
+      "properties": {
+        "active": {
+          "$ref": "#/$defs/arm"
+        },
+        "control": {
+          "$ref": "#/$defs/arm"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "nullableSha256": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repetition",
+        "state_path",
+        "state_sha256",
+        "replay_path",
+        "replay_sha256",
+        "trace_path",
+        "trace_sha256"
+      ],
+      "properties": {
+        "repetition": {
+          "enum": [
+            1,
+            2
+          ]
+        },
+        "state_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "state_sha256": {
+          "$ref": "#/$defs/nullableSha256"
+        },
+        "replay_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "replay_sha256": {
+          "$ref": "#/$defs/nullableSha256"
+        },
+        "trace_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "trace_sha256": {
+          "$ref": "#/$defs/nullableSha256"
+        }
+      }
+    },
+    "arm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rom_sha256",
+        "routes"
+      ],
+      "properties": {
+        "rom_sha256": {
+          "$ref": "#/$defs/nullableSha256"
+        },
+        "routes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "normal_entry",
+            "name_entry_reentry"
+          ],
+          "properties": {
+            "normal_entry": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/run"
+              },
+              "maxItems": 2
+            },
+            "name_entry_reentry": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/run"
+              },
+              "maxItems": 2
+            }
+          }
+        }
+      }
+    }
+  }
+}

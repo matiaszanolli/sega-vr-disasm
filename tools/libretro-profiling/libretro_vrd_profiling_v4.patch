@@ -34,21 +34,36 @@ index b0ee0f0..6e48969 100644
          JumpTable[Opcode](ctx); \
      } while (ctx->io_cycle_counter > 0);
 diff --git a/pico/32x/32x.c b/pico/32x/32x.c
-index f7d58be..0fa0b3f 100644
+index f7d58be..1a96e81 100644
 --- a/pico/32x/32x.c
 +++ b/pico/32x/32x.c
-@@ -13,6 +13,10 @@
+@@ -13,6 +13,13 @@
  struct Pico32x Pico32x;
  SH2 sh2s[2];
  
 +/* VRD Profiling: per-frame work cycle counters */
 +unsigned int vrd_msh2_work_cycles = 0;
 +unsigned int vrd_ssh2_work_cycles = 0;
++#ifdef __LIBRETRO__
++extern void vrd_mmio_trace_attach_master(void);
++#endif
 +
  #define SH2_IDLE_STATES (SH2_STATE_CPOLL|SH2_STATE_VPOLL|SH2_STATE_RPOLL|SH2_STATE_SLEEP)
  
  static int REGPARM(2) sh2_irq_cb(SH2 *sh2, int level)
-@@ -466,7 +470,34 @@ static void run_sh2(SH2 *sh2, unsigned int m68k_cycles)
+@@ -122,6 +129,11 @@ void Pico32xStartup(void)
+   }
+ 
+   PicoMemSetup32x();
++#ifdef __LIBRETRO__
++  /* The SH2 write tables do not exist until PicoMemSetup32x.  Let the passive
++   * profiler attach before Pico32xPrepare can execute either SH2. */
++  vrd_mmio_trace_attach_master();
++#endif
+   p32x_pwm_ctl_changed();
+   p32x_timers_recalc();
+ 
+@@ -466,7 +478,34 @@ static void run_sh2(SH2 *sh2, unsigned int m68k_cycles)
    elprintf_sh2(sh2, EL_32X, "+run %u %d @%08x",
      sh2->m68krcycles_done, cycles, sh2->pc);
  
@@ -84,6 +99,70 @@ index f7d58be..0fa0b3f 100644
  
    sh2->m68krcycles_done += C_SH2_TO_M68K(sh2, done);
    sh2->state &= ~SH2_STATE_RUN;
+diff --git a/pico/32x/memory.c b/pico/32x/memory.c
+index 12c3f73..d08d61b 100644
+--- a/pico/32x/memory.c
++++ b/pico/32x/memory.c
+@@ -1907,6 +1907,59 @@ static void REGPARM(3) sh2_write32_rom(u32 a, u32 d, SH2 *sh2)
+ typedef u32 REGPARM(2) (sh2_read_handler)(u32 a, SH2 *sh2);
+ typedef void REGPARM(3) (sh2_write_handler)(u32 a, u32 d, SH2 *sh2);
+ 
++#ifdef __LIBRETRO__
++typedef void (vrd_mmio_trace_master_observer_t)(
++    unsigned int pc, unsigned int address, unsigned int value);
++static sh2_write_handler *vrd_mmio_trace_master_orig_write8;
++static vrd_mmio_trace_master_observer_t *vrd_mmio_trace_master_observer;
++
++/* DRC memory handlers are entered with the emulated SR live in DRC_SR_REG.
++ * Keep this trampoline in the same translation unit as the normal handlers,
++ * where DRC_DECLARE_SR reserves that host register. */
++static void REGPARM(3) vrd_mmio_trace_master_write8(
++    u32 address, u32 value, SH2 *sh2)
++{
++  unsigned int pc = sh2_pc(sh2);
++
++  DRC_SAVE_SR(sh2);
++  vrd_mmio_trace_master_orig_write8(address, value, sh2);
++  if (vrd_mmio_trace_master_observer &&
++      (address == 0x20004020 || address == 0x20004023))
++    vrd_mmio_trace_master_observer(pc, address, value & 0xff);
++  DRC_RESTORE_SR(sh2);
++}
++
++int Pico32xVrdMmioTraceMasterInstall(
++    vrd_mmio_trace_master_observer_t *observer)
++{
++  sh2_write_handler *current;
++
++  if (!observer || !msh2.write8_tab)
++    return 0;
++  current = (sh2_write_handler *)msh2.write8_tab[0x20 / 2];
++  if (current != vrd_mmio_trace_master_write8) {
++    if (!current)
++      return 0;
++    vrd_mmio_trace_master_orig_write8 = current;
++    msh2.write8_tab[0x20 / 2] =
++      (const void *)vrd_mmio_trace_master_write8;
++  }
++  vrd_mmio_trace_master_observer = observer;
++  return 1;
++}
++
++void Pico32xVrdMmioTraceMasterUninstall(void)
++{
++  if (msh2.write8_tab &&
++      msh2.write8_tab[0x20 / 2] ==
++        (const void *)vrd_mmio_trace_master_write8)
++    msh2.write8_tab[0x20 / 2] =
++      (const void *)vrd_mmio_trace_master_orig_write8;
++  vrd_mmio_trace_master_observer = NULL;
++  vrd_mmio_trace_master_orig_write8 = NULL;
++}
++#endif
++
+ #define SH2MAP_ADDR2OFFS_R(a) \
+   ((u32)(a) >> SH2_READ_SHIFT)
+ 
 diff --git a/pico/pico_cmn.c b/pico/pico_cmn.c
 index 0078522..eabb5eb 100644
 --- a/pico/pico_cmn.c
@@ -119,10 +198,18 @@ index 0078522..eabb5eb 100644
    SekCyclesLeft = 0;
  }
 diff --git a/platform/libretro/libretro.c b/platform/libretro/libretro.c
-index a6f2bf6..e965949 100644
+index a6f2bf6..6c29831 100644
 --- a/platform/libretro/libretro.c
 +++ b/platform/libretro/libretro.c
-@@ -22,6 +22,7 @@
+@@ -15,6 +15,7 @@
+ #include <stdarg.h>
+ #include <string.h>
+ #include <errno.h>
++
+ #ifdef __MACH__
+ #include <libkern/OSCacheControl.h>
+ #endif
+@@ -22,6 +23,7 @@
  #include "libretro-common/include/formats/image.h" // really, for IMAGE_PROCESS_NEXT?!?
  #include "libretro-common/include/formats/rpng.h"
  #include "libretro-common/include/file/file_path.h"
@@ -130,7 +217,7 @@ index a6f2bf6..e965949 100644
  
  #include "libretro-common/include/memmap.h"
  /* Ouf, libretro-common defines  replacement functions, but not the flags :-| */
-@@ -94,6 +95,677 @@ static retro_input_state_t input_state_cb;
+@@ -94,6 +96,992 @@ static retro_input_state_t input_state_cb;
  static retro_environment_t environ_cb;
  static retro_audio_sample_batch_t audio_batch_cb;
  
@@ -337,6 +424,49 @@ index a6f2bf6..e965949 100644
 +static int vrd_instruction_hook_installed = 0;
 +static int vrd_profile_pc_env_present = 0;
 +
++/* VR60 Phase 1 / Gate A passive MMIO trace.  This logger deliberately wraps
++ * only callbacks that the emulated CPUs already invoke.  Each wrapper calls
++ * its saved callback exactly once and records the returned/input value in a
++ * bounded in-memory buffer; it never performs a second MMIO read. */
++#define VRD_MMIO_TRACE_MAX_EVENTS 1048576
++#define VRD_MMIO_TRACE_M68K_PC_START 0x0001c6fe
++#define VRD_MMIO_TRACE_M68K_PC_END   0x0001c76c
++#define VRD_MMIO_TRACE_MASTER_PC_START 0x023016b0
++#define VRD_MMIO_TRACE_MASTER_PC_END   0x02301760
++#define VRD_MMIO_TRACE_PC_ALLOWLIST \
++    "m68k:0x0001C6FE-0x0001C76C;master:0x023016B0-0x02301760"
++typedef struct {
++    unsigned int frame;
++    unsigned int pc;
++    unsigned int address;
++    unsigned int value;
++    unsigned char cpu;
++    unsigned char op;
++    unsigned char width;
++} vrd_mmio_trace_event_t;
++static vrd_mmio_trace_event_t
++    vrd_mmio_trace_buffer[VRD_MMIO_TRACE_MAX_EVENTS];
++static FILE *vrd_mmio_trace_log = NULL;
++static unsigned int vrd_mmio_trace_pc = 0;
++static unsigned int vrd_mmio_trace_count = 0;
++static unsigned long long vrd_mmio_trace_dropped = 0;
++static unsigned int vrd_mmio_trace_errors = 0;
++static int vrd_mmio_trace_overflow = 0;
++static int vrd_mmio_trace_m68k_installed = 0;
++static int vrd_mmio_trace_master_installed = 0;
++static int vrd_mmio_trace_header_written = 0;
++static int vrd_mmio_trace_coverage_from_start = 0;
++static unsigned int (*vrd_mmio_trace_orig_read_byte)(unsigned int) = NULL;
++static void (*vrd_mmio_trace_orig_write_byte)(
++    unsigned int, unsigned char) = NULL;
++static void (*vrd_mmio_trace_orig_write_word)(
++    unsigned int, unsigned short) = NULL;
++static void vrd_mmio_trace_write_header(void);
++void vrd_mmio_trace_attach_master(void);
++extern int Pico32xVrdMmioTraceMasterInstall(
++    void (*observer)(unsigned int, unsigned int, unsigned int));
++extern void Pico32xVrdMmioTraceMasterUninstall(void);
++
 +/* One owner composes exact write-PC capture and exact caller capture.  This
 + * keeps both diagnostics on normal FAME batching and preserves any callback
 + * that was installed before VRD tracing. */
@@ -344,6 +474,8 @@ index a6f2bf6..e965949 100644
 +{
 +    if (vrd_write_trace_log)
 +        vrd_write_trace_pc = pc;
++    if (vrd_mmio_trace_log)
++        vrd_mmio_trace_pc = pc;
 +    if (vrd_caller_trace_log && vrd_caller_trace_addr >= 0 &&
 +        (unsigned int)vrd_caller_trace_addr == pc) {
 +        extern M68K_CONTEXT PicoCpuFM68k;
@@ -367,7 +499,8 @@ index a6f2bf6..e965949 100644
 +static void vrd_instruction_hook_install(void)
 +{
 +    if (vrd_instruction_hook_installed ||
-+        (!vrd_write_trace_log && !vrd_caller_trace_log))
++        (!vrd_write_trace_log && !vrd_caller_trace_log &&
++         !vrd_mmio_trace_log))
 +        return;
 +    vrd_instruction_orig_start = PicoCpuFM68k.instruction_start;
 +    PicoCpuFM68k.instruction_start = vrd_instruction_start;
@@ -623,6 +756,273 @@ index a6f2bf6..e965949 100644
 +    vrd_write_trace_installed = 1;
 +}
 +
++enum {
++    VRD_MMIO_CPU_M68K = 0,
++    VRD_MMIO_CPU_MASTER = 1,
++    VRD_MMIO_OP_READ = 0,
++    VRD_MMIO_OP_WRITE = 1
++};
++
++static void vrd_mmio_trace_error(const char *message)
++{
++    if (log_cb)
++        log_cb(RETRO_LOG_ERROR, "VRD_MMIO_TRACE: %s\n", message);
++    else
++        printf("VRD_MMIO_TRACE: %s\n", message);
++}
++
++static void vrd_mmio_trace_append(unsigned int cpu, unsigned int pc,
++    unsigned int op, unsigned int address, unsigned int width,
++    unsigned int value)
++{
++    vrd_mmio_trace_event_t *event;
++    int pc_allowed =
++        (cpu == VRD_MMIO_CPU_M68K &&
++         pc >= VRD_MMIO_TRACE_M68K_PC_START &&
++         pc < VRD_MMIO_TRACE_M68K_PC_END) ||
++        (cpu == VRD_MMIO_CPU_MASTER &&
++         pc >= VRD_MMIO_TRACE_MASTER_PC_START &&
++         pc < VRD_MMIO_TRACE_MASTER_PC_END);
++
++    if (!pc_allowed)
++        return;
++    if (vrd_mmio_trace_count >= VRD_MMIO_TRACE_MAX_EVENTS) {
++        vrd_mmio_trace_dropped++;
++        vrd_mmio_trace_overflow = 1;
++        return;
++    }
++    event = &vrd_mmio_trace_buffer[vrd_mmio_trace_count++];
++    event->frame = (unsigned int)vrd_profile_frame;
++    event->pc = pc;
++    event->address = address;
++    event->value = value;
++    event->cpu = (unsigned char)cpu;
++    event->op = (unsigned char)op;
++    event->width = (unsigned char)width;
++}
++
++static unsigned int vrd_mmio_trace_read_byte(unsigned int address)
++{
++    unsigned int value = vrd_mmio_trace_orig_read_byte(address);
++    unsigned int effective_address = address & 0x00ffffff;
++
++    if (effective_address == 0x00a15107)
++        vrd_mmio_trace_append(VRD_MMIO_CPU_M68K, vrd_mmio_trace_pc,
++            VRD_MMIO_OP_READ, effective_address, 1, value & 0xff);
++    return value;
++}
++
++static void vrd_mmio_trace_write_byte(
++    unsigned int address, unsigned char value)
++{
++    unsigned int effective_address = address & 0x00ffffff;
++
++    vrd_mmio_trace_orig_write_byte(address, value);
++    if (effective_address == 0x00a15120 ||
++        effective_address == 0x00a15123)
++        vrd_mmio_trace_append(VRD_MMIO_CPU_M68K, vrd_mmio_trace_pc,
++            VRD_MMIO_OP_WRITE, effective_address, 1, value);
++}
++
++static void vrd_mmio_trace_write_word(
++    unsigned int address, unsigned short value)
++{
++    unsigned int effective_address = address & 0x00fffffe;
++
++    vrd_mmio_trace_orig_write_word(address, value);
++    if (effective_address == 0x00a15112)
++        vrd_mmio_trace_append(VRD_MMIO_CPU_M68K, vrd_mmio_trace_pc,
++            VRD_MMIO_OP_WRITE, effective_address, 2, value);
++}
++
++void vrd_mmio_trace_master_event(
++    unsigned int pc, unsigned int address, unsigned int value)
++{
++    vrd_mmio_trace_append(VRD_MMIO_CPU_MASTER, pc,
++        VRD_MMIO_OP_WRITE, address, 1, value);
++}
++
++static void vrd_mmio_trace_uninstall(void)
++{
++    if (vrd_mmio_trace_m68k_installed) {
++        PicoCpuFM68k.read_byte = vrd_mmio_trace_orig_read_byte;
++        PicoCpuFM68k.write_byte = vrd_mmio_trace_orig_write_byte;
++        PicoCpuFM68k.write_word = vrd_mmio_trace_orig_write_word;
++        vrd_mmio_trace_m68k_installed = 0;
++    }
++    if (vrd_mmio_trace_master_installed) {
++        Pico32xVrdMmioTraceMasterUninstall();
++        vrd_mmio_trace_master_installed = 0;
++    }
++}
++
++static void vrd_mmio_trace_finish(int complete, int frames,
++    const char *reason)
++{
++    unsigned int i;
++    unsigned long long total;
++
++    if (!vrd_mmio_trace_log) {
++        vrd_mmio_trace_uninstall();
++        return;
++    }
++    if (!vrd_mmio_trace_header_written) {
++        vrd_mmio_trace_write_header();
++        complete = 0;
++        reason = "master_callback_unavailable";
++    }
++    if (!vrd_mmio_trace_coverage_from_start) {
++        complete = 0;
++        if (!reason)
++            reason = "coverage_started_late";
++    }
++    vrd_mmio_trace_uninstall();
++    for (i = 0; i < vrd_mmio_trace_count; i++) {
++        const vrd_mmio_trace_event_t *event = &vrd_mmio_trace_buffer[i];
++        const char *cpu = event->cpu == VRD_MMIO_CPU_M68K ?
++            "m68k" : "master";
++        const char *op = event->op == VRD_MMIO_OP_READ ? "read" : "write";
++        if (fprintf(vrd_mmio_trace_log,
++                "%u,%u,%s,0x%08X,%s,0x%08X,%u,0x%X\n",
++                i, event->frame, cpu, event->pc, op, event->address,
++                event->width, event->value) < 0)
++            vrd_mmio_trace_errors++;
++    }
++    if (fflush(vrd_mmio_trace_log) != 0)
++        vrd_mmio_trace_errors++;
++    total = (unsigned long long)vrd_mmio_trace_count +
++        vrd_mmio_trace_dropped;
++    if (complete && !vrd_mmio_trace_overflow &&
++        vrd_mmio_trace_dropped == 0 && vrd_mmio_trace_errors == 0) {
++        fprintf(vrd_mmio_trace_log,
++            "# COMPLETE frames=%d events=%llu recorded=%u dropped=%llu "
++            "errors=%u overflow=%d pc_allowlist=%s\n",
++            frames, total, vrd_mmio_trace_count, vrd_mmio_trace_dropped,
++            vrd_mmio_trace_errors, vrd_mmio_trace_overflow,
++            VRD_MMIO_TRACE_PC_ALLOWLIST);
++    } else {
++        fprintf(vrd_mmio_trace_log,
++            "# INCOMPLETE frames=%d events=%llu recorded=%u dropped=%llu "
++            "errors=%u overflow=%d pc_allowlist=%s reason=%s\n",
++            frames, total, vrd_mmio_trace_count, vrd_mmio_trace_dropped,
++            vrd_mmio_trace_errors, vrd_mmio_trace_overflow,
++            VRD_MMIO_TRACE_PC_ALLOWLIST,
++            reason ? reason :
++                (vrd_mmio_trace_overflow ? "overflow" : "logger_error"));
++    }
++    fflush(vrd_mmio_trace_log);
++    fclose(vrd_mmio_trace_log);
++    vrd_mmio_trace_log = NULL;
++}
++
++static void vrd_mmio_trace_init(const char *enabled, const char *path)
++{
++    if (!enabled)
++        return;
++    if (strcmp(enabled, "1") != 0) {
++        vrd_mmio_trace_error("VRD_MMIO_TRACE must be exactly 1");
++        return;
++    }
++    if (!path || !*path) {
++        vrd_mmio_trace_error("VRD_MMIO_TRACE_LOG is required");
++        return;
++    }
++    if (filestream_exists(path)) {
++        char message[256];
++        snprintf(message, sizeof(message),
++            "refusing to overwrite existing trace log %s", path);
++        vrd_mmio_trace_error(message);
++        return;
++    }
++    vrd_mmio_trace_count = 0;
++    vrd_mmio_trace_dropped = 0;
++    vrd_mmio_trace_errors = 0;
++    vrd_mmio_trace_overflow = 0;
++    vrd_mmio_trace_pc = 0;
++    vrd_mmio_trace_m68k_installed = 0;
++    vrd_mmio_trace_master_installed = 0;
++    vrd_mmio_trace_header_written = 0;
++    vrd_mmio_trace_coverage_from_start = 0;
++    vrd_mmio_trace_log = fopen(path, "w");
++    if (!vrd_mmio_trace_log) {
++        char message[256];
++        snprintf(message, sizeof(message), "cannot create %s: %s",
++            path, strerror(errno));
++        vrd_mmio_trace_error(message);
++        return;
++    }
++    vrd_mmio_trace_orig_read_byte = PicoCpuFM68k.read_byte;
++    vrd_mmio_trace_orig_write_byte = PicoCpuFM68k.write_byte;
++    vrd_mmio_trace_orig_write_word = PicoCpuFM68k.write_word;
++    if (!vrd_mmio_trace_orig_read_byte ||
++        !vrd_mmio_trace_orig_write_byte ||
++        !vrd_mmio_trace_orig_write_word) {
++        vrd_mmio_trace_error("68K memory callbacks are not initialized");
++        vrd_mmio_trace_finish(0, 0, "callbacks_unavailable");
++        return;
++    }
++    PicoCpuFM68k.read_byte = vrd_mmio_trace_read_byte;
++    PicoCpuFM68k.write_byte = vrd_mmio_trace_write_byte;
++    PicoCpuFM68k.write_word = vrd_mmio_trace_write_word;
++    vrd_mmio_trace_m68k_installed = 1;
++    if (msh2.write8_tab) {
++        vrd_mmio_trace_coverage_from_start = 1;
++        vrd_mmio_trace_attach_master();
++    }
++}
++
++/* Pico32xStartup calls this immediately after rebuilding the SH2 memory maps.
++ * It is also safe at logger init when a loaded savestate already has maps. */
++void vrd_mmio_trace_attach_master(void)
++{
++    if (!vrd_mmio_trace_log || !msh2.write8_tab)
++        return;
++    /* Called either before the first retro_run for an already-loaded 32X
++     * state, or by Pico32xStartup after map creation and before SH2 execute. */
++    vrd_mmio_trace_coverage_from_start = 1;
++    if (!Pico32xVrdMmioTraceMasterInstall(
++            vrd_mmio_trace_master_event)) {
++        vrd_mmio_trace_errors++;
++        return;
++    }
++    vrd_mmio_trace_master_installed = 1;
++    if (vrd_instruction_hook_installed)
++        vrd_mmio_trace_write_header();
++}
++
++static void vrd_mmio_trace_write_header(void)
++{
++    int sh2_drc;
++    const char *batching;
++
++    if (!vrd_mmio_trace_log || vrd_mmio_trace_header_written)
++        return;
++    sh2_drc = (PicoIn.opt & POPT_EN_DRC) != 0;
++    batching = vrd_profile_pc_enabled ? "chunked" : "normal";
++    if (fprintf(vrd_mmio_trace_log,
++            "# VRD_MMIO_TRACE version=2 capacity=%u sh2_drc=%d "
++            "profile_pc=%d profile_pc_env=%d m68k_batching=%s "
++            "instruction_start_hook=%d m68k_wrapped=%d "
++            "master_wrapped=%d coverage_from_start=%d pc_allowlist=%s\n",
++            VRD_MMIO_TRACE_MAX_EVENTS, sh2_drc,
++            vrd_profile_pc_enabled, vrd_profile_pc_env_present,
++            batching, vrd_instruction_hook_installed,
++            vrd_mmio_trace_m68k_installed,
++            vrd_mmio_trace_master_installed,
++            vrd_mmio_trace_coverage_from_start,
++            VRD_MMIO_TRACE_PC_ALLOWLIST) < 0 ||
++        fprintf(vrd_mmio_trace_log,
++            "# FILTER m68k_read8=0x00A15107 "
++            "m68k_write16=0x00A15112 "
++            "m68k_write8=0x00A15120|0x00A15123 "
++            "master_write8=0x20004020|0x20004023\n") < 0 ||
++        fprintf(vrd_mmio_trace_log,
++            "sequence,frame,cpu,pc,op,address,width,value\n") < 0 ||
++        fflush(vrd_mmio_trace_log) != 0)
++        vrd_mmio_trace_errors++;
++    vrd_mmio_trace_header_written = 1;
++}
++
 +static void vrd_trace_write_headers(void)
 +{
 +    int sh2_drc = (PicoIn.opt & POPT_EN_DRC) != 0;
@@ -667,6 +1067,8 @@ index a6f2bf6..e965949 100644
 +            fflush(vrd_write_trace_log) != 0)
 +            vrd_write_trace_errors++;
 +    }
++    if (vrd_mmio_trace_master_installed)
++        vrd_mmio_trace_write_header();
 +}
 +
 +static void vrd_caller_trace_finish(int complete, int frames,
@@ -808,7 +1210,7 @@ index a6f2bf6..e965949 100644
  #define VOUT_MAX_WIDTH 320
  #define VOUT_MAX_HEIGHT 240
  
-@@ -1960,6 +2632,8 @@ static void update_variables(bool first_run)
+@@ -1960,6 +2948,8 @@ static void update_variables(bool first_run)
        else
           PicoIn.opt &= ~POPT_EN_DRC;
     }
@@ -817,7 +1219,7 @@ index a6f2bf6..e965949 100644
  #endif
  #ifdef _3DS
     if(!ctr_svchack_successful)
-@@ -2406,8 +3080,231 @@ void retro_run(void)
+@@ -2406,8 +3396,237 @@ void retro_run(void)
        update_audio_latency = false;
     }
  
@@ -829,6 +1231,8 @@ index a6f2bf6..e965949 100644
 +      const char *pc_enabled_str = getenv("VRD_PROFILE_PC");
 +      const char *write_trace_spec = getenv("VRD_WRITE_TRACE");
 +      const char *write_trace_path = getenv("VRD_WRITE_TRACE_LOG");
++      const char *mmio_trace_enabled = getenv("VRD_MMIO_TRACE");
++      const char *mmio_trace_path = getenv("VRD_MMIO_TRACE_LOG");
 +
 +      vrd_profile_pc_env_present = pc_enabled_str != NULL;
 +      if (max_frames_str) {
@@ -868,6 +1272,7 @@ index a6f2bf6..e965949 100644
 +      { const char *cm = getenv("VRD_CALLER_TRACE_MAX"); if (cm) vrd_caller_trace_max = (unsigned)strtoul(cm, 0, 0); }
 +      { const char *cl = getenv("VRD_CALLER_TRACE_LOG"); if (cl) vrd_caller_trace_log = fopen(cl, "w"); }
 +      vrd_write_trace_init(write_trace_spec, write_trace_path);
++      vrd_mmio_trace_init(mmio_trace_enabled, mmio_trace_path);
 +      vrd_instruction_hook_install();
 +      vrd_trace_write_headers();
 +      if (vrd_watch_log) {
@@ -1039,6 +1444,9 @@ index a6f2bf6..e965949 100644
 +         vrd_caller_trace_finish(1, vrd_profile_max_frames, NULL);
 +      }
 +   }
++   if (vrd_mmio_trace_log &&
++       vrd_profile_frame == vrd_profile_max_frames - 1)
++      vrd_mmio_trace_finish(1, vrd_profile_max_frames, NULL);
 +   if (vrd_write_trace_log &&
 +       vrd_profile_frame == vrd_profile_max_frames - 1)
 +      vrd_write_trace_finish(1, vrd_profile_max_frames, NULL);
@@ -1049,10 +1457,13 @@ index a6f2bf6..e965949 100644
     /* Check whether frontend needs to be notified
      * of timing/geometry changes */
     if (libretro_update_av_info || libretro_update_geometry) {
-@@ -2615,6 +3512,11 @@ void retro_deinit(void)
+@@ -2615,6 +3834,14 @@ void retro_deinit(void)
  {
     size_t i;
  
++   if (vrd_mmio_trace_log || vrd_mmio_trace_m68k_installed ||
++       vrd_mmio_trace_master_installed)
++      vrd_mmio_trace_finish(0, vrd_profile_frame, "core_deinit");
 +   if (vrd_write_trace_log || vrd_write_trace_installed)
 +      vrd_write_trace_finish(0, vrd_profile_frame, "core_deinit");
 +   if (vrd_caller_trace_log)

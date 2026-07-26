@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "eligible": false,
+  "status": "PLACEHOLDER_ONLY",
+  "blockers": [
+    "No source-built mode-1 active/control ROM pair exists.",
+    "The reviewed wrapper, flag-reset writer, and relocated hook-writer PCs are not established.",
+    "No normal-entry or name-entry re-entry state/replay/trace pair has been captured twice per arm."
+  ],
+  "policy": {
+    "scene_pointer_address": 16711682,
+    "flag_address": 16743232,
+    "racing_handler_pc": 8932540,
+    "repetitions_per_route_per_arm": 2,
+    "routes": {
+      "normal_entry": {
+        "pointer_writer_pc": 57556,
+        "required_initial_flag": null
+      },
+      "name_entry_reentry": {
+        "pointer_writer_pc": 71714,
+        "required_initial_flag": 1
+      }
+    }
+  },
+  "expected_mode1_pcs": {
+    "wrapper_entry_pc": null,
+    "flag_reset_writer_pc": null,
+    "hook_flag_writer_pc": null
+  },
+  "arms": {
+    "active": {
+      "rom_sha256": null,
+      "routes": {
+        "normal_entry": [],
+        "name_entry_reentry": []
+      }
+    },
+    "control": {
+      "rom_sha256": null,
+      "routes": {
+        "normal_entry": [],
+        "name_entry_reentry": []
+      }
+    }
+  }
+}

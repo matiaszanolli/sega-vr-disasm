@@ -1,0 +1,7 @@
+status
+read 68k 0xFF0002 4
+read 68k 0xFF7B40 1
+read master 0x20004026 1
+read master 0x2600FC00 4
+status
+quit

@@ -1,0 +1,11 @@
+{
+  "default_path": "build/vr_rebuild.32x",
+  "default_sha256": "6f2768f2cffc85cdc815a67c9f13837112829edac3f0921a57454e79e2523900",
+  "eligible": true,
+  "findings": [],
+  "rom_size": 4128768,
+  "schema": "vrd-vr60-mode0-default-v1",
+  "validated_active_path": "build/vr60_mode0_active.32x",
+  "validated_active_sha256": "6f2768f2cffc85cdc815a67c9f13837112829edac3f0921a57454e79e2523900",
+  "whole_image_equal": true
+}

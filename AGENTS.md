@@ -2,7 +2,7 @@
 
 Agent briefing for Virtua Racing Deluxe 32X disassembly/reassembly project.
 
-**Last Updated**: July 21, 2026
+**Last Updated**: July 25, 2026
 
 ## Agent Team (v4 — VR60)
 
@@ -24,14 +24,16 @@ roadmap after every session.
 ## Current VR60 Integration Status
 
 Normal 1P uses `state_disp_004cb8`; `state_disp_005020` is 2P split-screen. The 1P
-state-8 hook is valid at about 20 Hz. cmd `$3E` modes 0/1 are enabled but await a
-trustworthy full-run validation; mode 2 and cmd `$3F` are disabled. The 68000 physics,
-AI, collision, and render-preparation path remains authoritative. The former 724-hash
-acceptance result is retracted because the savestate freezes with the hook bypassed.
+state-8 hook is valid at about 20 Hz. The exact cmd `$3E` mode-0 transport passed its
+fresh 12-slot lifecycle gate and is the promoted ordinary default. Mode 1 is
+disabled/unreachable and is the next independent validation stage; mode 2 and cmd `$3F`
+are disabled. The 68000 physics, AI, collision, and render-preparation path remains
+authoritative. The former 724-hash acceptance result is retracted because the savestate
+freezes with the hook bypassed.
 
-Do not publish current 40/45 FPS or CPU-budget claims from that fixture. Establish a
-durable 1P control and validate each stage independently. `VR60_STATUS.md` is authoritative
-when older documents disagree.
+Do not publish current 40/45 FPS or CPU-budget claims from that fixture. Preserve the
+accepted mode-0 default and validate each later stage independently. `VR60_STATUS.md` is
+authoritative when older documents disagree.
 
 ## Build & Test
 

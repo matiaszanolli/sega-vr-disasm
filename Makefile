@@ -15,10 +15,18 @@ DISASM_DIR = disasm
 TOOLS_DIR = tools
 ORIGINAL_ROM = Virtua Racing Deluxe (USA).32x
 OUTPUT_ROM = $(BUILD_DIR)/vr_rebuild.32x
+LEGACY_DEFAULT_ROM = $(BUILD_DIR)/vr60_legacy_default.32x
 CONTROL_ROM = $(BUILD_DIR)/vr60_control_bypass.32x
 CONTROL_REFERENCE_ROM = $(BUILD_DIR)/vr60_live_reference.32x
 CONTROL_ROM_MANIFEST = $(TOOLS_DIR)/libretro-profiling/control_rom_pair.json
 CONTROL_ROM_VERIFY = $(TOOLS_DIR)/libretro-profiling/verify_control_rom.py
+MODE0_ACTIVE_ROM = $(BUILD_DIR)/vr60_mode0_active.32x
+MODE0_CONTROL_ROM = $(BUILD_DIR)/vr60_mode0_stage_control.32x
+MODE0_DEFAULT_REFERENCE_ROM = $(BUILD_DIR)/vr60_mode0_default_reference.32x
+MODE0_ROM_MANIFEST = $(TOOLS_DIR)/libretro-profiling/mode0_rom_pair.json
+MODE0_ROM_VERIFY = $(TOOLS_DIR)/libretro-profiling/verify_mode0_rom_pair.py
+MODE0_DEFAULT_MANIFEST = $(TOOLS_DIR)/libretro-profiling/mode0_default.json
+MODE0_DEFAULT_VERIFY = $(TOOLS_DIR)/libretro-profiling/verify_mode0_default.py
 
 # Assembly flags
 # -Fbin = binary output
@@ -30,7 +38,8 @@ ASMFLAGS = -Fbin -m68000 -no-opt -spaces -quiet
 # Source files
 M68K_SRC = $(DISASM_DIR)/vrd.asm
 VR60_1P_HOOK_SITE_SRC = $(DISASM_DIR)/modules/68k/game/scene/game_frame_orch_013.asm
-.PHONY: all control-rom clean disasm tools test profile-frame profile-pc
+VR60_1P_STAGING_HOOK_SRC = $(DISASM_DIR)/modules/68k/sh2/vr60_1p_staging_hook.asm
+.PHONY: all control-rom mode0-roms mode0-default-verify clean disasm tools test profile-frame profile-pc
 
 # ============================================================================
 # Main targets
@@ -43,9 +52,9 @@ dirs:
 
 # Build the ROM from original sections/
 # Depends on SH2 assembly to ensure generated includes exist
-$(OUTPUT_ROM): $(M68K_SRC) sh2-assembly $(VR60_1P_HOOK_SITE_SRC) $(SH2_FUNC000_INC) $(SH2_FUNC022_INC) $(SH2_FUNC017_INC) $(SH2_FUNC018_INC) $(SH2_FUNC019_INC) $(SH2_FUNC020_INC) $(SH2_FUNC021_ORIG_INC) $(SH2_FUNC023_INC) $(SH2_FUNC040_INC) $(SH2_FUNC032_INC) $(SH2_FUNC011_INC) $(SH2_FUNC012_INC) $(SH2_FUNC013_INC) $(SH2_FUNC014_015_INC) $(SH2_FUNC024_INC) $(SH2_FUNC025_INC) $(SH2_FUNC026_INC) $(SH2_FUNC001_INC) $(SH2_FUNC002_INC) $(SH2_FUNC003_004_INC) $(SH2_FUNC029_030_031_INC) $(SH2_FUNC033_INC) $(SH2_FUNC034_INC) $(SH2_FUNC036_INC) $(SH2_FUNC037_038_039_INC) $(SH2_FUNC005_INC) $(SH2_FUNC007_INC) $(SH2_FUNC006_INC) $(SH2_FUNC008_INC) $(SH2_FUNC016_INC) $(SH2_FUNC065_INC) $(SH2_FUNC066_INC) $(SH2_FUNC021_OPT_INC) $(SH2_BATCH_COPY_INC) $(SH2_CMD27_DRAIN_INC) $(SH2_SLAVE_WRAPPER_V2_INC) $(SH2_HANDLER_FRAME_SYNC_INC) $(SH2_MASTER_DISPATCH_HOOK_INC) $(SH2_SLAVE_TEST_FUNC_INC) $(SH2_SHADOW_PATH_WRAPPER_INC) $(SH2_CMDINT_HANDLER_INC) $(SH2_QUEUE_PROCESSOR_INC) $(SH2_GEN_DRAIN_INC)
+$(OUTPUT_ROM): $(M68K_SRC) sh2-assembly $(VR60_1P_HOOK_SITE_SRC) $(VR60_1P_STAGING_HOOK_SRC) $(SH2_FUNC000_INC) $(SH2_FUNC022_INC) $(SH2_FUNC017_INC) $(SH2_FUNC018_INC) $(SH2_FUNC019_INC) $(SH2_FUNC020_INC) $(SH2_FUNC021_ORIG_INC) $(SH2_FUNC023_INC) $(SH2_FUNC040_INC) $(SH2_FUNC032_INC) $(SH2_FUNC011_INC) $(SH2_FUNC012_INC) $(SH2_FUNC013_INC) $(SH2_FUNC014_015_INC) $(SH2_FUNC024_INC) $(SH2_FUNC025_INC) $(SH2_FUNC026_INC) $(SH2_FUNC001_INC) $(SH2_FUNC002_INC) $(SH2_FUNC003_004_INC) $(SH2_FUNC029_030_031_INC) $(SH2_FUNC033_INC) $(SH2_FUNC034_INC) $(SH2_FUNC036_INC) $(SH2_FUNC037_038_039_INC) $(SH2_FUNC005_INC) $(SH2_FUNC007_INC) $(SH2_FUNC006_INC) $(SH2_FUNC008_INC) $(SH2_FUNC016_INC) $(SH2_FUNC065_INC) $(SH2_FUNC066_INC) $(SH2_FUNC021_OPT_INC) $(SH2_BATCH_COPY_INC) $(SH2_CMD27_DRAIN_INC) $(SH2_SLAVE_WRAPPER_V2_INC) $(SH2_HANDLER_FRAME_SYNC_INC) $(SH2_MASTER_DISPATCH_HOOK_INC) $(SH2_SLAVE_TEST_FUNC_INC) $(SH2_SHADOW_PATH_WRAPPER_INC) $(SH2_CMDINT_HANDLER_INC) $(SH2_QUEUE_PROCESSOR_INC) $(SH2_GEN_DRAIN_INC)
 	@echo "==> Assembling 68000 code (from sections/)..."
-	$(ASM) $(ASMFLAGS) -o $@ $<
+	$(ASM) $(ASMFLAGS) -D VR60_MODE0_ONLY=1 -o $@ $<
 	@echo "==> Build complete: $@"
 	@ls -lh $@
 
@@ -57,9 +66,13 @@ control-rom: $(CONTROL_ROM_MANIFEST)
 	@echo "==> Preserved live reference: $(CONTROL_REFERENCE_ROM)"
 	@echo "==> Pair manifest: $(CONTROL_ROM_MANIFEST)"
 
-$(CONTROL_REFERENCE_ROM): $(OUTPUT_ROM) | dirs
-	@echo "==> Preserving live VR60 reference ROM..."
-	cp $(OUTPUT_ROM) $@
+$(LEGACY_DEFAULT_ROM): $(M68K_SRC) sh2-assembly $(VR60_1P_HOOK_SITE_SRC) $(VR60_1P_STAGING_HOOK_SRC) | dirs
+	@echo "==> Assembling preserved pre-promotion VR60 default from source..."
+	$(ASM) $(ASMFLAGS) -o $@ $(M68K_SRC)
+
+$(CONTROL_REFERENCE_ROM): $(LEGACY_DEFAULT_ROM) | dirs
+	@echo "==> Preserving historical VR60-011 live reference..."
+	cp $(LEGACY_DEFAULT_ROM) $@
 
 $(CONTROL_ROM): $(CONTROL_REFERENCE_ROM) sh2-assembly $(M68K_SRC) $(VR60_1P_HOOK_SITE_SRC) | dirs
 	@echo "==> Assembling VR60 hook-bypass control ROM from source..."
@@ -71,6 +84,44 @@ $(CONTROL_ROM_MANIFEST): $(CONTROL_ROM) $(CONTROL_REFERENCE_ROM) $(CONTROL_ROM_V
 		--candidate $(CONTROL_ROM) \
 		--reference $(CONTROL_REFERENCE_ROM) \
 		--manifest $(CONTROL_ROM_MANIFEST)
+
+# Rebuild the accepted mode-0 ACTIVE/STAGE-CONTROL pair against the preserved
+# pre-promotion default without replacing the accepted hook-bypass control.
+mode0-roms: $(MODE0_ROM_MANIFEST)
+	@echo "==> VR60 mode-0 ACTIVE ROM: $(MODE0_ACTIVE_ROM)"
+	@echo "==> VR60 mode-0 STAGE-CONTROL ROM: $(MODE0_CONTROL_ROM)"
+	@echo "==> Historical default reference: $(MODE0_DEFAULT_REFERENCE_ROM)"
+	@echo "==> Pair manifest: $(MODE0_ROM_MANIFEST)"
+
+$(MODE0_DEFAULT_REFERENCE_ROM): $(LEGACY_DEFAULT_ROM) | dirs
+	@echo "==> Preserving historical pre-promotion mode-0 reference..."
+	cp $(LEGACY_DEFAULT_ROM) $@
+
+$(MODE0_ACTIVE_ROM): $(MODE0_DEFAULT_REFERENCE_ROM) sh2-assembly $(M68K_SRC) $(VR60_1P_HOOK_SITE_SRC) $(VR60_1P_STAGING_HOOK_SRC) | dirs
+	@echo "==> Assembling source-built VR60 mode-0 ACTIVE ROM..."
+	$(ASM) $(ASMFLAGS) -D VR60_MODE0_ONLY=1 -o $@ $(M68K_SRC)
+
+$(MODE0_CONTROL_ROM): $(MODE0_DEFAULT_REFERENCE_ROM) sh2-assembly $(M68K_SRC) $(VR60_1P_HOOK_SITE_SRC) $(VR60_1P_STAGING_HOOK_SRC) | dirs
+	@echo "==> Assembling source-built VR60 mode-0 STAGE-CONTROL ROM..."
+	$(ASM) $(ASMFLAGS) -D VR60_MODE0_ONLY=1 -D VR60_MODE0_STAGE_CONTROL=1 -o $@ $(M68K_SRC)
+
+$(MODE0_ROM_MANIFEST): $(MODE0_ACTIVE_ROM) $(MODE0_CONTROL_ROM) $(MODE0_DEFAULT_REFERENCE_ROM) $(MODE0_ROM_VERIFY)
+	@echo "==> Verifying isolated mode-0 ROM pair and assembled semantics..."
+	$(PYTHON) $(MODE0_ROM_VERIFY) \
+		--active $(MODE0_ACTIVE_ROM) \
+		--control $(MODE0_CONTROL_ROM) \
+		--default-reference $(MODE0_DEFAULT_REFERENCE_ROM) \
+		--manifest $(MODE0_ROM_MANIFEST)
+
+mode0-default-verify: $(MODE0_DEFAULT_MANIFEST)
+	@echo "==> Promoted mode-0 default verified: $(OUTPUT_ROM)"
+	@echo "==> Default manifest: $(MODE0_DEFAULT_MANIFEST)"
+
+$(MODE0_DEFAULT_MANIFEST): $(OUTPUT_ROM) $(MODE0_ACTIVE_ROM) $(MODE0_DEFAULT_VERIFY)
+	$(PYTHON) $(MODE0_DEFAULT_VERIFY) \
+		--default $(OUTPUT_ROM) \
+		--validated-active $(MODE0_ACTIVE_ROM) \
+		--manifest $(MODE0_DEFAULT_MANIFEST)
 
 
 # ============================================================================
@@ -3075,8 +3126,10 @@ help:
 	@echo "Virtua Racing Deluxe (32X) - Build System"
 	@echo ""
 	@echo "Build Targets:"
-	@echo "  all            - Build the ROM from sections/ (original disasm)"
-	@echo "  control-rom    - Build and verify the VR60 1P hook-bypass control pair"
+	@echo "  all                  - Build the promoted mode-0 ACTIVE ROM from sections/"
+	@echo "  control-rom          - Build and verify the historical VR60-011 control pair"
+	@echo "  mode0-roms           - Rebuild and verify the accepted mode-0 evidence pair"
+	@echo "  mode0-default-verify - Prove the ordinary default equals accepted ACTIVE"
 	@echo ""
 	@echo "SH2 Assembly:"
 	@echo "  sh2-assembly   - Build SH2 sources to dc.w includes"

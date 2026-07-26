@@ -14,8 +14,8 @@ This file is the short, current answer to “what works now?” Older roadmap en
 |---|---|---|---|
 | Original 68000 physics, AI, collision, and render preparation | Yes | **Yes; authoritative** | Original behavior remains the safety path |
 | 1P hook at `game_frame_orch_013` / `state_disp_004cb8` state 8 | Yes | Yes, about 20 Hz | Hook point confirmed with exact `VRD_CALLER_TRACE` |
-| cmd `$3E` player-entity transfer (mode 0) | Yes | Enabled by the 1P hook | **Not yet validated over a trustworthy full run** |
-| cmd `$3E` globals transfer (mode 1) | Yes | Enabled by the 1P hook | **Not yet validated over a trustworthy full run** |
+| cmd `$3E` player-entity transfer (mode 0) | Yes | **Enabled; promoted ordinary default** | **Q-020 mode-0 sub-gate passed over all 3 trustworthy lifecycles** |
+| cmd `$3E` globals transfer (mode 1) | Yes | **Disabled/unreachable in the promoted default** | Not yet validated; Q-020 remains partially open |
 | cmd `$3E` AI-entity transfer (mode 2) | Yes | **Disabled** | Unverified; neither proven safe nor unsafe |
 | cmd `$3F` SH2 game-frame pipeline | Yes | **Disabled in 1P** | Unverified; its legacy `$2200BC00` mailbox literal is a ROM alias and must be corrected before activation |
 | SH2 physics and AI ports | Yes | No; reachable only through the disabled cmd `$3F` path | Assembly/reference work exists; gameplay authority not proven |
@@ -35,6 +35,28 @@ This file is the short, current answer to “what works now?” Older roadmap en
 - The historical “40 FPS achieved / 60 FPS one blocker away” summary does not describe this branch's currently proven 1P state. Earlier interpolation and profiling results remain useful history, but they are not a current acceptance result.
 
 ## Current milestone: trustworthy baseline established
+
+**Q-020 mode 0 passed on 2026-07-25.** The exact source-built ACTIVE/STAGE-CONTROL pair ran all
+three immutable VR60-011 lifecycles twice per arm. All 12 fresh runs retained exact accepted
+gameplay, state-write, caller, timeout, display, and results chronology; same-arm repetitions
+were byte-identical for frames, watches, callers, writes, and checkpoints. The frame-11 payload
+gate proved exact 320-byte `$FF6A00 -> $0600F20C` transport on PicoDrive, with a fresh ACTIVE
+sentinel and zero CONTROL sentinel. Raw state PC `$00884D6A` now matches accepted chronology
+without alias normalization.
+
+The paired framebuffer CRCs were exact through the inclusive terminal except Big Forest H+3
+(frame 3) and Acropolis H+3 (frame 5); Bay Bridge had no mismatch. Both exceptions sampled state
+8 and equality resumed at H+4. This is a **one-frame sampled framebuffer divergence consistent
+with render/display scheduling**. HBLK/FEN is inference not causal proof.
+
+The ordinary default is now the complete validated ACTIVE ROM, SHA-256
+`6f2768f2…2523900`; a clean build reproduces it byte-for-byte. Mode 1 and the relay are
+unreachable. The historical VR60-011 live/control builds remain source-reproducible through the
+legacy target at `14632a…b93183` / `6a4c89…17672`. Evidence is archived at
+[analysis/evidence/vr60-q020-mode0-gate](analysis/evidence/vr60-q020-mode0-gate/README.md).
+Claims are limited to PicoDrive exact 320B mode0 transport + exact gameplay/state/terminal
+chronology in fresh eligible lifecycles; this is not a real-hardware, authority-transfer,
+cadence, FPS, or CPU-budget result.
 
 **VR60-011 passed on 2026-07-25.** The reviewed hook-bypass control completed three distinct,
 predeclared timed-race lifecycles under normal SH2 DRC execution. After the fixed 360-frame warmup,
@@ -59,10 +81,11 @@ frames `0..599`, replayed the CSV through `VRD_INPUT_SCRIPT`, and captured the s
 exhaustion fails before advancing, and partial/error recordings cannot masquerade as complete
 fixtures.
 
-**VR60-004 is complete:** `make control-rom` preserves the default live build and assembles a
-second ROM from the same source with the original two-JSR hook bypass. The validator records zero
-differences outside `$4D62-$4D69`. Live SHA-256 is `14632a…b93183`; control SHA-256 is
-`6a4c89…17672`; the full evidence is tracked in
+**VR60-004 is complete:** `make control-rom` preserves the historical pre-promotion live build
+through a source-built legacy target and assembles a second ROM from the same source with the
+original two-JSR hook bypass. The validator records zero differences outside `$4D62-$4D69`.
+Historical live SHA-256 is `14632a…b93183`; control SHA-256 is `6a4c89…17672`; the full
+evidence is tracked in
 `tools/libretro-profiling/control_rom_pair.json`. No ROM was raw-patched.
 
 **VR60-005 is complete:** the fresh state
@@ -200,10 +223,12 @@ accepted only while the exact ordered cycle continues, because a completed Maste
 legitimately idle in PicoDrive's COMM poll state. Sampled COMM0 longest runs remain informational
 because `$000C->$0000` is the fresh Master completion witness.
 
-The current active work item is **cmd `$3E` mode-0 validation**. Re-run the accepted lifecycle
-suite with only player-entity transfer mode 0 enabled and compare it against the hook-bypass
-control before validating globals mode 1. Do not combine mode 0, mode 1, AI mode 2, or cmd `$3F`
-in one acceptance step.
+The current active work item is **cmd `$3E` mode-1 validation**. Q-020's mode-0 sub-gate is
+closed; keep its accepted default unchanged while mode 1 is isolated behind a separate
+ACTIVE/STAGE-CONTROL pair. Before enabling it, define scene reset/re-entry for the one-shot
+`$FF7B40` flag, resolve COMM ownership and required SH2 same-address dummy-read synchronization,
+and instrument FIFO FULL behavior at its four-word transfer granularity. Do not combine mode 1,
+AI mode 2, or cmd `$3F` in one acceptance step.
 
 The archived VR60-011 suite satisfies this prerequisite with the VR60 hook bypassed:
 
@@ -215,7 +240,7 @@ The archived VR60-011 suite satisfies this prerequisite with the VR60 hook bypas
 
 After that baseline exists, integrate one independently observable stage at a time:
 
-1. Re-validate cmd `$3E` modes 0 and 1.
+1. Validate cmd `$3E` mode 1 independently while preserving the accepted mode-0 default.
 2. Test AI transfer mode 2 by itself.
 3. Run cmd `$3F` as shadow computation while the 68000 remains authoritative.
 4. Verify a bridge into the descriptor blocks actually consumed by cmd `$02`, beginning with a reversible C254 visibility/position probe.

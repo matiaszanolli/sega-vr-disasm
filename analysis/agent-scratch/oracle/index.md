@@ -73,10 +73,12 @@
 | Path | Purpose | Key Topics | Note |
 |------|---------|-----------|------|
 | tools/libretro-profiling/README_68K_PC_PROFILING.md | How to profile VRD | Frame-level + PC-level hotspots, toolchain, baseline setup | Profiling how-to |
-| tools/libretro-profiling/VRD_PROFILING.md | Current profiling and normal-1P control gates | Unchanged continuous `validate_1p_control.py`; accepted DRC `validate_1p_lifecycle_suite.py`; exact capture/provenance, terminal signature, per-window/tail checks, lifecycle/count/span/aggregate floors | Current VR60 measurement authority; VR60-011 passed 3/3 fixtures with 31,137 aggregate active frames; VR60-010 remains an optional continuous alternative |
+| tools/libretro-profiling/VRD_PROFILING.md | Current profiling and normal-1P control gates | Unchanged continuous `validate_1p_control.py`; accepted DRC `validate_1p_lifecycle_suite.py`; Q-020 mode-0 exact pair/payload/chronology gate | Current VR60 measurement authority; VR60-011 baseline and Q-020 mode 0 passed; mode 1 is next |
+| tools/libretro-profiling/validate_mode0_gate.py | Q-020 mode-0 acceptance validator | Exact 12-slot matrix, frame-0 debugger reads, source/stage and 320B destination proof, raw caller/write chronology, paired framebuffer rule, post-results COMM3 chronology | Mode-0 sub-gate PASS; policy `VR60-Q020-mode0-gate-v2` |
+| analysis/evidence/vr60-q020-mode0-gate/README.md | Accepted Q-020 mode-0 evidence | ACTIVE/control hashes, no-frame preflight, exact payload/sentinel, deterministic 12-run lifecycle matrix, preserved failed result and corrected PASS, normalized archive | Ordinary default promoted to exact ACTIVE `6f2768f2…2523900`; mode 1 remains disabled |
 | tools/libretro-profiling/validate_1p_lifecycle_suite.py | VR60-011 complete-lifecycle capture and aggregate validator | Sterile DRC/no-PC capture, composed exact FAME hook, all-row caller provenance, strict caller/write grammars, exact C87E cycle/Master completion, per-frame Slave and per-window/tail Master executed cycles, exact C07C chain, predeclared boundaries, duplicate rejection, 3/1800/3960/18000 floors | Separate v2 policy; 43 focused lifecycle tests pass. Reviewed Big Forest/Bay Bridge/Acropolis suite passed |
 | tools/libretro-profiling/vr60_lifecycle_suite.schema.json | VR60-011 reviewed manifest schema | Exact ROM/tool/state/input/source/raw artifact pins, predeclared lifecycle boundaries, no extra policy fields | Use with the lifecycle validator; generated fixture entries require review before suite inclusion |
-| analysis/evidence/vr60-011-lifecycle-suite/README.md | Accepted VR60-011 baseline evidence | Three DRC lifecycles, exact E/R boundaries, 31,137 active frames, deterministic x2 replay, tool/patch identities, normalized raw archive | Baseline blocker cleared; next active question is cmd `$3E` mode 0 |
+| analysis/evidence/vr60-011-lifecycle-suite/README.md | Accepted VR60-011 baseline evidence | Three DRC lifecycles, exact E/R boundaries, 31,137 active frames, deterministic x2 replay, tool/patch identities, normalized raw archive | Baseline blocker cleared; Q-020 mode 0 subsequently passed |
 | tools/libretro-profiling/retroarch_replay_to_csv.py | Strict visual replay bridge for VR60-010 | RetroArch 1.22.2 v2, commit `4c3793f36c`, exact P1/P2 joypad-mask events, no checkpoints/key events, exact frame count/EOF, ROM CRC32 check, replay/raw-state/ROM/CSV hashes | 899-frame real replay converted and byte-replayed through the canonical frontend; bridge evidence only, never gameplay acceptance |
 | analysis/evidence/vr60-009-write-trace/README.md | VR60-009 exact writer and finish classification | Non-perturbing FAME instruction-start hook, `$C87E`/`$FF0002` writers, timed-race display sequence, deterministic evidence archive | Decision-grade diagnosis; present state/replay is bounded-only. Continuous VR60-008 remains blocked, but VR60-011 cleared the baseline |
 | tools/libretro-profiling/verify_control_rom.py | Assembly-built control-ROM evidence writer | Imports the validator's fixed hook policy, atomically records both hashes and the exact outside-hook comparison | `control_rom_pair.json` is the reviewed VR60-004 manifest |
@@ -566,6 +568,16 @@ cycles prove both SH2s run. Sampled COMM0_HI longest runs remain informational, 
 retain their reviewed failure limit. Two fresh runs of every accepted fixture byte-match for
 frames, watches, caller chronology, exact state/terminal writes, and framebuffer hashes.
 
+29. **Q-020 mode 0 is accepted; do not generalize it to mode 1.** A hash-pinned debugger
+preflight reads scene `$00884CBC`, flag/mode/sentinel zero at session frame 0 without advancing.
+The exact 12-slot ACTIVE/STAGE-CONTROL matrix proves 320 bytes from `$FF6A00` reach
+`$0600F20C`, with raw PC `$00884D6A` and exact VR60-011 chronology. Big Forest and Acropolis
+have one paired state-8 CRC mismatch at H+3; Bay Bridge has none, and all later frames through
+the inclusive terminal match. This is a one-frame sampled framebuffer divergence consistent
+with render/display scheduling; HBLK/FEN is inference not causal proof. The ordinary default is
+exact ACTIVE SHA `6f2768f2…2523900`. Mode 1 remains disabled pending scene reset/re-entry,
+COMM ownership/dummy-read, and four-word FIFO FULL instrumentation.
+
 ---
 
 ## Section 4: Where-to-Find Cross-Reference
@@ -581,6 +593,7 @@ frames, watches, caller chronology, exact state/terminal writes, and framebuffer
 | Frame execution flow (V-INT, main loop, state dispatch) | analysis/SYSTEM_EXECUTION_FLOW.md | analysis/ARCHITECTURAL_BOTTLENECK_ANALYSIS.md |
 | Profiling methodology + tool usage | tools/libretro-profiling/README_68K_PC_PROFILING.md | analysis/profiling/68K_BOTTLENECK_ANALYSIS.md |
 | Normal-1P durable control validation | tools/libretro-profiling/VRD_PROFILING.md §§ Normal-1P control validator; VR60-011 lifecycle suite | `analysis/evidence/vr60-011-lifecycle-suite/README.md`; the three-fixture DRC suite passed and cleared the baseline blocker |
+| Q-020 cmd `$3E` mode-0 acceptance | tools/libretro-profiling/validate_mode0_gate.py | analysis/evidence/vr60-q020-mode0-gate/README.md |
 | Expansion ROM layout + active handlers | disasm/sections/expansion_300000.asm | BACKLOG.md §B-003/B-004 |
 | B-003 async cmd_27 design | BACKLOG.md §B-003 | analysis/68K_SH2_COMMUNICATION.md §B-003 |
 | B-004 single-shot cmd_22 design | BACKLOG.md §B-004 | analysis/68K_SH2_COMMUNICATION.md §B-004 |

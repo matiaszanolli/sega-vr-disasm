@@ -34,34 +34,61 @@
 ; untouched here) -- this phase only proves the staging+trigger chain
 ; reaches the SH2 side; gameplay logic remains on the 68K.
 ;
-; CURRENT STATE (2026-07-21): entity_transfer + globals_transfer (cmd $3E
-; modes 0/1) are ENABLED, with bounded failure behavior, but are not yet
-; validated over a trustworthy full run. The prior ~724-unique-hash baseline
-; is retracted: the saved-state fixture later freezes with this entire hook
-; bypassed. AI entity transfer (mode 2) and the cmd $3F trigger are DISABLED
-; and UNVERIFIED -- neither is proven safe nor proven to cause the freeze.
-; See analysis/VR60_PHASE1_CMD3E_ACK_HANG.md §22 and VR60_STATUS.md.
+; CURRENT STATE (2026-07-25): the promoted ordinary build defines
+; VR60_MODE0_ONLY and executes the accepted cmd $3E mode-0 transfer exactly
+; once per eligible lifecycle. The mode-1 block and relay below are therefore
+; unreachable in that build. Mode 1, AI entity transfer (mode 2), and cmd $3F
+; remain DISABLED and UNVERIFIED. See VR60_STATUS.md and
+; analysis/evidence/vr60-q020-mode0-gate/ for the exact accepted scope.
 ; ============================================================================
 
 VR60_1P_FLAG    equ     $FFFF7B40
 
 vr60_1p_staging_hook:
         tst.b   VR60_1P_FLAG
+        ifd     VR60_MODE0_ONLY
+        bne.s   .original_calls
+        else
         bne.s   .globals_only
+        endif
 ; --- First frame: player entity + globals staging (AI mode 2 remains gated) ---
         jsr     vr60_entity_stage                 ; 256B player WRAM -> $FF6A00
         jsr     vr60_globals_stage                 ; 64B scattered -> $FF6B00
+        ifd     VR60_MODE0_ONLY
+        ifd     VR60_MODE0_STAGE_CONTROL
+        nop                                         ; paired stage-control: no DREQ
+        nop                                         ; exact 6-byte replacement for JSR
+        nop
+        else
+        jsr     .mode0_transfer                    ; explicit mode 0 + DREQ transfer
+        endif
+        else
         jsr     vr60_1p_entity_transfer            ; DREQ 320B -> SDRAM (cmd $3E mode 0)
+        endif
 ; VALIDATION GATE: AI transfer stays disabled until a trustworthy control
 ; fixture passes, then must be tested independently of cmd $3F.
 ;        jsr     vr60_ai_entity_stage               ; 3840B AI WRAM -> $FF6B40
 ;        jsr     vr60_1p_ai_entity_transfer          ; DREQ 3840B -> SDRAM (cmd $3E mode 2)
         move.b  #$01,VR60_1P_FLAG
+        ifd     VR60_MODE0_ONLY
+        bra.s   .original_calls
+        else
         bra.s   .relay
+        endif
 .globals_only:
+        ifd     VR60_MODE0_ONLY
+; The promoted mode-0-only build reuses the original 12-byte mode-1 slot
+; as a tail-call stub. MOVE.B #imm,abs.l is 8 bytes and BRA.W is 4 bytes, so
+; the complete hook layout and every following ROM address remain unchanged.
+; The JSR above supplies the return address consumed by the transfer's RTS.
+.mode0_transfer:
+        move.b  #$00,COMM3                         ; explicit COMM3_HI mode 0
+        bra.w   vr60_1p_entity_transfer            ; tail-call; returns to first-hit block
+        else
 ; --- Subsequent frames: globals only ---
         jsr     vr60_globals_stage                 ; 64B scattered -> $FF6B00
         jsr     vr60_1p_globals_transfer           ; DREQ 64B -> SDRAM (cmd $3E mode 1)
+        endif
 .relay:
 ; --- Dormant relay slots; values are stale/zero while cmd $3F stays disabled ---
         move.b  COMM6,($FFFFC8A4).w               ; sound trigger
@@ -75,8 +102,13 @@ vr60_1p_staging_hook:
 ; The §21 freeze attribution was retracted by §22 because the fixture freezes
 ; independently of this hook.
 ;        jsr     vr60_1p_comm_trigger                ; writes COMM3-5 + triggers cmd $3F
+.original_calls:
         jsr     animated_seq_player+10
         jsr     object_update
+        ifd     VR60_MODE0_ONLY
+        jmp     $00884D6A                              ; preserve exact accepted raw PC
+        else
         jmp     game_frame_orch_013_tail                 ; NOT rts — entered via
                                                           ; JMP, no return addr
                                                           ; pushed for this frame
+        endif

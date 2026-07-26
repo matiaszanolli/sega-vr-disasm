@@ -1,0 +1,85 @@
+{
+  "active_path": "build/vr60_mode0_active.32x",
+  "active_sha256": "6f2768f2cffc85cdc815a67c9f13837112829edac3f0921a57454e79e2523900",
+  "complete_hook": {
+    "active_sha256": "243b17dfeb8304f34c5d3bac5e51f41a37a54df51a68dc1a8ef6428708f914b3",
+    "control_sha256": "cd221a5d32fa20d7af3afbf672656985cf85996a44e1348e874c2791e0609cd4",
+    "default_reference_sha256": "f899305b895221780824f46e4ef97c51c9082bf1549062133462ca23f3966ca5",
+    "first_or_subsequent_target": "0x1C902",
+    "machine_checked_edges": {
+      "active_call": "0x1C8C4->0x1C8D4->0x1C6FE",
+      "control_slot": "0x1C8C4-0x1C8C9 NOP",
+      "first_hook_after_flag": "0x1C8D2->0x1C902",
+      "flag_already_set": "0x1C8B6->0x1C902"
+    },
+    "mode0_stub": "0x1C8D4",
+    "offset": "0x1C8B0",
+    "relay_unreachable_range": "0x1C8E0-0x1C901",
+    "size": 100
+  },
+  "control_path": "build/vr60_mode0_stage_control.32x",
+  "control_sha256": "75b5691a9dc11d39b19093e221a566cdd8a2d014520b1d7d88908122a94c4021",
+  "default_reference_path": "build/vr60_mode0_default_reference.32x",
+  "default_reference_sha256": "14632a23804b6043921f0e66d3f9ff84cf2ae58c66c04617d933fd7874b93183",
+  "eligible": true,
+  "findings": [],
+  "hook_site": {
+    "bytes": "4ef90001c8b04e71",
+    "offset": "0x4D62"
+  },
+  "pair_delta": {
+    "active_bytes": "4eb90001c8d4",
+    "control_bytes": "4e714e714e71",
+    "different_byte_offsets": [
+      "0x1C8C5",
+      "0x1C8C6",
+      "0x1C8C7",
+      "0x1C8C8",
+      "0x1C8C9"
+    ],
+    "offset": "0x1C8C4",
+    "size": 6
+  },
+  "rom_size": 4128768,
+  "schema": "vrd-vr60-mode0-rom-pair-v2",
+  "semantics": {
+    "chcr0": "$000044E5",
+    "command": "$3E",
+    "dar0": "$0600F20C",
+    "entity_stage": "$FF9000->$FF6A00:0x100",
+    "fifo_source": "$FF6A00:0x140",
+    "globals_stage": "$FF6B00:0x40",
+    "master_jump_target": "$023016B0",
+    "mode": 0,
+    "sar0": "$20004012",
+    "sentinel": "$2600FC00",
+    "tcr0": "$000000A0"
+  },
+  "static_evidence": {
+    "cmd3e_handler": {
+      "offset": "0x3016B0",
+      "sha256": "d4bfc7747d0805ef508413f6a2fb3d1073a7ec2d735abe1fe02b3a7f2f3f41a8",
+      "size": 176
+    },
+    "entity_stage": {
+      "offset": "0x1C494",
+      "sha256": "46c4ad108e97cd070e7e91881a9f28832b162dc0566ce649906aac3f36aaef3c",
+      "size": 114
+    },
+    "entity_transfer": {
+      "offset": "0x1C6FE",
+      "sha256": "a5ed8e8c70716a0e98f766ff91c2630229fd5924adf63f24b99e5ee9fad0f2cf",
+      "size": 110
+    },
+    "globals_stage": {
+      "offset": "0x1C506",
+      "sha256": "825bb84146c12a3abcbd43e018cafffce2c91d00b4bb099d6d4934994eee7f95",
+      "size": 206
+    },
+    "master_cmd3e_jump": {
+      "offset": "0x20878",
+      "sha256": "c1ae51d5cee7ef8501c2cbed574423b492980a12b05df629a21d44f24885334a",
+      "size": 4
+    }
+  }
+}

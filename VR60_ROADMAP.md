@@ -11,10 +11,11 @@
 
 The project is in **integration and validation**, not “one blocker from 60 FPS.” The current
 normal-1P path still uses the original 68000 physics, AI, collision, and render preparation as
-the authority. The 1P state-8 hook is valid and executes at about 20 Hz; cmd `$3E` modes 0/1
-(player entity and globals) are enabled there. AI staging (mode 2), cmd `$3F`, and the 68000
-physics bypass are disabled. Therefore the assembled SH2 physics/AI/collision ports do not
-currently control normal 1P gameplay.
+the authority. The 1P state-8 hook is valid and executes at about 20 Hz. Q-020's player-entity
+mode-0 sub-gate has passed all three accepted lifecycles twice per arm and is now the promoted
+ordinary default. Globals mode 1 is disabled/unreachable and remains the next independent
+question. AI staging (mode 2), cmd `$3F`, and the 68000 physics bypass are disabled. Therefore
+the assembled SH2 physics/AI/collision ports do not currently control normal 1P gameplay.
 
 The last apparent long-run baseline is invalid: `savestate_1p_gp_racing.bin` eventually stops
 advancing `$C87E` even with the 1P hook physically bypassed. The earlier “724 unique hashes”
@@ -31,9 +32,9 @@ frame. The fixture's timed-race counter had expired, its display controller inte
 the finish sequence, and state 12 wrote the results scene at frame 5128. VR60-010 now has an
 interpreter-matched replacement candidate whose exact 2,160-frame prefix passed every bounded
 functional check; it still needs a full 18,360-frame input that remains in normal 1P throughout.
-VR60-008 remains blocked until that unchanged control passes. Then re-enable one stage at a time:
-cmd `$3E`
-modes 0/1, AI transfer, cmd `$3F` in shadow mode, a bridge into the renderer-consumed
+VR60-008 remains blocked until that unchanged control passes. Q-020 mode 0 has since passed;
+continue one independent stage at a time: cmd `$3E` mode 1, AI transfer, cmd `$3F` in shadow
+mode, a bridge into the renderer-consumed
 C128/C178/C254 descriptors, and only then subsystem authority/bypass changes.
 Cadence and fixed-step scaling for true 60 Hz come after the data path is proven.
 
@@ -325,8 +326,8 @@ The accepted Big Forest, Bay Bridge, and Acropolis fixtures now satisfy that com
 provenance/signature under DRC with 10,906/9,263/10,968 active frames. Their 31,137-frame
 aggregate and deterministic replay evidence are archived under
 `analysis/evidence/vr60-011-lifecycle-suite/`.
-The next issue is independent cmd `$3E` mode-0 validation, followed separately by mode 1,
-mode 2, the cmd `$3F` mailbox correction, cmd `$3F` shadow execution,
+The cmd `$3E` mode-0 sub-gate is complete. The next issue is independent mode-1 validation,
+followed separately by mode 2, the cmd `$3F` mailbox correction, cmd `$3F` shadow execution,
 and each renderer/authority transition become separate issues with their own sentinel and
 control comparison.
 
@@ -426,9 +427,9 @@ negative and an overcomplicated intermediate hypothesis, both now fully resolved
 
 **Practical conclusion: `game_frame_orch_013`'s Path A (state 8) is a valid, reliable, ~20 Hz hook
 location — the original Phase 1 plan's insertion point stands.** This was subsequently implemented
-with bounded, 1P-exclusive helpers: cmd `$3E` modes 0/1 are enabled, while AI transfer mode 2 and
-the cmd `$3F` trigger remain disabled. The insertion point is proven; the enabled transfers still
-need a trustworthy long-run behavioral baseline.
+with bounded, 1P-exclusive helpers. The promoted current build reaches only the accepted cmd
+`$3E` mode-0 path; mode 1, AI transfer mode 2, and the cmd `$3F` trigger are disabled. The
+insertion point and exact mode-0 transport are proven only within the Q-020 evidence scope.
 **Standing rule for all future sessions**: do not trust "dead code"/"never executes" claims from a
 `VRD_PROFILE_PC` histogram alone — always cross-check with `VRD_CALLER_TRACE` (exact, non-
 truncated) before concluding a code path doesn't run.
@@ -440,8 +441,9 @@ truncated) before concluding a code path doesn't run.
 `vr60_1p_comm_trigger.asm`), each with a bounded (max 16 attempt) retry, never touching the shared
 `vr60_*_transfer.asm`/`vr60_comm_trigger.asm` files. AI entity transfer (cmd `$3E` mode 2) and the
 cmd `$3F` trigger are disabled (commented out with inline notes); entity+globals transfer (cmd
-`$3E` modes 0/1) is active. **This code has not changed** and remains the safest available
-state — but a follow-up session found the `fb_crc`-based verification this status banner
+`$3E` modes 0/1) was active in that legacy configuration. The promoted build now makes only
+mode 0 reachable; mode 1 must be reintroduced behind its own gate. A follow-up session found
+the `fb_crc`-based verification this status banner
 originally reported (724 unique hashes, "matches baseline") **does not reproduce**, and traced
 the freeze it was comparing against to a savestate-loading artifact, not any VR60 code: with the
 entire 1P hook physically removed (bypassed via the original two JSRs it replaces), the exact
@@ -590,7 +592,8 @@ trigger is disabled. The values remain useful as historical implementation evide
   → [Slave: Pipeline 1 (SRAM) + Pipeline 2 (SDRAM)]
   → Frame Buffer $04000000
 
-state 8: 1P hook → cmd $3E modes 0/1 staging only
+state 8: 1P hook → cmd $3E mode 0 transport (accepted ordinary default)
+                    cmd $3E mode 1 disabled
                     cmd $3E mode 2 disabled
                     cmd $3F disabled
 ```
@@ -715,9 +718,9 @@ Validate that the Master SH2 can read and write entity data at the new SDRAM loc
 - **Phase 1B:** 68K writes controller input to SDRAM mailbox (validates communication path)
 
 The underlying handlers and bounded 1P-exclusive transfers are built. In the current 1P hook,
-cmd `$3E` modes 0/1 are enabled and mode 2 is disabled. The original acceptance claim is no
-longer valid because the saved-state fixture freezes independently of the hook. Treat the
-unchecked criteria below as the current gate, regardless of older completion text.
+cmd `$3E` mode 0 is accepted and reachable; modes 1/2 are disabled. The original broad
+acceptance claim is no longer valid because the saved-state fixture freezes independently of
+the hook. Treat Q-020 mode 1 as the current gate, regardless of older completion text.
 
 **Key insight (Phase 1 planning):** DREQ FIFO is unnecessary for entity tables. The Master SH2 will own them directly in SDRAM once game logic is ported (Phases 3-5). During migration, Master reads from the existing cmd $02 DMA landing area ($0600C000+).
 
@@ -945,7 +948,7 @@ historical measurement and must not be projected onto normal 1P or unmeasured 2P
 | Component | ROM Address | Size | Status |
 |-----------|------------|------|--------|
 | cmd $3F (game frame + physics + sound relay) | $301500 | 428B | BUILT/JT-INSTALLED; 1P trigger disabled |
-| cmd $3E (DREQ entity+globals, three modes) | $3016B0 | 176B | BUILT; 1P modes 0/1 enabled, mode 2 disabled |
+| cmd $3E (DREQ entity+globals, three modes) | $3016B0 | 176B | BUILT; 1P mode 0 accepted/reachable, modes 1/2 disabled |
 | physics_divide (sdiv16 + reciprocal tables) | $301760 | 80B | BUILT; reached only through disabled cmd `$3F` in 1P |
 | physics_group1 (f1+f5+f2+f3) | $3017C0 | 884B | BUILT; reached only through disabled cmd `$3F` in 1P |
 | physics_group2_accel (f6+f7) | $301B40 | 496B | BUILT; reached only through disabled cmd `$3F` in 1P |
@@ -1188,7 +1191,7 @@ The planned staging model is:
 ```
 $301300-$30148F  coord_transform_batched (388B)       — ACTIVE (S-6 Phase B)
 $301500-$3016AB  cmd $3F (428B)                       — BUILT/JT-INSTALLED; 1P trigger disabled
-$3016B0-$30175F  cmd $3E (176B)                       — BUILT; 1P modes 0/1 enabled, mode 2 disabled
+$3016B0-$30175F  cmd $3E (176B)                       — BUILT; 1P mode 0 accepted/reachable, modes 1/2 disabled
 $301760-$3017AF  physics_divide (80B)                 — BUILT; dormant in current 1P
 $3017C0-$301B33  physics_group1 (884B)                — BUILT; dormant in current 1P
 $301B40-$301D2F  physics_group2_accel (496B)          — BUILT; dormant in current 1P
@@ -1618,7 +1621,7 @@ Frame N+1:
 **Status: FINAL OBJECTIVE; NOT READY TO ACTIVATE.** The state-machine cadence remains the
 architectural lever for true 60 Hz logic, but the June CPU budgets and cmd `$3F` attribution
 are not a trusted current baseline. Before changing cadence, complete the validation and
-ownership sequence: durable 1P control fixture → cmd `$3E` modes 0/1 → AI staging → cmd
+ownership sequence: durable 1P control fixture → accepted cmd `$3E` mode 0 → mode 1 → AI staging → cmd
 `$3F` shadow execution → renderer-consumed descriptor bridge → collision → output equivalence
 → authority/bypass. Re-profile only then. Framebuffer hashes must be paired with `$C87E`,
 scene, hook, and COMM liveness checks; uniqueness alone is not acceptance evidence.
@@ -1689,7 +1692,7 @@ These must be resolved before their respective phases. Add new questions as they
 | Q-017 | Does `--autoplay` actually reach real 1P GP racing (`state_disp_004cb8`, scene `$4CBC`)? | Phase 1 (1P wiring) | **RESOLVED: NO** | It settles in scene `$5586`; its `[racing]` label is only frame-count based. `VRD_LOAD_STATE` was added to reach GP, but the available `savestate_1p_gp_racing.bin` later stops advancing `$C87E` even with the VR60 hook bypassed, so it is useful for short traces—not a valid long-run baseline. |
 | Q-018 | Does `game_frame_orch_013` state 8 recur during real 1P racing? | Phase 1 | **RESOLVED: YES, ABOUT 20 HZ** | Exact `VRD_CALLER_TRACE` found a regular one-hit-per-three-TV-frame cadence. The earlier zero-hit top-200 PC histogram was a false negative; the current hook location is valid. |
 | Q-019 | Can we produce a deterministic 1P fixture that stays live for the full validation window? | All live integration | **RESOLVED FOR THE BASELINE BY VR60-011; CONTINUOUS SHAPE OPTIONAL** | Three complete, predeclared DRC lifecycles pass independently with 31,137 aggregate active frames and a 10,968-frame longest span. VR60-010 remains open only if a single continuous 18,360-frame shape is desired. |
-| Q-020 | Are cmd `$3E` modes 0/1 correct over a trustworthy 1P run? | Phase 1 | **OPEN — NEXT ACTIVE QUESTION** | The trustworthy lifecycle baseline now exists. Re-test player-entity mode 0 alone, then globals mode 1 alone, against the accepted fixtures; do not combine their attribution. |
+| Q-020 | Are cmd `$3E` modes 0/1 correct over a trustworthy 1P run? | Phase 1 | **PARTIALLY RESOLVED — MODE 0 PASS; MODE 1 NEXT** | The exact 320-byte mode-0 transport passed 12 fresh ACTIVE/STAGE-CONTROL lifecycle runs with exact gameplay/state/terminal chronology and was promoted as the ordinary default (`6f2768f2…2523900`). Evidence: `analysis/evidence/vr60-q020-mode0-gate/`. Mode 1 remains disabled and must first resolve scene reset/re-entry, COMM ownership/dummy-read synchronization, and FIFO FULL observation at four-word granularity. |
 | Q-021 | Are AI transfer mode 2 and cmd `$3F` safe in 1P? | Phases 1, 3, 4 | **OPEN; NEITHER PROVEN SAFE NOR UNSAFE** | §21's freeze attribution is retracted by §22. Enable one stage at a time only after Q-019; keep the 68000 authoritative while cmd `$3F` first runs as observable shadow computation. |
 | Q-022 | Which racing descriptor block should carry the SH2-authoritative car state? | Phase 5F | **PARTIALLY RESOLVED** | Static decode proves cmd `$02` reads C128/C178/C254, not C218. The C254 probe is built but dormant because current cmd `$3F` still calls the no-op patcher and the 1P trigger is disabled. Run reversible A/B/C probes after Q-019/Q-021. |
 | Q-023 | Is cmd `$3F`'s COMM mailbox actually in SDRAM? | Phase 1B/3 | **RESOLVED: NO; FIX REQUIRED BEFORE ENABLE** | The current literal is `$2200BC00`, the cache-through cartridge-ROM alias, so its writes are ineffective. Change to `$2600BC00` (or native `$0600BC00` where coherent), then observe the data directly. |
@@ -1728,6 +1731,7 @@ Record every significant design decision here. Include date, what was decided, w
 | 2026-07-13 | Added `VRD_LOAD_STATE=path` to `tools/libretro-profiling/profiling_frontend.c` (loads a real savestate via `retro_unserialize` before the frame loop starts) | `--autoplay` cannot reach real GP racing (Q-017), so headless verification of any 1P-specific fix needs a manually-captured savestate. Confirmed format-compatible with standalone PicoDrive's own savestates (both funnel through the same `PicoStateFP`/`pico_state_internal` serialization in `pico/state.c`; standalone only differs by an optional `.gz` wrapper). | Fixing the `--autoplay` input script instead — rejected for now (higher effort, still headless-only guesswork until visually confirmed); savestate loading is faster and lets Matias capture the exact scenario visually. |
 | 2026-07-21 | Make `VR60_STATUS.md` and this dated status block authoritative; reclassify phase work as built, active, authoritative, and validated separately | Dispatcher routing and the invalid saved-state baseline showed that “present in ROM,” “executed,” and “proven” had been conflated. The current build must be described without inheriting obsolete phase completion claims. | Continue appending corrections without a canonical status — rejected because readers encountered stale conclusions before their retractions. |
 | 2026-07-21 | Require a control fixture with continuing `$C87E` cycles before any new 1P offload validation | The existing GP savestate freezes independently of VR60 code and invalidates framebuffer-hash causality. | Treat the freeze as a cmd `$3F` or AI regression — rejected by the hook-bypass control. |
+| 2026-07-25 | Accept and promote only cmd `$3E` mode 0 through a separate exact ACTIVE/STAGE-CONTROL gate | All 12 fresh runs retained VR60-011 chronology, exact 320-byte transport, raw `$00884D6A`, deterministic repeats, and the reviewed paired-framebuffer rule. The clean default is the entire validated ACTIVE image; mode 1/relay remain unreachable. | Promote the prior combined mode0/1 hook, infer causality from framebuffer CRC, normalize low/high PCs, or reuse duplicate/short captures. |
 | 2026-07-21 | Make the 1P control validator's acceptance policy immutable and prove the control ROM's exact isolation | A control must not run the code it isolates or contain unrelated changes. The validator enforces the canonical fixture blacklist, fixed scene/hook/threshold/window policy, and an exact comparison: the reference has live bytes `4EF90001C8B04E71`, the candidate has stock bytes `4EBA69764EBA691C`, and all bytes outside file `$4D62-$4D69` match. Offline analysis and diagnostic overrides always inject failure. | Trust filenames, inspect only the candidate hook bytes, accept user-relaxed thresholds/addresses, promote stale CSV, accept the active-hook ROM, or infer late liveness from a 50-hit trace — all can produce a false baseline. |
 | 2026-07-21 | Build the 1P control pair from one conditional assembly source and verify it automatically | A raw-patched candidate or an unpreserved reference cannot prove isolation. `make control-rom` preserves the live build, assembles the stock two-JSR branch with `VR60_CONTROL_ROM`, and records the validator comparison plus both hashes. | Manually patch eight bytes after assembly, keep an unverified copy by filename, or maintain a second drifting source tree. |
 | 2026-07-22 | Preserve the failed VR60-008 run and diagnose its first chronological signal before retrying or patching | Raw samples place the `$C87E` state-order discontinuity at frame 4536, before continuous COMM0 busy and the scene transition. Later hook/framebuffer/Slave stalls are additional findings whose causal relationship is unknown; changing thresholds or addressing them independently would destroy chronological evidence. | Retry unchanged without diagnosis, loosen the validator, infer chronology from finding-list order, address-shop for a patch, or treat every later finding as a separate defect. |
@@ -1767,6 +1771,7 @@ Record every significant design decision here. Include date, what was decided, w
 | R-023 | A healthy short replay prefix can hide a deterministic later state/scene transition | Critical | Baseline validation | **MITIGATED BY COMPLETE VR60-011 LIFECYCLES; VR60-010 OPTIONAL** | The full run and exact trace exposed a deterministic timed finish hidden beyond the preflight. VR60-011 preserves complete hash-verified artifacts, predeclares the terminal/results boundary, and validates every active window plus the full finish signature. Never promote prefix health into durability. VR60-010 remains an optional continuous 18,360-frame proof. |
 | R-024 | End-of-frame state samples can alias multiple legitimate writes within one emulated frame | High | Baseline validation | **MITIGATED IN LIFECYCLE V2; CONTINUOUS POLICY UNCHANGED** | Do not describe sampled transitions as exact write chronology. VR60-011 lifecycle v2 requires the complete version-3 writer trace and the exact ordered `$C87E` cycle in every window/tail, including the fresh `$000C->$0000` Master-completion witness. The separate VR60-010 continuous validator retains its original sampled-state policy. |
 | R-025 | Lifecycle aggregation could inflate coverage with duplicate fixtures, bad windows, or post-finish frames | Critical | Baseline validation | **MITIGATED; ACCEPTED SUITE ARCHIVED** | Hash-pin exact ROM/tool/state/input/source/raw artifacts and the canonical `control_fixtures.json` policy; reject blacklisted or duplicate fixtures; require every lifecycle to pass independently; check aligned windows plus the final rolling window/tail; stop coverage at the predeclared tracer PC/source offset `$006C38` (`$00886C38` high mapping) `$C07C=$14` write; require the full PC/access/old/new timeout/results chain. The v2 DRC suite passed all rules on 3 distinct fixtures and is archived. |
+| R-026 | Mode-0 one-shot state or DREQ/COMM assumptions could be reused unsafely for mode 1 | Critical | Q-020 mode 1 | **OPEN; MODE 1 DISABLED** | Before mode 1: define scene reset/re-entry for `$FF7B40`; resolve COMM ownership and SH2 same-address dummy-read synchronization; instrument FIFO FULL behavior at four-word granularity. Keep mode 1 in a separate source-built pair and do not change the accepted mode-0 default. |
 
 ---
 
@@ -1866,7 +1871,7 @@ Record discoveries, gotchas, and insights as the project progresses. These help 
 | 2026-03-24 | Phase 3 research | **lateral_drift_velocity_B is structurally different from A — NOT a subset.** Different math (mul-then-div vs div-first), different grip range ([$40,$FF] vs [$7F,∞]), AI boost logic (speed-gated), viewport shimmer writes, 2× damping, 2× display scaling. 358B (not ~300B). Must port independently. | Never assume "variant" means "minor parameter change." Read both implementations fully before estimating scope. |
 | 2026-03-24 | Phase 3 research | **$C05C entity_type_dispatch table is init-only.** No per-frame writes found. Can be snapshot once to SDRAM during scene init. Confirms Phase 4 (AI port) can use a static copy. | Verified by grep: no MOVE/CLR writes to $C05C in any per-frame code path. |
 | 2026-03-24 | Q-002 | **All collision ROM addresses are 68K CPU addresses, not file offsets.** Conversion: `SH2_addr = 68K_addr + $01780000`. Highest base reference: `$009D0000` → file offset `$150000` → SH2 `$02150000` (within 4MB). Track pointer tables at $742C/$745C contain mode-indexed segment-map/base-data address pairs. | R-005 resolved. No ROM boundary issues. Phase 5 collision port can proceed with simple address arithmetic. |
-| 2026-03-24 | Q-008 — **SUPERSEDED 2026-07-06** | The historical decision called `state_disp_005020` active 1P racing and placed cmd `$3F` there. It is actually the 2P split-screen dispatcher. | Current 1P uses `state_disp_004cb8`; its separate hook has only cmd `$3E` modes 0/1 enabled. Do not reuse the old mode-gate conclusion. |
+| 2026-03-24 | Q-008 — **SUPERSEDED 2026-07-06** | The historical decision called `state_disp_005020` active 1P racing and placed cmd `$3F` there. It is actually the 2P split-screen dispatcher. | Current 1P uses `state_disp_004cb8`; its separate hook reaches only accepted cmd `$3E` mode 0. Do not reuse the old mode-gate conclusion. |
 | 2026-03-24 | Q-009 | **2P uses identical physics functions as 1P (A0-parameterized).** Table 3 ($FF9F00) is a single 256B entity, not a 15-entity table. `gfx_2_player_entity_frame_orch` MOVEM block copy assumes both entities updated on same CPU — splitting P1/P2 across CPUs creates race conditions in display DMA. | Phase 3 = 1P only. 2P deferred. When porting 2P, either both players on SH2 or add explicit sync barrier. |
 | 2026-03-26 | Phase 3B | **GBR as entity base: 510-byte displacement covers the entire 256B entity record.** `MOV.W @(disp,GBR),R0` uses 8-bit disp × 2 = 0-510 byte range. Every entity field is reachable in a single instruction. The constraint: only R0 can be source/destination for GBR access. Work around by `MOV R0,Rn` after load or `MOV Rn,R0` before store. | SH2 ISA docs §6 (displacement modes). The Rn-displacement form (`MOV.W @(disp,Rn),R0`) has only 4-bit disp × 2 = 0-30 byte range — grossly insufficient for entity fields. GBR is the correct choice. |
 | 2026-03-26 | Phase 3B | **SH2 CMP/PL = strictly > 0, not >= 0.** "Compare PLus" sets T=1 when Rn > 0 (signed). This matches 68K TST+BLE exactly (BLE branches when value ≤ 0, fall-through when > 0). A code review agent flagged this as a bug, but verification against the ISA docs confirmed correctness. | Always verify SH2 instruction semantics against the primary source (sh1-sh2-cpu-core-architecture.md), not agent reasoning. Subtle instruction names like "PL" (plus) can mislead — it means "positive", not "plus-or-zero". |
@@ -1902,6 +1907,7 @@ Record discoveries, gotchas, and insights as the project progresses. These help 
 | 2026-07-23 | Tooling | **RetroArch v2 visual replays can be bridged without modifying the canonical frontend or validator.** The strict converter's 899-row smoke replay re-recorded byte-for-byte through `VRD_INPUT_SCRIPT`. | Keep the converter pinned to the reviewed RetroArch source identity, reject unrecognized events/checkpoints/trailing data or a wrong ROM CRC32, and preserve replay/raw-state/ROM/CSV hashes in its manifest. |
 | 2026-07-25 | Control methodology | **Aggregate lifecycle coverage is not equivalent to one continuous run.** A legitimate finish can bound a useful active epoch, but only pre-terminal frames count, every lifecycle/window/tail must pass alone, duplicate provenance must not inflate coverage, and both per-lifecycle and longest-contiguous floors must remain visible beside the aggregate. | Use the separate VR60-011 manifest/capture/validator. Keep VR60-010 intact, predeclare both terminal frames from prior diagnostics, and require the exact `$C050`/lap-flag/`$C07C`/scene-writer signature before accepting a lifecycle boundary. |
 | 2026-07-25 | DRC acceptance instrumentation | **Execution mode is part of raw evidence, and exact write chronology can replace unavailable PC-derived “useful” counters.** The accepted core records DRC/no-PC/normal-batching/composed-hook provenance in both traces. Exact ordered `$C87E` writes prove state progress; V-INT's `$000C->$0000` write is a fresh Master-completion witness. Slave execution must remain non-zero every active frame. A completed Master may legitimately spend an isolated frame in PicoDrive's COMM-poll idle state, so Master execution is required per reviewed window/tail and the exact state cycle must continue. | Never infer DRC liveness from zero `msh2_useful/ssh2_useful`, never enable `VRD_PROFILE_PC` in this acceptance path, never accept a Master-zero interval with a missing/reordered/stalled exact cycle, and keep sampled COMM0 longest-run values informational rather than silently raising the old threshold. |
+| 2026-07-25 | Q-020 mode 0 | **A command-mode register can be stage-scoped even when the game legitimately reuses it after the immutable results transition.** The initially frozen validator caught identical post-results COMM3_HI=`2` reuse in every arm; the failed result was preserved, a separate audit bounded mode 0 through R inclusive, and the unchanged captures then passed with exact paired post-results chronology. | Predeclare the semantic boundary, preserve failed evidence, and compare both arms after it. Do not retroactively shorten R, require a global register to retain racing semantics forever, or silently relax a failed policy. |
 
 ---
 

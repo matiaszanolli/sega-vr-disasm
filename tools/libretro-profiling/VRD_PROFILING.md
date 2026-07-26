@@ -211,9 +211,10 @@ make control-rom
 python3 -m unittest tools/libretro-profiling/test_verify_control_rom.py -v
 ```
 
-The target preserves `build/vr60_live_reference.32x`, then assembles
+After Q-020 mode-0 promotion, the target source-builds the historical pre-promotion image as
+`build/vr60_legacy_default.32x`, preserves it as `build/vr60_live_reference.32x`, then assembles
 `build/vr60_control_bypass.32x` with `VR60_CONTROL_ROM` defined. It imports this validator's fixed
-ROM policy and records the result in `control_rom_pair.json`. The reviewed hashes are live
+ROM policy and records the result in `control_rom_pair.json`. The reviewed historical hashes are live
 `14632a23804b6043921f0e66d3f9ff84cf2ae58c66c04617d933fd7874b93183` and control
 `6a4c89cffa7df47a946b340d39492df05f2be316c76343cf7e4e932a8ca17672`.
 
@@ -259,6 +260,55 @@ doorbell lane became stuck, but it can miss a valid set/clear handshake that com
 one frame. It therefore does not require a sampled COMM1 done bit and does not claim direct
 per-command observation; later `$3E`/`$3F` stages still need access-event instrumentation or an
 execution sentinel.
+
+### Q-020 cmd `$3E` mode-0 gate
+
+`validate_mode0_gate.py` is a separate exact mode-0 policy layered on the immutable VR60-011
+fixtures. It does not modify the accepted baseline archive or validate mode 1. The source-built
+pair and gate are run with:
+
+```bash
+make mode0-roms
+python3 tools/libretro-profiling/capture_mode0_gate_suite.py \
+  --rom-pair-manifest tools/libretro-profiling/mode0_rom_pair.json \
+  --preflight-control build/vr60_control_bypass.32x \
+  --accepted-evidence analysis/evidence/vr60-011-lifecycle-suite/artifacts.tar.gz \
+  --output /new/mode0-capture
+python3 tools/libretro-profiling/validate_mode0_gate.py validate \
+  --manifest /new/mode0-capture/manifest.json
+```
+
+Before frame 0, the capture loads each accepted state through the historical bypass ROM and uses
+the hash-pinned `mode0_preflight.commands` debugger script to read scene `$00884CBC`, flag zero,
+COMM3_HI mode zero, and sentinel zero. Both `status` records must say session frame 0. The raw
+transcript, tool, ROM, state, and command-script hashes are pinned; a post-`PicoFrame` watch cannot
+masquerade as preflight.
+
+Acceptance requires exactly 12 fresh slots (three identities × two arms × two repetitions).
+Each run independently composes VR60-011 liveness and terminal rules. It also requires exact
+source=stage completion at frames 1/3/3; exact static opcode/literal evidence; ACTIVE
+stage=`$0600F20C`; paired stage equality; ACTIVE destination differing from CONTROL; a fresh
+ACTIVE sentinel; zero CONTROL sentinel; one exact flag `0 -> 1` write; and a settled frame-11
+mode/ACK/DREQ/COMM7 checkpoint. Caller and baseline writes match accepted raw chronology,
+including `$00884D6A` and the legitimate terminal `$00006C38`, without alias normalization.
+
+Paired framebuffer CRC may differ at most once per lifecycle: only state-8 H+3 is eligible, Bay
+Bridge must have no mismatch, and every other frame through the inclusive terminal must match.
+The accepted runs observed Big Forest frame 3, no Bay Bridge mismatch, and Acropolis frame 5.
+This is a **one-frame sampled framebuffer divergence consistent with render/display
+scheduling**. HBLK/FEN is inference not causal proof. The gate never bit-compares either arm's
+CRC against the hook-bypass archive.
+
+COMM3_HI must remain zero through the immutable VR60-011 results frame inclusive. Later global
+reuse is allowed only when the complete ACTIVE/CONTROL chronology is identical; the results
+boundary cannot move. The ordinary default is the complete validated ACTIVE ROM
+`6f2768f2…2523900`, while `make control-rom` retains the historical VR60-011 pair.
+
+The accepted scope is only PicoDrive exact 320B mode0 transport + exact
+gameplay/state/terminal chronology in fresh eligible lifecycles. Mode 1 remains unreachable
+pending scene reset/re-entry, COMM ownership and same-address dummy-read synchronization, and
+FIFO FULL instrumentation at four-word granularity. Full artifacts and hashes are documented in
+`analysis/evidence/vr60-q020-mode0-gate/`.
 
 ## Environment variables
 

@@ -39,7 +39,6 @@ from validate_1p_control import (
     Thresholds,
     control_rom_policy,
     fixture_policy,
-    load_caller_trace,
     load_csv,
     longest_nonzero_run,
     longest_run,
@@ -49,8 +48,10 @@ from validate_1p_control import (
     validate_input_script,
 )
 
-SCHEMA_VERSION = 1
-POLICY_ID = "VR60-011-lifecycle-suite-v1"
+SCHEMA_VERSION = 2
+POLICY_ID = "VR60-011-lifecycle-suite-v2"
+WRITE_TRACE_VERSION = 3
+CALLER_TRACE_VERSION = 2
 
 # Reviewed VR60-011 coverage policy.  The 360-frame warmup matches the existing
 # capture practice.  The 3 / 1,800 / 3,960 / 18,000 constants were reviewed
@@ -85,7 +86,16 @@ ORDERED_WRITE_TARGETS = (
 REQUIRED_WRITE_TARGETS = {
     *ORDERED_WRITE_TARGETS,
 }
-TIMEOUT_ENTRY_PC = 0x00886C38
+STATE_WRITE_CYCLE = (
+    (0x00884CF2, 0x0000, 0x0004),
+    (0x00884D0C, 0x0004, 0x0008),
+    (0x00884D6A, 0x0008, 0x000C),
+    (0x0089C414, 0x000C, 0x0000),
+)
+# This routine executes through the low cartridge-ROM alias.  The accepted v3
+# write tracer reports 0x006C38, matching conditional_scroll_state_init.asm;
+# 0x00886C38 is not the runtime PC observed by the tracer.
+TIMEOUT_ENTRY_PC = 0x00006C38
 RESULTS_SCENE_WRITER_PC = 0x008843D0
 RESULTS_SCENE_POINTER = 0x0088FB98
 TIMEOUT_DISPLAY_SEQUENCE = (0x0014, 0x0018, 0x001C, 0x0020, 0x0024, 0x0028, 0x002C, 0x0030)
@@ -93,7 +103,7 @@ TIMEOUT_DISPLAY_SEQUENCE = (0x0014, 0x0018, 0x001C, 0x0020, 0x0024, 0x0028, 0x00
 # evidence samples C07C=0x0000 at frame 4533 and 0x0014 at frame 4534.  C30E,
 # not C07C, is the field that changes 0x10->0x11 at timeout entry.
 TIMEOUT_DISPLAY_WRITE_SIGNATURE = (
-    (0x00886C38, 0x0000, 0x0014),
+    (0x00006C38, 0x0000, 0x0014),
     (0x0088427A, 0x0014, 0x0018),
     (0x008842CE, 0x0018, 0x001C),
     (0x00884322, 0x001C, 0x0020),
@@ -109,7 +119,6 @@ REQUIRED_ARTIFACTS = (
     "watch.csv",
     "caller.csv",
     "write.csv",
-    "pc.csv",
     "frontend.log",
 )
 
@@ -119,10 +128,37 @@ class WriteTrace:
     rows: list[dict[str, int]]
     targets: set[tuple[int, int]]
     version: int | None
+    sh2_drc: int | None
+    profile_pc: int | None
+    profile_pc_env: int | None
+    m68k_batching: str | None
     instruction_start_hook: int | None
+    composed: int | None
+    caller_addr: int | None
+    caller_max: int | None
     declared_target_count: int | None
     complete_frames: int | None
     complete_events: int | None
+    errors: int | None
+    incomplete: bool
+
+
+@dataclass(frozen=True)
+class LifecycleCallerTrace:
+    rows: list[dict[str, int]]
+    version: int | None
+    addr: int | None
+    sh2_drc: int | None
+    profile_pc: int | None
+    profile_pc_env: int | None
+    m68k_batching: str | None
+    instruction_start_hook: int | None
+    composed: int | None
+    max_hits: int | None
+    complete_frames: int | None
+    total_hits: int | None
+    logged_hits: int | None
+    dropped_hits: int | None
     errors: int | None
     incomplete: bool
 
@@ -229,11 +265,17 @@ def load_write_trace(path: Path) -> WriteTrace:
     rows: list[dict[str, int]] = []
     targets: set[tuple[int, int]] = set()
     target_indices: set[int] = set()
-    version = instruction_start_hook = declared_target_count = None
+    version = sh2_drc = profile_pc = profile_pc_env = None
+    instruction_start_hook = composed = caller_addr = caller_max = None
+    m68k_batching = None
+    declared_target_count = None
     complete_frames = complete_events = errors = None
     phase = "init"
     init_re = re.compile(
-        r"# VRD_WRITE_TRACE version=(\d+) instruction_start_hook=(\d+) targets=(\d+)"
+        r"# VRD_WRITE_TRACE version=(\d+) sh2_drc=(\d+) profile_pc=(\d+) "
+        r"profile_pc_env=(\d+) m68k_batching=([a-z]+) "
+        r"instruction_start_hook=(\d+) composed=(\d+) "
+        r"caller_addr=(0x[0-9A-Fa-f]+) caller_max=(\d+) targets=(\d+)"
     )
     target_re = re.compile(
         r"# TARGET index=(\d+) addr=(0x[0-9A-Fa-f]+) size=(\d+)"
@@ -259,9 +301,27 @@ def load_write_trace(path: Path) -> WriteTrace:
                     raise ValueError(
                         f"write trace must begin with one exact init record; line {line_number}"
                     )
-                version, instruction_start_hook, declared_target_count = map(
-                    int, match.groups()
-                )
+                (
+                    version,
+                    sh2_drc,
+                    profile_pc,
+                    profile_pc_env,
+                    m68k_batching,
+                    instruction_start_hook,
+                    composed,
+                    caller_addr_text,
+                    caller_max,
+                    declared_target_count,
+                ) = match.groups()
+                version = int(version)
+                sh2_drc = int(sh2_drc)
+                profile_pc = int(profile_pc)
+                profile_pc_env = int(profile_pc_env)
+                instruction_start_hook = int(instruction_start_hook)
+                composed = int(composed)
+                caller_addr = int(caller_addr_text, 0)
+                caller_max = int(caller_max)
+                declared_target_count = int(declared_target_count)
                 if declared_target_count != 3:
                     raise ValueError("write trace init must declare exactly 3 targets")
                 phase = "targets"
@@ -326,10 +386,137 @@ def load_write_trace(path: Path) -> WriteTrace:
         rows=rows,
         targets=targets,
         version=version,
+        sh2_drc=sh2_drc,
+        profile_pc=profile_pc,
+        profile_pc_env=profile_pc_env,
+        m68k_batching=m68k_batching,
         instruction_start_hook=instruction_start_hook,
+        composed=composed,
+        caller_addr=caller_addr,
+        caller_max=caller_max,
         declared_target_count=declared_target_count,
         complete_frames=complete_frames,
         complete_events=complete_events,
+        errors=errors,
+        incomplete=False,
+    )
+
+
+def load_lifecycle_caller_trace(path: Path) -> LifecycleCallerTrace:
+    """Parse the DRC caller trace as one exact, closed record grammar."""
+    rows: list[dict[str, int]] = []
+    version = addr = sh2_drc = profile_pc = profile_pc_env = None
+    instruction_start_hook = composed = max_hits = None
+    m68k_batching = None
+    complete_frames = total_hits = logged_hits = dropped_hits = errors = None
+    phase = "init"
+    init_re = re.compile(
+        r"# VRD_CALLER_TRACE version=(\d+) addr=(0x[0-9A-Fa-f]+) "
+        r"sh2_drc=(\d+) profile_pc=(\d+) profile_pc_env=(\d+) "
+        r"m68k_batching=([a-z]+) instruction_start_hook=(\d+) "
+        r"composed=(\d+) max_hits=(\d+)"
+    )
+    complete_re = re.compile(
+        r"# COMPLETE frames=(\d+) hits=(\d+) logged=(\d+) "
+        r"dropped=(\d+) errors=(\d+)"
+    )
+    expected_columns = "frame,pc,sp,return_addr"
+    names = expected_columns.split(",")
+
+    with path.open() as stream:
+        for line_number, raw_line in enumerate(stream, 1):
+            line = raw_line.strip()
+            if not line:
+                continue
+            if phase == "done":
+                raise ValueError(
+                    f"caller trace has a trailing record after COMPLETE at line {line_number}"
+                )
+            if phase == "init":
+                match = init_re.fullmatch(line)
+                if match is None:
+                    raise ValueError(
+                        f"caller trace must begin with one exact init record; line {line_number}"
+                    )
+                (
+                    version_text,
+                    addr_text,
+                    sh2_drc_text,
+                    profile_pc_text,
+                    profile_pc_env_text,
+                    m68k_batching,
+                    hook_text,
+                    composed_text,
+                    max_hits_text,
+                ) = match.groups()
+                version = int(version_text)
+                addr = int(addr_text, 0)
+                sh2_drc = int(sh2_drc_text)
+                profile_pc = int(profile_pc_text)
+                profile_pc_env = int(profile_pc_env_text)
+                instruction_start_hook = int(hook_text)
+                composed = int(composed_text)
+                max_hits = int(max_hits_text)
+                phase = "header"
+                continue
+            if phase == "header":
+                if line != expected_columns:
+                    raise ValueError(
+                        f"caller trace expected one exact CSV header at line {line_number}"
+                    )
+                phase = "data"
+                continue
+            match = complete_re.fullmatch(line)
+            if match is not None:
+                (
+                    complete_frames,
+                    total_hits,
+                    logged_hits,
+                    dropped_hits,
+                    errors,
+                ) = map(int, match.groups())
+                phase = "done"
+                continue
+            if line.startswith("#") or line == expected_columns:
+                raise ValueError(
+                    f"caller trace has an unknown/duplicate control record at line {line_number}"
+                )
+            parts = line.split(",")
+            if len(parts) != len(names):
+                raise ValueError(f"malformed caller trace row at line {line_number}: {line}")
+            try:
+                row = {
+                    name: parse_number(value)
+                    for name, value in zip(names, parts, strict=True)
+                }
+            except ValueError as error:
+                raise ValueError(
+                    f"invalid numeric caller trace row at line {line_number}: {error}"
+                ) from error
+            if rows and row["frame"] < rows[-1]["frame"]:
+                raise ValueError(
+                    f"caller trace frame order regressed at line {line_number}: "
+                    f"{rows[-1]['frame']}->{row['frame']}"
+                )
+            rows.append(row)
+
+    if phase != "done":
+        raise ValueError("caller trace has no single final COMPLETE record")
+    return LifecycleCallerTrace(
+        rows=rows,
+        version=version,
+        addr=addr,
+        sh2_drc=sh2_drc,
+        profile_pc=profile_pc,
+        profile_pc_env=profile_pc_env,
+        m68k_batching=m68k_batching,
+        instruction_start_hook=instruction_start_hook,
+        composed=composed,
+        max_hits=max_hits,
+        complete_frames=complete_frames,
+        total_hits=total_hits,
+        logged_hits=logged_hits,
+        dropped_hits=dropped_hits,
         errors=errors,
         incomplete=False,
     )
@@ -448,7 +635,13 @@ def expected_run_provenance(
         "warmup_frames": WARMUP_FRAMES,
         "watch_spec": LIFECYCLE_WATCH_SPEC,
         "write_trace_spec": WRITE_TRACE_SPEC,
-        "profile_pc": 1,
+        "write_trace_version": WRITE_TRACE_VERSION,
+        "caller_trace_version": CALLER_TRACE_VERSION,
+        "sh2_drc": 1,
+        "profile_pc": 0,
+        "profile_pc_env_present": 0,
+        "m68k_batching": "normal",
+        "instruction_start_hook": "composed",
         "caller_trace_address": f"0x{DEFAULT_HOOK_ADDRESS:08X}",
         "caller_trace_max": 0,
         "scene_pointer": f"0x{DEFAULT_SCENE_POINTER:08X}",
@@ -483,10 +676,22 @@ def classify_timeout_lifecycle(
             f"write trace footer reports {write_trace.complete_events} events, "
             f"but {len(write_trace.rows)} rows were parsed",
         )
-    if write_trace.version != 2 or write_trace.instruction_start_hook != 1:
+    if (
+        write_trace.version != WRITE_TRACE_VERSION
+        or write_trace.sh2_drc != 1
+        or write_trace.profile_pc != 0
+        or write_trace.profile_pc_env != 0
+        or write_trace.m68k_batching != "normal"
+        or write_trace.instruction_start_hook != 1
+        or write_trace.composed != 1
+        or write_trace.caller_addr != DEFAULT_HOOK_ADDRESS
+        or write_trace.caller_max != 0
+    ):
         fixture.fail(
-            "write_trace_version",
-            "write trace must use reviewed version=2 instruction_start_hook=1",
+            "write_trace_mode",
+            "write trace must attest reviewed version=3, SH2 DRC, no PC environment, "
+            "normal 68K batching, one composed instruction hook, exact caller address, "
+            "and unlimited capture",
         )
     if (
         write_trace.declared_target_count != len(REQUIRED_WRITE_TARGETS)
@@ -535,13 +740,6 @@ def classify_timeout_lifecycle(
         for index, row in enumerate(write_trace.rows)
         if (row["target_addr"], row["target_size"]) == WRITE_TARGET_SCENE
     ]
-    if len(scene_events) != 1:
-        fixture.fail(
-            "terminal_scene_event_count",
-            f"expected exactly one scene-pointer write; found {len(scene_events)}",
-        )
-        return None, None
-    scene_index, scene_event = scene_events[0]
     expected_scene_event = {
         "pc": RESULTS_SCENE_WRITER_PC,
         "access_addr": WRITE_TARGET_SCENE[0],
@@ -549,14 +747,35 @@ def classify_timeout_lifecycle(
         "old_value": DEFAULT_SCENE_POINTER,
         "new_value": RESULTS_SCENE_POINTER,
     }
-    scene_mismatches = [
-        name for name, value in expected_scene_event.items() if scene_event[name] != value
+    terminal_scene_events = [
+        (index, row)
+        for index, row in scene_events
+        if all(row[name] == value for name, value in expected_scene_event.items())
     ]
-    if scene_mismatches:
+    if len(terminal_scene_events) != 1:
         fixture.fail(
             "terminal_scene_signature",
-            "results-scene write does not match reviewed signature: "
-            + ", ".join(scene_mismatches),
+            "expected exactly one scene-pointer write matching the complete reviewed "
+            f"results signature; found {len(terminal_scene_events)}",
+        )
+        return None, None
+    scene_index, scene_event = terminal_scene_events[0]
+    prior_scene_transitions = [
+        row
+        for index, row in scene_events
+        if index < scene_index
+        and not (
+            row["old_value"] == DEFAULT_SCENE_POINTER
+            and row["new_value"] == DEFAULT_SCENE_POINTER
+        )
+    ]
+    if prior_scene_transitions:
+        transition = prior_scene_transitions[0]
+        fixture.fail(
+            "preterminal_scene_transition",
+            "scene pointer changed before the reviewed results write at frame "
+            f"{transition['frame']}: 0x{transition['old_value']:08X}->"
+            f"0x{transition['new_value']:08X}",
         )
 
     display_events = [
@@ -685,7 +904,8 @@ def validate_active_epoch(
     fixture: FixtureReport,
     frame_rows: list[dict[str, int]],
     watch_rows: list[dict[str, int]],
-    caller,
+    caller: LifecycleCallerTrace,
+    write_trace: WriteTrace,
     *,
     active_end: int,
     scene_frame: int,
@@ -754,37 +974,6 @@ def validate_active_epoch(
     if any(row["is_32x"] != 1 for row in selected_frames):
         fixture.fail("not_32x", "one or more active frames were not marked as 32X")
 
-    states = [row["state"] for row in selected_frames]
-    expected_state_set = set(DEFAULT_STATES)
-    unexpected = sorted(set(states) - expected_state_set)
-    if unexpected:
-        fixture.fail(
-            "unexpected_state",
-            "unexpected C87E values: " + ", ".join(f"0x{value:04X}" for value in unexpected),
-        )
-    state_stall, stalled_state = longest_run(states)
-    fixture.metrics["max_state_stall"] = state_stall
-    if state_stall > thresholds.max_state_stall:
-        fixture.fail(
-            "state_stall",
-            f"C87E stayed at 0x{int(stalled_state):04X} for {state_stall} frames "
-            f"(limit {thresholds.max_state_stall})",
-        )
-    state_index = {value: index for index, value in enumerate(DEFAULT_STATES)}
-    collapsed: list[tuple[int, int]] = []
-    for row in selected_frames:
-        if not collapsed or collapsed[-1][1] != row["state"]:
-            collapsed.append((row["frame"], row["state"]))
-    for (_previous_frame, previous), (frame, current) in pairwise(collapsed):
-        if previous in state_index and current in state_index:
-            expected_next = DEFAULT_STATES[(state_index[previous] + 1) % len(DEFAULT_STATES)]
-            if current != expected_next:
-                fixture.fail(
-                    "state_order",
-                    f"C87E jumped 0x{previous:04X}->0x{current:04X} at frame {frame}; "
-                    f"expected 0x{expected_next:04X}",
-                )
-                break
     full_window_count = len(selected_frames) // thresholds.window_frames
     chunks = [
         selected_frames[offset : offset + thresholds.window_frames]
@@ -804,25 +993,101 @@ def validate_active_epoch(
         else "aligned-full-windows"
     )
     fixture.metrics["state_windows_checked"] = len(chunks)
+
+    state_events = [
+        row
+        for row in write_trace.rows
+        if (row["target_addr"], row["target_size"]) == WRITE_TARGET_STATE
+        and WARMUP_FRAMES <= row["frame"] < active_end
+    ]
+    state_signatures = [
+        (row["pc"], row["old_value"], row["new_value"])
+        for row in state_events
+    ]
+    invalid_state_events = [
+        row
+        for row, signature in zip(state_events, state_signatures, strict=True)
+        if row["access_addr"] != WRITE_TARGET_STATE[0]
+        or row["access_size"] != WRITE_TARGET_STATE[1]
+        or signature not in STATE_WRITE_CYCLE
+    ]
+    if invalid_state_events:
+        row = invalid_state_events[0]
+        fixture.fail(
+            "state_write_unknown",
+            f"unreviewed C87E write at frame {row['frame']}: PC 0x{row['pc']:08X}, "
+            f"access 0x{row['access_addr']:06X}:{row['access_size']}, "
+            f"0x{row['old_value']:04X}->0x{row['new_value']:04X}",
+        )
+    elif not state_events:
+        fixture.fail("state_write_missing", "active epoch has no exact C87E writes")
+    else:
+        cycle_indices = [STATE_WRITE_CYCLE.index(signature) for signature in state_signatures]
+        for position, (previous, current) in enumerate(pairwise(cycle_indices), 1):
+            if current != (previous + 1) % len(STATE_WRITE_CYCLE):
+                row = state_events[position]
+                fixture.fail(
+                    "state_write_order",
+                    f"exact C87E cycle reordered at frame {row['frame']}",
+                )
+                break
+        state_frames = [row["frame"] for row in state_events]
+        state_gaps = [state_frames[0] - WARMUP_FRAMES]
+        state_gaps.extend(right - left for left, right in pairwise(state_frames))
+        state_gaps.append((active_end - 1) - state_frames[-1])
+        max_state_gap = max(state_gaps)
+        fixture.metrics["max_state_write_gap"] = max_state_gap
+        if max_state_gap > thresholds.max_state_stall:
+            fixture.fail(
+                "state_write_stall",
+                f"exact C87E writes stalled for {max_state_gap} frames "
+                f"(limit {thresholds.max_state_stall})",
+            )
+    fixture.metrics["state_write_events"] = len(state_events)
+    fixture.metrics["master_completion_witnesses"] = sum(
+        signature == STATE_WRITE_CYCLE[-1] for signature in state_signatures
+    )
     for chunk in chunks:
-        missing = expected_state_set - {row["state"] for row in chunk}
+        lo, hi = chunk[0]["frame"], chunk[-1]["frame"]
+        observed = {
+            signature
+            for row, signature in zip(state_events, state_signatures, strict=True)
+            if lo <= row["frame"] <= hi
+        }
+        missing = set(STATE_WRITE_CYCLE) - observed
         if missing:
             fixture.fail(
-                "state_window",
-                f"C87E missed {', '.join(f'0x{value:04X}' for value in sorted(missing))} "
-                f"during frames {chunk[0]['frame']}-{chunk[-1]['frame']}",
+                "state_write_window",
+                f"exact C87E cycle was incomplete during frames {lo}-{hi}",
             )
     if len(exact_tail) >= len(DEFAULT_STATES):
-        missing = expected_state_set - {row["state"] for row in exact_tail}
+        lo, hi = exact_tail[0]["frame"], exact_tail[-1]["frame"]
+        observed = {
+            signature
+            for row, signature in zip(state_events, state_signatures, strict=True)
+            if lo <= row["frame"] <= hi
+        }
+        missing = set(STATE_WRITE_CYCLE) - observed
         if missing:
             fixture.fail(
-                "state_tail",
-                "substantial final partial window missed states: "
-                + ", ".join(f"0x{value:04X}" for value in sorted(missing)),
+                "state_write_tail",
+                "substantial final partial window missed an exact C87E cycle transition",
             )
 
-    if caller.pc_enabled != 1:
-        fixture.fail("caller_trace_disabled", "caller trace does not report pc_enabled=1")
+    if (
+        caller.version != CALLER_TRACE_VERSION
+        or caller.addr != DEFAULT_HOOK_ADDRESS
+        or caller.sh2_drc != 1
+        or caller.profile_pc != 0
+        or caller.profile_pc_env != 0
+        or caller.m68k_batching != "normal"
+        or caller.instruction_start_hook != 1
+        or caller.composed != 1
+    ):
+        fixture.fail(
+            "caller_trace_mode",
+            "caller trace must attest reviewed DRC/no-PC normal-batching composed-hook mode",
+        )
     if caller.max_hits != 0:
         fixture.fail("caller_trace_capped", "caller trace must be unlimited")
     if caller.complete_frames != total_frames:
@@ -834,6 +1099,7 @@ def validate_active_epoch(
         caller.total_hits is None
         or caller.logged_hits is None
         or caller.dropped_hits != 0
+        or caller.errors != 0
         or caller.total_hits != caller.logged_hits
         or caller.logged_hits != len(caller.rows)
     ):
@@ -854,7 +1120,15 @@ def validate_active_epoch(
     hook_rows = [
         row for row in caller.rows if first_frame <= row["frame"] <= last_frame
     ]
-    bad_returns = [row for row in hook_rows if row["return_addr"] != DEFAULT_HOOK_RETURN]
+    bad_pcs = [row for row in caller.rows if row["pc"] != DEFAULT_HOOK_ADDRESS]
+    if bad_pcs:
+        fixture.fail(
+            "wrong_hook_pc",
+            f"caller row used PC 0x{bad_pcs[0]['pc']:08X} at frame {bad_pcs[0]['frame']}",
+        )
+    bad_returns = [
+        row for row in caller.rows if row["return_addr"] != DEFAULT_HOOK_RETURN
+    ]
     if bad_returns:
         fixture.fail(
             "wrong_hook_caller",
@@ -909,8 +1183,9 @@ def validate_active_epoch(
             f"{exact_tail[0]['frame']}-{exact_tail[-1]['frame']}",
         )
 
+    comm0_run = longest_nonzero_run([row[WATCH_COMM0_HI] for row in selected_watches])
+    fixture.metrics["max_comm0_sampled_nonzero_run"] = comm0_run
     comm_columns = (
-        ("comm0_busy", WATCH_COMM0_HI),
         ("comm2_busy", WATCH_COMM2_HI),
         ("comm7_stuck", WATCH_COMM7),
     )
@@ -927,22 +1202,32 @@ def validate_active_epoch(
         1 for row in selected_watches if row[WATCH_COMM1_LO] & 1
     )
 
-    for name, column in (("master", "msh2_useful"), ("slave", "ssh2_useful")):
-        for chunk in chunks:
-            if not any(row[column] > 0 for row in chunk):
-                fixture.fail(
-                    f"{name}_sh2_no_useful_work",
-                    f"{name.title()} SH2 did no useful work during "
-                    f"frames {chunk[0]['frame']}-{chunk[-1]['frame']}",
-                )
-        if len(exact_tail) >= len(DEFAULT_STATES) and not any(
-            row[column] > 0 for row in exact_tail
-        ):
+    for chunk in chunks:
+        if not any(row["msh2_cycles"] > 0 for row in chunk):
             fixture.fail(
-                f"{name}_sh2_no_tail_work",
-                f"{name.title()} SH2 did no useful work in substantial final tail "
-                f"{exact_tail[0]['frame']}-{exact_tail[-1]['frame']}",
+                "master_sh2_no_executed_cycles",
+                f"Master SH2 executed zero cycles during "
+                f"frames {chunk[0]['frame']}-{chunk[-1]['frame']}",
             )
+    if len(exact_tail) >= len(DEFAULT_STATES) and not any(
+        row["msh2_cycles"] > 0 for row in exact_tail
+    ):
+        fixture.fail(
+            "master_sh2_no_tail_cycles",
+            "Master SH2 executed zero cycles in substantial final tail "
+            f"{exact_tail[0]['frame']}-{exact_tail[-1]['frame']}",
+        )
+
+    first_zero_slave_frame = next(
+        (row["frame"] for row in selected_frames if row["ssh2_cycles"] <= 0),
+        None,
+    )
+    if first_zero_slave_frame is not None:
+        fixture.fail(
+            "slave_sh2_no_executed_cycles",
+            f"Slave SH2 executed zero cycles at frame {first_zero_slave_frame}; "
+            "every active frame must be nonzero",
+        )
 
 
 def analyze_fixture(
@@ -1096,8 +1381,7 @@ def analyze_fixture(
         frame_rows = convert_rows(
             load_csv(artifact_dir / "frames.csv"),
             {
-                "frame", "msh2_cycles", "ssh2_cycles", "msh2_useful", "ssh2_useful",
-                "fb_crc", "scene", "state", "is_32x",
+                "frame", "msh2_cycles", "ssh2_cycles", "fb_crc", "scene", "state", "is_32x",
             },
         )
         watch_rows = convert_rows(
@@ -1108,7 +1392,7 @@ def analyze_fixture(
                 WATCH_LAP_EF07, WATCH_LAP_FEB7, WATCH_LAP_FDA8,
             },
         )
-        caller = load_caller_trace(artifact_dir / "caller.csv")
+        caller = load_lifecycle_caller_trace(artifact_dir / "caller.csv")
         write_trace = load_write_trace(artifact_dir / "write.csv")
     except (OSError, ValueError, csv.Error, json.JSONDecodeError) as error:
         fixture.fail("artifact_parse", str(error))
@@ -1151,6 +1435,7 @@ def analyze_fixture(
             frame_rows,
             watch_rows,
             caller,
+            write_trace,
             active_end=boundary,
             scene_frame=scene_frame,
             total_frames=total_frames,
@@ -1313,8 +1598,6 @@ def run_lifecycle_capture(
         {
             "VRD_PROFILE_LOG": str((output_dir / "frames.csv").resolve()),
             "VRD_PROFILE_FRAMES": str(total_frames),
-            "VRD_PROFILE_PC": "1",
-            "VRD_PROFILE_PC_LOG": str((output_dir / "pc.csv").resolve()),
             "VRD_FB_CRC": "1",
             "VRD_SCENE_ADDR": "0xFFC87E",
             "VRD_WATCH": LIFECYCLE_WATCH_SPEC,

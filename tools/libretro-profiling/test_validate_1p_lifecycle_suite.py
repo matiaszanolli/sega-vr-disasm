@@ -21,6 +21,7 @@ from validate_1p_control import (
     CANONICAL_CORE_SHA256,
     CANONICAL_FRONTEND,
     CANONICAL_FRONTEND_SHA256,
+    DEFAULT_HOOK_ADDRESS,
     DEFAULT_HOOK_RETURN,
     DEFAULT_MANIFEST,
     DEFAULT_SCENE_POINTER,
@@ -37,6 +38,7 @@ from validate_1p_lifecycle_suite import (
     RESULTS_SCENE_POINTER,
     RESULTS_SCENE_WRITER_PC,
     SCHEMA_VERSION,
+    STATE_WRITE_CYCLE,
     TIMEOUT_DISPLAY_SEQUENCE,
     TIMEOUT_DISPLAY_WRITE_SIGNATURE,
     TIMEOUT_ENTRY_PC,
@@ -45,6 +47,7 @@ from validate_1p_lifecycle_suite import (
     analyze_suite,
     capture_fixture,
     expected_run_provenance,
+    load_lifecycle_caller_trace,
     load_write_trace,
     run_lifecycle_capture,
 )
@@ -159,17 +162,29 @@ class LifecycleSuiteTests(unittest.TestCase):
         hook_frames = list(range(2, total_frames, 4))
         with (artifact_dir / "caller.csv").open("w") as stream:
             stream.write(
-                "# VRD_CALLER_TRACE addr=0x884D1A pc_enabled=1 max_hits=0\n"
+                f"# VRD_CALLER_TRACE version=2 addr=0x{DEFAULT_HOOK_ADDRESS:08X} "
+                "sh2_drc=1 profile_pc=0 profile_pc_env=0 m68k_batching=normal "
+                "instruction_start_hook=1 composed=1 max_hits=0\n"
             )
-            stream.write("frame,sp,return_addr\n")
+            stream.write("frame,pc,sp,return_addr\n")
             for frame in hook_frames:
-                stream.write(f"{frame},0xFFF000,0x{DEFAULT_HOOK_RETURN:X}\n")
+                stream.write(
+                    f"{frame},0x{DEFAULT_HOOK_ADDRESS:08X},0xFFF000,"
+                    f"0x{DEFAULT_HOOK_RETURN:X}\n"
+                )
             stream.write(
                 f"# COMPLETE frames={total_frames} hits={len(hook_frames)} "
-                f"logged={len(hook_frames)} dropped=0\n"
+                f"logged={len(hook_frames)} dropped=0 errors=0\n"
             )
 
-        write_rows: list[str] = []
+        write_rows = [
+            (
+                f"{frame},0x{pc:08X},0xFFC87E,2,0xFFC87E,2,"
+                f"0x{previous:04X},0x{new_value:04X}"
+            )
+            for frame in range(boundary)
+            for pc, previous, new_value in (STATE_WRITE_CYCLE[frame % len(STATE_WRITE_CYCLE)],)
+        ]
         for offset, (pc, previous, new_value) in enumerate(
             TIMEOUT_DISPLAY_WRITE_SIGNATURE
         ):
@@ -185,7 +200,10 @@ class LifecycleSuiteTests(unittest.TestCase):
         )
         with (artifact_dir / "write.csv").open("w") as stream:
             stream.write(
-                "# VRD_WRITE_TRACE version=2 instruction_start_hook=1 targets=3\n"
+                "# VRD_WRITE_TRACE version=3 sh2_drc=1 profile_pc=0 "
+                "profile_pc_env=0 m68k_batching=normal instruction_start_hook=1 "
+                f"composed=1 caller_addr=0x{DEFAULT_HOOK_ADDRESS:08X} "
+                "caller_max=0 targets=3\n"
                 "# TARGET index=0 addr=0xFFC87E size=2\n"
                 "# TARGET index=1 addr=0xFFC07C size=2\n"
                 "# TARGET index=2 addr=0xFF0002 size=4\n"
@@ -195,7 +213,6 @@ class LifecycleSuiteTests(unittest.TestCase):
             stream.write(
                 f"# COMPLETE frames={total_frames} events={len(write_rows)} errors=0\n"
             )
-        (artifact_dir / "pc.csv").write_text("pc,count\n0x884CBC,1\n")
         (artifact_dir / "frontend.log").write_text("synthetic reviewed capture\n")
 
         run = expected_run_provenance(
@@ -219,7 +236,7 @@ class LifecycleSuiteTests(unittest.TestCase):
             name: sha256_file(artifact_dir / name)
             for name in (
                 "run.json", "frames.csv", "watch.csv", "caller.csv",
-                "write.csv", "pc.csv", "frontend.log",
+                "write.csv", "frontend.log",
             )
         }
         return {
@@ -301,8 +318,66 @@ class LifecycleSuiteTests(unittest.TestCase):
         artifact = Path(fixture["artifact_dir"]) / name
         fixture["artifacts"][name] = sha256_file(artifact)
 
+    def insert_scene_write(
+        self,
+        manifest: dict[str, object],
+        fixture_index: int,
+        row: str,
+        *,
+        after_terminal: bool = False,
+    ) -> None:
+        fixture = manifest["fixtures"][fixture_index]
+        write_path = Path(fixture["artifact_dir"]) / "write.csv"
+        lines = write_path.read_text().splitlines()
+        terminal_index = next(
+            index
+            for index, line in enumerate(lines)
+            if f",0x{RESULTS_SCENE_WRITER_PC:08X},0xFF0002,4," in line
+        )
+        lines.insert(terminal_index + int(after_terminal), row)
+        complete = lines[-1].split()
+        event_field = next(
+            index for index, field in enumerate(complete) if field.startswith("events=")
+        )
+        event_count = int(complete[event_field].removeprefix("events=")) + 1
+        complete[event_field] = f"events={event_count}"
+        lines[-1] = " ".join(complete)
+        write_path.write_text("\n".join(lines) + "\n")
+        self.refresh_artifact_hash(manifest, fixture_index, "write.csv")
+
+    def rewrite_write_rows(
+        self,
+        manifest: dict[str, object],
+        fixture_index: int,
+        transform,
+    ) -> None:
+        fixture = manifest["fixtures"][fixture_index]
+        write_path = Path(fixture["artifact_dir"]) / "write.csv"
+        lines = write_path.read_text().splitlines()
+        prefix = lines[:5]
+        rows = lines[5:-1]
+        rewritten = transform(rows)
+        footer = lines[-1].split()
+        event_field = next(
+            index for index, field in enumerate(footer) if field.startswith("events=")
+        )
+        footer[event_field] = f"events={len(rewritten)}"
+        write_path.write_text("\n".join([*prefix, *rewritten, " ".join(footer)]) + "\n")
+        self.refresh_artifact_hash(manifest, fixture_index, "write.csv")
+
     def fixture_codes(self, report, index: int) -> set[str]:
         return {finding.code for finding in report.fixtures[index].findings}
+
+    def rewrite_caller(
+        self,
+        manifest: dict[str, object],
+        fixture_index: int,
+        transform,
+    ) -> None:
+        fixture = manifest["fixtures"][fixture_index]
+        caller_path = Path(fixture["artifact_dir"]) / "caller.csv"
+        caller_path.write_text(transform(caller_path.read_text()))
+        self.refresh_artifact_hash(manifest, fixture_index, "caller.csv")
 
     def test_valid_aggregate_passes_and_checks_one_frame_tail(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -320,26 +395,37 @@ class LifecycleSuiteTests(unittest.TestCase):
                 )
             )
 
+    def test_json_schema_matches_v2_policy_and_no_pc_artifact(self) -> None:
+        schema_path = (
+            Path(__file__).resolve().parent / "vr60_lifecycle_suite.schema.json"
+        )
+        schema = json.loads(schema_path.read_text())
+        self.assertEqual(schema["properties"]["schema"]["const"], SCHEMA_VERSION)
+        self.assertEqual(schema["properties"]["policy_id"]["const"], POLICY_ID)
+        artifacts = schema["$defs"]["artifacts"]
+        self.assertNotIn("pc.csv", artifacts["required"])
+        self.assertNotIn("pc.csv", artifacts["properties"])
+
     def test_bad_window_splice_cannot_be_averaged_away(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             manifest_path, manifest = self.write_suite(Path(temp))
-            frames_path = Path(manifest["fixtures"][0]["artifact_dir"]) / "frames.csv"
-            with frames_path.open(newline="") as stream:
-                rows = list(csv.DictReader(stream))
-                fieldnames = list(rows[0])
-            for row in rows:
-                if 900 <= int(row["frame"]) < 1100:
-                    row["state"] = "0x0"
-            with frames_path.open("w", newline="") as stream:
-                writer = csv.DictWriter(stream, fieldnames=fieldnames)
-                writer.writeheader()
-                writer.writerows(rows)
-            self.refresh_artifact_hash(manifest, 0, "frames.csv")
+            self.rewrite_write_rows(
+                manifest,
+                0,
+                lambda rows: [
+                    row
+                    for row in rows
+                    if not (
+                        row.split(",")[2] == "0xFFC87E"
+                        and 900 <= int(row.split(",")[0]) < 1100
+                    )
+                ],
+            )
             self.rewrite_manifest(manifest_path, manifest)
             report = analyze_suite(manifest_path)
             self.assertFalse(report.passed)
             self.assertTrue(
-                {"state_stall", "state_window"} & self.fixture_codes(report, 0),
+                {"state_write_stall", "state_write_window"} & self.fixture_codes(report, 0),
                 report.to_json(),
             )
             self.assertEqual(report.metrics["eligible_distinct_lifecycles"], 4)
@@ -372,6 +458,53 @@ class LifecycleSuiteTests(unittest.TestCase):
                 )
             )
             self.refresh_artifact_hash(manifest, 0, "write.csv")
+            self.rewrite_manifest(manifest_path, manifest)
+            report = analyze_suite(manifest_path)
+            self.assertIn("terminal_scene_signature", self.fixture_codes(report, 0))
+
+    def test_same_value_scene_write_before_exit_is_allowed(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            manifest_path, manifest = self.write_suite(Path(temp))
+            fixture = manifest["fixtures"][0]
+            frame = fixture["expected_results_scene_frame"] - 1
+            self.insert_scene_write(
+                manifest,
+                0,
+                f"{frame},0x001234,0xFF0002,4,0xFF0002,4,"
+                f"0x{DEFAULT_SCENE_POINTER:08X},0x{DEFAULT_SCENE_POINTER:08X}",
+            )
+            self.rewrite_manifest(manifest_path, manifest)
+            report = analyze_suite(manifest_path)
+            self.assertTrue(report.fixtures[0].passed, report.to_json())
+
+    def test_different_scene_transition_before_exit_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            manifest_path, manifest = self.write_suite(Path(temp))
+            fixture = manifest["fixtures"][0]
+            frame = fixture["expected_results_scene_frame"] - 1
+            self.insert_scene_write(
+                manifest,
+                0,
+                f"{frame},0x001234,0xFF0002,4,0xFF0002,4,"
+                f"0x{DEFAULT_SCENE_POINTER:08X},0x00890000",
+            )
+            self.rewrite_manifest(manifest_path, manifest)
+            report = analyze_suite(manifest_path)
+            self.assertIn("preterminal_scene_transition", self.fixture_codes(report, 0))
+
+    def test_duplicate_reviewed_scene_transition_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            manifest_path, manifest = self.write_suite(Path(temp))
+            fixture = manifest["fixtures"][0]
+            frame = fixture["expected_results_scene_frame"]
+            self.insert_scene_write(
+                manifest,
+                0,
+                f"{frame},0x{RESULTS_SCENE_WRITER_PC:08X},0xFF0002,4,"
+                f"0xFF0002,4,0x{DEFAULT_SCENE_POINTER:08X},"
+                f"0x{RESULTS_SCENE_POINTER:08X}",
+                after_terminal=True,
+            )
             self.rewrite_manifest(manifest_path, manifest)
             report = analyze_suite(manifest_path)
             self.assertIn("terminal_scene_signature", self.fixture_codes(report, 0))
@@ -431,6 +564,320 @@ class LifecycleSuiteTests(unittest.TestCase):
                     with self.assertRaises(ValueError):
                         load_write_trace(trace)
 
+    def test_caller_parser_rejects_malformed_duplicate_reordered_incomplete_and_trailing(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            _manifest_path, manifest = self.write_suite(root, fixture_count=1)
+            source = Path(manifest["fixtures"][0]["artifact_dir"]) / "caller.csv"
+            lines = source.read_text().splitlines()
+            variants = {
+                "malformed": [*lines[:2], "2,0x884D1A", *lines[3:]],
+                "duplicate_init": [lines[0], *lines],
+                "duplicate_header": [*lines[:2], lines[1], *lines[2:]],
+                "reordered_rows": [*lines[:2], lines[3], lines[2], *lines[4:]],
+                "incomplete": lines[:-1],
+                "incomplete_footer": [
+                    *lines[:-1],
+                    "# INCOMPLETE frames=10 hits=2 logged=2 dropped=0 errors=0 reason=core_deinit",
+                ],
+                "trailing": [*lines, lines[2]],
+                "duplicate_footer": [*lines, lines[-1]],
+            }
+            for name, variant in variants.items():
+                with self.subTest(name=name):
+                    trace = root / f"caller-{name}.csv"
+                    trace.write_text("\n".join(variant) + "\n")
+                    with self.assertRaises(ValueError):
+                        load_lifecycle_caller_trace(trace)
+
+    def test_caller_requires_exact_return_and_zero_drops(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            manifest_path, manifest = self.write_suite(Path(temp))
+            self.rewrite_caller(
+                manifest,
+                0,
+                lambda text: text.replace(
+                    f"0x{DEFAULT_HOOK_RETURN:X}",
+                    f"0x{DEFAULT_HOOK_RETURN + 2:X}",
+                ).replace("dropped=0 errors=0", "dropped=1 errors=0"),
+            )
+            self.rewrite_manifest(manifest_path, manifest)
+            report = analyze_suite(manifest_path)
+            codes = self.fixture_codes(report, 0)
+            self.assertIn("wrong_hook_caller", codes)
+            self.assertIn("caller_trace_incomplete", codes)
+
+    def test_composed_hook_requires_exact_caller_and_write_pcs(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            manifest_path, manifest = self.write_suite(Path(temp))
+            self.rewrite_caller(
+                manifest,
+                0,
+                lambda text: text.replace(
+                    f"{WARMUP_FRAMES + 2},0x{DEFAULT_HOOK_ADDRESS:08X}",
+                    f"{WARMUP_FRAMES + 2},0x{DEFAULT_HOOK_ADDRESS + 2:08X}",
+                ),
+            )
+            self.rewrite_write_rows(
+                manifest,
+                0,
+                lambda rows: [
+                    (
+                        row.replace("0x00884CF2", "0x00884CF4")
+                        if row.startswith(f"{WARMUP_FRAMES},")
+                        else row
+                    )
+                    for row in rows
+                ],
+            )
+            self.rewrite_manifest(manifest_path, manifest)
+            report = analyze_suite(manifest_path)
+            codes = self.fixture_codes(report, 0)
+            self.assertIn("wrong_hook_pc", codes)
+            self.assertIn("state_write_unknown", codes)
+
+    def test_caller_pc_and_return_are_exact_before_warmup(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            manifest_path, manifest = self.write_suite(Path(temp))
+            self.rewrite_caller(
+                manifest,
+                0,
+                lambda text: text.replace(
+                    (
+                        f"2,0x{DEFAULT_HOOK_ADDRESS:08X},0xFFF000,"
+                        f"0x{DEFAULT_HOOK_RETURN:X}"
+                    ),
+                    (
+                        f"2,0x{DEFAULT_HOOK_ADDRESS + 2:08X},0xFFF000,"
+                        f"0x{DEFAULT_HOOK_RETURN + 2:X}"
+                    ),
+                ),
+            )
+            self.rewrite_manifest(manifest_path, manifest)
+            report = analyze_suite(manifest_path)
+            codes = self.fixture_codes(report, 0)
+            self.assertIn("wrong_hook_pc", codes)
+            self.assertIn("wrong_hook_caller", codes)
+
+    def test_caller_capped_and_mode_mismatch_fail(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            manifest_path, manifest = self.write_suite(Path(temp))
+            self.rewrite_caller(
+                manifest,
+                0,
+                lambda text: text.replace(
+                    "sh2_drc=1 profile_pc=0 profile_pc_env=0 "
+                    "m68k_batching=normal instruction_start_hook=1 composed=1 max_hits=0",
+                    "sh2_drc=0 profile_pc=1 profile_pc_env=1 "
+                    "m68k_batching=chunked instruction_start_hook=1 composed=1 max_hits=8",
+                ),
+            )
+            self.rewrite_manifest(manifest_path, manifest)
+            report = analyze_suite(manifest_path)
+            codes = self.fixture_codes(report, 0)
+            self.assertIn("caller_trace_mode", codes)
+            self.assertIn("caller_trace_capped", codes)
+
+    def test_write_trace_mode_tamper_drc0_pc1_and_chunked_fail(self) -> None:
+        replacements = {
+            "drc0": ("sh2_drc=1", "sh2_drc=0"),
+            "pc1": ("profile_pc=0", "profile_pc=1"),
+            "pc_env": ("profile_pc_env=0", "profile_pc_env=1"),
+            "chunked": ("m68k_batching=normal", "m68k_batching=chunked"),
+            "not_composed": ("composed=1", "composed=0"),
+        }
+        for name, (old, new) in replacements.items():
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as temp:
+                manifest_path, manifest = self.write_suite(Path(temp))
+                write_path = Path(manifest["fixtures"][0]["artifact_dir"]) / "write.csv"
+                write_path.write_text(write_path.read_text().replace(old, new, 1))
+                self.refresh_artifact_hash(manifest, 0, "write.csv")
+                self.rewrite_manifest(manifest_path, manifest)
+                report = analyze_suite(manifest_path)
+                self.assertIn("write_trace_mode", self.fixture_codes(report, 0))
+
+    def test_run_provenance_mode_tamper_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            manifest_path, manifest = self.write_suite(Path(temp))
+            run_path = Path(manifest["fixtures"][0]["artifact_dir"]) / "run.json"
+            run = json.loads(run_path.read_text())
+            run["sh2_drc"] = 0
+            run["profile_pc"] = 1
+            run["profile_pc_env_present"] = 1
+            run["m68k_batching"] = "chunked"
+            run_path.write_text(json.dumps(run, indent=2) + "\n")
+            self.refresh_artifact_hash(manifest, 0, "run.json")
+            self.rewrite_manifest(manifest_path, manifest)
+            report = analyze_suite(manifest_path)
+            self.assertIn("run_provenance_mismatch", self.fixture_codes(report, 0))
+
+    def test_zero_master_and_slave_executed_cycles_fail(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            manifest_path, manifest = self.write_suite(Path(temp))
+            frames_path = Path(manifest["fixtures"][0]["artifact_dir"]) / "frames.csv"
+            with frames_path.open(newline="") as stream:
+                rows = list(csv.DictReader(stream))
+                fieldnames = list(rows[0])
+            for row in rows:
+                if WARMUP_FRAMES <= int(row["frame"]) < WARMUP_FRAMES + 180:
+                    row["msh2_cycles"] = "0"
+                    row["ssh2_cycles"] = "0"
+            with frames_path.open("w", newline="") as stream:
+                writer = csv.DictWriter(stream, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerows(rows)
+            self.refresh_artifact_hash(manifest, 0, "frames.csv")
+            self.rewrite_manifest(manifest_path, manifest)
+            report = analyze_suite(manifest_path)
+            codes = self.fixture_codes(report, 0)
+            self.assertIn("master_sh2_no_executed_cycles", codes)
+            self.assertIn("slave_sh2_no_executed_cycles", codes)
+
+    def test_isolated_master_zero_with_continuing_state_cycle_passes(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            manifest_path, manifest = self.write_suite(Path(temp))
+            frames_path = Path(manifest["fixtures"][0]["artifact_dir"]) / "frames.csv"
+            with frames_path.open(newline="") as stream:
+                rows = list(csv.DictReader(stream))
+                fieldnames = list(rows[0])
+            master_idle_frame = WARMUP_FRAMES + 2
+            for row in rows:
+                if int(row["frame"]) == master_idle_frame:
+                    row["msh2_cycles"] = "0"
+            with frames_path.open("w", newline="") as stream:
+                writer = csv.DictWriter(stream, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerows(rows)
+            self.refresh_artifact_hash(manifest, 0, "frames.csv")
+            self.rewrite_manifest(manifest_path, manifest)
+            report = analyze_suite(manifest_path)
+            self.assertTrue(report.passed, report.to_json())
+
+    def test_single_zero_slave_executed_cycle_frame_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            manifest_path, manifest = self.write_suite(Path(temp))
+            frames_path = Path(manifest["fixtures"][0]["artifact_dir"]) / "frames.csv"
+            with frames_path.open(newline="") as stream:
+                rows = list(csv.DictReader(stream))
+                fieldnames = list(rows[0])
+            bad_frame = WARMUP_FRAMES + 90
+            for row in rows:
+                if int(row["frame"]) == bad_frame:
+                    row["ssh2_cycles"] = "0"
+            with frames_path.open("w", newline="") as stream:
+                writer = csv.DictWriter(stream, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerows(rows)
+            self.refresh_artifact_hash(manifest, 0, "frames.csv")
+            self.rewrite_manifest(manifest_path, manifest)
+            report = analyze_suite(manifest_path)
+            codes = self.fixture_codes(report, 0)
+            self.assertIn("slave_sh2_no_executed_cycles", codes)
+            finding = next(
+                finding
+                for finding in report.fixtures[0].findings
+                if finding.code == "slave_sh2_no_executed_cycles"
+            )
+            self.assertEqual(
+                finding.message,
+                f"Slave SH2 executed zero cycles at frame {bad_frame}; "
+                "every active frame must be nonzero",
+            )
+
+    def test_missing_exact_master_completion_write_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            manifest_path, manifest = self.write_suite(Path(temp))
+            removed = False
+
+            def remove_one_completion(rows: list[str]) -> list[str]:
+                nonlocal removed
+                result = []
+                for row in rows:
+                    if (
+                        not removed
+                        and row.startswith(f"{WARMUP_FRAMES + 3},0x0089C414,")
+                    ):
+                        removed = True
+                        continue
+                    result.append(row)
+                return result
+
+            self.rewrite_write_rows(manifest, 0, remove_one_completion)
+            self.assertTrue(removed)
+            self.rewrite_manifest(manifest_path, manifest)
+            report = analyze_suite(manifest_path)
+            self.assertIn("state_write_order", self.fixture_codes(report, 0))
+
+    def test_master_zero_interval_with_state_cycle_stall_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            manifest_path, manifest = self.write_suite(Path(temp))
+            frames_path = Path(manifest["fixtures"][0]["artifact_dir"]) / "frames.csv"
+            with frames_path.open(newline="") as stream:
+                rows = list(csv.DictReader(stream))
+                fieldnames = list(rows[0])
+            stall_start = WARMUP_FRAMES + 40
+            stall_end = stall_start + 3 * len(STATE_WRITE_CYCLE)
+            for row in rows:
+                if stall_start <= int(row["frame"]) < stall_end:
+                    row["msh2_cycles"] = "0"
+            with frames_path.open("w", newline="") as stream:
+                writer = csv.DictWriter(stream, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerows(rows)
+            self.refresh_artifact_hash(manifest, 0, "frames.csv")
+            self.rewrite_write_rows(
+                manifest,
+                0,
+                lambda rows: [
+                    row
+                    for row in rows
+                    if not stall_start <= int(row.split(",", 1)[0]) < stall_end
+                ],
+            )
+            self.rewrite_manifest(manifest_path, manifest)
+            report = analyze_suite(manifest_path)
+            codes = self.fixture_codes(report, 0)
+            self.assertIn("state_write_stall", codes)
+            self.assertNotIn("master_sh2_no_executed_cycles", codes)
+
+    def test_state_cycle_missing_reordered_and_unknown_writes_fail(self) -> None:
+        transforms = {
+            "missing": lambda rows: [
+                row for row in rows if row.split(",")[2] != "0xFFC87E"
+            ],
+            "reordered": lambda rows: [
+                (
+                    row.replace(
+                        "0x00884D0C,0xFFC87E,2,0xFFC87E,2,0x0004,0x0008",
+                        "0x00884CF2,0xFFC87E,2,0xFFC87E,2,0x0000,0x0004",
+                    )
+                    if row.startswith(f"{WARMUP_FRAMES + 1},")
+                    else row
+                )
+                for row in rows
+            ],
+            "unknown": lambda rows: [
+                (
+                    row.replace("0x00884CF2", "0x00884CF4")
+                    if row.startswith(f"{WARMUP_FRAMES},")
+                    else row
+                )
+                for row in rows
+            ],
+        }
+        expected = {
+            "missing": "state_write_missing",
+            "reordered": "state_write_order",
+            "unknown": "state_write_unknown",
+        }
+        for name, transform in transforms.items():
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as temp:
+                manifest_path, manifest = self.write_suite(Path(temp))
+                self.rewrite_write_rows(manifest, 0, transform)
+                self.rewrite_manifest(manifest_path, manifest)
+                report = analyze_suite(manifest_path)
+                self.assertIn(expected[name], self.fixture_codes(report, 0), report.to_json())
+
     def test_insufficient_aggregate_coverage_fails(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             manifest_path, _manifest = self.write_suite(Path(temp), fixture_count=4)
@@ -454,7 +901,7 @@ class LifecycleSuiteTests(unittest.TestCase):
                 fieldnames = list(rows[0])
             for row in rows:
                 if active_end - 179 <= int(row["frame"]) < active_end:
-                    row["msh2_useful"] = "0"
+                    row["msh2_cycles"] = "0"
             with frames_path.open("w", newline="") as stream:
                 writer = csv.DictWriter(stream, fieldnames=fieldnames)
                 writer.writeheader()
@@ -462,7 +909,10 @@ class LifecycleSuiteTests(unittest.TestCase):
             self.refresh_artifact_hash(manifest, 0, "frames.csv")
             self.rewrite_manifest(manifest_path, manifest)
             report = analyze_suite(manifest_path)
-            self.assertIn("master_sh2_no_tail_work", self.fixture_codes(report, 0))
+            self.assertIn(
+                "master_sh2_no_tail_cycles",
+                self.fixture_codes(report, 0),
+            )
 
     def test_insufficient_lifecycle_count_is_independent(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -524,9 +974,12 @@ class LifecycleSuiteTests(unittest.TestCase):
             manifest_path, manifest = self.write_suite(Path(temp))
             write_path = Path(manifest["fixtures"][0]["artifact_dir"]) / "write.csv"
             lines = write_path.read_text().splitlines()
-            fields = lines[7].split(",")
+            row_index = next(
+                index for index, line in enumerate(lines) if ",0xFFC07C,2," in line
+            )
+            fields = lines[row_index].split(",")
             fields[6] = "0x0015"
-            lines[7] = ",".join(fields)
+            lines[row_index] = ",".join(fields)
             write_path.write_text("\n".join(lines) + "\n")
             self.refresh_artifact_hash(manifest, 0, "write.csv")
             self.rewrite_manifest(manifest_path, manifest)
@@ -538,10 +991,12 @@ class LifecycleSuiteTests(unittest.TestCase):
             manifest_path, manifest = self.write_suite(Path(temp))
             write_path = Path(manifest["fixtures"][0]["artifact_dir"]) / "write.csv"
             lines = write_path.read_text().splitlines()
-            first_data = 5
-            lines[first_data + 1], lines[first_data + 2] = (
-                lines[first_data + 2],
-                lines[first_data + 1],
+            c07c_rows = [
+                index for index, line in enumerate(lines) if ",0xFFC07C,2," in line
+            ]
+            lines[c07c_rows[1]], lines[c07c_rows[2]] = (
+                lines[c07c_rows[2]],
+                lines[c07c_rows[1]],
             )
             write_path.write_text("\n".join(lines) + "\n")
             self.refresh_artifact_hash(manifest, 0, "write.csv")
@@ -725,11 +1180,12 @@ class LifecycleSuiteTests(unittest.TestCase):
             self.assertEqual(environment["VRD_WRITE_TRACE"], WRITE_TRACE_SPEC)
             self.assertEqual(environment["VRD_CALLER_TRACE_MAX"], "0")
             self.assertNotIn("HOME", environment)
+            self.assertNotIn("VRD_PROFILE_PC", environment)
+            self.assertNotIn("VRD_PROFILE_PC_LOG", environment)
             self.assertEqual(
                 set(environment) - {"PATH"},
                 {
-                    "VRD_PROFILE_LOG", "VRD_PROFILE_FRAMES", "VRD_PROFILE_PC",
-                    "VRD_PROFILE_PC_LOG", "VRD_FB_CRC", "VRD_SCENE_ADDR",
+                    "VRD_PROFILE_LOG", "VRD_PROFILE_FRAMES", "VRD_FB_CRC", "VRD_SCENE_ADDR",
                     "VRD_WATCH", "VRD_WATCH_LOG", "VRD_CALLER_TRACE",
                     "VRD_CALLER_TRACE_LOG", "VRD_CALLER_TRACE_MAX",
                     "VRD_WRITE_TRACE", "VRD_WRITE_TRACE_LOG", "VRD_LOAD_STATE",

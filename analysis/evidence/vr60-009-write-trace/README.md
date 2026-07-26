@@ -62,8 +62,9 @@ The expanded `watch.csv` establishes the following sequence:
   counter `$C050` is `$004B`.
 - `$C050` reaches `$FFFF` at frame 4533. At frame 4534,
   `conditional_scroll_state_init` has reset it to zero, set `$C07C = $0014`, and changed
-  `$C30E` from `$10` to `$11`. `$886C38` is the unique static source write of `$0014` to
-  `$C07C`.
+  `$C30E` from `$10` to `$11`. Source/file offset `$006C38` is the unique static write of
+  `$0014` to `$C07C`, and the exact tracer reports runtime PC `$006C38` through the low
+  cartridge-ROM alias. Its corresponding high 68K mapping is `$00886C38`.
 - Lap-completion fields `$EF07`, `$FEB7`, and `$FDA8` remain zero. This excludes the lap-bit
   completion route and identifies deterministic timer expiry.
 - The display-state samples advance through `$C07C = $14` at frame 4534, `$18` at 4538,
@@ -192,9 +193,10 @@ tracer for that diagnosis, or define a sampling-safe state-liveness rule in a se
 
 The present savestate/replay is retired as an 18,360-frame control fixture because it
 deterministically reaches the timed-race results sequence. It remains valid for bounded diagnostics
-that end before the transition. VR60-010 must capture a new normal-1P fixture and deterministic
-input that remain in `$FF0002 = $00884CBC` for all 18,360 frames, then run the unchanged full
-validator. VR60-008 remains blocked by VR60-010.
+that end before the transition. The optional continuous VR60-010 route must capture a new
+normal-1P fixture and deterministic input that remain in `$FF0002 = $00884CBC` for all 18,360
+frames, then run the unchanged full validator. The continuous VR60-008 route remains blocked by
+VR60-010; VR60-011 later cleared the baseline with three accepted complete lifecycles.
 
 To verify the archive:
 

@@ -16,7 +16,7 @@ import unittest
 TOOL_DIR = Path(__file__).resolve().parent
 REPO_ROOT = TOOL_DIR.parents[1]
 DEFAULT_FRONTEND = TOOL_DIR / "profiling_frontend"
-DEFAULT_CORE = REPO_ROOT / "third_party" / "picodrive" / "picodrive_libretro.so"
+DEFAULT_CORE = TOOL_DIR / "picodrive_libretro.so"
 DEFAULT_ROM = REPO_ROOT / "build" / "vr60_control_bypass.32x"
 TRACE_SPEC = "0xFFC87E:2,0xFF0002:4"
 BYTE_EXERCISE_SPEC = f"{TRACE_SPEC},0xFFC822:1"
@@ -81,7 +81,14 @@ class WriteTraceIntegrationTests(unittest.TestCase):
             self.assertEqual(
                 lines[:5],
                 [
-                    "# VRD_WRITE_TRACE version=2 instruction_start_hook=1 targets=3",
+                    "".join(
+                        (
+                            "# VRD_WRITE_TRACE version=3 sh2_drc=1 profile_pc=0 ",
+                            "profile_pc_env=0 m68k_batching=normal ",
+                            "instruction_start_hook=1 composed=1 ",
+                            "caller_addr=0xFFFFFFFF caller_max=0 targets=3",
+                        )
+                    ),
                     "# TARGET index=0 addr=0xFFC87E size=2",
                     "# TARGET index=1 addr=0xFF0002 size=4",
                     "# TARGET index=2 addr=0xFFC822 size=1",

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://vrd.example.invalid/schemas/vr60-lifecycle-suite-v1.json",
+  "$id": "https://vrd.example.invalid/schemas/vr60-lifecycle-suite-v2.json",
   "title": "VR60-011 normal-1P lifecycle suite manifest",
   "type": "object",
   "additionalProperties": false,
@@ -16,10 +16,10 @@
   ],
   "properties": {
     "schema": {
-      "const": 1
+      "const": 2
     },
     "policy_id": {
-      "const": "VR60-011-lifecycle-suite-v1"
+      "const": "VR60-011-lifecycle-suite-v2"
     },
     "diagnostic": {
       "const": false
@@ -74,7 +74,6 @@
         "watch.csv",
         "caller.csv",
         "write.csv",
-        "pc.csv",
         "frontend.log"
       ],
       "properties": {
@@ -91,9 +90,6 @@
           "$ref": "#/$defs/sha256"
         },
         "write.csv": {
-          "$ref": "#/$defs/sha256"
-        },
-        "pc.csv": {
           "$ref": "#/$defs/sha256"
         },
         "frontend.log": {

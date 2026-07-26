@@ -34,20 +34,18 @@ This file is the short, current answer to “what works now?” Older roadmap en
 - `$0600C218` is not the descriptor block read by the per-frame cmd `$02` racing renderer. That renderer consumes the C128/C178/C254 descriptor families. The original 5F-1 bridge specification and its C218 probe conclusion are superseded.
 - The historical “40 FPS achieved / 60 FPS one blocker away” summary does not describe this branch's currently proven 1P state. Earlier interpolation and profiling results remain useful history, but they are not a current acceptance result.
 
-## Current milestone: restore a trustworthy baseline
+## Current milestone: trustworthy baseline established
 
-The [fail-closed validator](tools/libretro-profiling/VRD_PROFILING.md#normal-1p-control-validator),
-reviewed hook-bypass control pair, fresh normal-1P candidate fixture, and complete deterministic
-replay are now implemented, and the exact-prefix short preflight met every functional liveness
-criterion. The unchanged full 18,000-frame control then ran to completion but failed because this
-fixture deterministically reaches its timed-race finish and leaves the normal-1P scene. VR60-009's
-exact write trace proves that frame 4536 contains ordinary `$C87E` writes `$0000 -> $0004 ->
-$0008`; the apparent skip was an end-of-frame sampling alias. The independent display sequence
-then intentionally writes `$FF0002 = $0088FB98` at frame 5128. The milestone remains open because
-the fixture is bounded diagnostic evidence, not an 18,360-frame control. The old GP state remains
-blocked by SHA-256. Acceptance policy is fixed, and diagnostic/offline-analysis overrides always
-force a failing result. Normal runs also require a new output path and the reviewed frontend/core
-identities, so stale artifacts or arbitrary binaries cannot produce PASS.
+**VR60-011 passed on 2026-07-25.** The reviewed hook-bypass control completed three distinct,
+predeclared timed-race lifecycles under normal SH2 DRC execution. After the fixed 360-frame warmup,
+Big Forest, Bay Bridge, and Acropolis contributed 10,906, 9,263, and 10,968 active frames:
+31,137 aggregate frames, with a 10,968-frame longest span. Every exact state-write, caller,
+Master/Slave cycle, framebuffer, COMM2/COMM7, timeout, display-chain, and results-scene check
+passed independently. Two fresh replays per fixture produced byte-identical frame, watch, caller,
+and write traces. The passing raw evidence is archived at
+[analysis/evidence/vr60-011-lifecycle-suite](analysis/evidence/vr60-011-lifecycle-suite/README.md).
+The unchanged continuous VR60-010 route remains available as a stronger optional shape, but it is
+no longer the baseline blocker.
 
 **VR60-002 is complete:** the canonical libretro/PicoDrive frontend now has a real-ROM debugger
 whose CPU/game-memory inspection remains read-only. It advances frames, reads Master/Slave SH2
@@ -98,7 +96,7 @@ maximum non-zero runs 3/2/0, and useful work from both SH2s in every window. The
 frames with 539 hits and zero drops. Exit status was the required 1, with `short_control_window`
 as the only finding; this is a successful bounded preflight, not a control PASS.
 
-**VR60-008 remains blocked by VR60-010:** the unchanged control ROM, live reference, VR60-005
+**VR60-008's continuous route remains blocked by VR60-010:** the unchanged control ROM, live reference, VR60-005
 state, and complete VR60-006 replay ran with the fixed 360-frame warmup and all 18,000 validation
 frames, without a diagnostic, analysis, threshold, policy, or input override. The frontend and
 both traces completed, but the validator exited 1 with 300 findings. VR60-009 reclassified the
@@ -124,7 +122,7 @@ at PC `$8843D0` intentionally writes `$FF0002` `$00884CBC -> $0088FB98`. The com
 finish classification are preserved in
 [the VR60-009 evidence archive](analysis/evidence/vr60-009-write-trace/README.md).
 
-The continuous-control alternative remains **VR60-010**: replace the bounded timed-race fixture.
+The optional continuous-control alternative remains **VR60-010**: replace the bounded timed-race fixture.
 Capture a new
 normal-1P savestate and deterministic input with enough remaining race time, or an equivalent
 repeatable driving recipe, to remain in `$FF0002 = $00884CBC` for all 360 warmup plus 18,000
@@ -133,7 +131,7 @@ post-race output, or change policy/thresholds. End-of-frame state samples must n
 exact write chronology. Any sampling-safe validator-policy change, if needed, belongs in a
 separate later reviewed issue, not VR60-010, and must preserve fail-closed acceptance.
 
-**VR60-010 is in progress:** visual input capture now has a reviewed bridge into the canonical
+**VR60-010 is paused as an optional stronger control shape:** visual input capture has a reviewed bridge into the canonical
 headless frontend. `retroarch_replay_to_csv.py` accepts only the exact RetroArch 1.22.2 v2 event
 shape used by this capture path, rejects checkpoints/keyboard or ambiguous controller events,
 requires the requested frame count and exact EOF, verifies the replay's content CRC32 against the
@@ -165,15 +163,15 @@ bounded diagnostics only. A DRC-derived state at the same nominal frame was reje
 did not reproduce the validator's interpreter trajectory; fixture derivation must preserve the
 acceptance execution mode.
 
-No replacement artifact has been promoted or tracked, and VR60-008 remains blocked. VR60-010's
+No replacement artifact has been promoted or tracked. If the optional VR60-010 route resumes, its
 next step is a full 18,360-frame visual input capture from the exact interpreter-derived state,
 followed by conversion, byte-replay, and the unchanged full validator. The input must keep the
 timed race in normal 1P for all 100 validation windows. Any `RASTATE` wrapper used to load the
 derived state in RetroArch must extract to a `MEM ` payload byte-identical to
 `c6640c78…fd5216`.
 
-**VR60-011 now provides a separate lifecycle-aware control policy; it does not change
-VR60-010.** `validate_1p_lifecycle_suite.py` can capture fresh, complete timeout/results
+**VR60-011 provides the accepted lifecycle-aware control policy; it does not change
+VR60-010.** `validate_1p_lifecycle_suite.py` captures fresh, complete timeout/results
 lifecycles and aggregate only immutable raw artifacts described by
 `vr60_lifecycle_suite.schema.json`. A qualifying suite needs at least three distinct lifecycles,
 at least 1,800 active frames in each, at least one 3,960-frame contiguous active span, and at
@@ -181,30 +179,33 @@ least 18,000 aggregate active frames after the fixed 360-frame warmup. Every ali
 window, an overlapping final 180-frame window, and any substantial final partial tail are checked
 individually; a bad lifecycle contributes zero aggregate coverage.
 
-The counted active epoch ends at the predeclared first exact PC `$886C38` write of
+The counted active epoch ends at the predeclared first exact tracer PC `$006C38` write of
 `$C07C = $0014`, not at the later results-scene write. Complete lifecycle classification then
 requires predeclared terminal/results frames, `$C050 = $FFFF -> $0000`, zero lap-completion flags,
-and exact word-write tuples `$0000->$0014` at `$886C38`, then the `$14/$18/$1C/$20/$24/$28/$2C/$30`
+and exact word-write tuples `$0000->$0014` at `$006C38`, then the `$14/$18/$1C/$20/$24/$28/$2C/$30`
 chain at `$88427A/$8842CE/$884322/$884336/$884384/$884398/$8843CA`. The initial zero is
 confirmed by the archived VR60-009 watch samples at frames 4533/4534; `$C30E`, not `$C07C`,
-is the field that changes `$10->$11`. PC `$8843D0` must then install
+is the field that changes `$10->$11`. `$006C38` is the source/file offset and runtime PC through
+the low cartridge-ROM alias; its high 68K mapping is `$00886C38`. PC `$8843D0` must then install
 `$FF0002 = $0088FB98`. ROM, profiler tools, state, input, source capture, the exact
 `control_fixtures.json` identity/matched entry, run metadata, and every raw artifact are
 hash-pinned. Blacklisted states, duplicate identities, malformed/incomplete/extended traces,
 unknown writers, broken old/new chains, diagnostic mode, or self-asserted summaries fail closed.
-All 26 focused synthetic tests pass, and fresh Auditor review approved the harness after
-adversarial blacklist, trace-grammar, and terminal-writer checks. No
-reviewed real lifecycle-suite manifest exists yet, so VR60-011 has not produced an acceptance
-PASS and does not unblock VR60-008. VR60-010's unchanged continuous control remains open in
-parallel.
+All 43 focused lifecycle-policy tests pass; the 60-test combined validator/tracer set is green.
+The canonical core attests DRC enabled, PC profiling absent, normal 68K batching, one composed
+instruction hook, and uncapped caller capture. It validates exact `$C87E` write cycles instead of
+sampled state aliases. Slave executed cycles must be non-zero on every active frame. Master
+executed cycles must be non-zero in every reviewed window/tail; an isolated Master-zero frame is
+accepted only while the exact ordered cycle continues, because a completed Master can
+legitimately idle in PicoDrive's COMM poll state. Sampled COMM0 longest runs remain informational
+because `$000C->$0000` is the fresh Master completion witness.
 
-The current active work item is **VR60-011 evidence collection**: use the fresh-capture command
-with boundaries established by a prior diagnostic replay, review and pin each complete lifecycle,
-then build a distinct suite until all lifecycle-count, per-lifecycle, longest-span, aggregate, and
-exact-terminal-signature requirements pass. Either a reviewed VR60-011 PASS or the unchanged
-VR60-010/008 continuous PASS may clear the baseline blocker; neither exists yet.
+The current active work item is **cmd `$3E` mode-0 validation**. Re-run the accepted lifecycle
+suite with only player-entity transfer mode 0 enabled and compare it against the hook-bypass
+control before validating globals mode 1. Do not combine mode 0, mode 1, AI mode 2, or cmd `$3F`
+in one acceptance step.
 
-Do not enable another offload stage until a test fixture or deterministic input harness passes all of these checks with the VR60 hook bypassed:
+The archived VR60-011 suite satisfies this prerequisite with the VR60 hook bypassed:
 
 1. It enters the intended 1P scene (`$FF0002 = $00884CBC`).
 2. `$C87E` continues cycling through the expected state sequence for the entire measurement window, including multiple laps or an equivalently long stress run.

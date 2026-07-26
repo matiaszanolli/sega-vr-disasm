@@ -61,9 +61,9 @@ Do not call an FPS, CPU-budget, or regression result “current” until its con
 long-run control**: it eventually stops advancing `$C87E` even when the VR60 1P hook is
 physically bypassed. The former 724-unique-hash result and freeze attribution are retracted.
 The newer `vr60_control_bypass.mds` plus VR60-006 replay is also bounded-only: VR60-009 proves
-that its timed-race counter expires and it intentionally enters results at frame 5128. VR60-010
-must capture a state/input that remain in normal 1P for all 18,360 control frames before a new
-baseline can be published.
+that its timed-race counter expires and it intentionally enters results at frame 5128. A
+VR60-010 continuous PASS would still require a state/input that remain in normal 1P for all
+18,360 frames, but VR60-011 now supplies the accepted separate complete-lifecycle baseline.
 
 ## Normal-1P control validator
 
@@ -93,7 +93,7 @@ wrap, or weaken `validate_1p_control.py`. It has two explicit operations:
 ```bash
 python3 tools/libretro-profiling/validate_1p_lifecycle_suite.py capture \
   build/vr60_control_bypass.32x \
-  --reference-rom build/vr60_live_reference.32x \
+  --reference-rom build/vr_rebuild.32x \
   --savestate /path/to/lifecycle-start.mds \
   --input-script /path/to/full-input.csv \
   --source-capture /path/to/reviewed-source.replay \
@@ -111,7 +111,8 @@ python3 tools/libretro-profiling/validate_1p_lifecycle_suite.py validate \
 The capture command refuses an existing directory, uses only the canonical hash-pinned frontend
 and core, rejects any savestate marked `invalid_control` by the canonical
 `control_fixtures.json`, starts a sterile environment, and records exact
-frame/watch/PC/caller/write traces.
+frame/watch/caller/write traces. `VRD_PROFILE_PC` is absent: acceptance runs with SH2 DRC
+enabled and normal 68K batching.
 Both terminal frames must come from a prior diagnostic replay and be supplied before the capture;
 the acceptance run cannot discover and retroactively bless an early exit. It writes exact
 `run.json` provenance and a convenience `fixture-entry.json`. The latter is not an acceptance
@@ -136,21 +137,26 @@ The 3,960-frame floor is evidence-based: VR60-009 measured 4,174 countable activ
 the fixed 360-frame warmup and before the timeout display sequence. Aggregation is reported
 separately and must not be described as equivalent to one continuous 18,000-frame run.
 
-Each active epoch is checked with the existing state/hook/framebuffer/COMM/SH2 thresholds.
+Each active epoch is checked with exact state writes, exact hook rows, framebuffer/COMM liveness,
+and both SH2s' total executed cycles. Slave execution must be non-zero on every active frame.
+Master execution must be non-zero in every reviewed window and substantial tail; an isolated
+Master-zero frame is eligible only while the exact ordered state/completion cycle continues.
 Aligned 180-frame windows are checked independently; a final partial interval participates in
 an overlapping final 180-frame window, and a substantial partial tail receives its own liveness
 checks. One failed lifecycle contributes zero coverage, so no average can hide a bad window.
 
-Coverage ends at the first exact PC `$886C38` write of `$C07C = $0014`, after the 360-frame
-warmup. The `$14` through `$30` finish display and results scene contribute zero active frames.
+Coverage ends at the first exact tracer PC `$006C38` write of `$C07C = $0014`, after the
+360-frame warmup. `$006C38` is the source/file offset and runtime PC through the low
+cartridge-ROM alias; the corresponding high 68K mapping is `$00886C38`. The `$14` through `$30`
+finish display and results scene contribute zero active frames.
 The complete capture is eligible only when all of the following match the predeclared reviewed
 timeout route:
 
 - watch data shows `$C050 = $FFFF -> $0000`, while `$FFEF07`, `$FFFEB7`, and `$FFFDA8`
   remain zero;
-- the complete version-2 write trace contains exactly `$FFC87E:2`, `$FFC07C:2`, and
-  `$FF0002:4`, and the first terminal event is PC `$886C38` writing `$C07C = $0014`;
-- exact word-write PC/old/new tuples are `$886C38:$0000->$0014`,
+- the complete version-3 write trace contains exactly `$FFC87E:2`, `$FFC07C:2`, and
+  `$FF0002:4`, and the first terminal event is PC `$006C38` writing `$C07C = $0014`;
+- exact word-write PC/old/new tuples are `$006C38:$0000->$0014`,
   `$88427A:$0014->$0018`, `$8842CE:$0018->$001C`, `$884322:$001C->$0020`,
   `$884336:$0020->$0024`, `$884384:$0024->$0028`, `$884398:$0028->$002C`, and
   `$8843CA:$002C->$0030`, with corresponding post-frame watches. The initial zero is confirmed
@@ -163,11 +169,35 @@ target declarations `0/1/2` mapped to `$FFC87E/$FFC07C/$FF0002`, one exact CSV h
 records only, then one `COMPLETE` record as the final nonblank line. Duplicate, reordered,
 malformed, unknown, `INCOMPLETE`, or trailing records are rejected.
 
+Both trace headers and `run.json` must independently attest `sh2_drc=1`, `profile_pc=0`,
+`profile_pc_env=0`, `m68k_batching=normal`, one composed instruction-start hook, exact caller
+address `$00884D1A`, and unlimited capture. Caller version 2 has the exact closed grammar
+`frame,pc,sp,return_addr`, a final `COMPLETE` record, return `$00FF0006`, zero errors, and zero
+drops. The exact PC and return address are checked on every row, including pre-warmup rows.
+
+Every active window must contain the exact ordered `$C87E` cycle
+`$00884CF2:$0000->$0004`, `$00884D0C:$0004->$0008`,
+`$00884D6A:$0008->$000C`, and `$0089C414:$000C->$0000`, with no unknown active writes.
+The last transition is a fresh Master-completion witness because V-INT performs it only after
+observing and acknowledging COMM1 done. Slave total executed cycles must be non-zero on every
+active frame. Master total executed cycles must be non-zero somewhere in every reviewed window
+and substantial tail; this permits a completed Master to spend an isolated frame in PicoDrive's
+COMM-poll idle state only when the exact state cycle remains live. The sampled longest COMM0_HI
+non-zero run is reported only as an informational metric; COMM2/COMM7 retain their reviewed
+failure threshold.
+
 Missing/incomplete traces, an unknown writer or target, a broken old/new chain, a boundary
 mismatch, an early exit, extra policy fields, artifact mutation, or post-results coverage all
-fail closed. The 26-test focused artifact suite is
-`test_validate_1p_lifecycle_suite.py`. No reviewed real lifecycle manifest has passed yet;
-VR60-010's unchanged continuous control therefore remains open.
+fail closed. The 43-test focused artifact suite is
+`test_validate_1p_lifecycle_suite.py`; the combined lifecycle/control/tracer set has 60 passing
+tests.
+
+The reviewed v2 suite passed on Big Forest, Bay Bridge, and Acropolis with
+10,906/9,263/10,968 active frames, 31,137 aggregate active frames, and a 10,968-frame longest
+span. Two fresh runs per fixture produced byte-identical frame/watch/caller/write artifacts.
+Raw evidence is archived in
+`analysis/evidence/vr60-011-lifecycle-suite/`. VR60-010 remains unchanged as an optional
+continuous alternative.
 
 A control ROM is eligible only when it is compared with a preserved live branch build. The
 reference must contain the live VR60 jump `4EF90001C8B04E71` at file offset `$4D62`; the
@@ -249,7 +279,7 @@ execution sentinel.
 | `VRD_LOAD_STATE=path` | Load a savestate (`retro_unserialize`) before the frame loop starts. Use this for scenes `--autoplay` cannot reach. Format-compatible with standalone PicoDrive savestates; gunzip `.gz` first. Validate the fixture independently—loading successfully does not make it a durable control. The current GP fixture eventually stalls `$C87E`. |
 | `VRD_HOLD_INPUT=mask` | Hold a joypad bitmask from frame 0, independent of `--autoplay`'s menu-navigation timing (which assumes frame 0 = boot). E.g. `0x100` = hold A/accelerate. Use when resuming from a savestate that needs sustained input immediately, not 1200 frames in. |
 | `VRD_INPUT_SCRIPT=path` | Complete deterministic CSV replay (`frame,mask`) covering every frontend frame. It takes precedence over autoplay/hold input; missing or duplicate frames fail before emulation. |
-| `VRD_CALLER_TRACE=hex_addr` (+ `VRD_CALLER_TRACE_LOG=path`) | On every exact 68K PC match, read A7 and log `frame,sp,return_addr`. The tracked v4 patch now defaults to an unlimited trace and writes a `COMPLETE` footer with total/logged/dropped counts, so late-window recurrence can be proved. Requires `VRD_PROFILE_PC=1` and `VRD_PROFILE_PC_LOG=path`. |
+| `VRD_CALLER_TRACE=hex_addr` (+ `VRD_CALLER_TRACE_LOG=path`) | On every exact 68K PC match, read A7 and log `frame,pc,sp,return_addr`. The tracked v4 patch composes caller and version-3 write capture under one exact instruction-start owner, defaults to an unlimited trace, and writes a `COMPLETE` footer with total/logged/dropped/error counts. It works under the accepted DRC/no-PC mode; `VRD_PROFILE_PC` is not required. |
 | `VRD_CALLER_TRACE_MAX=N` | Optional diagnostic cap; `0` (default) is unlimited. The control validator rejects any non-zero cap, missing completion footer, or dropped hit. |
 | `VRD_WRITE_TRACE=0xFFC87E:2,0xFF0002:4` | VR60-009 diagnostic-only complete 68K memory-write trace. Both targets are mandatory. A nullable FAME instruction-start hook captures the exact PC before opcode fetch without changing normal execution batching; wrapped byte, word, and long callbacks retain partial overlaps and same-value writes with the full target old/new value. Default execution is unchanged. Do not substitute the rejected single-instruction-batch tracer, which shifted the fixture's scene transition from frame 5128 to frame 4981. |
 | `VRD_WRITE_TRACE_LOG=path` | New output path for the write trace. Initialization checks existence through the libretro VFS before opening for write and refuses an existing path; it does not rely on unsupported C `x` mode semantics. The CSV ends in `COMPLETE` only after `VRD_PROFILE_FRAMES`; early core shutdown writes `INCOMPLETE`, and any missing footer or non-zero `errors` is unusable evidence. This trace finalizes independently of `VRD_PROFILE_LOG` and `VRD_PROFILE_PC`. |
@@ -288,15 +318,15 @@ VRD_PROFILE_LOG=f.csv VRD_PROFILE_FRAMES=2010 \
 VRD_DUMP_FRAME=2000 VRD_DUMP=0x06004240:32,0x0600CA00:64 VRD_DUMP_FILE=dump.txt \
   ./profiling_frontend ../../build/vr_rebuild.32x 2010 --autoplay
 
-# Complete writes to the VR60-009 state/scene targets (use an instrumented core
-# in a fresh temporary directory; do not replace the reviewed control core):
+# Complete writes to the VR60-009 state/scene targets (the reviewed canonical
+# core includes the accepted non-perturbing v3 write tracer):
 VRD_WRITE_TRACE=0xFFC87E:2,0xFF0002:4 VRD_WRITE_TRACE_LOG=write.csv \
 VRD_PROFILE_FRAMES=5160 VRD_LOAD_STATE=/path/to/vr60_control_bypass.mds \
 VRD_INPUT_SCRIPT=/path/to/exact-5160-row-replay-prefix.csv \
   ./profiling_frontend /path/to/vr60_control_bypass.32x 5160
 
-# Focused real-core tracer tests (point VRD_TEST_CORE at the temporary core if
-# it is not at third_party/picodrive/picodrive_libretro.so):
+# Focused real-core tracer tests (defaults to the same canonical core used by
+# both normal-1P validators; VRD_TEST_CORE is available for pre-review builds):
 python3 -m unittest test_write_trace.py -v
 ```
 

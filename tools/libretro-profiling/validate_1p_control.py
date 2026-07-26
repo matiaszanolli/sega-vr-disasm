@@ -29,7 +29,7 @@ CANONICAL_CORE = SCRIPT_DIR / "picodrive_libretro.so"
 # libretro_vrd_profiling_v4.patch.  Changing either identity requires an
 # explicit review and constant update before the new tool can produce PASS.
 CANONICAL_FRONTEND_SHA256 = "cf93393318db52a1d0071b35c708bf10710ed6dfbc617c22e8e339eedac87e9f"
-CANONICAL_CORE_SHA256 = "1375814edb9d7a487ff11b4a7cec4eb9fb24ea10e3f5e4f99a80bce4875dcb92"
+CANONICAL_CORE_SHA256 = "5677ea8e083f887b2b4e9cabf84dd559a9c6b1180adfa09f34a50023ff7548e8"
 DEFAULT_SCENE_POINTER = 0x00884CBC
 DEFAULT_HOOK_ADDRESS = 0x00884D1A
 DEFAULT_HOOK_RETURN = 0x00FF0006
@@ -174,6 +174,9 @@ def load_caller_trace(path: Path) -> CallerTrace:
     saw_header = False
 
     init_re = re.compile(r"pc_enabled=(\d+)\s+max_hits=(\d+)")
+    v2_init_re = re.compile(
+        r"version=2\b.*\bprofile_pc=(\d+)\b.*\bmax_hits=(\d+)"
+    )
     complete_re = re.compile(
         r"frames=(\d+)\s+hits=(\d+)\s+logged=(\d+)\s+dropped=(\d+)"
     )
@@ -183,7 +186,7 @@ def load_caller_trace(path: Path) -> CallerTrace:
             if not line:
                 continue
             if line.startswith("# VRD_CALLER_TRACE"):
-                match = init_re.search(line)
+                match = v2_init_re.search(line) or init_re.search(line)
                 if match:
                     pc_enabled, max_hits = map(int, match.groups())
                 continue
@@ -194,19 +197,20 @@ def load_caller_trace(path: Path) -> CallerTrace:
                         int, match.groups()
                     )
                 continue
-            if line == "frame,sp,return_addr":
+            if line in ("frame,sp,return_addr", "frame,pc,sp,return_addr"):
                 saw_header = True
                 continue
             if line.startswith("#"):
                 continue
             parts = line.split(",")
-            if len(parts) != 3:
+            if len(parts) not in (3, 4):
                 raise ValueError(f"malformed caller trace row: {line}")
+            offset = len(parts) - 3
             rows.append(
                 {
                     "frame": parse_number(parts[0]),
-                    "sp": parse_number(parts[1]),
-                    "return_addr": parse_number(parts[2]),
+                    "sp": parse_number(parts[1 + offset]),
+                    "return_addr": parse_number(parts[2 + offset]),
                 }
             )
 

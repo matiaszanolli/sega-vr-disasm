@@ -119,7 +119,7 @@ index 0078522..eabb5eb 100644
    SekCyclesLeft = 0;
  }
 diff --git a/platform/libretro/libretro.c b/platform/libretro/libretro.c
-index a6f2bf6..50edb66 100644
+index a6f2bf6..e965949 100644
 --- a/platform/libretro/libretro.c
 +++ b/platform/libretro/libretro.c
 @@ -22,6 +22,7 @@
@@ -130,7 +130,7 @@ index a6f2bf6..50edb66 100644
  
  #include "libretro-common/include/memmap.h"
  /* Ouf, libretro-common defines  replacement functions, but not the flags :-| */
-@@ -94,6 +95,606 @@ static retro_input_state_t input_state_cb;
+@@ -94,6 +95,677 @@ static retro_input_state_t input_state_cb;
  static retro_environment_t environ_cb;
  static retro_audio_sample_batch_t audio_batch_cb;
  
@@ -308,6 +308,7 @@ index a6f2bf6..50edb66 100644
 +static FILE *vrd_caller_trace_log = NULL;
 +static unsigned int vrd_caller_trace_hits = 0;
 +static unsigned int vrd_caller_trace_logged = 0;
++static unsigned int vrd_caller_trace_errors = 0;
 +/* Zero means unlimited. A non-zero cap exists only for ad-hoc diagnostics; the
 + * control validator rejects a trace whose footer reports dropped hits. */
 +static unsigned int vrd_caller_trace_max = 0;
@@ -332,13 +333,54 @@ index a6f2bf6..50edb66 100644
 +static void (*vrd_write_trace_orig_byte)(unsigned int, unsigned char) = NULL;
 +static void (*vrd_write_trace_orig_word)(unsigned int, unsigned short) = NULL;
 +static void (*vrd_write_trace_orig_long)(unsigned int, unsigned int) = NULL;
-+static void (*vrd_write_trace_orig_instruction_start)(unsigned int) = NULL;
++static void (*vrd_instruction_orig_start)(unsigned int) = NULL;
++static int vrd_instruction_hook_installed = 0;
++static int vrd_profile_pc_env_present = 0;
 +
-+static void vrd_write_trace_instruction_start(unsigned int pc)
++/* One owner composes exact write-PC capture and exact caller capture.  This
++ * keeps both diagnostics on normal FAME batching and preserves any callback
++ * that was installed before VRD tracing. */
++static void vrd_instruction_start(unsigned int pc)
 +{
-+    if (vrd_write_trace_orig_instruction_start)
-+        vrd_write_trace_orig_instruction_start(pc);
-+    vrd_write_trace_pc = pc;
++    if (vrd_write_trace_log)
++        vrd_write_trace_pc = pc;
++    if (vrd_caller_trace_log && vrd_caller_trace_addr >= 0 &&
++        (unsigned int)vrd_caller_trace_addr == pc) {
++        extern M68K_CONTEXT PicoCpuFM68k;
++        unsigned int sp = PicoCpuFM68k.areg[7].D;
++        unsigned int ret = PicoCpuFM68k.read_long(sp);
++        vrd_caller_trace_hits++;
++        if (vrd_caller_trace_max == 0 ||
++            vrd_caller_trace_logged < vrd_caller_trace_max) {
++            if (fprintf(vrd_caller_trace_log, "%d,0x%08X,0x%X,0x%X\n",
++                    vrd_profile_frame, pc, sp, ret) < 0)
++                vrd_caller_trace_errors++;
++            if (fflush(vrd_caller_trace_log) != 0)
++                vrd_caller_trace_errors++;
++            vrd_caller_trace_logged++;
++        }
++    }
++    if (vrd_instruction_orig_start)
++        vrd_instruction_orig_start(pc);
++}
++
++static void vrd_instruction_hook_install(void)
++{
++    if (vrd_instruction_hook_installed ||
++        (!vrd_write_trace_log && !vrd_caller_trace_log))
++        return;
++    vrd_instruction_orig_start = PicoCpuFM68k.instruction_start;
++    PicoCpuFM68k.instruction_start = vrd_instruction_start;
++    vrd_instruction_hook_installed = 1;
++}
++
++static void vrd_instruction_hook_uninstall(void)
++{
++    if (!vrd_instruction_hook_installed)
++        return;
++    PicoCpuFM68k.instruction_start = vrd_instruction_orig_start;
++    vrd_instruction_orig_start = NULL;
++    vrd_instruction_hook_installed = 0;
 +}
 +
 +static void vrd_write_trace_error(const char *message)
@@ -511,8 +553,6 @@ index a6f2bf6..50edb66 100644
 +    PicoCpuFM68k.write_byte = vrd_write_trace_orig_byte;
 +    PicoCpuFM68k.write_word = vrd_write_trace_orig_word;
 +    PicoCpuFM68k.write_long = vrd_write_trace_orig_long;
-+    PicoCpuFM68k.instruction_start =
-+        vrd_write_trace_orig_instruction_start;
 +    vrd_write_trace_installed = 0;
 +}
 +
@@ -539,8 +579,6 @@ index a6f2bf6..50edb66 100644
 +
 +static void vrd_write_trace_init(const char *spec, const char *path)
 +{
-+    int i;
-+
 +    if (!spec || !*spec)
 +        return;
 +    if (!path || !*path) {
@@ -573,35 +611,86 @@ index a6f2bf6..50edb66 100644
 +    vrd_write_trace_orig_byte = PicoCpuFM68k.write_byte;
 +    vrd_write_trace_orig_word = PicoCpuFM68k.write_word;
 +    vrd_write_trace_orig_long = PicoCpuFM68k.write_long;
-+    vrd_write_trace_orig_instruction_start =
-+        PicoCpuFM68k.instruction_start;
 +    if (!vrd_write_trace_orig_byte || !vrd_write_trace_orig_word ||
 +        !vrd_write_trace_orig_long) {
 +        vrd_write_trace_error("68K memory callbacks are not initialized");
 +        vrd_write_trace_finish(0, 0, "callbacks_unavailable");
 +        return;
 +    }
-+    fprintf(vrd_write_trace_log,
-+        "# VRD_WRITE_TRACE version=2 instruction_start_hook=1 targets=%d\n",
-+        vrd_write_trace_target_count);
-+    for (i = 0; i < vrd_write_trace_target_count; i++) {
-+        fprintf(vrd_write_trace_log, "# TARGET index=%d addr=0x%06X size=%u\n",
-+            i, vrd_write_trace_targets[i].addr,
-+            vrd_write_trace_targets[i].size);
-+    }
-+    fprintf(vrd_write_trace_log,
-+        "frame,pc,target_addr,target_size,access_addr,access_size,old_value,new_value\n");
-+    if (fflush(vrd_write_trace_log) != 0) {
-+        vrd_write_trace_error("cannot write trace header");
-+        vrd_write_trace_finish(0, 0, "header_write_failed");
-+        return;
-+    }
 +    PicoCpuFM68k.write_byte = vrd_write_trace_byte;
 +    PicoCpuFM68k.write_word = vrd_write_trace_word;
 +    PicoCpuFM68k.write_long = vrd_write_trace_long;
-+    PicoCpuFM68k.instruction_start =
-+        vrd_write_trace_instruction_start;
 +    vrd_write_trace_installed = 1;
++}
++
++static void vrd_trace_write_headers(void)
++{
++    int sh2_drc = (PicoIn.opt & POPT_EN_DRC) != 0;
++    const char *batching = vrd_profile_pc_enabled ? "chunked" : "normal";
++    int i;
++
++    if (vrd_caller_trace_log) {
++        if (fprintf(vrd_caller_trace_log,
++                "# VRD_CALLER_TRACE version=2 addr=0x%08X sh2_drc=%d "
++                "profile_pc=%d profile_pc_env=%d m68k_batching=%s "
++                "instruction_start_hook=%d composed=%d max_hits=%u\n",
++                (unsigned int)vrd_caller_trace_addr, sh2_drc, vrd_profile_pc_enabled,
++                vrd_profile_pc_env_present, batching,
++                vrd_instruction_hook_installed,
++                vrd_instruction_hook_installed, vrd_caller_trace_max) < 0 ||
++            fprintf(vrd_caller_trace_log,
++                "frame,pc,sp,return_addr\n") < 0 ||
++            fflush(vrd_caller_trace_log) != 0)
++            vrd_caller_trace_errors++;
++    }
++    if (vrd_write_trace_log) {
++        if (fprintf(vrd_write_trace_log,
++                "# VRD_WRITE_TRACE version=3 sh2_drc=%d profile_pc=%d "
++                "profile_pc_env=%d m68k_batching=%s instruction_start_hook=%d "
++                "composed=%d caller_addr=0x%08X caller_max=%u targets=%d\n",
++                sh2_drc, vrd_profile_pc_enabled, vrd_profile_pc_env_present,
++                batching, vrd_instruction_hook_installed,
++                vrd_instruction_hook_installed,
++                (unsigned int)vrd_caller_trace_addr,
++                vrd_caller_trace_max, vrd_write_trace_target_count) < 0)
++            vrd_write_trace_errors++;
++        for (i = 0; i < vrd_write_trace_target_count; i++) {
++            if (fprintf(vrd_write_trace_log,
++                    "# TARGET index=%d addr=0x%06X size=%u\n",
++                    i, vrd_write_trace_targets[i].addr,
++                    vrd_write_trace_targets[i].size) < 0)
++                vrd_write_trace_errors++;
++        }
++        if (fprintf(vrd_write_trace_log,
++                "frame,pc,target_addr,target_size,access_addr,access_size,"
++                "old_value,new_value\n") < 0 ||
++            fflush(vrd_write_trace_log) != 0)
++            vrd_write_trace_errors++;
++    }
++}
++
++static void vrd_caller_trace_finish(int complete, int frames,
++    const char *reason)
++{
++    if (!vrd_caller_trace_log)
++        return;
++    if (complete) {
++        fprintf(vrd_caller_trace_log,
++            "# COMPLETE frames=%d hits=%u logged=%u dropped=%u errors=%u\n",
++            frames, vrd_caller_trace_hits, vrd_caller_trace_logged,
++            vrd_caller_trace_hits - vrd_caller_trace_logged,
++            vrd_caller_trace_errors);
++    } else {
++        fprintf(vrd_caller_trace_log,
++            "# INCOMPLETE frames=%d hits=%u logged=%u dropped=%u errors=%u "
++            "reason=%s\n",
++            frames, vrd_caller_trace_hits, vrd_caller_trace_logged,
++            vrd_caller_trace_hits - vrd_caller_trace_logged,
++            vrd_caller_trace_errors, reason ? reason : "unknown");
++    }
++    fflush(vrd_caller_trace_log);
++    fclose(vrd_caller_trace_log);
++    vrd_caller_trace_log = NULL;
 +}
 +
 +static void vrd_parse_watch(const char *s) {
@@ -696,24 +785,6 @@ index a6f2bf6..50edb66 100644
 +        }
 +    }
 +
-+    /* VRD_CALLER_TRACE: on hitting the watched PC, read the JSR return
-+     * address off the top of the 68K stack (A7) -- reveals the real caller
-+     * even for self-modified/dynamic call sites static grep can't find. */
-+    if (cpu_id == 0 && vrd_caller_trace_addr >= 0 &&
-+        (unsigned)vrd_caller_trace_addr == pc) {
-+        extern M68K_CONTEXT PicoCpuFM68k;
-+        unsigned int sp = PicoCpuFM68k.areg[7].D;
-+        unsigned int ret = PicoCpuFM68k.read_long(sp);
-+        vrd_caller_trace_hits++;
-+        if (vrd_caller_trace_log &&
-+            (vrd_caller_trace_max == 0 ||
-+             vrd_caller_trace_logged < vrd_caller_trace_max)) {
-+            fprintf(vrd_caller_trace_log, "%d,0x%X,0x%X\n", vrd_profile_frame, sp, ret);
-+            fflush(vrd_caller_trace_log);
-+            vrd_caller_trace_logged++;
-+        }
-+    }
-+
 +    t = vrd_pc_table[cpu_id];
 +    hash = (pc >> 1) & VRD_PC_HASH_MASK;
 +
@@ -737,7 +808,7 @@ index a6f2bf6..50edb66 100644
  #define VOUT_MAX_WIDTH 320
  #define VOUT_MAX_HEIGHT 240
  
-@@ -1960,6 +2561,8 @@ static void update_variables(bool first_run)
+@@ -1960,6 +2632,8 @@ static void update_variables(bool first_run)
        else
           PicoIn.opt &= ~POPT_EN_DRC;
     }
@@ -746,7 +817,7 @@ index a6f2bf6..50edb66 100644
  #endif
  #ifdef _3DS
     if(!ctr_svchack_successful)
-@@ -2406,8 +3009,241 @@ void retro_run(void)
+@@ -2406,8 +3080,231 @@ void retro_run(void)
        update_audio_latency = false;
     }
  
@@ -759,6 +830,7 @@ index a6f2bf6..50edb66 100644
 +      const char *write_trace_spec = getenv("VRD_WRITE_TRACE");
 +      const char *write_trace_path = getenv("VRD_WRITE_TRACE_LOG");
 +
++      vrd_profile_pc_env_present = pc_enabled_str != NULL;
 +      if (max_frames_str) {
 +         int custom_max = atoi(max_frames_str);
 +         if (custom_max > 0) vrd_profile_max_frames = custom_max;
@@ -795,14 +867,9 @@ index a6f2bf6..50edb66 100644
 +      { const char *ct = getenv("VRD_CALLER_TRACE"); if (ct) vrd_caller_trace_addr = (long)strtoul(ct, 0, 16); }
 +      { const char *cm = getenv("VRD_CALLER_TRACE_MAX"); if (cm) vrd_caller_trace_max = (unsigned)strtoul(cm, 0, 0); }
 +      { const char *cl = getenv("VRD_CALLER_TRACE_LOG"); if (cl) vrd_caller_trace_log = fopen(cl, "w"); }
-+      if (vrd_caller_trace_log) {
-+         fprintf(vrd_caller_trace_log,
-+                 "# VRD_CALLER_TRACE addr=0x%lX pc_enabled=%d max_hits=%u\n",
-+                 vrd_caller_trace_addr, vrd_profile_pc_enabled,
-+                 vrd_caller_trace_max);
-+         fprintf(vrd_caller_trace_log, "frame,sp,return_addr\n");
-+      }
 +      vrd_write_trace_init(write_trace_spec, write_trace_path);
++      vrd_instruction_hook_install();
++      vrd_trace_write_headers();
 +      if (vrd_watch_log) {
 +         int wi; fprintf(vrd_watch_log, "frame");
 +         for (wi = 0; wi < vrd_watch_n; wi++) fprintf(vrd_watch_log, ",0x%X", vrd_watch_addr[wi]);
@@ -969,31 +1036,28 @@ index a6f2bf6..50edb66 100644
 +            fclose(vrd_profile_pc_log); vrd_profile_pc_log = NULL;
 +            vrd_profile_pc_enabled = 0;
 +         }
-+         if (vrd_caller_trace_log) {
-+            fprintf(vrd_caller_trace_log,
-+                    "# COMPLETE frames=%d hits=%u logged=%u dropped=%u\n",
-+                    vrd_profile_max_frames, vrd_caller_trace_hits,
-+                    vrd_caller_trace_logged,
-+                    vrd_caller_trace_hits - vrd_caller_trace_logged);
-+            fclose(vrd_caller_trace_log);
-+            vrd_caller_trace_log = NULL;
-+         }
++         vrd_caller_trace_finish(1, vrd_profile_max_frames, NULL);
 +      }
 +   }
 +   if (vrd_write_trace_log &&
 +       vrd_profile_frame == vrd_profile_max_frames - 1)
 +      vrd_write_trace_finish(1, vrd_profile_max_frames, NULL);
++   if (vrd_profile_frame == vrd_profile_max_frames - 1)
++      vrd_instruction_hook_uninstall();
 +   vrd_profile_frame++;
 +
     /* Check whether frontend needs to be notified
      * of timing/geometry changes */
     if (libretro_update_av_info || libretro_update_geometry) {
-@@ -2615,6 +3451,8 @@ void retro_deinit(void)
+@@ -2615,6 +3512,11 @@ void retro_deinit(void)
  {
     size_t i;
  
 +   if (vrd_write_trace_log || vrd_write_trace_installed)
 +      vrd_write_trace_finish(0, vrd_profile_frame, "core_deinit");
++   if (vrd_caller_trace_log)
++      vrd_caller_trace_finish(0, vrd_profile_frame, "core_deinit");
++   vrd_instruction_hook_uninstall();
     PicoExit();
  
     disk_init();

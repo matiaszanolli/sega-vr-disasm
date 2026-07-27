@@ -578,6 +578,16 @@ with render/display scheduling; HBLK/FEN is inference not causal proof. The ordi
 exact ACTIVE SHA `6f2768f2…2523900`. Mode 1 remains disabled pending scene reset/re-entry,
 COMM ownership/dummy-read, and four-word FIFO FULL instrumentation.
 
+30. **The 2026-07-27 mode-1 validation pair is statically healthy but protocol-blocked.**
+`make mode1-roms` and 40 focused tests pass, while the ordinary mode-0 ROM remains
+`6f2768f2…2523900`. The current mode-1 ACK is unsafe: the 68000 polls `COMM1_LO` while Master
+SH2 performs a read-modify-write of the same byte, which violates the hardware manual's
+read-during-write rule. Same-address readback only flushes the SH2 write buffer. No runtime or
+reset-route captures exist, the reset placeholder's status is absent from its schema enum, and
+the checked manuals do not explicitly guarantee retention of FIFO writes made before DMAC0 is
+armed. Keep mode 1 non-promotable and the ordinary default unchanged until ownership/order is
+established from an authoritative source or a separately reviewed experiment.
+
 ---
 
 ## Section 4: Where-to-Find Cross-Reference
@@ -594,6 +604,7 @@ COMM ownership/dummy-read, and four-word FIFO FULL instrumentation.
 | Profiling methodology + tool usage | tools/libretro-profiling/README_68K_PC_PROFILING.md | analysis/profiling/68K_BOTTLENECK_ANALYSIS.md |
 | Normal-1P durable control validation | tools/libretro-profiling/VRD_PROFILING.md §§ Normal-1P control validator; VR60-011 lifecycle suite | `analysis/evidence/vr60-011-lifecycle-suite/README.md`; the three-fixture DRC suite passed and cleared the baseline blocker |
 | Q-020 cmd `$3E` mode-0 acceptance | tools/libretro-profiling/validate_mode0_gate.py | analysis/evidence/vr60-q020-mode0-gate/README.md |
+| Q-020 cmd `$3E` mode-1 blocked gate | VR60_STATUS.md § Q-020 mode 1 remains blocked as of 2026-07-27 | `disasm/modules/68k/sh2/vr60_mode1_validation.asm`; `disasm/sh2/expansion/cmd3e_mode1_validation.asm` |
 | Expansion ROM layout + active handlers | disasm/sections/expansion_300000.asm | BACKLOG.md §B-003/B-004 |
 | B-003 async cmd_27 design | BACKLOG.md §B-003 | analysis/68K_SH2_COMMUNICATION.md §B-003 |
 | B-004 single-shot cmd_22 design | BACKLOG.md §B-004 | analysis/68K_SH2_COMMUNICATION.md §B-004 |

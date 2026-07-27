@@ -1,6 +1,6 @@
 # VR60 Current Status
 
-**Canonical as of:** 2026-07-25
+**Canonical as of:** 2026-07-27
 
 **Branch:** `60fps_project`
 
@@ -15,7 +15,7 @@ This file is the short, current answer to “what works now?” Older roadmap en
 | Original 68000 physics, AI, collision, and render preparation | Yes | **Yes; authoritative** | Original behavior remains the safety path |
 | 1P hook at `game_frame_orch_013` / `state_disp_004cb8` state 8 | Yes | Yes, about 20 Hz | Hook point confirmed with exact `VRD_CALLER_TRACE` |
 | cmd `$3E` player-entity transfer (mode 0) | Yes | **Enabled; promoted ordinary default** | **Q-020 mode-0 sub-gate passed over all 3 trustworthy lifecycles** |
-| cmd `$3E` globals transfer (mode 1) | Yes | **Disabled/unreachable in the promoted default** | Not yet validated; Q-020 remains partially open |
+| cmd `$3E` globals transfer (mode 1) | Validation pair only | **Disabled/unreachable in the promoted default** | **Blocked:** current validation ACK violates the COMM read-during-write rule; no runtime/reset captures exist |
 | cmd `$3E` AI-entity transfer (mode 2) | Yes | **Disabled** | Unverified; neither proven safe nor unsafe |
 | cmd `$3F` SH2 game-frame pipeline | Yes | **Disabled in 1P** | Unverified; its legacy `$2200BC00` mailbox literal is a ROM alias and must be corrected before activation |
 | SH2 physics and AI ports | Yes | No; reachable only through the disabled cmd `$3F` path | Assembly/reference work exists; gameplay authority not proven |
@@ -57,6 +57,25 @@ legacy target at `14632a…b93183` / `6a4c89…17672`. Evidence is archived at
 Claims are limited to PicoDrive exact 320B mode0 transport + exact gameplay/state/terminal
 chronology in fresh eligible lifecycles; this is not a real-hardware, authority-transfer,
 cadence, FPS, or CPU-budget result.
+
+**Q-020 mode 1 remains blocked as of 2026-07-27.** The isolated source-built validation pair
+rebuilds cleanly and passes its 40 focused static/tooling tests. Its active/control hashes are
+`f0cdb1a7…e4c3c` / `2a958af7…da10`; the ordinary default remains byte-identical at
+`6f2768f2…2523900`. A fresh safety audit rejected the current ACK sequence: the 68000 polls
+`COMM1_LO` while the Master SH2 performs a read-modify-write of that same byte. Sega's hardware
+manual says a read concurrent with the other CPU's write makes the register undefined. The
+SH2 same-address dummy read flushes its buffered write but does not create an ownership window,
+and the read-modify-write cannot atomically preserve system bit 0 against V-INT access.
+
+No runtime acceptance claim exists. `mode1_rom_pair.json` remains
+`runtime_evidence: "MISSING"` / non-promotable, and `mode1_reset_fixtures.json` contains no
+normal-entry or name-entry-reentry captures. The reset manifest also currently uses
+`STATIC_METADATA_PINNED_AWAITING_CAPTURES`, which is absent from its schema's status enum.
+The manuals establish `68S=1` CPU-write operation, four-word FIFO capacity, and mandatory
+`FULL` checks every four words, but the checked sources do not explicitly establish that FIFO
+writes made before SH2 DMAC channel 0 is armed are retained. Do not remove the ACK on that
+assumption; resolve the ownership/ordering question first, then capture both reset routes twice
+per arm before any promotion decision.
 
 **VR60-011 passed on 2026-07-25.** The reviewed hook-bypass control completed three distinct,
 predeclared timed-race lifecycles under normal SH2 DRC execution. After the fixed 360-frame warmup,

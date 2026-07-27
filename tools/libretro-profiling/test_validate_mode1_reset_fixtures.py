@@ -12,6 +12,8 @@ from pathlib import Path
 from typing import Any
 
 from validate_mode1_reset_fixtures import (
+    EXPECTED_MODE1_PCS,
+    EXPECTED_ROM_SHA256,
     FLAG_ADDRESS,
     RACING_HANDLER_PC,
     ROUTE_POLICY,
@@ -20,11 +22,7 @@ from validate_mode1_reset_fixtures import (
     validate_manifest,
 )
 
-EXPECTED_PCS = {
-    "wrapper_entry_pc": 0x00300000,
-    "flag_reset_writer_pc": 0x00300100,
-    "hook_flag_writer_pc": 0x0001C8CA,
-}
+EXPECTED_PCS = EXPECTED_MODE1_PCS
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -140,7 +138,7 @@ def make_fixture(root: Path) -> tuple[Path, dict[str, Any]]:
     }
     for arm in ("active", "control"):
         arm_entry: dict[str, Any] = {
-            "rom_sha256": sha256_bytes(f"{arm} synthetic ROM identity".encode()),
+            "rom_sha256": EXPECTED_ROM_SHA256[arm],
             "routes": {},
         }
         for route in ROUTE_POLICY:
@@ -214,6 +212,18 @@ class Mode1ResetFixtureTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(FixtureValidationError, "ineligible"):
             validate_manifest(placeholder)
+        manifest = json.loads(placeholder.read_text(encoding="utf-8"))
+        self.assertFalse(manifest["eligible"])
+        self.assertEqual(manifest["expected_mode1_pcs"], EXPECTED_MODE1_PCS)
+        self.assertEqual(
+            {
+                arm: manifest["arms"][arm]["rom_sha256"]
+                for arm in ("active", "control")
+            },
+            EXPECTED_ROM_SHA256,
+        )
+        self.assertEqual(len(manifest["blockers"]), 1)
+        self.assertIn("captured twice per arm", manifest["blockers"][0])
 
     def test_post_writer_capture_start_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

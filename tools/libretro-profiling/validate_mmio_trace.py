@@ -17,6 +17,10 @@ PC_ALLOWLIST_TEXT = (
     "m68k:0x0001C6FE-0x0001C76C;"
     "master:0x023016B0-0x02301760"
 )
+MODE1_PC_ALLOWLIST_TEXT = (
+    "m68k:0x0001C922-0x0001C99A;"
+    "master:0x02303A10-0x02303A90"
+)
 TRACE_COLUMNS = (
     "sequence",
     "frame",
@@ -31,6 +35,15 @@ FILTER_LINE = (
     "# FILTER m68k_read8=0x00A15107 "
     "m68k_write16=0x00A15112 "
     "m68k_write8=0x00A15120|0x00A15123 "
+    "master_write8=0x20004020|0x20004023"
+)
+MODE1_FILTER_LINE = (
+    "# FILTER m68k_read8=0x00A15107|0x00A15123 "
+    "m68k_read16=0x00A15110 "
+    "m68k_write16=0x00A15112 "
+    "m68k_write8=0x00A15120|0x00A15123 "
+    "master_read8=0x20004020|0x20004023 "
+    "master_read16=0x20004010 "
     "master_write8=0x20004020|0x20004023"
 )
 HEADER_RE = re.compile(
@@ -106,12 +119,22 @@ class TransactionPcPolicy:
 
     trigger: frozenset[int]
     master_ack: frozenset[int]
+    ack_flush: frozenset[int]
+    ack_observe: frozenset[int]
     ack_clear: frozenset[int]
     full_read: frozenset[int]
     fifo_write: frozenset[int]
+    m68k_dreq_read: frozenset[int]
+    master_dreq_read: frozenset[int]
+    ack_wait: frozenset[int]
     completion: frozenset[int]
+    completion_flush: frozenset[int]
 
     def allowed_for(self, kind: str) -> frozenset[int]:
+        if kind == "ack_read":
+            return self.ack_observe | self.ack_clear | self.ack_flush | self.ack_wait
+        if kind == "dreq_read":
+            return self.m68k_dreq_read | self.master_dreq_read
         return getattr(self, kind)
 
 
@@ -127,21 +150,29 @@ class GateAMode0PcPolicy:
 
 EVENT_KIND = {
     ("m68k", "read", 0x00A15107, 1): "full_read",
+    ("m68k", "read", 0x00A15123, 1): "ack_read",
+    ("m68k", "read", 0x00A15110, 2): "dreq_read",
     ("m68k", "write", 0x00A15112, 2): "fifo_write",
     ("m68k", "write", 0x00A15120, 1): "trigger",
     ("m68k", "write", 0x00A15123, 1): "ack_clear",
     ("master", "write", 0x20004023, 1): "master_ack",
     ("master", "write", 0x20004020, 1): "completion",
+    ("master", "read", 0x20004023, 1): "ack_read",
+    ("master", "read", 0x20004020, 1): "completion_flush",
+    ("master", "read", 0x20004010, 2): "dreq_read",
 }
 TRANSITION_VALUES = {
     "trigger": 0x01,
-    "master_ack": 0x02,
-    "ack_clear": 0x00,
     "completion": 0x00,
+    "completion_flush": 0x00,
 }
 GATE_A_PC_ALLOWLIST = PcAllowlist(
     m68k=(PcRange(0x0001C6FE, 0x0001C76C),),
     master=(PcRange(0x023016B0, 0x02301760),),
+)
+MODE1_PC_ALLOWLIST = PcAllowlist(
+    m68k=(PcRange(0x0001C922, 0x0001C99A),),
+    master=(PcRange(0x02303A10, 0x02303A90),),
 )
 GATE_A_MODE0_PC_POLICY = GateAMode0PcPolicy()
 
@@ -242,7 +273,16 @@ def _require_gate_a_allowlist(value: str, label: str) -> PcAllowlist:
     return allowlist
 
 
-def parse_mmio_trace(path: Path) -> MmioTrace:
+def _require_mode1_allowlist(value: str, label: str) -> PcAllowlist:
+    allowlist = _parse_pc_allowlist(value, label)
+    if allowlist != MODE1_PC_ALLOWLIST or value != MODE1_PC_ALLOWLIST_TEXT:
+        raise TraceValidationError(
+            f"{label}: missing, broadened, or changed range relative to mode-1 policy"
+        )
+    return allowlist
+
+
+def parse_mmio_trace(path: Path, *, gate_b_mode1: bool = False) -> MmioTrace:
     """Parse a complete, zero-loss trace using the Gate-A fail-closed format."""
 
     try:
@@ -282,10 +322,12 @@ def parse_mmio_trace(path: Path) -> MmioTrace:
         raise TraceValidationError(
             "trace was not captured with the reviewed passive configuration"
         )
-    pc_allowlist = _require_gate_a_allowlist(
-        header_allowlist_text, "line 1 pc_allowlist"
+    require_allowlist = (
+        _require_mode1_allowlist if gate_b_mode1 else _require_gate_a_allowlist
     )
-    if lines[1] != FILTER_LINE:
+    expected_filter = MODE1_FILTER_LINE if gate_b_mode1 else FILTER_LINE
+    pc_allowlist = require_allowlist(header_allowlist_text, "line 1 pc_allowlist")
+    if lines[1] != expected_filter:
         raise TraceValidationError("line 2: MMIO filter declaration mismatch")
     if tuple(lines[2].split(",")) != TRACE_COLUMNS:
         raise TraceValidationError("line 3: trace column declaration mismatch")
@@ -315,9 +357,7 @@ def parse_mmio_trace(path: Path) -> MmioTrace:
             overflow_text,
         ),
     )
-    footer_allowlist = _require_gate_a_allowlist(
-        footer_allowlist_text, "footer pc_allowlist"
-    )
+    footer_allowlist = require_allowlist(footer_allowlist_text, "footer pc_allowlist")
     if footer_allowlist != pc_allowlist:
         raise TraceValidationError("header/footer PC allowlists differ")
     if frames <= 0:
@@ -492,18 +532,24 @@ def validate_gate_a_mode0(
     return transactions
 
 
-def validate_transactions(
+def _validate_complete_mode1_transactions(
     trace: MmioTrace, pc_policy: TransactionPcPolicy
 ) -> int:
-    """Validate trigger/ACK/eight-group/FIFO/completion transactions."""
+    """Validate every trigger/ACK/eight-group/FIFO/completion transaction."""
 
     for field in (
         "trigger",
         "master_ack",
+        "ack_flush",
+        "ack_observe",
         "ack_clear",
         "full_read",
         "fifo_write",
+        "m68k_dreq_read",
+        "master_dreq_read",
+        "ack_wait",
         "completion",
+        "completion_flush",
     ):
         if not pc_policy.allowed_for(field):
             raise TraceValidationError(f"PC policy for {field} is empty")
@@ -526,8 +572,49 @@ def validate_transactions(
     transactions = 0
     while index < len(events):
         _, index = _require_kind(events, index, "trigger")
-        _, index = _require_kind(events, index, "master_ack")
-        _, index = _require_kind(events, index, "ack_clear")
+        while (
+            index < len(events)
+            and events[index].kind == "ack_read"
+            and events[index].pc in pc_policy.ack_observe
+            and events[index].value & 0x02 == 0
+        ):
+            index += 1
+        ack, index = _require_kind(events, index, "master_ack")
+        if ack.value & 0x02 == 0 or ack.value & ~0x03:
+            raise TraceValidationError(
+                f"event {ack.sequence}: Master ACK did not preserve bit0/set only bit1"
+            )
+        ack_flush, index = _require_kind(events, index, "ack_read")
+        if ack_flush.pc not in pc_policy.ack_flush or ack_flush.value != ack.value:
+            raise TraceValidationError(
+                f"event {ack_flush.sequence}: ACK flush read mismatch"
+            )
+        observed = False
+        while (
+            index < len(events)
+            and events[index].kind == "ack_read"
+            and events[index].pc in pc_policy.ack_observe
+        ):
+            observation = events[index]
+            if observation.value & 0x02:
+                observed = True
+            index += 1
+            if observed:
+                break
+        if not observed:
+            raise TraceValidationError(
+                f"transaction {transactions}: 68K never observed ACK bit 1"
+            )
+        clear_read, index = _require_kind(events, index, "ack_read")
+        if clear_read.pc not in pc_policy.ack_clear or clear_read.value != ack.value:
+            raise TraceValidationError(
+                f"event {clear_read.sequence}: ACK-clear RMW read mismatch"
+            )
+        clear, index = _require_kind(events, index, "ack_clear")
+        if clear.value != (ack.value & ~0x02):
+            raise TraceValidationError(
+                f"event {clear.sequence}: ACK clear did not preserve bit0"
+            )
         for group in range(8):
             full_reads = 0
             while True:
@@ -541,10 +628,71 @@ def validate_transactions(
                 )
             for _ in range(4):
                 _, index = _require_kind(events, index, "fifo_write")
+        saw_m68k_zero = False
+        saw_master_zero = False
+        while index < len(events) and events[index].kind == "dreq_read":
+            event = events[index]
+            if event.pc in pc_policy.m68k_dreq_read:
+                saw_m68k_zero |= event.value == 0
+            elif event.pc in pc_policy.master_dreq_read:
+                saw_master_zero |= event.value == 0
+            else:
+                raise TraceValidationError(
+                    f"event {event.sequence}: wrong DREQ reader PC"
+                )
+            index += 1
+            if saw_m68k_zero and saw_master_zero:
+                break
+        if not saw_m68k_zero or not saw_master_zero:
+            raise TraceValidationError(
+                f"transaction {transactions}: both CPUs did not observe DREQ_LEN zero"
+            )
+        ack_wait, index = _require_kind(events, index, "ack_read")
+        if ack_wait.pc not in pc_policy.ack_wait or ack_wait.value != clear.value:
+            raise TraceValidationError(
+                f"event {ack_wait.sequence}: Master ACK-clear check mismatch"
+            )
         _, index = _require_kind(events, index, "completion")
+        completion_flush, index = _require_kind(events, index, "completion_flush")
+        if completion_flush.pc not in pc_policy.completion_flush:
+            raise TraceValidationError(
+                f"event {completion_flush.sequence}: wrong completion flush PC"
+            )
         transactions += 1
-    if transactions == 0:
-        raise TraceValidationError("trace contains no complete transaction")
+    return transactions
+
+
+def validate_mode1(
+    trace: MmioTrace,
+    pc_policy: TransactionPcPolicy,
+    *,
+    arm: str,
+    expected_eligible_hook_hits: int,
+) -> int:
+    """Validate an explicit mode-1 arm against lifecycle-derived hook hits."""
+
+    if arm not in ("active", "control"):
+        raise TraceValidationError("mode-1 arm must be active or control")
+    if expected_eligible_hook_hits <= 0:
+        raise TraceValidationError(
+            "expected eligible subsequent hook hits must be positive"
+        )
+    if arm == "control":
+        if trace.events:
+            raise TraceValidationError(
+                f"mode-1 CONTROL must contain zero MMIO events, found {len(trace.events)}"
+            )
+        return 0
+    if not trace.events:
+        raise TraceValidationError(
+            "mode-1 ACTIVE contains zero transactions"
+        )
+    transactions = _validate_complete_mode1_transactions(trace, pc_policy)
+    if transactions != expected_eligible_hook_hits:
+        raise TraceValidationError(
+            f"mode-1 ACTIVE expected {expected_eligible_hook_hits} transactions "
+            f"for eligible subsequent hook hits, found {transactions}"
+        )
     return transactions
 
 
@@ -563,25 +711,47 @@ def main(argv: list[str] | None = None) -> int:
         choices=("active", "control"),
         help="validate the manifest-bound Gate-A mode-0 witness",
     )
+    parser.add_argument(
+        "--mode1",
+        choices=("active", "control"),
+        help="validate an explicit mode-1 ACTIVE or CONTROL trace",
+    )
+    parser.add_argument(
+        "--expected-eligible-hook-hits",
+        type=int,
+        help="lifecycle-derived eligible subsequent hook-hit count",
+    )
     pc_destinations: list[str] = []
     for kind in (
         "trigger",
         "master-ack",
+        "ack-flush",
+        "ack-observe",
         "ack-clear",
         "full-read",
         "fifo-write",
+        "m68k-dreq-read",
+        "master-dreq-read",
+        "ack-wait",
         "completion",
+        "completion-flush",
     ):
         option = f"--{kind}-pc"
         parser.add_argument(option, action="append")
         pc_destinations.append(kind.replace("-", "_") + "_pc")
     args = parser.parse_args(argv)
     pc_values = [getattr(args, destination) for destination in pc_destinations]
+    if bool(args.gate_a_mode0) == bool(args.mode1):
+        parser.error("select exactly one of --gate-a-mode0 or --mode1")
     if args.gate_a_mode0:
-        if any(pc_values):
-            parser.error("--gate-a-mode0 cannot be combined with --*-pc")
+        if any(pc_values) or args.expected_eligible_hook_hits is not None:
+            parser.error(
+                "--gate-a-mode0 cannot be combined with mode-1 count/PC policy"
+            )
         policy = None
     else:
+        if args.expected_eligible_hook_hits is None:
+            parser.error("--mode1 requires --expected-eligible-hook-hits")
         missing = [
             destination
             for destination, values in zip(
@@ -591,25 +761,36 @@ def main(argv: list[str] | None = None) -> int:
         ]
         if missing:
             parser.error(
-                "all six --*-pc policies are required outside Gate-A mode"
+                "all twelve --*-pc policies are required outside Gate-A mode"
             )
         policy = TransactionPcPolicy(
             trigger=_parse_pc_set(args.trigger_pc),
             master_ack=_parse_pc_set(args.master_ack_pc),
+            ack_flush=_parse_pc_set(args.ack_flush_pc),
+            ack_observe=_parse_pc_set(args.ack_observe_pc),
             ack_clear=_parse_pc_set(args.ack_clear_pc),
             full_read=_parse_pc_set(args.full_read_pc),
             fifo_write=_parse_pc_set(args.fifo_write_pc),
+            m68k_dreq_read=_parse_pc_set(args.m68k_dreq_read_pc),
+            master_dreq_read=_parse_pc_set(args.master_dreq_read_pc),
+            ack_wait=_parse_pc_set(args.ack_wait_pc),
             completion=_parse_pc_set(args.completion_pc),
+            completion_flush=_parse_pc_set(args.completion_flush_pc),
         )
     try:
-        trace = parse_mmio_trace(args.trace)
+        trace = parse_mmio_trace(args.trace, gate_b_mode1=bool(args.mode1))
         if args.gate_a_mode0:
             transactions = validate_gate_a_mode0(
                 trace, 1 if args.gate_a_mode0 == "active" else 0
             )
         else:
             assert policy is not None
-            transactions = validate_transactions(trace, policy)
+            transactions = validate_mode1(
+                trace,
+                policy,
+                arm=args.mode1,
+                expected_eligible_hook_hits=args.expected_eligible_hook_hits,
+            )
     except (OSError, TraceValidationError, ValueError) as exc:
         print(f"FAIL: {exc}", file=sys.stderr)
         return 1

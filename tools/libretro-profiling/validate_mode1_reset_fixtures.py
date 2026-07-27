@@ -34,6 +34,15 @@ EXPECTED_EVENT_KINDS = (
     "hook_flag_write",
 )
 SHA256_LENGTH = 64
+EXPECTED_MODE1_PCS = {
+    "wrapper_entry_pc": 0x0089C914,
+    "flag_reset_writer_pc": 0x0089C916,
+    "hook_flag_writer_pc": 0x0001C8CA,
+}
+EXPECTED_ROM_SHA256 = {
+    "active": "f0cdb1a71e1a39e247e19355da8f1a3f62a5b67efd4f8ef09b2ec1119f7e4c3c",
+    "control": "2a958af78bf5643d808b3cb07517c8936aef3b082be14967ec8003f8f22ada10",
+}
 
 
 class FixtureValidationError(ValueError):
@@ -167,6 +176,10 @@ def _validate_policy(manifest: dict[str, Any]) -> dict[str, int]:
         "expected_mode1_pcs",
     )
     parsed = {key: _require_pc(value, f"expected_mode1_pcs.{key}") for key, value in pcs.items()}
+    if parsed != EXPECTED_MODE1_PCS:
+        raise FixtureValidationError(
+            "expected_mode1_pcs does not match the source-built mode-1 pair"
+        )
     if len(set(parsed.values())) != len(parsed):
         raise FixtureValidationError("mode-1 wrapper/reset/hook PCs must be distinct")
     return parsed
@@ -349,15 +362,26 @@ def validate_manifest(manifest_path: Path) -> int:
     )
     if manifest["schema_version"] != SCHEMA_VERSION:
         raise FixtureValidationError("manifest schema_version must be 1")
+    expected_pcs = _validate_policy(manifest)
+    arms = _require_exact_keys(manifest["arms"], set(ARMS), "arms")
+    for arm_name in ARMS:
+        arm = _require_exact_keys(
+            arms[arm_name], {"rom_sha256", "routes"}, f"arms.{arm_name}"
+        )
+        actual_hash = _require_sha256(
+            arm["rom_sha256"], f"arms.{arm_name}.rom_sha256"
+        )
+        if actual_hash != EXPECTED_ROM_SHA256[arm_name]:
+            raise FixtureValidationError(
+                f"arms.{arm_name}.rom_sha256 does not match the source-built pair"
+            )
+
     if manifest["eligible"] is not True or manifest["status"] != "VALIDATED":
         blockers = manifest.get("blockers")
         detail = "; ".join(blockers) if isinstance(blockers, list) else "unknown"
         raise FixtureValidationError(f"fixture manifest is ineligible: {detail}")
     if manifest["blockers"] != []:
         raise FixtureValidationError("eligible manifest must have no blockers")
-    expected_pcs = _validate_policy(manifest)
-
-    arms = _require_exact_keys(manifest["arms"], set(ARMS), "arms")
     rom_hashes: set[str] = set()
     trace_paths: set[Path] = set()
     run_count = 0
@@ -365,9 +389,7 @@ def validate_manifest(manifest_path: Path) -> int:
         arm = _require_exact_keys(
             arms[arm_name], {"rom_sha256", "routes"}, f"arms.{arm_name}"
         )
-        rom_hashes.add(
-            _require_sha256(arm["rom_sha256"], f"arms.{arm_name}.rom_sha256")
-        )
+        rom_hashes.add(arm["rom_sha256"])
         routes = _require_exact_keys(
             arm["routes"], set(ROUTE_POLICY), f"arms.{arm_name}.routes"
         )

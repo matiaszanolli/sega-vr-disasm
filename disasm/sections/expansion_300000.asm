@@ -697,6 +697,17 @@ bridge_probe:
         include "sh2/generated/bridge_probe.inc"
 
 ; ============================================================================
+; Q-020 MODE-1 VALIDATION HANDLER: 0x303A10 — VALIDATION BUILDS ONLY
+; ============================================================================
+; Dedicated globals-only cmd $3E handler. The ordinary mode-0 ROM leaves this
+; interval as $FF and retains cmd $3E -> $023016B0.
+        ifd     VR60_MODE1_VALIDATION
+        dcb.b   ($303A10 - *), $FF
+cmd3e_mode1_validation:
+        include "sh2/generated/cmd3e_mode1_validation.inc"
+        endif
+
+; ============================================================================
 ; REMAINING EXPANSION ROM SPACE (from ~0x303A10)
 ; ============================================================================
 ; Pad to $3F0000 (960KB) instead of $400000 (1MB) to avoid PicoDrive

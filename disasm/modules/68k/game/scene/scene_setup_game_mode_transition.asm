@@ -135,7 +135,11 @@ scene_setup_game_mode_transition:
         beq.w   .loading_mode_2                 ; $00E0D0: $6700 $002A
 
 ; Mode 0 loading handler
+        ifd     VR60_MODE1_VALIDATION
+        move.l  #$0089C914,$00FF0002            ; validation-only reset wrapper
+        else
         move.l  #$00884A3E,$00FF0002            ; $00E0D4: $23FC ... — mode 0 loading handler
+        endif
         bra.w   .done                           ; $00E0DE: $6000 $0036
 
 ; Mode 1 loading: set split-screen bit 5 (P1 primary), clear bit 4

@@ -63,7 +63,13 @@ vr60_1p_staging_hook:
         jsr     .mode0_transfer                    ; explicit mode 0 + DREQ transfer
         endif
         else
+        ifd     VR60_MODE1_VALIDATION
+        nop                                         ; isolated mode-1 pair: first hit stages only
+        nop                                         ; mode 0 is neither repeated nor revalidated
+        nop
+        else
         jsr     vr60_1p_entity_transfer            ; DREQ 320B -> SDRAM (cmd $3E mode 0)
+        endif
         endif
 ; VALIDATION GATE: AI transfer stays disabled until a trustworthy control
 ; fixture passes, then must be tested independently of cmd $3F.
@@ -73,7 +79,11 @@ vr60_1p_staging_hook:
         ifd     VR60_MODE0_ONLY
         bra.s   .original_calls
         else
+        ifd     VR60_MODE1_VALIDATION
+        bra.s   .original_calls                    ; mode-1 pair never enters relay
+        else
         bra.s   .relay
+        endif
         endif
 .globals_only:
         ifd     VR60_MODE0_ONLY
@@ -87,14 +97,31 @@ vr60_1p_staging_hook:
         else
 ; --- Subsequent frames: globals only ---
         jsr     vr60_globals_stage                 ; 64B scattered -> $FF6B00
+        ifd     VR60_MODE1_VALIDATION
+        ifd     VR60_MODE1_STAGE_CONTROL
+        nop                                         ; exact six-byte ACTIVE/CONTROL pair slot
+        nop
+        nop
+        else
+        jsr     vr60_1p_globals_transfer_mode1_validation
+        endif
+        else
         jsr     vr60_1p_globals_transfer           ; DREQ 64B -> SDRAM (cmd $3E mode 1)
         endif
+        endif
 .relay:
+        ifd     VR60_MODE1_VALIDATION
+; The old relay occupies 34 bytes. Keep the accepted original-call address fixed
+; while making every relay operation unreachable and physically absent.
+        bra.s   .original_calls
+        dcb.w   16,$4E71
+        else
 ; --- Dormant relay slots; values are stale/zero while cmd $3F stays disabled ---
         move.b  COMM6,($FFFFC8A4).w               ; sound trigger
         clr.b   COMM6                              ; clear
         move.w  COMM4,$00FF617A                    ; viewport left
         move.w  COMM5,$00FF618E                    ; viewport right
+        endif
 ; --- Fire-and-forget: async block copies + physics via cmd $3F ---
 ; VALIDATION GATE: cmd $3F stays disabled until a trustworthy baseline exists.
 ; First run it as observable shadow computation with the 68K authoritative;

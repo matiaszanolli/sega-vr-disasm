@@ -1,10 +1,8 @@
 {
   "schema_version": 1,
   "eligible": false,
-  "status": "PLACEHOLDER_ONLY",
+  "status": "STATIC_METADATA_PINNED_AWAITING_CAPTURES",
   "blockers": [
-    "No source-built mode-1 active/control ROM pair exists.",
-    "The reviewed wrapper, flag-reset writer, and relocated hook-writer PCs are not established.",
     "No normal-entry or name-entry re-entry state/replay/trace pair has been captured twice per arm."
   ],
   "policy": {
@@ -24,20 +22,20 @@
     }
   },
   "expected_mode1_pcs": {
-    "wrapper_entry_pc": null,
-    "flag_reset_writer_pc": null,
-    "hook_flag_writer_pc": null
+    "wrapper_entry_pc": 9029908,
+    "flag_reset_writer_pc": 9029910,
+    "hook_flag_writer_pc": 116938
   },
   "arms": {
     "active": {
-      "rom_sha256": null,
+      "rom_sha256": "f0cdb1a71e1a39e247e19355da8f1a3f62a5b67efd4f8ef09b2ec1119f7e4c3c",
       "routes": {
         "normal_entry": [],
         "name_entry_reentry": []
       }
     },
     "control": {
-      "rom_sha256": null,
+      "rom_sha256": "2a958af78bf5643d808b3cb07517c8936aef3b082be14967ec8003f8f22ada10",
       "routes": {
         "normal_entry": [],
         "name_entry_reentry": []

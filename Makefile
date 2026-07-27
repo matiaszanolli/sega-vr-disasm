@@ -27,6 +27,10 @@ MODE0_ROM_MANIFEST = $(TOOLS_DIR)/libretro-profiling/mode0_rom_pair.json
 MODE0_ROM_VERIFY = $(TOOLS_DIR)/libretro-profiling/verify_mode0_rom_pair.py
 MODE0_DEFAULT_MANIFEST = $(TOOLS_DIR)/libretro-profiling/mode0_default.json
 MODE0_DEFAULT_VERIFY = $(TOOLS_DIR)/libretro-profiling/verify_mode0_default.py
+MODE1_ACTIVE_ROM = $(BUILD_DIR)/vr60_mode1_active.32x
+MODE1_CONTROL_ROM = $(BUILD_DIR)/vr60_mode1_stage_control.32x
+MODE1_ROM_MANIFEST = $(TOOLS_DIR)/libretro-profiling/mode1_rom_pair.json
+MODE1_ROM_VERIFY = $(TOOLS_DIR)/libretro-profiling/verify_mode1_rom_pair.py
 
 # Assembly flags
 # -Fbin = binary output
@@ -39,7 +43,7 @@ ASMFLAGS = -Fbin -m68000 -no-opt -spaces -quiet
 M68K_SRC = $(DISASM_DIR)/vrd.asm
 VR60_1P_HOOK_SITE_SRC = $(DISASM_DIR)/modules/68k/game/scene/game_frame_orch_013.asm
 VR60_1P_STAGING_HOOK_SRC = $(DISASM_DIR)/modules/68k/sh2/vr60_1p_staging_hook.asm
-.PHONY: all control-rom mode0-roms mode0-default-verify clean disasm tools test profile-frame profile-pc
+.PHONY: all control-rom mode0-roms mode0-default-verify mode1-roms clean disasm tools test profile-frame profile-pc
 
 # ============================================================================
 # Main targets
@@ -112,6 +116,29 @@ $(MODE0_ROM_MANIFEST): $(MODE0_ACTIVE_ROM) $(MODE0_CONTROL_ROM) $(MODE0_DEFAULT_
 		--control $(MODE0_CONTROL_ROM) \
 		--default-reference $(MODE0_DEFAULT_REFERENCE_ROM) \
 		--manifest $(MODE0_ROM_MANIFEST)
+
+# Validation-only mode-1 pair.  This deliberately fail-stops on a missing
+# handshake and is never a promotable/default ROM.
+mode1-roms: $(MODE1_ROM_MANIFEST)
+	@echo "==> VR60 mode-1 validation ACTIVE ROM: $(MODE1_ACTIVE_ROM)"
+	@echo "==> VR60 mode-1 validation STAGE-CONTROL ROM: $(MODE1_CONTROL_ROM)"
+	@echo "==> Non-promotable static manifest: $(MODE1_ROM_MANIFEST)"
+
+$(MODE1_ACTIVE_ROM): sh2-assembly $(M68K_SRC) $(VR60_1P_HOOK_SITE_SRC) $(VR60_1P_STAGING_HOOK_SRC) | dirs
+	@echo "==> Assembling validation-only VR60 mode-1 ACTIVE ROM..."
+	$(ASM) $(ASMFLAGS) -D VR60_MODE1_VALIDATION=1 -o $@ $(M68K_SRC)
+
+$(MODE1_CONTROL_ROM): sh2-assembly $(M68K_SRC) $(VR60_1P_HOOK_SITE_SRC) $(VR60_1P_STAGING_HOOK_SRC) | dirs
+	@echo "==> Assembling validation-only VR60 mode-1 STAGE-CONTROL ROM..."
+	$(ASM) $(ASMFLAGS) -D VR60_MODE1_VALIDATION=1 -D VR60_MODE1_STAGE_CONTROL=1 -o $@ $(M68K_SRC)
+
+$(MODE1_ROM_MANIFEST): $(MODE1_ACTIVE_ROM) $(MODE1_CONTROL_ROM) $(OUTPUT_ROM) $(MODE1_ROM_VERIFY)
+	@echo "==> Verifying isolated mode-1 validation pair..."
+	$(PYTHON) $(MODE1_ROM_VERIFY) \
+		--active $(MODE1_ACTIVE_ROM) \
+		--control $(MODE1_CONTROL_ROM) \
+		--default $(OUTPUT_ROM) \
+		--manifest $(MODE1_ROM_MANIFEST)
 
 mode0-default-verify: $(MODE0_DEFAULT_MANIFEST)
 	@echo "==> Promoted mode-0 default verified: $(OUTPUT_ROM)"
@@ -645,6 +672,11 @@ SH2_CMD3E_ENTITY_SRC = $(SH2_EXP_DIR)/cmd3e_entity_transfer.asm
 SH2_CMD3E_ENTITY_BIN = $(BUILD_DIR)/sh2/cmd3e_entity_transfer.bin
 SH2_CMD3E_ENTITY_INC = $(SH2_GEN_DIR)/cmd3e_entity_transfer.inc
 
+# Q-020 validation-only mode-1 DREQ consumer
+SH2_CMD3E_MODE1_VALIDATION_SRC = $(SH2_EXP_DIR)/cmd3e_mode1_validation.asm
+SH2_CMD3E_MODE1_VALIDATION_BIN = $(BUILD_DIR)/sh2/cmd3e_mode1_validation.bin
+SH2_CMD3E_MODE1_VALIDATION_INC = $(SH2_GEN_DIR)/cmd3e_mode1_validation.inc
+
 # physics_divide (VR60 Phase 3B: division infrastructure)
 SH2_PHYS_DIV_SRC = $(SH2_EXP_DIR)/physics_divide.asm
 SH2_PHYS_DIV_BIN = $(BUILD_DIR)/sh2/physics_divide.bin
@@ -723,7 +755,7 @@ SH2_BRIDGE_PROBE_INC = $(SH2_GEN_DIR)/bridge_probe.inc
 .PHONY: sh2-assembly sh2-verify
 
 # Build all SH2 assembly sources
-sh2-assembly: dirs $(SH2_FUNC000_INC) $(SH2_FUNC022_INC) $(SH2_FUNC017_INC) $(SH2_FUNC018_INC) $(SH2_FUNC019_INC) $(SH2_FUNC020_INC) $(SH2_FUNC021_ORIG_INC) $(SH2_FUNC023_INC) $(SH2_FUNC040_INC) $(SH2_FUNC040_CASES_INC) $(SH2_FUNC040_UTIL_INC) $(SH2_FUNC041_INC) $(SH2_FUNC042_INC) $(SH2_FUNC043_INC) $(SH2_FUNC044_INC) $(SH2_FUNC045_INC) $(SH2_FUNC046_INC) $(SH2_FUNC047_INC) $(SH2_FUNC048_INC) $(SH2_FUNC049_INC) $(SH2_FUNC050_INC) $(SH2_FUNC051_INC) $(SH2_FUNC052_INC) $(SH2_FUNC053_INC) $(SH2_FUNC054_INC) $(SH2_FUNC055_INC) $(SH2_FUNC067_INC) $(SH2_FUNC068_INC) $(SH2_FUNC069_INC) $(SH2_FUNC070_INC) $(SH2_FUNC071_INC) $(SH2_FUNC072_INC) $(SH2_FUNC073_INC) $(SH2_FUNC074_INC) $(SH2_FUNC075_INC) $(SH2_FUNC076_INC) $(SH2_FUNC077_INC) $(SH2_FUNC078_INC) $(SH2_FUNC079_INC) $(SH2_FUNC080_INC) $(SH2_FUNC081_INC) $(SH2_FUNC082_INC) $(SH2_FUNC083_INC) $(SH2_FUNC084_INC) $(SH2_FUNC085_INC) $(SH2_FUNC086_INC) $(SH2_FUNC087_INC) $(SH2_FUNC088_INC) $(SH2_FUNC089_INC) $(SH2_FUNC090_INC) $(SH2_FUNC091_INC) $(SH2_FUNC032_INC) $(SH2_FUNC011_INC) $(SH2_FUNC012_INC) $(SH2_FUNC013_INC) $(SH2_FUNC014_015_INC) $(SH2_FUNC024_INC) $(SH2_FUNC025_INC) $(SH2_FUNC026_INC) $(SH2_FUNC001_INC) $(SH2_FUNC002_INC) $(SH2_FUNC003_004_INC) $(SH2_FUNC029_030_031_INC) $(SH2_FUNC033_INC) $(SH2_FUNC034_INC) $(SH2_FUNC036_INC) $(SH2_FUNC037_038_039_INC) $(SH2_FUNC005_INC) $(SH2_FUNC007_INC) $(SH2_FUNC006_INC) $(SH2_FUNC008_INC) $(SH2_FUNC016_INC) $(SH2_FUNC009_INC) $(SH2_FUNC010_INC) $(SH2_FUNC065_INC) $(SH2_FUNC066_INC) $(SH2_FUNC021_OPT_INC) $(SH2_BATCH_COPY_INC) $(SH2_CMD27_DRAIN_INC) $(SH2_SLAVE_WRAPPER_V2_INC) $(SH2_HANDLER_FRAME_SYNC_INC) $(SH2_MASTER_DISPATCH_HOOK_INC) $(SH2_SLAVE_TEST_FUNC_INC) $(SH2_SHADOW_PATH_WRAPPER_INC) $(SH2_CMDINT_HANDLER_INC) $(SH2_QUEUE_PROCESSOR_INC) $(SH2_COMM7_CHECK_INC) $(SH2_GEN_DRAIN_INC) $(SH2_CMD22_SINGLE_SHOT_INC) $(SH2_CMD25_SINGLE_SHOT_INC) $(SH2_VIS_BITMASK_INC) $(SH2_CMD3F_VR60_INC) $(SH2_CMD3E_ENTITY_INC) $(SH2_PHYS_DIV_INC) $(SH2_PHYS_G1_INC) $(SH2_PHYS_G2A_INC) $(SH2_PHYS_TMR_INC) $(SH2_PHYS_POS_INC) $(SH2_PHYS_DRF_INC) $(SH2_AI_STEER_INC) $(SH2_AI_ORCH_INC) $(SH2_RSP_INC) $(SH2_COLL_LEAF_INC) $(SH2_COLL_TRK_INC) $(SH2_COLL_BND_INC) $(SH2_COLL_RSP_INC) $(SH2_COLL_OBJ_INC) $(SH2_BRIDGE_PROBE_INC)
+sh2-assembly: dirs $(SH2_FUNC000_INC) $(SH2_FUNC022_INC) $(SH2_FUNC017_INC) $(SH2_FUNC018_INC) $(SH2_FUNC019_INC) $(SH2_FUNC020_INC) $(SH2_FUNC021_ORIG_INC) $(SH2_FUNC023_INC) $(SH2_FUNC040_INC) $(SH2_FUNC040_CASES_INC) $(SH2_FUNC040_UTIL_INC) $(SH2_FUNC041_INC) $(SH2_FUNC042_INC) $(SH2_FUNC043_INC) $(SH2_FUNC044_INC) $(SH2_FUNC045_INC) $(SH2_FUNC046_INC) $(SH2_FUNC047_INC) $(SH2_FUNC048_INC) $(SH2_FUNC049_INC) $(SH2_FUNC050_INC) $(SH2_FUNC051_INC) $(SH2_FUNC052_INC) $(SH2_FUNC053_INC) $(SH2_FUNC054_INC) $(SH2_FUNC055_INC) $(SH2_FUNC067_INC) $(SH2_FUNC068_INC) $(SH2_FUNC069_INC) $(SH2_FUNC070_INC) $(SH2_FUNC071_INC) $(SH2_FUNC072_INC) $(SH2_FUNC073_INC) $(SH2_FUNC074_INC) $(SH2_FUNC075_INC) $(SH2_FUNC076_INC) $(SH2_FUNC077_INC) $(SH2_FUNC078_INC) $(SH2_FUNC079_INC) $(SH2_FUNC080_INC) $(SH2_FUNC081_INC) $(SH2_FUNC082_INC) $(SH2_FUNC083_INC) $(SH2_FUNC084_INC) $(SH2_FUNC085_INC) $(SH2_FUNC086_INC) $(SH2_FUNC087_INC) $(SH2_FUNC088_INC) $(SH2_FUNC089_INC) $(SH2_FUNC090_INC) $(SH2_FUNC091_INC) $(SH2_FUNC032_INC) $(SH2_FUNC011_INC) $(SH2_FUNC012_INC) $(SH2_FUNC013_INC) $(SH2_FUNC014_015_INC) $(SH2_FUNC024_INC) $(SH2_FUNC025_INC) $(SH2_FUNC026_INC) $(SH2_FUNC001_INC) $(SH2_FUNC002_INC) $(SH2_FUNC003_004_INC) $(SH2_FUNC029_030_031_INC) $(SH2_FUNC033_INC) $(SH2_FUNC034_INC) $(SH2_FUNC036_INC) $(SH2_FUNC037_038_039_INC) $(SH2_FUNC005_INC) $(SH2_FUNC007_INC) $(SH2_FUNC006_INC) $(SH2_FUNC008_INC) $(SH2_FUNC016_INC) $(SH2_FUNC009_INC) $(SH2_FUNC010_INC) $(SH2_FUNC065_INC) $(SH2_FUNC066_INC) $(SH2_FUNC021_OPT_INC) $(SH2_BATCH_COPY_INC) $(SH2_CMD27_DRAIN_INC) $(SH2_SLAVE_WRAPPER_V2_INC) $(SH2_HANDLER_FRAME_SYNC_INC) $(SH2_MASTER_DISPATCH_HOOK_INC) $(SH2_SLAVE_TEST_FUNC_INC) $(SH2_SHADOW_PATH_WRAPPER_INC) $(SH2_CMDINT_HANDLER_INC) $(SH2_QUEUE_PROCESSOR_INC) $(SH2_COMM7_CHECK_INC) $(SH2_GEN_DRAIN_INC) $(SH2_CMD22_SINGLE_SHOT_INC) $(SH2_CMD25_SINGLE_SHOT_INC) $(SH2_VIS_BITMASK_INC) $(SH2_CMD3F_VR60_INC) $(SH2_CMD3E_ENTITY_INC) $(SH2_CMD3E_MODE1_VALIDATION_INC) $(SH2_PHYS_DIV_INC) $(SH2_PHYS_G1_INC) $(SH2_PHYS_G2A_INC) $(SH2_PHYS_TMR_INC) $(SH2_PHYS_POS_INC) $(SH2_PHYS_DRF_INC) $(SH2_AI_STEER_INC) $(SH2_AI_ORCH_INC) $(SH2_RSP_INC) $(SH2_COLL_LEAF_INC) $(SH2_COLL_TRK_INC) $(SH2_COLL_BND_INC) $(SH2_COLL_RSP_INC) $(SH2_COLL_OBJ_INC) $(SH2_BRIDGE_PROBE_INC)
 
 # Build data_copy binary from source (requires linker script for PC-relative addressing)
 $(SH2_FUNC000_BIN): $(SH2_FUNC000_SRC) $(SH2_FUNC000_LDS) | dirs
@@ -2396,6 +2428,22 @@ $(SH2_CMD3E_ENTITY_INC): $(SH2_CMD3E_ENTITY_BIN)
 	@mkdir -p $(SH2_GEN_DIR)
 	@echo "==> Generating dc.w include: cmd3e_entity_transfer.inc..."
 	@echo "; Auto-generated from $(SH2_CMD3E_ENTITY_SRC)" > $@
+	@echo "; DO NOT EDIT - regenerate with 'make sh2-assembly'" >> $@
+	@echo "" >> $@
+	@xxd -p $< | fold -w4 | awk '{print "        dc.w    $$" toupper($$1)}' >> $@
+	@echo "    Output: $@ ($$(wc -l < $@) lines)"
+
+$(SH2_CMD3E_MODE1_VALIDATION_BIN): $(SH2_CMD3E_MODE1_VALIDATION_SRC) | dirs
+	@mkdir -p $(BUILD_DIR)/sh2
+	@echo "==> Assembling SH2: cmd3e_mode1_validation..."
+	$(SH2_AS) $(SH2_ASFLAGS) -o $(BUILD_DIR)/sh2/cmd3e_mode1_validation.o $<
+	$(SH2_OBJCOPY) -O binary $(@:.bin=.o) $@
+	@echo "    Output: $@ ($$(wc -c < $@) bytes)"
+
+$(SH2_CMD3E_MODE1_VALIDATION_INC): $(SH2_CMD3E_MODE1_VALIDATION_BIN)
+	@mkdir -p $(SH2_GEN_DIR)
+	@echo "==> Generating dc.w include: cmd3e_mode1_validation.inc..."
+	@echo "; Auto-generated from $(SH2_CMD3E_MODE1_VALIDATION_SRC)" > $@
 	@echo "; DO NOT EDIT - regenerate with 'make sh2-assembly'" >> $@
 	@echo "" >> $@
 	@xxd -p $< | fold -w4 | awk '{print "        dc.w    $$" toupper($$1)}' >> $@

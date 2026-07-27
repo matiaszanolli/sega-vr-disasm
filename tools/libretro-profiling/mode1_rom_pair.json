@@ -1,0 +1,132 @@
+{
+  "eligible": false,
+  "findings": [],
+  "gate_b_pc_policy": {
+    "ack_clear": [
+      "0x0001C960"
+    ],
+    "ack_flush": [
+      "0x02303A42"
+    ],
+    "ack_observe": [
+      "0x0001C956"
+    ],
+    "ack_wait": [
+      "0x02303A4C"
+    ],
+    "completion": [
+      "0x02303A54"
+    ],
+    "completion_flush": [
+      "0x02303A56"
+    ],
+    "fifo_write": [
+      "0x0001C982"
+    ],
+    "full_read": [
+      "0x0001C976"
+    ],
+    "m68k_dreq_read": [
+      "0x0001C98C"
+    ],
+    "master_ack": [
+      "0x02303A40"
+    ],
+    "master_dreq_read": [
+      "0x02303A46"
+    ],
+    "trigger": [
+      "0x0001C94E"
+    ]
+  },
+  "gate_b_requirements": {
+    "ack_clear_before_fifo": true,
+    "ack_transition": "normally 0x03 -> 0x01; bit1 set/clear relationally",
+    "both_cpus_observe_dreq_len_zero_before_master_ack_check": true,
+    "eight_full_checked_groups": true,
+    "four_fifo_words_per_group": true,
+    "one_trigger_per_transaction": true,
+    "reset_routes_required": 2,
+    "same_address_flush_reads": [
+      "master_ack",
+      "completion"
+    ]
+  },
+  "hashes": {
+    "active": "f0cdb1a71e1a39e247e19355da8f1a3f62a5b67efd4f8ef09b2ec1119f7e4c3c",
+    "control": "2a958af78bf5643d808b3cb07517c8936aef3b082be14967ec8003f8f22ada10",
+    "default": "6f2768f2cffc85cdc815a67c9f13837112829edac3f0921a57454e79e2523900"
+  },
+  "literal_pool_users": [
+    {
+      "instruction": "0x303A10",
+      "literal": "0x303A8C"
+    },
+    {
+      "instruction": "0x303A1C",
+      "literal": "0x303A64"
+    },
+    {
+      "instruction": "0x303A1E",
+      "literal": "0x303A68"
+    },
+    {
+      "instruction": "0x303A22",
+      "literal": "0x303A6C"
+    },
+    {
+      "instruction": "0x303A24",
+      "literal": "0x303A70"
+    },
+    {
+      "instruction": "0x303A28",
+      "literal": "0x303A74"
+    },
+    {
+      "instruction": "0x303A2A",
+      "literal": "0x303A78"
+    },
+    {
+      "instruction": "0x303A2E",
+      "literal": "0x303A7C"
+    },
+    {
+      "instruction": "0x303A30",
+      "literal": "0x303A80"
+    },
+    {
+      "instruction": "0x303A34",
+      "literal": "0x303A84"
+    },
+    {
+      "instruction": "0x303A44",
+      "literal": "0x303A88"
+    }
+  ],
+  "pair_delta": {
+    "active_bytes": "4eb90001c922",
+    "control_bytes": "4e714e714e71",
+    "different_offsets": [
+      "0x1C8DB",
+      "0x1C8DC",
+      "0x1C8DD",
+      "0x1C8DE",
+      "0x1C8DF"
+    ],
+    "offset": "0x1C8DA",
+    "size": 6
+  },
+  "promotable": false,
+  "ranges": {
+    "dedicated_handler": "0x303A10-0x303A8F",
+    "handler_literal_pool": "0x303A64-0x303A8F",
+    "hook": "0x1C8B0-0x1C913",
+    "preserved_original_handler": "0x3016B0-0x30175F",
+    "wrapper_helper": "0x1C914-0x1C999"
+  },
+  "rom_size": 4128768,
+  "runtime_evidence": "MISSING",
+  "schema": "vrd-vr60-mode1-validation-pair-v1",
+  "static_eligible": true,
+  "status": "BLOCKED_NO_RUNTIME_GATE_B_OR_RESET_EVIDENCE"
+}

@@ -1,0 +1,87 @@
+diff --git a/pico/32x/memory.c b/pico/32x/memory.c
+--- a/pico/32x/memory.c
++++ b/pico/32x/memory.c
+@@ -1927,7 +1927,8 @@ static void REGPARM(3) vrd_mmio_trace_master_write8(
+   DRC_SAVE_SR(sh2);
+   vrd_mmio_trace_master_orig_write8(address, value, sh2);
+   if (vrd_mmio_trace_master_observer &&
+-      (address == 0x20004020 || address == 0x20004023))
++      (address == 0x20004020 || address == 0x20004021 ||
++       address == 0x20004023))
+     vrd_mmio_trace_master_observer(pc, address, value & 0xff, 1, 1);
+   DRC_RESTORE_SR(sh2);
+ }
+@@ -1940,7 +1941,8 @@ static u32 REGPARM(2) vrd_mmio_trace_master_read8(u32 address, SH2 *sh2)
+   DRC_SAVE_SR(sh2);
+   value = vrd_mmio_trace_master_orig_read8(address, sh2);
+   if (vrd_mmio_trace_master_observer &&
+-      (address == 0x20004020 || address == 0x20004023))
++      (address == 0x20004020 || address == 0x20004021 ||
++       address == 0x20004023))
+     vrd_mmio_trace_master_observer(pc, address, value & 0xff, 0, 1);
+   DRC_RESTORE_SR(sh2);
+   return value;
+diff --git a/platform/libretro/libretro.c b/platform/libretro/libretro.c
+--- a/platform/libretro/libretro.c
++++ b/platform/libretro/libretro.c
+@@ -311,11 +311,11 @@ static int vrd_profile_pc_env_present = 0;
+ #define VRD_MMIO_TRACE_PC_ALLOWLIST \
+     "m68k:0x0001C6FE-0x0001C76C;master:0x023016B0-0x02301760"
+ #define VRD_MMIO_TRACE_MODE1_M68K_PC_START 0x0001c922
+-#define VRD_MMIO_TRACE_MODE1_M68K_PC_END   0x0001c99a
++#define VRD_MMIO_TRACE_MODE1_M68K_PC_END   0x0001c990
+ #define VRD_MMIO_TRACE_MODE1_MASTER_PC_START 0x02303a10
+-#define VRD_MMIO_TRACE_MODE1_MASTER_PC_END   0x02303a90
++#define VRD_MMIO_TRACE_MODE1_MASTER_PC_END   0x02303aa8
+ #define VRD_MMIO_TRACE_MODE1_PC_ALLOWLIST \
+-    "m68k:0x0001C922-0x0001C99A;master:0x02303A10-0x02303A90"
++    "m68k:0x0001C922-0x0001C990;master:0x02303A10-0x02303AA8"
+ typedef struct {
+     unsigned int frame;
+     unsigned int pc;
+@@ -697,7 +697,9 @@ static unsigned int vrd_mmio_trace_read_byte(unsigned int address)
+     unsigned int effective_address = address & 0x00ffffff;
+ 
+     if (effective_address == 0x00a15107 ||
+-        (vrd_mmio_trace_mode1 && effective_address == 0x00a15123))
++        (vrd_mmio_trace_mode1 &&
++         (effective_address == 0x00a15121 ||
++          effective_address == 0x00a15123)))
+         vrd_mmio_trace_append(VRD_MMIO_CPU_M68K, vrd_mmio_trace_pc,
+             VRD_MMIO_OP_READ, effective_address, 1, value & 0xff);
+     return value;
+@@ -721,6 +723,7 @@ static void vrd_mmio_trace_write_byte(
+ 
+     vrd_mmio_trace_orig_write_byte(address, value);
+     if (effective_address == 0x00a15120 ||
++        (vrd_mmio_trace_mode1 && effective_address == 0x00a15121) ||
+         effective_address == 0x00a15123)
+         vrd_mmio_trace_append(VRD_MMIO_CPU_M68K, vrd_mmio_trace_pc,
+             VRD_MMIO_OP_WRITE, effective_address, 1, value);
+@@ -741,6 +744,8 @@ void vrd_mmio_trace_master_event(
+     unsigned int pc, unsigned int address, unsigned int value,
+     unsigned int op, unsigned int width)
+ {
++    if (!vrd_mmio_trace_mode1 && address == 0x20004021)
++        return;
+     vrd_mmio_trace_append(VRD_MMIO_CPU_MASTER, pc,
+         op, address, width, value);
+ }
+@@ -930,13 +935,13 @@ static void vrd_mmio_trace_write_header(void)
+                 VRD_MMIO_TRACE_PC_ALLOWLIST) < 0 ||
+         fprintf(vrd_mmio_trace_log, "%s\n",
+             vrd_mmio_trace_mode1 ?
+-                "# FILTER m68k_read8=0x00A15107|0x00A15123 "
++                "# FILTER m68k_read8=0x00A15107|0x00A15121|0x00A15123 "
+                 "m68k_read16=0x00A15110 "
+                 "m68k_write16=0x00A15112 "
+-                "m68k_write8=0x00A15120|0x00A15123 "
+-                "master_read8=0x20004020|0x20004023 "
++                "m68k_write8=0x00A15120|0x00A15121|0x00A15123 "
++                "master_read8=0x20004020|0x20004021|0x20004023 "
+                 "master_read16=0x20004010 "
+-                "master_write8=0x20004020|0x20004023" :
++                "master_write8=0x20004020|0x20004021|0x20004023" :
+                 "# FILTER m68k_read8=0x00A15107 "
+                 "m68k_write16=0x00A15112 "
+                 "m68k_write8=0x00A15120|0x00A15123 "

@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import subprocess
 import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
@@ -27,35 +29,35 @@ from validate_mmio_trace import (
 
 TOOL_DIR = Path(__file__).resolve().parent
 REPO_ROOT = TOOL_DIR.parents[1]
-CORE_SOURCE = (
-    REPO_ROOT
-    / "third_party"
-    / "picodrive"
-    / "platform"
-    / "libretro"
-    / "libretro.c"
+CORE_REPO = REPO_ROOT / "third_party" / "picodrive"
+CORE_BASE_COMMIT = "26ecb2b6358fefba24e3d68b9eb2efba7f10d5ee"
+CORE_BASE_PATCH = TOOL_DIR / "libretro_vrd_profiling_v4.patch"
+CORE_MODE1_OVERLAY = TOOL_DIR / "libretro_vrd_mode1_mmio_overlay.patch"
+CORE_BASE_PATCH_SHA256 = (
+    "b18ffc2bb490f5cc9a0fd3529d8d341e19e461a69cc7b64779b7419248a9faee"
 )
-CORE_MEMORY_SOURCE = (
-    REPO_ROOT
-    / "third_party"
-    / "picodrive"
-    / "pico"
-    / "32x"
-    / "memory.c"
+CORE_MODE1_OVERLAY_SHA256 = (
+    "76363ab8b336631dfc4082e9923f6fe8bf002d17a86a011d8038eb77a1b4a78a"
+)
+PATCHED_LIBRETRO_SHA256 = (
+    "334d1107f8ad5def3062a64f189f1df6918d2f6225ae337c6fafd789cdaa1376"
+)
+PATCHED_MEMORY_SHA256 = (
+    "bfd0c5619cedd98e89476697820fe178fa57f27fcb6625310f1f28e73c15089a"
 )
 POLICY = TransactionPcPolicy(
+    command_index=frozenset({0x0001C946}),
     trigger=frozenset({0x0001C94E}),
-    master_ack=frozenset({0x02303A40}),
-    ack_flush=frozenset({0x02303A42}),
-    ack_observe=frozenset({0x0001C956}),
-    ack_clear=frozenset({0x0001C960}),
-    full_read=frozenset({0x0001C976}),
-    fifo_write=frozenset({0x0001C982}),
-    m68k_dreq_read=frozenset({0x0001C98C}),
-    master_dreq_read=frozenset({0x02303A46}),
-    ack_wait=frozenset({0x02303A4C}),
-    completion=frozenset({0x02303A54}),
-    completion_flush=frozenset({0x02303A56}),
+    ready_poll=frozenset({0x0001C956}),
+    ready_publish=frozenset({0x02303A3E}),
+    ready_flush=frozenset({0x02303A40}),
+    busy_guard=frozenset({0x02303A46}),
+    full_read=frozenset({0x0001C96C}),
+    fifo_write=frozenset({0x0001C978}),
+    m68k_dreq_read=frozenset({0x0001C982}),
+    master_dreq_read=frozenset({0x02303A4E}),
+    completion=frozenset({0x02303A68}),
+    completion_flush=frozenset({0x02303A6A}),
 )
 
 
@@ -83,32 +85,40 @@ def valid_events() -> list[MmioEvent]:
             )
         )
 
+    append("m68k", 0x0001C946, "write", 0x00A15121, 1, 0x3E)
     append("m68k", 0x0001C94E, "write", 0x00A15120, 1, 0x01)
-    append("m68k", 0x0001C956, "read", 0x00A15123, 1, 0x01)
-    append("master", 0x02303A40, "write", 0x20004023, 1, 0x03)
-    append("master", 0x02303A42, "read", 0x20004023, 1, 0x03)
-    append("m68k", 0x0001C956, "read", 0x00A15123, 1, 0x03)
-    append("m68k", 0x0001C960, "read", 0x00A15123, 1, 0x03)
-    append("m68k", 0x0001C960, "write", 0x00A15123, 1, 0x01)
+    append("m68k", 0x0001C956, "read", 0x00A15121, 1, 0x3E)
+    append("m68k", 0x0001C956, "read", 0x00A15121, 1, 0x3E)
+    append("master", 0x02303A3E, "write", 0x20004021, 1, 0x00)
+    append("m68k", 0x0001C956, "read", 0x00A15121, 1, 0x00)
+    append("master", 0x02303A40, "read", 0x20004021, 1, 0x00)
+    append("master", 0x02303A46, "read", 0x20004020, 1, 0x01)
     for group in range(8):
-        append("m68k", 0x0001C976, "read", 0x00A15107, 1, 0x80)
-        append("m68k", 0x0001C976, "read", 0x00A15107, 1, group)
+        append(
+            "master",
+            0x02303A4E,
+            "read",
+            0x20004010,
+            2,
+            32 - group * 4,
+        )
+        append("m68k", 0x0001C96C, "read", 0x00A15107, 1, 0x80)
+        append("m68k", 0x0001C96C, "read", 0x00A15107, 1, group)
         for word in range(4):
             append(
                 "m68k",
-                0x0001C982,
+                0x0001C978,
                 "write",
                 0x00A15112,
                 2,
                 (group << 8) | word,
             )
-    append("m68k", 0x0001C98C, "read", 0x00A15110, 2, 4)
-    append("master", 0x02303A46, "read", 0x20004010, 2, 4)
-    append("m68k", 0x0001C98C, "read", 0x00A15110, 2, 0)
-    append("master", 0x02303A46, "read", 0x20004010, 2, 0)
-    append("master", 0x02303A4C, "read", 0x20004023, 1, 0x01)
-    append("master", 0x02303A54, "write", 0x20004020, 1, 0x00)
-    append("master", 0x02303A56, "read", 0x20004020, 1, 0x00)
+    append("m68k", 0x0001C982, "read", 0x00A15110, 2, 4)
+    append("master", 0x02303A4E, "read", 0x20004010, 2, 4)
+    append("m68k", 0x0001C982, "read", 0x00A15110, 2, 0)
+    append("master", 0x02303A4E, "read", 0x20004010, 2, 0)
+    append("master", 0x02303A68, "write", 0x20004020, 1, 0x00)
+    append("master", 0x02303A6A, "read", 0x20004020, 1, 0x00)
     return rows
 
 
@@ -234,6 +244,73 @@ def c_function_body(source: str, signature: str) -> str:
     raise AssertionError(f"unterminated function: {signature}")
 
 
+def sha256_file(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def patch_paths(path: Path) -> frozenset[str]:
+    paths: set[str] = set()
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line.startswith("diff --git a/"):
+            left = line.split()[2]
+            if not left.startswith("a/"):
+                raise AssertionError(f"malformed patch path: {line}")
+            paths.add(left[2:])
+    if not paths:
+        raise AssertionError(f"patch contains no paths: {path}")
+    return frozenset(paths)
+
+
+def reconstruct_patched_core_sources() -> tuple[str, str]:
+    """Apply the tracked v4 + mode-1 overlay chain to the pinned upstream."""
+
+    paths = patch_paths(CORE_BASE_PATCH) | patch_paths(CORE_MODE1_OVERLAY)
+    with tempfile.TemporaryDirectory() as temporary:
+        root = Path(temporary)
+        subprocess.run(
+            ["git", "init", "-q"],
+            cwd=root,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        for relative in sorted(paths):
+            destination = root / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            result = subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(CORE_REPO),
+                    "show",
+                    f"{CORE_BASE_COMMIT}:{relative}",
+                ],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            destination.write_bytes(result.stdout)
+        for patch in (CORE_BASE_PATCH, CORE_MODE1_OVERLAY):
+            subprocess.run(
+                ["git", "apply", "--check", str(patch)],
+                cwd=root,
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            subprocess.run(
+                ["git", "apply", str(patch)],
+                cwd=root,
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+        return (
+            (root / "platform/libretro/libretro.c").read_text(encoding="utf-8"),
+            (root / "pico/32x/memory.c").read_text(encoding="utf-8"),
+        )
+
+
 class MmioTraceParserTests(unittest.TestCase):
     def test_eight_group_transaction_is_accepted(self) -> None:
         path = write_temp_trace(render_trace(valid_events()))
@@ -247,7 +324,7 @@ class MmioTraceParserTests(unittest.TestCase):
             ),
             1,
         )
-        self.assertEqual(len(trace.events), 62)
+        self.assertEqual(len(trace.events), 70)
 
     def test_incomplete_and_overflow_traces_are_rejected(self) -> None:
         for text in (
@@ -269,7 +346,11 @@ class MmioTraceParserTests(unittest.TestCase):
 
     def test_transition_grammar_rejects_missing_fifo_word(self) -> None:
         events = valid_events()
-        del events[9]
+        fifo_index = next(
+            index for index, event in enumerate(events)
+            if event.kind == "fifo_write"
+        )
+        del events[fifo_index]
         events = [replace(event, sequence=i) for i, event in enumerate(events)]
         trace = parse_mmio_trace(
             write_temp_trace(render_trace(events)), gate_b_mode1=True
@@ -286,7 +367,7 @@ class MmioTraceParserTests(unittest.TestCase):
         base = valid_events()
         for changed in (
             replace(base[0], width=2),
-            replace(base[0], address=0x00A15121),
+            replace(base[0], address=0x00A15122),
         ):
             events = list(base)
             events[0] = changed
@@ -299,7 +380,7 @@ class MmioTraceParserTests(unittest.TestCase):
 
     def test_wrong_exact_pc_is_rejected(self) -> None:
         events = valid_events()
-        events[0] = replace(events[0], pc=0x0001C950)
+        events[0] = replace(events[0], pc=0x0001C944)
         trace = parse_mmio_trace(
             write_temp_trace(render_trace(events)), gate_b_mode1=True
         )
@@ -311,13 +392,18 @@ class MmioTraceParserTests(unittest.TestCase):
                 expected_eligible_hook_hits=1,
             )
 
-    def test_wrong_transition_value_is_rejected(self) -> None:
+    def test_trigger_must_follow_command_index(self) -> None:
         events = valid_events()
-        events[2] = replace(events[2], value=0x00)
+        trigger = events.pop(1)
+        events.insert(0, trigger)
+        events = [
+            replace(event, sequence=sequence)
+            for sequence, event in enumerate(events)
+        ]
         trace = parse_mmio_trace(
             write_temp_trace(render_trace(events)), gate_b_mode1=True
         )
-        with self.assertRaisesRegex(TraceValidationError, "Master ACK"):
+        with self.assertRaisesRegex(TraceValidationError, "waiting for command_index"):
             validate_mode1(
                 trace,
                 POLICY,
@@ -325,20 +411,64 @@ class MmioTraceParserTests(unittest.TestCase):
                 expected_eligible_hook_hits=1,
             )
 
-    def test_flush_dreq_and_bit0_invariants_are_fail_closed(self) -> None:
-        mutations = (
-            ("ACK flush", 3, None),
-            ("both CPUs", 58, None),
-            ("completion_flush", 61, None),
-            ("preserve bit0", 6, replace(valid_events()[6], value=0)),
+    def test_master_readiness_cannot_precede_68k_trigger(self) -> None:
+        events = valid_events()
+        publish_index = next(
+            index for index, event in enumerate(events)
+            if event.kind == "ready_publish"
         )
-        for message, index, replacement in mutations:
-            with self.subTest(message=message):
+        publish = events.pop(publish_index)
+        trigger_index = next(
+            index for index, event in enumerate(events)
+            if event.kind == "trigger"
+        )
+        events.insert(trigger_index, publish)
+        events = [
+            replace(event, sequence=sequence)
+            for sequence, event in enumerate(events)
+        ]
+        trace = parse_mmio_trace(
+            write_temp_trace(render_trace(events)), gate_b_mode1=True
+        )
+        with self.assertRaisesRegex(
+            TraceValidationError, "global command/trigger/readiness/FIFO"
+        ):
+            validate_mode1(
+                trace,
+                POLICY,
+                arm="active",
+                expected_eligible_hook_hits=1,
+            )
+
+    def test_readiness_sequence_is_fail_closed(self) -> None:
+        base = valid_events()
+        cases = (
+            (
+                "publication",
+                next(i for i, event in enumerate(base)
+                     if event.kind == "ready_publish"),
+            ),
+            (
+                "same-byte flush",
+                next(i for i, event in enumerate(base)
+                     if event.kind == "ready_flush"),
+            ),
+            (
+                "busy guard",
+                next(i for i, event in enumerate(base)
+                     if event.kind == "master_hi_read"
+                     and event.pc in POLICY.busy_guard),
+            ),
+            (
+                "readiness zero",
+                next(i for i, event in enumerate(base)
+                     if event.kind == "ready_poll" and event.value == 0),
+            ),
+        )
+        for label, remove_index in cases:
+            with self.subTest(label=label):
                 events = valid_events()
-                if replacement is None:
-                    del events[index]
-                else:
-                    events[index] = replacement
+                del events[remove_index]
                 events = [
                     replace(event, sequence=sequence)
                     for sequence, event in enumerate(events)
@@ -347,6 +477,125 @@ class MmioTraceParserTests(unittest.TestCase):
                     write_temp_trace(render_trace(events)), gate_b_mode1=True
                 )
                 with self.assertRaises(TraceValidationError):
+                    validate_mode1(
+                        trace,
+                        POLICY,
+                        arm="active",
+                        expected_eligible_hook_hits=1,
+                    )
+
+    def test_fifo_before_readiness_publication_is_rejected(self) -> None:
+        events = valid_events()
+        fifo_index = next(
+            index for index, event in enumerate(events)
+            if event.kind == "fifo_write"
+        )
+        fifo = events.pop(fifo_index)
+        publish_index = next(
+            index for index, event in enumerate(events)
+            if event.kind == "ready_publish"
+        )
+        events.insert(publish_index, fifo)
+        events = [
+            replace(event, sequence=sequence)
+            for sequence, event in enumerate(events)
+        ]
+        trace = parse_mmio_trace(
+            write_temp_trace(render_trace(events)), gate_b_mode1=True
+        )
+        with self.assertRaises(TraceValidationError):
+            validate_mode1(
+                trace,
+                POLICY,
+                arm="active",
+                expected_eligible_hook_hits=1,
+            )
+
+    def test_wrong_readiness_and_guard_values_are_rejected(self) -> None:
+        base = valid_events()
+        indexes = (
+            next(i for i, event in enumerate(base)
+                 if event.kind == "ready_publish"),
+            next(i for i, event in enumerate(base)
+                 if event.kind == "ready_flush"),
+            next(i for i, event in enumerate(base)
+                 if event.kind == "master_hi_read"
+                 and event.pc in POLICY.busy_guard),
+        )
+        for index in indexes:
+            with self.subTest(index=index):
+                events = valid_events()
+                events[index] = replace(events[index], value=0x7F)
+                trace = parse_mmio_trace(
+                    write_temp_trace(render_trace(events)), gate_b_mode1=True
+                )
+                with self.assertRaises(TraceValidationError):
+                    validate_mode1(
+                        trace,
+                        POLICY,
+                        arm="active",
+                        expected_eligible_hook_hits=1,
+                    )
+
+    def test_dreq_zero_and_completion_flush_are_fail_closed(self) -> None:
+        base = valid_events()
+        m68k_zero = next(
+            index
+            for index, event in enumerate(base)
+            if event.kind == "dreq_read"
+            and event.cpu == "m68k"
+            and event.value == 0
+        )
+        master_zero = next(
+            index
+            for index, event in enumerate(base)
+            if event.kind == "dreq_read"
+            and event.cpu == "master"
+            and event.value == 0
+        )
+        mutations = (
+            ("m68k zero", m68k_zero),
+            ("master zero", master_zero),
+            ("completion flush", len(base) - 1),
+        )
+        for message, index in mutations:
+            with self.subTest(message=message):
+                events = valid_events()
+                del events[index]
+                events = [
+                    replace(event, sequence=sequence)
+                    for sequence, event in enumerate(events)
+                ]
+                trace = parse_mmio_trace(
+                    write_temp_trace(render_trace(events)), gate_b_mode1=True
+                )
+                with self.assertRaises(TraceValidationError):
+                    validate_mode1(
+                        trace,
+                        POLICY,
+                        arm="active",
+                        expected_eligible_hook_hits=1,
+                    )
+
+    def test_any_comm1_access_is_rejected(self) -> None:
+        forbidden = (
+            MmioEvent(0, 0, "m68k", 0x0001C956, "read", 0x00A15123, 1, 3),
+            MmioEvent(0, 0, "master", 0x02303A40, "write", 0x20004023, 1, 3),
+        )
+        for injected in forbidden:
+            with self.subTest(cpu=injected.cpu, op=injected.op):
+                events = valid_events()
+                events.insert(7, injected)
+                events = [
+                    replace(event, sequence=sequence)
+                    for sequence, event in enumerate(events)
+                ]
+                trace = parse_mmio_trace(
+                    write_temp_trace(render_trace(events)), gate_b_mode1=True
+                )
+                with self.assertRaisesRegex(
+                    TraceValidationError, "forbidden COMM1"
+                ):
                     validate_mode1(
                         trace,
                         POLICY,
@@ -434,16 +683,16 @@ class MmioTraceParserTests(unittest.TestCase):
             main([str(path)])
         pc_args: list[str] = []
         for option, values in (
+            ("command-index", POLICY.command_index),
             ("trigger", POLICY.trigger),
-            ("master-ack", POLICY.master_ack),
-            ("ack-flush", POLICY.ack_flush),
-            ("ack-observe", POLICY.ack_observe),
-            ("ack-clear", POLICY.ack_clear),
+            ("ready-poll", POLICY.ready_poll),
+            ("ready-publish", POLICY.ready_publish),
+            ("ready-flush", POLICY.ready_flush),
+            ("busy-guard", POLICY.busy_guard),
             ("full-read", POLICY.full_read),
             ("fifo-write", POLICY.fifo_write),
             ("m68k-dreq-read", POLICY.m68k_dreq_read),
             ("master-dreq-read", POLICY.master_dreq_read),
-            ("ack-wait", POLICY.ack_wait),
             ("completion", POLICY.completion),
             ("completion-flush", POLICY.completion_flush),
         ):
@@ -543,8 +792,27 @@ class PcAllowlistTests(unittest.TestCase):
 class MmioCallbackSourceTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.source = CORE_SOURCE.read_text(encoding="utf-8")
-        cls.memory_source = CORE_MEMORY_SOURCE.read_text(encoding="utf-8")
+        cls.source, cls.memory_source = reconstruct_patched_core_sources()
+
+    def test_tracked_patch_chain_identity_and_scope(self) -> None:
+        self.assertEqual(sha256_file(CORE_BASE_PATCH), CORE_BASE_PATCH_SHA256)
+        self.assertEqual(
+            sha256_file(CORE_MODE1_OVERLAY), CORE_MODE1_OVERLAY_SHA256
+        )
+        self.assertEqual(
+            patch_paths(CORE_MODE1_OVERLAY),
+            frozenset(
+                {"platform/libretro/libretro.c", "pico/32x/memory.c"}
+            ),
+        )
+        self.assertEqual(
+            hashlib.sha256(self.source.encode()).hexdigest(),
+            PATCHED_LIBRETRO_SHA256,
+        )
+        self.assertEqual(
+            hashlib.sha256(self.memory_source.encode()).hexdigest(),
+            PATCHED_MEMORY_SHA256,
+        )
 
     def test_wrappers_call_each_saved_callback_exactly_once(self) -> None:
         checks = (
@@ -652,6 +920,14 @@ class MmioCallbackSourceTests(unittest.TestCase):
             "if (!pc_allowed)",
         ):
             self.assertIn(token, body)
+
+    def test_comm0_lo_capture_is_mode1_only(self) -> None:
+        body = c_function_body(
+            self.source, "void vrd_mmio_trace_master_event"
+        )
+        self.assertIn(
+            "!vrd_mmio_trace_mode1 && address == 0x20004021", body
+        )
 
 
 if __name__ == "__main__":

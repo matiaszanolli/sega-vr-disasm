@@ -40,11 +40,19 @@ cmd3e_mode1_validation:
     mov.l   r0,@r1
     mov.l   @r1,r0                  /* synchronize DMAC enable */
 
-    /* Preserve system bit 0, set ACK bit 1, then flush the external write. */
-    mov.b   @(3,r8),r0
-    or      #2,r0
-    mov.b   r0,@(3,r8)
-    mov.b   @(3,r8),r0              /* required same-address readback */
+    /*
+     * The dispatcher consumed COMM0_LO before entering this handler. Publish
+     * readiness only after DMAC0 is fully armed. Byte access preserves busy
+     * COMM0_HI=1; same-byte readback forces the external write to complete.
+     */
+    mov     #0,r0
+    mov.b   r0,@(1,r8)              /* COMM0_LO = 0: producer may start */
+    mov.b   @(1,r8),r0              /* synchronize readiness write */
+    tst     r0,r0
+    bf      .fail_stop
+    mov.b   @r8,r0                  /* byte-lane guard: HI must remain busy */
+    cmp/eq  #1,r0
+    bf      .fail_stop
 
     mov.l   @(.dreq_len,pc),r1
 .wait_dreq_complete:
@@ -52,13 +60,24 @@ cmd3e_mode1_validation:
     tst     r0,r0
     bf      .wait_dreq_complete
 
-    /* 68K cleared ACK before FIFO streaming; inspect it only after DREQ==0. */
-.wait_ack_clear:
-    mov.b   @(3,r8),r0
+    /*
+     * DREQ length reaches zero when the producer has submitted every word, not
+     * necessarily when DMAC0 has completed the final transfer. A normal DMAC
+     * end sets CHCR0.TE. Per SH7604 section 9.2.4, TE must first be read as 1
+     * and then written as 0 before the channel can be re-armed.
+     */
+    mov.l   @(.dmac_chcr0,pc),r1
+.wait_dma_te:
+    mov.l   @r1,r0
     tst     #2,r0
-    bf      .wait_ack_clear
+    bt      .wait_dma_te
+    mov.l   @(.chcr_idle_value,pc),r0
+    mov.l   r0,@r1
+    mov.l   @r1,r0                  /* verify IE:TE:DE are all zero */
+    tst     #7,r0
+    bf      .fail_stop
 
-    /* Publish completion and force it to the physical COMM register. */
+    /* Publish completion only after DMAC0 transfer-end acknowledgement. */
     mov     #0,r0
     mov.b   r0,@(0,r8)
     mov.b   @(0,r8),r0              /* required same-address readback */
@@ -87,7 +106,9 @@ cmd3e_mode1_validation:
 .dmac_chcr0:
     .long   0xFFFFFF8C
 .chcr_value:
-    .long   0x000044E5
+    .long   0x000044E1
+.chcr_idle_value:
+    .long   0x000044E0
 .dmac_dmaor:
     .long   0xFFFFFFB0
 .dreq_len:

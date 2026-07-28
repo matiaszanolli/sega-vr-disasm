@@ -1,0 +1,35 @@
+
+/tmp/vr60_mode1_prearm4_cached_target_experiment.32x:     file format binary
+
+
+Disassembly of section .data:
+
+0001c914 <.data+0x1c914>:
+   1c914:	4e71           	nop
+   1c916:	4239 ffff 7b40 	clrb 0xffff7b40
+   1c91c:	4ef9 0088 4a3e 	jmp 0x884a3e
+   1c922:	48e7 e060      	moveml %d0-%d2/%a1-%a2,%sp@-
+   1c926:	4a39 00a1 5120 	tstb 0xa15120
+   1c92c:	66f8           	bnes 0x1c926
+   1c92e:	33fc 0004 00a1 	movew #4,0xa15110
+   1c934:	5110 
+   1c936:	13fc 0004 00a1 	moveb #4,0xa15107
+   1c93c:	5107 
+   1c93e:	13fc 0001 00a1 	moveb #1,0xa15126
+   1c944:	5126 
+   1c946:	45f9 00a1 5112 	lea 0xa15112,%a2
+   1c94c:	34bc a1b2      	movew #-24142,%a2@
+   1c950:	34bc c3d4      	movew #-15404,%a2@
+   1c954:	34bc e5f6      	movew #-6666,%a2@
+   1c958:	34bc 0718      	movew #1816,%a2@
+   1c95c:	13fc 003e 00a1 	moveb #62,0xa15121
+   1c962:	5121 
+   1c964:	13fc 0001 00a1 	moveb #1,0xa15120
+   1c96a:	5120 
+   1c96c:	4a79 00a1 5110 	tstw 0xa15110
+   1c972:	66f8           	bnes 0x1c96c
+   1c974:	4cdf 0607      	moveml %sp@+,%d0-%d2/%a1-%a2
+   1c978:	4e75           	rts
+   1c97a:	ffff           	.short 0xffff
+   1c97c:	ffff           	.short 0xffff
+   1c97e:	ffff           	.short 0xffff

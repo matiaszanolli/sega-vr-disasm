@@ -1,0 +1,122 @@
+diff --git a/disasm/modules/68k/sh2/vr60_mode1_validation.asm b/disasm/modules/68k/sh2/vr60_mode1_validation.asm
+index 6c9bc98..96442b8 100644
+--- a/disasm/modules/68k/sh2/vr60_mode1_validation.asm
++++ b/disasm/modules/68k/sh2/vr60_mode1_validation.asm
+@@ -24,41 +24,24 @@ vr60_1p_globals_transfer_mode1_validation:
+         tst.b   COMM0_HI
+         bne.s   .wait_master_idle
+ 
+-; Configure one 64-byte CPU-write DREQ transaction.
+-        move.w  #$0020,MARS_DREQ_LEN
++; Temporary ordering experiment: configure exactly one hardware-depth group.
++        move.w  #$0004,MARS_DREQ_LEN
+         move.b  #$04,MARS_DREQ_CTRL+1
+         move.b  #$01,COMM3
+ 
+-; Exactly one trigger. From this point onward there is no retry, unwind, return,
+-; or COMM0/COMM3 access until Master completes. Missing progress fails stopped.
++; Write exactly four fixed words before Master can arm DMAC0.
++        lea     MARS_FIFO,a2
++        move.w  #$A1B2,(a2)
++        move.w  #$C3D4,(a2)
++        move.w  #$E5F6,(a2)
++        move.w  #$0718,(a2)
++
++; Exactly one trigger after the complete four-word pre-arm group.
+         move.b  #$3E,COMM0_LO
+         move.b  #$01,COMM0_HI
+ 
+-.wait_ack:
+-        btst    #1,COMM1_LO
+-        beq.s   .wait_ack
+-
+-; Master flushed ACK and has relinquished COMM1 while it waits on DREQ_LEN.
+-; Preserve system bit 0 and return only ACK-bit ownership before streaming.
+-        bclr    #1,COMM1_LO
+-
+-; Eight groups of four words. FULL is checked before every group, as required
+-; by the 32X hardware manual.
+-        lea     $00FF6B00,a1
+-        lea     MARS_FIFO,a2
+-        moveq   #7,d2
+-.fifo_group:
+-.wait_fifo_clear:
+-        btst    #7,MARS_DREQ_CTRL+1
+-        bne.s   .wait_fifo_clear
+-        moveq   #3,d0
+-.fifo_word:
+-        move.w  (a1)+,(a2)
+-        dbra    d0,.fifo_word
+-        dbra    d2,.fifo_group
+-
+-; Do not return until all words have entered the DREQ circuit and its live
+-; length has reached zero. Master does not inspect COMM1 until this reaches 0.
++; The live length reaches zero at the fourth pre-arm write. Keep this read as
++; a raw witness; Master completion/destination are checked after the frame.
+ .wait_dreq_complete:
+         tst.w   MARS_DREQ_LEN
+         bne.s   .wait_dreq_complete
+diff --git a/disasm/sections/expansion_300000.asm b/disasm/sections/expansion_300000.asm
+index 356a378..74f7072 100644
+--- a/disasm/sections/expansion_300000.asm
++++ b/disasm/sections/expansion_300000.asm
+@@ -448,7 +448,12 @@ cmd3f_vr60_gameframe:
+ ;
+         dcb.b   ($3016B0 - *),$FF      ; Pad to 0x3016B0 (cmd $3F = 428B; cmd $3E is 176B and fits before $301760)
+ cmd3e_entity_transfer:
++        ifd     VR60_MODE1_VALIDATION
++        include "sh2/generated/cmd3e_mode1_validation.inc"
++        dcb.b   ($301760 - *),$FF
++        else
+         include "sh2/generated/cmd3e_entity_transfer.inc"
++        endif
+ 
+ ; ============================================================================
+ ; VR60 PHYSICS DIVISION INFRASTRUCTURE: 0x301760 — BUILT; DORMANT IN CURRENT 1P
+diff --git a/disasm/sh2/expansion/cmd3e_mode1_validation.asm b/disasm/sh2/expansion/cmd3e_mode1_validation.asm
+index 499498a..82e505a 100644
+--- a/disasm/sh2/expansion/cmd3e_mode1_validation.asm
++++ b/disasm/sh2/expansion/cmd3e_mode1_validation.asm
+@@ -22,7 +22,7 @@ cmd3e_mode1_validation:
+     cmp/eq  #1,r0
+     bf      .fail_stop
+ 
+-    /* DMAC channel 0: fixed FIFO source -> globals destination, 32 words. */
++    /* Ordering experiment: fixed FIFO source -> globals destination, 4 words. */
+     mov.l   @(.dmac_sar0,pc),r1
+     mov.l   @(.fifo_addr,pc),r0
+     mov.l   r0,@r1
+@@ -40,24 +40,12 @@ cmd3e_mode1_validation:
+     mov.l   r0,@r1
+     mov.l   @r1,r0                  /* synchronize DMAC enable */
+ 
+-    /* Preserve system bit 0, set ACK bit 1, then flush the external write. */
+-    mov.b   @(3,r8),r0
+-    or      #2,r0
+-    mov.b   r0,@(3,r8)
+-    mov.b   @(3,r8),r0              /* required same-address readback */
+-
+     mov.l   @(.dreq_len,pc),r1
+ .wait_dreq_complete:
+     mov.w   @r1,r0
+     tst     r0,r0
+     bf      .wait_dreq_complete
+ 
+-    /* 68K cleared ACK before FIFO streaming; inspect it only after DREQ==0. */
+-.wait_ack_clear:
+-    mov.b   @(3,r8),r0
+-    tst     #2,r0
+-    bf      .wait_ack_clear
+-
+     /* Publish completion and force it to the physical COMM register. */
+     mov     #0,r0
+     mov.b   r0,@(0,r8)
+@@ -83,7 +71,7 @@ cmd3e_mode1_validation:
+ .dmac_tcr0:
+     .long   0xFFFFFF88
+ .tcr_globals:
+-    .long   0x00000020
++    .long   0x00000004
+ .dmac_chcr0:
+     .long   0xFFFFFF8C
+ .chcr_value:

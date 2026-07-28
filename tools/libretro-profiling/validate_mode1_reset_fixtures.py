@@ -40,8 +40,8 @@ EXPECTED_MODE1_PCS = {
     "hook_flag_writer_pc": 0x0001C8CA,
 }
 EXPECTED_ROM_SHA256 = {
-    "active": "f0cdb1a71e1a39e247e19355da8f1a3f62a5b67efd4f8ef09b2ec1119f7e4c3c",
-    "control": "2a958af78bf5643d808b3cb07517c8936aef3b082be14967ec8003f8f22ada10",
+    "active": "844543609366dd76925865c89d848306ff7a619cda637275143c60fbb3066402",
+    "control": "715f11de6478b3d96239ff54b7e38ce6ec3dc9e321b5d392bd660323e4ebbd17",
 }
 
 

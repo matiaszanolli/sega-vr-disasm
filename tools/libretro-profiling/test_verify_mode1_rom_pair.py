@@ -11,8 +11,15 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from verify_mode1_rom_pair import (
     CANDIDATE_DEFAULT_ALLOWED_RANGES,
+    COMPLETION_SEQUENCE,
+    DMAC0_ACTIVE_CHCR,
+    DMAC0_IDLE_CHCR,
+    DMAC0_ACTIVE_LITERAL_OFFSET,
+    DMAC0_IDLE_LITERAL_OFFSET,
     HANDLER_OFFSET,
     PAIR_SLOT_OFFSET,
+    READINESS_SEQUENCE,
+    dmac0_rearm_policy_errors,
     differences_outside_ranges,
     literal_users_in_handler_allocation,
     verify_pair,
@@ -61,6 +68,85 @@ class Mode1VerifierTests(unittest.TestCase):
         after = literal_users_in_handler_allocation(image)
         self.assertEqual(after[:1], [(0x303A00, HANDLER_OFFSET)])
         self.assertEqual(after[1:], before)
+
+    def test_dmac0_policy_rearms_cleanly_for_repeated_transactions(self) -> None:
+        self.assertEqual(
+            dmac0_rearm_policy_errors(
+                DMAC0_ACTIVE_CHCR,
+                DMAC0_IDLE_CHCR,
+                repetitions=2,
+            ),
+            [],
+        )
+        self.assertIn(
+            "active_dei_enabled",
+            dmac0_rearm_policy_errors(0x000044E5, DMAC0_IDLE_CHCR),
+        )
+        self.assertIn(
+            "idle_not_ie0_te0_de0",
+            dmac0_rearm_policy_errors(DMAC0_ACTIVE_CHCR, 0x000044E1),
+        )
+        self.assertIn(
+            "idle_not_ie0_te0_de0",
+            dmac0_rearm_policy_errors(DMAC0_ACTIVE_CHCR, 0x000044E4),
+        )
+
+    def test_te_acknowledge_or_chcr_literal_tampering_is_rejected(self) -> None:
+        for offset in (
+            HANDLER_OFFSET + 0x54,
+            HANDLER_OFFSET + DMAC0_ACTIVE_LITERAL_OFFSET,
+            HANDLER_OFFSET + DMAC0_IDLE_LITERAL_OFFSET,
+        ):
+            with self.subTest(offset=offset), tempfile.TemporaryDirectory() as temp:
+                candidate = Path(temp) / "active.32x"
+                image = bytearray(ACTIVE.read_bytes())
+                image[offset] ^= 1
+                candidate.write_bytes(image)
+                payload = verify_pair(candidate, CONTROL, DEFAULT)
+                self.assertFalse(payload["static_eligible"])
+                self.assertTrue(
+                    any("dmac0" in finding for finding in payload["findings"]),
+                    payload["findings"],
+                )
+
+    def test_readiness_and_completion_flush_tampering_is_rejected(self) -> None:
+        image = ACTIVE.read_bytes()
+        for label, sequence, finding in (
+            ("readiness", READINESS_SEQUENCE, "master_readiness_sequence"),
+            (
+                "completion",
+                COMPLETION_SEQUENCE,
+                "master_completion_flush_sequence",
+            ),
+        ):
+            offset = image.index(sequence, HANDLER_OFFSET)
+            with self.subTest(label=label), tempfile.TemporaryDirectory() as temp:
+                candidate = Path(temp) / "active.32x"
+                tampered = bytearray(image)
+                tampered[offset] ^= 1
+                candidate.write_bytes(tampered)
+                payload = verify_pair(candidate, CONTROL, DEFAULT)
+                self.assertFalse(payload["static_eligible"])
+                self.assertTrue(
+                    any(finding in item for item in payload["findings"]),
+                    payload["findings"],
+                )
+
+    def test_idle_ie_bit_tampering_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            candidate = Path(temp) / "active.32x"
+            image = bytearray(ACTIVE.read_bytes())
+            image[HANDLER_OFFSET + DMAC0_IDLE_LITERAL_OFFSET + 3] ^= 0x04
+            candidate.write_bytes(image)
+            payload = verify_pair(candidate, CONTROL, DEFAULT)
+            self.assertFalse(payload["static_eligible"])
+            self.assertTrue(
+                any(
+                    "idle_not_ie0_te0_de0" in finding
+                    for finding in payload["findings"]
+                ),
+                payload["findings"],
+            )
 
 
 if __name__ == "__main__":

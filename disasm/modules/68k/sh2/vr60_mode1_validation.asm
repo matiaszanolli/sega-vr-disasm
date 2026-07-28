@@ -29,21 +29,22 @@ vr60_1p_globals_transfer_mode1_validation:
         move.b  #$04,MARS_DREQ_CTRL+1
         move.b  #$01,COMM3
 
-; Exactly one trigger. From this point onward there is no retry, unwind, return,
-; or COMM0/COMM3 access until Master completes. Missing progress fails stopped.
+; Publish the command exactly once. The Master consumes COMM0_LO as the dispatch
+; index, programs/enables DMAC0, then clears COMM0_LO as the readiness signal.
+; COMM0_HI remains one until normal DMAC completion.
         move.b  #$3E,COMM0_LO
         move.b  #$01,COMM0_HI
 
-.wait_ack:
-        btst    #1,COMM1_LO
-        beq.s   .wait_ack
+; Do not touch the FIFO until Master has armed DMAC0. A read concurrent with
+; Master's LO clear may be undefined, but that clear is program-ordered after
+; the synchronized DMAOR enable, so even an undefined false zero cannot release
+; this producer before DMAC0 is armed.
+.wait_master_ready:
+        tst.b   COMM0_LO
+        bne.s   .wait_master_ready
 
-; Master flushed ACK and has relinquished COMM1 while it waits on DREQ_LEN.
-; Preserve system bit 0 and return only ACK-bit ownership before streaming.
-        bclr    #1,COMM1_LO
-
-; Eight groups of four words. FULL is checked before every group, as required
-; by the 32X hardware manual.
+; The hardware FIFO is four words deep. Stream exactly eight four-word groups,
+; checking FULL before every group as required by the 32X hardware manual.
         lea     $00FF6B00,a1
         lea     MARS_FIFO,a2
         moveq   #7,d2
@@ -58,7 +59,7 @@ vr60_1p_globals_transfer_mode1_validation:
         dbra    d2,.fifo_group
 
 ; Do not return until all words have entered the DREQ circuit and its live
-; length has reached zero. Master does not inspect COMM1 until this reaches 0.
+; length has reached zero. COMM1 is never read or written by this protocol.
 .wait_dreq_complete:
         tst.w   MARS_DREQ_LEN
         bne.s   .wait_dreq_complete

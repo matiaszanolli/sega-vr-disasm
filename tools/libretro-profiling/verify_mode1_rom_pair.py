@@ -13,8 +13,8 @@ from pathlib import Path
 SCHEMA = "vrd-vr60-mode1-validation-pair-v1"
 EXPECTED_SIZE = 4_128_768
 EXPECTED_DEFAULT_SHA256 = "6f2768f2cffc85cdc815a67c9f13837112829edac3f0921a57454e79e2523900"
-EXPECTED_ACTIVE_SHA256 = "f0cdb1a71e1a39e247e19355da8f1a3f62a5b67efd4f8ef09b2ec1119f7e4c3c"
-EXPECTED_CONTROL_SHA256 = "2a958af78bf5643d808b3cb07517c8936aef3b082be14967ec8003f8f22ada10"
+EXPECTED_ACTIVE_SHA256 = "844543609366dd76925865c89d848306ff7a619cda637275143c60fbb3066402"
+EXPECTED_CONTROL_SHA256 = "715f11de6478b3d96239ff54b7e38ce6ec3dc9e321b5d392bd660323e4ebbd17"
 
 ROUTE_BYTES = bytes.fromhex("23fc0089c914")
 ROUTE_OFFSETS = (0x00E0D4, 0x011822)
@@ -38,9 +38,8 @@ WRAPPER_HELPER_OFFSET = 0x01C914
 WRAPPER_HELPER = bytes.fromhex(
     "4e714239ffff7b404ef900884a3e48e7e0604a3900a1512066f833fc002000a1"
     "511013fc000400a1510713fc000100a1512613fc003e00a1512113fc000100a1"
-    "51200839000100a1512367f608b9000100a1512343f900ff6b0045f900a15112"
-    "74070839000700a1510766f67003349951c8fffc51caffec4a7900a1511066f8"
-    "4cdf06074e75"
+    "51204a3900a1512166f843f900ff6b0045f900a1511274070839000700a15107"
+    "66f67003349951c8fffc51caffec4a7900a1511066f84cdf06074e75"
 )
 JUMP_OFFSET = 0x020878
 JUMP_BYTES = bytes.fromhex("02303a10")
@@ -49,12 +48,13 @@ ORIGINAL_HANDLER_END = 0x301760
 ORIGINAL_HANDLER_SHA256 = "d4bfc7747d0805ef508413f6a2fb3d1073a7ec2d735abe1fe02b3a7f2f3f41a8"
 HANDLER_OFFSET = 0x303A10
 HANDLER = bytes.fromhex(
-    "d11e21824f22848688018b20d111d0122102d112d0122102d112d0132102d113"
-    "d0132102d113e001210260128483cb0280838483d110601120088bfc8483c802"
-    "8bfce000808084804f26000b0009affe00090009ffffff8020004012ffffff84"
-    "0600f30cffffff8800000020ffffff8c000044e5ffffffb0200040102600fc04"
+    "d12421824f22848688018b2ad116d0172102d117d0172102d117d0182102d118"
+    "d0182102d119e00121026012e0008081848120088b15608088018b12d1146011"
+    "20088bfcd10e6012c80289fcd00e21026012c8078b05e000808084804f26000b"
+    "0009affe00090009ffffff8020004012ffffff840600f30cffffff8800000020"
+    "ffffff8c000044e1000044e0ffffffb0200040102600fc04"
 )
-LITERAL_START = HANDLER_OFFSET + 0x54
+LITERAL_START = HANDLER_OFFSET + 0x68
 LITERAL_END = HANDLER_OFFSET + len(HANDLER)
 CANDIDATE_DEFAULT_ALLOWED_RANGES = (
     (0x00E0D4, 0x00E0DA),
@@ -66,23 +66,63 @@ CANDIDATE_DEFAULT_ALLOWED_RANGES = (
 )
 
 GATE_B_PC_POLICY = {
+    "command_index": ["0x0001C946"],
     "trigger": ["0x0001C94E"],
-    "master_ack": ["0x02303A40"],
-    "ack_flush": ["0x02303A42"],
-    "ack_observe": ["0x0001C956"],
-    "ack_clear": ["0x0001C960"],
-    "full_read": ["0x0001C976"],
-    "fifo_write": ["0x0001C982"],
-    "m68k_dreq_read": ["0x0001C98C"],
-    "master_dreq_read": ["0x02303A46"],
-    "ack_wait": ["0x02303A4C"],
-    "completion": ["0x02303A54"],
-    "completion_flush": ["0x02303A56"],
+    "ready_poll": ["0x0001C956"],
+    "ready_publish": ["0x02303A3E"],
+    "ready_flush": ["0x02303A40"],
+    "busy_guard": ["0x02303A46"],
+    "full_read": ["0x0001C96C"],
+    "fifo_write": ["0x0001C978"],
+    "m68k_dreq_read": ["0x0001C982"],
+    "master_dreq_read": ["0x02303A4E"],
+    "completion": ["0x02303A68"],
+    "completion_flush": ["0x02303A6A"],
 }
+
+DMAC0_ACTIVE_LITERAL_OFFSET = 0x84
+DMAC0_IDLE_LITERAL_OFFSET = 0x88
+DMAC0_ACTIVE_CHCR = 0x000044E1
+DMAC0_IDLE_CHCR = 0x000044E0
+READINESS_SEQUENCE = bytes.fromhex("e0008081848120088b15608088018b12")
+COMPLETION_SEQUENCE = bytes.fromhex("e00080808480")
 
 
 def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
+
+
+def dmac0_rearm_policy_errors(
+    active_chcr: int, idle_chcr: int, *, repetitions: int = 2
+) -> list[str]:
+    """Model the pinned CHCR low-bit lifecycle across repeated transactions."""
+    errors: list[str] = []
+    if active_chcr != DMAC0_ACTIVE_CHCR:
+        errors.append(f"active_chcr:0x{active_chcr:08X}")
+    if active_chcr & 0x04:
+        errors.append("active_dei_enabled")
+    if active_chcr & 0x03 != 0x01:
+        errors.append("active_not_te0_de1")
+    if idle_chcr != DMAC0_IDLE_CHCR:
+        errors.append(f"idle_chcr:0x{idle_chcr:08X}")
+    if idle_chcr & 0x07:
+        errors.append("idle_not_ie0_te0_de0")
+
+    state = idle_chcr
+    for repetition in range(repetitions):
+        if state & 0x03:
+            errors.append(f"cycle_{repetition}_prematurely_enabled")
+            break
+        state = active_chcr
+        if state & 0x03 != 0x01:
+            errors.append(f"cycle_{repetition}_cannot_arm")
+            break
+        state |= 0x02  # Normal TCR=0 completion sets TE.
+        if state & 0x02 == 0:
+            errors.append(f"cycle_{repetition}_te_not_set")
+            break
+        state = idle_chcr  # Read TE=1, then write TE=0 and DE=0.
+    return errors
 
 
 def literal_users_in_handler_allocation(image: bytes) -> list[tuple[int, int]]:
@@ -161,6 +201,72 @@ def verify_pair(
             findings.append(f"{name}_jump")
         if image[HANDLER_OFFSET : HANDLER_OFFSET + len(HANDLER)] != HANDLER:
             findings.append(f"{name}_handler")
+        helper = image[
+            WRAPPER_HELPER_OFFSET : WRAPPER_HELPER_OFFSET + len(WRAPPER_HELPER)
+        ]
+        for register, addresses in {
+            "comm1": ("00a15122", "00a15123"),
+            "comm2": ("00a15124", "00a15125"),
+            "comm7": ("00a1512e", "00a1512f"),
+        }.items():
+            if any(bytes.fromhex(address) in helper for address in addresses):
+                findings.append(f"{name}_m68k_{register}_access")
+        handler = image[HANDLER_OFFSET : HANDLER_OFFSET + len(HANDLER)]
+        opcodes = {
+            int.from_bytes(handler[offset : offset + 2], "big")
+            for offset in range(0, len(handler), 2)
+        }
+        for register, forbidden_opcodes in {
+            "comm1": {0x8082, 0x8482, 0x8083, 0x8483},
+            "comm2": {0x8084, 0x8484, 0x8085, 0x8485},
+            "comm7": {0x808E, 0x848E, 0x808F, 0x848F},
+        }.items():
+            if opcodes & forbidden_opcodes:
+                findings.append(f"{name}_master_{register}_access")
+        command_index = bytes.fromhex("13fc003e00a15121")
+        trigger = bytes.fromhex("13fc000100a15120")
+        ready_poll = bytes.fromhex("4a3900a15121")
+        fifo_base = bytes.fromhex("45f900a15112")
+        helper_positions = [
+            helper.find(sequence)
+            for sequence in (command_index, trigger, ready_poll, fifo_base)
+        ]
+        if (
+            any(position < 0 for position in helper_positions)
+            or helper_positions != sorted(helper_positions)
+            or helper.count(command_index) != 1
+            or helper.count(trigger) != 1
+        ):
+            findings.append(f"{name}_m68k_readiness_order")
+        if handler.count(READINESS_SEQUENCE) != 1:
+            findings.append(f"{name}_master_readiness_sequence")
+        if handler.count(COMPLETION_SEQUENCE) != 1:
+            findings.append(f"{name}_master_completion_flush_sequence")
+        if bytes.fromhex("000044e5") in handler:
+            findings.append(f"{name}_dmac0_interrupt_enabled")
+        if bytes.fromhex("000044e1") not in handler:
+            findings.append(f"{name}_dmac0_noninterrupt_active_missing")
+        if bytes.fromhex("000044e0") not in handler:
+            findings.append(f"{name}_dmac0_disabled_idle_missing")
+        te_sequence = bytes.fromhex("d10e6012c80289fcd00e21026012c8078b05")
+        if te_sequence not in handler:
+            findings.append(f"{name}_dmac0_te_ack_sequence")
+        active_chcr = int.from_bytes(
+            handler[
+                DMAC0_ACTIVE_LITERAL_OFFSET : DMAC0_ACTIVE_LITERAL_OFFSET + 4
+            ],
+            "big",
+        )
+        idle_chcr = int.from_bytes(
+            handler[
+                DMAC0_IDLE_LITERAL_OFFSET : DMAC0_IDLE_LITERAL_OFFSET + 4
+            ],
+            "big",
+        )
+        findings.extend(
+            f"{name}_dmac0_rearm_{finding}"
+            for finding in dmac0_rearm_policy_errors(active_chcr, idle_chcr)
+        )
         if sha256(image[ORIGINAL_HANDLER_OFFSET:ORIGINAL_HANDLER_END]) != ORIGINAL_HANDLER_SHA256:
             findings.append(f"{name}_original_handler_changed")
         outside_default = differences_outside_ranges(image, default)
@@ -185,17 +291,19 @@ def verify_pair(
     expected_literal_users = [
         (HANDLER_OFFSET + offset, HANDLER_OFFSET + target)
         for offset, target in (
-            (0x00, 0x7C),
-            (0x0C, 0x54),
-            (0x0E, 0x58),
-            (0x12, 0x5C),
-            (0x14, 0x60),
-            (0x18, 0x64),
-            (0x1A, 0x68),
-            (0x1E, 0x6C),
-            (0x20, 0x70),
-            (0x24, 0x74),
-            (0x34, 0x78),
+            (0x00, 0x94),
+            (0x0C, 0x68),
+            (0x0E, 0x6C),
+            (0x12, 0x70),
+            (0x14, 0x74),
+            (0x18, 0x78),
+            (0x1A, 0x7C),
+            (0x1E, 0x80),
+            (0x20, 0x84),
+            (0x24, 0x8C),
+            (0x3C, 0x90),
+            (0x44, 0x80),
+            (0x4C, 0x88),
         )
     ]
     literal_users = literal_users_in_handler_allocation(active)
@@ -224,9 +332,9 @@ def verify_pair(
         },
         "ranges": {
             "hook": "0x1C8B0-0x1C913",
-            "wrapper_helper": "0x1C914-0x1C999",
-            "dedicated_handler": "0x303A10-0x303A8F",
-            "handler_literal_pool": "0x303A64-0x303A8F",
+            "wrapper_helper": "0x1C914-0x1C98F",
+            "dedicated_handler": "0x303A10-0x303AA7",
+            "handler_literal_pool": "0x303A78-0x303AA7",
             "preserved_original_handler": "0x3016B0-0x30175F",
         },
         "literal_pool_users": [
@@ -235,13 +343,36 @@ def verify_pair(
         ],
         "gate_b_pc_policy": GATE_B_PC_POLICY,
         "gate_b_requirements": {
+            "command_index_before_trigger": True,
             "one_trigger_per_transaction": True,
-            "ack_transition": "normally 0x03 -> 0x01; bit1 set/clear relationally",
-            "ack_clear_before_fifo": True,
+            "no_fifo_before_trigger": True,
+            "readiness_signal": "COMM0_LO:0x3E->0x00",
+            "readiness_publish_after_dmac0_arm_and_dmaor_sync": True,
+            "readiness_same_byte_readback_zero": True,
+            "comm0_hi_busy_guard_one": True,
+            "no_fifo_before_readiness_zero": True,
             "eight_full_checked_groups": True,
             "four_fifo_words_per_group": True,
-            "both_cpus_observe_dreq_len_zero_before_master_ack_check": True,
-            "same_address_flush_reads": ["master_ack", "completion"],
+            "both_cpus_observe_dreq_len_zero_before_completion": True,
+            "dmac0_active_chcr": "0x000044E1",
+            "dmac0_interrupt_enable": False,
+            "dmac0_wait_te_before_completion": True,
+            "dmac0_te_acknowledge": "read-1 then write-0",
+            "dmac0_post_completion_chcr": "0x000044E0",
+            "dmac0_post_completion_state": "IE=0,TE=0,DE=0",
+            "dmac0_rearm_order": [
+                "SAR0",
+                "DAR0",
+                "TCR0",
+                "CHCR0=0x000044E1",
+                "DMAOR.DME=1",
+                "DMAOR same-address read",
+                "COMM0_LO=0x00",
+                "COMM0_LO same-byte read",
+                "COMM0_HI==0x01 guard",
+            ],
+            "forbidden_comm_registers": ["COMM1", "COMM2", "COMM7"],
+            "same_address_flush_reads": ["DMAOR", "readiness", "completion"],
             "reset_routes_required": 2,
         },
     }

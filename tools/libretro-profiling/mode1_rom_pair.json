@@ -2,105 +2,141 @@
   "eligible": false,
   "findings": [],
   "gate_b_pc_policy": {
-    "ack_clear": [
-      "0x0001C960"
+    "busy_guard": [
+      "0x02303A46"
     ],
-    "ack_flush": [
-      "0x02303A42"
-    ],
-    "ack_observe": [
-      "0x0001C956"
-    ],
-    "ack_wait": [
-      "0x02303A4C"
+    "command_index": [
+      "0x0001C946"
     ],
     "completion": [
-      "0x02303A54"
+      "0x02303A68"
     ],
     "completion_flush": [
-      "0x02303A56"
+      "0x02303A6A"
     ],
     "fifo_write": [
-      "0x0001C982"
+      "0x0001C978"
     ],
     "full_read": [
-      "0x0001C976"
+      "0x0001C96C"
     ],
     "m68k_dreq_read": [
-      "0x0001C98C"
-    ],
-    "master_ack": [
-      "0x02303A40"
+      "0x0001C982"
     ],
     "master_dreq_read": [
-      "0x02303A46"
+      "0x02303A4E"
+    ],
+    "ready_flush": [
+      "0x02303A40"
+    ],
+    "ready_poll": [
+      "0x0001C956"
+    ],
+    "ready_publish": [
+      "0x02303A3E"
     ],
     "trigger": [
       "0x0001C94E"
     ]
   },
   "gate_b_requirements": {
-    "ack_clear_before_fifo": true,
-    "ack_transition": "normally 0x03 -> 0x01; bit1 set/clear relationally",
-    "both_cpus_observe_dreq_len_zero_before_master_ack_check": true,
+    "both_cpus_observe_dreq_len_zero_before_completion": true,
+    "comm0_hi_busy_guard_one": true,
+    "command_index_before_trigger": true,
+    "dmac0_active_chcr": "0x000044E1",
+    "dmac0_interrupt_enable": false,
+    "dmac0_post_completion_chcr": "0x000044E0",
+    "dmac0_post_completion_state": "IE=0,TE=0,DE=0",
+    "dmac0_rearm_order": [
+      "SAR0",
+      "DAR0",
+      "TCR0",
+      "CHCR0=0x000044E1",
+      "DMAOR.DME=1",
+      "DMAOR same-address read",
+      "COMM0_LO=0x00",
+      "COMM0_LO same-byte read",
+      "COMM0_HI==0x01 guard"
+    ],
+    "dmac0_te_acknowledge": "read-1 then write-0",
+    "dmac0_wait_te_before_completion": true,
     "eight_full_checked_groups": true,
+    "forbidden_comm_registers": [
+      "COMM1",
+      "COMM2",
+      "COMM7"
+    ],
     "four_fifo_words_per_group": true,
+    "no_fifo_before_readiness_zero": true,
+    "no_fifo_before_trigger": true,
     "one_trigger_per_transaction": true,
+    "readiness_publish_after_dmac0_arm_and_dmaor_sync": true,
+    "readiness_same_byte_readback_zero": true,
+    "readiness_signal": "COMM0_LO:0x3E->0x00",
     "reset_routes_required": 2,
     "same_address_flush_reads": [
-      "master_ack",
+      "DMAOR",
+      "readiness",
       "completion"
     ]
   },
   "hashes": {
-    "active": "f0cdb1a71e1a39e247e19355da8f1a3f62a5b67efd4f8ef09b2ec1119f7e4c3c",
-    "control": "2a958af78bf5643d808b3cb07517c8936aef3b082be14967ec8003f8f22ada10",
+    "active": "844543609366dd76925865c89d848306ff7a619cda637275143c60fbb3066402",
+    "control": "715f11de6478b3d96239ff54b7e38ce6ec3dc9e321b5d392bd660323e4ebbd17",
     "default": "6f2768f2cffc85cdc815a67c9f13837112829edac3f0921a57454e79e2523900"
   },
   "literal_pool_users": [
     {
       "instruction": "0x303A10",
-      "literal": "0x303A8C"
+      "literal": "0x303AA4"
     },
     {
       "instruction": "0x303A1C",
-      "literal": "0x303A64"
-    },
-    {
-      "instruction": "0x303A1E",
-      "literal": "0x303A68"
-    },
-    {
-      "instruction": "0x303A22",
-      "literal": "0x303A6C"
-    },
-    {
-      "instruction": "0x303A24",
-      "literal": "0x303A70"
-    },
-    {
-      "instruction": "0x303A28",
-      "literal": "0x303A74"
-    },
-    {
-      "instruction": "0x303A2A",
       "literal": "0x303A78"
     },
     {
-      "instruction": "0x303A2E",
+      "instruction": "0x303A1E",
       "literal": "0x303A7C"
     },
     {
-      "instruction": "0x303A30",
+      "instruction": "0x303A22",
       "literal": "0x303A80"
     },
     {
-      "instruction": "0x303A34",
+      "instruction": "0x303A24",
       "literal": "0x303A84"
     },
     {
-      "instruction": "0x303A44",
+      "instruction": "0x303A28",
       "literal": "0x303A88"
+    },
+    {
+      "instruction": "0x303A2A",
+      "literal": "0x303A8C"
+    },
+    {
+      "instruction": "0x303A2E",
+      "literal": "0x303A90"
+    },
+    {
+      "instruction": "0x303A30",
+      "literal": "0x303A94"
+    },
+    {
+      "instruction": "0x303A34",
+      "literal": "0x303A9C"
+    },
+    {
+      "instruction": "0x303A4C",
+      "literal": "0x303AA0"
+    },
+    {
+      "instruction": "0x303A54",
+      "literal": "0x303A90"
+    },
+    {
+      "instruction": "0x303A5C",
+      "literal": "0x303A98"
     }
   ],
   "pair_delta": {
@@ -118,11 +154,11 @@
   },
   "promotable": false,
   "ranges": {
-    "dedicated_handler": "0x303A10-0x303A8F",
-    "handler_literal_pool": "0x303A64-0x303A8F",
+    "dedicated_handler": "0x303A10-0x303AA7",
+    "handler_literal_pool": "0x303A78-0x303AA7",
     "hook": "0x1C8B0-0x1C913",
     "preserved_original_handler": "0x3016B0-0x30175F",
-    "wrapper_helper": "0x1C914-0x1C999"
+    "wrapper_helper": "0x1C914-0x1C98F"
   },
   "rom_size": 4128768,
   "runtime_evidence": "MISSING",

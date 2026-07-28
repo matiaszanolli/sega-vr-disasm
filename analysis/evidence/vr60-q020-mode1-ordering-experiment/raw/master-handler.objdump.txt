@@ -1,0 +1,63 @@
+
+build/sh2/cmd3e_mode1_validation.bin:     file format binary
+
+
+Disassembly of section .data:
+
+00000000 <.data>:
+   0:	d1 1a       	mov.l	0x6c,r1	! 2600fc04
+   2:	21 82       	mov.l	r8,@r1
+   4:	4f 22       	sts.l	pr,@-r15
+   6:	84 86       	mov.b	@(6,r8),r0
+   8:	88 01       	cmp/eq	#1,r0
+   a:	8b 19       	bf	0x40
+   c:	d1 0d       	mov.l	0x44,r1	! ffffff80
+   e:	d0 0e       	mov.l	0x48,r0	! 20004012
+  10:	21 02       	mov.l	r0,@r1
+  12:	d1 0e       	mov.l	0x4c,r1	! ffffff84
+  14:	d0 0e       	mov.l	0x50,r0	! 600f30c
+  16:	21 02       	mov.l	r0,@r1
+  18:	d1 0e       	mov.l	0x54,r1	! ffffff88
+  1a:	d0 0f       	mov.l	0x58,r0	! 4
+  1c:	21 02       	mov.l	r0,@r1
+  1e:	d1 0f       	mov.l	0x5c,r1	! ffffff8c
+  20:	d0 0f       	mov.l	0x60,r0	! 44e5
+  22:	21 02       	mov.l	r0,@r1
+  24:	d1 0f       	mov.l	0x64,r1	! ffffffb0
+  26:	e0 01       	mov	#1,r0
+  28:	21 02       	mov.l	r0,@r1
+  2a:	60 12       	mov.l	@r1,r0
+  2c:	d1 0e       	mov.l	0x68,r1	! 20004010
+  2e:	60 11       	mov.w	@r1,r0
+  30:	20 08       	tst	r0,r0
+  32:	8b fc       	bf	0x2e
+  34:	e0 00       	mov	#0,r0
+  36:	80 80       	mov.b	r0,@(0,r8)
+  38:	84 80       	mov.b	@(0,r8),r0
+  3a:	4f 26       	lds.l	@r15+,pr
+  3c:	00 0b       	rts	
+  3e:	00 09       	nop	
+  40:	af fe       	bra	0x40
+  42:	00 09       	nop	
+  44:	ff ff       	.word 0xffff
+  46:	ff 80       	.word 0xff80
+  48:	20 00       	mov.b	r0,@r0
+  4a:	40 12       	sts.l	macl,@-r0
+  4c:	ff ff       	.word 0xffff
+  4e:	ff 84       	.word 0xff84
+  50:	06 00       	.word 0x0600
+  52:	f3 0c       	.word 0xf30c
+  54:	ff ff       	.word 0xffff
+  56:	ff 88       	.word 0xff88
+  58:	00 00       	.word 0x0000
+  5a:	00 04       	mov.b	r0,@(r0,r0)
+  5c:	ff ff       	.word 0xffff
+  5e:	ff 8c       	.word 0xff8c
+  60:	00 00       	.word 0x0000
+  62:	44 e5       	.word 0x44e5
+  64:	ff ff       	.word 0xffff
+  66:	ff b0       	.word 0xffb0
+  68:	20 00       	mov.b	r0,@r0
+  6a:	40 10       	.word 0x4010
+  6c:	26 00       	mov.b	r0,@r6
+  6e:	fc 04       	.word 0xfc04

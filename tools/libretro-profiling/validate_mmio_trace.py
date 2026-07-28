@@ -18,8 +18,8 @@ PC_ALLOWLIST_TEXT = (
     "master:0x023016B0-0x02301760"
 )
 MODE1_PC_ALLOWLIST_TEXT = (
-    "m68k:0x0001C922-0x0001C99A;"
-    "master:0x02303A10-0x02303A90"
+    "m68k:0x0001C922-0x0001C990;"
+    "master:0x02303A10-0x02303AA8"
 )
 TRACE_COLUMNS = (
     "sequence",
@@ -38,13 +38,13 @@ FILTER_LINE = (
     "master_write8=0x20004020|0x20004023"
 )
 MODE1_FILTER_LINE = (
-    "# FILTER m68k_read8=0x00A15107|0x00A15123 "
+    "# FILTER m68k_read8=0x00A15107|0x00A15121|0x00A15123 "
     "m68k_read16=0x00A15110 "
     "m68k_write16=0x00A15112 "
-    "m68k_write8=0x00A15120|0x00A15123 "
-    "master_read8=0x20004020|0x20004023 "
+    "m68k_write8=0x00A15120|0x00A15121|0x00A15123 "
+    "master_read8=0x20004020|0x20004021|0x20004023 "
     "master_read16=0x20004010 "
-    "master_write8=0x20004020|0x20004023"
+    "master_write8=0x20004020|0x20004021|0x20004023"
 )
 HEADER_RE = re.compile(
     r"^# VRD_MMIO_TRACE version=2 capacity=(\d+) sh2_drc=(\d+) "
@@ -117,24 +117,26 @@ class MmioTrace:
 class TransactionPcPolicy:
     """Allowed exact PCs for every event class in a transaction."""
 
+    command_index: frozenset[int]
     trigger: frozenset[int]
-    master_ack: frozenset[int]
-    ack_flush: frozenset[int]
-    ack_observe: frozenset[int]
-    ack_clear: frozenset[int]
+    ready_poll: frozenset[int]
+    ready_publish: frozenset[int]
+    ready_flush: frozenset[int]
+    busy_guard: frozenset[int]
     full_read: frozenset[int]
     fifo_write: frozenset[int]
     m68k_dreq_read: frozenset[int]
     master_dreq_read: frozenset[int]
-    ack_wait: frozenset[int]
     completion: frozenset[int]
     completion_flush: frozenset[int]
 
     def allowed_for(self, kind: str) -> frozenset[int]:
-        if kind == "ack_read":
-            return self.ack_observe | self.ack_clear | self.ack_flush | self.ack_wait
         if kind == "dreq_read":
             return self.m68k_dreq_read | self.master_dreq_read
+        if kind == "master_hi_read":
+            return self.busy_guard | self.completion_flush
+        if kind in {"ack_read", "ack_clear", "master_ack"}:
+            return frozenset()
         return getattr(self, kind)
 
 
@@ -150,29 +152,35 @@ class GateAMode0PcPolicy:
 
 EVENT_KIND = {
     ("m68k", "read", 0x00A15107, 1): "full_read",
+    ("m68k", "read", 0x00A15121, 1): "ready_poll",
     ("m68k", "read", 0x00A15123, 1): "ack_read",
     ("m68k", "read", 0x00A15110, 2): "dreq_read",
     ("m68k", "write", 0x00A15112, 2): "fifo_write",
     ("m68k", "write", 0x00A15120, 1): "trigger",
+    ("m68k", "write", 0x00A15121, 1): "command_index",
     ("m68k", "write", 0x00A15123, 1): "ack_clear",
     ("master", "write", 0x20004023, 1): "master_ack",
     ("master", "write", 0x20004020, 1): "completion",
+    ("master", "write", 0x20004021, 1): "ready_publish",
     ("master", "read", 0x20004023, 1): "ack_read",
-    ("master", "read", 0x20004020, 1): "completion_flush",
+    ("master", "read", 0x20004020, 1): "master_hi_read",
+    ("master", "read", 0x20004021, 1): "ready_flush",
     ("master", "read", 0x20004010, 2): "dreq_read",
 }
 TRANSITION_VALUES = {
+    "command_index": 0x3E,
     "trigger": 0x01,
+    "ready_publish": 0x00,
+    "ready_flush": 0x00,
     "completion": 0x00,
-    "completion_flush": 0x00,
 }
 GATE_A_PC_ALLOWLIST = PcAllowlist(
     m68k=(PcRange(0x0001C6FE, 0x0001C76C),),
     master=(PcRange(0x023016B0, 0x02301760),),
 )
 MODE1_PC_ALLOWLIST = PcAllowlist(
-    m68k=(PcRange(0x0001C922, 0x0001C99A),),
-    master=(PcRange(0x02303A10, 0x02303A90),),
+    m68k=(PcRange(0x0001C922, 0x0001C990),),
+    master=(PcRange(0x02303A10, 0x02303AA8),),
 )
 GATE_A_MODE0_PC_POLICY = GateAMode0PcPolicy()
 
@@ -535,25 +543,29 @@ def validate_gate_a_mode0(
 def _validate_complete_mode1_transactions(
     trace: MmioTrace, pc_policy: TransactionPcPolicy
 ) -> int:
-    """Validate every trigger/ACK/eight-group/FIFO/completion transaction."""
+    """Validate the COMM0_LO readiness/eight-group/completion protocol."""
 
     for field in (
+        "command_index",
         "trigger",
-        "master_ack",
-        "ack_flush",
-        "ack_observe",
-        "ack_clear",
+        "ready_poll",
+        "ready_publish",
+        "ready_flush",
+        "busy_guard",
         "full_read",
         "fifo_write",
         "m68k_dreq_read",
         "master_dreq_read",
-        "ack_wait",
         "completion",
         "completion_flush",
     ):
         if not pc_policy.allowed_for(field):
             raise TraceValidationError(f"PC policy for {field} is empty")
     for event in trace.events:
+        if event.kind in {"ack_read", "ack_clear", "master_ack"}:
+            raise TraceValidationError(
+                f"event {event.sequence}: forbidden COMM1 access in mode-1 protocol"
+            )
         allowed = pc_policy.allowed_for(event.kind)
         if event.pc not in allowed:
             raise TraceValidationError(
@@ -563,101 +575,160 @@ def _validate_complete_mode1_transactions(
         expected_value = TRANSITION_VALUES.get(event.kind)
         if expected_value is not None and event.value != expected_value:
             raise TraceValidationError(
-                f"event {event.sequence}: {event.kind} wrote "
+                f"event {event.sequence}: {event.kind} observed/wrote "
                 f"0x{event.value:X}, expected 0x{expected_value:X}"
             )
+        if event.kind == "master_hi_read":
+            if event.pc in pc_policy.busy_guard:
+                expected_value = 0x01
+                label = "busy guard"
+            else:
+                expected_value = 0x00
+                label = "completion flush"
+            if event.value != expected_value:
+                raise TraceValidationError(
+                    f"event {event.sequence}: {label} read "
+                    f"0x{event.value:X}, expected 0x{expected_value:X}"
+                )
 
     events = trace.events
     index = 0
     transactions = 0
     while index < len(events):
-        _, index = _require_kind(events, index, "trigger")
-        while (
-            index < len(events)
-            and events[index].kind == "ack_read"
-            and events[index].pc in pc_policy.ack_observe
-            and events[index].value & 0x02 == 0
-        ):
-            index += 1
-        ack, index = _require_kind(events, index, "master_ack")
-        if ack.value & 0x02 == 0 or ack.value & ~0x03:
+        if events[index].kind != "command_index":
             raise TraceValidationError(
-                f"event {ack.sequence}: Master ACK did not preserve bit0/set only bit1"
+                f"event {events[index].sequence}: waiting for command_index, "
+                f"saw {events[index].kind}"
             )
-        ack_flush, index = _require_kind(events, index, "ack_read")
-        if ack_flush.pc not in pc_policy.ack_flush or ack_flush.value != ack.value:
+        end = next(
+            (
+                position
+                for position in range(index, len(events))
+                if events[position].kind == "master_hi_read"
+                and events[position].pc in pc_policy.completion_flush
+            ),
+            None,
+        )
+        if end is None:
             raise TraceValidationError(
-                f"event {ack_flush.sequence}: ACK flush read mismatch"
+                f"transaction {transactions}: waiting for completion flush"
             )
-        observed = False
-        while (
-            index < len(events)
-            and events[index].kind == "ack_read"
-            and events[index].pc in pc_policy.ack_observe
-        ):
-            observation = events[index]
-            if observation.value & 0x02:
-                observed = True
-            index += 1
-            if observed:
+        transaction = events[index : end + 1]
+        m68k = [event for event in transaction if event.cpu == "m68k"]
+        master = [event for event in transaction if event.cpu == "master"]
+
+        m68k_index = 0
+        command_index, m68k_index = _require_kind(
+            m68k, m68k_index, "command_index"
+        )
+        trigger, m68k_index = _require_kind(m68k, m68k_index, "trigger")
+        ready_zero = None
+        while m68k_index < len(m68k) and m68k[m68k_index].kind == "ready_poll":
+            ready = m68k[m68k_index]
+            m68k_index += 1
+            if ready.value == 0:
+                ready_zero = ready
                 break
-        if not observed:
+        if ready_zero is None:
             raise TraceValidationError(
-                f"transaction {transactions}: 68K never observed ACK bit 1"
+                f"transaction {transactions}: no COMM0_LO readiness-zero observation"
             )
-        clear_read, index = _require_kind(events, index, "ack_read")
-        if clear_read.pc not in pc_policy.ack_clear or clear_read.value != ack.value:
-            raise TraceValidationError(
-                f"event {clear_read.sequence}: ACK-clear RMW read mismatch"
-            )
-        clear, index = _require_kind(events, index, "ack_clear")
-        if clear.value != (ack.value & ~0x02):
-            raise TraceValidationError(
-                f"event {clear.sequence}: ACK clear did not preserve bit0"
-            )
+
+        first_fifo = None
         for group in range(8):
-            full_reads = 0
             while True:
-                event, index = _require_kind(events, index, "full_read")
-                full_reads += 1
-                if event.value & 0x80 == 0:
+                full, m68k_index = _require_kind(
+                    m68k, m68k_index, "full_read"
+                )
+                if full.value & 0x80 == 0:
                     break
-            if full_reads == 0:  # Defensive: _require_kind makes this unreachable.
-                raise TraceValidationError(
-                    f"transaction {transactions}, group {group}: no FULL read"
-                )
             for _ in range(4):
-                _, index = _require_kind(events, index, "fifo_write")
-        saw_m68k_zero = False
-        saw_master_zero = False
-        while index < len(events) and events[index].kind == "dreq_read":
-            event = events[index]
-            if event.pc in pc_policy.m68k_dreq_read:
-                saw_m68k_zero |= event.value == 0
-            elif event.pc in pc_policy.master_dreq_read:
-                saw_master_zero |= event.value == 0
-            else:
-                raise TraceValidationError(
-                    f"event {event.sequence}: wrong DREQ reader PC"
+                fifo, m68k_index = _require_kind(
+                    m68k, m68k_index, "fifo_write"
                 )
-            index += 1
-            if saw_m68k_zero and saw_master_zero:
+                if first_fifo is None:
+                    first_fifo = fifo
+
+        saw_m68k_zero = None
+        while m68k_index < len(m68k) and m68k[m68k_index].kind == "dreq_read":
+            dreq = m68k[m68k_index]
+            m68k_index += 1
+            if dreq.value == 0:
+                saw_m68k_zero = dreq
                 break
-        if not saw_m68k_zero or not saw_master_zero:
+        if saw_m68k_zero is None:
             raise TraceValidationError(
-                f"transaction {transactions}: both CPUs did not observe DREQ_LEN zero"
+                f"transaction {transactions}: 68K did not observe DREQ_LEN zero"
             )
-        ack_wait, index = _require_kind(events, index, "ack_read")
-        if ack_wait.pc not in pc_policy.ack_wait or ack_wait.value != clear.value:
+        if m68k_index != len(m68k):
+            event = m68k[m68k_index]
             raise TraceValidationError(
-                f"event {ack_wait.sequence}: Master ACK-clear check mismatch"
+                f"event {event.sequence}: unexpected {event.kind} after 68K DREQ zero"
             )
-        _, index = _require_kind(events, index, "completion")
-        completion_flush, index = _require_kind(events, index, "completion_flush")
+
+        master_index = 0
+        ready_publish, master_index = _require_kind(
+            master, master_index, "ready_publish"
+        )
+        _, master_index = _require_kind(master, master_index, "ready_flush")
+        busy_guard, master_index = _require_kind(
+            master, master_index, "master_hi_read"
+        )
+        if busy_guard.pc not in pc_policy.busy_guard:
+            raise TraceValidationError(
+                f"event {busy_guard.sequence}: wrong busy guard PC"
+            )
+        saw_master_zero = None
+        while (
+            master_index < len(master)
+            and master[master_index].kind == "dreq_read"
+        ):
+            dreq = master[master_index]
+            master_index += 1
+            if dreq.value == 0:
+                saw_master_zero = dreq
+                break
+        if saw_master_zero is None:
+            raise TraceValidationError(
+                f"transaction {transactions}: Master did not observe DREQ_LEN zero"
+            )
+        completion, master_index = _require_kind(
+            master, master_index, "completion"
+        )
+        completion_flush, master_index = _require_kind(
+            master, master_index, "master_hi_read"
+        )
         if completion_flush.pc not in pc_policy.completion_flush:
             raise TraceValidationError(
                 f"event {completion_flush.sequence}: wrong completion flush PC"
             )
+        if master_index != len(master):
+            event = master[master_index]
+            raise TraceValidationError(
+                f"event {event.sequence}: unexpected {event.kind} after completion"
+            )
+
+        assert first_fifo is not None
+        if not (
+            command_index.sequence
+            < trigger.sequence
+            < ready_publish.sequence
+            <= ready_zero.sequence
+            < first_fifo.sequence
+        ):
+            raise TraceValidationError(
+                f"transaction {transactions}: global command/trigger/readiness/"
+                "FIFO order violated"
+            )
+        if (
+            saw_m68k_zero.sequence > completion.sequence
+            or saw_master_zero.sequence > completion.sequence
+        ):
+            raise TraceValidationError(
+                f"transaction {transactions}: completion preceded a DREQ-zero witness"
+            )
+
+        index = end + 1
         transactions += 1
     return transactions
 
@@ -723,16 +794,16 @@ def main(argv: list[str] | None = None) -> int:
     )
     pc_destinations: list[str] = []
     for kind in (
+        "command-index",
         "trigger",
-        "master-ack",
-        "ack-flush",
-        "ack-observe",
-        "ack-clear",
+        "ready-poll",
+        "ready-publish",
+        "ready-flush",
+        "busy-guard",
         "full-read",
         "fifo-write",
         "m68k-dreq-read",
         "master-dreq-read",
-        "ack-wait",
         "completion",
         "completion-flush",
     ):
@@ -764,16 +835,16 @@ def main(argv: list[str] | None = None) -> int:
                 "all twelve --*-pc policies are required outside Gate-A mode"
             )
         policy = TransactionPcPolicy(
+            command_index=_parse_pc_set(args.command_index_pc),
             trigger=_parse_pc_set(args.trigger_pc),
-            master_ack=_parse_pc_set(args.master_ack_pc),
-            ack_flush=_parse_pc_set(args.ack_flush_pc),
-            ack_observe=_parse_pc_set(args.ack_observe_pc),
-            ack_clear=_parse_pc_set(args.ack_clear_pc),
+            ready_poll=_parse_pc_set(args.ready_poll_pc),
+            ready_publish=_parse_pc_set(args.ready_publish_pc),
+            ready_flush=_parse_pc_set(args.ready_flush_pc),
+            busy_guard=_parse_pc_set(args.busy_guard_pc),
             full_read=_parse_pc_set(args.full_read_pc),
             fifo_write=_parse_pc_set(args.fifo_write_pc),
             m68k_dreq_read=_parse_pc_set(args.m68k_dreq_read_pc),
             master_dreq_read=_parse_pc_set(args.master_dreq_read_pc),
-            ack_wait=_parse_pc_set(args.ack_wait_pc),
             completion=_parse_pc_set(args.completion_pc),
             completion_flush=_parse_pc_set(args.completion_flush_pc),
         )

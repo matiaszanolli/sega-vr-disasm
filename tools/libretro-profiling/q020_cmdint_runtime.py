@@ -16,7 +16,7 @@ import sys
 
 
 SCHEMA = "vrd-vr60-q020-cmdint-runtime-v1"
-PROBE_SHA256 = "a8814b3392bedec01fbd6f5719e12a186c75f98de2fd7b9806af12be108f2783"
+PROBE_SHA256 = "8766714e5bdfc4cb9a8dcecb1a0ce23e1d3e67a54cdfc7473e3b9cbecb6a91e7"
 DEFAULT_SHA256 = "6f2768f2cffc85cdc815a67c9f13837112829edac3f0921a57454e79e2523900"
 Q020_FRONTEND_SHA256 = "626c2c148aa1dca10f2893bc6e9ac59dad237f5043763567ef73b0f9868bcc50"
 Q020_CORE_SHA256 = "b2fe478891e8cb5299fefc22bb908a67b80a804df379f7724ed212c0e1b1a333"
@@ -31,6 +31,45 @@ WRAM_STATE_OFFSET = 0x76
 NORMAL_FRAMES = 1260
 NAME_FRAMES = 190
 WRITE_TARGETS = "0x00ffc87e:2,0x00ff0002:4,0x00ff7b41:1"
+RUNTIME_LOGS = (
+    "cold-normal-vres.txt",
+    "default-reset-baseline.txt",
+    "unpatched-core-comparison.txt",
+    "normal-run.txt",
+    "name-debug.txt",
+    "name-run.txt",
+)
+ARCHIVABLE_ARTIFACT_SUFFIXES = {".commands", ".csv", ".mds", ".trace", ".txt"}
+EXPECTED_ARTIFACTS = (
+    "name-source.mds",
+    "name-route-seeded.mds",
+    "name-input.csv",
+    "cold-normal-vres.commands",
+    "cold-normal-vres.txt",
+    "default-reset-baseline.commands",
+    "default-reset-baseline.txt",
+    "unpatched-core-comparison.commands",
+    "unpatched-core-comparison.txt",
+    "normal-run.txt",
+    "normal-write.trace",
+    "name.commands",
+    "name-debug.txt",
+    "name-run.txt",
+    "name-write.trace",
+)
+FATAL_LOG_MARKERS = (
+    "unhandled op",
+    "illegal opcode",
+    "segmentation fault",
+    "core dumped",
+    "traceback (most recent call last)",
+    "addresssanitizer",
+    "undefinedbehaviorsanitizer",
+    "debugger command failed",
+    "unknown debugger command",
+    "vrd_write_trace:",
+)
+SCOPED_RESET_WARNING = "ssh2 drc: unhandled op 4778 @ 0600063a"
 
 
 def sha256_path(path: Path) -> str:
@@ -224,17 +263,29 @@ def capture(args: argparse.Namespace) -> dict[str, object]:
     debug_commands = (
         "run 11\nread master 0x2600BC20 64\nregs master\n"
         "run 1230\nread master 0x2600BC20 64\nregs master\n"
-        "reset\nrun 30\nread master 0x2600BC20 64\nregs master\nquit\n"
+        "reset\nrun 30\nread master 0x2600BC20 64\nregs master\nregs slave\nquit\n"
     )
     (output / "cold-normal-vres.commands").write_text(debug_commands)
     run_frontend(
         args.frontend,
         args.rom,
         1300,
-        output / "cold-normal-vres.log",
+        output / "cold-normal-vres.txt",
         core=args.core,
         extra_args=["--debug", "--autoplay"],
         input_text=debug_commands,
+    )
+
+    baseline_commands = "run 1241\nreset\nrun 30\nregs master\nregs slave\nquit\n"
+    (output / "default-reset-baseline.commands").write_text(baseline_commands)
+    run_frontend(
+        args.frontend,
+        args.default,
+        1300,
+        output / "default-reset-baseline.txt",
+        core=args.canonical_core,
+        extra_args=["--debug", "--autoplay"],
+        input_text=baseline_commands,
     )
 
     negative_commands = (
@@ -246,22 +297,22 @@ def capture(args: argparse.Namespace) -> dict[str, object]:
         args.frontend,
         args.rom,
         1300,
-        output / "unpatched-core-comparison.log",
+        output / "unpatched-core-comparison.txt",
         core=args.canonical_core,
         extra_args=["--debug", "--autoplay"],
         input_text=negative_commands,
     )
 
-    normal_write = output / "normal-write.log"
+    normal_write = output / "normal-write.trace"
     run_frontend(
         args.frontend,
         args.rom,
         NORMAL_FRAMES,
-        output / "normal-run.log",
+        output / "normal-run.txt",
         core=args.core,
         extra_args=["--autoplay"],
         env_values={
-            "VRD_PROFILE_MAX_FRAMES": str(NORMAL_FRAMES),
+            "VRD_PROFILE_FRAMES": str(NORMAL_FRAMES),
             "VRD_WRITE_TRACE": WRITE_TARGETS,
             "VRD_WRITE_TRACE_LOG": str(normal_write),
         },
@@ -276,7 +327,7 @@ def capture(args: argparse.Namespace) -> dict[str, object]:
         args.frontend,
         args.rom,
         NAME_FRAMES,
-        output / "name-debug.log",
+        output / "name-debug.txt",
         core=args.core,
         extra_args=["--debug"],
         env_values={
@@ -285,37 +336,22 @@ def capture(args: argparse.Namespace) -> dict[str, object]:
         },
         input_text=name_commands,
     )
-    name_write = output / "name-write.log"
+    name_write = output / "name-write.trace"
     run_frontend(
         args.frontend,
         args.rom,
         NAME_FRAMES,
-        output / "name-run.log",
+        output / "name-run.txt",
         core=args.core,
         env_values={
             "VRD_LOAD_STATE": str(prepared),
             "VRD_INPUT_SCRIPT": str(name_input),
-            "VRD_PROFILE_MAX_FRAMES": str(NAME_FRAMES),
+            "VRD_PROFILE_FRAMES": str(NAME_FRAMES),
             "VRD_WRITE_TRACE": WRITE_TARGETS,
             "VRD_WRITE_TRACE_LOG": str(name_write),
         },
     )
 
-    artifact_names = [
-        "name-source.mds",
-        "name-route-seeded.mds",
-        "name-input.csv",
-        "cold-normal-vres.commands",
-        "cold-normal-vres.log",
-        "unpatched-core-comparison.commands",
-        "unpatched-core-comparison.log",
-        "normal-run.log",
-        "normal-write.log",
-        "name.commands",
-        "name-debug.log",
-        "name-run.log",
-        "name-write.log",
-    ]
     payload: dict[str, object] = {
         "schema": SCHEMA,
         "status": "CAPTURED_UNVALIDATED",
@@ -351,9 +387,10 @@ def capture(args: argparse.Namespace) -> dict[str, object]:
             "post_vres_boot_cmd_event": 4,
             "post_vres_init_count": 3,
             "post_vres_stock_pc": "0x06000452",
+            "scoped_picodrive_reset_warning": SCOPED_RESET_WARNING,
             "name_installer_pc": "0x00891822",
         },
-        "artifacts": artifact_hashes(output, artifact_names),
+        "artifacts": artifact_hashes(output, list(EXPECTED_ARTIFACTS)),
     }
     (output / "run.json").write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
     return payload
@@ -403,10 +440,10 @@ def parse_write_trace(path: Path, frames: int) -> list[dict[str, int]]:
     rows: list[dict[str, int]] = []
     reader = csv.DictReader(lines[4:-1])
     for row in reader:
-        if row.keys() != {
+        if set(row) != {
             "frame", "pc", "target_addr", "target_size", "access_addr",
             "access_size", "old_value", "new_value",
-        }.keys():
+        }:
             raise ValueError(f"write trace row schema: {path.name}")
         rows.append({key: int(value, 0) for key, value in row.items()})
     if len(rows) != int(terminal.group(2)):
@@ -439,6 +476,29 @@ def require_route(rows: list[dict[str, int]], pc: int, old: int) -> None:
         raise ValueError("route one-shot chronology")
 
 
+def require_healthy_log(path: Path, *, allow_scoped_reset_warning: bool = False) -> None:
+    """Reject emulator/core failures and shutdowns that are not terminal."""
+    text = path.read_text()
+    lowered = text.lower()
+    if allow_scoped_reset_warning:
+        exact = re.findall(
+            rf"(?m)^(?:vrd-dbg> )?(?:\d{{5}}:\d{{3}}: )?{re.escape(SCOPED_RESET_WARNING)}$",
+            lowered,
+        )
+        if len(exact) != 1 or "core reset at session frame: 1241" not in lowered:
+            raise ValueError(f"scoped reset warning mismatch: {path.name}")
+        lowered = re.sub(
+            rf"(?m)^(?:vrd-dbg> )?(?:\d{{5}}:\d{{3}}: )?{re.escape(SCOPED_RESET_WARNING)}$",
+            "",
+            lowered,
+        )
+    for marker in FATAL_LOG_MARKERS:
+        if marker in lowered:
+            raise ValueError(f"fatal runtime marker in {path.name}: {marker}")
+    if re.search(r"32X shutdown\s*\Z", text) is None:
+        raise ValueError(f"missing terminal shutdown: {path.name}")
+
+
 def validate(run_path: Path) -> dict[str, object]:
     run_path = run_path.resolve()
     payload = json.loads(run_path.read_text())
@@ -462,29 +522,61 @@ def validate(run_path: Path) -> dict[str, object]:
     for name, digest in required_tools.items():
         if toolchain.get(name, {}).get("sha256") != digest:
             raise ValueError(f"toolchain identity: {name}")
+    expected_chronology = {
+        "cold_init_count": 1,
+        "normal_installer_pc": "0x0088E0D4",
+        "normal_cmd_event": 2,
+        "vres_event": 3,
+        "post_vres_boot_cmd_event": 4,
+        "post_vres_init_count": 3,
+        "post_vres_stock_pc": "0x06000452",
+        "scoped_picodrive_reset_warning": SCOPED_RESET_WARNING,
+        "name_installer_pc": "0x00891822",
+    }
+    if payload.get("expected_chronology") != expected_chronology:
+        raise ValueError("expected chronology policy")
+    name_fixture = payload.get("name_fixture", {})
+    if (
+        name_fixture.get("source_path") != "name-source.mds"
+        or name_fixture.get("source_sha256") != NAME_SOURCE_SHA256
+        or name_fixture.get("seeded") is not True
+    ):
+        raise ValueError("name fixture policy")
 
     directory = run_path.parent
     artifacts = payload.get("artifacts", {})
     if not isinstance(artifacts, dict) or not artifacts:
         raise ValueError("artifacts")
+    if set(artifacts) != set(EXPECTED_ARTIFACTS):
+        missing = sorted(set(EXPECTED_ARTIFACTS) - set(artifacts))
+        extra = sorted(set(artifacts) - set(EXPECTED_ARTIFACTS))
+        raise ValueError(f"artifact set: missing={missing} extra={extra}")
     for name, metadata in artifacts.items():
+        if Path(name).suffix not in ARCHIVABLE_ARTIFACT_SUFFIXES:
+            raise ValueError(f"non-archivable artifact suffix: {name}")
         path = directory / name
         if metadata.get("path") != name or not path.is_file():
             raise ValueError(f"artifact path: {name}")
         if path.stat().st_size != metadata.get("size") or sha256_path(path) != metadata.get("sha256"):
             raise ValueError(f"artifact identity: {name}")
 
+    for name in RUNTIME_LOGS:
+        require_healthy_log(
+            directory / name,
+            allow_scoped_reset_warning=name in {
+                "cold-normal-vres.txt", "default-reset-baseline.txt"
+            },
+        )
+
     seeded = directory / "name-route-seeded.mds"
     with __import__("tempfile").TemporaryDirectory() as temp:
         regenerated = Path(temp) / "seeded.mds"
-        source_path = directory / payload["name_fixture"]["source_path"]
+        source_path = directory / name_fixture["source_path"]
         changes = prepare_name_fixture(source_path, regenerated)
-        if changes != payload["name_fixture"].get("changes") or regenerated.read_bytes() != seeded.read_bytes():
+        if changes != name_fixture.get("changes") or regenerated.read_bytes() != seeded.read_bytes():
             raise ValueError("name fixture transformation")
-    if payload["name_fixture"].get("seeded") is not True:
-        raise ValueError("name fixture seed disclosure")
 
-    lifecycle = parse_trace_dumps((directory / "cold-normal-vres.log").read_text())
+    lifecycle = parse_trace_dumps((directory / "cold-normal-vres.txt").read_text())
     if len(lifecycle) != 3:
         raise ValueError("cold/normal/VRES checkpoint count")
     require_trace(
@@ -501,11 +593,25 @@ def validate(run_path: Path) -> dict[str, object]:
         vres_count=1, error=0, sr=0x81, spc=0x06000460, pre_mask=0x8202,
         event=4, init_count=3, inverse=0xAECDCFAF,
     )
-    lifecycle_pcs = re.findall(r"Master SH2: PC=([0-9A-F]{8})", (directory / "cold-normal-vres.log").read_text())
+    lifecycle_pcs = re.findall(r"Master SH2: PC=([0-9A-F]{8})", (directory / "cold-normal-vres.txt").read_text())
     if lifecycle_pcs != ["06000460", "06000460", "06000452"]:
         raise ValueError(f"Master chronology: {lifecycle_pcs}")
+    lifecycle_slave_pcs = re.findall(
+        r"Slave SH2: PC=([0-9A-F]{8})",
+        (directory / "cold-normal-vres.txt").read_text(),
+    )
+    if len(lifecycle_slave_pcs) != 1:
+        raise ValueError(f"post-VRES Slave liveness: {lifecycle_slave_pcs}")
 
-    negative_text = (directory / "unpatched-core-comparison.log").read_text()
+    baseline_text = (directory / "default-reset-baseline.txt").read_text()
+    baseline_master_pcs = re.findall(r"Master SH2: PC=([0-9A-F]{8})", baseline_text)
+    baseline_slave_pcs = re.findall(r"Slave SH2: PC=([0-9A-F]{8})", baseline_text)
+    if len(baseline_master_pcs) != 1 or len(baseline_slave_pcs) != 1:
+        raise ValueError(
+            f"default reset baseline liveness: {baseline_master_pcs}/{baseline_slave_pcs}"
+        )
+
+    negative_text = (directory / "unpatched-core-comparison.txt").read_text()
     negative = parse_trace_dumps(negative_text)
     if len(negative) != 1:
         raise ValueError("unpatched negative checkpoint")
@@ -517,12 +623,12 @@ def validate(run_path: Path) -> dict[str, object]:
     if "00FF7B41: 01" not in negative_text:
         raise ValueError("unpatched negative did not execute producer")
 
-    normal_rows = parse_write_trace(directory / "normal-write.log", NORMAL_FRAMES)
+    normal_rows = parse_write_trace(directory / "normal-write.trace", NORMAL_FRAMES)
     require_route(normal_rows, 0x0088E0D4, 0x00884D98)
-    name_rows = parse_write_trace(directory / "name-write.log", NAME_FRAMES)
+    name_rows = parse_write_trace(directory / "name-write.trace", NAME_FRAMES)
     require_route(name_rows, 0x00891822, 0x00891122)
 
-    name_text = (directory / "name-debug.log").read_text()
+    name_text = (directory / "name-debug.txt").read_text()
     name = parse_trace_dumps(name_text)
     if len(name) != 1:
         raise ValueError("name checkpoint")
@@ -550,6 +656,9 @@ def validate(run_path: Path) -> dict[str, object]:
         "vres_count": 1,
         "post_vres_cmd_count": 2,
         "post_vres_init_count": 3,
+        "scoped_picodrive_reset_warning": SCOPED_RESET_WARNING,
+        "default_reset_baseline_compared": True,
+        "archive_complete": True,
         "normal_installer_pc": "0x0088E0D4",
         "name_installer_pc": "0x00891822",
         "name_fixture_seeded": True,

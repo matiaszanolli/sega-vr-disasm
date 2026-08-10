@@ -76,6 +76,7 @@
 | tools/libretro-profiling/VRD_PROFILING.md | Current profiling and normal-1P control gates | Unchanged continuous `validate_1p_control.py`; accepted DRC `validate_1p_lifecycle_suite.py`; Q-020 mode-0 exact pair/payload/chronology gate | Current VR60 measurement authority; VR60-011 baseline and Q-020 mode 0 passed; mode 1 is next |
 | tools/libretro-profiling/validate_mode0_gate.py | Q-020 mode-0 acceptance validator | Exact 12-slot matrix, frame-0 debugger reads, source/stage and 320B destination proof, raw caller/write chronology, paired framebuffer rule, post-results COMM3 chronology | Mode-0 sub-gate PASS; policy `VR60-Q020-mode0-gate-v2` |
 | analysis/evidence/vr60-q020-mode0-gate/README.md | Accepted Q-020 mode-0 evidence | ACTIVE/control hashes, no-frame preflight, exact payload/sentinel, deterministic 12-run lifecycle matrix, preserved failed result and corrected PASS, normalized archive | Ordinary default promoted to exact ACTIVE `6f2768f2…2523900`; mode 1 remains disabled |
+| analysis/evidence/vr60-q020-cmdint-probe/README.md | Q-020 CMDINT diagnostic-feasibility evidence | Cold/normal/VRES/seeded-name routes, level-8 ISR, FRT workaround, CMD clear/readback/re-arm, literal ownership, patched/canonical PicoDrive comparison, exact 15-artifact archive | Probe-only PASS `8766714e…6a91e7`; non-promotable, non-organic name fixture, mode 1 still disabled |
 | tools/libretro-profiling/validate_1p_lifecycle_suite.py | VR60-011 complete-lifecycle capture and aggregate validator | Sterile DRC/no-PC capture, composed exact FAME hook, all-row caller provenance, strict caller/write grammars, exact C87E cycle/Master completion, per-frame Slave and per-window/tail Master executed cycles, exact C07C chain, predeclared boundaries, duplicate rejection, 3/1800/3960/18000 floors | Separate v2 policy; 43 focused lifecycle tests pass. Reviewed Big Forest/Bay Bridge/Acropolis suite passed |
 | tools/libretro-profiling/vr60_lifecycle_suite.schema.json | VR60-011 reviewed manifest schema | Exact ROM/tool/state/input/source/raw artifact pins, predeclared lifecycle boundaries, no extra policy fields | Use with the lifecycle validator; generated fixture entries require review before suite inclusion |
 | analysis/evidence/vr60-011-lifecycle-suite/README.md | Accepted VR60-011 baseline evidence | Three DRC lifecycles, exact E/R boundaries, 31,137 active frames, deterministic x2 replay, tool/patch identities, normalized raw archive | Baseline blocker cleared; Q-020 mode 0 subsequently passed |
@@ -578,15 +579,24 @@ with render/display scheduling; HBLK/FEN is inference not causal proof. The ordi
 exact ACTIVE SHA `6f2768f2…2523900`. Mode 1 remains disabled pending scene reset/re-entry,
 COMM ownership/dummy-read, and four-word FIFO FULL instrumentation.
 
-30. **The 2026-07-27 mode-1 validation pair is statically healthy but protocol-blocked.**
-`make mode1-roms` and 40 focused tests pass, while the ordinary mode-0 ROM remains
-`6f2768f2…2523900`. The current mode-1 ACK is unsafe: the 68000 polls `COMM1_LO` while Master
-SH2 performs a read-modify-write of the same byte, which violates the hardware manual's
-read-during-write rule. Same-address readback only flushes the SH2 write buffer. No runtime or
-reset-route captures exist, the reset placeholder's status is absent from its schema enum, and
-the checked manuals do not explicitly guarantee retention of FIFO writes made before DMAC0 is
-armed. Keep mode 1 non-promotable and the ordinary default unchanged until ownership/order is
-established from an authoritative source or a separately reviewed experiment.
+30. **The rejected 2026-07-27 COMM1 ACK is superseded, but mode 1 remains blocked.** Commit
+`6597d3d` replaced it with a statically eligible COMM0_LO readiness candidate, fixed DMAC0 TE
+read-1/write-0 and re-arm ordering, and repaired the reset-manifest enum. The active/control
+hashes are `84454360…3066402` / `715f11de…ebbd17`; the ordinary mode-0 ROM remains
+`6f2768f2…2523900`. The 68000 readiness poll can still overlap Master COMM0_LO publication,
+Gate-B runtime evidence is `MISSING`, and all eight reset-route captures are empty. Static
+eligibility cannot promote mode 1.
+
+31. **The 2026-08-10 CMDINT probe passes only as isolated diagnostic feasibility.** Probe ROM
+`8766714e…6a91e7` proves cold initialization, normal writer `$0088E0D4`, a Master level-8 CMD
+ISR, VRES plus stock reset-flow CMD, dual-SH2 liveness, and seeded name writer `$00891822`.
+The ISR applies the FRT workaround, CMD-only masking, same-address clear/readback, exact mask
+restore/readback, and unexpected-level fail-stop. Literal users, tool/core hashes, route traces,
+and an exact 15-artifact archive are pinned; 20 focused tests pass. The name fixture is
+non-organic, PicoDrive proof uses a separate parity-patched core, and the clear-register
+zero-value assertion is stricter than the manual's synchronization rule. Integrate the
+interrupt handshake into a fresh mode-1 pair before collecting canonical Gate-B, exact 64B,
+FULL/TE/re-arm, reset, and lifecycle evidence. Do not proceed to mode 2 or cmd `$3F` first.
 
 ---
 
@@ -604,7 +614,7 @@ established from an authoritative source or a separately reviewed experiment.
 | Profiling methodology + tool usage | tools/libretro-profiling/README_68K_PC_PROFILING.md | analysis/profiling/68K_BOTTLENECK_ANALYSIS.md |
 | Normal-1P durable control validation | tools/libretro-profiling/VRD_PROFILING.md §§ Normal-1P control validator; VR60-011 lifecycle suite | `analysis/evidence/vr60-011-lifecycle-suite/README.md`; the three-fixture DRC suite passed and cleared the baseline blocker |
 | Q-020 cmd `$3E` mode-0 acceptance | tools/libretro-profiling/validate_mode0_gate.py | analysis/evidence/vr60-q020-mode0-gate/README.md |
-| Q-020 cmd `$3E` mode-1 blocked gate | VR60_STATUS.md § Q-020 mode 1 remains blocked as of 2026-07-27 | `disasm/modules/68k/sh2/vr60_mode1_validation.asm`; `disasm/sh2/expansion/cmd3e_mode1_validation.asm` |
+| Q-020 cmd `$3E` mode-1 blocked gate | VR60_STATUS.md § Q-020 mode 1 remains blocked as of 2026-08-10 | `analysis/evidence/vr60-q020-cmdint-probe/README.md`; `disasm/modules/68k/sh2/vr60_mode1_validation.asm`; `disasm/sh2/expansion/cmd3e_mode1_validation.asm` |
 | Expansion ROM layout + active handlers | disasm/sections/expansion_300000.asm | BACKLOG.md §B-003/B-004 |
 | B-003 async cmd_27 design | BACKLOG.md §B-003 | analysis/68K_SH2_COMMUNICATION.md §B-003 |
 | B-004 single-shot cmd_22 design | BACKLOG.md §B-004 | analysis/68K_SH2_COMMUNICATION.md §B-004 |

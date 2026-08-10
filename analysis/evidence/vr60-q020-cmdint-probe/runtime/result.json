@@ -1,0 +1,23 @@
+{
+  "archive_complete": true,
+  "cold_init_count": 1,
+  "current_one_edge_canonical_core_comparison": "PASS_VIA_LATER_IRQ_RECOMPUTE",
+  "default_reset_baseline_compared": true,
+  "default_sha256": "6f2768f2cffc85cdc815a67c9f13837112829edac3f0921a57454e79e2523900",
+  "evidence_scope": "diagnostic_route_feasibility",
+  "historical_two_edge_unpatched_failure": "RETAINED_IN_README",
+  "name_fixture_seeded": true,
+  "name_installer_pc": "0x00891822",
+  "non_promotable": true,
+  "normal_cmd_count": 1,
+  "normal_installer_pc": "0x0088E0D4",
+  "organic_gameplay": false,
+  "post_vres_cmd_count": 2,
+  "post_vres_init_count": 3,
+  "probe_sha256": "8766714e5bdfc4cb9a8dcecb1a0ce23e1d3e67a54cdfc7473e3b9cbecb6a91e7",
+  "schema": "vrd-vr60-q020-cmdint-runtime-v1",
+  "scoped_picodrive_reset_warning": "ssh2 drc: unhandled op 4778 @ 0600063a",
+  "status": "PASS",
+  "unpatched_fastpath_static_defect": "CONFIRMED_BY_SOURCE",
+  "vres_count": 1
+}

@@ -1,0 +1,45 @@
+VRD Test frontend (no profiling - set VRD_PROFILE_LOG to enable)
+  ROM: /mnt/data/src/32x-playground/build/vr60_q020_cmdint_probe.32x
+  Max frames: 190
+  Autoplay: disabled
+  Input: /mnt/data/src/32x-playground/analysis/evidence/vr60-q020-cmdint-probe/runtime/name-input.csv
+Core: PicoDrive (version 2.04-26ecb2b)
+ROM loaded: 4128768 bytes
+00000:000: couldn't open carthw.cfg!
+00000:000: sram: 200000 - 203fff; eeprom: 0
+Game loaded successfully
+07264:261: 32X startup
+07264:261: drc_cmn_init: 0x759eec7b0000, 4194304 bytes: 0
+DRC registers created, 15 host regs (3 REG, 2 STATIC, 1 CTX)
+Loaded state: /mnt/data/src/32x-playground/analysis/evidence/vr60-q020-cmdint-probe/runtime/name-route-seeded.mds (679161 bytes)
+Commands:
+  run [frames]                    Advance emulation (default 1)
+  joypad <mask>                   Set the P1 mask used by subsequent frames
+  record start <path>             Start a new frame,mask recording
+  record stop                     Finalize the active recording
+  regs [master|slave]             Read SH2 registers
+  read <68k|master|slave> <addr> [size]
+  save <path>                     Save a libretro savestate
+  load <path>                     Load a matching savestate
+  reset                           Assert the core's normal reset path
+  status                          Show session frame
+  help                            Show this help
+  quit                            Exit debugger
+vrd-dbg> Advanced 190 frames; session frame=190
+vrd-dbg> 00FF0002: 00 88 56 18
+vrd-dbg> 00FF7B41: 01
+vrd-dbg> 2600BC20: 51 32 30 50 00 00 00 02 00 00 00 01 00 00 00 01
+2600BC30: 00 00 00 00 00 00 00 00 00 00 00 81 06 00 04 60
+2600BC40: 00 00 82 02 00 2D 00 00 00 00 00 02 00 00 00 01
+2600BC50: AE CD CF AF 00 00 00 00 00 00 00 00 00 00 00 00
+vrd-dbg> Master SH2: PC=06003194 PR=06003194 SR=00000020 GBR=0600F400 VBR=06000000
+  MACH=00000014 MACL=1C302000 state=00000000 poll_addr=00000000 poll_cnt=0
+  R0 =FF6A6800  R1 =00000000
+  R2 =0260A000  R3 =00001000
+  R4 =C0000740  R5 =C0000770
+  R6 =06018070  R7 =00000000
+  R8 =FFB9110C  R9 =00000064
+  R10=06018050  R11=00000030
+  R12=00000000  R13=22294E3A
+  R14=0600271A  R15=0600FF5C
+vrd-dbg> 07454:261: 32X shutdown

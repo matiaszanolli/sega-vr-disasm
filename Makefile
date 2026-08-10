@@ -34,6 +34,13 @@ MODE1_ROM_VERIFY = $(TOOLS_DIR)/libretro-profiling/verify_mode1_rom_pair.py
 Q020_CMDINT_PROBE_ROM = $(BUILD_DIR)/vr60_q020_cmdint_probe.32x
 Q020_CMDINT_PROBE_MANIFEST = $(TOOLS_DIR)/libretro-profiling/q020_cmdint_probe.json
 Q020_CMDINT_PROBE_VERIFY = $(TOOLS_DIR)/libretro-profiling/verify_q020_cmdint_probe.py
+Q020_PROFILE_DIR = $(TOOLS_DIR)/libretro-profiling
+Q020_PROFILE_FRONTEND = $(Q020_PROFILE_DIR)/q020_profiling_frontend
+Q020_PROFILE_CORE = $(Q020_PROFILE_DIR)/q020_picodrive_libretro.so
+Q020_RUNTIME_TOOLS_VERIFY = $(Q020_PROFILE_DIR)/verify_q020_runtime_tools.py
+Q020_PICODRIVE_PREPARE = $(Q020_PROFILE_DIR)/prepare_q020_picodrive.py
+Q020_PICODRIVE_PARITY_PATCH = $(Q020_PROFILE_DIR)/libretro_q020_cmdint_irq_parity.patch
+Q020_PICODRIVE_DIR = third_party/picodrive
 
 # Assembly flags
 # -Fbin = binary output
@@ -46,7 +53,7 @@ ASMFLAGS = -Fbin -m68000 -no-opt -spaces -quiet
 M68K_SRC = $(DISASM_DIR)/vrd.asm
 VR60_1P_HOOK_SITE_SRC = $(DISASM_DIR)/modules/68k/game/scene/game_frame_orch_013.asm
 VR60_1P_STAGING_HOOK_SRC = $(DISASM_DIR)/modules/68k/sh2/vr60_1p_staging_hook.asm
-.PHONY: all control-rom mode0-roms mode0-default-verify mode1-roms q020-cmdint-probe clean disasm tools test profile-frame profile-pc
+.PHONY: all control-rom mode0-roms mode0-default-verify mode1-roms q020-cmdint-probe q020-runtime-tools clean disasm tools test profile-frame profile-pc
 
 # ============================================================================
 # Main targets
@@ -161,6 +168,20 @@ $(Q020_CMDINT_PROBE_MANIFEST): $(Q020_CMDINT_PROBE_ROM) $(OUTPUT_ROM) $(SH2_Q020
 		--isr-bin $(SH2_Q020_CMDINT_PROBE_BIN) \
 		--isr-elf $(BUILD_DIR)/sh2/q020_cmdint_probe_isr.elf \
 		--manifest $(Q020_CMDINT_PROBE_MANIFEST)
+
+# Rebuild the probe-only frontend/core under separate names.  This deliberately
+# does not overwrite the accepted canonical profiling binaries.
+q020-runtime-tools:
+	$(CC) -O2 -Wall -Wextra -o $(Q020_PROFILE_FRONTEND) $(Q020_PROFILE_DIR)/profiling_frontend.c -ldl
+	$(PYTHON) $(Q020_PICODRIVE_PREPARE) \
+		--source-root $(Q020_PICODRIVE_DIR) \
+		--patch $(Q020_PICODRIVE_PARITY_PATCH)
+	$(MAKE) -C $(Q020_PICODRIVE_DIR) -f Makefile.libretro clean
+	$(MAKE) -C $(Q020_PICODRIVE_DIR) -f Makefile.libretro platform=unix
+	cp $(Q020_PICODRIVE_DIR)/picodrive_libretro.so $(Q020_PROFILE_CORE)
+	$(PYTHON) $(Q020_RUNTIME_TOOLS_VERIFY) \
+		--frontend $(Q020_PROFILE_FRONTEND) \
+		--core $(Q020_PROFILE_CORE)
 
 mode0-default-verify: $(MODE0_DEFAULT_MANIFEST)
 	@echo "==> Promoted mode-0 default verified: $(OUTPUT_ROM)"
@@ -2484,7 +2505,7 @@ $(SH2_Q020_CMDINT_PROBE_BIN): $(SH2_Q020_CMDINT_PROBE_SRC) | dirs
 	$(SH2_AS) $(SH2_ASFLAGS) -o $(BUILD_DIR)/sh2/q020_cmdint_probe_isr.o $<
 	$(SH2_LD) -Ttext=0x02303B00 -e q020_cmdint_probe_isr -o $(BUILD_DIR)/sh2/q020_cmdint_probe_isr.elf $(BUILD_DIR)/sh2/q020_cmdint_probe_isr.o
 	$(SH2_OBJCOPY) --only-section=.text -O binary $(BUILD_DIR)/sh2/q020_cmdint_probe_isr.elf $@
-	$(PYTHON) -c 'from hashlib import sha256; from pathlib import Path; p=Path("$@"); b=p.read_bytes(); assert len(b)==452, len(b); assert sha256(b).hexdigest()=="9bc78c9a490786f905867ee7ba9852554c5a88954d0363f8e32bacac4efe619a"'
+	$(PYTHON) -c 'from hashlib import sha256; from pathlib import Path; p=Path("$@"); b=p.read_bytes(); assert len(b)==452, len(b); assert sha256(b).hexdigest()=="be3e5a944ad46b48533bc80f76452e768fad0f3a929d1dcbb54b4caf30b621c3"'
 	@echo "    Output: $@ ($$(wc -c < $@) bytes, byte-reviewed SHA-256 verified)"
 
 $(SH2_Q020_CMDINT_PROBE_INC): $(SH2_Q020_CMDINT_PROBE_BIN)

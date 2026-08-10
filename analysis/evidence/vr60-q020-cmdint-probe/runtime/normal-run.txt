@@ -1,0 +1,80 @@
+VRD Test frontend (no profiling - set VRD_PROFILE_LOG to enable)
+  ROM: /mnt/data/src/32x-playground/build/vr60_q020_cmdint_probe.32x
+  Max frames: 1260
+  Autoplay: ENABLED
+  Input: fixed hold mask
+Core: PicoDrive (version 2.04-26ecb2b)
+ROM loaded: 4128768 bytes
+00000:000: couldn't open carthw.cfg!
+00000:000: sram: 200000 - 203fff; eeprom: 0
+Game loaded successfully
+Running 1260 frames...
+00002:072: 32X startup
+00002:072: drc_cmn_init: 0x79460a3b0000, 4194304 bytes: 0
+DRC registers created, 15 host regs (3 REG, 2 STATIC, 1 CTX)
+  Frame 60/1260 (5%) [boot]
+  Frame 120/1260 (10%) [boot]
+  Frame 180/1260 (14%) [menus]
+  Frame 240/1260 (19%) [menus]
+  Frame 300/1260 (24%) [menus]
+  Frame 360/1260 (29%) [menus]
+  Frame 420/1260 (33%) [menus]
+  Frame 480/1260 (38%) [menus]
+  Frame 540/1260 (43%) [menus]
+  Frame 600/1260 (48%) [menus]
+  Frame 660/1260 (52%) [menus]
+  Frame 720/1260 (57%) [menus]
+00746:001: DREQ FIFO w16 without 68S?
+00748:257: DREQ FIFO w16 without 68S?
+00751:258: DREQ FIFO w16 without 68S?
+00754:258: DREQ FIFO w16 without 68S?
+00757:260: DREQ FIFO w16 without 68S?
+00760:259: DREQ FIFO w16 without 68S?
+00763:259: DREQ FIFO w16 without 68S?
+00767:017: DREQ FIFO w16 without 68S?
+00769:260: DREQ FIFO w16 without 68S?
+00772:261: DREQ FIFO w16 without 68S?
+00775:260: DREQ FIFO w16 without 68S?
+00778:260: DREQ FIFO w16 without 68S?
+  Frame 780/1260 (62%) [menus]
+00781:261: DREQ FIFO w16 without 68S?
+00784:261: DREQ FIFO w16 without 68S?
+00788:018: DREQ FIFO w16 without 68S?
+00790:261: DREQ FIFO w16 without 68S?
+00793:261: DREQ FIFO w16 without 68S?
+00797:000: DREQ FIFO w16 without 68S?
+00800:001: DREQ FIFO w16 without 68S?
+00803:002: DREQ FIFO w16 without 68S?
+00805:261: DREQ FIFO w16 without 68S?
+00809:001: DREQ FIFO w16 without 68S?
+00812:001: DREQ FIFO w16 without 68S?
+00815:000: DREQ FIFO w16 without 68S?
+00818:011: DREQ FIFO w16 without 68S?
+00821:000: DREQ FIFO w16 without 68S?
+00824:001: DREQ FIFO w16 without 68S?
+00827:000: DREQ FIFO w16 without 68S?
+00829:261: DREQ FIFO w16 without 68S?
+00833:001: DREQ FIFO w16 without 68S?
+00835:261: DREQ FIFO w16 without 68S?
+00838:261: DREQ FIFO w16 without 68S?
+  Frame 840/1260 (67%) [menus]
+00841:259: DREQ FIFO w16 without 68S?
+00845:019: DREQ FIFO w16 without 68S?
+00848:016: DREQ FIFO w16 without 68S?
+00851:006: DREQ FIFO w16 without 68S?
+00854:001: DREQ FIFO w16 without 68S?
+00857:005: DREQ FIFO w16 without 68S?
+00859:259: DREQ FIFO w16 without 68S?
+00863:001: DREQ FIFO w16 without 68S?
+00865:260: DREQ FIFO w16 without 68S?
+00869:005: DREQ FIFO w16 without 68S?
+00872:000: DREQ FIFO w16 without 68S?
+  Frame 900/1260 (71%) [menus]
+  Frame 960/1260 (76%) [menus]
+  Frame 1020/1260 (81%) [menus]
+  Frame 1080/1260 (86%) [menus]
+  Frame 1140/1260 (90%) [menus]
+  Frame 1200/1260 (95%) [menus]
+  Frame 1260/1260 (100%) [racing]
+Emulation complete.
+01260:261: 32X shutdown

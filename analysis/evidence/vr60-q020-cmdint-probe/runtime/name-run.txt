@@ -1,0 +1,20 @@
+VRD Test frontend (no profiling - set VRD_PROFILE_LOG to enable)
+  ROM: /mnt/data/src/32x-playground/build/vr60_q020_cmdint_probe.32x
+  Max frames: 190
+  Autoplay: disabled
+  Input: /mnt/data/src/32x-playground/analysis/evidence/vr60-q020-cmdint-probe/runtime/name-input.csv
+Core: PicoDrive (version 2.04-26ecb2b)
+ROM loaded: 4128768 bytes
+00000:000: couldn't open carthw.cfg!
+00000:000: sram: 200000 - 203fff; eeprom: 0
+Game loaded successfully
+07264:261: 32X startup
+07264:261: drc_cmn_init: 0x7ccf4e9b0000, 4194304 bytes: 0
+DRC registers created, 15 host regs (3 REG, 2 STATIC, 1 CTX)
+Loaded state: /mnt/data/src/32x-playground/analysis/evidence/vr60-q020-cmdint-probe/runtime/name-route-seeded.mds (679161 bytes)
+Running 190 frames...
+  Frame 60/190 (32%)
+  Frame 120/190 (63%)
+  Frame 180/190 (95%)
+Emulation complete.
+07454:261: 32X shutdown

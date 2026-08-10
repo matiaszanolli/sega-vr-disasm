@@ -51,7 +51,7 @@ q020_cmdint_probe_isr:
     xor     #2,r0
     mov.b   r0,@(7,r1)
 
-    /* External level = (saved SR >> 4) & $0f, represented here as level*4. */
+    /* External level = (current ISR SR >> 4) & $0f, represented as level*4. */
     stc     sr,r4
     mov     r4,r0
     shlr2   r0
@@ -120,12 +120,7 @@ q020_cmdint_probe_isr:
     tst     #2,r0
     bf      .L_mask_fail
 
-    /* Publish success before the 68000 can observe INTM deasserted. */
-    mov     #2,r0
-    mov.l   r0,@(4,r3)
-    mov.l   @(4,r3),r0
-    cmp/eq  #2,r0
-    bf      .L_phase2_fail
+    /* Clear and synchronize the request while CMD remains masked. */
     mov.l   @(.L_cmd_clear,pc),r1
     mov     #0,r0
     mov.w   r0,@r1
@@ -135,9 +130,19 @@ q020_cmdint_probe_isr:
 
     /* Restore the exact pre-mask word only after the request is clear. */
     mov.l   @(.L_sys_mask,pc),r1
-    mov.l   @(32,r3),r0
-    mov.w   r0,@r1
+    mov.l   @(32,r3),r2
+    mov.w   r2,@r1
     mov.w   @r1,r0
+    extu.w  r0,r0
+    cmp/eq  r2,r0
+    bf      .L_restore_fail
+
+    /* Publish terminal success only after clear and exact mask restoration. */
+    mov     #2,r0
+    mov.l   r0,@(4,r3)
+    mov.l   @(4,r3),r0
+    cmp/eq  #2,r0
+    bf      .L_phase2_fail
     bra     .L_return
     nop
 
@@ -188,25 +193,23 @@ q020_cmdint_probe_isr:
     nop
 
 .L_bad_trace:
+    bra     .L_fail
     mov     #0x11,r2
-    bra     .L_fail
-    nop
 .L_bad_phase:
+    bra     .L_fail
     mov     #0x12,r2
-    bra     .L_fail
-    nop
 .L_mask_fail:
+    bra     .L_fail
     mov     #0x21,r2
-    bra     .L_fail
-    nop
 .L_phase2_fail:
+    bra     .L_fail
     mov     #0x22,r2
-    bra     .L_fail
-    nop
 .L_clear_fail:
-    mov     #0x23,r2
     bra     .L_fail
-    nop
+    mov     #0x23,r2
+.L_restore_fail:
+    bra     .L_fail
+    mov     #0x24,r2
 
 .L_fail:
     mov.l   r2,@(20,r3)

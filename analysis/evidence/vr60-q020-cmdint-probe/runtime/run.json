@@ -2,17 +2,27 @@
   "artifacts": {
     "cold-normal-vres.commands": {
       "path": "cold-normal-vres.commands",
-      "sha256": "99eab9aa5893e76f5d7e36e0b5b23e4821d8c5174b6a09b67b264301fa5b170c",
-      "size": 148
+      "sha256": "74b7b318275ba2312731dd1ab24c55fd15170ae7f00f28ec7f793ea943a378e5",
+      "size": 159
     },
-    "cold-normal-vres.log": {
-      "path": "cold-normal-vres.log",
-      "sha256": "cd287b2130b4a965c94f8e3cdbfb6ae47249869960faa3b2d8434e5e79f03e16",
-      "size": 5104
+    "cold-normal-vres.txt": {
+      "path": "cold-normal-vres.txt",
+      "sha256": "d1904fbea376abb65535195ba4756a45c5d48bc301321e52a2aff569e8bc0842",
+      "size": 5493
     },
-    "name-debug.log": {
-      "path": "name-debug.log",
-      "sha256": "2d008fb29900c74b4f0fb2d5accb3f770ecd863f7d033ae6c0d01930a249e9f9",
+    "default-reset-baseline.commands": {
+      "path": "default-reset-baseline.commands",
+      "sha256": "eee163aa2a168037a41a1e5e611bf9f46edae9b628657ecb357c0c928ad01021",
+      "size": 50
+    },
+    "default-reset-baseline.txt": {
+      "path": "default-reset-baseline.txt",
+      "sha256": "82fda0aaa0caa0e30cfe657e847f6b9eb9d399c9c749f0108898abb41b8bef7f",
+      "size": 3932
+    },
+    "name-debug.txt": {
+      "path": "name-debug.txt",
+      "sha256": "aeac045dc20a6163044375724184b744e6aff677a5007ff51980b5d1203a1771",
       "size": 2196
     },
     "name-input.csv": {
@@ -25,9 +35,9 @@
       "sha256": "5f8c124c02ca4ae5ffdf4bca2dd4bd8d82c3e61411438784ee8b421fce514bce",
       "size": 679161
     },
-    "name-run.log": {
-      "path": "name-run.log",
-      "sha256": "27032b9ebbd6f38d0a21f497bff6fbfe3ac0f4b34aacd4b0be4c8e6451aa88aa",
+    "name-run.txt": {
+      "path": "name-run.txt",
+      "sha256": "74758fd6e9d62c4b54ca59bfa2ebbe2b68db7914aee1545bc5169182bc6a4ca8",
       "size": 848
     },
     "name-source.mds": {
@@ -35,34 +45,34 @@
       "sha256": "c1ede354178c8ffa0796f1e243d8ae592dbd38dad4c44ad9336fece8503b22f0",
       "size": 679161
     },
-    "name-write.log": {
-      "path": "name-write.log",
-      "sha256": "20c4fc024328b85f25b1926c3e6d7449e29338e3929ca786b595838e03f4d8ec",
-      "size": 10493
+    "name-write.trace": {
+      "path": "name-write.trace",
+      "sha256": "bec0534ccedaba2852a8b3f694214916698a8ffc79988125eb3f5156265b60c0",
+      "size": 10472
     },
     "name.commands": {
       "path": "name.commands",
       "sha256": "19d497decf9a2cbae0148692c8158077cca3854821ecffc77e079c386109695f",
       "size": 95
     },
-    "normal-run.log": {
-      "path": "normal-run.log",
-      "sha256": "24da58e12f0f0d3d3c54ae150bea6fe8f455d4c50ae7cd6f09daffc9d3f83780",
+    "normal-run.txt": {
+      "path": "normal-run.txt",
+      "sha256": "dd69955750092b96db7fffe2fb3bfa88129860226dd86d0ba26974dbae629979",
       "size": 2866
     },
-    "normal-write.log": {
-      "path": "normal-write.log",
-      "sha256": "b3f48d7985435472c47807c680fc016bb80dfa23c04d38bbc7dda390f1bddbe1",
-      "size": 57487
+    "normal-write.trace": {
+      "path": "normal-write.trace",
+      "sha256": "8ea383bb1ac9e53cb0aa1484c2e8a6c75207d7ad88c803da21b9d4bf342d447f",
+      "size": 57466
     },
     "unpatched-core-comparison.commands": {
       "path": "unpatched-core-comparison.commands",
       "sha256": "0e3e5681c242af07a0e3f4da057a3ddb938b2d06099447a14799697123f4ea06",
       "size": 74
     },
-    "unpatched-core-comparison.log": {
-      "path": "unpatched-core-comparison.log",
-      "sha256": "880e5a9e5d66078f9ab4a812dedda51eb864a99ff6feabb83e55818f90ca4641",
+    "unpatched-core-comparison.txt": {
+      "path": "unpatched-core-comparison.txt",
+      "sha256": "9783f3ba377e788f6e1d3d4eb9dc98ba7d7c2e5671103ccf2956835de0ac9939",
       "size": 3595
     }
   },
@@ -79,6 +89,7 @@
     "post_vres_boot_cmd_event": 4,
     "post_vres_init_count": 3,
     "post_vres_stock_pc": "0x06000452",
+    "scoped_picodrive_reset_warning": "ssh2 drc: unhandled op 4778 @ 0600063a",
     "vres_event": 3
   },
   "name_fixture": {
@@ -135,7 +146,7 @@
   "organic_gameplay": false,
   "rom": {
     "path": "/mnt/data/src/32x-playground/build/vr60_q020_cmdint_probe.32x",
-    "sha256": "a8814b3392bedec01fbd6f5719e12a186c75f98de2fd7b9806af12be108f2783"
+    "sha256": "8766714e5bdfc4cb9a8dcecb1a0ce23e1d3e67a54cdfc7473e3b9cbecb6a91e7"
   },
   "schema": "vrd-vr60-q020-cmdint-runtime-v1",
   "status": "CAPTURED_UNVALIDATED",

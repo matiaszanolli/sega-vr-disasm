@@ -1,6 +1,6 @@
 # VR60 Current Status
 
-**Canonical as of:** 2026-07-27
+**Canonical as of:** 2026-08-10
 
 **Branch:** `60fps_project`
 
@@ -15,7 +15,7 @@ This file is the short, current answer to “what works now?” Older roadmap en
 | Original 68000 physics, AI, collision, and render preparation | Yes | **Yes; authoritative** | Original behavior remains the safety path |
 | 1P hook at `game_frame_orch_013` / `state_disp_004cb8` state 8 | Yes | Yes, about 20 Hz | Hook point confirmed with exact `VRD_CALLER_TRACE` |
 | cmd `$3E` player-entity transfer (mode 0) | Yes | **Enabled; promoted ordinary default** | **Q-020 mode-0 sub-gate passed over all 3 trustworthy lifecycles** |
-| cmd `$3E` globals transfer (mode 1) | Validation pair only | **Disabled/unreachable in the promoted default** | **Blocked:** current validation ACK violates the COMM read-during-write rule; no runtime/reset captures exist |
+| cmd `$3E` globals transfer (mode 1) | Validation pair only | **Disabled/unreachable in the promoted default** | **Blocked:** isolated CMDINT feasibility passed, but mode-1 Gate-B/reset evidence is still missing and the current COMM0 candidate retains a read-during-write edge |
 | cmd `$3E` AI-entity transfer (mode 2) | Yes | **Disabled** | Unverified; neither proven safe nor unsafe |
 | cmd `$3F` SH2 game-frame pipeline | Yes | **Disabled in 1P** | Unverified; its legacy `$2200BC00` mailbox literal is a ROM alias and must be corrected before activation |
 | SH2 physics and AI ports | Yes | No; reachable only through the disabled cmd `$3F` path | Assembly/reference work exists; gameplay authority not proven |
@@ -58,24 +58,32 @@ Claims are limited to PicoDrive exact 320B mode0 transport + exact gameplay/stat
 chronology in fresh eligible lifecycles; this is not a real-hardware, authority-transfer,
 cadence, FPS, or CPU-budget result.
 
-**Q-020 mode 1 remains blocked as of 2026-07-27.** The isolated source-built validation pair
-rebuilds cleanly and passes its 40 focused static/tooling tests. Its active/control hashes are
-`f0cdb1a7…e4c3c` / `2a958af7…da10`; the ordinary default remains byte-identical at
-`6f2768f2…2523900`. A fresh safety audit rejected the current ACK sequence: the 68000 polls
-`COMM1_LO` while the Master SH2 performs a read-modify-write of that same byte. Sega's hardware
-manual says a read concurrent with the other CPU's write makes the register undefined. The
-SH2 same-address dummy read flushes its buffered write but does not create an ownership window,
-and the read-modify-write cannot atomically preserve system bit 0 against V-INT access.
+**Q-020 mode 1 remains blocked as of 2026-08-10.** Commit `6597d3d` superseded the rejected
+COMM1 ACK with an isolated COMM0_LO readiness candidate, fixed DMAC0 TE acknowledgement/re-arm,
+and repaired the reset-manifest enum. The current ACTIVE/CONTROL hashes are
+`84454360…3066402` / `715f11de…ebbd17`; the ordinary default remains byte-identical at
+`6f2768f2…2523900`. Static eligibility is not runtime safety: the 68000 readiness poll can still
+overlap the Master's COMM0_LO publication, `mode1_rom_pair.json` still says
+`runtime_evidence: "MISSING"`, and all eight required normal/name-entry captures remain absent.
 
-No runtime acceptance claim exists. `mode1_rom_pair.json` remains
-`runtime_evidence: "MISSING"` / non-promotable, and `mode1_reset_fixtures.json` contains no
-normal-entry or name-entry-reentry captures. The reset manifest also currently uses
-`STATIC_METADATA_PINNED_AWAITING_CAPTURES`, which is absent from its schema's status enum.
-The manuals establish `68S=1` CPU-write operation, four-word FIFO capacity, and mandatory
-`FULL` checks every four words, but the checked sources do not explicitly establish that FIFO
-writes made before SH2 DMAC channel 0 is armed are retained. Do not remove the ACK on that
-assumption; resolve the ownership/ordering question first, then capture both reset routes twice
-per arm before any promotion decision.
+The immediate protocol-feasibility subtask passed on 2026-08-10. A separate, non-promotable
+CMDINT probe demonstrated cold boot, the normal installer at `$0088E0D4`, one Master level-8
+CMD interrupt, VRES plus the stock reset-flow CMD, and the name-entry installer at `$00891822`.
+The ISR applies the FRT workaround, masks only CMD, clears and reads back `$2000401A`, restores
+and reads back the exact pre-mask word, and fail-stops on every unexpected external level. Its
+probe/default SHA-256 values are `8766714e…6a91e7` / `6f2768f2…2523900`; 20 focused static,
+runtime, and frontend tests pass. All 15 raw artifacts are non-ignored, hash-pinned, and required
+as an exact set. Evidence and limits are recorded at
+[analysis/evidence/vr60-q020-cmdint-probe](analysis/evidence/vr60-q020-cmdint-probe/README.md).
+
+This is PicoDrive diagnostic feasibility, not real-hardware proof or mode-1 promotion. The
+name-entry state is explicitly seeded/non-organic, the probe core carries a pinned PicoDrive IRQ
+fast-path parity patch, and the clear-register zero-value check is stricter than the manual's
+documented synchronization requirement. The next implementation must integrate the interrupt
+handshake into a fresh isolated mode-1 ACTIVE/STAGE-CONTROL pair and then prove canonical Gate-B
+ordering, exact 64-byte `$FF6B00 -> $0600F30C` transport, eight FULL-checked four-word groups,
+DMAC0 TE/read-1-write-0/re-arm, two fresh captures per route per arm, deterministic lifecycle
+equivalence, and the unchanged mode-0 default. Do not proceed to mode 2 or cmd `$3F` first.
 
 **VR60-011 passed on 2026-07-25.** The reviewed hook-bypass control completed three distinct,
 predeclared timed-race lifecycles under normal SH2 DRC execution. After the fixed 360-frame warmup,
@@ -242,11 +250,11 @@ accepted only while the exact ordered cycle continues, because a completed Maste
 legitimately idle in PicoDrive's COMM poll state. Sampled COMM0 longest runs remain informational
 because `$000C->$0000` is the fresh Master completion witness.
 
-The current active work item is **cmd `$3E` mode-1 validation**. Q-020's mode-0 sub-gate is
-closed; keep its accepted default unchanged while mode 1 is isolated behind a separate
-ACTIVE/STAGE-CONTROL pair. Before enabling it, define scene reset/re-entry for the one-shot
-`$FF7B40` flag, resolve COMM ownership and required SH2 same-address dummy-read synchronization,
-and instrument FIFO FULL behavior at its four-word transfer granularity. Do not combine mode 1,
+The current active work item is **cmd `$3E` mode-1 validation**. Q-020 mode 0 is accepted and
+the isolated CMDINT feasibility probe is complete. Keep the accepted default unchanged while a
+fresh mode-1 ACTIVE/STAGE-CONTROL pair adopts that interrupt handshake. Before enabling mode 1,
+capture the full Gate-B MMIO sequence, exact 64-byte payload, four-word FIFO FULL cadence,
+DMAC0 completion/re-arm, and two fresh normal/name-entry runs per arm. Do not combine mode 1,
 AI mode 2, or cmd `$3F` in one acceptance step.
 
 The archived VR60-011 suite satisfies this prerequisite with the VR60 hook bypassed:

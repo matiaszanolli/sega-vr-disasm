@@ -8,4 +8,5 @@ reset
 run 30
 read master 0x2600BC20 64
 regs master
+regs slave
 quit

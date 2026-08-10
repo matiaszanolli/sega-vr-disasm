@@ -1,0 +1,151 @@
+{
+  "allowed_diff_ranges": [
+    {
+      "end_exclusive": "0x00E0DE",
+      "start": "0x00E0D4"
+    },
+    {
+      "end_exclusive": "0x01182C",
+      "start": "0x011822"
+    },
+    {
+      "end_exclusive": "0x01C940",
+      "start": "0x01C914"
+    },
+    {
+      "end_exclusive": "0x020140",
+      "start": "0x020100"
+    },
+    {
+      "end_exclusive": "0x303C80",
+      "start": "0x303B00"
+    }
+  ],
+  "build_defines": [
+    "VR60_MODE0_ONLY=1",
+    "VR60_Q020_CMDINT_PROBE=1"
+  ],
+  "changed_bytes": 494,
+  "cmd3f_enabled": false,
+  "external_vectors": {
+    "count": 16,
+    "file_range": "0x020100-0x02013F",
+    "target": "0x02303B00"
+  },
+  "images": {
+    "default": {
+      "path": "build/vr_rebuild.32x",
+      "sha256": "6f2768f2cffc85cdc815a67c9f13837112829edac3f0921a57454e79e2523900",
+      "size": 4128768
+    },
+    "isr_bin": {
+      "path": "build/sh2/q020_cmdint_probe_isr.bin",
+      "sha256": "8860ed131844c8f4e092dc28784cedc62589cae5845d4b5174850d27c2875ca2",
+      "size": 384
+    },
+    "probe": {
+      "path": "build/vr60_q020_cmdint_probe.32x",
+      "sha256": "88df9065535c408f682f9ecbc71997e7d7819ee4db5ea658d649641417ce4605",
+      "size": 4128768
+    }
+  },
+  "isr": {
+    "file_range": "0x303B00-0x303C7F",
+    "literal_pool_file_range": "0x303C5C-0x303C7F",
+    "literal_users": [
+      {
+        "target": "0x303C5C",
+        "user": "0x303B0C"
+      },
+      {
+        "target": "0x303C60",
+        "user": "0x303B28"
+      },
+      {
+        "target": "0x303C78",
+        "user": "0x303B2A"
+      },
+      {
+        "target": "0x303C70",
+        "user": "0x303B34"
+      },
+      {
+        "target": "0x303C60",
+        "user": "0x303B3A"
+      },
+      {
+        "target": "0x303C78",
+        "user": "0x303B42"
+      },
+      {
+        "target": "0x303C64",
+        "user": "0x303B72"
+      },
+      {
+        "target": "0x303C68",
+        "user": "0x303B7A"
+      },
+      {
+        "target": "0x303C78",
+        "user": "0x303B8E"
+      },
+      {
+        "target": "0x303C74",
+        "user": "0x303B9C"
+      },
+      {
+        "target": "0x303C64",
+        "user": "0x303BB4"
+      },
+      {
+        "target": "0x303C68",
+        "user": "0x303BBC"
+      },
+      {
+        "target": "0x303C64",
+        "user": "0x303BD0"
+      },
+      {
+        "target": "0x303C6C",
+        "user": "0x303BEA"
+      },
+      {
+        "target": "0x303C7C",
+        "user": "0x303C12"
+      },
+      {
+        "target": "0x303C64",
+        "user": "0x303C18"
+      },
+      {
+        "target": "0x303C6C",
+        "user": "0x303C24"
+      },
+      {
+        "target": "0x303C60",
+        "user": "0x303C30"
+      },
+      {
+        "target": "0x303C7C",
+        "user": "0x303C40"
+      }
+    ],
+    "sh2_range": "0x02303B00-0x02303C7F"
+  },
+  "m68k_wrapper_helper": {
+    "file_range": "0x01C914-0x01C93F",
+    "oneshot_operand_offsets": [
+      "0x01C916",
+      "0x01C920"
+    ],
+    "oneshot_wram": "0xFFFF7B41"
+  },
+  "mode1_enabled": false,
+  "non_promotable": true,
+  "route_installers": [
+    "0x00E0D4",
+    "0x011822"
+  ],
+  "schema": "vrd-vr60-q020-cmdint-probe-v1",
+  "status": "verified"
+}

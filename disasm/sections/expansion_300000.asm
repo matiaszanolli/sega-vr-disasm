@@ -708,6 +708,18 @@ cmd3e_mode1_validation:
         endif
 
 ; ============================================================================
+; Q-020 CMDINT PROBE ISR: 0x303B00 — VALIDATION BUILDS ONLY
+; ============================================================================
+; All 16 Master external-interrupt vector entries select this handler in the
+; probe ROM. Ordinary mode 0 leaves the entire allocation as $FF.
+        ifd     VR60_Q020_CMDINT_PROBE
+        dcb.b   ($303B00 - *), $FF
+q020_cmdint_probe_isr:
+        include "sh2/generated/q020_cmdint_probe_isr.inc"
+        assert  *=$303CC4,"Q-020 CMDINT probe must end at file $303CC4"
+        endif
+
+; ============================================================================
 ; REMAINING EXPANSION ROM SPACE (from ~0x303A10)
 ; ============================================================================
 ; Pad to $3F0000 (960KB) instead of $400000 (1MB) to avoid PicoDrive

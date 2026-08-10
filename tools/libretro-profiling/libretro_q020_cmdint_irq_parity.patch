@@ -1,0 +1,31 @@
+diff --git a/pico/32x/memory.c b/pico/32x/memory.c
+index 12c3f73..687ec70 100644
+--- a/pico/32x/memory.c
++++ b/pico/32x/memory.c
+@@ -1260,7 +1260,12 @@ void PicoWrite8_32x(u32 a, u32 d)
+           r[0] |= d & (P32XS_nRES|P32XS_ADEN);
+         }
+         return;
+-      case 0x03: r8[MEM_BE2(a)] = d &    3; return;
++      case 0x03:
++        /* Keep the optimized map behavior-identical to p32x_reg_write8().
++         * CMD IRQ recomputation is an interrupt side effect, not just
++         * register storage. */
++        p32x_reg_write8(a, d);
++        return;
+       case 0x05: r8[MEM_BE2(a)] = d &    3; return;
+       case 0x07: r8[MEM_BE2(a)] = d &    7; return;
+       case 0x09: r8[MEM_BE2(a)] = d       ; return;
+@@ -1307,7 +1312,11 @@ void PicoWrite16_32x(u32 a, u32 d)
+           r[0] |= d & (P32XS_FM|P32XS_nRES|P32XS_ADEN);
+         }
+         return;
+-      case 0x02: r[a / 2] = d &      3; return;
++      case 0x02:
++        /* The high byte is read-only zero; the low byte is the IRQ control
++         * register handled by the canonical byte path. */
++        p32x_reg_write8(0x03, d);
++        return;
+       case 0x04: r[a / 2] = d &      3; return;
+       case 0x06: r[a / 2] = d &      7; return;
+       case 0x08: r[a / 2] = d & 0x00ff; return;

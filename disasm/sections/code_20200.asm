@@ -332,8 +332,12 @@
         dc.w    $FE10        ; $02047A
         dc.w    $2000        ; $02047C
         dc.w    $4000        ; $02047E
+        ifd     VR60_Q020_CMDINT_PROBE
+        dc.l    $02303C50    ; probe-only cold/VRES trace initialization shim
+        else
         dc.w    $0600        ; $020480
         dc.w    $45CC        ; $020482
+        endif
         dc.w    $0600        ; $020484
         dc.w    $FF80        ; $020486
         dc.w    $2000        ; $020488

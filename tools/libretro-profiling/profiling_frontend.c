@@ -82,6 +82,7 @@ struct lr_log_callback {
 /* Function pointer types */
 typedef void (*fn_retro_init)(void);
 typedef void (*fn_retro_deinit)(void);
+typedef void (*fn_retro_reset)(void);
 typedef void (*fn_retro_set_environment)(lr_environment_t);
 typedef void (*fn_retro_set_video_refresh)(lr_video_refresh_t);
 typedef void (*fn_retro_set_audio_sample)(lr_audio_sample_t);
@@ -113,6 +114,7 @@ typedef size_t (*fn_vrd_debug_sh2_regs_size)(void);
 /* Function pointers */
 static fn_retro_init core_init;
 static fn_retro_deinit core_deinit;
+static fn_retro_reset core_reset;
 static fn_retro_set_environment core_set_environment;
 static fn_retro_set_video_refresh core_set_video_refresh;
 static fn_retro_set_audio_sample core_set_audio_sample;
@@ -560,6 +562,7 @@ static void debug_print_help(void) {
     printf("  read <68k|master|slave> <addr> [size]\n");
     printf("  save <path>                     Save a libretro savestate\n");
     printf("  load <path>                     Load a matching savestate\n");
+    printf("  reset                           Assert the core's normal reset path\n");
     printf("  status                          Show session frame\n");
     printf("  help                            Show this help\n");
     printf("  quit                            Exit debugger\n");
@@ -619,6 +622,12 @@ static int debug_repl(FILE *input, bool scripted) {
             ok = arg1 && !arg2 && debug_save_state(arg1);
         } else if (strcmp(cmd, "load") == 0) {
             ok = arg1 && !arg2 && debug_load_state(arg1);
+        } else if (strcmp(cmd, "reset") == 0) {
+            ok = !arg1 && core_reset;
+            if (ok) {
+                core_reset();
+                printf("Core reset at session frame: %d\n", current_frame);
+            }
         } else {
             ok = false;
         }
@@ -705,7 +714,9 @@ int main(int argc, char **argv) {
     }
 
     /* Load libretro core */
-    void *handle = dlopen("./picodrive_libretro.so", RTLD_LAZY);
+    const char *core_path = getenv("VRD_LIBRETRO_CORE");
+    if (!core_path || !core_path[0]) core_path = "./picodrive_libretro.so";
+    void *handle = dlopen(core_path, RTLD_LAZY);
     if (!handle) {
         fprintf(stderr, "Failed to load core: %s\n", dlerror());
         return 1;
@@ -714,6 +725,7 @@ int main(int argc, char **argv) {
     /* Load function pointers */
     core_init = (fn_retro_init)load_symbol(handle, "retro_init");
     core_deinit = (fn_retro_deinit)load_symbol(handle, "retro_deinit");
+    core_reset = (fn_retro_reset)load_symbol(handle, "retro_reset");
     core_set_environment = (fn_retro_set_environment)load_symbol(handle, "retro_set_environment");
     core_set_video_refresh = (fn_retro_set_video_refresh)load_symbol(handle, "retro_set_video_refresh");
     core_set_audio_sample = (fn_retro_set_audio_sample)load_symbol(handle, "retro_set_audio_sample");
@@ -738,7 +750,7 @@ int main(int argc, char **argv) {
     }
 
     if (!core_init || !core_run || !core_load_game ||
-        (debug_enabled && (!core_debug_get_sh2_regs || !core_debug_read ||
+        (debug_enabled && (!core_reset || !core_debug_get_sh2_regs || !core_debug_read ||
                            !core_debug_abi_version || !core_debug_sh2_regs_size ||
                            !core_serialize_size || !core_serialize || !core_unserialize))) {
         fprintf(stderr, "Failed to load required symbols\n");

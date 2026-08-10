@@ -80,10 +80,15 @@
 ; this lives here (equal-size swap; cross-section abs.l JSR convention).
         include "modules/68k/sh2/vr60_1p_staging_hook.asm"
 
-; --- Q-020 mode-1 validation-only reset wrapper + FULL-aware helper ---
+; --- Q-020 validation-only reset wrappers/helpers ---
 ; Ordinary mode 0 leaves this entire interval as the original $FF padding.
+        ifd     VR60_Q020_CMDINT_PROBE
+        include "modules/68k/sh2/q020_cmdint_probe.asm"
+        assert  *=$01C94A,"Q-020 68K wrapper/helper must end at file $01C94A"
+        else
         ifd     VR60_MODE1_VALIDATION
         include "modules/68k/sh2/vr60_mode1_validation.asm"
+        endif
         endif
 
         dcb.b   ($01E200-*),$FF

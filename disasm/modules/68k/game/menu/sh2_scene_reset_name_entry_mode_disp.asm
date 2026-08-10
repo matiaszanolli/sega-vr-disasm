@@ -33,10 +33,14 @@ sh2_scene_reset_name_entry_mode_disp:
         tst.w   ($FFFFA042).w                   ; $011816: $4A78 $A042 — mode parameter set?
         bne.s   .has_selection                   ; $01181A: $6612 — yes → check further
         bset    #3,($FFFFC80E).w               ; $01181C: $08F8 $0003 $C80E — set sync bit 3
+        ifd     VR60_Q020_CMDINT_PROBE
+        move.l  #$0089C914,$00FF0002            ; validation-only CMDINT probe wrapper
+        else
         ifd     VR60_MODE1_VALIDATION
         move.l  #$0089C914,$00FF0002            ; validation-only reset wrapper
         else
         move.l  #$00884A3E,$00FF0002            ; $011822: $23FC $0088 $4A3E $00FF $0002 — handler: no selection
+        endif
         endif
         bra.w   .done                           ; $01182C: $6000 $0032
 .has_selection:

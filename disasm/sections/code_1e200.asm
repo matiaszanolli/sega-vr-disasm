@@ -3973,6 +3973,24 @@
         dc.w    $0308        ; $0200FA
         dc.w    $0600        ; $0200FC
         dc.w    $0308        ; $0200FE
+        ifd     VR60_Q020_CMDINT_PROBE
+        dc.l    $02303B00    ; $020100 - external interrupt level 0
+        dc.l    $02303B00    ; $020104 - external interrupt level 1
+        dc.l    $02303B00    ; $020108 - external interrupt level 2
+        dc.l    $02303B00    ; $02010C - external interrupt level 3
+        dc.l    $02303B00    ; $020110 - external interrupt level 4
+        dc.l    $02303B00    ; $020114 - external interrupt level 5
+        dc.l    $02303B00    ; $020118 - external interrupt level 6
+        dc.l    $02303B00    ; $02011C - external interrupt level 7
+        dc.l    $02303B00    ; $020120 - external interrupt level 8 (CMD)
+        dc.l    $02303B00    ; $020124 - external interrupt level 9
+        dc.l    $02303B00    ; $020128 - external interrupt level 10
+        dc.l    $02303B00    ; $02012C - external interrupt level 11
+        dc.l    $02303B00    ; $020130 - external interrupt level 12
+        dc.l    $02303B00    ; $020134 - external interrupt level 13
+        dc.l    $02303B00    ; $020138 - external interrupt level 14 (VRES)
+        dc.l    $02303B00    ; $02013C - external interrupt level 15
+        else
         dc.w    $0600        ; $020100
         dc.w    $06AC        ; $020102
         dc.w    $0600        ; $020104
@@ -4005,6 +4023,7 @@
         dc.w    $06AC        ; $02013A
         dc.w    $0600        ; $02013C
         dc.w    $06AC        ; $02013E
+        endif
         dc.w    $0600        ; $020140
         dc.w    $0544        ; $020142 - Slave entry restored to original
         dc.w    $0601        ; $020144

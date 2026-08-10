@@ -1,0 +1,160 @@
+{
+  "artifacts": {
+    "cold-normal-vres.commands": {
+      "path": "cold-normal-vres.commands",
+      "sha256": "99eab9aa5893e76f5d7e36e0b5b23e4821d8c5174b6a09b67b264301fa5b170c",
+      "size": 148
+    },
+    "cold-normal-vres.log": {
+      "path": "cold-normal-vres.log",
+      "sha256": "cd287b2130b4a965c94f8e3cdbfb6ae47249869960faa3b2d8434e5e79f03e16",
+      "size": 5104
+    },
+    "name-debug.log": {
+      "path": "name-debug.log",
+      "sha256": "2d008fb29900c74b4f0fb2d5accb3f770ecd863f7d033ae6c0d01930a249e9f9",
+      "size": 2196
+    },
+    "name-input.csv": {
+      "path": "name-input.csv",
+      "sha256": "d597ce0e4afb7cf245ab4ae6bf3f4989f85fe6c6e9a19c0b3b47cc0c1aef7bc0",
+      "size": 1991
+    },
+    "name-route-seeded.mds": {
+      "path": "name-route-seeded.mds",
+      "sha256": "5f8c124c02ca4ae5ffdf4bca2dd4bd8d82c3e61411438784ee8b421fce514bce",
+      "size": 679161
+    },
+    "name-run.log": {
+      "path": "name-run.log",
+      "sha256": "27032b9ebbd6f38d0a21f497bff6fbfe3ac0f4b34aacd4b0be4c8e6451aa88aa",
+      "size": 848
+    },
+    "name-source.mds": {
+      "path": "name-source.mds",
+      "sha256": "c1ede354178c8ffa0796f1e243d8ae592dbd38dad4c44ad9336fece8503b22f0",
+      "size": 679161
+    },
+    "name-write.log": {
+      "path": "name-write.log",
+      "sha256": "20c4fc024328b85f25b1926c3e6d7449e29338e3929ca786b595838e03f4d8ec",
+      "size": 10493
+    },
+    "name.commands": {
+      "path": "name.commands",
+      "sha256": "19d497decf9a2cbae0148692c8158077cca3854821ecffc77e079c386109695f",
+      "size": 95
+    },
+    "normal-run.log": {
+      "path": "normal-run.log",
+      "sha256": "24da58e12f0f0d3d3c54ae150bea6fe8f455d4c50ae7cd6f09daffc9d3f83780",
+      "size": 2866
+    },
+    "normal-write.log": {
+      "path": "normal-write.log",
+      "sha256": "b3f48d7985435472c47807c680fc016bb80dfa23c04d38bbc7dda390f1bddbe1",
+      "size": 57487
+    },
+    "unpatched-core-comparison.commands": {
+      "path": "unpatched-core-comparison.commands",
+      "sha256": "0e3e5681c242af07a0e3f4da057a3ddb938b2d06099447a14799697123f4ea06",
+      "size": 74
+    },
+    "unpatched-core-comparison.log": {
+      "path": "unpatched-core-comparison.log",
+      "sha256": "880e5a9e5d66078f9ab4a812dedda51eb864a99ff6feabb83e55818f90ca4641",
+      "size": 3595
+    }
+  },
+  "default_rom": {
+    "path": "/mnt/data/src/32x-playground/build/vr_rebuild.32x",
+    "sha256": "6f2768f2cffc85cdc815a67c9f13837112829edac3f0921a57454e79e2523900"
+  },
+  "evidence_scope": "diagnostic_route_feasibility",
+  "expected_chronology": {
+    "cold_init_count": 1,
+    "name_installer_pc": "0x00891822",
+    "normal_cmd_event": 2,
+    "normal_installer_pc": "0x0088E0D4",
+    "post_vres_boot_cmd_event": 4,
+    "post_vres_init_count": 3,
+    "post_vres_stock_pc": "0x06000452",
+    "vres_event": 3
+  },
+  "name_fixture": {
+    "changes": [
+      {
+        "after": "3002003b3002003b3002003b3002003b3002003b3002003b3002003b3002003b3002003b3002003b3002003b3002003b3002003b3002003b3002003b3002003b",
+        "before": "0006ac060006ac060006ac060006ac060006ac060006ac060006ac060006ac060006ac060006ac060006ac060006ac060006ac060006ac060006ac060006ac06",
+        "offset": 154533,
+        "reason": "rebind all Master external vectors to probe ISR",
+        "size": 64
+      },
+      {
+        "after": "3002503c",
+        "before": "0006cc45",
+        "offset": 155429,
+        "reason": "rebind Master startup literal to probe shim",
+        "size": 4
+      },
+      {
+        "after": "325150300000000000000000000000000000000000000000000000000000000000000000000000000000000000000100cdaeafcf000000000000000000000000",
+        "before": "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "offset": 202437,
+        "reason": "initialize probe trace exactly as one completed startup-shim call",
+        "size": 64
+      },
+      {
+        "after": "01000000",
+        "before": "cccccc0c",
+        "offset": 49798,
+        "reason": "seed fifth score non-sentinel (diagnostic route prerequisite)",
+        "size": 4
+      },
+      {
+        "after": "0000",
+        "before": "0100",
+        "offset": 41144,
+        "reason": "match name-dispatch A042 result for seeded fifth score",
+        "size": 2
+      },
+      {
+        "after": "00",
+        "before": "01",
+        "offset": 31671,
+        "reason": "arm diagnostic one-shot in loaded fixture",
+        "size": 1
+      }
+    ],
+    "seeded": true,
+    "source_origin": "/tmp/q020_after_results.mds",
+    "source_path": "name-source.mds",
+    "source_sha256": "c1ede354178c8ffa0796f1e243d8ae592dbd38dad4c44ad9336fece8503b22f0"
+  },
+  "non_promotable": true,
+  "organic_gameplay": false,
+  "rom": {
+    "path": "/mnt/data/src/32x-playground/build/vr60_q020_cmdint_probe.32x",
+    "sha256": "a8814b3392bedec01fbd6f5719e12a186c75f98de2fd7b9806af12be108f2783"
+  },
+  "schema": "vrd-vr60-q020-cmdint-runtime-v1",
+  "status": "CAPTURED_UNVALIDATED",
+  "toolchain": {
+    "canonical_core": {
+      "path": "/mnt/data/src/32x-playground/tools/libretro-profiling/picodrive_libretro.so",
+      "sha256": "5677ea8e083f887b2b4e9cabf84dd559a9c6b1180adfa09f34a50023ff7548e8"
+    },
+    "canonical_frontend": {
+      "path": "/mnt/data/src/32x-playground/tools/libretro-profiling/profiling_frontend",
+      "sha256": "cf93393318db52a1d0071b35c708bf10710ed6dfbc617c22e8e339eedac87e9f"
+    },
+    "q020_core": {
+      "path": "/mnt/data/src/32x-playground/tools/libretro-profiling/q020_picodrive_libretro.so",
+      "sha256": "b2fe478891e8cb5299fefc22bb908a67b80a804df379f7724ed212c0e1b1a333"
+    },
+    "q020_frontend": {
+      "path": "/mnt/data/src/32x-playground/tools/libretro-profiling/q020_profiling_frontend",
+      "sha256": "626c2c148aa1dca10f2893bc6e9ac59dad237f5043763567ef73b0f9868bcc50"
+    }
+  }
+}

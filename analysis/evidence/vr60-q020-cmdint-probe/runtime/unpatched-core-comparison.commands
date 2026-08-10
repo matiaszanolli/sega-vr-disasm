@@ -1,0 +1,5 @@
+run 1241
+read master 0x2600BC20 64
+read 68k 0x00FF7B41 1
+regs master
+quit

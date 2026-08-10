@@ -1,0 +1,6 @@
+run 190
+read 68k 0x00FF0002 4
+read 68k 0x00FF7B41 1
+read master 0x2600BC20 64
+regs master
+quit

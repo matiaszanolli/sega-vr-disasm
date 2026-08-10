@@ -1,0 +1,11 @@
+run 11
+read master 0x2600BC20 64
+regs master
+run 1230
+read master 0x2600BC20 64
+regs master
+reset
+run 30
+read master 0x2600BC20 64
+regs master
+quit

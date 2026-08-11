@@ -697,14 +697,15 @@ bridge_probe:
         include "sh2/generated/bridge_probe.inc"
 
 ; ============================================================================
-; Q-020 MODE-1 VALIDATION HANDLER: 0x303A10 — VALIDATION BUILDS ONLY
+; Q-020 MODE-1 CMDINT ISR: 0x303B00 — VALIDATION BUILDS ONLY
 ; ============================================================================
-; Dedicated globals-only cmd $3E handler. The ordinary mode-0 ROM leaves this
-; interval as $FF and retains cmd $3E -> $023016B0.
+; Dedicated globals-only two-edge interrupt protocol.  The ordinary mode-0 ROM
+; leaves this interval as $FF and retains its stock external vectors/startup.
         ifd     VR60_MODE1_VALIDATION
-        dcb.b   ($303A10 - *), $FF
+        dcb.b   ($303B00 - *), $FF
 cmd3e_mode1_validation:
         include "sh2/generated/cmd3e_mode1_validation.inc"
+        assert  *=$303F1C,"Q-020 mode-1 CMDINT ISR must end at file $303F1C"
         endif
 
 ; ============================================================================

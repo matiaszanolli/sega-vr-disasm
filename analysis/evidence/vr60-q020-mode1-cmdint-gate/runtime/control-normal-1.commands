@@ -1,0 +1,9 @@
+run 1280
+read 68k 0x00FF0002 4
+read 68k 0x00FF7B40 1
+read master 0x2600BC20 64
+read 68k 0x00FF6B00 64
+read master 0x0600F30C 64
+regs master
+regs slave
+quit

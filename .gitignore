@@ -99,6 +99,7 @@ build/.gitkeep
 # Profiling temporary files
 tools/libretro-profiling/*.csv
 tools/libretro-profiling/profiling_frontend
+tools/libretro-profiling/mode1_profiling_frontend
 tools/libretro-profiling/build_log.txt
 *.lds
 disasm/sections-mnemonic-backup-*/

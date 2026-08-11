@@ -335,8 +335,12 @@
         ifd     VR60_Q020_CMDINT_PROBE
         dc.l    $02303C50    ; probe-only cold/VRES trace initialization shim
         else
+        ifd     VR60_MODE1_VALIDATION
+        dc.l    $02303E60    ; mode-1 CMDINT cold/VRES trace initialization shim
+        else
         dc.w    $0600        ; $020480
         dc.w    $45CC        ; $020482
+        endif
         endif
         dc.w    $0600        ; $020484
         dc.w    $FF80        ; $020486
@@ -835,13 +839,8 @@ vdp_wait_test:                   ; $02050C
         dc.w    $0490        ; $020872
         dc.w    $0600        ; $020874
         dc.w    $0490        ; $020876
-        ifd     VR60_MODE1_VALIDATION
-        dc.w    $0230        ; $020878  validation-only cmd $3E handler
-        dc.w    $3A10        ; $02087A  -> $02303A10
-        else
         dc.w    $0230        ; $020878  cmd $3E → expansion ROM $023016B0 (VR60 Phase 7: shifted)
         dc.w    $16B0        ; $02087A
-        endif
         dc.w    $0230        ; $02087C  cmd $3F → expansion ROM $02301500 (VR60 Phase 0)
         dc.w    $1500        ; $02087E
         dc.w    $4F22        ; $020880

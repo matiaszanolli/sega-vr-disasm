@@ -1,0 +1,80 @@
+{
+  "accepted_by_runtime_validator": false,
+  "artifacts": {
+    "active-busy-reset.commands": {
+      "path": "active-busy-reset.commands",
+      "sha256": "4d68974dd669d171080400cb3f0a1f0b042915c3e8fa19ed2875e93d5d8d236a",
+      "size": 408
+    },
+    "active-busy-reset.txt": {
+      "path": "active-busy-reset.txt",
+      "sha256": "f207556e0290e9a8f2b1a50a72c911741d5350b7a277f4e01ac5de8ce759a03d",
+      "size": 59635
+    },
+    "control-busy-reset.commands": {
+      "path": "control-busy-reset.commands",
+      "sha256": "4d68974dd669d171080400cb3f0a1f0b042915c3e8fa19ed2875e93d5d8d236a",
+      "size": 408
+    },
+    "control-busy-reset.txt": {
+      "path": "control-busy-reset.txt",
+      "sha256": "6bf12e65cca5566a15cd26b95d77a255b88ed54a3636bdb6348156f43b7b1928",
+      "size": 59642
+    },
+    "default-busy-reset.commands": {
+      "path": "default-busy-reset.commands",
+      "sha256": "4d68974dd669d171080400cb3f0a1f0b042915c3e8fa19ed2875e93d5d8d236a",
+      "size": 408
+    },
+    "default-busy-reset.txt": {
+      "path": "default-busy-reset.txt",
+      "sha256": "a066e4db02479c529ab49e3fca85213895accb142e4e0d16b5db42d6654c9bc5",
+      "size": 59628
+    }
+  },
+  "fault_cpu": "Slave SH2",
+  "fault_pc": "0x06000638",
+  "finding": "baseline_picodrive_busy_slave_reset_defect",
+  "frame": 1280,
+  "observations": {
+    "active": {
+      "first_post_reset_master_pc": "06000460",
+      "first_post_reset_slave_pc": "06000638",
+      "pre_reset_master_pc": "0600443A",
+      "pre_reset_slave_pc": "C00000B4",
+      "sysreg_fault_lines": 1024,
+      "terminal_master_pc": "06004E28",
+      "terminal_slave_pc": "06000638"
+    },
+    "control": {
+      "first_post_reset_master_pc": "06000460",
+      "first_post_reset_slave_pc": "06000638",
+      "pre_reset_master_pc": "0600443A",
+      "pre_reset_slave_pc": "C00000B4",
+      "sysreg_fault_lines": 1024,
+      "terminal_master_pc": "06004E28",
+      "terminal_slave_pc": "06000638"
+    },
+    "default": {
+      "first_post_reset_master_pc": "0600443A",
+      "first_post_reset_slave_pc": "06000638",
+      "pre_reset_master_pc": "0600443A",
+      "pre_reset_slave_pc": "C00000B4",
+      "sysreg_fault_lines": 1024,
+      "terminal_master_pc": "0600443A",
+      "terminal_slave_pc": "06000638"
+    }
+  },
+  "roms": {
+    "active": "963658608b13a96981b8bca60c5e7225df7cf148b138cdf1a1d6982487ff4470",
+    "control": "391774569d17d2461decad5d002c9215914a84649b094b10a051b21b5348e9fd",
+    "default": "6f2768f2cffc85cdc815a67c9f13837112829edac3f0921a57454e79e2523900"
+  },
+  "schema": "vrd-vr60-q020-mode1-cmdint-runtime-v1",
+  "status": "NON_ACCEPTANCE_DIAGNOSTIC",
+  "toolchain": {
+    "canonical_core": "5677ea8e083f887b2b4e9cabf84dd559a9c6b1180adfa09f34a50023ff7548e8",
+    "core": "aaaa57f0190759e581ca116ab35ab7e1e090fcd93ccadd046242d7532ebbff79",
+    "frontend": "626c2c148aa1dca10f2893bc6e9ac59dad237f5043763567ef73b0f9868bcc50"
+  }
+}

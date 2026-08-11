@@ -1,250 +1,95 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://vrd.local/schemas/mode1-reset-fixture-v1.json",
-  "title": "VR60 mode-1 reset and re-entry fixture manifest",
+  "$id": "https://vrd.local/schemas/mode1-lifecycle-v2.json",
+  "title": "VR60 mode-1 lifecycle and reset evidence reference",
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "schema_version",
-    "eligible",
+    "schema",
     "status",
-    "blockers",
-    "policy",
-    "expected_mode1_pcs",
-    "arms"
+    "validation_stage_eligible",
+    "non_promotable",
+    "organic_gameplay",
+    "roms",
+    "capture_matrix",
+    "routes",
+    "safe_vres",
+    "busy_slave_vres",
+    "runtime_capture",
+    "runtime_result",
+    "reset_diagnostic"
   ],
   "properties": {
-    "schema_version": {
-      "const": 1
-    },
-    "eligible": {
-      "type": "boolean"
+    "schema": {
+      "const": "vrd-vr60-q020-mode1-lifecycle-v2"
     },
     "status": {
-      "enum": [
-        "PLACEHOLDER_ONLY",
-        "CAPTURED_UNVALIDATED",
-        "VALIDATED"
-      ]
+      "const": "VALIDATION_STAGE_PASS"
     },
-    "blockers": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "minLength": 1
-      },
-      "uniqueItems": true
+    "validation_stage_eligible": {
+      "const": true
     },
-    "policy": {
+    "non_promotable": {
+      "const": true
+    },
+    "organic_gameplay": {
+      "const": false
+    },
+    "roms": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "scene_pointer_address",
-        "flag_address",
-        "racing_handler_pc",
-        "repetitions_per_route_per_arm",
-        "routes"
-      ],
+      "required": ["active", "control", "default"],
       "properties": {
-        "scene_pointer_address": {
-          "const": 16711682
-        },
-        "flag_address": {
-          "const": 16743232
-        },
-        "racing_handler_pc": {
-          "const": 8932540
-        },
-        "repetitions_per_route_per_arm": {
-          "const": 2
-        },
-        "routes": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "normal_entry",
-            "name_entry_reentry"
-          ],
-          "properties": {
-            "normal_entry": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": [
-                "pointer_writer_pc",
-                "required_initial_flag"
-              ],
-              "properties": {
-                "pointer_writer_pc": {
-                  "const": 57556
-                },
-                "required_initial_flag": {
-                  "type": "null"
-                }
-              }
-            },
-            "name_entry_reentry": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": [
-                "pointer_writer_pc",
-                "required_initial_flag"
-              ],
-              "properties": {
-                "pointer_writer_pc": {
-                  "const": 71714
-                },
-                "required_initial_flag": {
-                  "const": 1
-                }
-              }
-            }
-          }
-        }
+        "active": {"$ref": "#/$defs/sha256"},
+        "control": {"$ref": "#/$defs/sha256"},
+        "default": {"$ref": "#/$defs/sha256"}
       }
     },
-    "expected_mode1_pcs": {
+    "capture_matrix": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "wrapper_entry_pc",
-        "flag_reset_writer_pc",
-        "hook_flag_writer_pc"
-      ],
+      "required": ["arms", "routes", "repeats_per_arm_route", "independent_run_count"],
       "properties": {
-        "wrapper_entry_pc": {
-          "type": [
-            "integer",
-            "null"
-          ],
-          "minimum": 1,
-          "maximum": 16777215
-        },
-        "flag_reset_writer_pc": {
-          "type": [
-            "integer",
-            "null"
-          ],
-          "minimum": 1,
-          "maximum": 16777215
-        },
-        "hook_flag_writer_pc": {
-          "type": [
-            "integer",
-            "null"
-          ],
-          "minimum": 1,
-          "maximum": 16777215
-        }
+        "arms": {"const": ["active", "control"]},
+        "routes": {"const": ["normal", "name"]},
+        "repeats_per_arm_route": {"const": 2},
+        "independent_run_count": {"const": 8}
       }
     },
-    "arms": {
+    "routes": {
+      "type": "object",
+      "required": ["normal", "name"]
+    },
+    "safe_vres": {
+      "type": "object",
+      "required": ["frame", "vres_count", "init_count", "scope"]
+    },
+    "busy_slave_vres": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "active",
-        "control"
-      ],
+      "required": ["frame", "status", "accepted"],
       "properties": {
-        "active": {
-          "$ref": "#/$defs/arm"
-        },
-        "control": {
-          "$ref": "#/$defs/arm"
-        }
+        "frame": {"const": 1280},
+        "status": {"const": "UNPROVEN_BASELINE_PICODRIVE_RESET_DEFECT"},
+        "accepted": {"const": false}
       }
-    }
+    },
+    "runtime_capture": {"$ref": "#/$defs/component"},
+    "runtime_result": {"$ref": "#/$defs/component"},
+    "reset_diagnostic": {"$ref": "#/$defs/component"}
   },
   "$defs": {
-    "nullableSha256": {
-      "type": [
-        "string",
-        "null"
-      ],
+    "sha256": {
+      "type": "string",
       "pattern": "^[0-9a-f]{64}$"
     },
-    "run": {
+    "component": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "repetition",
-        "state_path",
-        "state_sha256",
-        "replay_path",
-        "replay_sha256",
-        "trace_path",
-        "trace_sha256"
-      ],
+      "required": ["path", "sha256"],
       "properties": {
-        "repetition": {
-          "enum": [
-            1,
-            2
-          ]
-        },
-        "state_path": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "state_sha256": {
-          "$ref": "#/$defs/nullableSha256"
-        },
-        "replay_path": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "replay_sha256": {
-          "$ref": "#/$defs/nullableSha256"
-        },
-        "trace_path": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "trace_sha256": {
-          "$ref": "#/$defs/nullableSha256"
-        }
-      }
-    },
-    "arm": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "rom_sha256",
-        "routes"
-      ],
-      "properties": {
-        "rom_sha256": {
-          "$ref": "#/$defs/nullableSha256"
-        },
-        "routes": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "normal_entry",
-            "name_entry_reentry"
-          ],
-          "properties": {
-            "normal_entry": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/run"
-              },
-              "maxItems": 2
-            },
-            "name_entry_reentry": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/run"
-              },
-              "maxItems": 2
-            }
-          }
-        }
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"}
       }
     }
   }

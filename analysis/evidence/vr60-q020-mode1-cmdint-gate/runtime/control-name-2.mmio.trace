@@ -1,0 +1,4 @@
+# VRD_MMIO_TRACE version=3 capacity=1048576 sh2_drc=1 profile_pc=0 profile_pc_env=0 m68k_batching=normal instruction_start_hook=1 m68k_direct=1 master_direct=1 coverage_from_start=1 pc_allowlist=m68k:0x0001C922-0x0001C9CC;master:0x02303B00-0x02303F1C
+# FILTER mode1_direct=1 m68k=0x00A15103|0x00A15107|0x00A1510C|0x00A1510E|0x00A15110|0x00A15112|0x00A15120-0x00A1512F master_system=0x20004000-0x2000403F master_peripheral=0xFFFFFE00-0xFFFFFFFF
+sequence,frame,cpu,pc,op,address,width,value
+# COMPLETE frames=190 events=0 recorded=0 dropped=0 errors=0 overflow=0 raw_m68k=72449 raw_master=223846 pc_rejected_m68k=72449 pc_rejected_master=223846 direct_m68k=1 direct_master=1 observer_detached=1 pc_allowlist=m68k:0x0001C922-0x0001C9CC;master:0x02303B00-0x02303F1C

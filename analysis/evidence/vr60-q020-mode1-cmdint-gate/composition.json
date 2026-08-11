@@ -1,0 +1,46 @@
+{
+  "claims": {
+    "authority_transferred": false,
+    "cmd3f_enabled": false,
+    "mode2_enabled": false,
+    "non_promotable": true,
+    "ordinary_default": false,
+    "organic_gameplay": false,
+    "promoted": false,
+    "real_hardware_proven": false,
+    "validation_stage_pass": true
+  },
+  "components": {
+    "busy_reset_diagnostic": {
+      "path": "analysis/evidence/vr60-q020-mode1-cmdint-gate/reset-diagnostics/run.json",
+      "sha256": "cf5bde5bfbf037dbc8bd8b8edcc4c6d0bdc9c7ec1f91f93236a79ed4089ba662"
+    },
+    "lifecycle": {
+      "path": "tools/libretro-profiling/mode1_reset_fixtures.json",
+      "sha256": "5aac41cac3abe60a4e884e2f6112c8ba4f3e34a0c4cadb662c5b0cc3d13cd294"
+    },
+    "runtime_capture": {
+      "path": "analysis/evidence/vr60-q020-mode1-cmdint-gate/runtime/run.json",
+      "sha256": "6d524ae54e982e8148b58eca634497c4cd8f6b76b9053c56ae11d501554c1f66"
+    },
+    "runtime_result": {
+      "path": "analysis/evidence/vr60-q020-mode1-cmdint-gate/runtime/result.json",
+      "sha256": "fc1b3caa45bdb3fcfa17c0d5b02a39871df8f13eaf2d26ce3c779d5d382959c4"
+    },
+    "static_pair": {
+      "path": "tools/libretro-profiling/mode1_rom_pair.json",
+      "sha256": "69e1b12d34ac8f41f427f13f979b28e2e3a23fa04ba97e2812aa78e748a6935e"
+    }
+  },
+  "evidence_scope": "isolated_mode1_active_stage_control",
+  "identities": {
+    "active": "963658608b13a96981b8bca60c5e7225df7cf148b138cdf1a1d6982487ff4470",
+    "canonical_core": "5677ea8e083f887b2b4e9cabf84dd559a9c6b1180adfa09f34a50023ff7548e8",
+    "control": "391774569d17d2461decad5d002c9215914a84649b094b10a051b21b5348e9fd",
+    "core": "aaaa57f0190759e581ca116ab35ab7e1e090fcd93ccadd046242d7532ebbff79",
+    "default": "6f2768f2cffc85cdc815a67c9f13837112829edac3f0921a57454e79e2523900",
+    "frontend": "626c2c148aa1dca10f2893bc6e9ac59dad237f5043763567ef73b0f9868bcc50"
+  },
+  "schema": "vrd-vr60-q020-mode1-gate-composition-v1",
+  "status": "VALIDATION_STAGE_PASS"
+}

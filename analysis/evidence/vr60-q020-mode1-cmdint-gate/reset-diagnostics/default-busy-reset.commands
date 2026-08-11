@@ -1,0 +1,23 @@
+run 1280
+read master 0x2600BC20 64
+read master 0x20004000 2
+read master 0x20004006 14
+read master 0xFFFFFF80 16
+read master 0xFFFFFFB0 4
+read master 0xFFFFFE17 1
+regs master
+regs slave
+reset
+run 1
+read master 0x2600BC20 64
+read master 0x20004000 2
+read master 0x20004006 14
+read master 0xFFFFFF80 16
+read master 0xFFFFFFB0 4
+read master 0xFFFFFE17 1
+regs master
+regs slave
+run 29
+regs master
+regs slave
+quit

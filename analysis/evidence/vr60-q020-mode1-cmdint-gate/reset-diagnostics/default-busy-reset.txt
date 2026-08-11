@@ -1,0 +1,1178 @@
+VRD Test frontend (no profiling - set VRD_PROFILE_LOG to enable)
+  ROM: /mnt/data/src/32x-playground/build/vr_rebuild.32x
+  Max frames: 1360
+  Autoplay: ENABLED
+  Input: fixed hold mask
+Core: PicoDrive (version 2.04-26ecb2b)
+ROM loaded: 4128768 bytes
+00000:000: couldn't open carthw.cfg!
+00000:000: sram: 200000 - 203fff; eeprom: 0
+Game loaded successfully
+Commands:
+  run [frames]                    Advance emulation (default 1)
+  joypad <mask>                   Set the P1 mask used by subsequent frames
+  record start <path>             Start a new frame,mask recording
+  record stop                     Finalize the active recording
+  regs [master|slave]             Read SH2 registers
+  read <68k|master|slave> <addr> [size]
+  save <path>                     Save a libretro savestate
+  load <path>                     Load a matching savestate
+  reset                           Assert the core's normal reset path
+  status                          Show session frame
+  help                            Show this help
+  quit                            Exit debugger
+vrd-dbg> 00002:072: 32X startup
+00002:072: drc_cmn_init: 0x73499f7ae000, 4194304 bytes: 0
+DRC registers created, 15 host regs (3 REG, 2 STATIC, 1 CTX)
+00746:001: DREQ FIFO w16 without 68S?
+00748:257: DREQ FIFO w16 without 68S?
+00751:258: DREQ FIFO w16 without 68S?
+00754:258: DREQ FIFO w16 without 68S?
+00757:260: DREQ FIFO w16 without 68S?
+00760:259: DREQ FIFO w16 without 68S?
+00763:259: DREQ FIFO w16 without 68S?
+00767:017: DREQ FIFO w16 without 68S?
+00769:260: DREQ FIFO w16 without 68S?
+00772:261: DREQ FIFO w16 without 68S?
+00775:260: DREQ FIFO w16 without 68S?
+00778:260: DREQ FIFO w16 without 68S?
+00781:261: DREQ FIFO w16 without 68S?
+00784:261: DREQ FIFO w16 without 68S?
+00788:018: DREQ FIFO w16 without 68S?
+00790:261: DREQ FIFO w16 without 68S?
+00793:261: DREQ FIFO w16 without 68S?
+00797:000: DREQ FIFO w16 without 68S?
+00800:001: DREQ FIFO w16 without 68S?
+00803:002: DREQ FIFO w16 without 68S?
+00805:261: DREQ FIFO w16 without 68S?
+00809:001: DREQ FIFO w16 without 68S?
+00812:001: DREQ FIFO w16 without 68S?
+00815:000: DREQ FIFO w16 without 68S?
+00818:011: DREQ FIFO w16 without 68S?
+00821:000: DREQ FIFO w16 without 68S?
+00824:001: DREQ FIFO w16 without 68S?
+00827:000: DREQ FIFO w16 without 68S?
+00829:261: DREQ FIFO w16 without 68S?
+00833:001: DREQ FIFO w16 without 68S?
+00835:261: DREQ FIFO w16 without 68S?
+00838:261: DREQ FIFO w16 without 68S?
+00841:259: DREQ FIFO w16 without 68S?
+00845:019: DREQ FIFO w16 without 68S?
+00848:016: DREQ FIFO w16 without 68S?
+00851:006: DREQ FIFO w16 without 68S?
+00854:001: DREQ FIFO w16 without 68S?
+00857:005: DREQ FIFO w16 without 68S?
+00859:259: DREQ FIFO w16 without 68S?
+00863:001: DREQ FIFO w16 without 68S?
+00865:260: DREQ FIFO w16 without 68S?
+00869:005: DREQ FIFO w16 without 68S?
+00872:000: DREQ FIFO w16 without 68S?
+Advanced 1280 frames; session frame=1280
+vrd-dbg> 2600BC20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+2600BC30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+2600BC40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+2600BC50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+vrd-dbg> 20004000: 82 02
+vrd-dbg> 20004006: 40 00 00 00 00 00 00 00 00 00 00 00 00 00
+vrd-dbg> FFFFFF80: 20 00 40 12 26 00 CA 00 00 00 00 00 00 00 44 E3
+vrd-dbg> FFFFFFB0: 00 00 00 00
+vrd-dbg> FFFFFE17: E2
+vrd-dbg> Master SH2: PC=0600443A PR=060011F4 SR=FFFE0020 GBR=0600F400 VBR=06000000
+  MACH=FFFFFFFF MACL=0000555C state=00000004 poll_addr=00000024 poll_cnt=9
+  R0 =00000001  R1 =20004024
+  R2 =0000007D  R3 =2601AEC0
+  R4 =000000CF  R5 =FFFFFEC7
+  R6 =0601AF00  R7 =00000000
+  R8 =06016378  R9 =0601AEEC
+  R10=00000000  R11=00000008
+  R12=FFFFFFFC  R13=FFFFFF00
+  R14=C0000700  R15=0600FF78
+vrd-dbg> Slave SH2: PC=C00000B4 PR=C00000B8 SR=00000020 GBR=20004100 VBR=06000140
+  MACH=FFFFFFEB MACL=00001800 state=00000000 poll_addr=00000000 poll_cnt=0
+  R0 =00000200  R1 =24016ACC
+  R2 =00000002  R3 =000000DE
+  R4 =00000909  R5 =24016C00
+  R6 =00000009  R7 =00000009
+  R8 =060194C8  R9 =060194E4
+  R10=00004000  R11=00006000
+  R12=00CC4000  R13=00DF2000
+  R14=C0000188  R15=0600FFF4
+vrd-dbg> 01280:261: sram: 200000 - 203fff; eeprom: 0
+Core reset at session frame: 1280
+vrd-dbg> 01281:138: ssh2 unhandled sysreg r16 [02] @06000638
+01281:138: unhandled sysreg w8  [02] 720c @06000638
+01281:138: ssh2 unhandled sysreg r16 [02] @06000638
+01281:138: unhandled sysreg w8  [03] 720c @06000638
+01281:138: unhandled sysreg w8  [06] 724c @06000638
+01281:138: unhandled sysreg w8  [07] 720c @06000638
+01281:138: unhandled sysreg w8  [08] 720c @06000638
+01281:138: unhandled sysreg w8  [09] 720c @06000638
+01281:138: unhandled sysreg w8  [0a] 720c @06000638
+01281:138: unhandled sysreg w8  [0b] 720c @06000638
+01281:138: unhandled sysreg w8  [0c] 720c @06000638
+01281:138: unhandled sysreg w8  [0d] 720c @06000638
+01281:138: unhandled sysreg w8  [0e] 720c @06000638
+01281:138: unhandled sysreg w8  [0f] 720c @06000638
+01281:138: unhandled sysreg w8  [10] 720c @06000638
+01281:138: unhandled sysreg w8  [11] 720c @06000638
+01281:138: unhandled sysreg w8  [12] 720c @06000638
+01281:138: unhandled sysreg w8  [13] 720c @06000638
+01281:138: unhandled sysreg w8  [14] 720c @06000638
+01281:138: unhandled sysreg w8  [15] 720c @06000638
+01281:138: unhandled sysreg w8  [16] 720c @06000638
+01281:138: unhandled sysreg w8  [17] 720c @06000638
+01281:138: unhandled sysreg w8  [18] 720c @06000638
+01281:138: unhandled sysreg w8  [19] 720c @06000638
+01281:138: unhandled sysreg w8  [1a] 720c @06000638
+01281:138: unhandled sysreg w8  [1b] 720c @06000638
+01281:138: unhandled sysreg w8  [1c] 720c @06000638
+01281:138: unhandled sysreg w8  [1d] 720c @06000638
+01281:138: ssh2 unhandled sysreg r16 [1e] @06000638
+01281:138: unhandled sysreg w8  [1e] 720c @06000638
+01281:138: ssh2 unhandled sysreg r16 [1e] @06000638
+01281:138: unhandled sysreg w8  [1f] 720c @06000638
+Advanced 1 frame; session frame=1281
+vrd-dbg> 2600BC20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+2600BC30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+2600BC40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+2600BC50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+vrd-dbg> 20004000: 82 02
+vrd-dbg> 20004006: 40 00 00 00 00 00 00 00 00 00 00 00 00 00
+vrd-dbg> FFFFFF80: 20 00 40 12 26 00 CA 00 00 00 00 00 00 00 44 E3
+vrd-dbg> FFFFFFB0: 00 00 00 00
+vrd-dbg> FFFFFE17: E2
+vrd-dbg> Master SH2: PC=0600443A PR=0600443A SR=FFFE00E0 GBR=0600F400 VBR=06000000
+  MACH=FFFFFFFF MACL=0000555C state=00000000 poll_addr=00000000 poll_cnt=0
+  R0 =FFFFFF80  R1 =20004100
+  R2 =0000007D  R3 =2601AEC0
+  R4 =000000D3  R5 =FFFFFEC7
+  R6 =0601AF00  R7 =00000000
+  R8 =06016378  R9 =0601AEEC
+  R10=00000000  R11=00000008
+  R12=FFFFFFFC  R13=FFFFFF00
+  R14=60000380  R15=0600FF74
+vrd-dbg> Slave SH2: PC=06000638 PR=06000730 SR=000000E0 GBR=20004100 VBR=06000140
+  MACH=FFFFFFEB MACL=00001800 state=00000000 poll_addr=00000000 poll_cnt=0
+  R0 =20000000  R1 =06000614
+  R2 =06000620  R3 =200002DE
+  R4 =00006421  R5 =00007201
+  R6 =0000720C  R7 =00000200
+  R8 =060194C8  R9 =2000169B
+  R10=00005064  R11=0000720C
+  R12=00CC4000  R13=00DF2000
+  R14=C0000188  R15=0600FFE0
+vrd-dbg> 01282:067: DREQ FIFO w16 without 68S?
+01282:090: ssh2 unhandled sysreg r16 [02] @06000638
+01282:090: unhandled sysreg w8  [02] 720c @06000638
+01282:090: ssh2 unhandled sysreg r16 [02] @06000638
+01282:090: unhandled sysreg w8  [03] 720c @06000638
+01282:090: unhandled sysreg w8  [06] 724c @06000638
+01282:090: unhandled sysreg w8  [07] 720c @06000638
+01282:090: unhandled sysreg w8  [08] 720c @06000638
+01282:090: unhandled sysreg w8  [09] 720c @06000638
+01282:090: unhandled sysreg w8  [0a] 720c @06000638
+01282:090: unhandled sysreg w8  [0b] 720c @06000638
+01282:090: unhandled sysreg w8  [0c] 720c @06000638
+01282:090: unhandled sysreg w8  [0d] 720c @06000638
+01282:090: unhandled sysreg w8  [0e] 720c @06000638
+01282:090: unhandled sysreg w8  [0f] 720c @06000638
+01282:090: unhandled sysreg w8  [10] 720c @06000638
+01282:090: unhandled sysreg w8  [11] 720c @06000638
+01282:090: unhandled sysreg w8  [12] 720c @06000638
+01282:090: unhandled sysreg w8  [13] 720c @06000638
+01282:090: unhandled sysreg w8  [14] 720c @06000638
+01282:090: unhandled sysreg w8  [15] 720c @06000638
+01282:090: unhandled sysreg w8  [16] 720c @06000638
+01282:090: unhandled sysreg w8  [17] 720c @06000638
+01282:090: unhandled sysreg w8  [18] 720c @06000638
+01282:090: unhandled sysreg w8  [19] 720c @06000638
+01282:090: unhandled sysreg w8  [1a] 720c @06000638
+01282:090: unhandled sysreg w8  [1b] 720c @06000638
+01282:090: unhandled sysreg w8  [1c] 720c @06000638
+01282:090: unhandled sysreg w8  [1d] 720c @06000638
+01282:090: ssh2 unhandled sysreg r16 [1e] @06000638
+01282:090: unhandled sysreg w8  [1e] 720c @06000638
+01282:090: ssh2 unhandled sysreg r16 [1e] @06000638
+01282:090: unhandled sysreg w8  [1f] 720c @06000638
+01283:042: ssh2 unhandled sysreg r16 [02] @06000638
+01283:042: unhandled sysreg w8  [02] 720c @06000638
+01283:042: ssh2 unhandled sysreg r16 [02] @06000638
+01283:042: unhandled sysreg w8  [03] 720c @06000638
+01283:042: unhandled sysreg w8  [06] 724c @06000638
+01283:042: unhandled sysreg w8  [07] 720c @06000638
+01283:042: unhandled sysreg w8  [08] 720c @06000638
+01283:042: unhandled sysreg w8  [09] 720c @06000638
+01283:042: unhandled sysreg w8  [0a] 720c @06000638
+01283:042: unhandled sysreg w8  [0b] 720c @06000638
+01283:042: unhandled sysreg w8  [0c] 720c @06000638
+01283:042: unhandled sysreg w8  [0d] 720c @06000638
+01283:042: unhandled sysreg w8  [0e] 720c @06000638
+01283:042: unhandled sysreg w8  [0f] 720c @06000638
+01283:042: unhandled sysreg w8  [10] 720c @06000638
+01283:042: unhandled sysreg w8  [11] 720c @06000638
+01283:042: unhandled sysreg w8  [12] 720c @06000638
+01283:042: unhandled sysreg w8  [13] 720c @06000638
+01283:042: unhandled sysreg w8  [14] 720c @06000638
+01283:042: unhandled sysreg w8  [15] 720c @06000638
+01283:042: unhandled sysreg w8  [16] 720c @06000638
+01283:042: unhandled sysreg w8  [17] 720c @06000638
+01283:042: unhandled sysreg w8  [18] 720c @06000638
+01283:042: unhandled sysreg w8  [19] 720c @06000638
+01283:042: unhandled sysreg w8  [1a] 720c @06000638
+01283:042: unhandled sysreg w8  [1b] 720c @06000638
+01283:042: unhandled sysreg w8  [1c] 720c @06000638
+01283:042: unhandled sysreg w8  [1d] 720c @06000638
+01283:042: ssh2 unhandled sysreg r16 [1e] @06000638
+01283:042: unhandled sysreg w8  [1e] 720c @06000638
+01283:042: ssh2 unhandled sysreg r16 [1e] @06000638
+01283:042: unhandled sysreg w8  [1f] 720c @06000638
+01283:256: ssh2 unhandled sysreg r16 [02] @06000638
+01283:256: unhandled sysreg w8  [02] 720c @06000638
+01283:257: ssh2 unhandled sysreg r16 [02] @06000638
+01283:257: unhandled sysreg w8  [03] 720c @06000638
+01283:257: unhandled sysreg w8  [06] 724c @06000638
+01283:257: unhandled sysreg w8  [07] 720c @06000638
+01283:257: unhandled sysreg w8  [08] 720c @06000638
+01283:257: unhandled sysreg w8  [09] 720c @06000638
+01283:257: unhandled sysreg w8  [0a] 720c @06000638
+01283:257: unhandled sysreg w8  [0b] 720c @06000638
+01283:257: unhandled sysreg w8  [0c] 720c @06000638
+01283:257: unhandled sysreg w8  [0d] 720c @06000638
+01283:257: unhandled sysreg w8  [0e] 720c @06000638
+01283:257: unhandled sysreg w8  [0f] 720c @06000638
+01283:257: unhandled sysreg w8  [10] 720c @06000638
+01283:257: unhandled sysreg w8  [11] 720c @06000638
+01283:257: unhandled sysreg w8  [12] 720c @06000638
+01283:257: unhandled sysreg w8  [13] 720c @06000638
+01283:257: unhandled sysreg w8  [14] 720c @06000638
+01283:257: unhandled sysreg w8  [15] 720c @06000638
+01283:257: unhandled sysreg w8  [16] 720c @06000638
+01283:257: unhandled sysreg w8  [17] 720c @06000638
+01283:257: unhandled sysreg w8  [18] 720c @06000638
+01283:257: unhandled sysreg w8  [19] 720c @06000638
+01283:257: unhandled sysreg w8  [1a] 720c @06000638
+01283:257: unhandled sysreg w8  [1b] 720c @06000638
+01283:257: unhandled sysreg w8  [1c] 720c @06000638
+01283:257: unhandled sysreg w8  [1d] 720c @06000638
+01283:257: ssh2 unhandled sysreg r16 [1e] @06000638
+01283:257: unhandled sysreg w8  [1e] 720c @06000638
+01283:257: ssh2 unhandled sysreg r16 [1e] @06000638
+01283:257: unhandled sysreg w8  [1f] 720c @06000638
+01284:209: ssh2 unhandled sysreg r16 [02] @06000638
+01284:209: unhandled sysreg w8  [02] 720c @06000638
+01284:209: ssh2 unhandled sysreg r16 [02] @06000638
+01284:209: unhandled sysreg w8  [03] 720c @06000638
+01284:209: unhandled sysreg w8  [06] 724c @06000638
+01284:209: unhandled sysreg w8  [07] 720c @06000638
+01284:209: unhandled sysreg w8  [08] 720c @06000638
+01284:209: unhandled sysreg w8  [09] 720c @06000638
+01284:209: unhandled sysreg w8  [0a] 720c @06000638
+01284:209: unhandled sysreg w8  [0b] 720c @06000638
+01284:209: unhandled sysreg w8  [0c] 720c @06000638
+01284:209: unhandled sysreg w8  [0d] 720c @06000638
+01284:209: unhandled sysreg w8  [0e] 720c @06000638
+01284:209: unhandled sysreg w8  [0f] 720c @06000638
+01284:209: unhandled sysreg w8  [10] 720c @06000638
+01284:209: unhandled sysreg w8  [11] 720c @06000638
+01284:209: unhandled sysreg w8  [12] 720c @06000638
+01284:209: unhandled sysreg w8  [13] 720c @06000638
+01284:209: unhandled sysreg w8  [14] 720c @06000638
+01284:209: unhandled sysreg w8  [15] 720c @06000638
+01284:209: unhandled sysreg w8  [16] 720c @06000638
+01284:209: unhandled sysreg w8  [17] 720c @06000638
+01284:209: unhandled sysreg w8  [18] 720c @06000638
+01284:209: unhandled sysreg w8  [19] 720c @06000638
+01284:209: unhandled sysreg w8  [1a] 720c @06000638
+01284:209: unhandled sysreg w8  [1b] 720c @06000638
+01284:209: unhandled sysreg w8  [1c] 720c @06000638
+01284:209: unhandled sysreg w8  [1d] 720c @06000638
+01284:209: ssh2 unhandled sysreg r16 [1e] @06000638
+01284:209: unhandled sysreg w8  [1e] 720c @06000638
+01284:209: ssh2 unhandled sysreg r16 [1e] @06000638
+01284:209: unhandled sysreg w8  [1f] 720c @06000638
+01285:161: ssh2 unhandled sysreg r16 [02] @06000638
+01285:161: unhandled sysreg w8  [02] 720c @06000638
+01285:161: ssh2 unhandled sysreg r16 [02] @06000638
+01285:161: unhandled sysreg w8  [03] 720c @06000638
+01285:161: unhandled sysreg w8  [06] 724c @06000638
+01285:161: unhandled sysreg w8  [07] 720c @06000638
+01285:161: unhandled sysreg w8  [08] 720c @06000638
+01285:161: unhandled sysreg w8  [09] 720c @06000638
+01285:161: unhandled sysreg w8  [0a] 720c @06000638
+01285:161: unhandled sysreg w8  [0b] 720c @06000638
+01285:161: unhandled sysreg w8  [0c] 720c @06000638
+01285:161: unhandled sysreg w8  [0d] 720c @06000638
+01285:161: unhandled sysreg w8  [0e] 720c @06000638
+01285:161: unhandled sysreg w8  [0f] 720c @06000638
+01285:161: unhandled sysreg w8  [10] 720c @06000638
+01285:161: unhandled sysreg w8  [11] 720c @06000638
+01285:161: unhandled sysreg w8  [12] 720c @06000638
+01285:161: unhandled sysreg w8  [13] 720c @06000638
+01285:161: unhandled sysreg w8  [14] 720c @06000638
+01285:161: unhandled sysreg w8  [15] 720c @06000638
+01285:161: unhandled sysreg w8  [16] 720c @06000638
+01285:161: unhandled sysreg w8  [17] 720c @06000638
+01285:161: unhandled sysreg w8  [18] 720c @06000638
+01285:161: unhandled sysreg w8  [19] 720c @06000638
+01285:161: unhandled sysreg w8  [1a] 720c @06000638
+01285:161: unhandled sysreg w8  [1b] 720c @06000638
+01285:161: unhandled sysreg w8  [1c] 720c @06000638
+01285:161: unhandled sysreg w8  [1d] 720c @06000638
+01285:161: ssh2 unhandled sysreg r16 [1e] @06000638
+01285:161: unhandled sysreg w8  [1e] 720c @06000638
+01285:161: ssh2 unhandled sysreg r16 [1e] @06000638
+01285:161: unhandled sysreg w8  [1f] 720c @06000638
+01286:113: ssh2 unhandled sysreg r16 [02] @06000638
+01286:113: unhandled sysreg w8  [02] 720c @06000638
+01286:113: ssh2 unhandled sysreg r16 [02] @06000638
+01286:113: unhandled sysreg w8  [03] 720c @06000638
+01286:113: unhandled sysreg w8  [06] 724c @06000638
+01286:113: unhandled sysreg w8  [07] 720c @06000638
+01286:113: unhandled sysreg w8  [08] 720c @06000638
+01286:113: unhandled sysreg w8  [09] 720c @06000638
+01286:113: unhandled sysreg w8  [0a] 720c @06000638
+01286:113: unhandled sysreg w8  [0b] 720c @06000638
+01286:113: unhandled sysreg w8  [0c] 720c @06000638
+01286:113: unhandled sysreg w8  [0d] 720c @06000638
+01286:113: unhandled sysreg w8  [0e] 720c @06000638
+01286:113: unhandled sysreg w8  [0f] 720c @06000638
+01286:113: unhandled sysreg w8  [10] 720c @06000638
+01286:113: unhandled sysreg w8  [11] 720c @06000638
+01286:113: unhandled sysreg w8  [12] 720c @06000638
+01286:113: unhandled sysreg w8  [13] 720c @06000638
+01286:113: unhandled sysreg w8  [14] 720c @06000638
+01286:113: unhandled sysreg w8  [15] 720c @06000638
+01286:113: unhandled sysreg w8  [16] 720c @06000638
+01286:113: unhandled sysreg w8  [17] 720c @06000638
+01286:113: unhandled sysreg w8  [18] 720c @06000638
+01286:113: unhandled sysreg w8  [19] 720c @06000638
+01286:113: unhandled sysreg w8  [1a] 720c @06000638
+01286:113: unhandled sysreg w8  [1b] 720c @06000638
+01286:114: unhandled sysreg w8  [1c] 720c @06000638
+01286:114: unhandled sysreg w8  [1d] 720c @06000638
+01286:114: ssh2 unhandled sysreg r16 [1e] @06000638
+01286:114: unhandled sysreg w8  [1e] 720c @06000638
+01286:114: ssh2 unhandled sysreg r16 [1e] @06000638
+01286:114: unhandled sysreg w8  [1f] 720c @06000638
+01287:066: ssh2 unhandled sysreg r16 [02] @06000638
+01287:066: unhandled sysreg w8  [02] 720c @06000638
+01287:066: ssh2 unhandled sysreg r16 [02] @06000638
+01287:066: unhandled sysreg w8  [03] 720c @06000638
+01287:066: unhandled sysreg w8  [06] 724c @06000638
+01287:066: unhandled sysreg w8  [07] 720c @06000638
+01287:066: unhandled sysreg w8  [08] 720c @06000638
+01287:066: unhandled sysreg w8  [09] 720c @06000638
+01287:066: unhandled sysreg w8  [0a] 720c @06000638
+01287:066: unhandled sysreg w8  [0b] 720c @06000638
+01287:066: unhandled sysreg w8  [0c] 720c @06000638
+01287:066: unhandled sysreg w8  [0d] 720c @06000638
+01287:066: unhandled sysreg w8  [0e] 720c @06000638
+01287:066: unhandled sysreg w8  [0f] 720c @06000638
+01287:066: unhandled sysreg w8  [10] 720c @06000638
+01287:066: unhandled sysreg w8  [11] 720c @06000638
+01287:066: unhandled sysreg w8  [12] 720c @06000638
+01287:066: unhandled sysreg w8  [13] 720c @06000638
+01287:066: unhandled sysreg w8  [14] 720c @06000638
+01287:066: unhandled sysreg w8  [15] 720c @06000638
+01287:066: unhandled sysreg w8  [16] 720c @06000638
+01287:066: unhandled sysreg w8  [17] 720c @06000638
+01287:066: unhandled sysreg w8  [18] 720c @06000638
+01287:066: unhandled sysreg w8  [19] 720c @06000638
+01287:066: unhandled sysreg w8  [1a] 720c @06000638
+01287:066: unhandled sysreg w8  [1b] 720c @06000638
+01287:066: unhandled sysreg w8  [1c] 720c @06000638
+01287:066: unhandled sysreg w8  [1d] 720c @06000638
+01287:066: ssh2 unhandled sysreg r16 [1e] @06000638
+01287:066: unhandled sysreg w8  [1e] 720c @06000638
+01287:066: ssh2 unhandled sysreg r16 [1e] @06000638
+01287:066: unhandled sysreg w8  [1f] 720c @06000638
+01288:018: ssh2 unhandled sysreg r16 [02] @06000638
+01288:018: unhandled sysreg w8  [02] 720c @06000638
+01288:018: ssh2 unhandled sysreg r16 [02] @06000638
+01288:018: unhandled sysreg w8  [03] 720c @06000638
+01288:018: unhandled sysreg w8  [06] 724c @06000638
+01288:018: unhandled sysreg w8  [07] 720c @06000638
+01288:018: unhandled sysreg w8  [08] 720c @06000638
+01288:018: unhandled sysreg w8  [09] 720c @06000638
+01288:018: unhandled sysreg w8  [0a] 720c @06000638
+01288:018: unhandled sysreg w8  [0b] 720c @06000638
+01288:018: unhandled sysreg w8  [0c] 720c @06000638
+01288:018: unhandled sysreg w8  [0d] 720c @06000638
+01288:018: unhandled sysreg w8  [0e] 720c @06000638
+01288:018: unhandled sysreg w8  [0f] 720c @06000638
+01288:018: unhandled sysreg w8  [10] 720c @06000638
+01288:018: unhandled sysreg w8  [11] 720c @06000638
+01288:018: unhandled sysreg w8  [12] 720c @06000638
+01288:018: unhandled sysreg w8  [13] 720c @06000638
+01288:018: unhandled sysreg w8  [14] 720c @06000638
+01288:018: unhandled sysreg w8  [15] 720c @06000638
+01288:018: unhandled sysreg w8  [16] 720c @06000638
+01288:018: unhandled sysreg w8  [17] 720c @06000638
+01288:018: unhandled sysreg w8  [18] 720c @06000638
+01288:018: unhandled sysreg w8  [19] 720c @06000638
+01288:018: unhandled sysreg w8  [1a] 720c @06000638
+01288:018: unhandled sysreg w8  [1b] 720c @06000638
+01288:018: unhandled sysreg w8  [1c] 720c @06000638
+01288:018: unhandled sysreg w8  [1d] 720c @06000638
+01288:018: ssh2 unhandled sysreg r16 [1e] @06000638
+01288:018: unhandled sysreg w8  [1e] 720c @06000638
+01288:018: ssh2 unhandled sysreg r16 [1e] @06000638
+01288:018: unhandled sysreg w8  [1f] 720c @06000638
+01288:232: ssh2 unhandled sysreg r16 [02] @06000638
+01288:232: unhandled sysreg w8  [02] 720c @06000638
+01288:232: ssh2 unhandled sysreg r16 [02] @06000638
+01288:232: unhandled sysreg w8  [03] 720c @06000638
+01288:232: unhandled sysreg w8  [06] 724c @06000638
+01288:232: unhandled sysreg w8  [07] 720c @06000638
+01288:232: unhandled sysreg w8  [08] 720c @06000638
+01288:232: unhandled sysreg w8  [09] 720c @06000638
+01288:232: unhandled sysreg w8  [0a] 720c @06000638
+01288:232: unhandled sysreg w8  [0b] 720c @06000638
+01288:232: unhandled sysreg w8  [0c] 720c @06000638
+01288:232: unhandled sysreg w8  [0d] 720c @06000638
+01288:232: unhandled sysreg w8  [0e] 720c @06000638
+01288:232: unhandled sysreg w8  [0f] 720c @06000638
+01288:232: unhandled sysreg w8  [10] 720c @06000638
+01288:232: unhandled sysreg w8  [11] 720c @06000638
+01288:232: unhandled sysreg w8  [12] 720c @06000638
+01288:232: unhandled sysreg w8  [13] 720c @06000638
+01288:232: unhandled sysreg w8  [14] 720c @06000638
+01288:232: unhandled sysreg w8  [15] 720c @06000638
+01288:232: unhandled sysreg w8  [16] 720c @06000638
+01288:232: unhandled sysreg w8  [17] 720c @06000638
+01288:232: unhandled sysreg w8  [18] 720c @06000638
+01288:232: unhandled sysreg w8  [19] 720c @06000638
+01288:232: unhandled sysreg w8  [1a] 720c @06000638
+01288:232: unhandled sysreg w8  [1b] 720c @06000638
+01288:232: unhandled sysreg w8  [1c] 720c @06000638
+01288:232: unhandled sysreg w8  [1d] 720c @06000638
+01288:232: ssh2 unhandled sysreg r16 [1e] @06000638
+01288:232: unhandled sysreg w8  [1e] 720c @06000638
+01288:232: ssh2 unhandled sysreg r16 [1e] @06000638
+01288:232: unhandled sysreg w8  [1f] 720c @06000638
+01289:184: ssh2 unhandled sysreg r16 [02] @06000638
+01289:184: unhandled sysreg w8  [02] 720c @06000638
+01289:184: ssh2 unhandled sysreg r16 [02] @06000638
+01289:184: unhandled sysreg w8  [03] 720c @06000638
+01289:184: unhandled sysreg w8  [06] 724c @06000638
+01289:184: unhandled sysreg w8  [07] 720c @06000638
+01289:184: unhandled sysreg w8  [08] 720c @06000638
+01289:184: unhandled sysreg w8  [09] 720c @06000638
+01289:184: unhandled sysreg w8  [0a] 720c @06000638
+01289:184: unhandled sysreg w8  [0b] 720c @06000638
+01289:184: unhandled sysreg w8  [0c] 720c @06000638
+01289:184: unhandled sysreg w8  [0d] 720c @06000638
+01289:184: unhandled sysreg w8  [0e] 720c @06000638
+01289:184: unhandled sysreg w8  [0f] 720c @06000638
+01289:184: unhandled sysreg w8  [10] 720c @06000638
+01289:184: unhandled sysreg w8  [11] 720c @06000638
+01289:184: unhandled sysreg w8  [12] 720c @06000638
+01289:184: unhandled sysreg w8  [13] 720c @06000638
+01289:184: unhandled sysreg w8  [14] 720c @06000638
+01289:184: unhandled sysreg w8  [15] 720c @06000638
+01289:184: unhandled sysreg w8  [16] 720c @06000638
+01289:184: unhandled sysreg w8  [17] 720c @06000638
+01289:184: unhandled sysreg w8  [18] 720c @06000638
+01289:184: unhandled sysreg w8  [19] 720c @06000638
+01289:184: unhandled sysreg w8  [1a] 720c @06000638
+01289:184: unhandled sysreg w8  [1b] 720c @06000638
+01289:185: unhandled sysreg w8  [1c] 720c @06000638
+01289:185: unhandled sysreg w8  [1d] 720c @06000638
+01289:185: ssh2 unhandled sysreg r16 [1e] @06000638
+01289:185: unhandled sysreg w8  [1e] 720c @06000638
+01289:185: ssh2 unhandled sysreg r16 [1e] @06000638
+01289:185: unhandled sysreg w8  [1f] 720c @06000638
+01290:137: ssh2 unhandled sysreg r16 [02] @06000638
+01290:137: unhandled sysreg w8  [02] 720c @06000638
+01290:137: ssh2 unhandled sysreg r16 [02] @06000638
+01290:137: unhandled sysreg w8  [03] 720c @06000638
+01290:137: unhandled sysreg w8  [06] 724c @06000638
+01290:137: unhandled sysreg w8  [07] 720c @06000638
+01290:137: unhandled sysreg w8  [08] 720c @06000638
+01290:137: unhandled sysreg w8  [09] 720c @06000638
+01290:137: unhandled sysreg w8  [0a] 720c @06000638
+01290:137: unhandled sysreg w8  [0b] 720c @06000638
+01290:137: unhandled sysreg w8  [0c] 720c @06000638
+01290:137: unhandled sysreg w8  [0d] 720c @06000638
+01290:137: unhandled sysreg w8  [0e] 720c @06000638
+01290:137: unhandled sysreg w8  [0f] 720c @06000638
+01290:137: unhandled sysreg w8  [10] 720c @06000638
+01290:137: unhandled sysreg w8  [11] 720c @06000638
+01290:137: unhandled sysreg w8  [12] 720c @06000638
+01290:137: unhandled sysreg w8  [13] 720c @06000638
+01290:137: unhandled sysreg w8  [14] 720c @06000638
+01290:137: unhandled sysreg w8  [15] 720c @06000638
+01290:137: unhandled sysreg w8  [16] 720c @06000638
+01290:137: unhandled sysreg w8  [17] 720c @06000638
+01290:137: unhandled sysreg w8  [18] 720c @06000638
+01290:137: unhandled sysreg w8  [19] 720c @06000638
+01290:137: unhandled sysreg w8  [1a] 720c @06000638
+01290:137: unhandled sysreg w8  [1b] 720c @06000638
+01290:137: unhandled sysreg w8  [1c] 720c @06000638
+01290:137: unhandled sysreg w8  [1d] 720c @06000638
+01290:137: ssh2 unhandled sysreg r16 [1e] @06000638
+01290:137: unhandled sysreg w8  [1e] 720c @06000638
+01290:137: ssh2 unhandled sysreg r16 [1e] @06000638
+01290:137: unhandled sysreg w8  [1f] 720c @06000638
+01291:089: ssh2 unhandled sysreg r16 [02] @06000638
+01291:089: unhandled sysreg w8  [02] 720c @06000638
+01291:089: ssh2 unhandled sysreg r16 [02] @06000638
+01291:089: unhandled sysreg w8  [03] 720c @06000638
+01291:089: unhandled sysreg w8  [06] 724c @06000638
+01291:089: unhandled sysreg w8  [07] 720c @06000638
+01291:089: unhandled sysreg w8  [08] 720c @06000638
+01291:089: unhandled sysreg w8  [09] 720c @06000638
+01291:089: unhandled sysreg w8  [0a] 720c @06000638
+01291:089: unhandled sysreg w8  [0b] 720c @06000638
+01291:089: unhandled sysreg w8  [0c] 720c @06000638
+01291:089: unhandled sysreg w8  [0d] 720c @06000638
+01291:089: unhandled sysreg w8  [0e] 720c @06000638
+01291:089: unhandled sysreg w8  [0f] 720c @06000638
+01291:089: unhandled sysreg w8  [10] 720c @06000638
+01291:089: unhandled sysreg w8  [11] 720c @06000638
+01291:089: unhandled sysreg w8  [12] 720c @06000638
+01291:089: unhandled sysreg w8  [13] 720c @06000638
+01291:089: unhandled sysreg w8  [14] 720c @06000638
+01291:089: unhandled sysreg w8  [15] 720c @06000638
+01291:089: unhandled sysreg w8  [16] 720c @06000638
+01291:089: unhandled sysreg w8  [17] 720c @06000638
+01291:089: unhandled sysreg w8  [18] 720c @06000638
+01291:089: unhandled sysreg w8  [19] 720c @06000638
+01291:089: unhandled sysreg w8  [1a] 720c @06000638
+01291:089: unhandled sysreg w8  [1b] 720c @06000638
+01291:089: unhandled sysreg w8  [1c] 720c @06000638
+01291:089: unhandled sysreg w8  [1d] 720c @06000638
+01291:089: ssh2 unhandled sysreg r16 [1e] @06000638
+01291:089: unhandled sysreg w8  [1e] 720c @06000638
+01291:089: ssh2 unhandled sysreg r16 [1e] @06000638
+01291:089: unhandled sysreg w8  [1f] 720c @06000638
+01292:041: ssh2 unhandled sysreg r16 [02] @06000638
+01292:041: unhandled sysreg w8  [02] 720c @06000638
+01292:041: ssh2 unhandled sysreg r16 [02] @06000638
+01292:041: unhandled sysreg w8  [03] 720c @06000638
+01292:041: unhandled sysreg w8  [06] 724c @06000638
+01292:041: unhandled sysreg w8  [07] 720c @06000638
+01292:041: unhandled sysreg w8  [08] 720c @06000638
+01292:041: unhandled sysreg w8  [09] 720c @06000638
+01292:041: unhandled sysreg w8  [0a] 720c @06000638
+01292:041: unhandled sysreg w8  [0b] 720c @06000638
+01292:041: unhandled sysreg w8  [0c] 720c @06000638
+01292:041: unhandled sysreg w8  [0d] 720c @06000638
+01292:041: unhandled sysreg w8  [0e] 720c @06000638
+01292:041: unhandled sysreg w8  [0f] 720c @06000638
+01292:041: unhandled sysreg w8  [10] 720c @06000638
+01292:041: unhandled sysreg w8  [11] 720c @06000638
+01292:041: unhandled sysreg w8  [12] 720c @06000638
+01292:041: unhandled sysreg w8  [13] 720c @06000638
+01292:041: unhandled sysreg w8  [14] 720c @06000638
+01292:041: unhandled sysreg w8  [15] 720c @06000638
+01292:041: unhandled sysreg w8  [16] 720c @06000638
+01292:041: unhandled sysreg w8  [17] 720c @06000638
+01292:041: unhandled sysreg w8  [18] 720c @06000638
+01292:041: unhandled sysreg w8  [19] 720c @06000638
+01292:041: unhandled sysreg w8  [1a] 720c @06000638
+01292:041: unhandled sysreg w8  [1b] 720c @06000638
+01292:041: unhandled sysreg w8  [1c] 720c @06000638
+01292:041: unhandled sysreg w8  [1d] 720c @06000638
+01292:041: ssh2 unhandled sysreg r16 [1e] @06000638
+01292:041: unhandled sysreg w8  [1e] 720c @06000638
+01292:041: ssh2 unhandled sysreg r16 [1e] @06000638
+01292:041: unhandled sysreg w8  [1f] 720c @06000638
+01292:255: ssh2 unhandled sysreg r16 [02] @06000638
+01292:255: unhandled sysreg w8  [02] 720c @06000638
+01292:255: ssh2 unhandled sysreg r16 [02] @06000638
+01292:255: unhandled sysreg w8  [03] 720c @06000638
+01292:255: unhandled sysreg w8  [06] 724c @06000638
+01292:255: unhandled sysreg w8  [07] 720c @06000638
+01292:255: unhandled sysreg w8  [08] 720c @06000638
+01292:255: unhandled sysreg w8  [09] 720c @06000638
+01292:255: unhandled sysreg w8  [0a] 720c @06000638
+01292:255: unhandled sysreg w8  [0b] 720c @06000638
+01292:255: unhandled sysreg w8  [0c] 720c @06000638
+01292:255: unhandled sysreg w8  [0d] 720c @06000638
+01292:255: unhandled sysreg w8  [0e] 720c @06000638
+01292:255: unhandled sysreg w8  [0f] 720c @06000638
+01292:255: unhandled sysreg w8  [10] 720c @06000638
+01292:255: unhandled sysreg w8  [11] 720c @06000638
+01292:255: unhandled sysreg w8  [12] 720c @06000638
+01292:256: unhandled sysreg w8  [13] 720c @06000638
+01292:256: unhandled sysreg w8  [14] 720c @06000638
+01292:256: unhandled sysreg w8  [15] 720c @06000638
+01292:256: unhandled sysreg w8  [16] 720c @06000638
+01292:256: unhandled sysreg w8  [17] 720c @06000638
+01292:256: unhandled sysreg w8  [18] 720c @06000638
+01292:256: unhandled sysreg w8  [19] 720c @06000638
+01292:256: unhandled sysreg w8  [1a] 720c @06000638
+01292:256: unhandled sysreg w8  [1b] 720c @06000638
+01292:256: unhandled sysreg w8  [1c] 720c @06000638
+01292:256: unhandled sysreg w8  [1d] 720c @06000638
+01292:256: ssh2 unhandled sysreg r16 [1e] @06000638
+01292:256: unhandled sysreg w8  [1e] 720c @06000638
+01292:256: ssh2 unhandled sysreg r16 [1e] @06000638
+01292:256: unhandled sysreg w8  [1f] 720c @06000638
+01293:208: ssh2 unhandled sysreg r16 [02] @06000638
+01293:208: unhandled sysreg w8  [02] 720c @06000638
+01293:208: ssh2 unhandled sysreg r16 [02] @06000638
+01293:208: unhandled sysreg w8  [03] 720c @06000638
+01293:208: unhandled sysreg w8  [06] 724c @06000638
+01293:208: unhandled sysreg w8  [07] 720c @06000638
+01293:208: unhandled sysreg w8  [08] 720c @06000638
+01293:208: unhandled sysreg w8  [09] 720c @06000638
+01293:208: unhandled sysreg w8  [0a] 720c @06000638
+01293:208: unhandled sysreg w8  [0b] 720c @06000638
+01293:208: unhandled sysreg w8  [0c] 720c @06000638
+01293:208: unhandled sysreg w8  [0d] 720c @06000638
+01293:208: unhandled sysreg w8  [0e] 720c @06000638
+01293:208: unhandled sysreg w8  [0f] 720c @06000638
+01293:208: unhandled sysreg w8  [10] 720c @06000638
+01293:208: unhandled sysreg w8  [11] 720c @06000638
+01293:208: unhandled sysreg w8  [12] 720c @06000638
+01293:208: unhandled sysreg w8  [13] 720c @06000638
+01293:208: unhandled sysreg w8  [14] 720c @06000638
+01293:208: unhandled sysreg w8  [15] 720c @06000638
+01293:208: unhandled sysreg w8  [16] 720c @06000638
+01293:208: unhandled sysreg w8  [17] 720c @06000638
+01293:208: unhandled sysreg w8  [18] 720c @06000638
+01293:208: unhandled sysreg w8  [19] 720c @06000638
+01293:208: unhandled sysreg w8  [1a] 720c @06000638
+01293:208: unhandled sysreg w8  [1b] 720c @06000638
+01293:208: unhandled sysreg w8  [1c] 720c @06000638
+01293:208: unhandled sysreg w8  [1d] 720c @06000638
+01293:208: ssh2 unhandled sysreg r16 [1e] @06000638
+01293:208: unhandled sysreg w8  [1e] 720c @06000638
+01293:208: ssh2 unhandled sysreg r16 [1e] @06000638
+01293:208: unhandled sysreg w8  [1f] 720c @06000638
+01294:160: ssh2 unhandled sysreg r16 [02] @06000638
+01294:160: unhandled sysreg w8  [02] 720c @06000638
+01294:160: ssh2 unhandled sysreg r16 [02] @06000638
+01294:160: unhandled sysreg w8  [03] 720c @06000638
+01294:160: unhandled sysreg w8  [06] 724c @06000638
+01294:160: unhandled sysreg w8  [07] 720c @06000638
+01294:160: unhandled sysreg w8  [08] 720c @06000638
+01294:160: unhandled sysreg w8  [09] 720c @06000638
+01294:160: unhandled sysreg w8  [0a] 720c @06000638
+01294:160: unhandled sysreg w8  [0b] 720c @06000638
+01294:160: unhandled sysreg w8  [0c] 720c @06000638
+01294:160: unhandled sysreg w8  [0d] 720c @06000638
+01294:160: unhandled sysreg w8  [0e] 720c @06000638
+01294:160: unhandled sysreg w8  [0f] 720c @06000638
+01294:160: unhandled sysreg w8  [10] 720c @06000638
+01294:160: unhandled sysreg w8  [11] 720c @06000638
+01294:160: unhandled sysreg w8  [12] 720c @06000638
+01294:160: unhandled sysreg w8  [13] 720c @06000638
+01294:160: unhandled sysreg w8  [14] 720c @06000638
+01294:160: unhandled sysreg w8  [15] 720c @06000638
+01294:160: unhandled sysreg w8  [16] 720c @06000638
+01294:160: unhandled sysreg w8  [17] 720c @06000638
+01294:160: unhandled sysreg w8  [18] 720c @06000638
+01294:160: unhandled sysreg w8  [19] 720c @06000638
+01294:160: unhandled sysreg w8  [1a] 720c @06000638
+01294:160: unhandled sysreg w8  [1b] 720c @06000638
+01294:160: unhandled sysreg w8  [1c] 720c @06000638
+01294:160: unhandled sysreg w8  [1d] 720c @06000638
+01294:160: ssh2 unhandled sysreg r16 [1e] @06000638
+01294:160: unhandled sysreg w8  [1e] 720c @06000638
+01294:160: ssh2 unhandled sysreg r16 [1e] @06000638
+01294:160: unhandled sysreg w8  [1f] 720c @06000638
+01295:112: ssh2 unhandled sysreg r16 [02] @06000638
+01295:112: unhandled sysreg w8  [02] 720c @06000638
+01295:112: ssh2 unhandled sysreg r16 [02] @06000638
+01295:112: unhandled sysreg w8  [03] 720c @06000638
+01295:112: unhandled sysreg w8  [06] 724c @06000638
+01295:112: unhandled sysreg w8  [07] 720c @06000638
+01295:112: unhandled sysreg w8  [08] 720c @06000638
+01295:112: unhandled sysreg w8  [09] 720c @06000638
+01295:112: unhandled sysreg w8  [0a] 720c @06000638
+01295:112: unhandled sysreg w8  [0b] 720c @06000638
+01295:112: unhandled sysreg w8  [0c] 720c @06000638
+01295:112: unhandled sysreg w8  [0d] 720c @06000638
+01295:112: unhandled sysreg w8  [0e] 720c @06000638
+01295:112: unhandled sysreg w8  [0f] 720c @06000638
+01295:112: unhandled sysreg w8  [10] 720c @06000638
+01295:112: unhandled sysreg w8  [11] 720c @06000638
+01295:112: unhandled sysreg w8  [12] 720c @06000638
+01295:112: unhandled sysreg w8  [13] 720c @06000638
+01295:112: unhandled sysreg w8  [14] 720c @06000638
+01295:112: unhandled sysreg w8  [15] 720c @06000638
+01295:112: unhandled sysreg w8  [16] 720c @06000638
+01295:112: unhandled sysreg w8  [17] 720c @06000638
+01295:112: unhandled sysreg w8  [18] 720c @06000638
+01295:112: unhandled sysreg w8  [19] 720c @06000638
+01295:112: unhandled sysreg w8  [1a] 720c @06000638
+01295:112: unhandled sysreg w8  [1b] 720c @06000638
+01295:112: unhandled sysreg w8  [1c] 720c @06000638
+01295:112: unhandled sysreg w8  [1d] 720c @06000638
+01295:112: ssh2 unhandled sysreg r16 [1e] @06000638
+01295:112: unhandled sysreg w8  [1e] 720c @06000638
+01295:112: ssh2 unhandled sysreg r16 [1e] @06000638
+01295:112: unhandled sysreg w8  [1f] 720c @06000638
+01296:064: ssh2 unhandled sysreg r16 [02] @06000638
+01296:064: unhandled sysreg w8  [02] 720c @06000638
+01296:064: ssh2 unhandled sysreg r16 [02] @06000638
+01296:064: unhandled sysreg w8  [03] 720c @06000638
+01296:064: unhandled sysreg w8  [06] 724c @06000638
+01296:064: unhandled sysreg w8  [07] 720c @06000638
+01296:064: unhandled sysreg w8  [08] 720c @06000638
+01296:064: unhandled sysreg w8  [09] 720c @06000638
+01296:064: unhandled sysreg w8  [0a] 720c @06000638
+01296:064: unhandled sysreg w8  [0b] 720c @06000638
+01296:064: unhandled sysreg w8  [0c] 720c @06000638
+01296:064: unhandled sysreg w8  [0d] 720c @06000638
+01296:064: unhandled sysreg w8  [0e] 720c @06000638
+01296:064: unhandled sysreg w8  [0f] 720c @06000638
+01296:064: unhandled sysreg w8  [10] 720c @06000638
+01296:064: unhandled sysreg w8  [11] 720c @06000638
+01296:064: unhandled sysreg w8  [12] 720c @06000638
+01296:064: unhandled sysreg w8  [13] 720c @06000638
+01296:065: unhandled sysreg w8  [14] 720c @06000638
+01296:065: unhandled sysreg w8  [15] 720c @06000638
+01296:065: unhandled sysreg w8  [16] 720c @06000638
+01296:065: unhandled sysreg w8  [17] 720c @06000638
+01296:065: unhandled sysreg w8  [18] 720c @06000638
+01296:065: unhandled sysreg w8  [19] 720c @06000638
+01296:065: unhandled sysreg w8  [1a] 720c @06000638
+01296:065: unhandled sysreg w8  [1b] 720c @06000638
+01296:065: unhandled sysreg w8  [1c] 720c @06000638
+01296:065: unhandled sysreg w8  [1d] 720c @06000638
+01296:065: ssh2 unhandled sysreg r16 [1e] @06000638
+01296:065: unhandled sysreg w8  [1e] 720c @06000638
+01296:065: ssh2 unhandled sysreg r16 [1e] @06000638
+01296:065: unhandled sysreg w8  [1f] 720c @06000638
+01297:017: ssh2 unhandled sysreg r16 [02] @06000638
+01297:017: unhandled sysreg w8  [02] 720c @06000638
+01297:017: ssh2 unhandled sysreg r16 [02] @06000638
+01297:017: unhandled sysreg w8  [03] 720c @06000638
+01297:017: unhandled sysreg w8  [06] 724c @06000638
+01297:017: unhandled sysreg w8  [07] 720c @06000638
+01297:017: unhandled sysreg w8  [08] 720c @06000638
+01297:017: unhandled sysreg w8  [09] 720c @06000638
+01297:017: unhandled sysreg w8  [0a] 720c @06000638
+01297:017: unhandled sysreg w8  [0b] 720c @06000638
+01297:017: unhandled sysreg w8  [0c] 720c @06000638
+01297:017: unhandled sysreg w8  [0d] 720c @06000638
+01297:017: unhandled sysreg w8  [0e] 720c @06000638
+01297:017: unhandled sysreg w8  [0f] 720c @06000638
+01297:017: unhandled sysreg w8  [10] 720c @06000638
+01297:017: unhandled sysreg w8  [11] 720c @06000638
+01297:017: unhandled sysreg w8  [12] 720c @06000638
+01297:017: unhandled sysreg w8  [13] 720c @06000638
+01297:017: unhandled sysreg w8  [14] 720c @06000638
+01297:017: unhandled sysreg w8  [15] 720c @06000638
+01297:017: unhandled sysreg w8  [16] 720c @06000638
+01297:017: unhandled sysreg w8  [17] 720c @06000638
+01297:017: unhandled sysreg w8  [18] 720c @06000638
+01297:017: unhandled sysreg w8  [19] 720c @06000638
+01297:017: unhandled sysreg w8  [1a] 720c @06000638
+01297:017: unhandled sysreg w8  [1b] 720c @06000638
+01297:017: unhandled sysreg w8  [1c] 720c @06000638
+01297:017: unhandled sysreg w8  [1d] 720c @06000638
+01297:017: ssh2 unhandled sysreg r16 [1e] @06000638
+01297:017: unhandled sysreg w8  [1e] 720c @06000638
+01297:017: ssh2 unhandled sysreg r16 [1e] @06000638
+01297:017: unhandled sysreg w8  [1f] 720c @06000638
+01297:231: ssh2 unhandled sysreg r16 [02] @06000638
+01297:231: unhandled sysreg w8  [02] 720c @06000638
+01297:231: ssh2 unhandled sysreg r16 [02] @06000638
+01297:231: unhandled sysreg w8  [03] 720c @06000638
+01297:231: unhandled sysreg w8  [06] 724c @06000638
+01297:231: unhandled sysreg w8  [07] 720c @06000638
+01297:231: unhandled sysreg w8  [08] 720c @06000638
+01297:231: unhandled sysreg w8  [09] 720c @06000638
+01297:231: unhandled sysreg w8  [0a] 720c @06000638
+01297:231: unhandled sysreg w8  [0b] 720c @06000638
+01297:231: unhandled sysreg w8  [0c] 720c @06000638
+01297:231: unhandled sysreg w8  [0d] 720c @06000638
+01297:231: unhandled sysreg w8  [0e] 720c @06000638
+01297:231: unhandled sysreg w8  [0f] 720c @06000638
+01297:231: unhandled sysreg w8  [10] 720c @06000638
+01297:231: unhandled sysreg w8  [11] 720c @06000638
+01297:231: unhandled sysreg w8  [12] 720c @06000638
+01297:231: unhandled sysreg w8  [13] 720c @06000638
+01297:231: unhandled sysreg w8  [14] 720c @06000638
+01297:231: unhandled sysreg w8  [15] 720c @06000638
+01297:231: unhandled sysreg w8  [16] 720c @06000638
+01297:231: unhandled sysreg w8  [17] 720c @06000638
+01297:231: unhandled sysreg w8  [18] 720c @06000638
+01297:231: unhandled sysreg w8  [19] 720c @06000638
+01297:231: unhandled sysreg w8  [1a] 720c @06000638
+01297:231: unhandled sysreg w8  [1b] 720c @06000638
+01297:231: unhandled sysreg w8  [1c] 720c @06000638
+01297:231: unhandled sysreg w8  [1d] 720c @06000638
+01297:231: ssh2 unhandled sysreg r16 [1e] @06000638
+01297:231: unhandled sysreg w8  [1e] 720c @06000638
+01297:231: ssh2 unhandled sysreg r16 [1e] @06000638
+01297:231: unhandled sysreg w8  [1f] 720c @06000638
+01298:183: ssh2 unhandled sysreg r16 [02] @06000638
+01298:183: unhandled sysreg w8  [02] 720c @06000638
+01298:183: ssh2 unhandled sysreg r16 [02] @06000638
+01298:183: unhandled sysreg w8  [03] 720c @06000638
+01298:183: unhandled sysreg w8  [06] 724c @06000638
+01298:183: unhandled sysreg w8  [07] 720c @06000638
+01298:183: unhandled sysreg w8  [08] 720c @06000638
+01298:183: unhandled sysreg w8  [09] 720c @06000638
+01298:183: unhandled sysreg w8  [0a] 720c @06000638
+01298:183: unhandled sysreg w8  [0b] 720c @06000638
+01298:183: unhandled sysreg w8  [0c] 720c @06000638
+01298:183: unhandled sysreg w8  [0d] 720c @06000638
+01298:183: unhandled sysreg w8  [0e] 720c @06000638
+01298:183: unhandled sysreg w8  [0f] 720c @06000638
+01298:183: unhandled sysreg w8  [10] 720c @06000638
+01298:183: unhandled sysreg w8  [11] 720c @06000638
+01298:183: unhandled sysreg w8  [12] 720c @06000638
+01298:183: unhandled sysreg w8  [13] 720c @06000638
+01298:183: unhandled sysreg w8  [14] 720c @06000638
+01298:183: unhandled sysreg w8  [15] 720c @06000638
+01298:183: unhandled sysreg w8  [16] 720c @06000638
+01298:183: unhandled sysreg w8  [17] 720c @06000638
+01298:183: unhandled sysreg w8  [18] 720c @06000638
+01298:183: unhandled sysreg w8  [19] 720c @06000638
+01298:183: unhandled sysreg w8  [1a] 720c @06000638
+01298:183: unhandled sysreg w8  [1b] 720c @06000638
+01298:183: unhandled sysreg w8  [1c] 720c @06000638
+01298:183: unhandled sysreg w8  [1d] 720c @06000638
+01298:183: ssh2 unhandled sysreg r16 [1e] @06000638
+01298:183: unhandled sysreg w8  [1e] 720c @06000638
+01298:183: ssh2 unhandled sysreg r16 [1e] @06000638
+01298:183: unhandled sysreg w8  [1f] 720c @06000638
+01299:135: ssh2 unhandled sysreg r16 [02] @06000638
+01299:135: unhandled sysreg w8  [02] 720c @06000638
+01299:135: ssh2 unhandled sysreg r16 [02] @06000638
+01299:135: unhandled sysreg w8  [03] 720c @06000638
+01299:135: unhandled sysreg w8  [06] 724c @06000638
+01299:135: unhandled sysreg w8  [07] 720c @06000638
+01299:135: unhandled sysreg w8  [08] 720c @06000638
+01299:135: unhandled sysreg w8  [09] 720c @06000638
+01299:136: unhandled sysreg w8  [0a] 720c @06000638
+01299:136: unhandled sysreg w8  [0b] 720c @06000638
+01299:136: unhandled sysreg w8  [0c] 720c @06000638
+01299:136: unhandled sysreg w8  [0d] 720c @06000638
+01299:136: unhandled sysreg w8  [0e] 720c @06000638
+01299:136: unhandled sysreg w8  [0f] 720c @06000638
+01299:136: unhandled sysreg w8  [10] 720c @06000638
+01299:136: unhandled sysreg w8  [11] 720c @06000638
+01299:136: unhandled sysreg w8  [12] 720c @06000638
+01299:136: unhandled sysreg w8  [13] 720c @06000638
+01299:136: unhandled sysreg w8  [14] 720c @06000638
+01299:136: unhandled sysreg w8  [15] 720c @06000638
+01299:136: unhandled sysreg w8  [16] 720c @06000638
+01299:136: unhandled sysreg w8  [17] 720c @06000638
+01299:136: unhandled sysreg w8  [18] 720c @06000638
+01299:136: unhandled sysreg w8  [19] 720c @06000638
+01299:136: unhandled sysreg w8  [1a] 720c @06000638
+01299:136: unhandled sysreg w8  [1b] 720c @06000638
+01299:136: unhandled sysreg w8  [1c] 720c @06000638
+01299:136: unhandled sysreg w8  [1d] 720c @06000638
+01299:136: ssh2 unhandled sysreg r16 [1e] @06000638
+01299:136: unhandled sysreg w8  [1e] 720c @06000638
+01299:136: ssh2 unhandled sysreg r16 [1e] @06000638
+01299:136: unhandled sysreg w8  [1f] 720c @06000638
+01300:088: ssh2 unhandled sysreg r16 [02] @06000638
+01300:088: unhandled sysreg w8  [02] 720c @06000638
+01300:088: ssh2 unhandled sysreg r16 [02] @06000638
+01300:088: unhandled sysreg w8  [03] 720c @06000638
+01300:088: unhandled sysreg w8  [06] 724c @06000638
+01300:088: unhandled sysreg w8  [07] 720c @06000638
+01300:088: unhandled sysreg w8  [08] 720c @06000638
+01300:088: unhandled sysreg w8  [09] 720c @06000638
+01300:088: unhandled sysreg w8  [0a] 720c @06000638
+01300:088: unhandled sysreg w8  [0b] 720c @06000638
+01300:088: unhandled sysreg w8  [0c] 720c @06000638
+01300:088: unhandled sysreg w8  [0d] 720c @06000638
+01300:088: unhandled sysreg w8  [0e] 720c @06000638
+01300:088: unhandled sysreg w8  [0f] 720c @06000638
+01300:088: unhandled sysreg w8  [10] 720c @06000638
+01300:088: unhandled sysreg w8  [11] 720c @06000638
+01300:088: unhandled sysreg w8  [12] 720c @06000638
+01300:088: unhandled sysreg w8  [13] 720c @06000638
+01300:088: unhandled sysreg w8  [14] 720c @06000638
+01300:088: unhandled sysreg w8  [15] 720c @06000638
+01300:088: unhandled sysreg w8  [16] 720c @06000638
+01300:088: unhandled sysreg w8  [17] 720c @06000638
+01300:088: unhandled sysreg w8  [18] 720c @06000638
+01300:088: unhandled sysreg w8  [19] 720c @06000638
+01300:088: unhandled sysreg w8  [1a] 720c @06000638
+01300:088: unhandled sysreg w8  [1b] 720c @06000638
+01300:088: unhandled sysreg w8  [1c] 720c @06000638
+01300:088: unhandled sysreg w8  [1d] 720c @06000638
+01300:088: ssh2 unhandled sysreg r16 [1e] @06000638
+01300:088: unhandled sysreg w8  [1e] 720c @06000638
+01300:088: ssh2 unhandled sysreg r16 [1e] @06000638
+01300:088: unhandled sysreg w8  [1f] 720c @06000638
+01301:040: ssh2 unhandled sysreg r16 [02] @06000638
+01301:040: unhandled sysreg w8  [02] 720c @06000638
+01301:040: ssh2 unhandled sysreg r16 [02] @06000638
+01301:040: unhandled sysreg w8  [03] 720c @06000638
+01301:040: unhandled sysreg w8  [06] 724c @06000638
+01301:040: unhandled sysreg w8  [07] 720c @06000638
+01301:040: unhandled sysreg w8  [08] 720c @06000638
+01301:040: unhandled sysreg w8  [09] 720c @06000638
+01301:040: unhandled sysreg w8  [0a] 720c @06000638
+01301:040: unhandled sysreg w8  [0b] 720c @06000638
+01301:040: unhandled sysreg w8  [0c] 720c @06000638
+01301:040: unhandled sysreg w8  [0d] 720c @06000638
+01301:040: unhandled sysreg w8  [0e] 720c @06000638
+01301:040: unhandled sysreg w8  [0f] 720c @06000638
+01301:040: unhandled sysreg w8  [10] 720c @06000638
+01301:040: unhandled sysreg w8  [11] 720c @06000638
+01301:040: unhandled sysreg w8  [12] 720c @06000638
+01301:040: unhandled sysreg w8  [13] 720c @06000638
+01301:040: unhandled sysreg w8  [14] 720c @06000638
+01301:040: unhandled sysreg w8  [15] 720c @06000638
+01301:040: unhandled sysreg w8  [16] 720c @06000638
+01301:040: unhandled sysreg w8  [17] 720c @06000638
+01301:040: unhandled sysreg w8  [18] 720c @06000638
+01301:040: unhandled sysreg w8  [19] 720c @06000638
+01301:040: unhandled sysreg w8  [1a] 720c @06000638
+01301:040: unhandled sysreg w8  [1b] 720c @06000638
+01301:040: unhandled sysreg w8  [1c] 720c @06000638
+01301:040: unhandled sysreg w8  [1d] 720c @06000638
+01301:040: ssh2 unhandled sysreg r16 [1e] @06000638
+01301:040: unhandled sysreg w8  [1e] 720c @06000638
+01301:040: ssh2 unhandled sysreg r16 [1e] @06000638
+01301:040: unhandled sysreg w8  [1f] 720c @06000638
+01301:254: ssh2 unhandled sysreg r16 [02] @06000638
+01301:254: unhandled sysreg w8  [02] 720c @06000638
+01301:254: ssh2 unhandled sysreg r16 [02] @06000638
+01301:254: unhandled sysreg w8  [03] 720c @06000638
+01301:254: unhandled sysreg w8  [06] 724c @06000638
+01301:254: unhandled sysreg w8  [07] 720c @06000638
+01301:254: unhandled sysreg w8  [08] 720c @06000638
+01301:254: unhandled sysreg w8  [09] 720c @06000638
+01301:254: unhandled sysreg w8  [0a] 720c @06000638
+01301:254: unhandled sysreg w8  [0b] 720c @06000638
+01301:254: unhandled sysreg w8  [0c] 720c @06000638
+01301:254: unhandled sysreg w8  [0d] 720c @06000638
+01301:254: unhandled sysreg w8  [0e] 720c @06000638
+01301:254: unhandled sysreg w8  [0f] 720c @06000638
+01301:254: unhandled sysreg w8  [10] 720c @06000638
+01301:254: unhandled sysreg w8  [11] 720c @06000638
+01301:254: unhandled sysreg w8  [12] 720c @06000638
+01301:254: unhandled sysreg w8  [13] 720c @06000638
+01301:254: unhandled sysreg w8  [14] 720c @06000638
+01301:254: unhandled sysreg w8  [15] 720c @06000638
+01301:254: unhandled sysreg w8  [16] 720c @06000638
+01301:254: unhandled sysreg w8  [17] 720c @06000638
+01301:254: unhandled sysreg w8  [18] 720c @06000638
+01301:254: unhandled sysreg w8  [19] 720c @06000638
+01301:254: unhandled sysreg w8  [1a] 720c @06000638
+01301:254: unhandled sysreg w8  [1b] 720c @06000638
+01301:254: unhandled sysreg w8  [1c] 720c @06000638
+01301:254: unhandled sysreg w8  [1d] 720c @06000638
+01301:254: ssh2 unhandled sysreg r16 [1e] @06000638
+01301:254: unhandled sysreg w8  [1e] 720c @06000638
+01301:254: ssh2 unhandled sysreg r16 [1e] @06000638
+01301:254: unhandled sysreg w8  [1f] 720c @06000638
+01302:206: ssh2 unhandled sysreg r16 [02] @06000638
+01302:206: unhandled sysreg w8  [02] 720c @06000638
+01302:206: ssh2 unhandled sysreg r16 [02] @06000638
+01302:206: unhandled sysreg w8  [03] 720c @06000638
+01302:206: unhandled sysreg w8  [06] 724c @06000638
+01302:206: unhandled sysreg w8  [07] 720c @06000638
+01302:206: unhandled sysreg w8  [08] 720c @06000638
+01302:206: unhandled sysreg w8  [09] 720c @06000638
+01302:206: unhandled sysreg w8  [0a] 720c @06000638
+01302:206: unhandled sysreg w8  [0b] 720c @06000638
+01302:207: unhandled sysreg w8  [0c] 720c @06000638
+01302:207: unhandled sysreg w8  [0d] 720c @06000638
+01302:207: unhandled sysreg w8  [0e] 720c @06000638
+01302:207: unhandled sysreg w8  [0f] 720c @06000638
+01302:207: unhandled sysreg w8  [10] 720c @06000638
+01302:207: unhandled sysreg w8  [11] 720c @06000638
+01302:207: unhandled sysreg w8  [12] 720c @06000638
+01302:207: unhandled sysreg w8  [13] 720c @06000638
+01302:207: unhandled sysreg w8  [14] 720c @06000638
+01302:207: unhandled sysreg w8  [15] 720c @06000638
+01302:207: unhandled sysreg w8  [16] 720c @06000638
+01302:207: unhandled sysreg w8  [17] 720c @06000638
+01302:207: unhandled sysreg w8  [18] 720c @06000638
+01302:207: unhandled sysreg w8  [19] 720c @06000638
+01302:207: unhandled sysreg w8  [1a] 720c @06000638
+01302:207: unhandled sysreg w8  [1b] 720c @06000638
+01302:207: unhandled sysreg w8  [1c] 720c @06000638
+01302:207: unhandled sysreg w8  [1d] 720c @06000638
+01302:207: ssh2 unhandled sysreg r16 [1e] @06000638
+01302:207: unhandled sysreg w8  [1e] 720c @06000638
+01302:207: ssh2 unhandled sysreg r16 [1e] @06000638
+01302:207: unhandled sysreg w8  [1f] 720c @06000638
+01303:159: ssh2 unhandled sysreg r16 [02] @06000638
+01303:159: unhandled sysreg w8  [02] 720c @06000638
+01303:159: ssh2 unhandled sysreg r16 [02] @06000638
+01303:159: unhandled sysreg w8  [03] 720c @06000638
+01303:159: unhandled sysreg w8  [06] 724c @06000638
+01303:159: unhandled sysreg w8  [07] 720c @06000638
+01303:159: unhandled sysreg w8  [08] 720c @06000638
+01303:159: unhandled sysreg w8  [09] 720c @06000638
+01303:159: unhandled sysreg w8  [0a] 720c @06000638
+01303:159: unhandled sysreg w8  [0b] 720c @06000638
+01303:159: unhandled sysreg w8  [0c] 720c @06000638
+01303:159: unhandled sysreg w8  [0d] 720c @06000638
+01303:159: unhandled sysreg w8  [0e] 720c @06000638
+01303:159: unhandled sysreg w8  [0f] 720c @06000638
+01303:159: unhandled sysreg w8  [10] 720c @06000638
+01303:159: unhandled sysreg w8  [11] 720c @06000638
+01303:159: unhandled sysreg w8  [12] 720c @06000638
+01303:159: unhandled sysreg w8  [13] 720c @06000638
+01303:159: unhandled sysreg w8  [14] 720c @06000638
+01303:159: unhandled sysreg w8  [15] 720c @06000638
+01303:159: unhandled sysreg w8  [16] 720c @06000638
+01303:159: unhandled sysreg w8  [17] 720c @06000638
+01303:159: unhandled sysreg w8  [18] 720c @06000638
+01303:159: unhandled sysreg w8  [19] 720c @06000638
+01303:159: unhandled sysreg w8  [1a] 720c @06000638
+01303:159: unhandled sysreg w8  [1b] 720c @06000638
+01303:159: unhandled sysreg w8  [1c] 720c @06000638
+01303:159: unhandled sysreg w8  [1d] 720c @06000638
+01303:159: ssh2 unhandled sysreg r16 [1e] @06000638
+01303:159: unhandled sysreg w8  [1e] 720c @06000638
+01303:159: ssh2 unhandled sysreg r16 [1e] @06000638
+01303:159: unhandled sysreg w8  [1f] 720c @06000638
+01304:111: ssh2 unhandled sysreg r16 [02] @06000638
+01304:111: unhandled sysreg w8  [02] 720c @06000638
+01304:111: ssh2 unhandled sysreg r16 [02] @06000638
+01304:111: unhandled sysreg w8  [03] 720c @06000638
+01304:111: unhandled sysreg w8  [06] 724c @06000638
+01304:111: unhandled sysreg w8  [07] 720c @06000638
+01304:111: unhandled sysreg w8  [08] 720c @06000638
+01304:111: unhandled sysreg w8  [09] 720c @06000638
+01304:111: unhandled sysreg w8  [0a] 720c @06000638
+01304:111: unhandled sysreg w8  [0b] 720c @06000638
+01304:111: unhandled sysreg w8  [0c] 720c @06000638
+01304:111: unhandled sysreg w8  [0d] 720c @06000638
+01304:111: unhandled sysreg w8  [0e] 720c @06000638
+01304:111: unhandled sysreg w8  [0f] 720c @06000638
+01304:111: unhandled sysreg w8  [10] 720c @06000638
+01304:111: unhandled sysreg w8  [11] 720c @06000638
+01304:111: unhandled sysreg w8  [12] 720c @06000638
+01304:111: unhandled sysreg w8  [13] 720c @06000638
+01304:111: unhandled sysreg w8  [14] 720c @06000638
+01304:111: unhandled sysreg w8  [15] 720c @06000638
+01304:111: unhandled sysreg w8  [16] 720c @06000638
+01304:111: unhandled sysreg w8  [17] 720c @06000638
+01304:111: unhandled sysreg w8  [18] 720c @06000638
+01304:111: unhandled sysreg w8  [19] 720c @06000638
+01304:111: unhandled sysreg w8  [1a] 720c @06000638
+01304:111: unhandled sysreg w8  [1b] 720c @06000638
+01304:111: unhandled sysreg w8  [1c] 720c @06000638
+01304:111: unhandled sysreg w8  [1d] 720c @06000638
+01304:111: ssh2 unhandled sysreg r16 [1e] @06000638
+01304:111: unhandled sysreg w8  [1e] 720c @06000638
+01304:111: ssh2 unhandled sysreg r16 [1e] @06000638
+01304:111: unhandled sysreg w8  [1f] 720c @06000638
+01305:063: ssh2 unhandled sysreg r16 [02] @06000638
+01305:063: unhandled sysreg w8  [02] 720c @06000638
+01305:063: ssh2 unhandled sysreg r16 [02] @06000638
+01305:063: unhandled sysreg w8  [03] 720c @06000638
+01305:063: unhandled sysreg w8  [06] 724c @06000638
+01305:063: unhandled sysreg w8  [07] 720c @06000638
+01305:063: unhandled sysreg w8  [08] 720c @06000638
+01305:063: unhandled sysreg w8  [09] 720c @06000638
+01305:063: unhandled sysreg w8  [0a] 720c @06000638
+01305:063: unhandled sysreg w8  [0b] 720c @06000638
+01305:063: unhandled sysreg w8  [0c] 720c @06000638
+01305:063: unhandled sysreg w8  [0d] 720c @06000638
+01305:063: unhandled sysreg w8  [0e] 720c @06000638
+01305:063: unhandled sysreg w8  [0f] 720c @06000638
+01305:063: unhandled sysreg w8  [10] 720c @06000638
+01305:063: unhandled sysreg w8  [11] 720c @06000638
+01305:063: unhandled sysreg w8  [12] 720c @06000638
+01305:063: unhandled sysreg w8  [13] 720c @06000638
+01305:063: unhandled sysreg w8  [14] 720c @06000638
+01305:063: unhandled sysreg w8  [15] 720c @06000638
+01305:063: unhandled sysreg w8  [16] 720c @06000638
+01305:063: unhandled sysreg w8  [17] 720c @06000638
+01305:063: unhandled sysreg w8  [18] 720c @06000638
+01305:063: unhandled sysreg w8  [19] 720c @06000638
+01305:063: unhandled sysreg w8  [1a] 720c @06000638
+01305:063: unhandled sysreg w8  [1b] 720c @06000638
+01305:063: unhandled sysreg w8  [1c] 720c @06000638
+01305:063: unhandled sysreg w8  [1d] 720c @06000638
+01305:063: ssh2 unhandled sysreg r16 [1e] @06000638
+01305:063: unhandled sysreg w8  [1e] 720c @06000638
+01305:063: ssh2 unhandled sysreg r16 [1e] @06000638
+01305:063: unhandled sysreg w8  [1f] 720c @06000638
+01306:016: ssh2 unhandled sysreg r16 [02] @06000638
+01306:016: unhandled sysreg w8  [02] 720c @06000638
+01306:016: ssh2 unhandled sysreg r16 [02] @06000638
+01306:016: unhandled sysreg w8  [03] 720c @06000638
+01306:016: unhandled sysreg w8  [06] 724c @06000638
+01306:016: unhandled sysreg w8  [07] 720c @06000638
+01306:016: unhandled sysreg w8  [08] 720c @06000638
+01306:016: unhandled sysreg w8  [09] 720c @06000638
+01306:016: unhandled sysreg w8  [0a] 720c @06000638
+01306:016: unhandled sysreg w8  [0b] 720c @06000638
+01306:016: unhandled sysreg w8  [0c] 720c @06000638
+01306:016: unhandled sysreg w8  [0d] 720c @06000638
+01306:016: unhandled sysreg w8  [0e] 720c @06000638
+01306:016: unhandled sysreg w8  [0f] 720c @06000638
+01306:016: unhandled sysreg w8  [10] 720c @06000638
+01306:016: unhandled sysreg w8  [11] 720c @06000638
+01306:016: unhandled sysreg w8  [12] 720c @06000638
+01306:016: unhandled sysreg w8  [13] 720c @06000638
+01306:016: unhandled sysreg w8  [14] 720c @06000638
+01306:016: unhandled sysreg w8  [15] 720c @06000638
+01306:016: unhandled sysreg w8  [16] 720c @06000638
+01306:016: unhandled sysreg w8  [17] 720c @06000638
+01306:016: unhandled sysreg w8  [18] 720c @06000638
+01306:016: unhandled sysreg w8  [19] 720c @06000638
+01306:016: unhandled sysreg w8  [1a] 720c @06000638
+01306:016: unhandled sysreg w8  [1b] 720c @06000638
+01306:016: unhandled sysreg w8  [1c] 720c @06000638
+01306:016: unhandled sysreg w8  [1d] 720c @06000638
+01306:016: ssh2 unhandled sysreg r16 [1e] @06000638
+01306:016: unhandled sysreg w8  [1e] 720c @06000638
+01306:016: ssh2 unhandled sysreg r16 [1e] @06000638
+01306:016: unhandled sysreg w8  [1f] 720c @06000638
+01306:230: ssh2 unhandled sysreg r16 [02] @06000638
+01306:230: unhandled sysreg w8  [02] 720c @06000638
+01306:230: ssh2 unhandled sysreg r16 [02] @06000638
+01306:230: unhandled sysreg w8  [03] 720c @06000638
+01306:230: unhandled sysreg w8  [06] 724c @06000638
+01306:230: unhandled sysreg w8  [07] 720c @06000638
+01306:230: unhandled sysreg w8  [08] 720c @06000638
+01306:230: unhandled sysreg w8  [09] 720c @06000638
+01306:230: unhandled sysreg w8  [0a] 720c @06000638
+01306:230: unhandled sysreg w8  [0b] 720c @06000638
+01306:230: unhandled sysreg w8  [0c] 720c @06000638
+01306:230: unhandled sysreg w8  [0d] 720c @06000638
+01306:230: unhandled sysreg w8  [0e] 720c @06000638
+01306:230: unhandled sysreg w8  [0f] 720c @06000638
+01306:230: unhandled sysreg w8  [10] 720c @06000638
+01306:230: unhandled sysreg w8  [11] 720c @06000638
+01306:230: unhandled sysreg w8  [12] 720c @06000638
+01306:230: unhandled sysreg w8  [13] 720c @06000638
+01306:230: unhandled sysreg w8  [14] 720c @06000638
+01306:230: unhandled sysreg w8  [15] 720c @06000638
+01306:230: unhandled sysreg w8  [16] 720c @06000638
+01306:230: unhandled sysreg w8  [17] 720c @06000638
+01306:230: unhandled sysreg w8  [18] 720c @06000638
+01306:230: unhandled sysreg w8  [19] 720c @06000638
+01306:230: unhandled sysreg w8  [1a] 720c @06000638
+01306:230: unhandled sysreg w8  [1b] 720c @06000638
+01306:230: unhandled sysreg w8  [1c] 720c @06000638
+01306:230: unhandled sysreg w8  [1d] 720c @06000638
+01306:230: ssh2 unhandled sysreg r16 [1e] @06000638
+01306:230: unhandled sysreg w8  [1e] 720c @06000638
+01306:230: ssh2 unhandled sysreg r16 [1e] @06000638
+01306:230: unhandled sysreg w8  [1f] 720c @06000638
+Advanced 29 frames; session frame=1310
+vrd-dbg> Master SH2: PC=0600443A PR=0600443A SR=000000E0 GBR=0600F400 VBR=06000000
+  MACH=FFFFFFFF MACL=0000555C state=00000000 poll_addr=00000000 poll_cnt=0
+  R0 =FFFFFF80  R1 =20004100
+  R2 =0000007D  R3 =2601AEC0
+  R4 =000000D3  R5 =FFFFFEC7
+  R6 =0601AF00  R7 =00000000
+  R8 =06016378  R9 =0601AEEC
+  R10=00000000  R11=00000008
+  R12=FFFFFFFC  R13=FFFFFF00
+  R14=60000380  R15=0600FF74
+vrd-dbg> Slave SH2: PC=06000638 PR=06000730 SR=000000E0 GBR=20004100 VBR=06000140
+  MACH=FFFFFFEB MACL=00001800 state=00000000 poll_addr=00000000 poll_cnt=0
+  R0 =20000000  R1 =06000614
+  R2 =06000620  R3 =200046DE
+  R4 =00006421  R5 =000071DF
+  R6 =0000720C  R7 =00000200
+  R8 =060194C8  R9 =2000A604
+  R10=000004FB  R11=0000720C
+  R12=00CC4000  R13=00DF2000
+  R14=C0000188  R15=0600FFE0
+vrd-dbg> 01310:261: 32X shutdown

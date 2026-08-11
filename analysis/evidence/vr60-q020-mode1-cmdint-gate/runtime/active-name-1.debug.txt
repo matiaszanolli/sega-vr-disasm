@@ -1,0 +1,63 @@
+VRD Test frontend (no profiling - set VRD_PROFILE_LOG to enable)
+  ROM: /mnt/data/src/32x-playground/build/vr60_mode1_active.32x
+  Max frames: 190
+  Autoplay: disabled
+  Input: /mnt/data/src/32x-playground/analysis/evidence/vr60-q020-mode1-cmdint-gate/runtime/name-input.csv
+Core: PicoDrive (version 2.04-26ecb2b)
+ROM loaded: 4128768 bytes
+00000:000: couldn't open carthw.cfg!
+00000:000: sram: 200000 - 203fff; eeprom: 0
+Game loaded successfully
+07264:261: 32X startup
+07264:261: drc_cmn_init: 0x73d1f31b0000, 4194304 bytes: 0
+DRC registers created, 15 host regs (3 REG, 2 STATIC, 1 CTX)
+Loaded state: /mnt/data/src/32x-playground/analysis/evidence/vr60-q020-mode1-cmdint-gate/runtime/name-route-seeded.mds (679161 bytes)
+Commands:
+  run [frames]                    Advance emulation (default 1)
+  joypad <mask>                   Set the P1 mask used by subsequent frames
+  record start <path>             Start a new frame,mask recording
+  record stop                     Finalize the active recording
+  regs [master|slave]             Read SH2 registers
+  read <68k|master|slave> <addr> [size]
+  save <path>                     Save a libretro savestate
+  load <path>                     Load a matching savestate
+  reset                           Assert the core's normal reset path
+  status                          Show session frame
+  help                            Show this help
+  quit                            Exit debugger
+vrd-dbg> Advanced 190 frames; session frame=190
+vrd-dbg> 00FF0002: 00 88 56 18
+vrd-dbg> 00FF7B40: 00
+vrd-dbg> 2600BC20: 51 32 31 49 00 00 00 00 00 00 00 00 00 00 00 00
+2600BC30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+2600BC40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+2600BC50: 00 00 00 01 00 00 00 00 00 00 00 00 AE CD CE B6
+vrd-dbg> 00FF6B00: 00 1E 01 00 00 0A FF EE 00 93 92 5E 00 02 00 00
+00FF6B10: 03 00 00 00 00 00 00 00 FF FF 00 00 00 00 00 00
+00FF6B20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00FF6B30: 00 00 00 00 00 00 00 00 00 00 02 0B 06 1E 00 00
+vrd-dbg> 0600F30C: 00 1E 01 00 00 0A FF EE 00 93 92 5E 00 02 00 00
+0600F31C: 03 00 00 00 00 00 00 00 FF FF 00 00 00 00 00 00
+0600F32C: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+0600F33C: 00 00 00 00 00 00 00 00 00 00 02 0B 06 1E 00 00
+vrd-dbg> Master SH2: PC=06003198 PR=06003198 SR=00000020 GBR=0600F400 VBR=06000000
+  MACH=00000014 MACL=1C302000 state=00000000 poll_addr=00000000 poll_cnt=0
+  R0 =00000014  R1 =02C063D4
+  R2 =0141C302  R3 =00001000
+  R4 =C0000740  R5 =C0000770
+  R6 =06018070  R7 =00000000
+  R8 =FFB9110C  R9 =00000064
+  R10=06018040  R11=00000031
+  R12=00000000  R13=22294E34
+  R14=0600271A  R15=0600FF5C
+vrd-dbg> Slave SH2: PC=06000592 PR=060005A6 SR=00000021 GBR=0600F600 VBR=06000140
+  MACH=FFFFFFFA MACL=D911D066 state=00000000 poll_addr=00000000 poll_cnt=0
+  R0 =00000000  R1 =20004024
+  R2 =00000100  R3 =06000592
+  R4 =00001720  R5 =0016E5E6
+  R6 =00172629  R7 =00000001
+  R8 =2000402E  R9 =00000C00
+  R10=0601C000  R11=06013D64
+  R12=0600F600  R13=0600D870
+  R14=20004100  R15=06010000
+vrd-dbg> 07454:261: 32X shutdown

@@ -31,6 +31,13 @@ MODE1_ACTIVE_ROM = $(BUILD_DIR)/vr60_mode1_active.32x
 MODE1_CONTROL_ROM = $(BUILD_DIR)/vr60_mode1_stage_control.32x
 MODE1_ROM_MANIFEST = $(TOOLS_DIR)/libretro-profiling/mode1_rom_pair.json
 MODE1_ROM_VERIFY = $(TOOLS_DIR)/libretro-profiling/verify_mode1_rom_pair.py
+MODE1_LIFECYCLE_MANIFEST = $(TOOLS_DIR)/libretro-profiling/mode1_reset_fixtures.json
+MODE1_GATE_COMPOSITION = analysis/evidence/vr60-q020-mode1-cmdint-gate/composition.json
+MODE1_GATE_COMPOSITION_VERIFY = $(TOOLS_DIR)/libretro-profiling/validate_mode1_gate_composition.py
+MODE1_PROFILE_FRONTEND = $(Q020_PROFILE_DIR)/mode1_profiling_frontend
+MODE1_PROFILE_CORE = $(Q020_PROFILE_DIR)/mode1_picodrive_libretro.so
+MODE1_PICODRIVE_PREPARE = $(Q020_PROFILE_DIR)/prepare_mode1_picodrive.py
+MODE1_RUNTIME_TOOLS_VERIFY = $(Q020_PROFILE_DIR)/verify_mode1_runtime_tools.py
 Q020_CMDINT_PROBE_ROM = $(BUILD_DIR)/vr60_q020_cmdint_probe.32x
 Q020_CMDINT_PROBE_MANIFEST = $(TOOLS_DIR)/libretro-profiling/q020_cmdint_probe.json
 Q020_CMDINT_PROBE_VERIFY = $(TOOLS_DIR)/libretro-profiling/verify_q020_cmdint_probe.py
@@ -53,7 +60,7 @@ ASMFLAGS = -Fbin -m68000 -no-opt -spaces -quiet
 M68K_SRC = $(DISASM_DIR)/vrd.asm
 VR60_1P_HOOK_SITE_SRC = $(DISASM_DIR)/modules/68k/game/scene/game_frame_orch_013.asm
 VR60_1P_STAGING_HOOK_SRC = $(DISASM_DIR)/modules/68k/sh2/vr60_1p_staging_hook.asm
-.PHONY: all control-rom mode0-roms mode0-default-verify mode1-roms q020-cmdint-probe q020-runtime-tools clean disasm tools test profile-frame profile-pc
+.PHONY: all control-rom mode0-roms mode0-default-verify mode1-roms mode1-runtime-tools mode1-gate-validate q020-cmdint-probe q020-runtime-tools clean disasm tools test profile-frame profile-pc
 
 # ============================================================================
 # Main targets
@@ -142,13 +149,33 @@ $(MODE1_CONTROL_ROM): sh2-assembly $(M68K_SRC) $(VR60_1P_HOOK_SITE_SRC) $(VR60_1
 	@echo "==> Assembling validation-only VR60 mode-1 STAGE-CONTROL ROM..."
 	$(ASM) $(ASMFLAGS) -D VR60_MODE1_VALIDATION=1 -D VR60_MODE1_STAGE_CONTROL=1 -o $@ $(M68K_SRC)
 
-$(MODE1_ROM_MANIFEST): $(MODE1_ACTIVE_ROM) $(MODE1_CONTROL_ROM) $(OUTPUT_ROM) $(MODE1_ROM_VERIFY)
+$(MODE1_ROM_MANIFEST): $(MODE1_ACTIVE_ROM) $(MODE1_CONTROL_ROM) $(OUTPUT_ROM) $(SH2_CMD3E_MODE1_VALIDATION_BIN) $(MODE1_ROM_VERIFY)
 	@echo "==> Verifying isolated mode-1 validation pair..."
 	$(PYTHON) $(MODE1_ROM_VERIFY) \
 		--active $(MODE1_ACTIVE_ROM) \
 		--control $(MODE1_CONTROL_ROM) \
 		--default $(OUTPUT_ROM) \
+		--isr-bin $(SH2_CMD3E_MODE1_VALIDATION_BIN) \
+		--isr-elf $(BUILD_DIR)/sh2/cmd3e_mode1_validation.elf \
 		--manifest $(MODE1_ROM_MANIFEST)
+
+# Rebuild the mode-1 evidence frontend/core under isolated names.  The pinned
+# preparation script applies the profiling, mode-1, and Q-020 parity overlays
+# fail closed and never overwrites either accepted canonical binary.
+mode1-runtime-tools:
+	$(CC) -O2 -Wall -Wextra -o $(MODE1_PROFILE_FRONTEND) $(Q020_PROFILE_DIR)/profiling_frontend.c -ldl
+	$(PYTHON) $(MODE1_PICODRIVE_PREPARE) --source-root $(Q020_PICODRIVE_DIR)
+	$(MAKE) -C $(Q020_PICODRIVE_DIR) -f Makefile.libretro clean
+	$(MAKE) -C $(Q020_PICODRIVE_DIR) -f Makefile.libretro platform=unix
+	cp $(Q020_PICODRIVE_DIR)/picodrive_libretro.so $(MODE1_PROFILE_CORE)
+	$(PYTHON) $(MODE1_RUNTIME_TOOLS_VERIFY) \
+		--frontend $(MODE1_PROFILE_FRONTEND) --core $(MODE1_PROFILE_CORE)
+
+# Compose the rebuilt static pair with the immutable runtime/lifecycle archive.
+# This is a validation-stage check only and cannot promote mode 1 or the default.
+mode1-gate-validate: mode1-roms $(MODE1_GATE_COMPOSITION_VERIFY) $(MODE1_GATE_COMPOSITION) $(MODE1_LIFECYCLE_MANIFEST)
+	$(PYTHON) $(MODE1_GATE_COMPOSITION_VERIFY) \
+		$(MODE1_GATE_COMPOSITION) --repo-root .
 
 # Q-020 validation-only Master CMD interrupt probe. This build is deliberately
 # separate from mode-1 validation and can never be promoted as the default ROM.
@@ -715,7 +742,7 @@ SH2_CMD3E_ENTITY_SRC = $(SH2_EXP_DIR)/cmd3e_entity_transfer.asm
 SH2_CMD3E_ENTITY_BIN = $(BUILD_DIR)/sh2/cmd3e_entity_transfer.bin
 SH2_CMD3E_ENTITY_INC = $(SH2_GEN_DIR)/cmd3e_entity_transfer.inc
 
-# Q-020 validation-only mode-1 DREQ consumer
+# Q-020 validation-only mode-1 CMDINT/DREQ handler
 SH2_CMD3E_MODE1_VALIDATION_SRC = $(SH2_EXP_DIR)/cmd3e_mode1_validation.asm
 SH2_CMD3E_MODE1_VALIDATION_BIN = $(BUILD_DIR)/sh2/cmd3e_mode1_validation.bin
 SH2_CMD3E_MODE1_VALIDATION_INC = $(SH2_GEN_DIR)/cmd3e_mode1_validation.inc
@@ -2483,9 +2510,10 @@ $(SH2_CMD3E_ENTITY_INC): $(SH2_CMD3E_ENTITY_BIN)
 
 $(SH2_CMD3E_MODE1_VALIDATION_BIN): $(SH2_CMD3E_MODE1_VALIDATION_SRC) | dirs
 	@mkdir -p $(BUILD_DIR)/sh2
-	@echo "==> Assembling SH2: cmd3e_mode1_validation..."
+	@echo "==> Assembling/linking SH2: cmd3e_mode1_validation at $02303B00..."
 	$(SH2_AS) $(SH2_ASFLAGS) -o $(BUILD_DIR)/sh2/cmd3e_mode1_validation.o $<
-	$(SH2_OBJCOPY) -O binary $(@:.bin=.o) $@
+	$(SH2_LD) -Ttext=0x02303B00 -e cmd3e_mode1_validation -o $(BUILD_DIR)/sh2/cmd3e_mode1_validation.elf $(BUILD_DIR)/sh2/cmd3e_mode1_validation.o
+	$(SH2_OBJCOPY) --only-section=.text -O binary $(BUILD_DIR)/sh2/cmd3e_mode1_validation.elf $@
 	@echo "    Output: $@ ($$(wc -c < $@) bytes)"
 
 $(SH2_CMD3E_MODE1_VALIDATION_INC): $(SH2_CMD3E_MODE1_VALIDATION_BIN)

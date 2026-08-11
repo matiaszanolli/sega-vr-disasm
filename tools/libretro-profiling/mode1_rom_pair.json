@@ -1,142 +1,431 @@
 {
   "eligible": false,
+  "external_literal_ownership": {
+    "instruction": "0x3039FC",
+    "instruction_bytes": "deadbeef",
+    "literal": "0x303CB4",
+    "literal_bytes": "ffffffff"
+  },
   "findings": [],
   "gate_b_pc_policy": {
-    "busy_guard": [
-      "0x02303A46"
+    "m68k_completion_ack": [
+      "0x0001C9C4"
     ],
-    "command_index": [
-      "0x0001C946"
+    "m68k_completion_precondition": [
+      "0x0001C9B2"
     ],
-    "completion": [
-      "0x02303A68"
+    "m68k_completion_trigger": [
+      "0x0001C9BC"
     ],
-    "completion_flush": [
-      "0x02303A6A"
+    "m68k_dreq_68s": [
+      "0x0001C962"
     ],
-    "fifo_write": [
-      "0x0001C978"
+    "m68k_dreq_68s_auto_clear": [
+      "0x0001C9A8"
     ],
-    "full_read": [
-      "0x0001C96C"
+    "m68k_dreq_destination": [
+      "0x0001C94A",
+      "0x0001C952"
     ],
-    "m68k_dreq_read": [
-      "0x0001C982"
+    "m68k_dreq_idle_precondition": [
+      "0x0001C938"
     ],
-    "master_dreq_read": [
-      "0x02303A4E"
+    "m68k_dreq_length": [
+      "0x0001C95A"
     ],
-    "ready_flush": [
-      "0x02303A40"
+    "m68k_dreq_length_zero": [
+      "0x0001C99E"
     ],
-    "ready_poll": [
-      "0x0001C956"
+    "m68k_fifo_write": [
+      "0x0001C990"
     ],
-    "ready_publish": [
-      "0x02303A3E"
+    "m68k_full_read": [
+      "0x0001C98A"
     ],
-    "trigger": [
-      "0x0001C94E"
+    "m68k_prior_length_zero": [
+      "0x0001C940"
+    ],
+    "m68k_setup_ack": [
+      "0x0001C972"
+    ],
+    "m68k_setup_intm_precondition": [
+      "0x0001C92E"
+    ],
+    "m68k_setup_trigger": [
+      "0x0001C96A"
+    ],
+    "master_cmd_clear_read": [
+      "0x02303CD4",
+      "0x02303CD6"
+    ],
+    "master_cmd_mask_write_read": [
+      "0x02303CC4",
+      "0x02303CC6"
+    ],
+    "master_completion_chcr_poll": [
+      "0x02303C34"
+    ],
+    "master_completion_saved_spc": "unrestricted after exact in-flight ownership proof",
+    "master_completion_tcr_dar": [
+      "0x02303C4C",
+      "0x02303C58"
+    ],
+    "master_completion_te_clear_read": [
+      "0x02303C68",
+      "0x02303C6A"
+    ],
+    "master_dmac0_arm": [
+      "0x02303BFA",
+      "0x02303C00",
+      "0x02303C06",
+      "0x02303C0C"
+    ],
+    "master_dmaor_write_read": [
+      "0x02303C12",
+      "0x02303C14"
+    ],
+    "master_dreq_control_read": [
+      "0x02303B76"
+    ],
+    "master_dreq_destination_reads": [
+      "0x02303CF2",
+      "0x02303CFE"
+    ],
+    "master_dreq_length_reads": [
+      "0x02303B80",
+      "0x02303BAA"
+    ],
+    "master_mask_restore_read": [
+      "0x02303CDC",
+      "0x02303CDE"
+    ],
+    "master_prior_chcr_read_write_read": [
+      "0x02303BCC",
+      "0x02303BEA",
+      "0x02303BEC"
+    ],
+    "master_safe_setup_saved_spc": [
+      "0x06000460",
+      "0x06000462",
+      "0x06000464",
+      "0x06000466",
+      "0x06000474",
+      "0x06000476",
+      "0x06004438",
+      "0x0600443A",
+      "0x0600443C",
+      "0x0600443E",
+      "0x06004440",
+      "0x06004442"
     ]
   },
   "gate_b_requirements": {
-    "both_cpus_observe_dreq_len_zero_before_completion": true,
-    "comm0_hi_busy_guard_one": true,
-    "command_index_before_trigger": true,
+    "cmd3f_disabled": true,
+    "cmd_ack_order": [
+      "mask CMD",
+      "mask readback",
+      "clear CMD",
+      "same-address read",
+      "restore exact mask",
+      "mask readback"
+    ],
+    "completion_saved_spc": "not restricted after exact in-flight ownership proof",
+    "completion_signature": "setup_count==completion_count+1,68S=0,LEN=0,SAR=0x20004012,DAR/TCR bounded then terminal,CHCR=0x44E1/0x44E3,DMAOR=1; no SPC restriction",
+    "default_unchanged": true,
+    "dmac0_ack_idle_chcr": "0x000044E0 (TE read-1/write-0, DE=0, IE=0)",
     "dmac0_active_chcr": "0x000044E1",
-    "dmac0_interrupt_enable": false,
-    "dmac0_post_completion_chcr": "0x000044E0",
-    "dmac0_post_completion_state": "IE=0,TE=0,DE=0",
+    "dmac0_completion_chcr": "0x000044E3",
     "dmac0_rearm_order": [
       "SAR0",
       "DAR0",
       "TCR0",
-      "CHCR0=0x000044E1",
-      "DMAOR.DME=1",
-      "DMAOR same-address read",
-      "COMM0_LO=0x00",
-      "COMM0_LO same-byte read",
-      "COMM0_HI==0x01 guard"
+      "CHCR0",
+      "DMAOR write",
+      "DMAOR same-address read"
     ],
-    "dmac0_te_acknowledge": "read-1 then write-0",
-    "dmac0_wait_te_before_completion": true,
-    "eight_full_checked_groups": true,
+    "fifo_groups": "eight groups of four words; FULL checked before each group",
     "forbidden_comm_registers": [
+      "COMM0",
       "COMM1",
       "COMM2",
+      "COMM3",
+      "COMM4",
+      "COMM5",
+      "COMM6",
       "COMM7"
     ],
-    "four_fifo_words_per_group": true,
-    "no_fifo_before_readiness_zero": true,
-    "no_fifo_before_trigger": true,
-    "one_trigger_per_transaction": true,
-    "readiness_publish_after_dmac0_arm_and_dmaor_sync": true,
-    "readiness_same_byte_readback_zero": true,
-    "readiness_signal": "COMM0_LO:0x3E->0x00",
-    "reset_routes_required": 2,
-    "same_address_flush_reads": [
-      "DMAOR",
-      "readiness",
-      "completion"
-    ]
+    "fresh_runs_per_arm_per_route": 2,
+    "mode2_disabled": true,
+    "payload": "exactly 64 bytes FF6B00->0600F30C",
+    "routes": [
+      "normal entry",
+      "name-entry re-entry"
+    ],
+    "safe_setup_saved_spcs": [
+      "0x06000460",
+      "0x06000462",
+      "0x06000464",
+      "0x06000466",
+      "0x06000474",
+      "0x06000476",
+      "0x06004438",
+      "0x0600443A",
+      "0x0600443C",
+      "0x0600443E",
+      "0x06004440",
+      "0x06004442"
+    ],
+    "setup_signature": "setup_count==completion_count,68S=1,LEN=0x20,DST=00:F30C,TCR0=0,saved SPC in exact idle/quiescent set",
+    "stock_delegation": "VRES and phase-pinned reset-flow CMD only",
+    "transport": "two Master CMD edges; zero mode-1 COMM0-7 reads or writes",
+    "unexpected_policy": "fail-stop"
   },
   "hashes": {
-    "active": "844543609366dd76925865c89d848306ff7a619cda637275143c60fbb3066402",
-    "control": "715f11de6478b3d96239ff54b7e38ce6ec3dc9e321b5d392bd660323e4ebbd17",
-    "default": "6f2768f2cffc85cdc815a67c9f13837112829edac3f0921a57454e79e2523900"
+    "active": "963658608b13a96981b8bca60c5e7225df7cf148b138cdf1a1d6982487ff4470",
+    "control": "391774569d17d2461decad5d002c9215914a84649b094b10a051b21b5348e9fd",
+    "default": "6f2768f2cffc85cdc815a67c9f13837112829edac3f0921a57454e79e2523900",
+    "isr_bin": "6316a0d228dc3db8a48ecdef3b34e0962e04db35c4ef085ec17aea8873146916"
   },
   "literal_pool_users": [
     {
-      "instruction": "0x303A10",
-      "literal": "0x303AA4"
+      "instruction": "0x3039FC",
+      "literal": "0x303CB4"
     },
     {
-      "instruction": "0x303A1C",
-      "literal": "0x303A78"
+      "instruction": "0x303B12",
+      "literal": "0x303EA8"
     },
     {
-      "instruction": "0x303A1E",
-      "literal": "0x303A7C"
+      "instruction": "0x303B2E",
+      "literal": "0x303EAC"
     },
     {
-      "instruction": "0x303A22",
-      "literal": "0x303A80"
+      "instruction": "0x303B52",
+      "literal": "0x303F08"
     },
     {
-      "instruction": "0x303A24",
-      "literal": "0x303A84"
+      "instruction": "0x303B58",
+      "literal": "0x303EAC"
     },
     {
-      "instruction": "0x303A28",
-      "literal": "0x303A88"
+      "instruction": "0x303B74",
+      "literal": "0x303EB4"
     },
     {
-      "instruction": "0x303A2A",
-      "literal": "0x303A8C"
+      "instruction": "0x303B7E",
+      "literal": "0x303EC0"
     },
     {
-      "instruction": "0x303A2E",
-      "literal": "0x303A90"
+      "instruction": "0x303BA8",
+      "literal": "0x303EC0"
     },
     {
-      "instruction": "0x303A30",
-      "literal": "0x303A94"
+      "instruction": "0x303BCA",
+      "literal": "0x303ED8"
     },
     {
-      "instruction": "0x303A34",
-      "literal": "0x303A9C"
+      "instruction": "0x303BD0",
+      "literal": "0x303EFC"
     },
     {
-      "instruction": "0x303A4C",
-      "literal": "0x303AA0"
+      "instruction": "0x303BD4",
+      "literal": "0x303EF8"
     },
     {
-      "instruction": "0x303A54",
-      "literal": "0x303A90"
+      "instruction": "0x303BF6",
+      "literal": "0x303EC8"
     },
     {
-      "instruction": "0x303A5C",
-      "literal": "0x303A98"
+      "instruction": "0x303BF8",
+      "literal": "0x303ECC"
+    },
+    {
+      "instruction": "0x303BFC",
+      "literal": "0x303ED0"
+    },
+    {
+      "instruction": "0x303BFE",
+      "literal": "0x303EE8"
+    },
+    {
+      "instruction": "0x303C02",
+      "literal": "0x303ED4"
+    },
+    {
+      "instruction": "0x303C08",
+      "literal": "0x303ED8"
+    },
+    {
+      "instruction": "0x303C0A",
+      "literal": "0x303EF0"
+    },
+    {
+      "instruction": "0x303C0E",
+      "literal": "0x303EDC"
+    },
+    {
+      "instruction": "0x303C32",
+      "literal": "0x303ED8"
+    },
+    {
+      "instruction": "0x303C36",
+      "literal": "0x303EF4"
+    },
+    {
+      "instruction": "0x303C3C",
+      "literal": "0x303EF0"
+    },
+    {
+      "instruction": "0x303C4A",
+      "literal": "0x303ED4"
+    },
+    {
+      "instruction": "0x303C56",
+      "literal": "0x303ED0"
+    },
+    {
+      "instruction": "0x303C5A",
+      "literal": "0x303EEC"
+    },
+    {
+      "instruction": "0x303C64",
+      "literal": "0x303ED8"
+    },
+    {
+      "instruction": "0x303C66",
+      "literal": "0x303EF8"
+    },
+    {
+      "instruction": "0x303C94",
+      "literal": "0x303EB0"
+    },
+    {
+      "instruction": "0x303C96",
+      "literal": "0x303F0C"
+    },
+    {
+      "instruction": "0x303CB8",
+      "literal": "0x303EB0"
+    },
+    {
+      "instruction": "0x303CD0",
+      "literal": "0x303EC4"
+    },
+    {
+      "instruction": "0x303CD8",
+      "literal": "0x303EB0"
+    },
+    {
+      "instruction": "0x303CF0",
+      "literal": "0x303EB8"
+    },
+    {
+      "instruction": "0x303CF6",
+      "literal": "0x303EE0"
+    },
+    {
+      "instruction": "0x303CFC",
+      "literal": "0x303EBC"
+    },
+    {
+      "instruction": "0x303D02",
+      "literal": "0x303EE4"
+    },
+    {
+      "instruction": "0x303D1A",
+      "literal": "0x303EC8"
+    },
+    {
+      "instruction": "0x303D1E",
+      "literal": "0x303ECC"
+    },
+    {
+      "instruction": "0x303D24",
+      "literal": "0x303ED0"
+    },
+    {
+      "instruction": "0x303D28",
+      "literal": "0x303EE8"
+    },
+    {
+      "instruction": "0x303D2E",
+      "literal": "0x303EEC"
+    },
+    {
+      "instruction": "0x303D34",
+      "literal": "0x303ED4"
+    },
+    {
+      "instruction": "0x303D3E",
+      "literal": "0x303ED8"
+    },
+    {
+      "instruction": "0x303D42",
+      "literal": "0x303EF0"
+    },
+    {
+      "instruction": "0x303D48",
+      "literal": "0x303EF4"
+    },
+    {
+      "instruction": "0x303D4E",
+      "literal": "0x303EDC"
+    },
+    {
+      "instruction": "0x303D68",
+      "literal": "0x303F00"
+    },
+    {
+      "instruction": "0x303D8C",
+      "literal": "0x303F04"
+    },
+    {
+      "instruction": "0x303DA4",
+      "literal": "0x303ED4"
+    },
+    {
+      "instruction": "0x303DB6",
+      "literal": "0x303F10"
+    },
+    {
+      "instruction": "0x303DBE",
+      "literal": "0x303F14"
+    },
+    {
+      "instruction": "0x303E12",
+      "literal": "0x303F18"
+    },
+    {
+      "instruction": "0x303E1C",
+      "literal": "0x303EAC"
+    },
+    {
+      "instruction": "0x303E2C",
+      "literal": "0x303F18"
+    },
+    {
+      "instruction": "0x303E62",
+      "literal": "0x303E98"
+    },
+    {
+      "instruction": "0x303E66",
+      "literal": "0x303E9C"
+    },
+    {
+      "instruction": "0x303E6E",
+      "literal": "0x303EA0"
+    },
+    {
+      "instruction": "0x303E82",
+      "literal": "0x303E9C"
+    },
+    {
+      "instruction": "0x303E86",
+      "literal": "0x303EA0"
+    },
+    {
+      "instruction": "0x303E92",
+      "literal": "0x303EA4"
     }
   ],
   "pair_delta": {
@@ -154,15 +443,26 @@
   },
   "promotable": false,
   "ranges": {
-    "dedicated_handler": "0x303A10-0x303AA7",
-    "handler_literal_pool": "0x303A78-0x303AA7",
+    "cmdint_isr_and_shim": "0x303B00-0x303F1B",
+    "external_vectors": "0x20100-0x2013F",
     "hook": "0x1C8B0-0x1C913",
-    "preserved_original_handler": "0x3016B0-0x30175F",
-    "wrapper_helper": "0x1C914-0x1C98F"
+    "preserved_original_cmd3e": "0x3016B0-0x30175F",
+    "startup_literal": "0x20480-0x20483",
+    "wrapper_helper": "0x1C914-0x1C9CB"
   },
   "rom_size": 4128768,
-  "runtime_evidence": "MISSING",
-  "schema": "vrd-vr60-mode1-validation-pair-v1",
+  "runtime_evidence": "COMPOSED_BY_MODE1_GATE_MANIFEST",
+  "schema": "vrd-vr60-mode1-cmdint-pair-v2",
+  "startup_literal_users": [
+    {
+      "instruction": "0x20438",
+      "literal": "0x20480"
+    }
+  ],
   "static_eligible": true,
-  "status": "BLOCKED_NO_RUNTIME_GATE_B_OR_RESET_EVIDENCE"
+  "status": "STATIC_VALIDATION_PASS_NON_PROMOTABLE",
+  "symbols": {
+    "cmd3e_mode1_validation": "0x02303B00",
+    "q020_mode1_cmdint_init": "0x02303E60"
+  }
 }

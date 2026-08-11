@@ -1,0 +1,6 @@
+run 1241
+reset
+run 30
+regs master
+regs slave
+quit

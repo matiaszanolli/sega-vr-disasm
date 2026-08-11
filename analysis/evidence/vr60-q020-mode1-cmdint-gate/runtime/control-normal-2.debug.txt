@@ -1,0 +1,105 @@
+VRD Test frontend (no profiling - set VRD_PROFILE_LOG to enable)
+  ROM: /mnt/data/src/32x-playground/build/vr60_mode1_stage_control.32x
+  Max frames: 1280
+  Autoplay: ENABLED
+  Input: fixed hold mask
+Core: PicoDrive (version 2.04-26ecb2b)
+ROM loaded: 4128768 bytes
+00000:000: couldn't open carthw.cfg!
+00000:000: sram: 200000 - 203fff; eeprom: 0
+Game loaded successfully
+Commands:
+  run [frames]                    Advance emulation (default 1)
+  joypad <mask>                   Set the P1 mask used by subsequent frames
+  record start <path>             Start a new frame,mask recording
+  record stop                     Finalize the active recording
+  regs [master|slave]             Read SH2 registers
+  read <68k|master|slave> <addr> [size]
+  save <path>                     Save a libretro savestate
+  load <path>                     Load a matching savestate
+  reset                           Assert the core's normal reset path
+  status                          Show session frame
+  help                            Show this help
+  quit                            Exit debugger
+vrd-dbg> 00002:072: 32X startup
+00002:072: drc_cmn_init: 0x7194c7bb0000, 4194304 bytes: 0
+DRC registers created, 15 host regs (3 REG, 2 STATIC, 1 CTX)
+00746:001: DREQ FIFO w16 without 68S?
+00748:257: DREQ FIFO w16 without 68S?
+00751:258: DREQ FIFO w16 without 68S?
+00754:258: DREQ FIFO w16 without 68S?
+00757:260: DREQ FIFO w16 without 68S?
+00760:259: DREQ FIFO w16 without 68S?
+00763:259: DREQ FIFO w16 without 68S?
+00767:017: DREQ FIFO w16 without 68S?
+00769:260: DREQ FIFO w16 without 68S?
+00772:261: DREQ FIFO w16 without 68S?
+00775:260: DREQ FIFO w16 without 68S?
+00778:260: DREQ FIFO w16 without 68S?
+00781:261: DREQ FIFO w16 without 68S?
+00784:261: DREQ FIFO w16 without 68S?
+00788:018: DREQ FIFO w16 without 68S?
+00790:261: DREQ FIFO w16 without 68S?
+00793:261: DREQ FIFO w16 without 68S?
+00797:000: DREQ FIFO w16 without 68S?
+00800:001: DREQ FIFO w16 without 68S?
+00803:002: DREQ FIFO w16 without 68S?
+00805:261: DREQ FIFO w16 without 68S?
+00809:001: DREQ FIFO w16 without 68S?
+00812:001: DREQ FIFO w16 without 68S?
+00815:000: DREQ FIFO w16 without 68S?
+00818:011: DREQ FIFO w16 without 68S?
+00821:000: DREQ FIFO w16 without 68S?
+00824:001: DREQ FIFO w16 without 68S?
+00827:000: DREQ FIFO w16 without 68S?
+00829:261: DREQ FIFO w16 without 68S?
+00833:001: DREQ FIFO w16 without 68S?
+00835:261: DREQ FIFO w16 without 68S?
+00838:261: DREQ FIFO w16 without 68S?
+00841:259: DREQ FIFO w16 without 68S?
+00845:019: DREQ FIFO w16 without 68S?
+00848:016: DREQ FIFO w16 without 68S?
+00851:006: DREQ FIFO w16 without 68S?
+00854:001: DREQ FIFO w16 without 68S?
+00857:005: DREQ FIFO w16 without 68S?
+00859:259: DREQ FIFO w16 without 68S?
+00863:001: DREQ FIFO w16 without 68S?
+00865:260: DREQ FIFO w16 without 68S?
+00869:005: DREQ FIFO w16 without 68S?
+00872:000: DREQ FIFO w16 without 68S?
+Advanced 1280 frames; session frame=1280
+vrd-dbg> 00FF0002: 00 88 4C BC
+vrd-dbg> 00FF7B40: 01
+vrd-dbg> 2600BC20: 51 32 31 49 00 00 00 00 00 00 00 00 00 00 00 00
+2600BC30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+2600BC40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+2600BC50: 00 00 00 01 00 00 00 00 00 00 00 00 AE CD CE B6
+vrd-dbg> 00FF6B00: 00 1E 01 00 00 0A FF EE 00 93 92 5E 00 01 00 00
+00FF6B10: 03 00 00 00 00 00 00 00 FF FF 00 00 00 00 00 00
+00FF6B20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00FF6B30: 00 00 00 00 00 00 00 00 00 00 02 0B 06 1E 00 00
+vrd-dbg> 0600F30C: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+0600F31C: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+0600F32C: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+0600F33C: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+vrd-dbg> Master SH2: PC=0600443A PR=060011F4 SR=00000020 GBR=0600F400 VBR=06000000
+  MACH=FFFFFFFF MACL=0000555C state=00000004 poll_addr=00000024 poll_cnt=9
+  R0 =00000001  R1 =20004024
+  R2 =0000007D  R3 =2601AEC0
+  R4 =000000CF  R5 =FFFFFEC7
+  R6 =0601AF00  R7 =00000000
+  R8 =06016378  R9 =0601AEEC
+  R10=00000000  R11=00000008
+  R12=FFFFFFFC  R13=FFFFFF00
+  R14=C0000700  R15=0600FF78
+vrd-dbg> Slave SH2: PC=C00000B4 PR=C00000B8 SR=00000020 GBR=20004100 VBR=06000140
+  MACH=FFFFFFEB MACL=00001800 state=00000000 poll_addr=00000000 poll_cnt=0
+  R0 =00000200  R1 =24016ACC
+  R2 =00000002  R3 =000000DE
+  R4 =00000909  R5 =24016C00
+  R6 =00000009  R7 =00000009
+  R8 =060194C8  R9 =060194E4
+  R10=00004000  R11=00006000
+  R12=00CC4000  R13=00DF2000
+  R14=C0000188  R15=0600FFF4
+vrd-dbg> 01280:261: 32X shutdown

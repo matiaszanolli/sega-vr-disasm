@@ -258,7 +258,9 @@ def verify_pair(
     return {
         "schema": SCHEMA,
         "static_eligible": static_eligible,
-        "eligible": static_eligible,
+        # Passing this dormant structural gate cannot make the artifact
+        # eligible for runtime acceptance or promotion.
+        "eligible": False,
         "promotable": False,
         "scope": "inactive_mailbox_literal_correction_only",
         "cmd3f_enabled": False,

@@ -5,7 +5,7 @@
   ],
   "cmd3f_enabled": false,
   "cmd3f_jump": "0x02301500",
-  "eligible": true,
+  "eligible": false,
   "findings": [],
   "handler_differences": [
     "0x138"

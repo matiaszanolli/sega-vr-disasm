@@ -80,7 +80,7 @@ class Q023MailboxVerifierTests(unittest.TestCase):
     def test_repository_pair_passes_only_the_static_gate(self) -> None:
         result = verify()
         self.assertTrue(result["static_eligible"], result["findings"])
-        self.assertTrue(result["eligible"])
+        self.assertFalse(result["eligible"])
         self.assertFalse(result["promotable"])
         self.assertFalse(result["cmd3f_enabled"])
         self.assertEqual(

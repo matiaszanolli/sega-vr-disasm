@@ -17,7 +17,7 @@ This file is the short, current answer to “what works now?” Older roadmap en
 | cmd `$3E` player-entity transfer (mode 0) | Yes | **Enabled; promoted ordinary default** | **Q-020 mode-0 sub-gate passed over all 3 trustworthy lifecycles** |
 | cmd `$3E` globals transfer (mode 1) | Validation pair only | **Disabled/unreachable in the promoted default** | **Isolated validation-stage PASS:** CMDINT Gate B passed; not promoted and not real-hardware proof |
 | cmd `$3E` AI-entity transfer (mode 2) | Validation pair only | **Disabled/unreachable in the promoted default** | **Isolated validation-stage PASS:** exact first-post-transfer CMDINT/DREQ transport; not persistent ownership, promotion, or real-hardware proof |
-| cmd `$3F` SH2 game-frame pipeline | Yes | **Disabled in 1P** | Unverified; its legacy `$2200BC00` mailbox literal is a ROM alias and must be corrected before activation |
+| cmd `$3F` SH2 game-frame pipeline | Yes | **Disabled in 1P** | **Q-023 static gate passed:** a validation-only artifact selects corrected `$2600BC00`; runtime shadow/COMM behavior remains unverified |
 | SH2 physics and AI ports | Yes | No; reachable only through the disabled cmd `$3F` path | Assembly/reference work exists; gameplay authority not proven |
 | SH2 collision ports | Yes | No | Reference-model tested, not dispatched by the live pipeline |
 | `render_state_patcher` | Yes | No useful effect | Verified no-op for the renderer's consumed inputs |
@@ -272,9 +272,16 @@ accepted only while the exact ordered cycle continues, because a completed Maste
 legitimately idle in PicoDrive's COMM poll state. Sampled COMM0 longest runs remain informational
 because `$000C->$0000` is the fresh Master completion witness.
 
-The current active work item is **the cmd `$3F` mailbox correction, followed by isolated shadow
-execution**. Preserve the promoted mode-0 default and the separately scoped mode-1/mode-2
-validation results. Keep the 68000 authoritative, and do not combine mailbox correction, shadow
+**Q-023 passed its static-only validation stage on 2026-08-12.** The source-built ACTIVE ROM
+changes only file `$301638` (`$2200BC00 -> $2600BC00`) inside the dormant 428-byte cmd `$3F`
+handler. STAGE-CONTROL remains byte-identical to the accepted ordinary default. The `$D449`
+load, its sole aligned literal ownership, the cmd `$3F` jump, and every accepted mode-1/mode-2
+identity remain pinned. The manifest deliberately records `static_eligible: true` but
+`eligible: false`, `promotable: false`, and `cmd3f_enabled: false`; this is not runtime evidence.
+
+The current active work item is **isolated, observable cmd `$3F` shadow execution using the
+Q-023-corrected handler**. Preserve the promoted mode-0 default and the separately scoped
+mode-1/mode-2 validation results. Keep the 68000 authoritative, and do not combine shadow
 execution, renderer bridging, authority transfer, or cadence changes into one gate.
 
 The archived VR60-011 suite satisfies this prerequisite with the VR60 hook bypassed:
@@ -287,11 +294,10 @@ The archived VR60-011 suite satisfies this prerequisite with the VR60 hook bypas
 
 After that baseline exists, integrate one independently observable stage at a time:
 
-1. Correct and verify cmd `$3F`'s legacy mailbox literal: `$2200BC00` is the cache-through cartridge-ROM alias, not SDRAM; the intended shared alias is `$2600BC00`.
-2. Run cmd `$3F` as independently observable shadow computation while the 68000 remains authoritative.
-3. Verify a bridge into the descriptor blocks actually consumed by cmd `$02`, beginning with a reversible C254 visibility/position probe.
-4. Compare SH2 results against the 68000, then switch authority subsystem by subsystem; collision and the 68000 bypass come last.
-5. Only after correctness and ownership are proved, change the game-logic cadence and scale time-dependent constants for 60 Hz.
+1. Run the Q-023-corrected cmd `$3F` as independently observable shadow computation while the 68000 remains authoritative.
+2. Verify a bridge into the descriptor blocks actually consumed by cmd `$02`, beginning with reversible A/B/C visibility/position probes.
+3. Compare SH2 results against the 68000, then switch authority subsystem by subsystem; collision and the 68000 bypass come last.
+4. Only after correctness and ownership are proved, change the game-logic cadence and scale time-dependent constants for 60 Hz.
 
 ## Definition of “60 FPS achieved”
 
@@ -313,5 +319,6 @@ The project is complete only when a reproducible 1P run demonstrates all of the 
 - `analysis/evidence/vr60-009-write-trace/README.md` — exact state/scene writers, timed-finish classification, and fixture remedy
 - `analysis/evidence/vr60-q020-mode1-cmdint-gate/README.md` — isolated mode-1 CMDINT/DREQ gate
 - `analysis/evidence/vr60-q021-mode2-cmdint-gate/README.md` — isolated first-boundary mode-2 transport gate and limitations
+- `analysis/evidence/vr60-q023-mailbox-correction/README.md` — inactive, source-built cmd `$3F` mailbox correction
 - `tools/libretro-profiling/retroarch_replay_to_csv.py` — fail-closed visual replay to canonical input bridge
 - `tools/libretro-profiling/VRD_PROFILING.md` — measurement procedure and validity gates

@@ -135,6 +135,9 @@ scene_setup_game_mode_transition:
         beq.w   .loading_mode_2                 ; $00E0D0: $6700 $002A
 
 ; Mode 0 loading handler
+        ifd     VR60_Q026_VALIDATION
+        move.l  #$0089C914,$00FF0002            ; Q-026 lifecycle reset wrapper
+        else
         ifd     VR60_Q020_CMDINT_PROBE
         move.l  #$0089C914,$00FF0002            ; validation-only CMDINT probe wrapper
         else
@@ -145,6 +148,7 @@ scene_setup_game_mode_transition:
         move.l  #$0089C914,$00FF0002            ; validation-only mode-2 reset wrapper
         else
         move.l  #$00884A3E,$00FF0002            ; $00E0D4: $23FC ... — mode 0 loading handler
+        endif
         endif
         endif
         endif

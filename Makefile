@@ -51,6 +51,10 @@ Q023_ACTIVE_ROM = $(BUILD_DIR)/vr60_q023_mailbox_active.32x
 Q023_CONTROL_ROM = $(BUILD_DIR)/vr60_q023_mailbox_stage_control.32x
 Q023_ROM_MANIFEST = $(TOOLS_DIR)/libretro-profiling/q023_mailbox_rom_pair.json
 Q023_ROM_VERIFY = $(TOOLS_DIR)/libretro-profiling/verify_q023_mailbox_rom_pair.py
+Q026_ACTIVE_ROM = $(BUILD_DIR)/vr60_q026_player_active.32x
+Q026_CONTROL_ROM = $(BUILD_DIR)/vr60_q026_player_stage_control.32x
+Q026_ROM_MANIFEST = $(TOOLS_DIR)/libretro-profiling/q026_player_rom_pair.json
+Q026_ROM_VERIFY = $(TOOLS_DIR)/libretro-profiling/verify_q026_player_rom_pair.py
 Q020_CMDINT_PROBE_ROM = $(BUILD_DIR)/vr60_q020_cmdint_probe.32x
 Q020_CMDINT_PROBE_MANIFEST = $(TOOLS_DIR)/libretro-profiling/q020_cmdint_probe.json
 Q020_CMDINT_PROBE_VERIFY = $(TOOLS_DIR)/libretro-profiling/verify_q020_cmdint_probe.py
@@ -73,7 +77,7 @@ ASMFLAGS = -Fbin -m68000 -no-opt -spaces -quiet
 M68K_SRC = $(DISASM_DIR)/vrd.asm
 VR60_1P_HOOK_SITE_SRC = $(DISASM_DIR)/modules/68k/game/scene/game_frame_orch_013.asm
 VR60_1P_STAGING_HOOK_SRC = $(DISASM_DIR)/modules/68k/sh2/vr60_1p_staging_hook.asm
-.PHONY: all control-rom mode0-roms mode0-default-verify mode1-roms mode1-runtime-tools mode1-gate-validate mode2-roms mode2-gate-validate q023-mailbox-roms q020-cmdint-probe q020-runtime-tools clean disasm tools test profile-frame profile-pc
+.PHONY: all control-rom mode0-roms mode0-default-verify mode1-roms mode1-runtime-tools mode1-gate-validate mode2-roms mode2-gate-validate q023-mailbox-roms q026-player-roms q020-cmdint-probe q020-runtime-tools clean disasm tools test profile-frame profile-pc
 
 # ============================================================================
 # Main targets
@@ -255,6 +259,35 @@ $(Q023_ROM_MANIFEST): $(Q023_ACTIVE_ROM) $(Q023_CONTROL_ROM) $(OUTPUT_ROM) $(MOD
 		--legacy-handler $(SH2_CMD3F_VR60_BIN) \
 		--corrected-handler $(SH2_CMD3F_VR60_Q023_BIN) \
 		--manifest $(Q023_ROM_MANIFEST)
+
+# Q-026 validation-only direct-CMDINT player-physics precursor.  Both arms
+# contain the same isolated handler/ISR/lifecycle wrapper; the sole pair edge
+# is ACTIVE's eight-byte ORI.B INTM slot versus four CONTROL NOPs.
+q026-player-roms: $(Q026_ROM_MANIFEST)
+	@echo "==> Q-026 player-physics ACTIVE ROM: $(Q026_ACTIVE_ROM)"
+	@echo "==> Q-026 player-physics STAGE-CONTROL ROM: $(Q026_CONTROL_ROM)"
+	@echo "==> Non-promotable static manifest: $(Q026_ROM_MANIFEST)"
+
+$(Q026_ACTIVE_ROM): sh2-assembly $(SH2_Q026_HANDLER_INC) $(SH2_Q026_ISR_CORE_INC) $(SH2_Q026_ISR_INIT_INC) $(M68K_SRC) $(VR60_1P_HOOK_SITE_SRC) $(VR60_1P_STAGING_HOOK_SRC) | dirs
+	@echo "==> Assembling validation-only Q-026 player-physics ACTIVE ROM..."
+	$(ASM) $(ASMFLAGS) -D VR60_Q026_VALIDATION=1 -o $@ $(M68K_SRC)
+
+$(Q026_CONTROL_ROM): sh2-assembly $(SH2_Q026_HANDLER_INC) $(SH2_Q026_ISR_CORE_INC) $(SH2_Q026_ISR_INIT_INC) $(M68K_SRC) $(VR60_1P_HOOK_SITE_SRC) $(VR60_1P_STAGING_HOOK_SRC) | dirs
+	@echo "==> Assembling validation-only Q-026 player-physics STAGE-CONTROL ROM..."
+	$(ASM) $(ASMFLAGS) -D VR60_Q026_VALIDATION=1 -D VR60_Q026_STAGE_CONTROL=1 -o $@ $(M68K_SRC)
+
+$(Q026_ROM_MANIFEST): $(Q026_ACTIVE_ROM) $(Q026_CONTROL_ROM) $(OUTPUT_ROM) $(MODE1_ACTIVE_ROM) $(MODE1_CONTROL_ROM) $(MODE2_ACTIVE_ROM) $(MODE2_CONTROL_ROM) $(Q023_ACTIVE_ROM) $(Q023_CONTROL_ROM) $(SH2_Q026_HANDLER_BIN) $(SH2_Q026_ISR_BIN) $(Q026_ROM_VERIFY)
+	@echo "==> Verifying isolated Q-026 player-physics pair..."
+	$(PYTHON) $(Q026_ROM_VERIFY) \
+		--active $(Q026_ACTIVE_ROM) \
+		--control $(Q026_CONTROL_ROM) \
+		--default $(OUTPUT_ROM) \
+		--mode1-active $(MODE1_ACTIVE_ROM) --mode1-control $(MODE1_CONTROL_ROM) \
+		--mode2-active $(MODE2_ACTIVE_ROM) --mode2-control $(MODE2_CONTROL_ROM) \
+		--q023-active $(Q023_ACTIVE_ROM) --q023-control $(Q023_CONTROL_ROM) \
+		--handler-bin $(SH2_Q026_HANDLER_BIN) --handler-elf $(BUILD_DIR)/sh2/q026_player_shadow.elf \
+		--isr-bin $(SH2_Q026_ISR_BIN) --isr-elf $(BUILD_DIR)/sh2/q026_external_isr.elf \
+		--manifest $(Q026_ROM_MANIFEST)
 
 # Q-020 validation-only Master CMD interrupt probe. This build is deliberately
 # separate from mode-1 validation and can never be promoted as the default ROM.
@@ -837,6 +870,17 @@ SH2_CMD3E_MODE2_VALIDATION_INC = $(SH2_GEN_DIR)/cmd3e_mode2_validation.inc
 SH2_Q020_CMDINT_PROBE_SRC = $(SH2_EXP_DIR)/q020_cmdint_probe_isr.s
 SH2_Q020_CMDINT_PROBE_BIN = $(BUILD_DIR)/sh2/q020_cmdint_probe_isr.bin
 SH2_Q020_CMDINT_PROBE_INC = $(SH2_GEN_DIR)/q020_cmdint_probe_isr.inc
+
+# Q-026 validation-only bounded player-physics handler and unified ISR.
+SH2_Q026_HANDLER_SRC = $(SH2_EXP_DIR)/q026_player_shadow.s
+SH2_Q026_HANDLER_BIN = $(BUILD_DIR)/sh2/q026_player_shadow.bin
+SH2_Q026_HANDLER_INC = $(SH2_GEN_DIR)/q026_player_shadow.inc
+SH2_Q026_ISR_SRC = $(SH2_EXP_DIR)/q026_external_isr.s
+SH2_Q026_ISR_BIN = $(BUILD_DIR)/sh2/q026_external_isr.bin
+SH2_Q026_ISR_CORE_BIN = $(BUILD_DIR)/sh2/q026_external_isr_core.bin
+SH2_Q026_ISR_INIT_BIN = $(BUILD_DIR)/sh2/q026_external_isr_init.bin
+SH2_Q026_ISR_CORE_INC = $(SH2_GEN_DIR)/q026_external_isr_core.inc
+SH2_Q026_ISR_INIT_INC = $(SH2_GEN_DIR)/q026_external_isr_init.inc
 
 # physics_divide (VR60 Phase 3B: division infrastructure)
 SH2_PHYS_DIV_SRC = $(SH2_EXP_DIR)/physics_divide.asm
@@ -2663,6 +2707,57 @@ $(SH2_Q020_CMDINT_PROBE_INC): $(SH2_Q020_CMDINT_PROBE_BIN)
 	@echo "" >> $@
 	@xxd -p $< | fold -w4 | awk '{print "        dc.w    $$" toupper($$1)}' >> $@
 	@echo "    Output: $@ ($$(wc -l < $@) lines)"
+
+# Q-026 handler is linked at its exact expansion-ROM execution address so its
+# pinned PC-relative pool begins at file $30157C.
+$(SH2_Q026_HANDLER_BIN): $(SH2_Q026_HANDLER_SRC) | dirs
+	@mkdir -p $(BUILD_DIR)/sh2
+	@echo "==> Assembling/linking SH2: Q-026 player handler at $02301500..."
+	$(SH2_AS) $(SH2_ASFLAGS) -o $(BUILD_DIR)/sh2/q026_player_shadow.o $<
+	$(SH2_LD) -Ttext=0x02301500 -e q026_player_shadow -o $(BUILD_DIR)/sh2/q026_player_shadow.elf $(BUILD_DIR)/sh2/q026_player_shadow.o
+	$(SH2_OBJCOPY) --only-section=.text -O binary $(BUILD_DIR)/sh2/q026_player_shadow.elf $@
+	@test "$$(wc -c < $@)" -eq 200
+	@echo "    Output: $@ (200 bytes)"
+
+$(SH2_Q026_HANDLER_INC): $(SH2_Q026_HANDLER_BIN)
+	@mkdir -p $(SH2_GEN_DIR)
+	@echo "; Auto-generated from $(SH2_Q026_HANDLER_SRC)" > $@
+	@echo "; DO NOT EDIT - regenerate with 'make q026-player-roms'" >> $@
+	@echo "" >> $@
+	@xxd -p $< | fold -w4 | awk '{print "        dc.w    $$" toupper($$1)}' >> $@
+
+# The one linked ISR source contains .org $600.  Split only the audited core
+# and startup bytes; expansion_300000.asm supplies asserted $FF padding.
+$(SH2_Q026_ISR_BIN): $(SH2_Q026_ISR_SRC) | dirs
+	@mkdir -p $(BUILD_DIR)/sh2
+	@echo "==> Assembling/linking SH2: Q-026 unified ISR at $02304000..."
+	$(SH2_AS) $(SH2_ASFLAGS) -o $(BUILD_DIR)/sh2/q026_external_isr.o $<
+	$(SH2_LD) -Ttext=0x02304000 -e q026_external_entry -o $(BUILD_DIR)/sh2/q026_external_isr.elf $(BUILD_DIR)/sh2/q026_external_isr.o
+	$(SH2_OBJCOPY) --only-section=.text -O binary $(BUILD_DIR)/sh2/q026_external_isr.elf $@
+	@test "$$(wc -c < $@)" -eq 1620
+	@echo "    Output: $@ (1620-byte linked layout)"
+
+$(SH2_Q026_ISR_CORE_BIN): $(SH2_Q026_ISR_BIN)
+	dd if=$< of=$@ bs=1 count=656 status=none
+	@test "$$(wc -c < $@)" -eq 656
+
+$(SH2_Q026_ISR_INIT_BIN): $(SH2_Q026_ISR_BIN)
+	dd if=$< of=$@ bs=1 skip=1536 count=84 status=none
+	@test "$$(wc -c < $@)" -eq 84
+
+$(SH2_Q026_ISR_CORE_INC): $(SH2_Q026_ISR_CORE_BIN)
+	@mkdir -p $(SH2_GEN_DIR)
+	@echo "; Auto-generated core from $(SH2_Q026_ISR_SRC)" > $@
+	@echo "; DO NOT EDIT - regenerate with 'make q026-player-roms'" >> $@
+	@echo "" >> $@
+	@xxd -p $< | fold -w4 | awk '{print "        dc.w    $$" toupper($$1)}' >> $@
+
+$(SH2_Q026_ISR_INIT_INC): $(SH2_Q026_ISR_INIT_BIN)
+	@mkdir -p $(SH2_GEN_DIR)
+	@echo "; Auto-generated startup shim from $(SH2_Q026_ISR_SRC)" > $@
+	@echo "; DO NOT EDIT - regenerate with 'make q026-player-roms'" >> $@
+	@echo "" >> $@
+	@xxd -p $< | fold -w4 | awk '{print "        dc.w    $$" toupper($$1)}' >> $@
 
 # Build physics_divide binary from source (VR60 Phase 3B)
 $(SH2_PHYS_DIV_BIN): $(SH2_PHYS_DIV_SRC) | dirs

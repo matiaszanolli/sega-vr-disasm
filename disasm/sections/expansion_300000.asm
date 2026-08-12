@@ -436,6 +436,10 @@ coord_transform_batched:
 ;
         dcb.b   ($301500 - *), $FF      ; Pad to 0x301500
 cmd3f_vr60_gameframe:
+        ifd     VR60_Q026_VALIDATION
+        include "sh2/generated/q026_player_shadow.inc"
+        assert  *=$3015C8,"Q-026 player handler must be exactly 200 bytes"
+        else
         ifd     VR60_Q023_MAILBOX_VALIDATION
         ifd     VR60_Q023_STAGE_CONTROL
         include "sh2/generated/cmd3f_vr60_gameframe.inc"
@@ -444,6 +448,7 @@ cmd3f_vr60_gameframe:
         endif
         else
         include "sh2/generated/cmd3f_vr60_gameframe.inc"
+        endif
         endif
 
 ; ============================================================================
@@ -740,6 +745,25 @@ cmd3e_mode2_validation:
 q020_cmdint_probe_isr:
         include "sh2/generated/q020_cmdint_probe_isr.inc"
         assert  *=$303CC4,"Q-020 CMDINT probe must end at file $303CC4"
+        endif
+
+; ============================================================================
+; Q-026 PLAYER-PHYSICS CMDINT PRECURSOR: 0x304000 — VALIDATION BUILDS ONLY
+; ============================================================================
+; The unified external ISR owns $304000-$3046FF.  Core/pool and startup shim
+; are generated separately from one linked source so the intervening ROM
+; allocation remains asserted $FF padding rather than linker-created zeroes.
+        ifd     VR60_Q026_VALIDATION
+        dcb.b   ($304000 - *),$FF
+q026_external_entry:
+        include "sh2/generated/q026_external_isr_core.inc"
+        assert  *=$304290,"Q-026 ISR core/pool must end at file $304290"
+        dcb.b   ($304600 - *),$FF
+q026_init:
+        include "sh2/generated/q026_external_isr_init.inc"
+        assert  *=$304654,"Q-026 startup shim must end at file $304654"
+        dcb.b   ($304700 - *),$FF
+        assert  *=$304700,"Q-026 unified ISR allocation must end at file $304700"
         endif
 
 ; ============================================================================

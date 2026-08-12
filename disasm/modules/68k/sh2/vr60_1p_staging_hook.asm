@@ -45,6 +45,48 @@
 VR60_1P_FLAG    equ     $FFFF7B40
 
 vr60_1p_staging_hook:
+        ifd     VR60_Q026_VALIDATION
+; Q-026 is a bounded direct-CMDINT precursor.  First eligible state-8 stages
+; and synchronously transfers the exact accepted 320-byte mode-0 seed.  The
+; second hit publishes flag 2 before any waits, then ACTIVE emits exactly one
+; Master INTM edge while STAGE-CONTROL occupies the same eight-byte slot with
+; four NOPs.  The normal cmd $3F route remains physically absent.
+        move.b  VR60_1P_FLAG,d0
+        beq.s   .q026_seed
+        cmpi.b  #$01,d0
+        bne.w   .original_calls
+
+        move.b  #$02,VR60_1P_FLAG
+.q026_wait_intm:
+        btst    #0,MARS_SYS_INTMASK+1
+        bne.s   .q026_wait_intm
+.q026_wait_dreq:
+        btst    #2,MARS_DREQ_CTRL+1
+        bne.s   .q026_wait_dreq
+.q026_wait_len:
+        tst.w   MARS_DREQ_LEN
+        bne.s   .q026_wait_len
+.q026_wait_comm0:
+        tst.b   COMM0_HI
+        bne.s   .q026_wait_comm0
+        ifd     VR60_Q026_STAGE_CONTROL
+        nop
+        nop
+        nop
+        nop
+        else
+        ori.b   #$01,MARS_SYS_INTMASK+1
+        endif
+        bra.w   .original_calls
+
+.q026_seed:
+        jsr     vr60_entity_stage
+        jsr     vr60_globals_stage
+        move.b  #$00,COMM3
+        jsr     vr60_1p_entity_transfer
+        move.b  #$01,VR60_1P_FLAG
+        bra.w   .original_calls
+        else
         ifd     VR60_MODE2_VALIDATION
         tst.b   VR60_1P_FLAG
         bne.s   .original_calls
@@ -141,6 +183,7 @@ vr60_1p_staging_hook:
         clr.b   COMM6                              ; clear
         move.w  COMM4,$00FF617A                    ; viewport left
         move.w  COMM5,$00FF618E                    ; viewport right
+        endif
         endif
         endif
 ; --- Fire-and-forget: async block copies + physics via cmd $3F ---

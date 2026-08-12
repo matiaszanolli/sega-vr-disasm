@@ -6,6 +6,33 @@
 ; Global hardware register definitions (canonical — do not redefine locally)
         include "modules/shared/definitions.asm"
 
+; Q-026 is a validation-only direct-CMDINT player-physics precursor.  Its
+; handler, vectors, startup shim, lifecycle wrapper, and trigger slot are one
+; indivisible artifact and cannot compose with any ordinary or earlier gate.
+        ifd     VR60_Q026_STAGE_CONTROL
+        ifd     VR60_Q026_VALIDATION
+        else
+        assert  0,"VR60_Q026_STAGE_CONTROL requires VR60_Q026_VALIDATION"
+        endif
+        endif
+        ifd     VR60_Q026_VALIDATION
+        ifd     VR60_MODE0_ONLY
+        assert  0,"Q-026 and ordinary VR60_MODE0_ONLY are mutually exclusive"
+        endif
+        ifd     VR60_Q020_CMDINT_PROBE
+        assert  0,"Q-026 and Q-020 CMDINT probe are mutually exclusive"
+        endif
+        ifd     VR60_MODE1_VALIDATION
+        assert  0,"Q-026 and mode-1 validation are mutually exclusive"
+        endif
+        ifd     VR60_MODE2_VALIDATION
+        assert  0,"Q-026 and mode-2 validation are mutually exclusive"
+        endif
+        ifd     VR60_Q023_MAILBOX_VALIDATION
+        assert  0,"Q-026 and Q-023 mailbox validation are mutually exclusive"
+        endif
+        endif
+
 ; Q-020 CMDINT probing and the mode-1/mode-2 validation pairs all occupy file
 ; $01C914 and therefore can never coexist in one ROM.
         ifd     VR60_Q020_CMDINT_PROBE

@@ -1,0 +1,61 @@
+{
+  "accepted_identities_unchanged": true,
+  "active_control_differences": [
+    "0x301638"
+  ],
+  "cmd3f_enabled": false,
+  "cmd3f_jump": "0x02301500",
+  "eligible": true,
+  "findings": [],
+  "handler_differences": [
+    "0x138"
+  ],
+  "handler_size": 428,
+  "literal_users": [
+    {
+      "opcode": 54345,
+      "pc": 18,
+      "register": 4,
+      "target": 312
+    }
+  ],
+  "mailbox": {
+    "active_literal": "0x2600BC00",
+    "active_literal_offset": "0x301638",
+    "cache_through": "0x2600BC00",
+    "control_literal": "0x2200BC00",
+    "native": "0x0600BC00"
+  },
+  "paths": {
+    "active": "build/vr60_q023_mailbox_active.32x",
+    "control": "build/vr60_q023_mailbox_stage_control.32x",
+    "corrected_handler": "build/sh2/cmd3f_vr60_gameframe_q023_corrected.bin",
+    "default": "build/vr_rebuild.32x",
+    "legacy_handler": "build/sh2/cmd3f_vr60_gameframe.bin",
+    "mode1_active": "build/vr60_mode1_active.32x",
+    "mode1_control": "build/vr60_mode1_stage_control.32x",
+    "mode1_isr": "build/sh2/cmd3e_mode1_validation.bin",
+    "mode2_active": "build/vr60_mode2_active.32x",
+    "mode2_control": "build/vr60_mode2_stage_control.32x",
+    "mode2_isr": "build/sh2/cmd3e_mode2_validation.bin"
+  },
+  "promotable": false,
+  "rom_size": 4128768,
+  "runtime_evidence": "NOT_APPLICABLE_CMD3F_UNREACHABLE",
+  "schema": "vrd-vr60-q023-mailbox-pair-v1",
+  "scope": "inactive_mailbox_literal_correction_only",
+  "sha256": {
+    "active": "8709aed4fc16d548b06694a92361a240537fbae7f987ee5f00a62c3c995a59ef",
+    "control": "6f2768f2cffc85cdc815a67c9f13837112829edac3f0921a57454e79e2523900",
+    "corrected_handler": "ec64257c82b599508b428b515e22d3090a24894964c046b7d636ef87b6b2c163",
+    "default": "6f2768f2cffc85cdc815a67c9f13837112829edac3f0921a57454e79e2523900",
+    "legacy_handler": "1927dd8fb011634913888e9d250abbb202a530e22ccf059e53cb28570e9a69e5",
+    "mode1_active": "963658608b13a96981b8bca60c5e7225df7cf148b138cdf1a1d6982487ff4470",
+    "mode1_control": "391774569d17d2461decad5d002c9215914a84649b094b10a051b21b5348e9fd",
+    "mode1_isr": "6316a0d228dc3db8a48ecdef3b34e0962e04db35c4ef085ec17aea8873146916",
+    "mode2_active": "96d79e3fb4d2df8a69852917ac811f860935ae950fc87222d008fa45d47ee276",
+    "mode2_control": "da5ce4ec9ef8e050c7babeb113e26aa7335a3ff5285285e55a6606d2f96309b8",
+    "mode2_isr": "b7fc5726dd503f35f08625a6159bed2cff06720ea85a89848bc2e70e64eaaaa7"
+  },
+  "static_eligible": true
+}

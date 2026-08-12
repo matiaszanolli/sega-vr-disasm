@@ -30,6 +30,23 @@
         endif
         endif
 
+; Q-023 is a validation-only, dormant cmd-$3F literal pair. It cannot be
+; composed with either separately accepted mode-1/mode-2 validation image.
+        ifd     VR60_Q023_STAGE_CONTROL
+        ifd     VR60_Q023_MAILBOX_VALIDATION
+        else
+        assert  0,"VR60_Q023_STAGE_CONTROL requires VR60_Q023_MAILBOX_VALIDATION"
+        endif
+        endif
+        ifd     VR60_Q023_MAILBOX_VALIDATION
+        ifd     VR60_MODE1_VALIDATION
+        assert  0,"Q-023 and mode-1 validation are mutually exclusive"
+        endif
+        ifd     VR60_MODE2_VALIDATION
+        assert  0,"Q-023 and mode-2 validation are mutually exclusive"
+        endif
+        endif
+
         include "sections/header.asm"
         include "sections/code_200.asm"
         include "sections/code_2200.asm"

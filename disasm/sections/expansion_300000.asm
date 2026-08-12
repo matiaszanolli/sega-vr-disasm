@@ -427,14 +427,24 @@ coord_transform_batched:
 ; so none of this work is authoritative there.
 ;
 ; Jump table entry at $02087C = $02301500 (cmd $3F).
-; Intended SDRAM mailbox is $0600BC00 (cache-through $2600BC00). The handler
-; still contains the invalid legacy $2200BC00 ROM-alias literal; fix before enable.
+; Intended SDRAM mailbox is $0600BC00 (cache-through $2600BC00). Q-023's
+; validation-only ACTIVE artifact selects the corrected source-built include;
+; its STAGE-CONTROL and all ordinary builds retain the legacy include. Neither
+; arm enables the normal-1P cmd $3F trigger.
 ;
 ; See: disasm/sh2/expansion/cmd3f_vr60_gameframe.asm for source
 ;
         dcb.b   ($301500 - *), $FF      ; Pad to 0x301500
 cmd3f_vr60_gameframe:
+        ifd     VR60_Q023_MAILBOX_VALIDATION
+        ifd     VR60_Q023_STAGE_CONTROL
         include "sh2/generated/cmd3f_vr60_gameframe.inc"
+        else
+        include "sh2/generated/cmd3f_vr60_gameframe_q023_corrected.inc"
+        endif
+        else
+        include "sh2/generated/cmd3f_vr60_gameframe.inc"
+        endif
 
 ; ============================================================================
 ; VR60 ENTITY TRANSFER HANDLER: 0x3016B0 — BUILT; 1P MODES 0/1 ENABLED

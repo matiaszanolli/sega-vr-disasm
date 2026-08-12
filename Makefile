@@ -47,6 +47,10 @@ MODE2_RUNTIME_RESULT = analysis/evidence/vr60-q021-mode2-cmdint-gate/runtime/res
 MODE2_RUNTIME_VERIFY = $(TOOLS_DIR)/libretro-profiling/mode2_cmdint_runtime.py
 MODE2_GATE_COMPOSITION = analysis/evidence/vr60-q021-mode2-cmdint-gate/composition.json
 MODE2_GATE_COMPOSITION_VERIFY = $(TOOLS_DIR)/libretro-profiling/validate_mode2_gate_composition.py
+Q023_ACTIVE_ROM = $(BUILD_DIR)/vr60_q023_mailbox_active.32x
+Q023_CONTROL_ROM = $(BUILD_DIR)/vr60_q023_mailbox_stage_control.32x
+Q023_ROM_MANIFEST = $(TOOLS_DIR)/libretro-profiling/q023_mailbox_rom_pair.json
+Q023_ROM_VERIFY = $(TOOLS_DIR)/libretro-profiling/verify_q023_mailbox_rom_pair.py
 Q020_CMDINT_PROBE_ROM = $(BUILD_DIR)/vr60_q020_cmdint_probe.32x
 Q020_CMDINT_PROBE_MANIFEST = $(TOOLS_DIR)/libretro-profiling/q020_cmdint_probe.json
 Q020_CMDINT_PROBE_VERIFY = $(TOOLS_DIR)/libretro-profiling/verify_q020_cmdint_probe.py
@@ -69,7 +73,7 @@ ASMFLAGS = -Fbin -m68000 -no-opt -spaces -quiet
 M68K_SRC = $(DISASM_DIR)/vrd.asm
 VR60_1P_HOOK_SITE_SRC = $(DISASM_DIR)/modules/68k/game/scene/game_frame_orch_013.asm
 VR60_1P_STAGING_HOOK_SRC = $(DISASM_DIR)/modules/68k/sh2/vr60_1p_staging_hook.asm
-.PHONY: all control-rom mode0-roms mode0-default-verify mode1-roms mode1-runtime-tools mode1-gate-validate mode2-roms mode2-gate-validate q020-cmdint-probe q020-runtime-tools clean disasm tools test profile-frame profile-pc
+.PHONY: all control-rom mode0-roms mode0-default-verify mode1-roms mode1-runtime-tools mode1-gate-validate mode2-roms mode2-gate-validate q023-mailbox-roms q020-cmdint-probe q020-runtime-tools clean disasm tools test profile-frame profile-pc
 
 # ============================================================================
 # Main targets
@@ -219,6 +223,38 @@ $(MODE2_ROM_MANIFEST): $(MODE2_ACTIVE_ROM) $(MODE2_CONTROL_ROM) $(OUTPUT_ROM) $(
 		--isr-bin $(SH2_CMD3E_MODE2_VALIDATION_BIN) \
 		--isr-elf $(BUILD_DIR)/sh2/cmd3e_mode2_validation.elf \
 		--manifest $(MODE2_ROM_MANIFEST)
+
+# Q-023 validation-only pair. ACTIVE corrects the dormant cmd-$3F mailbox
+# literal; STAGE-CONTROL is the exact accepted ordinary mode-0 default. Neither
+# image enables cmd $3F, shadow execution, a renderer bridge, or SH2 authority.
+q023-mailbox-roms: $(Q023_ROM_MANIFEST)
+	@echo "==> Q-023 mailbox-corrected ACTIVE ROM: $(Q023_ACTIVE_ROM)"
+	@echo "==> Q-023 mailbox STAGE-CONTROL ROM: $(Q023_CONTROL_ROM)"
+	@echo "==> Static-only manifest: $(Q023_ROM_MANIFEST)"
+
+$(Q023_ACTIVE_ROM): sh2-assembly disasm/sh2/generated/cmd3f_vr60_gameframe_q023_corrected.inc $(M68K_SRC) $(VR60_1P_HOOK_SITE_SRC) $(VR60_1P_STAGING_HOOK_SRC) | dirs
+	@echo "==> Assembling validation-only Q-023 mailbox ACTIVE ROM..."
+	$(ASM) $(ASMFLAGS) -D VR60_MODE0_ONLY=1 -D VR60_Q023_MAILBOX_VALIDATION=1 -o $@ $(M68K_SRC)
+
+$(Q023_CONTROL_ROM): sh2-assembly $(M68K_SRC) $(VR60_1P_HOOK_SITE_SRC) $(VR60_1P_STAGING_HOOK_SRC) | dirs
+	@echo "==> Assembling validation-only Q-023 mailbox STAGE-CONTROL ROM..."
+	$(ASM) $(ASMFLAGS) -D VR60_MODE0_ONLY=1 -D VR60_Q023_MAILBOX_VALIDATION=1 -D VR60_Q023_STAGE_CONTROL=1 -o $@ $(M68K_SRC)
+
+$(Q023_ROM_MANIFEST): $(Q023_ACTIVE_ROM) $(Q023_CONTROL_ROM) $(OUTPUT_ROM) $(MODE1_ACTIVE_ROM) $(MODE1_CONTROL_ROM) $(MODE2_ACTIVE_ROM) $(MODE2_CONTROL_ROM) build/sh2/cmd3f_vr60_gameframe.bin build/sh2/cmd3f_vr60_gameframe_q023_corrected.bin $(SH2_CMD3E_MODE1_VALIDATION_BIN) $(SH2_CMD3E_MODE2_VALIDATION_BIN) $(Q023_ROM_VERIFY)
+	@echo "==> Verifying isolated Q-023 mailbox correction..."
+	$(PYTHON) $(Q023_ROM_VERIFY) \
+		--active $(Q023_ACTIVE_ROM) \
+		--control $(Q023_CONTROL_ROM) \
+		--default $(OUTPUT_ROM) \
+		--mode1-active $(MODE1_ACTIVE_ROM) \
+		--mode1-control $(MODE1_CONTROL_ROM) \
+		--mode1-isr $(SH2_CMD3E_MODE1_VALIDATION_BIN) \
+		--mode2-active $(MODE2_ACTIVE_ROM) \
+		--mode2-control $(MODE2_CONTROL_ROM) \
+		--mode2-isr $(SH2_CMD3E_MODE2_VALIDATION_BIN) \
+		--legacy-handler $(SH2_CMD3F_VR60_BIN) \
+		--corrected-handler $(SH2_CMD3F_VR60_Q023_BIN) \
+		--manifest $(Q023_ROM_MANIFEST)
 
 # Q-020 validation-only Master CMD interrupt probe. This build is deliberately
 # separate from mode-1 validation and can never be promoted as the default ROM.
@@ -779,6 +815,8 @@ SH2_VIS_BITMASK_INC = $(SH2_GEN_DIR)/vis_bitmask_handler.inc
 SH2_CMD3F_VR60_SRC = $(SH2_EXP_DIR)/cmd3f_vr60_gameframe.asm
 SH2_CMD3F_VR60_BIN = $(BUILD_DIR)/sh2/cmd3f_vr60_gameframe.bin
 SH2_CMD3F_VR60_INC = $(SH2_GEN_DIR)/cmd3f_vr60_gameframe.inc
+SH2_CMD3F_VR60_Q023_BIN = $(BUILD_DIR)/sh2/cmd3f_vr60_gameframe_q023_corrected.bin
+SH2_CMD3F_VR60_Q023_INC = $(SH2_GEN_DIR)/cmd3f_vr60_gameframe_q023_corrected.inc
 
 # cmd3e_entity_transfer (VR60 Phase 3A: DREQ-based entity transfer to SDRAM)
 SH2_CMD3E_ENTITY_SRC = $(SH2_EXP_DIR)/cmd3e_entity_transfer.asm
@@ -2539,6 +2577,22 @@ $(SH2_CMD3F_VR60_INC): $(SH2_CMD3F_VR60_BIN)
 	@xxd -p $< | fold -w4 | awk '{print "        dc.w    $$" toupper($$1)}' >> $@
 	@echo "    Output: $@ ($$(wc -l < $@) lines)"
 
+$(SH2_CMD3F_VR60_Q023_BIN): $(SH2_CMD3F_VR60_SRC) | dirs
+	@mkdir -p $(BUILD_DIR)/sh2
+	@echo "==> Assembling SH2: cmd3f_vr60_gameframe (Q-023 corrected)..."
+	$(SH2_AS) $(SH2_ASFLAGS) --defsym VR60_Q023_MAILBOX_CORRECTED=1 -o $(BUILD_DIR)/sh2/cmd3f_vr60_gameframe_q023_corrected.o $<
+	$(SH2_OBJCOPY) -O binary $(BUILD_DIR)/sh2/cmd3f_vr60_gameframe_q023_corrected.o $@
+	@echo "    Output: $@ ($$(wc -c < $@) bytes, expected 428)"
+
+$(SH2_CMD3F_VR60_Q023_INC): $(SH2_CMD3F_VR60_Q023_BIN)
+	@mkdir -p $(SH2_GEN_DIR)
+	@echo "==> Generating dc.w include: cmd3f_vr60_gameframe_q023_corrected.inc..."
+	@echo "; Auto-generated from $(SH2_CMD3F_VR60_SRC) with VR60_Q023_MAILBOX_CORRECTED" > $@
+	@echo "; DO NOT EDIT - regenerate with 'make q023-mailbox-roms'" >> $@
+	@echo "" >> $@
+	@xxd -p $< | fold -w4 | awk '{print "        dc.w    $$" toupper($$1)}' >> $@
+	@echo "    Output: $@ ($$(wc -l < $@) lines)"
+
 # Build cmd3e_entity_transfer binary from source (VR60 Phase 3A)
 $(SH2_CMD3E_ENTITY_BIN): $(SH2_CMD3E_ENTITY_SRC) | dirs
 	@mkdir -p $(BUILD_DIR)/sh2
@@ -3339,6 +3393,7 @@ help:
 	@echo "  control-rom          - Build and verify the historical VR60-011 control pair"
 	@echo "  mode0-roms           - Rebuild and verify the accepted mode-0 evidence pair"
 	@echo "  mode0-default-verify - Prove the ordinary default equals accepted ACTIVE"
+	@echo "  q023-mailbox-roms    - Build/verify the inactive cmd-$3F mailbox pair"
 	@echo ""
 	@echo "SH2 Assembly:"
 	@echo "  sh2-assembly   - Build SH2 sources to dc.w includes"

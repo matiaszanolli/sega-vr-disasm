@@ -70,8 +70,8 @@ cmd3f_vr60_gameframe:
     /* offset 14 */ mov     #0,r0
     /* offset 16 */ mov.b   r0,@(1,r8)           /* COMM0_LO = $00 */
 
-    /* === HISTORICAL MAILBOX WRITE (INVALID ADDRESS; FIX BEFORE ENABLE) === */
-    /* offset 18 */ mov.l   @(.mailbox_addr,pc),r4  /* $2200BC00 = ROM alias, not SDRAM */
+    /* === MAILBOX WRITE (Q-023 source-selected; cmd $3F remains disabled) === */
+    /* offset 18 */ mov.l   @(.mailbox_addr,pc),r4
     /* offset 20 */ mov     r1,r0                /* R0 = frame_counter */
     /* offset 22 */ mov.w   r0,@(6,r4)           /* mailbox+$06 */
     /* offset 24 */ mov     r2,r0                /* R0 = game_state */
@@ -338,9 +338,14 @@ cmd3f_vr60_gameframe:
  */
 .align 2
 .mailbox_addr:
-    .long   0x2200BC00              /* INVALID legacy literal: cache-through ROM alias.
-                                       Intended shared SDRAM alias is 0x2600BC00.
-                                       Kept unchanged while cmd $3F is disabled. */
+    /* Q-023 corrects only this dormant literal in a validation-only artifact.
+     * The ordinary arm remains the byte-exact accepted default and serves as
+     * the source-built stage control. Neither arm enables cmd $3F. */
+.ifdef VR60_Q023_MAILBOX_CORRECTED
+    .long   0x2600BC00              /* Cache-through SDRAM mailbox. */
+.else
+    .long   0x2200BC00              /* Legacy cache-through ROM alias. */
+.endif
 .geo_src:
     .long   0x06038000              /* Geometry source (SDRAM, native read) */
 .geo_dst:

@@ -39,7 +39,11 @@ sh2_scene_reset_name_entry_mode_disp:
         ifd     VR60_MODE1_VALIDATION
         move.l  #$0089C914,$00FF0002            ; validation-only reset wrapper
         else
+        ifd     VR60_MODE2_VALIDATION
+        move.l  #$0089C914,$00FF0002            ; validation-only mode-2 reset wrapper
+        else
         move.l  #$00884A3E,$00FF0002            ; $011822: $23FC $0088 $4A3E $00FF $0002 — handler: no selection
+        endif
         endif
         endif
         bra.w   .done                           ; $01182C: $6000 $0032

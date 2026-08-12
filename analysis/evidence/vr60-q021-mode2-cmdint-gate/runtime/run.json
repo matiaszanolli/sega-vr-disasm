@@ -1,0 +1,333 @@
+{
+  "artifacts": {
+    "active-name-1.caller.trace": {
+      "path": "active-name-1.caller.trace",
+      "sha256": "393cf33893e41d9b9015c8c670914a44b9d34b4f413b3b769658c04b54f05460",
+      "size": 5192
+    },
+    "active-name-1.commands": {
+      "path": "active-name-1.commands",
+      "sha256": "7bb00cd10db425f1ff0a322f08a0de4d139ecc084bd197de955c97ad98ceeb0e",
+      "size": 106
+    },
+    "active-name-1.debug.txt": {
+      "path": "active-name-1.debug.txt",
+      "sha256": "848b5ee7e256423e9f567ca2b9ce4e3ada59e75582728253629fa814bf0e8e61",
+      "size": 2590
+    },
+    "active-name-1.mmio.trace": {
+      "path": "active-name-1.mmio.trace",
+      "sha256": "abc0bad355f20afbc82cb3b2c97df03c069262a8e5b29c93f7e2993855d2e7aa",
+      "size": 762
+    },
+    "active-name-1.write.trace": {
+      "path": "active-name-1.write.trace",
+      "sha256": "611d2e7c70e2f9c1198c43c099113179e6739f29f15b2d581dc4462c198f749b",
+      "size": 10472
+    },
+    "active-name-2.caller.trace": {
+      "path": "active-name-2.caller.trace",
+      "sha256": "393cf33893e41d9b9015c8c670914a44b9d34b4f413b3b769658c04b54f05460",
+      "size": 5192
+    },
+    "active-name-2.commands": {
+      "path": "active-name-2.commands",
+      "sha256": "7bb00cd10db425f1ff0a322f08a0de4d139ecc084bd197de955c97ad98ceeb0e",
+      "size": 106
+    },
+    "active-name-2.debug.txt": {
+      "path": "active-name-2.debug.txt",
+      "sha256": "6ba2dfb6df21ff0ce59b884a51b0cb10adac8b4072d9e743319d1a13b90d5b80",
+      "size": 2590
+    },
+    "active-name-2.mmio.trace": {
+      "path": "active-name-2.mmio.trace",
+      "sha256": "abc0bad355f20afbc82cb3b2c97df03c069262a8e5b29c93f7e2993855d2e7aa",
+      "size": 762
+    },
+    "active-name-2.write.trace": {
+      "path": "active-name-2.write.trace",
+      "sha256": "611d2e7c70e2f9c1198c43c099113179e6739f29f15b2d581dc4462c198f749b",
+      "size": 10472
+    },
+    "active-normal-1.caller.trace": {
+      "path": "active-normal-1.caller.trace",
+      "sha256": "7fb06a000152c3a5c21d95799c67916d575daf029e652da56442dd9600d2b26d",
+      "size": 337
+    },
+    "active-normal-1.commands": {
+      "path": "active-normal-1.commands",
+      "sha256": "483ccb4acac9ea5df0b773b8582ad2424be856afc3a1c69c7abba7c2cbbebd72",
+      "size": 160
+    },
+    "active-normal-1.debug.txt": {
+      "path": "active-normal-1.debug.txt",
+      "sha256": "27132a8f3f51e7f022b793ce3356f1d2bd4df47c7fda0bf0677fd3903f8bad2a",
+      "size": 31868
+    },
+    "active-normal-1.mmio.trace": {
+      "path": "active-normal-1.mmio.trace",
+      "sha256": "45985b62d313f38bc85b9b406458648105269b46c8b630412433e999fdcda8fd",
+      "size": 121247
+    },
+    "active-normal-1.write.trace": {
+      "path": "active-normal-1.write.trace",
+      "sha256": "d5d88f3fd4667d3de151cb9f206519f2772f64cbaf1357d8e0537d8664612c51",
+      "size": 57462
+    },
+    "active-normal-2.caller.trace": {
+      "path": "active-normal-2.caller.trace",
+      "sha256": "7fb06a000152c3a5c21d95799c67916d575daf029e652da56442dd9600d2b26d",
+      "size": 337
+    },
+    "active-normal-2.commands": {
+      "path": "active-normal-2.commands",
+      "sha256": "483ccb4acac9ea5df0b773b8582ad2424be856afc3a1c69c7abba7c2cbbebd72",
+      "size": 160
+    },
+    "active-normal-2.debug.txt": {
+      "path": "active-normal-2.debug.txt",
+      "sha256": "f5274233a338de6dd54e87ce09c79510984fbc17e18087bfa4929aba37762963",
+      "size": 31868
+    },
+    "active-normal-2.mmio.trace": {
+      "path": "active-normal-2.mmio.trace",
+      "sha256": "45985b62d313f38bc85b9b406458648105269b46c8b630412433e999fdcda8fd",
+      "size": 121247
+    },
+    "active-normal-2.write.trace": {
+      "path": "active-normal-2.write.trace",
+      "sha256": "d5d88f3fd4667d3de151cb9f206519f2772f64cbaf1357d8e0537d8664612c51",
+      "size": 57462
+    },
+    "active-vres.commands": {
+      "path": "active-vres.commands",
+      "sha256": "9efce8b68a0ca9764c8a5706381f66f4ebe72ad366160bb839583f1ed008c449",
+      "size": 125
+    },
+    "active-vres.debug.txt": {
+      "path": "active-vres.debug.txt",
+      "sha256": "4a40da81e44cbad2d9dc9562024a0af03c13083e8b26e89fcf16798100209a17",
+      "size": 5200
+    },
+    "control-name-1.caller.trace": {
+      "path": "control-name-1.caller.trace",
+      "sha256": "393cf33893e41d9b9015c8c670914a44b9d34b4f413b3b769658c04b54f05460",
+      "size": 5192
+    },
+    "control-name-1.commands": {
+      "path": "control-name-1.commands",
+      "sha256": "7bb00cd10db425f1ff0a322f08a0de4d139ecc084bd197de955c97ad98ceeb0e",
+      "size": 106
+    },
+    "control-name-1.debug.txt": {
+      "path": "control-name-1.debug.txt",
+      "sha256": "5e19d46dbb4d061109436c642dbbd0824036f2a51a421c9b88ec1de8c791898c",
+      "size": 2597
+    },
+    "control-name-1.mmio.trace": {
+      "path": "control-name-1.mmio.trace",
+      "sha256": "abc0bad355f20afbc82cb3b2c97df03c069262a8e5b29c93f7e2993855d2e7aa",
+      "size": 762
+    },
+    "control-name-1.write.trace": {
+      "path": "control-name-1.write.trace",
+      "sha256": "611d2e7c70e2f9c1198c43c099113179e6739f29f15b2d581dc4462c198f749b",
+      "size": 10472
+    },
+    "control-name-2.caller.trace": {
+      "path": "control-name-2.caller.trace",
+      "sha256": "393cf33893e41d9b9015c8c670914a44b9d34b4f413b3b769658c04b54f05460",
+      "size": 5192
+    },
+    "control-name-2.commands": {
+      "path": "control-name-2.commands",
+      "sha256": "7bb00cd10db425f1ff0a322f08a0de4d139ecc084bd197de955c97ad98ceeb0e",
+      "size": 106
+    },
+    "control-name-2.debug.txt": {
+      "path": "control-name-2.debug.txt",
+      "sha256": "70ff0bae33808d4009b8b26ee7590e37ee7db354908667571e8d3faf9b66f403",
+      "size": 2597
+    },
+    "control-name-2.mmio.trace": {
+      "path": "control-name-2.mmio.trace",
+      "sha256": "abc0bad355f20afbc82cb3b2c97df03c069262a8e5b29c93f7e2993855d2e7aa",
+      "size": 762
+    },
+    "control-name-2.write.trace": {
+      "path": "control-name-2.write.trace",
+      "sha256": "611d2e7c70e2f9c1198c43c099113179e6739f29f15b2d581dc4462c198f749b",
+      "size": 10472
+    },
+    "control-normal-1.caller.trace": {
+      "path": "control-normal-1.caller.trace",
+      "sha256": "eee61af4ff0245f2caa7dc2c2fb22cf0933ec1d3c2254c18de34e330514e06f0",
+      "size": 371
+    },
+    "control-normal-1.commands": {
+      "path": "control-normal-1.commands",
+      "sha256": "483ccb4acac9ea5df0b773b8582ad2424be856afc3a1c69c7abba7c2cbbebd72",
+      "size": 160
+    },
+    "control-normal-1.debug.txt": {
+      "path": "control-normal-1.debug.txt",
+      "sha256": "d4ede5c3062d5d4d1cfc4ef1ec5de7d93844afa227685b43761df4db766feac0",
+      "size": 31875
+    },
+    "control-normal-1.mmio.trace": {
+      "path": "control-normal-1.mmio.trace",
+      "sha256": "654c2e3d72173a961ee5266a8cee7ebde39b3fa6ec45c0972240545f1c57ae97",
+      "size": 767
+    },
+    "control-normal-1.write.trace": {
+      "path": "control-normal-1.write.trace",
+      "sha256": "d7c8502cd4bad1fb1738e32dab254dbe0ef896909c46cb78b95d70929e7b00c2",
+      "size": 57512
+    },
+    "control-normal-2.caller.trace": {
+      "path": "control-normal-2.caller.trace",
+      "sha256": "eee61af4ff0245f2caa7dc2c2fb22cf0933ec1d3c2254c18de34e330514e06f0",
+      "size": 371
+    },
+    "control-normal-2.commands": {
+      "path": "control-normal-2.commands",
+      "sha256": "483ccb4acac9ea5df0b773b8582ad2424be856afc3a1c69c7abba7c2cbbebd72",
+      "size": 160
+    },
+    "control-normal-2.debug.txt": {
+      "path": "control-normal-2.debug.txt",
+      "sha256": "7cd181a856845746a786e2f731a16e1d09295570e7c32a877d794f12d60a7c0f",
+      "size": 31875
+    },
+    "control-normal-2.mmio.trace": {
+      "path": "control-normal-2.mmio.trace",
+      "sha256": "654c2e3d72173a961ee5266a8cee7ebde39b3fa6ec45c0972240545f1c57ae97",
+      "size": 767
+    },
+    "control-normal-2.write.trace": {
+      "path": "control-normal-2.write.trace",
+      "sha256": "d7c8502cd4bad1fb1738e32dab254dbe0ef896909c46cb78b95d70929e7b00c2",
+      "size": 57512
+    },
+    "default-reset-baseline.commands": {
+      "path": "default-reset-baseline.commands",
+      "sha256": "eee163aa2a168037a41a1e5e611bf9f46edae9b628657ecb357c0c928ad01021",
+      "size": 50
+    },
+    "default-reset-baseline.txt": {
+      "path": "default-reset-baseline.txt",
+      "sha256": "789c4fdcb5b24591579a27dcc0077028076373ff88578a336cebf105aba51f11",
+      "size": 3932
+    },
+    "name-input.csv": {
+      "path": "name-input.csv",
+      "sha256": "d597ce0e4afb7cf245ab4ae6bf3f4989f85fe6c6e9a19c0b3b47cc0c1aef7bc0",
+      "size": 1991
+    },
+    "name-route-seeded.mds": {
+      "path": "name-route-seeded.mds",
+      "sha256": "87845b62ddacc8ddf13b237880b4b08e72729600f639edb05fbeb6da0f38106f",
+      "size": 679161
+    },
+    "name-source.mds": {
+      "path": "name-source.mds",
+      "sha256": "c1ede354178c8ffa0796f1e243d8ae592dbd38dad4c44ad9336fece8503b22f0",
+      "size": 679161
+    }
+  },
+  "authority_transferred": false,
+  "capture_matrix": {
+    "arms": [
+      "active",
+      "control"
+    ],
+    "repeats_per_arm_route": 2,
+    "routes": [
+      "normal",
+      "name"
+    ]
+  },
+  "cmd3f_enabled": false,
+  "evidence_scope": "isolated_mode2_active_stage_control",
+  "mode0_enabled": false,
+  "mode1_enabled": false,
+  "mode2_enabled": true,
+  "name_fixture": {
+    "changes": [
+      {
+        "after": "3002003b3002003b3002003b3002003b3002003b3002003b3002003b3002003b3002003b3002003b3002003b3002003b3002003b3002003b3002003b3002003b",
+        "before": "0006ac060006ac060006ac060006ac060006ac060006ac060006ac060006ac060006ac060006ac060006ac060006ac060006ac060006ac060006ac060006ac06",
+        "offset": 154533,
+        "reason": "rebind all Master external vectors to mode-1 ISR",
+        "size": 64
+      },
+      {
+        "after": "3002603e",
+        "before": "0006cc45",
+        "offset": 155429,
+        "reason": "rebind Master startup literal to mode-1 shim",
+        "size": 4
+      },
+      {
+        "after": "325149320000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000cdaeb6cd",
+        "before": "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "offset": 202437,
+        "reason": "initialize Q22I trace as one completed startup-shim call",
+        "size": 64
+      },
+      {
+        "after": "01000000",
+        "before": "cccccc0c",
+        "offset": 49798,
+        "reason": "seed fifth score non-sentinel (diagnostic route prerequisite)",
+        "size": 4
+      },
+      {
+        "after": "0000",
+        "before": "0100",
+        "offset": 41144,
+        "reason": "match name-dispatch A042 result for seeded fifth score",
+        "size": 2
+      }
+    ],
+    "seeded_path": "name-route-seeded.mds",
+    "source_path": "name-source.mds",
+    "source_sha256": "c1ede354178c8ffa0796f1e243d8ae592dbd38dad4c44ad9336fece8503b22f0"
+  },
+  "non_promotable": true,
+  "organic_gameplay": false,
+  "reset_contract": {
+    "post_transport_reset": "unproven_due_accepted_baseline_picodrive_busy_slave_defect",
+    "validated_boundary_frame": 1241
+  },
+  "roms": {
+    "active": "96d79e3fb4d2df8a69852917ac811f860935ae950fc87222d008fa45d47ee276",
+    "control": "da5ce4ec9ef8e050c7babeb113e26aa7335a3ff5285285e55a6606d2f96309b8",
+    "default": "6f2768f2cffc85cdc815a67c9f13837112829edac3f0921a57454e79e2523900"
+  },
+  "route_contract": {
+    "name": "00891822->0089C914->flag_1_to_0->C80E_bit3->00884C98->00885618_replay",
+    "name_fixture_organic": false,
+    "name_fixture_seeded": true,
+    "name_transport_events": 0,
+    "normal": "0088E0D4->0089C914->flag_0_to_0->00884C6A->00884CBC->hook_flag_0_to_1->mode2"
+  },
+  "schema": "vrd-vr60-q021-mode2-cmdint-runtime-v1",
+  "status": "CAPTURE_COMPLETE",
+  "toolchain": {
+    "canonical_core": "5677ea8e083f887b2b4e9cabf84dd559a9c6b1180adfa09f34a50023ff7548e8",
+    "core": "aaaa57f0190759e581ca116ab35ab7e1e090fcd93ccadd046242d7532ebbff79",
+    "frontend": "626c2c148aa1dca10f2893bc6e9ac59dad237f5043763567ef73b0f9868bcc50"
+  },
+  "transfer_contract": {
+    "destination": "0x06010000-0x06010EFF",
+    "fifo_words": 1920,
+    "fifo_words_per_group": 4,
+    "full_checked_groups": 480,
+    "payload_bytes": 3840,
+    "source": "0x00FF6B40-0x00FF7A3F",
+    "terminal_dar": "0x06010F00",
+    "trace_sentinel": "Q22I/inverse with exact zero-or-completed counters"
+  }
+}

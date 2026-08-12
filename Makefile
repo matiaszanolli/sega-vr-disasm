@@ -38,6 +38,15 @@ MODE1_PROFILE_FRONTEND = $(Q020_PROFILE_DIR)/mode1_profiling_frontend
 MODE1_PROFILE_CORE = $(Q020_PROFILE_DIR)/mode1_picodrive_libretro.so
 MODE1_PICODRIVE_PREPARE = $(Q020_PROFILE_DIR)/prepare_mode1_picodrive.py
 MODE1_RUNTIME_TOOLS_VERIFY = $(Q020_PROFILE_DIR)/verify_mode1_runtime_tools.py
+MODE2_ACTIVE_ROM = $(BUILD_DIR)/vr60_mode2_active.32x
+MODE2_CONTROL_ROM = $(BUILD_DIR)/vr60_mode2_stage_control.32x
+MODE2_ROM_MANIFEST = $(TOOLS_DIR)/libretro-profiling/mode2_rom_pair.json
+MODE2_ROM_VERIFY = $(TOOLS_DIR)/libretro-profiling/verify_mode2_rom_pair.py
+MODE2_RUNTIME_CAPTURE = analysis/evidence/vr60-q021-mode2-cmdint-gate/runtime/run.json
+MODE2_RUNTIME_RESULT = analysis/evidence/vr60-q021-mode2-cmdint-gate/runtime/result.json
+MODE2_RUNTIME_VERIFY = $(TOOLS_DIR)/libretro-profiling/mode2_cmdint_runtime.py
+MODE2_GATE_COMPOSITION = analysis/evidence/vr60-q021-mode2-cmdint-gate/composition.json
+MODE2_GATE_COMPOSITION_VERIFY = $(TOOLS_DIR)/libretro-profiling/validate_mode2_gate_composition.py
 Q020_CMDINT_PROBE_ROM = $(BUILD_DIR)/vr60_q020_cmdint_probe.32x
 Q020_CMDINT_PROBE_MANIFEST = $(TOOLS_DIR)/libretro-profiling/q020_cmdint_probe.json
 Q020_CMDINT_PROBE_VERIFY = $(TOOLS_DIR)/libretro-profiling/verify_q020_cmdint_probe.py
@@ -60,7 +69,7 @@ ASMFLAGS = -Fbin -m68000 -no-opt -spaces -quiet
 M68K_SRC = $(DISASM_DIR)/vrd.asm
 VR60_1P_HOOK_SITE_SRC = $(DISASM_DIR)/modules/68k/game/scene/game_frame_orch_013.asm
 VR60_1P_STAGING_HOOK_SRC = $(DISASM_DIR)/modules/68k/sh2/vr60_1p_staging_hook.asm
-.PHONY: all control-rom mode0-roms mode0-default-verify mode1-roms mode1-runtime-tools mode1-gate-validate q020-cmdint-probe q020-runtime-tools clean disasm tools test profile-frame profile-pc
+.PHONY: all control-rom mode0-roms mode0-default-verify mode1-roms mode1-runtime-tools mode1-gate-validate mode2-roms mode2-gate-validate q020-cmdint-probe q020-runtime-tools clean disasm tools test profile-frame profile-pc
 
 # ============================================================================
 # Main targets
@@ -176,6 +185,40 @@ mode1-runtime-tools:
 mode1-gate-validate: mode1-roms $(MODE1_GATE_COMPOSITION_VERIFY) $(MODE1_GATE_COMPOSITION) $(MODE1_LIFECYCLE_MANIFEST)
 	$(PYTHON) $(MODE1_GATE_COMPOSITION_VERIFY) \
 		$(MODE1_GATE_COMPOSITION) --repo-root .
+
+# Validation-only mode-2 pair. This is an isolated one-shot AI-table transfer;
+# mode 0, mode 1, cmd $3F, and authority/cadence changes remain unreachable.
+mode2-roms: $(MODE2_ROM_MANIFEST)
+	@echo "==> VR60 mode-2 validation ACTIVE ROM: $(MODE2_ACTIVE_ROM)"
+	@echo "==> VR60 mode-2 validation STAGE-CONTROL ROM: $(MODE2_CONTROL_ROM)"
+	@echo "==> Non-promotable static manifest: $(MODE2_ROM_MANIFEST)"
+
+# Compose the rebuilt mode-2 pair with its immutable eight-run runtime archive
+# and the still-accepted mode-1 gate. This does not enable mode 2 by default.
+mode2-gate-validate: mode2-roms mode1-gate-validate $(MODE2_RUNTIME_CAPTURE) $(MODE2_RUNTIME_RESULT) $(MODE2_GATE_COMPOSITION) $(MODE2_GATE_COMPOSITION_VERIFY)
+	$(PYTHON) $(MODE2_RUNTIME_VERIFY) validate $(MODE2_RUNTIME_CAPTURE)
+	$(PYTHON) $(MODE2_GATE_COMPOSITION_VERIFY) \
+		$(MODE2_GATE_COMPOSITION) --repo-root .
+
+$(MODE2_ACTIVE_ROM): sh2-assembly $(M68K_SRC) $(VR60_1P_HOOK_SITE_SRC) $(VR60_1P_STAGING_HOOK_SRC) | dirs
+	@echo "==> Assembling validation-only VR60 mode-2 ACTIVE ROM..."
+	$(ASM) $(ASMFLAGS) -D VR60_MODE2_VALIDATION=1 -o $@ $(M68K_SRC)
+
+$(MODE2_CONTROL_ROM): sh2-assembly $(M68K_SRC) $(VR60_1P_HOOK_SITE_SRC) $(VR60_1P_STAGING_HOOK_SRC) | dirs
+	@echo "==> Assembling validation-only VR60 mode-2 STAGE-CONTROL ROM..."
+	$(ASM) $(ASMFLAGS) -D VR60_MODE2_VALIDATION=1 -D VR60_MODE2_STAGE_CONTROL=1 -o $@ $(M68K_SRC)
+
+$(MODE2_ROM_MANIFEST): $(MODE2_ACTIVE_ROM) $(MODE2_CONTROL_ROM) $(OUTPUT_ROM) $(MODE1_ACTIVE_ROM) $(MODE1_CONTROL_ROM) $(SH2_CMD3E_MODE2_VALIDATION_BIN) $(MODE2_ROM_VERIFY)
+	@echo "==> Verifying isolated mode-2 validation pair..."
+	$(PYTHON) $(MODE2_ROM_VERIFY) \
+		--active $(MODE2_ACTIVE_ROM) \
+		--control $(MODE2_CONTROL_ROM) \
+		--default $(OUTPUT_ROM) \
+		--mode1-active $(MODE1_ACTIVE_ROM) \
+		--mode1-control $(MODE1_CONTROL_ROM) \
+		--isr-bin $(SH2_CMD3E_MODE2_VALIDATION_BIN) \
+		--isr-elf $(BUILD_DIR)/sh2/cmd3e_mode2_validation.elf \
+		--manifest $(MODE2_ROM_MANIFEST)
 
 # Q-020 validation-only Master CMD interrupt probe. This build is deliberately
 # separate from mode-1 validation and can never be promoted as the default ROM.
@@ -747,6 +790,11 @@ SH2_CMD3E_MODE1_VALIDATION_SRC = $(SH2_EXP_DIR)/cmd3e_mode1_validation.asm
 SH2_CMD3E_MODE1_VALIDATION_BIN = $(BUILD_DIR)/sh2/cmd3e_mode1_validation.bin
 SH2_CMD3E_MODE1_VALIDATION_INC = $(SH2_GEN_DIR)/cmd3e_mode1_validation.inc
 
+# Q-021 validation-only mode-2 CMDINT/DREQ handler
+SH2_CMD3E_MODE2_VALIDATION_SRC = $(SH2_EXP_DIR)/cmd3e_mode2_validation.asm
+SH2_CMD3E_MODE2_VALIDATION_BIN = $(BUILD_DIR)/sh2/cmd3e_mode2_validation.bin
+SH2_CMD3E_MODE2_VALIDATION_INC = $(SH2_GEN_DIR)/cmd3e_mode2_validation.inc
+
 # Q-020 validation-only Master CMD interrupt probe
 SH2_Q020_CMDINT_PROBE_SRC = $(SH2_EXP_DIR)/q020_cmdint_probe_isr.s
 SH2_Q020_CMDINT_PROBE_BIN = $(BUILD_DIR)/sh2/q020_cmdint_probe_isr.bin
@@ -830,7 +878,7 @@ SH2_BRIDGE_PROBE_INC = $(SH2_GEN_DIR)/bridge_probe.inc
 .PHONY: sh2-assembly sh2-verify
 
 # Build all SH2 assembly sources
-sh2-assembly: dirs $(SH2_FUNC000_INC) $(SH2_FUNC022_INC) $(SH2_FUNC017_INC) $(SH2_FUNC018_INC) $(SH2_FUNC019_INC) $(SH2_FUNC020_INC) $(SH2_FUNC021_ORIG_INC) $(SH2_FUNC023_INC) $(SH2_FUNC040_INC) $(SH2_FUNC040_CASES_INC) $(SH2_FUNC040_UTIL_INC) $(SH2_FUNC041_INC) $(SH2_FUNC042_INC) $(SH2_FUNC043_INC) $(SH2_FUNC044_INC) $(SH2_FUNC045_INC) $(SH2_FUNC046_INC) $(SH2_FUNC047_INC) $(SH2_FUNC048_INC) $(SH2_FUNC049_INC) $(SH2_FUNC050_INC) $(SH2_FUNC051_INC) $(SH2_FUNC052_INC) $(SH2_FUNC053_INC) $(SH2_FUNC054_INC) $(SH2_FUNC055_INC) $(SH2_FUNC067_INC) $(SH2_FUNC068_INC) $(SH2_FUNC069_INC) $(SH2_FUNC070_INC) $(SH2_FUNC071_INC) $(SH2_FUNC072_INC) $(SH2_FUNC073_INC) $(SH2_FUNC074_INC) $(SH2_FUNC075_INC) $(SH2_FUNC076_INC) $(SH2_FUNC077_INC) $(SH2_FUNC078_INC) $(SH2_FUNC079_INC) $(SH2_FUNC080_INC) $(SH2_FUNC081_INC) $(SH2_FUNC082_INC) $(SH2_FUNC083_INC) $(SH2_FUNC084_INC) $(SH2_FUNC085_INC) $(SH2_FUNC086_INC) $(SH2_FUNC087_INC) $(SH2_FUNC088_INC) $(SH2_FUNC089_INC) $(SH2_FUNC090_INC) $(SH2_FUNC091_INC) $(SH2_FUNC032_INC) $(SH2_FUNC011_INC) $(SH2_FUNC012_INC) $(SH2_FUNC013_INC) $(SH2_FUNC014_015_INC) $(SH2_FUNC024_INC) $(SH2_FUNC025_INC) $(SH2_FUNC026_INC) $(SH2_FUNC001_INC) $(SH2_FUNC002_INC) $(SH2_FUNC003_004_INC) $(SH2_FUNC029_030_031_INC) $(SH2_FUNC033_INC) $(SH2_FUNC034_INC) $(SH2_FUNC036_INC) $(SH2_FUNC037_038_039_INC) $(SH2_FUNC005_INC) $(SH2_FUNC007_INC) $(SH2_FUNC006_INC) $(SH2_FUNC008_INC) $(SH2_FUNC016_INC) $(SH2_FUNC009_INC) $(SH2_FUNC010_INC) $(SH2_FUNC065_INC) $(SH2_FUNC066_INC) $(SH2_FUNC021_OPT_INC) $(SH2_BATCH_COPY_INC) $(SH2_CMD27_DRAIN_INC) $(SH2_SLAVE_WRAPPER_V2_INC) $(SH2_HANDLER_FRAME_SYNC_INC) $(SH2_MASTER_DISPATCH_HOOK_INC) $(SH2_SLAVE_TEST_FUNC_INC) $(SH2_SHADOW_PATH_WRAPPER_INC) $(SH2_CMDINT_HANDLER_INC) $(SH2_QUEUE_PROCESSOR_INC) $(SH2_COMM7_CHECK_INC) $(SH2_GEN_DRAIN_INC) $(SH2_CMD22_SINGLE_SHOT_INC) $(SH2_CMD25_SINGLE_SHOT_INC) $(SH2_VIS_BITMASK_INC) $(SH2_CMD3F_VR60_INC) $(SH2_CMD3E_ENTITY_INC) $(SH2_CMD3E_MODE1_VALIDATION_INC) $(SH2_Q020_CMDINT_PROBE_INC) $(SH2_PHYS_DIV_INC) $(SH2_PHYS_G1_INC) $(SH2_PHYS_G2A_INC) $(SH2_PHYS_TMR_INC) $(SH2_PHYS_POS_INC) $(SH2_PHYS_DRF_INC) $(SH2_AI_STEER_INC) $(SH2_AI_ORCH_INC) $(SH2_RSP_INC) $(SH2_COLL_LEAF_INC) $(SH2_COLL_TRK_INC) $(SH2_COLL_BND_INC) $(SH2_COLL_RSP_INC) $(SH2_COLL_OBJ_INC) $(SH2_BRIDGE_PROBE_INC)
+sh2-assembly: dirs $(SH2_FUNC000_INC) $(SH2_FUNC022_INC) $(SH2_FUNC017_INC) $(SH2_FUNC018_INC) $(SH2_FUNC019_INC) $(SH2_FUNC020_INC) $(SH2_FUNC021_ORIG_INC) $(SH2_FUNC023_INC) $(SH2_FUNC040_INC) $(SH2_FUNC040_CASES_INC) $(SH2_FUNC040_UTIL_INC) $(SH2_FUNC041_INC) $(SH2_FUNC042_INC) $(SH2_FUNC043_INC) $(SH2_FUNC044_INC) $(SH2_FUNC045_INC) $(SH2_FUNC046_INC) $(SH2_FUNC047_INC) $(SH2_FUNC048_INC) $(SH2_FUNC049_INC) $(SH2_FUNC050_INC) $(SH2_FUNC051_INC) $(SH2_FUNC052_INC) $(SH2_FUNC053_INC) $(SH2_FUNC054_INC) $(SH2_FUNC055_INC) $(SH2_FUNC067_INC) $(SH2_FUNC068_INC) $(SH2_FUNC069_INC) $(SH2_FUNC070_INC) $(SH2_FUNC071_INC) $(SH2_FUNC072_INC) $(SH2_FUNC073_INC) $(SH2_FUNC074_INC) $(SH2_FUNC075_INC) $(SH2_FUNC076_INC) $(SH2_FUNC077_INC) $(SH2_FUNC078_INC) $(SH2_FUNC079_INC) $(SH2_FUNC080_INC) $(SH2_FUNC081_INC) $(SH2_FUNC082_INC) $(SH2_FUNC083_INC) $(SH2_FUNC084_INC) $(SH2_FUNC085_INC) $(SH2_FUNC086_INC) $(SH2_FUNC087_INC) $(SH2_FUNC088_INC) $(SH2_FUNC089_INC) $(SH2_FUNC090_INC) $(SH2_FUNC091_INC) $(SH2_FUNC032_INC) $(SH2_FUNC011_INC) $(SH2_FUNC012_INC) $(SH2_FUNC013_INC) $(SH2_FUNC014_015_INC) $(SH2_FUNC024_INC) $(SH2_FUNC025_INC) $(SH2_FUNC026_INC) $(SH2_FUNC001_INC) $(SH2_FUNC002_INC) $(SH2_FUNC003_004_INC) $(SH2_FUNC029_030_031_INC) $(SH2_FUNC033_INC) $(SH2_FUNC034_INC) $(SH2_FUNC036_INC) $(SH2_FUNC037_038_039_INC) $(SH2_FUNC005_INC) $(SH2_FUNC007_INC) $(SH2_FUNC006_INC) $(SH2_FUNC008_INC) $(SH2_FUNC016_INC) $(SH2_FUNC009_INC) $(SH2_FUNC010_INC) $(SH2_FUNC065_INC) $(SH2_FUNC066_INC) $(SH2_FUNC021_OPT_INC) $(SH2_BATCH_COPY_INC) $(SH2_CMD27_DRAIN_INC) $(SH2_SLAVE_WRAPPER_V2_INC) $(SH2_HANDLER_FRAME_SYNC_INC) $(SH2_MASTER_DISPATCH_HOOK_INC) $(SH2_SLAVE_TEST_FUNC_INC) $(SH2_SHADOW_PATH_WRAPPER_INC) $(SH2_CMDINT_HANDLER_INC) $(SH2_QUEUE_PROCESSOR_INC) $(SH2_COMM7_CHECK_INC) $(SH2_GEN_DRAIN_INC) $(SH2_CMD22_SINGLE_SHOT_INC) $(SH2_CMD25_SINGLE_SHOT_INC) $(SH2_VIS_BITMASK_INC) $(SH2_CMD3F_VR60_INC) $(SH2_CMD3E_ENTITY_INC) $(SH2_CMD3E_MODE1_VALIDATION_INC) $(SH2_CMD3E_MODE2_VALIDATION_INC) $(SH2_Q020_CMDINT_PROBE_INC) $(SH2_PHYS_DIV_INC) $(SH2_PHYS_G1_INC) $(SH2_PHYS_G2A_INC) $(SH2_PHYS_TMR_INC) $(SH2_PHYS_POS_INC) $(SH2_PHYS_DRF_INC) $(SH2_AI_STEER_INC) $(SH2_AI_ORCH_INC) $(SH2_RSP_INC) $(SH2_COLL_LEAF_INC) $(SH2_COLL_TRK_INC) $(SH2_COLL_BND_INC) $(SH2_COLL_RSP_INC) $(SH2_COLL_OBJ_INC) $(SH2_BRIDGE_PROBE_INC)
 
 # Build data_copy binary from source (requires linker script for PC-relative addressing)
 $(SH2_FUNC000_BIN): $(SH2_FUNC000_SRC) $(SH2_FUNC000_LDS) | dirs
@@ -2520,6 +2568,23 @@ $(SH2_CMD3E_MODE1_VALIDATION_INC): $(SH2_CMD3E_MODE1_VALIDATION_BIN)
 	@mkdir -p $(SH2_GEN_DIR)
 	@echo "==> Generating dc.w include: cmd3e_mode1_validation.inc..."
 	@echo "; Auto-generated from $(SH2_CMD3E_MODE1_VALIDATION_SRC)" > $@
+	@echo "; DO NOT EDIT - regenerate with 'make sh2-assembly'" >> $@
+	@echo "" >> $@
+	@xxd -p $< | fold -w4 | awk '{print "        dc.w    $$" toupper($$1)}' >> $@
+	@echo "    Output: $@ ($$(wc -l < $@) lines)"
+
+$(SH2_CMD3E_MODE2_VALIDATION_BIN): $(SH2_CMD3E_MODE2_VALIDATION_SRC) $(SH2_CMD3E_MODE1_VALIDATION_SRC) | dirs
+	@mkdir -p $(BUILD_DIR)/sh2
+	@echo "==> Assembling/linking SH2: cmd3e_mode2_validation at 0x02303B00..."
+	$(SH2_AS) $(SH2_ASFLAGS) -o $(BUILD_DIR)/sh2/cmd3e_mode2_validation.o $<
+	$(SH2_LD) -Ttext=0x02303B00 -e cmd3e_mode2_validation -o $(BUILD_DIR)/sh2/cmd3e_mode2_validation.elf $(BUILD_DIR)/sh2/cmd3e_mode2_validation.o
+	$(SH2_OBJCOPY) --only-section=.text -O binary $(BUILD_DIR)/sh2/cmd3e_mode2_validation.elf $@
+	@echo "    Output: $@ ($$(wc -c < $@) bytes)"
+
+$(SH2_CMD3E_MODE2_VALIDATION_INC): $(SH2_CMD3E_MODE2_VALIDATION_BIN)
+	@mkdir -p $(SH2_GEN_DIR)
+	@echo "==> Generating dc.w include: cmd3e_mode2_validation.inc..."
+	@echo "; Auto-generated from $(SH2_CMD3E_MODE2_VALIDATION_SRC)" > $@
 	@echo "; DO NOT EDIT - regenerate with 'make sh2-assembly'" >> $@
 	@echo "" >> $@
 	@xxd -p $< | fold -w4 | awk '{print "        dc.w    $$" toupper($$1)}' >> $@

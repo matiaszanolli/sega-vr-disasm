@@ -709,6 +709,18 @@ cmd3e_mode1_validation:
         endif
 
 ; ============================================================================
+; Q-021 MODE-2 CMDINT ISR: 0x303B00 — VALIDATION BUILDS ONLY
+; ============================================================================
+; Assembled from the reviewed two-edge ISR source with mode-2 constants. The
+; mode-1 and mode-2 pairs are mutually exclusive and share this ROM interval.
+        ifd     VR60_MODE2_VALIDATION
+        dcb.b   ($303B00 - *), $FF
+cmd3e_mode2_validation:
+        include "sh2/generated/cmd3e_mode2_validation.inc"
+        assert  *=$303F20,"Q-021 mode-2 CMDINT ISR must end at file $303F20"
+        endif
+
+; ============================================================================
 ; Q-020 CMDINT PROBE ISR: 0x303B00 — VALIDATION BUILDS ONLY
 ; ============================================================================
 ; All 16 Master external-interrupt vector entries select this handler in the

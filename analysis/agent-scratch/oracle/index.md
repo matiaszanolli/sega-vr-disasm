@@ -73,11 +73,12 @@
 | Path | Purpose | Key Topics | Note |
 |------|---------|-----------|------|
 | tools/libretro-profiling/README_68K_PC_PROFILING.md | How to profile VRD | Frame-level + PC-level hotspots, toolchain, baseline setup | Profiling how-to |
-| tools/libretro-profiling/VRD_PROFILING.md | Current profiling and normal-1P control gates | Unchanged continuous `validate_1p_control.py`; accepted DRC `validate_1p_lifecycle_suite.py`; Q-020 mode-0 exact pair/payload/chronology gate | Current VR60 measurement authority; VR60-011 baseline and Q-020 mode 0 passed; isolated mode 1 passed separately; mode 2 is next |
+| tools/libretro-profiling/VRD_PROFILING.md | Current profiling and normal-1P control gates | Unchanged continuous `validate_1p_control.py`; accepted DRC `validate_1p_lifecycle_suite.py`; Q-020 mode-0 exact pair/payload/chronology gate | Current VR60 measurement authority; VR60-011 baseline and Q-020 mode 0 passed; isolated modes 1 and 2 passed separately; Q-023 mailbox correction is next |
 | tools/libretro-profiling/validate_mode0_gate.py | Q-020 mode-0 acceptance validator | Exact 12-slot matrix, frame-0 debugger reads, source/stage and 320B destination proof, raw caller/write chronology, paired framebuffer rule, post-results COMM3 chronology | Mode-0 sub-gate PASS; policy `VR60-Q020-mode0-gate-v2` |
 | analysis/evidence/vr60-q020-mode0-gate/README.md | Accepted Q-020 mode-0 evidence | ACTIVE/control hashes, no-frame preflight, exact payload/sentinel, deterministic 12-run lifecycle matrix, preserved failed result and corrected PASS, normalized archive | Ordinary default promoted to exact ACTIVE `6f2768f2…2523900`; mode 1 remains disabled |
 | analysis/evidence/vr60-q020-cmdint-probe/README.md | Q-020 CMDINT diagnostic-feasibility evidence | Cold/normal/VRES/seeded-name routes, level-8 ISR, FRT workaround, CMD clear/readback/re-arm, literal ownership, patched/canonical PicoDrive comparison, exact 15-artifact archive | Probe-only PASS `8766714e…6a91e7`; non-promotable, non-organic name fixture, mode 1 still disabled |
-| analysis/evidence/vr60-q020-mode1-cmdint-gate/README.md | Q-020 mode-1 CMDINT Gate-B evidence | Zero-COMM two-edge transport, exact 64B/FULL/DMAC/TE/re-arm chronology, 8 route captures, safe-boundary VRES, busy-reset diagnostic, fail-closed composition | Isolated validation-stage PASS `96365860…ff4470` / `39177456…34e9fd`; default unchanged, mode 1 unpromoted, mode 2 next |
+| analysis/evidence/vr60-q020-mode1-cmdint-gate/README.md | Q-020 mode-1 CMDINT Gate-B evidence | Zero-COMM two-edge transport, exact 64B/FULL/DMAC/TE/re-arm chronology, 8 route captures, safe-boundary VRES, busy-reset diagnostic, fail-closed composition | Isolated validation-stage PASS `96365860…ff4470` / `39177456…34e9fd`; default unchanged, mode 1 unpromoted |
+| analysis/evidence/vr60-q021-mode2-cmdint-gate/README.md | Q-021 mode-2 first-boundary CMDINT/DREQ evidence | Exact 3,840B source/FIFO/destination equality, 1,920 FIFO words, 480 FULL groups, stack-boundary proof, 8 route captures, safe-boundary VRES, fail-closed composition | Isolated validation-stage PASS `96d79e3f…ee276` / `da5ce4ec…309b8`; default and mode 1 unchanged; later destination ownership remains unknown |
 | tools/libretro-profiling/validate_1p_lifecycle_suite.py | VR60-011 complete-lifecycle capture and aggregate validator | Sterile DRC/no-PC capture, composed exact FAME hook, all-row caller provenance, strict caller/write grammars, exact C87E cycle/Master completion, per-frame Slave and per-window/tail Master executed cycles, exact C07C chain, predeclared boundaries, duplicate rejection, 3/1800/3960/18000 floors | Separate v2 policy; 43 focused lifecycle tests pass. Reviewed Big Forest/Bay Bridge/Acropolis suite passed |
 | tools/libretro-profiling/vr60_lifecycle_suite.schema.json | VR60-011 reviewed manifest schema | Exact ROM/tool/state/input/source/raw artifact pins, predeclared lifecycle boundaries, no extra policy fields | Use with the lifecycle validator; generated fixture entries require review before suite inclusion |
 | analysis/evidence/vr60-011-lifecycle-suite/README.md | Accepted VR60-011 baseline evidence | Three DRC lifecycles, exact E/R boundaries, 31,137 active frames, deterministic x2 replay, tool/patch identities, normalized raw archive | Baseline blocker cleared; Q-020 mode 0 subsequently passed |
@@ -611,7 +612,20 @@ zero transport; they are not organic gameplay. Frame-1241 VRES passes, while fra
 Slave reset fails identically in ACTIVE, CONTROL, and default and remains excluded diagnostic
 evidence. `composition.json` binds static, capture/result, lifecycle, and reset-diagnostic
 manifests. The ordinary default stays `6f2768f2…2523900`; mode 1 is not promoted, arbitrary VRES
-and real hardware are unproven, and mode 2 is the next independent stage.
+and real hardware are unproven. Mode 2 was subsequently tested separately in item 33.
+
+33. **Q-021 mode 2 passes only as an isolated first-post-transfer validation stage.** ACTIVE
+`96d79e3f…ee276`, STAGE-CONTROL `da5ce4ec…309b8`, and ISR `b7fc5726…aaaa7` preserve the
+ordinary default and all accepted mode-1 identities exactly. Both arms stage the authoritative
+3,840-byte AI table at `$FF6B40`; two ACTIVE normal repeats prove all 1,920 FIFO words in 480
+FULL-checked four-word groups equal physical destination `$06010000-$06010EFF` at frame 1260,
+with terminal DAR `$06010F00`, TCR0=0, TE acknowledgement, balanced two-edge CMD counts, and
+zero COMM access. Controls and the seeded name/replay route record zero transport. At that same
+boundary Slave R15 is exactly `$06010000`, and both stock/ISR stacks grow downward below the
+upward payload. Later execution mutates the destination through an unidentified writer, so the
+pass does not establish persistent allocation, a consumer, later-frame ownership, promotion,
+authority, arbitrary reset, organic name entry, or real hardware. The next independent work is
+Q-023's `$2200BC00 -> $2600BC00` cmd-`$3F` mailbox correction, then observable shadow execution.
 
 ---
 
@@ -630,6 +644,7 @@ and real hardware are unproven, and mode 2 is the next independent stage.
 | Normal-1P durable control validation | tools/libretro-profiling/VRD_PROFILING.md §§ Normal-1P control validator; VR60-011 lifecycle suite | `analysis/evidence/vr60-011-lifecycle-suite/README.md`; the three-fixture DRC suite passed and cleared the baseline blocker |
 | Q-020 cmd `$3E` mode-0 acceptance | tools/libretro-profiling/validate_mode0_gate.py | analysis/evidence/vr60-q020-mode0-gate/README.md |
 | Q-020 cmd `$3E` mode-1 isolated validation gate | VR60_STATUS.md § Q-020 mode 1 passed its isolated validation stage on 2026-08-11 | `analysis/evidence/vr60-q020-mode1-cmdint-gate/README.md`; `tools/libretro-profiling/validate_mode1_gate_composition.py`; `disasm/modules/68k/sh2/vr60_mode1_validation.asm`; `disasm/sh2/expansion/cmd3e_mode1_validation.asm` |
+| Q-021 cmd `$3E` mode-2 isolated first-boundary gate | VR60_STATUS.md § Q-021 mode 2 passed its isolated validation stage on 2026-08-12 | `analysis/evidence/vr60-q021-mode2-cmdint-gate/README.md`; `tools/libretro-profiling/validate_mode2_gate_composition.py`; `tools/libretro-profiling/mode2_cmdint_runtime.py`; `disasm/sh2/expansion/cmd3e_mode2_validation.asm` |
 | Expansion ROM layout + active handlers | disasm/sections/expansion_300000.asm | BACKLOG.md §B-003/B-004 |
 | B-003 async cmd_27 design | BACKLOG.md §B-003 | analysis/68K_SH2_COMMUNICATION.md §B-003 |
 | B-004 single-shot cmd_22 design | BACKLOG.md §B-004 | analysis/68K_SH2_COMMUNICATION.md §B-004 |

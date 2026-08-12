@@ -1,5 +1,5 @@
 /*
- * Q-020 mode-1 validation-only Master external-interrupt/DREQ handler.
+ * Q-020/Q-021 validation-only Master external-interrupt/DREQ handler.
  *
  * Fixed link address: ROM $303B00 / SH2 $02303B00.
  *
@@ -11,16 +11,18 @@
  *     live word count to SH2.  FULL is checked by the 68K every four words.
  *   - SH7604 CHCR.TE must be read as 1 and then written as 0 before re-arm.
  *
- * The mode-1 transaction accesses no COMM register.  A setup CMD is recognized
- * only by 68S=1, LEN=$20, destination=$0600F30C, and either a stock-idle or
- * stock-finalization-quiescent saved SPC.  A completion CMD is instead
+ * Neither isolated transaction accesses a COMM register.  A setup CMD is
+ * recognized only by 68S=1, the selected variant's exact word count and
+ * destination, and either a stock-idle or stock-finalization-quiescent saved
+ * SPC.  A completion CMD is instead
  * admitted by the exact active DMAC0 identity: the 68K remains blocked between
  * edges, so no later producer can own that signature.  It waits for
  * TCR=0/TE=1.  Cold boot reaches the stock initialization tail via
  * the startup shim without a CMD edge.  Only the phase-pinned post-VRES CMD
  * delegates to the stock reset-flow continuation; VRES always delegates to
  * stock.  Any other CMD, external level, or partial mode-1 signature records a
- * failure and stops.
+ * failure and stops.  VR60_MODE2_VARIANT additionally requires the Q22I trace
+ * sentinel and its inverse before accepting either transaction edge.
  *
  * Persistent trace block at cache-through $2600BC20 (16 longwords):
  *   +00 magic "Q21I"       +04 phase (0/3 reset-CMD expected/4 complete/fail)
@@ -35,10 +37,15 @@
 
 .section .text
 .align 2
+.ifdef VR60_MODE2_VARIANT
+.global cmd3e_mode2_validation
+.global q021_mode2_cmdint_init
+cmd3e_mode2_validation:
+.else
 .global cmd3e_mode1_validation
 .global q020_mode1_cmdint_init
-
 cmd3e_mode1_validation:
+.endif
     sts.l   pr,@-r15
     mov.l   r0,@-r15
     mov.l   r1,@-r15
@@ -96,7 +103,7 @@ cmd3e_mode1_validation:
     bsr     .L_capture_common
     nop
 
-    /* VRES's reset-flow CMD must never be mistaken for a mode-1 edge. */
+    /* VRES's reset-flow CMD must never be mistaken for a validation edge. */
     mov.l   @(4,r3),r0
     cmp/eq  #3,r0
     bt      .L_stock_reset_cmd
@@ -112,7 +119,12 @@ cmd3e_mode1_validation:
     mov.l   @(.L_dreq_len,pc),r1
     mov.w   @r1,r0
     extu.w  r0,r0
+.ifdef VR60_MODE2_VARIANT
+    mov.l   @(.L_transfer_words,pc),r5
+    cmp/eq  r5,r0
+.else
     cmp/eq  #0x20,r0
+.endif
     bf      .L_bad_setup_signature
     bsr     .L_require_destination_signature
     nop
@@ -144,7 +156,9 @@ cmd3e_mode1_validation:
 
 .L_setup:
     mov.l   r0,@(52,r3)              /* retain accepted setup boundary */
+.ifndef VR60_MODE2_VARIANT
     nop                               /* preserve fixed bridge-literal layout */
+.endif
     /*
      * A preceding stock FIFO transfer may have completed with CHCR0.TE still
      * set.  Preserve the documented read-1/write-0 lifecycle before writing a
@@ -177,10 +191,14 @@ cmd3e_mode1_validation:
     mov.l   @(.L_fifo,pc),r0
     mov.l   r0,@r1
     mov.l   @(.L_dar0,pc),r1
-    mov.l   @(.L_globals_dst,pc),r0
+    mov.l   @(.L_transfer_dst,pc),r0
     mov.l   r0,@r1
     mov.l   @(.L_tcr0,pc),r1
+.ifdef VR60_MODE2_VARIANT
+    mov.l   @(.L_transfer_words,pc),r0
+.else
     mov     #0x20,r0
+.endif
     mov.l   r0,@r1
     mov.l   @(.L_chcr0,pc),r1
     mov.l   @(.L_chcr_active,pc),r0
@@ -223,7 +241,7 @@ cmd3e_mode1_validation:
     bf      .L_bad_completion_tcr
     mov.l   @(.L_dar0,pc),r1
     mov.l   @r1,r0
-    mov.l   @(.L_globals_end,pc),r2
+    mov.l   @(.L_transfer_end,pc),r2
     cmp/eq  r2,r0
     bf      .L_bad_completion_dar
 
@@ -308,7 +326,7 @@ cmd3e_mode1_validation:
     nop
 
 .L_require_destination_signature:
-    /* DREQ stores the SDRAM-relative 24-bit form $00:F30C. */
+    /* DREQ stores the selected SDRAM-relative 24-bit destination form. */
     mov     #0,r2
     mov.l   @(.L_dreq_dst_hi,pc),r1
     mov.w   @r1,r0
@@ -342,15 +360,19 @@ cmd3e_mode1_validation:
     bf      .L_dmac_identity_bad
     mov.l   @(.L_dar0,pc),r1
     mov.l   @r1,r0
-    mov.l   @(.L_globals_dst,pc),r5
+    mov.l   @(.L_transfer_dst,pc),r5
     cmp/hi  r0,r5                     /* start > current is invalid */
     bt      .L_dmac_identity_bad
-    mov.l   @(.L_globals_end,pc),r5
+    mov.l   @(.L_transfer_end,pc),r5
     cmp/hi  r5,r0                     /* current > end is invalid */
     bt      .L_dmac_identity_bad
     mov.l   @(.L_tcr0,pc),r1
     mov.l   @r1,r0
+.ifdef VR60_MODE2_VARIANT
+    mov.l   @(.L_transfer_words,pc),r5
+.else
     mov     #0x20,r5
+.endif
     cmp/hi  r5,r0
     bt      .L_dmac_identity_bad
     mov.l   @(.L_chcr0,pc),r1
@@ -512,7 +534,11 @@ cmd3e_mode1_validation:
  * chronology (direct VRES continuation, then reset-flow CMD continuation).
  */
 .org 0x360
+.ifdef VR60_MODE2_VARIANT
+q021_mode2_cmdint_init:
+.else
 q020_mode1_cmdint_init:
+.endif
     nop                              /* startup entry witness; no stack use */
     mov.l   @(.L_init_trace,pc),r1
     mov.l   @r1,r0
@@ -547,8 +573,13 @@ q020_mode1_cmdint_init:
 
 .align 2
 .L_init_trace:       .long 0x2600BC20
+.ifdef VR60_MODE2_VARIANT
+.L_init_magic:       .long 0x51323249
+.L_init_inverse:     .long 0xAECDCDB6
+.else
 .L_init_magic:       .long 0x51323149
 .L_init_inverse:     .long 0xAECDCEB6
+.endif
 .L_original_init:    .long 0x060045CC
 
 .align 2
@@ -566,10 +597,18 @@ q020_mode1_cmdint_init:
 .L_tcr0:             .long 0xFFFFFF88
 .L_chcr0:            .long 0xFFFFFF8C
 .L_dmaor:            .long 0xFFFFFFB0
+.ifdef VR60_MODE2_VARIANT
+.L_dst_hi:           .long 0x00000001
+.L_dst_lo:           .long 0x00000000
+.L_transfer_dst:     .long 0x06010000
+.L_transfer_end:     .long 0x06010F00
+.L_transfer_words:   .long 0x00000780
+.else
 .L_dst_hi:           .long 0x00000000
 .L_dst_lo:           .long 0x0000F30C
-.L_globals_dst:      .long 0x0600F30C
-.L_globals_end:      .long 0x0600F34C
+.L_transfer_dst:     .long 0x0600F30C
+.L_transfer_end:     .long 0x0600F34C
+.endif
 .L_chcr_active:      .long 0x000044E1
 .L_chcr_te:          .long 0x000044E3
 .L_chcr_idle:        .long 0x000044E0
@@ -578,6 +617,11 @@ q020_mode1_cmdint_init:
 .L_quiescent_438:    .long 0x06004438
 .L_stock_vres:       .long 0x060004A4
 .L_stock_cmd_boot:   .long 0x060004E8
+.ifdef VR60_MODE2_VARIANT
+.L_magic:            .long 0x51323249
+.L_magic_inverse:    .long 0xAECDCDB6
+.else
 .L_magic:            .long 0x51323149
 .L_magic_inverse:    .long 0xAECDCEB6
+.endif
 .L_failure_phase:    .long 0x80000001

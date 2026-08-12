@@ -6,14 +6,27 @@
 ; Global hardware register definitions (canonical — do not redefine locally)
         include "modules/shared/definitions.asm"
 
-; Q-020 CMDINT probing and mode-1 validation both occupy file $01C914 and
-; therefore can never coexist in one ROM.
+; Q-020 CMDINT probing and the mode-1/mode-2 validation pairs all occupy file
+; $01C914 and therefore can never coexist in one ROM.
         ifd     VR60_Q020_CMDINT_PROBE
         ifd     VR60_MODE1_VALIDATION
         assert  0,"VR60_Q020_CMDINT_PROBE and VR60_MODE1_VALIDATION are mutually exclusive"
         endif
         ifd     VR60_MODE1_STAGE_CONTROL
         assert  0,"VR60_Q020_CMDINT_PROBE and VR60_MODE1_STAGE_CONTROL are mutually exclusive"
+        endif
+        ifd     VR60_MODE2_VALIDATION
+        assert  0,"VR60_Q020_CMDINT_PROBE and VR60_MODE2_VALIDATION are mutually exclusive"
+        endif
+        endif
+        ifd     VR60_MODE1_VALIDATION
+        ifd     VR60_MODE2_VALIDATION
+        assert  0,"VR60_MODE1_VALIDATION and VR60_MODE2_VALIDATION are mutually exclusive"
+        endif
+        endif
+        ifd     VR60_MODE1_STAGE_CONTROL
+        ifd     VR60_MODE2_STAGE_CONTROL
+        assert  0,"mode-1 and mode-2 stage controls are mutually exclusive"
         endif
         endif
 

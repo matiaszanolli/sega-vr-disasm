@@ -1,0 +1,6 @@
+# VRD_CALLER_TRACE version=2 addr=0x00884CBC sh2_drc=1 profile_pc=0 profile_pc_env=0 m68k_batching=normal instruction_start_hook=1 composed=1 max_hits=0
+frame,pc,sp,return_addr
+1256,0x00884CBC,0xFFFFFC,0xFF0006
+1257,0x00884CBC,0xFFFFFC,0xFF0006
+1258,0x00884CBC,0xFFFFFC,0xFF0006
+# COMPLETE frames=1260 hits=3 logged=3 dropped=0 errors=0

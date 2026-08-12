@@ -1,0 +1,47 @@
+{
+  "claims": {
+    "authority_transferred": false,
+    "cmd3f_enabled": false,
+    "mode0_enabled": false,
+    "mode1_enabled": false,
+    "mode2_enabled": true,
+    "non_promotable": true,
+    "ordinary_default": false,
+    "organic_gameplay": false,
+    "promoted": false,
+    "real_hardware_proven": false,
+    "validation_stage_pass": true
+  },
+  "components": {
+    "accepted_mode1_gate": {
+      "path": "analysis/evidence/vr60-q020-mode1-cmdint-gate/composition.json",
+      "sha256": "055e3162b84dffc2eace0dce1a2df35b1863c53f93adfb6ef542cc9084f20f57"
+    },
+    "runtime_capture": {
+      "path": "analysis/evidence/vr60-q021-mode2-cmdint-gate/runtime/run.json",
+      "sha256": "d3533e13bc5367602f6c9b24113b728966f6397dbb3dd52dbb2bb9731256ae7f"
+    },
+    "runtime_result": {
+      "path": "analysis/evidence/vr60-q021-mode2-cmdint-gate/runtime/result.json",
+      "sha256": "1f55d9bcf9954d6cb9e766ce4be6b2d7628a40903702b2282b3ecb1bebee0a89"
+    },
+    "static_pair": {
+      "path": "tools/libretro-profiling/mode2_rom_pair.json",
+      "sha256": "84ca342827d65e903ea1855e22948471f7cda446446024c566d4fb680fe4738a"
+    }
+  },
+  "evidence_scope": "isolated_mode2_active_stage_control",
+  "identities": {
+    "active": "96d79e3fb4d2df8a69852917ac811f860935ae950fc87222d008fa45d47ee276",
+    "canonical_core": "5677ea8e083f887b2b4e9cabf84dd559a9c6b1180adfa09f34a50023ff7548e8",
+    "control": "da5ce4ec9ef8e050c7babeb113e26aa7335a3ff5285285e55a6606d2f96309b8",
+    "core": "aaaa57f0190759e581ca116ab35ab7e1e090fcd93ccadd046242d7532ebbff79",
+    "default": "6f2768f2cffc85cdc815a67c9f13837112829edac3f0921a57454e79e2523900",
+    "frontend": "626c2c148aa1dca10f2893bc6e9ac59dad237f5043763567ef73b0f9868bcc50",
+    "mode1_active": "963658608b13a96981b8bca60c5e7225df7cf148b138cdf1a1d6982487ff4470",
+    "mode1_control": "391774569d17d2461decad5d002c9215914a84649b094b10a051b21b5348e9fd",
+    "mode1_isr": "6316a0d228dc3db8a48ecdef3b34e0962e04db35c4ef085ec17aea8873146916"
+  },
+  "schema": "vrd-vr60-q021-mode2-gate-composition-v1",
+  "status": "VALIDATION_STAGE_PASS"
+}

@@ -1,6 +1,6 @@
 # VR60 Current Status
 
-**Canonical as of:** 2026-08-11
+**Canonical as of:** 2026-08-12
 
 **Branch:** `60fps_project`
 
@@ -16,7 +16,7 @@ This file is the short, current answer to “what works now?” Older roadmap en
 | 1P hook at `game_frame_orch_013` / `state_disp_004cb8` state 8 | Yes | Yes, about 20 Hz | Hook point confirmed with exact `VRD_CALLER_TRACE` |
 | cmd `$3E` player-entity transfer (mode 0) | Yes | **Enabled; promoted ordinary default** | **Q-020 mode-0 sub-gate passed over all 3 trustworthy lifecycles** |
 | cmd `$3E` globals transfer (mode 1) | Validation pair only | **Disabled/unreachable in the promoted default** | **Isolated validation-stage PASS:** CMDINT Gate B passed; not promoted and not real-hardware proof |
-| cmd `$3E` AI-entity transfer (mode 2) | Yes | **Disabled** | Unverified; neither proven safe nor unsafe |
+| cmd `$3E` AI-entity transfer (mode 2) | Validation pair only | **Disabled/unreachable in the promoted default** | **Isolated validation-stage PASS:** exact first-post-transfer CMDINT/DREQ transport; not persistent ownership, promotion, or real-hardware proof |
 | cmd `$3F` SH2 game-frame pipeline | Yes | **Disabled in 1P** | Unverified; its legacy `$2200BC00` mailbox literal is a ROM alias and must be corrected before activation |
 | SH2 physics and AI ports | Yes | No; reachable only through the disabled cmd `$3F` path | Assembly/reference work exists; gameplay authority not proven |
 | SH2 collision ports | Yes | No | Reference-model tested, not dispatched by the live pipeline |
@@ -83,6 +83,29 @@ adversarial tests. Evidence and reproduction are recorded at
 [analysis/evidence/vr60-q020-mode1-cmdint-gate](analysis/evidence/vr60-q020-mode1-cmdint-gate/README.md).
 This is an isolated PicoDrive validation-stage result, not mode-1 promotion, organic name-entry
 gameplay, arbitrary-reset coverage, SH2 gameplay authority, or real-hardware proof.
+
+**Q-021 mode 2 passed its isolated validation stage on 2026-08-12.** The source-built
+ACTIVE/STAGE-CONTROL pair keeps the ordinary mode-0 default and all three accepted mode-1
+identities byte-exact. Its zero-COMM, two-CMD-edge DREQ transaction carries the complete
+15-record AI table: 3,840 bytes from `$FF9100-$FF9FFF`, identically staged at
+`$FF6B40-$FF7A3F`, to physical SDRAM `$06010000-$06010EFF`. Both ACTIVE normal repeats prove
+full source/FIFO/destination equality at the first post-transfer boundary: 1,920 FIFO words in
+480 FULL-checked groups of four, terminal DAR `$06010F00`, TCR0 zero, TE read-1/write-0
+acknowledgement, exact CMD clear/readback, and balanced setup/completion counts. Both controls
+stage the same bytes and perform zero transport. All seeded name/replay captures correctly
+perform zero racing-hook transport, and only the predeclared frame-1241 stock-safe VRES boundary
+is accepted.
+
+The ACTIVE/CONTROL/ISR SHA-256 values are `96d79e3f…ee276`, `da5ce4ec…309b8`, and
+`b7fc5726…aaaa7`. The full composed gate, nested accepted mode-1 gate, and 14 focused adversarial
+tests passed; a fresh Auditor approved the exact boundary. `$06010000` is the stock Slave R15
+boundary: stacks grow downward below it while this payload grows upward, and the same capture
+records Slave R15 exactly at the boundary. Later execution mutates the destination through an
+unidentified writer, so this result proves only the completed first-boundary transport. It does
+**not** establish persistent allocation, later-frame ownership, a renderer/SH2 consumer,
+promotion, organic name-entry gameplay, arbitrary reset, real hardware, authority transfer,
+cadence, FPS, or CPU budget. Evidence is archived at
+[analysis/evidence/vr60-q021-mode2-cmdint-gate](analysis/evidence/vr60-q021-mode2-cmdint-gate/README.md).
 
 **VR60-011 passed on 2026-07-25.** The reviewed hook-bypass control completed three distinct,
 predeclared timed-race lifecycles under normal SH2 DRC execution. After the fixed 360-frame warmup,
@@ -249,10 +272,10 @@ accepted only while the exact ordered cycle continues, because a completed Maste
 legitimately idle in PicoDrive's COMM poll state. Sampled COMM0 longest runs remain informational
 because `$000C->$0000` is the fresh Master completion witness.
 
-The current active work item is **cmd `$3E` AI transfer mode 2 validation**. Q-020 mode 0 is the
-accepted ordinary default, and mode 1 has passed only in its isolated validation pair. Preserve
-both results while testing mode 2 by itself; do not combine mode 2 with cmd `$3F`, authority
-transfer, or cadence changes.
+The current active work item is **the cmd `$3F` mailbox correction, followed by isolated shadow
+execution**. Preserve the promoted mode-0 default and the separately scoped mode-1/mode-2
+validation results. Keep the 68000 authoritative, and do not combine mailbox correction, shadow
+execution, renderer bridging, authority transfer, or cadence changes into one gate.
 
 The archived VR60-011 suite satisfies this prerequisite with the VR60 hook bypassed:
 
@@ -264,14 +287,11 @@ The archived VR60-011 suite satisfies this prerequisite with the VR60 hook bypas
 
 After that baseline exists, integrate one independently observable stage at a time:
 
-1. Test AI transfer mode 2 by itself while preserving the mode-0 default and isolated mode-1 evidence.
-2. Run cmd `$3F` as shadow computation while the 68000 remains authoritative.
+1. Correct and verify cmd `$3F`'s legacy mailbox literal: `$2200BC00` is the cache-through cartridge-ROM alias, not SDRAM; the intended shared alias is `$2600BC00`.
+2. Run cmd `$3F` as independently observable shadow computation while the 68000 remains authoritative.
 3. Verify a bridge into the descriptor blocks actually consumed by cmd `$02`, beginning with a reversible C254 visibility/position probe.
 4. Compare SH2 results against the 68000, then switch authority subsystem by subsystem; collision and the 68000 bypass come last.
 5. Only after correctness and ownership are proved, change the game-logic cadence and scale time-dependent constants for 60 Hz.
-
-Before step 2, correct and verify cmd `$3F`'s legacy mailbox literal: `$2200BC00` is the
-cache-through cartridge-ROM alias, not SDRAM; the intended shared alias is `$2600BC00`.
 
 ## Definition of “60 FPS achieved”
 
@@ -291,5 +311,7 @@ The project is complete only when a reproducible 1P run demonstrates all of the 
 - `analysis/VR60_PHASE5F1B_PROBE_DIAGNOSIS.md` — C128/C178/C254 renderer inputs
 - `analysis/VR60_PHASE5F_SCOPING.md` — authority/bridge problem, read with its current correction banner
 - `analysis/evidence/vr60-009-write-trace/README.md` — exact state/scene writers, timed-finish classification, and fixture remedy
+- `analysis/evidence/vr60-q020-mode1-cmdint-gate/README.md` — isolated mode-1 CMDINT/DREQ gate
+- `analysis/evidence/vr60-q021-mode2-cmdint-gate/README.md` — isolated first-boundary mode-2 transport gate and limitations
 - `tools/libretro-profiling/retroarch_replay_to_csv.py` — fail-closed visual replay to canonical input bridge
 - `tools/libretro-profiling/VRD_PROFILING.md` — measurement procedure and validity gates

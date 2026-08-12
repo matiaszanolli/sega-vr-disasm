@@ -88,6 +88,10 @@
         else
         ifd     VR60_MODE1_VALIDATION
         include "modules/68k/sh2/vr60_mode1_validation.asm"
+        else
+        ifd     VR60_MODE2_VALIDATION
+        include "modules/68k/sh2/vr60_mode1_validation.asm"
+        endif
         endif
         endif
 

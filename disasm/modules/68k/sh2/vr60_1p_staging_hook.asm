@@ -34,17 +34,37 @@
 ; untouched here) -- this phase only proves the staging+trigger chain
 ; reaches the SH2 side; gameplay logic remains on the 68K.
 ;
-; CURRENT STATE (2026-07-25): the promoted ordinary build defines
+; CURRENT ORDINARY STATE: the promoted build defines
 ; VR60_MODE0_ONLY and executes the accepted cmd $3E mode-0 transfer exactly
-; once per eligible lifecycle. The mode-1 block and relay below are therefore
-; unreachable in that build. Mode 1, AI entity transfer (mode 2), and cmd $3F
-; remain DISABLED and UNVERIFIED. See VR60_STATUS.md and
-; analysis/evidence/vr60-q020-mode0-gate/ for the exact accepted scope.
+; once per eligible lifecycle. The mode-1/mode-2 validation blocks and relay
+; below are therefore unreachable in that build; cmd $3F is physically absent.
+; Modes 1 and 2 passed only their separate isolated validation gates; neither
+; is promoted here. See VR60_STATUS.md and the Q-020/Q-021 evidence archives.
 ; ============================================================================
 
 VR60_1P_FLAG    equ     $FFFF7B40
 
 vr60_1p_staging_hook:
+        ifd     VR60_MODE2_VALIDATION
+        tst.b   VR60_1P_FLAG
+        bne.s   .original_calls
+; Mode 2 is an isolated lifecycle one-shot. Both arms stage the exact 15-entry
+; AI table; only the six-byte ACTIVE slot starts transport.
+        jsr     vr60_ai_entity_stage              ; $FF9100-$FF9FFF -> $FF6B40-$FF7A3F
+        nop                                       ; preserve fixed three-slot hook layout
+        nop
+        nop
+        ifd     VR60_MODE2_STAGE_CONTROL
+        nop                                       ; exact six-byte ACTIVE/CONTROL pair slot
+        nop
+        nop
+        else
+        jsr     vr60_1p_ai_transfer_mode2_validation
+        endif
+        move.b  #$01,VR60_1P_FLAG
+        bra.s   .original_calls
+        dcb.w   23,$4E71                          ; mode 0/1, relay, cmd $3F absent
+        else
         tst.b   VR60_1P_FLAG
         ifd     VR60_MODE0_ONLY
         bne.s   .original_calls
@@ -121,6 +141,7 @@ vr60_1p_staging_hook:
         clr.b   COMM6                              ; clear
         move.w  COMM4,$00FF617A                    ; viewport left
         move.w  COMM5,$00FF618E                    ; viewport right
+        endif
         endif
 ; --- Fire-and-forget: async block copies + physics via cmd $3F ---
 ; VALIDATION GATE: cmd $3F stays disabled until a trustworthy baseline exists.

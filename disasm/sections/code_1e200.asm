@@ -4009,6 +4009,24 @@
         dc.l    $02303B00    ; $020138 - level 14 VRES
         dc.l    $02303B00    ; $02013C
         else
+        ifd     VR60_MODE2_VALIDATION
+        dc.l    $02303B00    ; $020100 - all external levels share corrected ISR
+        dc.l    $02303B00    ; $020104
+        dc.l    $02303B00    ; $020108
+        dc.l    $02303B00    ; $02010C
+        dc.l    $02303B00    ; $020110
+        dc.l    $02303B00    ; $020114
+        dc.l    $02303B00    ; $020118 - level 6 PWM (fail-stop)
+        dc.l    $02303B00    ; $02011C
+        dc.l    $02303B00    ; $020120 - level 8 CMD
+        dc.l    $02303B00    ; $020124
+        dc.l    $02303B00    ; $020128 - level 10 H (fail-stop)
+        dc.l    $02303B00    ; $02012C
+        dc.l    $02303B00    ; $020130 - level 12 V (fail-stop)
+        dc.l    $02303B00    ; $020134
+        dc.l    $02303B00    ; $020138 - level 14 VRES
+        dc.l    $02303B00    ; $02013C
+        else
         dc.w    $0600        ; $020100
         dc.w    $06AC        ; $020102
         dc.w    $0600        ; $020104
@@ -4041,6 +4059,7 @@
         dc.w    $06AC        ; $02013A
         dc.w    $0600        ; $02013C
         dc.w    $06AC        ; $02013E
+        endif
         endif
         endif
         dc.w    $0600        ; $020140

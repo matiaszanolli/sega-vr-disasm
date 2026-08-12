@@ -141,7 +141,11 @@ scene_setup_game_mode_transition:
         ifd     VR60_MODE1_VALIDATION
         move.l  #$0089C914,$00FF0002            ; validation-only reset wrapper
         else
+        ifd     VR60_MODE2_VALIDATION
+        move.l  #$0089C914,$00FF0002            ; validation-only mode-2 reset wrapper
+        else
         move.l  #$00884A3E,$00FF0002            ; $00E0D4: $23FC ... — mode 0 loading handler
+        endif
         endif
         endif
         bra.w   .done                           ; $00E0DE: $6000 $0036

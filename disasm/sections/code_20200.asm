@@ -338,8 +338,12 @@
         ifd     VR60_MODE1_VALIDATION
         dc.l    $02303E60    ; mode-1 CMDINT cold/VRES trace initialization shim
         else
+        ifd     VR60_MODE2_VALIDATION
+        dc.l    $02303E60    ; mode-2 CMDINT cold/VRES trace initialization shim
+        else
         dc.w    $0600        ; $020480
         dc.w    $45CC        ; $020482
+        endif
         endif
         endif
         dc.w    $0600        ; $020484

@@ -310,6 +310,32 @@ pending scene reset/re-entry, COMM ownership and same-address dummy-read synchro
 FIFO FULL instrumentation at four-word granularity. Full artifacts and hashes are documented in
 `analysis/evidence/vr60-q020-mode0-gate/`.
 
+### Q-027 cmd `$3F` bounded convergence gate
+
+`q027_cmd3f_runtime.py` implements the approved v5 acceptance policy for one validation-only
+Master-COMM0 transaction through stock table `$3F`. It does not weaken the normal-1P controls or
+validate the legacy shared-lane pipeline. The capture combines two fixed observer modes:
+
+- exact-register interpreter, 1,340 frames with the exact `1262/60/18` checkpoint split;
+- normal DRC, 1,340 frames in one uninterrupted debugger advance with no Q-027 MMIO/register
+  observation.
+
+The interpreter defines `T_I` from the sole Edge-1 INTM write and accepts exactly one displayed
+CRC mismatch at `T_I+2`, with pinned values. CRC equality must resume at `T_I+3`; full-profile
+equality must resume at `T_I+6`; either must remain uninterrupted through capture end. The DRC
+arm defines `T_D` from the exact `$FF7B40 01->02` lifecycle write, permits only the pinned
+Master/Slave cycle values at `T_D`, requires complete displayed-CRC equality, and requires full
+profile equality from `T_D+1` through capture end. Every mismatch position and both values must
+be identical in both repeats.
+
+Both modes record `$FFC80C`, cache-through FBCTL `$2000410A`, the exact
+`$C87E/$FF0002/$FF7B40/$FFC80C/$A1518B` write chronology, and the full scene-handler caller
+trace. Consecutive profile
+and watch rows establish no missing/reordered emulated capture frame, not host presentation or
+physical scanout. The archive and exact exclusions are documented in
+`analysis/evidence/vr60-q027-cmd3f-transport-gate/README.md`. The candidate remains pending
+completed-diff audit, non-promotable, and unusable for render, cadence, CPU-budget, or FPS claims.
+
 ## Environment variables
 
 | Var | Effect |

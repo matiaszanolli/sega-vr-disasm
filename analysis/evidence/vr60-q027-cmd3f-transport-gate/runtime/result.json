@@ -1,0 +1,464 @@
+{
+  "approved_v5_sha256": "e9f0b227517a928a6411ac6de26c74d7f27a1c1b8dde7be0c4ed5ee9cb31ff2a",
+  "authority_transferred": false,
+  "bridge_enabled": false,
+  "cadence_changed": false,
+  "capture_sha256": "80bb36ceaf8f1955d799dbdbbda59bf2a1e64ab5964f95a9078ab88787873e0f",
+  "claim": "one bounded Master-COMM0 real-stock-table $3F player-shadow invocation with exact deterministic convergence in the pinned PicoDrive fixture",
+  "cmd3f_promoted": false,
+  "collision_enabled": false,
+  "cpu_budget_claim": null,
+  "diagnostics": {
+    "eligible": false,
+    "labels": [
+      "convergence-diagnostic",
+      "drc-convergence-diagnostic",
+      "drc-diagnostic",
+      "drc-split-diagnostic",
+      "failed-v3-pilot",
+      "interpreter-1400",
+      "interpreter-late-diagnostic",
+      "q026-interpreter-diagnostic",
+      "v4-candidate2"
+    ],
+    "reason": "pre-approval proposal-shaping captures are hash-bound but ineligible"
+  },
+  "drc": {
+    "displayed_crc_mismatch_relative_frames": [],
+    "full_profile_first_equality_boundary": 1263,
+    "paired_deltas": [
+      {
+        "active": "17125",
+        "control": "15859",
+        "field": "msh2_cycles",
+        "frame": 1262,
+        "relative": 0
+      },
+      {
+        "active": "306554",
+        "control": "306574",
+        "field": "ssh2_cycles",
+        "frame": 1262,
+        "relative": 0
+      }
+    ],
+    "terminal_relative_frame": 77,
+    "transaction_frame": 1262
+  },
+  "eligible": true,
+  "fps_claim": null,
+  "interpreter": {
+    "displayed_crc_first_equality_boundary": 1267,
+    "displayed_crc_mismatch": {
+      "active": "0x344A67A6",
+      "control": "0xD08BAC75",
+      "frame": 1266
+    },
+    "displayed_crc_mismatch_relative_frames": [
+      2
+    ],
+    "full_profile_first_equality_boundary": 1270,
+    "paired_deltas": [
+      {
+        "active": "17729",
+        "control": "16463",
+        "field": "msh2_cycles",
+        "frame": 1264,
+        "relative": 0
+      },
+      {
+        "active": "306768",
+        "control": "306780",
+        "field": "ssh2_cycles",
+        "frame": 1264,
+        "relative": 0
+      },
+      {
+        "active": "278778",
+        "control": "278738",
+        "field": "msh2_cycles",
+        "frame": 1265,
+        "relative": 1
+      },
+      {
+        "active": "307014",
+        "control": "307035",
+        "field": "ssh2_cycles",
+        "frame": 1265,
+        "relative": 1
+      },
+      {
+        "active": "207754",
+        "control": "207786",
+        "field": "msh2_cycles",
+        "frame": 1266,
+        "relative": 2
+      },
+      {
+        "active": "273652",
+        "control": "273624",
+        "field": "ssh2_cycles",
+        "frame": 1266,
+        "relative": 2
+      },
+      {
+        "active": "0x344A67A6",
+        "control": "0xD08BAC75",
+        "field": "fb_crc",
+        "frame": 1266,
+        "relative": 2
+      },
+      {
+        "active": "306805",
+        "control": "306808",
+        "field": "ssh2_cycles",
+        "frame": 1267,
+        "relative": 3
+      },
+      {
+        "active": "278223",
+        "control": "278213",
+        "field": "msh2_cycles",
+        "frame": 1268,
+        "relative": 4
+      },
+      {
+        "active": "307038",
+        "control": "307034",
+        "field": "ssh2_cycles",
+        "frame": 1268,
+        "relative": 4
+      },
+      {
+        "active": "208445",
+        "control": "208451",
+        "field": "msh2_cycles",
+        "frame": 1269,
+        "relative": 5
+      },
+      {
+        "active": "273656",
+        "control": "273648",
+        "field": "ssh2_cycles",
+        "frame": 1269,
+        "relative": 5
+      }
+    ],
+    "terminal_relative_frame": 75,
+    "transaction_frame": 1264
+  },
+  "limitations": [
+    "the interpreter capture retains one exact displayed-buffer CRC mismatch at T_I+2",
+    "the result does not validate render equivalence and cannot promote command $3F",
+    "the mailbox contains fixed proof sentinels, not legacy shared-lane game values",
+    "no render bridge, AI, collision, authority, cadence, CPU budget, or FPS is claimed",
+    "no missing/reordered emulated capture rows were observed; physical presentation is unmeasured",
+    "PicoDrive observer results do not establish real-hardware timing"
+  ],
+  "non_promotable": true,
+  "promotable": false,
+  "repeats": {
+    "drc": {
+      "active-1": {
+        "caller_trace_sha256": "3db6c717069ace16116602f82e71a04ded259dc08b651bd86ef76bed36049b47",
+        "profile_sha256": "6ba77d00ddff14d042cfef64d25c0bf09786a802867fc742e94adda4398bf2ad",
+        "transaction_frame": 1262,
+        "watch_sha256": "160f7afdf1d3b2f5e583f78e73eaa483523e86e24724acabfedc1d68181f192a",
+        "write_trace_sha256": "162578488a9e0b3f6c4fc52845a4bde53a7c81a97d6c16960c9f2933f1a8f9c8"
+      },
+      "active-2": {
+        "caller_trace_sha256": "3db6c717069ace16116602f82e71a04ded259dc08b651bd86ef76bed36049b47",
+        "profile_sha256": "6ba77d00ddff14d042cfef64d25c0bf09786a802867fc742e94adda4398bf2ad",
+        "transaction_frame": 1262,
+        "watch_sha256": "160f7afdf1d3b2f5e583f78e73eaa483523e86e24724acabfedc1d68181f192a",
+        "write_trace_sha256": "162578488a9e0b3f6c4fc52845a4bde53a7c81a97d6c16960c9f2933f1a8f9c8"
+      },
+      "control-1": {
+        "caller_trace_sha256": "3db6c717069ace16116602f82e71a04ded259dc08b651bd86ef76bed36049b47",
+        "profile_sha256": "2abd80e2e6d041a8f60b3967bdae0908ddd54024202dcd82f34795c707d368b5",
+        "transaction_frame": 1262,
+        "watch_sha256": "160f7afdf1d3b2f5e583f78e73eaa483523e86e24724acabfedc1d68181f192a",
+        "write_trace_sha256": "162578488a9e0b3f6c4fc52845a4bde53a7c81a97d6c16960c9f2933f1a8f9c8"
+      },
+      "control-2": {
+        "caller_trace_sha256": "3db6c717069ace16116602f82e71a04ded259dc08b651bd86ef76bed36049b47",
+        "profile_sha256": "2abd80e2e6d041a8f60b3967bdae0908ddd54024202dcd82f34795c707d368b5",
+        "transaction_frame": 1262,
+        "watch_sha256": "160f7afdf1d3b2f5e583f78e73eaa483523e86e24724acabfedc1d68181f192a",
+        "write_trace_sha256": "162578488a9e0b3f6c4fc52845a4bde53a7c81a97d6c16960c9f2933f1a8f9c8"
+      }
+    },
+    "interpreter": {
+      "active-1": {
+        "after_sha256": "4e4607a0de55c687050e0b622dae25372ece397d1442dc04f047ed4ffd0b724b",
+        "before_sha256": "2398c10d257a2129609e6ec502032dca0e223a0d3281a350555724e2d7795098",
+        "caller_trace_sha256": "901000d1e2957bb3fa6308386293132217e36c03d897943fa50d71c7150403e1",
+        "changed_entity_bytes": [
+          14,
+          15,
+          23,
+          118,
+          119,
+          123,
+          236,
+          237,
+          238,
+          239,
+          247
+        ],
+        "comm_post": [
+          0,
+          257,
+          58,
+          48,
+          9217,
+          32784,
+          16,
+          0
+        ],
+        "comm_pre": [
+          2,
+          257,
+          58,
+          48,
+          9217,
+          32784,
+          16,
+          0
+        ],
+        "direct": {
+          "player_writes": 29,
+          "stack_low": "0x0600FBC8",
+          "stack_writes": 17
+        },
+        "profile_sha256": "3648dce1f6a1b00908f2dd00b6f5ecf143fb93889ecf7731a21d2ed1cd7c7c54",
+        "protocol": {
+          "edge_events": 2,
+          "hi_reads": 13,
+          "normalization_sequences": [
+            15719,
+            15720,
+            15721
+          ],
+          "transaction_frame": 1264
+        },
+        "registers": {
+          "entry": {
+            "gbr": 100725760,
+            "mach": 4294967295,
+            "macl": 21852,
+            "pr": 100664436,
+            "r10": 100694920,
+            "r11": 8,
+            "r12": 0,
+            "r13": 512,
+            "r14": 100715008,
+            "r15": 100728704,
+            "r8": 536887328,
+            "r9": 67317500
+          },
+          "mask": "0x1FFF",
+          "rows": 13
+        },
+        "seed_sha256": "2398c10d257a2129609e6ec502032dca0e223a0d3281a350555724e2d7795098",
+        "system_snapshots_sha256": "158ae8596edb134973687af39f426e785bb2c781940601048d31a2fc41471233",
+        "terminal_scene": "00884cbc",
+        "terminal_state": "0000",
+        "terminal_toggle": "01",
+        "transaction_frame": 1264,
+        "watch_sha256": "463667d7f0c4c568ab74f0e71e18aa546ee79705690729652db46c8938354ea9",
+        "write_trace_sha256": "a1fc910a2aa01a5c3fcb83e67701f36c445999f47e48587721eb0fdb07aad813"
+      },
+      "active-2": {
+        "after_sha256": "4e4607a0de55c687050e0b622dae25372ece397d1442dc04f047ed4ffd0b724b",
+        "before_sha256": "2398c10d257a2129609e6ec502032dca0e223a0d3281a350555724e2d7795098",
+        "caller_trace_sha256": "901000d1e2957bb3fa6308386293132217e36c03d897943fa50d71c7150403e1",
+        "changed_entity_bytes": [
+          14,
+          15,
+          23,
+          118,
+          119,
+          123,
+          236,
+          237,
+          238,
+          239,
+          247
+        ],
+        "comm_post": [
+          0,
+          257,
+          58,
+          48,
+          9217,
+          32784,
+          16,
+          0
+        ],
+        "comm_pre": [
+          2,
+          257,
+          58,
+          48,
+          9217,
+          32784,
+          16,
+          0
+        ],
+        "direct": {
+          "player_writes": 29,
+          "stack_low": "0x0600FBC8",
+          "stack_writes": 17
+        },
+        "profile_sha256": "3648dce1f6a1b00908f2dd00b6f5ecf143fb93889ecf7731a21d2ed1cd7c7c54",
+        "protocol": {
+          "edge_events": 2,
+          "hi_reads": 13,
+          "normalization_sequences": [
+            15719,
+            15720,
+            15721
+          ],
+          "transaction_frame": 1264
+        },
+        "registers": {
+          "entry": {
+            "gbr": 100725760,
+            "mach": 4294967295,
+            "macl": 21852,
+            "pr": 100664436,
+            "r10": 100694920,
+            "r11": 8,
+            "r12": 0,
+            "r13": 512,
+            "r14": 100715008,
+            "r15": 100728704,
+            "r8": 536887328,
+            "r9": 67317500
+          },
+          "mask": "0x1FFF",
+          "rows": 13
+        },
+        "seed_sha256": "2398c10d257a2129609e6ec502032dca0e223a0d3281a350555724e2d7795098",
+        "system_snapshots_sha256": "158ae8596edb134973687af39f426e785bb2c781940601048d31a2fc41471233",
+        "terminal_scene": "00884cbc",
+        "terminal_state": "0000",
+        "terminal_toggle": "01",
+        "transaction_frame": 1264,
+        "watch_sha256": "463667d7f0c4c568ab74f0e71e18aa546ee79705690729652db46c8938354ea9",
+        "write_trace_sha256": "a1fc910a2aa01a5c3fcb83e67701f36c445999f47e48587721eb0fdb07aad813"
+      },
+      "control-1": {
+        "after_sha256": "2398c10d257a2129609e6ec502032dca0e223a0d3281a350555724e2d7795098",
+        "before_sha256": "2398c10d257a2129609e6ec502032dca0e223a0d3281a350555724e2d7795098",
+        "caller_trace_sha256": "901000d1e2957bb3fa6308386293132217e36c03d897943fa50d71c7150403e1",
+        "changed_entity_bytes": [],
+        "comm_post": [
+          0,
+          257,
+          58,
+          48,
+          9217,
+          32784,
+          16,
+          0
+        ],
+        "comm_pre": [
+          2,
+          257,
+          58,
+          48,
+          9217,
+          32784,
+          16,
+          0
+        ],
+        "direct": {
+          "stack_low": null,
+          "stack_writes": 0
+        },
+        "profile_sha256": "ddfd92d8e29bdafb9196f0952315246d5c1dfce266a6c4bfc7e39b09435ca294",
+        "protocol": {
+          "edge_events": 2,
+          "hi_reads": 13,
+          "normalization_sequences": [
+            15719,
+            15720,
+            15721
+          ],
+          "transaction_frame": 1264
+        },
+        "registers": {
+          "mask": "0x0000",
+          "rows": 0
+        },
+        "seed_sha256": "2398c10d257a2129609e6ec502032dca0e223a0d3281a350555724e2d7795098",
+        "system_snapshots_sha256": "158ae8596edb134973687af39f426e785bb2c781940601048d31a2fc41471233",
+        "terminal_scene": "00884cbc",
+        "terminal_state": "0000",
+        "terminal_toggle": "01",
+        "transaction_frame": 1264,
+        "watch_sha256": "389d9f4f3ce0f8462d8840985e2abd4bf9d045bf60eeb43efd3c43c0b5db6706",
+        "write_trace_sha256": "a1fc910a2aa01a5c3fcb83e67701f36c445999f47e48587721eb0fdb07aad813"
+      },
+      "control-2": {
+        "after_sha256": "2398c10d257a2129609e6ec502032dca0e223a0d3281a350555724e2d7795098",
+        "before_sha256": "2398c10d257a2129609e6ec502032dca0e223a0d3281a350555724e2d7795098",
+        "caller_trace_sha256": "901000d1e2957bb3fa6308386293132217e36c03d897943fa50d71c7150403e1",
+        "changed_entity_bytes": [],
+        "comm_post": [
+          0,
+          257,
+          58,
+          48,
+          9217,
+          32784,
+          16,
+          0
+        ],
+        "comm_pre": [
+          2,
+          257,
+          58,
+          48,
+          9217,
+          32784,
+          16,
+          0
+        ],
+        "direct": {
+          "stack_low": null,
+          "stack_writes": 0
+        },
+        "profile_sha256": "ddfd92d8e29bdafb9196f0952315246d5c1dfce266a6c4bfc7e39b09435ca294",
+        "protocol": {
+          "edge_events": 2,
+          "hi_reads": 13,
+          "normalization_sequences": [
+            15719,
+            15720,
+            15721
+          ],
+          "transaction_frame": 1264
+        },
+        "registers": {
+          "mask": "0x0000",
+          "rows": 0
+        },
+        "seed_sha256": "2398c10d257a2129609e6ec502032dca0e223a0d3281a350555724e2d7795098",
+        "system_snapshots_sha256": "158ae8596edb134973687af39f426e785bb2c781940601048d31a2fc41471233",
+        "terminal_scene": "00884cbc",
+        "terminal_state": "0000",
+        "terminal_toggle": "01",
+        "transaction_frame": 1264,
+        "watch_sha256": "389d9f4f3ce0f8462d8840985e2abd4bf9d045bf60eeb43efd3c43c0b5db6706",
+        "write_trace_sha256": "a1fc910a2aa01a5c3fcb83e67701f36c445999f47e48587721eb0fdb07aad813"
+      }
+    }
+  },
+  "schema": "vrd-vr60-q027-cmd3f-transport-runtime-v2",
+  "scope": "master_comm0_stock_dispatch_player_shadow_convergence_gate",
+  "shared_lane_transport": false,
+  "status": "PASS"
+}

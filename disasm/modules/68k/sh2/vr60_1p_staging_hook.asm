@@ -45,6 +45,25 @@
 VR60_1P_FLAG    equ     $FFFF7B40
 
 vr60_1p_staging_hook:
+        ifd     VR60_Q027_VALIDATION
+; Q-027 retains Q-026's exact accepted first-hit 320-byte mode-0 seed.  On the
+; second hit its separate helper owns the masked two-CMD COMM0 transaction.
+; No relay, cmd-$3F legacy lane publication, authority, or cadence path follows.
+        move.b  VR60_1P_FLAG,d0
+        beq.s   .q027_seed
+        cmpi.b  #$01,d0
+        bne.s   .original_calls
+        jsr     q027_cmd3f_transport
+        bra.s   .original_calls
+
+.q027_seed:
+        jsr     vr60_entity_stage
+        jsr     vr60_globals_stage
+        move.b  #$00,COMM3
+        jsr     vr60_1p_entity_transfer
+        move.b  #$01,VR60_1P_FLAG
+        bra.w   .original_calls
+        else
         ifd     VR60_Q026_VALIDATION
 ; Q-026 is a bounded direct-CMDINT precursor.  First eligible state-8 stages
 ; and synchronously transfers the exact accepted 320-byte mode-0 seed.  The
@@ -183,6 +202,7 @@ vr60_1p_staging_hook:
         clr.b   COMM6                              ; clear
         move.w  COMM4,$00FF617A                    ; viewport left
         move.w  COMM5,$00FF618E                    ; viewport right
+        endif
         endif
         endif
         endif

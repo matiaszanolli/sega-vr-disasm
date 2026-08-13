@@ -1,0 +1,388 @@
+{
+  "accepted_identities_unchanged": true,
+  "active_control_differences": [
+    "0x3041A2",
+    "0x3041A3"
+  ],
+  "allocations": {
+    "canary": "0x2600FB64-0x2600FB67",
+    "handler": "0x02301500-0x023016AF",
+    "init": "0x02304600-0x0230466B",
+    "isr_core": "0x02304000-0x02304313",
+    "mailbox": "0x2600BC00-0x2600BC0F",
+    "park": "0x02304500-0x02304503",
+    "stack": "0x0600FB68-0x0600FBFF",
+    "trace": "0x2600BC60-0x2600BC9F"
+  },
+  "authority_transferred": false,
+  "bridge_enabled": false,
+  "cadence_changed": false,
+  "cmd3f_stock_dispatch_exercised": true,
+  "collision_enabled": false,
+  "eligible": false,
+  "findings": [],
+  "fps_claimed": false,
+  "handler_literal_users": [
+    [
+      "0x301502",
+      "0x301638"
+    ],
+    [
+      "0x30151C",
+      "0x30163C"
+    ],
+    [
+      "0x301540",
+      "0x301640"
+    ],
+    [
+      "0x301542",
+      "0x301644"
+    ],
+    [
+      "0x30157C",
+      "0x301650"
+    ],
+    [
+      "0x301588",
+      "0x301654"
+    ],
+    [
+      "0x30158C",
+      "0x301658"
+    ],
+    [
+      "0x301592",
+      "0x30165C"
+    ],
+    [
+      "0x301598",
+      "0x301660"
+    ],
+    [
+      "0x3015A0",
+      "0x301664"
+    ],
+    [
+      "0x3015A4",
+      "0x301668"
+    ],
+    [
+      "0x3015AC",
+      "0x301658"
+    ],
+    [
+      "0x3015B8",
+      "0x30163C"
+    ],
+    [
+      "0x3015BA",
+      "0x301650"
+    ],
+    [
+      "0x3015C8",
+      "0x30166C"
+    ],
+    [
+      "0x3015D8",
+      "0x301670"
+    ],
+    [
+      "0x3015E8",
+      "0x301664"
+    ],
+    [
+      "0x3015EC",
+      "0x301668"
+    ],
+    [
+      "0x301618",
+      "0x301674"
+    ],
+    [
+      "0x30162C",
+      "0x30163C"
+    ]
+  ],
+  "isr_literal_users": [
+    [
+      "0x304026",
+      "0x3042A8"
+    ],
+    [
+      "0x30404C",
+      "0x3042AC"
+    ],
+    [
+      "0x304050",
+      "0x3042B0"
+    ],
+    [
+      "0x304068",
+      "0x3042F0"
+    ],
+    [
+      "0x304072",
+      "0x3042D8"
+    ],
+    [
+      "0x304082",
+      "0x304308"
+    ],
+    [
+      "0x304088",
+      "0x3042AC"
+    ],
+    [
+      "0x30408C",
+      "0x3042B0"
+    ],
+    [
+      "0x3040AC",
+      "0x3042B4"
+    ],
+    [
+      "0x3040BA",
+      "0x3042B8"
+    ],
+    [
+      "0x3040D0",
+      "0x3042F0"
+    ],
+    [
+      "0x3040DA",
+      "0x3042D8"
+    ],
+    [
+      "0x3040E0",
+      "0x3042DC"
+    ],
+    [
+      "0x3040E6",
+      "0x3042E0"
+    ],
+    [
+      "0x3040EC",
+      "0x3042E4"
+    ],
+    [
+      "0x3040F2",
+      "0x3042E8"
+    ],
+    [
+      "0x3040F8",
+      "0x3042EC"
+    ],
+    [
+      "0x304102",
+      "0x3042BC"
+    ],
+    [
+      "0x304106",
+      "0x3042C0"
+    ],
+    [
+      "0x304110",
+      "0x3042C4"
+    ],
+    [
+      "0x30413C",
+      "0x3042F4"
+    ],
+    [
+      "0x304148",
+      "0x3042F0"
+    ],
+    [
+      "0x30414E",
+      "0x3042F4"
+    ],
+    [
+      "0x304154",
+      "0x3042F8"
+    ],
+    [
+      "0x304160",
+      "0x3042C4"
+    ],
+    [
+      "0x30416E",
+      "0x3042C8"
+    ],
+    [
+      "0x304170",
+      "0x3042CC"
+    ],
+    [
+      "0x30417A",
+      "0x3042D0"
+    ],
+    [
+      "0x30419C",
+      "0x3042F0"
+    ],
+    [
+      "0x3041AC",
+      "0x3042D8"
+    ],
+    [
+      "0x3041B4",
+      "0x3042C4"
+    ],
+    [
+      "0x3041C0",
+      "0x304300"
+    ],
+    [
+      "0x3041CC",
+      "0x3042D4"
+    ],
+    [
+      "0x3041D8",
+      "0x3042D0"
+    ],
+    [
+      "0x3041E4",
+      "0x3042D8"
+    ],
+    [
+      "0x3041EC",
+      "0x3042D0"
+    ],
+    [
+      "0x304200",
+      "0x3042D4"
+    ],
+    [
+      "0x30420C",
+      "0x3042D0"
+    ],
+    [
+      "0x30421C",
+      "0x304304"
+    ],
+    [
+      "0x304222",
+      "0x3042F0"
+    ],
+    [
+      "0x30422E",
+      "0x30430C"
+    ],
+    [
+      "0x304270",
+      "0x3042AC"
+    ],
+    [
+      "0x304272",
+      "0x304310"
+    ],
+    [
+      "0x304602",
+      "0x304650"
+    ],
+    [
+      "0x304606",
+      "0x304654"
+    ],
+    [
+      "0x30461E",
+      "0x304650"
+    ],
+    [
+      "0x304620",
+      "0x304654"
+    ],
+    [
+      "0x304626",
+      "0x304658"
+    ],
+    [
+      "0x304634",
+      "0x30465C"
+    ],
+    [
+      "0x304636",
+      "0x304660"
+    ],
+    [
+      "0x30463C",
+      "0x304664"
+    ],
+    [
+      "0x30464A",
+      "0x304668"
+    ]
+  ],
+  "mailbox_final_hex": "5132374d000127113f01a55a51323743",
+  "non_promotable": true,
+  "paths": {
+    "active": "build/vr60_q027_cmd3f_active.32x",
+    "active_isr": "build/sh2/q027_external_isr_active_core.bin",
+    "active_isr_elf": "build/sh2/q027_external_isr_active.elf",
+    "control": "build/vr60_q027_cmd3f_stage_control.32x",
+    "control_isr": "build/sh2/q027_external_isr_control_core.bin",
+    "control_isr_elf": "build/sh2/q027_external_isr_control.elf",
+    "default": "build/vr_rebuild.32x",
+    "handler_bin": "build/sh2/q027_player_stock_dispatch.bin",
+    "handler_elf": "build/sh2/q027_player_stock_dispatch.elf",
+    "init_bin": "build/sh2/q027_external_isr_init.bin",
+    "mode1_active": "build/vr60_mode1_active.32x",
+    "mode1_control": "build/vr60_mode1_stage_control.32x",
+    "mode2_active": "build/vr60_mode2_active.32x",
+    "mode2_control": "build/vr60_mode2_stage_control.32x",
+    "park_bin": "build/sh2/q027_master_park.bin",
+    "q023_active": "build/vr60_q023_mailbox_active.32x",
+    "q023_control": "build/vr60_q023_mailbox_stage_control.32x",
+    "q026_active": "build/vr60_q026_player_active.32x",
+    "q026_control": "build/vr60_q026_player_stage_control.32x"
+  },
+  "player_call_table": [
+    "0x023017C0",
+    "0x02301D94",
+    "0x02301E00",
+    "0x02301E20",
+    "0x02301D40",
+    "0x02301820",
+    "0x0230189C",
+    "0x023017F2",
+    "0x02301B40",
+    "0x02301CBC",
+    "0x02301F20",
+    "0x02302158",
+    "0x02301E2E",
+    "0x02301E60"
+  ],
+  "promotable": false,
+  "schema": "vrd-vr60-q027-cmd3f-transport-pair-v1",
+  "scope": "master_comm0_stock_dispatch_player_shadow_gate",
+  "sha256": {
+    "active": "50c20e1a82ff8f1f6df49a86dfc51bdef8b2b435f365a16cab3dec0bf7834097",
+    "active_isr": "ee4fc19302ac06c7299c51beae8c32afdf55cef3c20e6dc6e4108d91265a7ab8",
+    "active_isr_elf": "11b29780c9393f4f81920ca540da0918036c015879114a6384135731097ad144",
+    "control": "33bfdd8c0e4b44187f25b40bfb540e4d7aebcb5dda55cbebf51c7e674834e511",
+    "control_isr": "4e1c00ef088af29babe4d95332633186f4665306ad7f4896b560ca800d3f7700",
+    "control_isr_elf": "553ae845c81e77dd294a3d66c3eebbd4e3d29bda3bc190dbcc8ecf999e7119d7",
+    "default": "6f2768f2cffc85cdc815a67c9f13837112829edac3f0921a57454e79e2523900",
+    "handler_bin": "d2f4d2cd1e7494be885aca5ffeef6437e7ad9ea2d14960ab63f5caf98005bfa9",
+    "handler_elf": "0b0e1f379b9e56254a9dd0ff7090b0eb6aff0dda0b42ce8f20fc7dfefd360d86",
+    "init_bin": "028dae982c9183d04196222c36dc763a95c840eec3bbdd0ebf517e3ef475eccd",
+    "mode1_active": "963658608b13a96981b8bca60c5e7225df7cf148b138cdf1a1d6982487ff4470",
+    "mode1_control": "391774569d17d2461decad5d002c9215914a84649b094b10a051b21b5348e9fd",
+    "mode2_active": "96d79e3fb4d2df8a69852917ac811f860935ae950fc87222d008fa45d47ee276",
+    "mode2_control": "da5ce4ec9ef8e050c7babeb113e26aa7335a3ff5285285e55a6606d2f96309b8",
+    "park_bin": "274e095396a1210a97a83b7b7deb7cb6e4dc80bd53af878321cc4d05b52e5425",
+    "q023_active": "8709aed4fc16d548b06694a92361a240537fbae7f987ee5f00a62c3c995a59ef",
+    "q023_control": "6f2768f2cffc85cdc815a67c9f13837112829edac3f0921a57454e79e2523900",
+    "q026_active": "c9358ad4ff04d7420c7bef1f45c163afb4506efae4990c4b48a475188e0b76f8",
+    "q026_control": "240dfd0a8df87a8118982849f354bc720b0011d480221f2031e3ceeb6dc1a66d"
+  },
+  "shared_comm_lanes_published": false,
+  "stack_arithmetic": {
+    "low_water": "0x0600FB68",
+    "nested_external_bytes": 84,
+    "persistent_saves_bytes": 48,
+    "player_deepest_bytes": 20
+  },
+  "static_eligible": true
+}

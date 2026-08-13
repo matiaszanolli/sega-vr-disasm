@@ -436,6 +436,10 @@ coord_transform_batched:
 ;
         dcb.b   ($301500 - *), $FF      ; Pad to 0x301500
 cmd3f_vr60_gameframe:
+        ifd     VR60_Q027_VALIDATION
+        include "sh2/generated/q027_player_stock_dispatch.inc"
+        assert  *=$3016B0,"Q-027 player handler must be exactly 432 bytes"
+        else
         ifd     VR60_Q026_VALIDATION
         include "sh2/generated/q026_player_shadow.inc"
         assert  *=$3015C8,"Q-026 player handler must be exactly 200 bytes"
@@ -448,6 +452,7 @@ cmd3f_vr60_gameframe:
         endif
         else
         include "sh2/generated/cmd3f_vr60_gameframe.inc"
+        endif
         endif
         endif
 
@@ -764,6 +769,32 @@ q026_init:
         assert  *=$304654,"Q-026 startup shim must end at file $304654"
         dcb.b   ($304700 - *),$FF
         assert  *=$304700,"Q-026 unified ISR allocation must end at file $304700"
+        endif
+
+; ============================================================================
+; Q-027 MASTER-ONLY STOCK-DISPATCH GATE: 0x304000 — VALIDATION BUILDS ONLY
+; ============================================================================
+; Core, fixed no-memory park loop, and startup are generated from independently
+; linked sections so every unowned byte remains asserted $FF.
+        ifd     VR60_Q027_VALIDATION
+        dcb.b   ($304000 - *),$FF
+q027_external_entry:
+        ifd     VR60_Q027_STAGE_CONTROL
+        include "sh2/generated/q027_external_isr_control_core.inc"
+        else
+        include "sh2/generated/q027_external_isr_active_core.inc"
+        endif
+        assert  *=$304314,"Q-027 ISR core/pool must end at file $304314"
+        dcb.b   ($304500 - *),$FF
+q027_master_park:
+        include "sh2/generated/q027_master_park.inc"
+        assert  *=$304504,"Q-027 park loop must end at file $304504"
+        dcb.b   ($304600 - *),$FF
+q027_init:
+        include "sh2/generated/q027_external_isr_init.inc"
+        assert  *=$30466C,"Q-027 startup shim must end at file $30466C"
+        dcb.b   ($304700 - *),$FF
+        assert  *=$304700,"Q-027 unified ISR allocation must end at file $304700"
         endif
 
 ; ============================================================================

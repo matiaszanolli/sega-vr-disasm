@@ -62,6 +62,17 @@ Q026_PROFILE_FRONTEND = $(Q020_PROFILE_DIR)/q026_profiling_frontend
 Q026_PROFILE_CORE = $(Q020_PROFILE_DIR)/q026_picodrive_libretro.so
 Q026_PICODRIVE_PREPARE = $(Q020_PROFILE_DIR)/prepare_q026_picodrive.py
 Q026_RUNTIME_TOOLS_VERIFY = $(Q020_PROFILE_DIR)/verify_q026_runtime_tools.py
+Q027_ACTIVE_ROM = $(BUILD_DIR)/vr60_q027_cmd3f_active.32x
+Q027_CONTROL_ROM = $(BUILD_DIR)/vr60_q027_cmd3f_stage_control.32x
+Q027_ROM_MANIFEST = $(TOOLS_DIR)/libretro-profiling/q027_cmd3f_rom_pair.json
+Q027_ROM_VERIFY = $(TOOLS_DIR)/libretro-profiling/verify_q027_cmd3f_rom_pair.py
+Q027_RUNTIME_CAPTURE = analysis/evidence/vr60-q027-cmd3f-transport-gate/runtime/run.json
+Q027_RUNTIME_RESULT = analysis/evidence/vr60-q027-cmd3f-transport-gate/runtime/result.json
+Q027_RUNTIME_VERIFY = $(TOOLS_DIR)/libretro-profiling/q027_cmd3f_runtime.py
+Q027_PROFILE_FRONTEND = $(Q020_PROFILE_DIR)/q027_profiling_frontend
+Q027_PROFILE_CORE = $(Q020_PROFILE_DIR)/q027_picodrive_libretro.so
+Q027_PICODRIVE_PREPARE = $(Q020_PROFILE_DIR)/prepare_q027_picodrive.py
+Q027_RUNTIME_TOOLS_VERIFY = $(Q020_PROFILE_DIR)/verify_q027_runtime_tools.py
 # Q-026 ROM rules appear before the shared SH2 variable catalog, so their
 # complete source/generated layout must be defined before those rules expand.
 SH2_Q026_HANDLER_SRC = disasm/sh2/expansion/q026_player_shadow.s
@@ -73,6 +84,18 @@ SH2_Q026_ISR_CORE_BIN = $(BUILD_DIR)/sh2/q026_external_isr_core.bin
 SH2_Q026_ISR_INIT_BIN = $(BUILD_DIR)/sh2/q026_external_isr_init.bin
 SH2_Q026_ISR_CORE_INC = disasm/sh2/generated/q026_external_isr_core.inc
 SH2_Q026_ISR_INIT_INC = disasm/sh2/generated/q026_external_isr_init.inc
+SH2_Q027_HANDLER_SRC = disasm/sh2/expansion/q027_player_stock_dispatch.s
+SH2_Q027_HANDLER_BIN = $(BUILD_DIR)/sh2/q027_player_stock_dispatch.bin
+SH2_Q027_HANDLER_INC = disasm/sh2/generated/q027_player_stock_dispatch.inc
+SH2_Q027_ISR_SRC = disasm/sh2/expansion/q027_external_isr.s
+SH2_Q027_ISR_ACTIVE_CORE_BIN = $(BUILD_DIR)/sh2/q027_external_isr_active_core.bin
+SH2_Q027_ISR_CONTROL_CORE_BIN = $(BUILD_DIR)/sh2/q027_external_isr_control_core.bin
+SH2_Q027_ISR_PARK_BIN = $(BUILD_DIR)/sh2/q027_master_park.bin
+SH2_Q027_ISR_INIT_BIN = $(BUILD_DIR)/sh2/q027_external_isr_init.bin
+SH2_Q027_ISR_ACTIVE_CORE_INC = disasm/sh2/generated/q027_external_isr_active_core.inc
+SH2_Q027_ISR_CONTROL_CORE_INC = disasm/sh2/generated/q027_external_isr_control_core.inc
+SH2_Q027_ISR_PARK_INC = disasm/sh2/generated/q027_master_park.inc
+SH2_Q027_ISR_INIT_INC = disasm/sh2/generated/q027_external_isr_init.inc
 Q020_CMDINT_PROBE_ROM = $(BUILD_DIR)/vr60_q020_cmdint_probe.32x
 Q020_CMDINT_PROBE_MANIFEST = $(TOOLS_DIR)/libretro-profiling/q020_cmdint_probe.json
 Q020_CMDINT_PROBE_VERIFY = $(TOOLS_DIR)/libretro-profiling/verify_q020_cmdint_probe.py
@@ -95,7 +118,7 @@ ASMFLAGS = -Fbin -m68000 -no-opt -spaces -quiet
 M68K_SRC = $(DISASM_DIR)/vrd.asm
 VR60_1P_HOOK_SITE_SRC = $(DISASM_DIR)/modules/68k/game/scene/game_frame_orch_013.asm
 VR60_1P_STAGING_HOOK_SRC = $(DISASM_DIR)/modules/68k/sh2/vr60_1p_staging_hook.asm
-.PHONY: all control-rom mode0-roms mode0-default-verify mode1-roms mode1-runtime-tools mode1-gate-validate mode2-roms mode2-gate-validate q023-mailbox-roms q026-player-roms q026-runtime-tools q026-runtime-validate q020-cmdint-probe q020-runtime-tools clean disasm tools test profile-frame profile-pc
+.PHONY: all control-rom mode0-roms mode0-default-verify mode1-roms mode1-runtime-tools mode1-gate-validate mode2-roms mode2-gate-validate q023-mailbox-roms q026-player-roms q026-runtime-tools q026-runtime-validate q027-cmd3f-roms q027-runtime-tools q027-runtime-validate q020-cmdint-probe q020-runtime-tools clean disasm tools test profile-frame profile-pc
 
 # ============================================================================
 # Main targets
@@ -325,6 +348,52 @@ q026-runtime-validate: q026-player-roms $(Q026_RUNTIME_CAPTURE) $(Q026_RUNTIME_R
 	$(PYTHON) $(Q026_RUNTIME_TOOLS_VERIFY) \
 		--frontend $(Q026_PROFILE_FRONTEND) --core $(Q026_PROFILE_CORE)
 	$(PYTHON) $(Q026_RUNTIME_VERIFY) validate $(Q026_RUNTIME_CAPTURE)
+
+# Q-027 validation-only Master-COMM0 stock-dispatch gate. Both arms publish
+# exact $013F and take both CMD edges. Their sole executable delta is the
+# Edge-2 ISR branch that suppresses table dispatch in STAGE-CONTROL.
+q027-cmd3f-roms: $(Q027_ROM_MANIFEST)
+	@echo "==> Q-027 cmd-$3F ACTIVE ROM: $(Q027_ACTIVE_ROM)"
+	@echo "==> Q-027 cmd-$3F STAGE-CONTROL ROM: $(Q027_CONTROL_ROM)"
+	@echo "==> Non-promotable static manifest: $(Q027_ROM_MANIFEST)"
+
+$(Q027_ACTIVE_ROM): sh2-assembly $(SH2_Q027_HANDLER_INC) $(SH2_Q027_ISR_ACTIVE_CORE_INC) $(SH2_Q027_ISR_PARK_INC) $(SH2_Q027_ISR_INIT_INC) $(M68K_SRC) $(VR60_1P_HOOK_SITE_SRC) $(VR60_1P_STAGING_HOOK_SRC) | dirs
+	@echo "==> Assembling validation-only Q-027 cmd-$3F ACTIVE ROM..."
+	$(ASM) $(ASMFLAGS) -D VR60_Q027_VALIDATION=1 -o $@ $(M68K_SRC)
+
+$(Q027_CONTROL_ROM): sh2-assembly $(SH2_Q027_HANDLER_INC) $(SH2_Q027_ISR_CONTROL_CORE_INC) $(SH2_Q027_ISR_PARK_INC) $(SH2_Q027_ISR_INIT_INC) $(M68K_SRC) $(VR60_1P_HOOK_SITE_SRC) $(VR60_1P_STAGING_HOOK_SRC) | dirs
+	@echo "==> Assembling validation-only Q-027 cmd-$3F STAGE-CONTROL ROM..."
+	$(ASM) $(ASMFLAGS) -D VR60_Q027_VALIDATION=1 -D VR60_Q027_STAGE_CONTROL=1 -o $@ $(M68K_SRC)
+
+$(Q027_ROM_MANIFEST): $(Q027_ACTIVE_ROM) $(Q027_CONTROL_ROM) $(OUTPUT_ROM) $(MODE1_ACTIVE_ROM) $(MODE1_CONTROL_ROM) $(MODE2_ACTIVE_ROM) $(MODE2_CONTROL_ROM) $(Q023_ACTIVE_ROM) $(Q023_CONTROL_ROM) $(Q026_ACTIVE_ROM) $(Q026_CONTROL_ROM) $(SH2_Q027_HANDLER_BIN) $(SH2_Q027_ISR_ACTIVE_CORE_BIN) $(SH2_Q027_ISR_CONTROL_CORE_BIN) $(SH2_Q027_ISR_PARK_BIN) $(SH2_Q027_ISR_INIT_BIN) $(Q027_ROM_VERIFY)
+	@echo "==> Verifying isolated Q-027 cmd-$3F transport pair..."
+	$(PYTHON) $(Q027_ROM_VERIFY) \
+		--active $(Q027_ACTIVE_ROM) --control $(Q027_CONTROL_ROM) \
+		--default $(OUTPUT_ROM) \
+		--mode1-active $(MODE1_ACTIVE_ROM) --mode1-control $(MODE1_CONTROL_ROM) \
+		--mode2-active $(MODE2_ACTIVE_ROM) --mode2-control $(MODE2_CONTROL_ROM) \
+		--q023-active $(Q023_ACTIVE_ROM) --q023-control $(Q023_CONTROL_ROM) \
+		--q026-active $(Q026_ACTIVE_ROM) --q026-control $(Q026_CONTROL_ROM) \
+		--handler-bin $(SH2_Q027_HANDLER_BIN) --handler-elf $(BUILD_DIR)/sh2/q027_player_stock_dispatch.elf \
+		--active-isr $(SH2_Q027_ISR_ACTIVE_CORE_BIN) --control-isr $(SH2_Q027_ISR_CONTROL_CORE_BIN) \
+		--active-isr-elf $(BUILD_DIR)/sh2/q027_external_isr_active.elf \
+		--control-isr-elf $(BUILD_DIR)/sh2/q027_external_isr_control.elf \
+		--park-bin $(SH2_Q027_ISR_PARK_BIN) --init-bin $(SH2_Q027_ISR_INIT_BIN) \
+		--manifest $(Q027_ROM_MANIFEST)
+
+q027-runtime-tools:
+	$(CC) -O2 -Wall -Wextra -o $(Q027_PROFILE_FRONTEND) $(Q020_PROFILE_DIR)/profiling_frontend.c -ldl
+	$(PYTHON) $(Q027_PICODRIVE_PREPARE) --source-root $(Q020_PICODRIVE_DIR)
+	$(MAKE) -C $(Q020_PICODRIVE_DIR) -f Makefile.libretro clean
+	$(MAKE) -C $(Q020_PICODRIVE_DIR) -f Makefile.libretro platform=unix
+	cp $(Q020_PICODRIVE_DIR)/picodrive_libretro.so $(Q027_PROFILE_CORE)
+	$(PYTHON) $(Q027_RUNTIME_TOOLS_VERIFY) \
+		--frontend $(Q027_PROFILE_FRONTEND) --core $(Q027_PROFILE_CORE)
+
+q027-runtime-validate: q027-cmd3f-roms $(Q027_RUNTIME_CAPTURE) $(Q027_RUNTIME_RESULT)
+	$(PYTHON) $(Q027_RUNTIME_TOOLS_VERIFY) \
+		--frontend $(Q027_PROFILE_FRONTEND) --core $(Q027_PROFILE_CORE)
+	$(PYTHON) $(Q027_RUNTIME_VERIFY) validate $(Q027_RUNTIME_CAPTURE)
 
 # Q-020 validation-only Master CMD interrupt probe. This build is deliberately
 # separate from mode-1 validation and can never be promoted as the default ROM.
@@ -2784,6 +2853,73 @@ $(SH2_Q026_ISR_INIT_INC): $(SH2_Q026_ISR_INIT_BIN)
 	@mkdir -p $(SH2_GEN_DIR)
 	@echo "; Auto-generated startup shim from $(SH2_Q026_ISR_SRC)" > $@
 	@echo "; DO NOT EDIT - regenerate with 'make q026-player-roms'" >> $@
+	@echo "" >> $@
+	@xxd -p $< | fold -w4 | awk '{print "        dc.w    $$" toupper($$1)}' >> $@
+
+# Q-027 handler is exactly the approved 432-byte cmd-$3F reservation.
+$(SH2_Q027_HANDLER_BIN): $(SH2_Q027_HANDLER_SRC) | dirs
+	@mkdir -p $(BUILD_DIR)/sh2
+	@echo "==> Assembling/linking SH2: Q-027 stock-dispatch player handler..."
+	$(SH2_AS) $(SH2_ASFLAGS) -o $(BUILD_DIR)/sh2/q027_player_stock_dispatch.o $<
+	$(SH2_LD) -Ttext=0x02301500 -e q027_player_stock_dispatch -o $(BUILD_DIR)/sh2/q027_player_stock_dispatch.elf $(BUILD_DIR)/sh2/q027_player_stock_dispatch.o
+	$(SH2_OBJCOPY) --only-section=.text -O binary $(BUILD_DIR)/sh2/q027_player_stock_dispatch.elf $@
+	@test "$$(wc -c < $@)" -eq 432
+	@echo "    Output: $@ (432 bytes)"
+
+$(SH2_Q027_HANDLER_INC): $(SH2_Q027_HANDLER_BIN)
+	@mkdir -p $(SH2_GEN_DIR)
+	@echo "; Auto-generated from $(SH2_Q027_HANDLER_SRC)" > $@
+	@echo "; DO NOT EDIT - regenerate with 'make q027-cmd3f-roms'" >> $@
+	@echo "" >> $@
+	@xxd -p $< | fold -w4 | awk '{print "        dc.w    $$" toupper($$1)}' >> $@
+
+# Q-027's one source emits separately placed core/park/startup sections.  This
+# avoids linker-created zero fill; expansion_300000.asm owns asserted $FF gaps.
+$(SH2_Q027_ISR_ACTIVE_CORE_BIN) $(SH2_Q027_ISR_PARK_BIN) $(SH2_Q027_ISR_INIT_BIN): $(SH2_Q027_ISR_SRC) | dirs
+	@mkdir -p $(BUILD_DIR)/sh2
+	@echo "==> Assembling/linking SH2: Q-027 ACTIVE unified ISR..."
+	$(SH2_AS) $(SH2_ASFLAGS) -o $(BUILD_DIR)/sh2/q027_external_isr_active.o $<
+	$(SH2_LD) --section-start=.q027_core=0x02304000 --section-start=.q027_park=0x02304500 --section-start=.q027_init=0x02304600 -e q027_external_entry -o $(BUILD_DIR)/sh2/q027_external_isr_active.elf $(BUILD_DIR)/sh2/q027_external_isr_active.o
+	$(SH2_OBJCOPY) --only-section=.q027_core -O binary $(BUILD_DIR)/sh2/q027_external_isr_active.elf $(SH2_Q027_ISR_ACTIVE_CORE_BIN)
+	$(SH2_OBJCOPY) --only-section=.q027_park -O binary $(BUILD_DIR)/sh2/q027_external_isr_active.elf $(SH2_Q027_ISR_PARK_BIN)
+	$(SH2_OBJCOPY) --only-section=.q027_init -O binary $(BUILD_DIR)/sh2/q027_external_isr_active.elf $(SH2_Q027_ISR_INIT_BIN)
+	@test "$$(wc -c < $(SH2_Q027_ISR_ACTIVE_CORE_BIN))" -eq 788
+	@test "$$(wc -c < $(SH2_Q027_ISR_PARK_BIN))" -eq 4
+	@test "$$(wc -c < $(SH2_Q027_ISR_INIT_BIN))" -eq 108
+
+$(SH2_Q027_ISR_CONTROL_CORE_BIN): $(SH2_Q027_ISR_SRC) | dirs
+	@mkdir -p $(BUILD_DIR)/sh2
+	@echo "==> Assembling/linking SH2: Q-027 STAGE-CONTROL unified ISR..."
+	$(SH2_AS) $(SH2_ASFLAGS) --defsym Q027_STAGE_CONTROL=1 -o $(BUILD_DIR)/sh2/q027_external_isr_control.o $<
+	$(SH2_LD) --section-start=.q027_core=0x02304000 --section-start=.q027_park=0x02304500 --section-start=.q027_init=0x02304600 -e q027_external_entry -o $(BUILD_DIR)/sh2/q027_external_isr_control.elf $(BUILD_DIR)/sh2/q027_external_isr_control.o
+	$(SH2_OBJCOPY) --only-section=.q027_core -O binary $(BUILD_DIR)/sh2/q027_external_isr_control.elf $@
+	@test "$$(wc -c < $@)" -eq 788
+
+$(SH2_Q027_ISR_ACTIVE_CORE_INC): $(SH2_Q027_ISR_ACTIVE_CORE_BIN)
+	@mkdir -p $(SH2_GEN_DIR)
+	@echo "; Auto-generated ACTIVE core from $(SH2_Q027_ISR_SRC)" > $@
+	@echo "; DO NOT EDIT - regenerate with 'make q027-cmd3f-roms'" >> $@
+	@echo "" >> $@
+	@xxd -p $< | fold -w4 | awk '{print "        dc.w    $$" toupper($$1)}' >> $@
+
+$(SH2_Q027_ISR_CONTROL_CORE_INC): $(SH2_Q027_ISR_CONTROL_CORE_BIN)
+	@mkdir -p $(SH2_GEN_DIR)
+	@echo "; Auto-generated STAGE-CONTROL core from $(SH2_Q027_ISR_SRC)" > $@
+	@echo "; DO NOT EDIT - regenerate with 'make q027-cmd3f-roms'" >> $@
+	@echo "" >> $@
+	@xxd -p $< | fold -w4 | awk '{print "        dc.w    $$" toupper($$1)}' >> $@
+
+$(SH2_Q027_ISR_PARK_INC): $(SH2_Q027_ISR_PARK_BIN)
+	@mkdir -p $(SH2_GEN_DIR)
+	@echo "; Auto-generated fixed park loop from $(SH2_Q027_ISR_SRC)" > $@
+	@echo "; DO NOT EDIT - regenerate with 'make q027-cmd3f-roms'" >> $@
+	@echo "" >> $@
+	@xxd -p $< | fold -w4 | awk '{print "        dc.w    $$" toupper($$1)}' >> $@
+
+$(SH2_Q027_ISR_INIT_INC): $(SH2_Q027_ISR_INIT_BIN)
+	@mkdir -p $(SH2_GEN_DIR)
+	@echo "; Auto-generated startup shim from $(SH2_Q027_ISR_SRC)" > $@
+	@echo "; DO NOT EDIT - regenerate with 'make q027-cmd3f-roms'" >> $@
 	@echo "" >> $@
 	@xxd -p $< | fold -w4 | awk '{print "        dc.w    $$" toupper($$1)}' >> $@
 

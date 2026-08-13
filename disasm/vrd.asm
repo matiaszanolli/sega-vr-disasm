@@ -6,6 +6,36 @@
 ; Global hardware register definitions (canonical — do not redefine locally)
         include "modules/shared/definitions.asm"
 
+; Q-027 is a validation-only Master-COMM0 stock-dispatch gate.  Its handler,
+; unified external vectors, startup shim, lifecycle wrapper, and two-edge
+; transport are indivisible and cannot compose with any earlier gate/default.
+        ifd     VR60_Q027_STAGE_CONTROL
+        ifd     VR60_Q027_VALIDATION
+        else
+        assert  0,"VR60_Q027_STAGE_CONTROL requires VR60_Q027_VALIDATION"
+        endif
+        endif
+        ifd     VR60_Q027_VALIDATION
+        ifd     VR60_MODE0_ONLY
+        assert  0,"Q-027 and ordinary VR60_MODE0_ONLY are mutually exclusive"
+        endif
+        ifd     VR60_Q020_CMDINT_PROBE
+        assert  0,"Q-027 and Q-020 CMDINT probe are mutually exclusive"
+        endif
+        ifd     VR60_MODE1_VALIDATION
+        assert  0,"Q-027 and mode-1 validation are mutually exclusive"
+        endif
+        ifd     VR60_MODE2_VALIDATION
+        assert  0,"Q-027 and mode-2 validation are mutually exclusive"
+        endif
+        ifd     VR60_Q023_MAILBOX_VALIDATION
+        assert  0,"Q-027 and Q-023 mailbox validation are mutually exclusive"
+        endif
+        ifd     VR60_Q026_VALIDATION
+        assert  0,"Q-027 and Q-026 validation are mutually exclusive"
+        endif
+        endif
+
 ; Q-026 is a validation-only direct-CMDINT player-physics precursor.  Its
 ; handler, vectors, startup shim, lifecycle wrapper, and trigger slot are one
 ; indivisible artifact and cannot compose with any ordinary or earlier gate.

@@ -1,0 +1,73 @@
+VRD Profiling frontend
+  ROM: /mnt/data/src/32x-playground/build/vr60_q027_cmd3f_active.32x
+  Profile log: /mnt/data/src/32x-playground/analysis/evidence/vr60-q027-cmd3f-transport-gate/runtime/drc-active-1.profile.csv
+  Max frames: 1340
+  Autoplay: ENABLED
+  Input: fixed hold mask
+Core: PicoDrive (version 2.04-26ecb2b)
+ROM loaded: 4128768 bytes
+00000:000: couldn't open carthw.cfg!
+00000:000: sram: 200000 - 203fff; eeprom: 0
+Game loaded successfully
+Commands:
+  run [frames]                    Advance emulation (default 1)
+  joypad <mask>                   Set the P1 mask used by subsequent frames
+  record start <path>             Start a new frame,mask recording
+  record stop                     Finalize the active recording
+  regs [master|slave]             Read SH2 registers
+  read <68k|master|slave> <addr> [size]
+  save <path>                     Save a libretro savestate
+  load <path>                     Load a matching savestate
+  reset                           Assert the core's normal reset path
+  status                          Show session frame
+  help                            Show this help
+  quit                            Exit debugger
+vrd-dbg> 00002:072: 32X startup
+00002:072: drc_cmn_init: 0x7720513b1000, 4194304 bytes: 0
+DRC registers created, 15 host regs (3 REG, 2 STATIC, 1 CTX)
+00746:001: DREQ FIFO w16 without 68S?
+00748:257: DREQ FIFO w16 without 68S?
+00751:258: DREQ FIFO w16 without 68S?
+00754:258: DREQ FIFO w16 without 68S?
+00757:260: DREQ FIFO w16 without 68S?
+00760:259: DREQ FIFO w16 without 68S?
+00763:259: DREQ FIFO w16 without 68S?
+00767:017: DREQ FIFO w16 without 68S?
+00769:260: DREQ FIFO w16 without 68S?
+00772:261: DREQ FIFO w16 without 68S?
+00775:260: DREQ FIFO w16 without 68S?
+00778:260: DREQ FIFO w16 without 68S?
+00781:261: DREQ FIFO w16 without 68S?
+00784:261: DREQ FIFO w16 without 68S?
+00788:018: DREQ FIFO w16 without 68S?
+00790:261: DREQ FIFO w16 without 68S?
+00793:261: DREQ FIFO w16 without 68S?
+00797:000: DREQ FIFO w16 without 68S?
+00800:001: DREQ FIFO w16 without 68S?
+00803:002: DREQ FIFO w16 without 68S?
+00805:261: DREQ FIFO w16 without 68S?
+00809:001: DREQ FIFO w16 without 68S?
+00812:001: DREQ FIFO w16 without 68S?
+00815:000: DREQ FIFO w16 without 68S?
+00818:011: DREQ FIFO w16 without 68S?
+00821:000: DREQ FIFO w16 without 68S?
+00824:001: DREQ FIFO w16 without 68S?
+00827:000: DREQ FIFO w16 without 68S?
+00829:261: DREQ FIFO w16 without 68S?
+00833:001: DREQ FIFO w16 without 68S?
+00835:261: DREQ FIFO w16 without 68S?
+00838:261: DREQ FIFO w16 without 68S?
+00841:259: DREQ FIFO w16 without 68S?
+00845:019: DREQ FIFO w16 without 68S?
+00848:016: DREQ FIFO w16 without 68S?
+00851:006: DREQ FIFO w16 without 68S?
+00854:001: DREQ FIFO w16 without 68S?
+00857:005: DREQ FIFO w16 without 68S?
+00859:259: DREQ FIFO w16 without 68S?
+00863:001: DREQ FIFO w16 without 68S?
+00865:260: DREQ FIFO w16 without 68S?
+00869:005: DREQ FIFO w16 without 68S?
+00872:000: DREQ FIFO w16 without 68S?
+Advanced 1340 frames; session frame=1340
+vrd-dbg> 01340:261: 32X shutdown
+Profile data written to: /mnt/data/src/32x-playground/analysis/evidence/vr60-q027-cmd3f-transport-gate/runtime/drc-active-1.profile.csv

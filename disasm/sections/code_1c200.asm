@@ -80,8 +80,15 @@
 ; this lives here (equal-size swap; cross-section abs.l JSR convention).
         include "modules/68k/sh2/vr60_1p_staging_hook.asm"
 
-; --- Q-020 validation-only reset wrappers/helpers ---
+; --- Validation-only reset wrappers/helpers ---
 ; Ordinary mode 0 leaves this entire interval as the original $FF padding.
+        ifd     VR60_Q027_VALIDATION
+        dcb.b   ($01C930-*),$FF
+        assert  *=$01C930,"Q-027 helper must start at file $01C930"
+        include "modules/68k/sh2/q027_cmd3f_transport.asm"
+        assert  q027_scene_entry_wrapper=$01CB00,"Q-027 wrapper must start at file $01CB00"
+        assert  *=$01CB0E,"Q-027 lifecycle wrapper must end at file $01CB0E"
+        else
         ifd     VR60_Q026_VALIDATION
         include "modules/68k/sh2/q026_player_cmdint.asm"
         assert  *=$01C93E,"Q-026 lifecycle wrapper must end at file $01C93E"
@@ -95,6 +102,7 @@
         else
         ifd     VR60_MODE2_VALIDATION
         include "modules/68k/sh2/vr60_mode1_validation.asm"
+        endif
         endif
         endif
         endif

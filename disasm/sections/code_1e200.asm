@@ -3973,6 +3973,24 @@
         dc.w    $0308        ; $0200FA
         dc.w    $0600        ; $0200FC
         dc.w    $0308        ; $0200FE
+        ifd     VR60_Q027_VALIDATION
+        dc.l    $02304000    ; $020100 - all Q-027 external levels share unified ISR
+        dc.l    $02304000    ; $020104
+        dc.l    $02304000    ; $020108
+        dc.l    $02304000    ; $02010C
+        dc.l    $02304000    ; $020110
+        dc.l    $02304000    ; $020114
+        dc.l    $02304000    ; $020118
+        dc.l    $02304000    ; $02011C
+        dc.l    $02304000    ; $020120 - level 8 CMD
+        dc.l    $02304000    ; $020124
+        dc.l    $02304000    ; $020128
+        dc.l    $02304000    ; $02012C
+        dc.l    $02304000    ; $020130
+        dc.l    $02304000    ; $020134
+        dc.l    $02304000    ; $020138 - level 14 VRES
+        dc.l    $02304000    ; $02013C
+        else
         ifd     VR60_Q026_VALIDATION
         dc.l    $02304000    ; $020100 - all Q-026 external levels share unified ISR
         dc.l    $02304000    ; $020104
@@ -4077,6 +4095,7 @@
         dc.w    $06AC        ; $02013A
         dc.w    $0600        ; $02013C
         dc.w    $06AC        ; $02013E
+        endif
         endif
         endif
         endif

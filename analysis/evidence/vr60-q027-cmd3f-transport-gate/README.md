@@ -1,8 +1,8 @@
 # Q-027 bounded cmd `$3F` transport/convergence gate
 
-**Result:** the post-approval candidate archive passes the approved Q-027 v5 validator on
-2026-08-13. Final status remains pending fresh review of the completed diff. This gate is
-non-promotable and leaves the ordinary mode-0 ROM unchanged.
+**Result:** the fresh post-approval archive passed the approved Q-027 v5 validator and a fresh
+completed-diff audit on 2026-08-13. This gate is non-promotable and leaves the ordinary mode-0
+ROM unchanged.
 
 Q-027 proves one bounded Master-COMM0 invocation through the real stock table `$3F` target
 `$02301500`. It uses the accepted Q-026/Q-020 320-byte player seed, executes the specialized

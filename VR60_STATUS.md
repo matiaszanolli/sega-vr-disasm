@@ -17,7 +17,7 @@ This file is the short, current answer to “what works now?” Older roadmap en
 | cmd `$3E` player-entity transfer (mode 0) | Yes | **Enabled; promoted ordinary default** | **Q-020 mode-0 sub-gate passed over all 3 trustworthy lifecycles** |
 | cmd `$3E` globals transfer (mode 1) | Validation pair only | **Disabled/unreachable in the promoted default** | **Isolated validation-stage PASS:** CMDINT Gate B passed; not promoted and not real-hardware proof |
 | cmd `$3E` AI-entity transfer (mode 2) | Validation pair only | **Disabled/unreachable in the promoted default** | **Isolated validation-stage PASS:** exact first-post-transfer CMDINT/DREQ transport; not persistent ownership, promotion, or real-hardware proof |
-| cmd `$3F` SH2 game-frame pipeline | Yes | **Disabled in the promoted 1P default** | **Q-027 candidate runtime gate passes, pending completed-diff audit:** one bounded COMM0/stock-table `$3F` player-shadow transaction; not the full shared-lane pipeline |
+| cmd `$3F` SH2 game-frame pipeline | Yes | **Disabled in the promoted 1P default** | **Q-027 isolated validation-stage PASS:** one bounded COMM0/stock-table `$3F` player-shadow transaction; not the full shared-lane pipeline and not promoted |
 | Q-026 direct player-physics CMDINT precursor | Validation pair only | **Disabled/unreachable in the promoted default** | **Isolated validation-stage PASS:** one bounded direct invocation; not cmd `$3F`, authority, cadence, or FPS validation |
 | SH2 physics and AI ports | Yes | No; reachable only through the disabled cmd `$3F` path | Assembly/reference work exists; gameplay authority not proven |
 | SH2 collision ports | Yes | No | Reference-model tested, not dispatched by the live pipeline |
@@ -293,7 +293,7 @@ check pass. Evidence is at
 This is not cmd `$3F` shadow execution, collision/equivalence, a bridge, authority transfer,
 cadence/scaling, real-hardware, CPU-budget, or FPS proof.
 
-**Q-027 has a fresh candidate PASS on 2026-08-13, pending completed-diff audit.** The isolated
+**Q-027 passed its isolated validation stage on 2026-08-13.** The isolated
 ACTIVE/STAGE-CONTROL pair uses only Master-owned COMM0, two CMD edges, and a parked stock Master
 dispatcher. ACTIVE reaches the real stock table `$3F` target `$02301500`, runs the specialized
 player-only handler from the accepted 320-byte mode-0 seed, and writes the fixed proof mailbox at
@@ -303,14 +303,17 @@ repeats per arm. Interpreter `T_I=1264` retains one exact displayed CRC mismatch
 (`344A67A6/D08BAC75`), resumes CRC equality at `T_I+3`, and resumes full-profile equality at
 `T_I+6`. DRC `T_D=1262` has no CRC mismatch and resumes full-profile equality at `T_D+1`.
 All exact protocol/context/stack/mailbox/player/write/chronology predicates and 45 runtime
-mutations pass. Evidence is at
+mutations pass. A fresh completed-diff Auditor reproduced both build targets, all 23 test
+methods, the eight-run capture contract, exact identities, and the sole two-byte pair delta.
+Evidence is at
 [analysis/evidence/vr60-q027-cmd3f-transport-gate](analysis/evidence/vr60-q027-cmd3f-transport-gate/README.md).
 This does not validate the legacy shared-lane parameters, render equivalence, a bridge,
 collision, authority, cadence, real hardware, CPU budget, or FPS, and cannot promote cmd `$3F`.
 
-The current active work item is **fresh completed-diff audit of Q-027**. Do not begin the
-renderer bridge until that review accepts the candidate archive. Preserve the promoted mode-0
-default and the separately scoped mode-1/mode-2/Q-026 results.
+The current active work item is the next independent stage: **reversible A/B/C probes into the
+C128/C178/C254 descriptor families actually consumed by cmd `$02`**. Preserve the promoted
+mode-0 default and the separately scoped mode-1/mode-2/Q-026/Q-027 results. Do not promote the
+legacy cmd `$3F` shared-lane pipeline or combine the bridge with authority or cadence changes.
 
 The archived VR60-011 suite satisfies this prerequisite with the VR60 hook bypassed:
 
@@ -322,10 +325,9 @@ The archived VR60-011 suite satisfies this prerequisite with the VR60 hook bypas
 
 After that baseline exists, integrate one independently observable stage at a time:
 
-1. Complete fresh review of the Q-027 bounded cmd `$3F` candidate while the 68000 remains authoritative.
-2. Verify a bridge into the descriptor blocks actually consumed by cmd `$02`, beginning with reversible A/B/C visibility/position probes.
-3. Compare SH2 results against the 68000, then switch authority subsystem by subsystem; collision and the 68000 bypass come last.
-4. Only after correctness and ownership are proved, change the game-logic cadence and scale time-dependent constants for 60 Hz.
+1. Verify a bridge into the descriptor blocks actually consumed by cmd `$02`, beginning with reversible A/B/C visibility/position probes.
+2. Compare SH2 results against the 68000, then switch authority subsystem by subsystem; collision and the 68000 bypass come last.
+3. Only after correctness and ownership are proved, change the game-logic cadence and scale time-dependent constants for 60 Hz.
 
 ## Definition of “60 FPS achieved”
 

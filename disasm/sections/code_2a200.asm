@@ -3301,154 +3301,34 @@
         dc.w    $0000        ; $02BBBA
         dc.w    $0000        ; $02BBBC
         dc.w    $0000        ; $02BBBE
-        dc.w    $0000        ; $02BBC0
-        dc.w    $0000        ; $02BBC2
-        dc.w    $0000        ; $02BBC4
-        dc.w    $0000        ; $02BBC6
-        dc.w    $0000        ; $02BBC8
-        dc.w    $0000        ; $02BBCA
-        dc.w    $0000        ; $02BBCC
-        dc.w    $0000        ; $02BBCE
-        dc.w    $0000        ; $02BBD0
-        dc.w    $0000        ; $02BBD2
-        dc.w    $0000        ; $02BBD4
-        dc.w    $0000        ; $02BBD6
-        dc.w    $0000        ; $02BBD8
-        dc.w    $0000        ; $02BBDA
-        dc.w    $0000        ; $02BBDC
-        dc.w    $0000        ; $02BBDE
-        dc.w    $0000        ; $02BBE0
-        dc.w    $0000        ; $02BBE2
-        dc.w    $0000        ; $02BBE4
-        dc.w    $0000        ; $02BBE6
-        dc.w    $0000        ; $02BBE8
-        dc.w    $0000        ; $02BBEA
-        dc.w    $0000        ; $02BBEC
-        dc.w    $0000        ; $02BBEE
-        dc.w    $0000        ; $02BBF0
-        dc.w    $0000        ; $02BBF2
-        dc.w    $0000        ; $02BBF4
-        dc.w    $0000        ; $02BBF6
-        dc.w    $0000        ; $02BBF8
-        dc.w    $0000        ; $02BBFA
-        dc.w    $0000        ; $02BBFC
-        dc.w    $0000        ; $02BBFE
-        dc.w    $0000        ; $02BC00
-        dc.w    $0000        ; $02BC02
-        dc.w    $0000        ; $02BC04
-        dc.w    $0000        ; $02BC06
-        dc.w    $0000        ; $02BC08
-        dc.w    $0000        ; $02BC0A
-        dc.w    $0000        ; $02BC0C
-        dc.w    $0000        ; $02BC0E
-        dc.w    $0000        ; $02BC10
-        dc.w    $0000        ; $02BC12
-        dc.w    $0000        ; $02BC14
-        dc.w    $0000        ; $02BC16
-        dc.w    $0000        ; $02BC18
-        dc.w    $0000        ; $02BC1A
-        dc.w    $0000        ; $02BC1C
-        dc.w    $0000        ; $02BC1E
-        dc.w    $0000        ; $02BC20
-        dc.w    $0000        ; $02BC22
-        dc.w    $0000        ; $02BC24
-        dc.w    $0000        ; $02BC26
-        dc.w    $0000        ; $02BC28
-        dc.w    $0000        ; $02BC2A
-        dc.w    $0000        ; $02BC2C
-        dc.w    $0000        ; $02BC2E
-        dc.w    $0000        ; $02BC30
-        dc.w    $0000        ; $02BC32
-        dc.w    $0000        ; $02BC34
-        dc.w    $0000        ; $02BC36
-        dc.w    $0000        ; $02BC38
-        dc.w    $0000        ; $02BC3A
-        dc.w    $0000        ; $02BC3C
-        dc.w    $0000        ; $02BC3E
-        dc.w    $0000        ; $02BC40
-        dc.w    $0000        ; $02BC42
-        dc.w    $0000        ; $02BC44
-        dc.w    $0000        ; $02BC46
-        dc.w    $0000        ; $02BC48
-        dc.w    $0000        ; $02BC4A
-        dc.w    $0000        ; $02BC4C
-        dc.w    $0000        ; $02BC4E
-        dc.w    $0000        ; $02BC50
-        dc.w    $0000        ; $02BC52
-        dc.w    $0000        ; $02BC54
-        dc.w    $0000        ; $02BC56
-        dc.w    $0000        ; $02BC58
-        dc.w    $0000        ; $02BC5A
-        dc.w    $0000        ; $02BC5C
-        dc.w    $0000        ; $02BC5E
-        dc.w    $0000        ; $02BC60
-        dc.w    $0000        ; $02BC62
-        dc.w    $0000        ; $02BC64
-        dc.w    $0000        ; $02BC66
-        dc.w    $0000        ; $02BC68
-        dc.w    $0000        ; $02BC6A
-        dc.w    $0000        ; $02BC6C
-        dc.w    $0000        ; $02BC6E
-        dc.w    $0000        ; $02BC70
-        dc.w    $0000        ; $02BC72
-        dc.w    $0000        ; $02BC74
-        dc.w    $0000        ; $02BC76
-        dc.w    $0000        ; $02BC78
-        dc.w    $0000        ; $02BC7A
-        dc.w    $0000        ; $02BC7C
-        dc.w    $0000        ; $02BC7E
-        dc.w    $0000        ; $02BC80
-        dc.w    $0000        ; $02BC82
-        dc.w    $0000        ; $02BC84
-        dc.w    $0000        ; $02BC86
-        dc.w    $0000        ; $02BC88
-        dc.w    $0000        ; $02BC8A
-        dc.w    $0000        ; $02BC8C
-        dc.w    $0000        ; $02BC8E
-        dc.w    $0000        ; $02BC90
-        dc.w    $0000        ; $02BC92
-        dc.w    $0000        ; $02BC94
-        dc.w    $0000        ; $02BC96
-        dc.w    $0000        ; $02BC98
-        dc.w    $0000        ; $02BC9A
-        dc.w    $0000        ; $02BC9C
-        dc.w    $0000        ; $02BC9E
-        dc.w    $0000        ; $02BCA0
-        dc.w    $0000        ; $02BCA2
-        dc.w    $0000        ; $02BCA4
-        dc.w    $0000        ; $02BCA6
-        dc.w    $0000        ; $02BCA8
-        dc.w    $0000        ; $02BCAA
-        dc.w    $0000        ; $02BCAC
-        dc.w    $0000        ; $02BCAE
-        dc.w    $0000        ; $02BCB0
-        dc.w    $0000        ; $02BCB2
-        dc.w    $0000        ; $02BCB4
-        dc.w    $0000        ; $02BCB6
-        dc.w    $0000        ; $02BCB8
-        dc.w    $0000        ; $02BCBA
-        dc.w    $0000        ; $02BCBC
-        dc.w    $0000        ; $02BCBE
-        dc.w    $0000        ; $02BCC0
-        dc.w    $0000        ; $02BCC2
-        dc.w    $0000        ; $02BCC4
-        dc.w    $0000        ; $02BCC6
-        dc.w    $0000        ; $02BCC8
-        dc.w    $0000        ; $02BCCA
-        dc.w    $0000        ; $02BCCC
-        dc.w    $0000        ; $02BCCE
-        dc.w    $0000        ; $02BCD0
-        dc.w    $0000        ; $02BCD2
-        dc.w    $0000        ; $02BCD4
-        dc.w    $0000        ; $02BCD6
-        dc.w    $0000        ; $02BCD8
-        dc.w    $0000        ; $02BCDA
-        dc.w    $0000        ; $02BCDC
-        dc.w    $0000        ; $02BCDE
-        dc.w    $0000        ; $02BCE0
-        dc.w    $0000        ; $02BCE2
-        dc.w    $0000        ; $02BCE4
-        dc.w    $0000        ; $02BCE6
+        ifd     VR60_Q028_VALIDATION
+        ifd     VR60_Q028_FAMILY_A
+        ifd     VR60_Q028_STAGE_CONTROL
+        include "sh2/generated/q028_family_a_control.inc"
+        else
+        include "sh2/generated/q028_family_a_active.inc"
+        endif
+        endif
+        ifd     VR60_Q028_FAMILY_B
+        ifd     VR60_Q028_STAGE_CONTROL
+        include "sh2/generated/q028_family_b_control.inc"
+        else
+        include "sh2/generated/q028_family_b_active.inc"
+        endif
+        endif
+        ifd     VR60_Q028_FAMILY_C
+        ifd     VR60_Q028_STAGE_CONTROL
+        include "sh2/generated/q028_family_c_control.inc"
+        else
+        include "sh2/generated/q028_family_c_active.inc"
+        endif
+        endif
+        else
+        rept    148
+        dc.w    $0000
+        endr
+        endif
+        assert  *=$02BCE8,"Q-028 wrapper must end at file $02BCE8"
         dc.w    $0000        ; $02BCE8
         dc.w    $0000        ; $02BCEA
         dc.w    $0000        ; $02BCEC

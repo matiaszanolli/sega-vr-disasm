@@ -1889,8 +1889,13 @@ vdp_wait_test:                   ; $02050C
         dc.w    $CA60        ; $02107A
         dc.w    $0600        ; $02107C
         dc.w    $C128        ; $02107E
+        ifd     VR60_Q028_VALIDATION
+        dc.w    $0600        ; $021080 - Q-028 stock cmd-$02 wrapper
+        dc.w    $BBC0        ; $021082
+        else
         dc.w    $0600        ; $021080
         dc.w    $24DC        ; $021082
+        endif
         dc.w    $0600        ; $021084
         dc.w    $CB20        ; $021086
         dc.w    $0600        ; $021088

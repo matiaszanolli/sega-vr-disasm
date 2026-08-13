@@ -73,6 +73,31 @@ Q027_PROFILE_FRONTEND = $(Q020_PROFILE_DIR)/q027_profiling_frontend
 Q027_PROFILE_CORE = $(Q020_PROFILE_DIR)/q027_picodrive_libretro.so
 Q027_PICODRIVE_PREPARE = $(Q020_PROFILE_DIR)/prepare_q027_picodrive.py
 Q027_RUNTIME_TOOLS_VERIFY = $(Q020_PROFILE_DIR)/verify_q027_runtime_tools.py
+Q028_ROM_VERIFY = $(TOOLS_DIR)/libretro-profiling/verify_q028_renderer_probe_roms.py
+Q028_ROM_MANIFEST = $(TOOLS_DIR)/libretro-profiling/q028_renderer_probe_roms.json
+Q028_WRAPPER_SRC = disasm/sh2/validation/q028_renderer_bridge_probe.s
+Q028_FAMILIES = a b c
+Q028_A_BASELINE_ROM = $(BUILD_DIR)/vr60_q028_family_a_baseline.32x
+Q028_A_CONTROL_ROM = $(BUILD_DIR)/vr60_q028_family_a_control.32x
+Q028_A_ACTIVE_ROM = $(BUILD_DIR)/vr60_q028_family_a_active.32x
+Q028_B_BASELINE_ROM = $(BUILD_DIR)/vr60_q028_family_b_baseline.32x
+Q028_B_CONTROL_ROM = $(BUILD_DIR)/vr60_q028_family_b_control.32x
+Q028_B_ACTIVE_ROM = $(BUILD_DIR)/vr60_q028_family_b_active.32x
+Q028_C_BASELINE_ROM = $(BUILD_DIR)/vr60_q028_family_c_baseline.32x
+Q028_C_CONTROL_ROM = $(BUILD_DIR)/vr60_q028_family_c_control.32x
+Q028_C_ACTIVE_ROM = $(BUILD_DIR)/vr60_q028_family_c_active.32x
+Q028_A_ACTIVE_BIN = $(BUILD_DIR)/sh2/q028_family_a_active.bin
+Q028_A_CONTROL_BIN = $(BUILD_DIR)/sh2/q028_family_a_control.bin
+Q028_B_ACTIVE_BIN = $(BUILD_DIR)/sh2/q028_family_b_active.bin
+Q028_B_CONTROL_BIN = $(BUILD_DIR)/sh2/q028_family_b_control.bin
+Q028_C_ACTIVE_BIN = $(BUILD_DIR)/sh2/q028_family_c_active.bin
+Q028_C_CONTROL_BIN = $(BUILD_DIR)/sh2/q028_family_c_control.bin
+Q028_A_ACTIVE_INC = disasm/sh2/generated/q028_family_a_active.inc
+Q028_A_CONTROL_INC = disasm/sh2/generated/q028_family_a_control.inc
+Q028_B_ACTIVE_INC = disasm/sh2/generated/q028_family_b_active.inc
+Q028_B_CONTROL_INC = disasm/sh2/generated/q028_family_b_control.inc
+Q028_C_ACTIVE_INC = disasm/sh2/generated/q028_family_c_active.inc
+Q028_C_CONTROL_INC = disasm/sh2/generated/q028_family_c_control.inc
 # Q-026 ROM rules appear before the shared SH2 variable catalog, so their
 # complete source/generated layout must be defined before those rules expand.
 SH2_Q026_HANDLER_SRC = disasm/sh2/expansion/q026_player_shadow.s
@@ -118,7 +143,7 @@ ASMFLAGS = -Fbin -m68000 -no-opt -spaces -quiet
 M68K_SRC = $(DISASM_DIR)/vrd.asm
 VR60_1P_HOOK_SITE_SRC = $(DISASM_DIR)/modules/68k/game/scene/game_frame_orch_013.asm
 VR60_1P_STAGING_HOOK_SRC = $(DISASM_DIR)/modules/68k/sh2/vr60_1p_staging_hook.asm
-.PHONY: all control-rom mode0-roms mode0-default-verify mode1-roms mode1-runtime-tools mode1-gate-validate mode2-roms mode2-gate-validate q023-mailbox-roms q026-player-roms q026-runtime-tools q026-runtime-validate q027-cmd3f-roms q027-runtime-tools q027-runtime-validate q020-cmdint-probe q020-runtime-tools clean disasm tools test profile-frame profile-pc
+.PHONY: all control-rom mode0-roms mode0-default-verify mode1-roms mode1-runtime-tools mode1-gate-validate mode2-roms mode2-gate-validate q023-mailbox-roms q026-player-roms q026-runtime-tools q026-runtime-validate q027-cmd3f-roms q027-runtime-tools q027-runtime-validate q028-renderer-probe-roms q020-cmdint-probe q020-runtime-tools clean disasm tools test profile-frame profile-pc
 
 # ============================================================================
 # Main targets
@@ -394,6 +419,44 @@ q027-runtime-validate: q027-cmd3f-roms $(Q027_RUNTIME_CAPTURE) $(Q027_RUNTIME_RE
 	$(PYTHON) $(Q027_RUNTIME_TOOLS_VERIFY) \
 		--frontend $(Q027_PROFILE_FRONTEND) --core $(Q027_PROFILE_CORE)
 	$(PYTHON) $(Q027_RUNTIME_VERIFY) validate $(Q027_RUNTIME_CAPTURE)
+
+# Q-028 validation-only stock-cmd $02 renderer descriptor family triplets.
+# BASELINE remains the exact accepted ordinary image. CONTROL/ACTIVE contain
+# the same 296-byte boot-copied wrapper and differ only at file $02BC3A.
+q028-renderer-probe-roms: $(Q028_ROM_MANIFEST)
+	@echo "==> Q-028 family-all A/B/C BASELINE/CONTROL/ACTIVE triplets ready"
+	@echo "==> Non-promotable static manifest: $(Q028_ROM_MANIFEST)"
+
+$(Q028_A_BASELINE_ROM): $(M68K_SRC) sh2-assembly | dirs
+	$(ASM) $(ASMFLAGS) -D VR60_MODE0_ONLY=1 -D VR60_Q028_BASELINE=1 -D VR60_Q028_FAMILY_A=1 -o $@ $<
+$(Q028_B_BASELINE_ROM): $(M68K_SRC) sh2-assembly | dirs
+	$(ASM) $(ASMFLAGS) -D VR60_MODE0_ONLY=1 -D VR60_Q028_BASELINE=1 -D VR60_Q028_FAMILY_B=1 -o $@ $<
+$(Q028_C_BASELINE_ROM): $(M68K_SRC) sh2-assembly | dirs
+	$(ASM) $(ASMFLAGS) -D VR60_MODE0_ONLY=1 -D VR60_Q028_BASELINE=1 -D VR60_Q028_FAMILY_C=1 -o $@ $<
+
+$(Q028_A_ACTIVE_ROM): $(M68K_SRC) $(Q028_A_ACTIVE_INC) | dirs
+	$(ASM) $(ASMFLAGS) -D VR60_MODE0_ONLY=1 -D VR60_Q028_VALIDATION=1 -D VR60_Q028_FAMILY_A=1 -o $@ $<
+$(Q028_A_CONTROL_ROM): $(M68K_SRC) $(Q028_A_CONTROL_INC) | dirs
+	$(ASM) $(ASMFLAGS) -D VR60_MODE0_ONLY=1 -D VR60_Q028_VALIDATION=1 -D VR60_Q028_STAGE_CONTROL=1 -D VR60_Q028_FAMILY_A=1 -o $@ $<
+$(Q028_B_ACTIVE_ROM): $(M68K_SRC) $(Q028_B_ACTIVE_INC) | dirs
+	$(ASM) $(ASMFLAGS) -D VR60_MODE0_ONLY=1 -D VR60_Q028_VALIDATION=1 -D VR60_Q028_FAMILY_B=1 -o $@ $<
+$(Q028_B_CONTROL_ROM): $(M68K_SRC) $(Q028_B_CONTROL_INC) | dirs
+	$(ASM) $(ASMFLAGS) -D VR60_MODE0_ONLY=1 -D VR60_Q028_VALIDATION=1 -D VR60_Q028_STAGE_CONTROL=1 -D VR60_Q028_FAMILY_B=1 -o $@ $<
+$(Q028_C_ACTIVE_ROM): $(M68K_SRC) $(Q028_C_ACTIVE_INC) | dirs
+	$(ASM) $(ASMFLAGS) -D VR60_MODE0_ONLY=1 -D VR60_Q028_VALIDATION=1 -D VR60_Q028_FAMILY_C=1 -o $@ $<
+$(Q028_C_CONTROL_ROM): $(M68K_SRC) $(Q028_C_CONTROL_INC) | dirs
+	$(ASM) $(ASMFLAGS) -D VR60_MODE0_ONLY=1 -D VR60_Q028_VALIDATION=1 -D VR60_Q028_STAGE_CONTROL=1 -D VR60_Q028_FAMILY_C=1 -o $@ $<
+
+$(Q028_ROM_MANIFEST): $(Q028_A_BASELINE_ROM) $(Q028_A_CONTROL_ROM) $(Q028_A_ACTIVE_ROM) \
+		$(Q028_B_BASELINE_ROM) $(Q028_B_CONTROL_ROM) $(Q028_B_ACTIVE_ROM) \
+		$(Q028_C_BASELINE_ROM) $(Q028_C_CONTROL_ROM) $(Q028_C_ACTIVE_ROM) \
+		$(Q028_A_ACTIVE_BIN) $(Q028_A_CONTROL_BIN) $(Q028_B_ACTIVE_BIN) \
+		$(Q028_B_CONTROL_BIN) $(Q028_C_ACTIVE_BIN) $(Q028_C_CONTROL_BIN) \
+		$(OUTPUT_ROM) $(MODE1_ACTIVE_ROM) $(MODE1_CONTROL_ROM) \
+		$(MODE2_ACTIVE_ROM) $(MODE2_CONTROL_ROM) $(Q023_ACTIVE_ROM) \
+		$(Q023_CONTROL_ROM) $(Q026_ACTIVE_ROM) $(Q026_CONTROL_ROM) \
+		$(Q027_ACTIVE_ROM) $(Q027_CONTROL_ROM) $(Q028_ROM_VERIFY)
+	$(PYTHON) $(Q028_ROM_VERIFY) --repo-root . --manifest $@
 
 # Q-020 validation-only Master CMD interrupt probe. This build is deliberately
 # separate from mode-1 validation and can never be promoted as the default ROM.
@@ -2922,6 +2985,43 @@ $(SH2_Q027_ISR_INIT_INC): $(SH2_Q027_ISR_INIT_BIN)
 	@echo "; DO NOT EDIT - regenerate with 'make q027-cmd3f-roms'" >> $@
 	@echo "" >> $@
 	@xxd -p $< | fold -w4 | awk '{print "        dc.w    $$" toupper($$1)}' >> $@
+
+# Q-028 wrapper variants all share the approved 296-byte layout at $0600BBC0.
+# Family-all is Q028_INDEX=-1; exact-index variants are a later decision-tree
+# stage and are intentionally not generated by this first family gate.
+define Q028_BUILD_WRAPPER
+$(1): $(Q028_WRAPPER_SRC) | dirs
+	@mkdir -p $(BUILD_DIR)/sh2
+	$(SH2_AS) $(SH2_ASFLAGS) --defsym Q028_FAMILY=$(2) --defsym Q028_INDEX=-1 $(3) -o $(4).o $$<
+	$(SH2_LD) -Ttext=0x0600BBC0 -e q028_probe -o $(4).elf $(4).o
+	$(SH2_OBJCOPY) --only-section=.text -O binary $(4).elf $$@
+	@test "$$$$(wc -c < $$@)" -eq 296
+	@sh-elf-nm -n $(4).elf | awk '$$$$3=="q028_probe" && $$$$1=="0600bbc0" {ok=1} END {exit !ok}'
+	@sh-elf-nm -n $(4).elf | awk '$$$$3=="q028_probe_end" && $$$$1=="0600bce8" {ok=1} END {exit !ok}'
+endef
+
+$(eval $(call Q028_BUILD_WRAPPER,$(Q028_A_ACTIVE_BIN),1,,$(BUILD_DIR)/sh2/q028_family_a_active))
+$(eval $(call Q028_BUILD_WRAPPER,$(Q028_A_CONTROL_BIN),1,--defsym Q028_STAGE_CONTROL=1,$(BUILD_DIR)/sh2/q028_family_a_control))
+$(eval $(call Q028_BUILD_WRAPPER,$(Q028_B_ACTIVE_BIN),2,,$(BUILD_DIR)/sh2/q028_family_b_active))
+$(eval $(call Q028_BUILD_WRAPPER,$(Q028_B_CONTROL_BIN),2,--defsym Q028_STAGE_CONTROL=1,$(BUILD_DIR)/sh2/q028_family_b_control))
+$(eval $(call Q028_BUILD_WRAPPER,$(Q028_C_ACTIVE_BIN),3,,$(BUILD_DIR)/sh2/q028_family_c_active))
+$(eval $(call Q028_BUILD_WRAPPER,$(Q028_C_CONTROL_BIN),3,--defsym Q028_STAGE_CONTROL=1,$(BUILD_DIR)/sh2/q028_family_c_control))
+
+define Q028_GENERATE_INC
+$(1): $(2)
+	@mkdir -p $(SH2_GEN_DIR)
+	@echo "; Auto-generated from $(Q028_WRAPPER_SRC); family $(3) $(4)" > $$@
+	@echo "; DO NOT EDIT - regenerate with 'make q028-renderer-probe-roms'" >> $$@
+	@echo "" >> $$@
+	@xxd -p $$< | fold -w4 | awk '{print "        dc.w    $$$$" toupper($$$$1)}' >> $$@
+endef
+
+$(eval $(call Q028_GENERATE_INC,$(Q028_A_ACTIVE_INC),$(Q028_A_ACTIVE_BIN),A,ACTIVE))
+$(eval $(call Q028_GENERATE_INC,$(Q028_A_CONTROL_INC),$(Q028_A_CONTROL_BIN),A,CONTROL))
+$(eval $(call Q028_GENERATE_INC,$(Q028_B_ACTIVE_INC),$(Q028_B_ACTIVE_BIN),B,ACTIVE))
+$(eval $(call Q028_GENERATE_INC,$(Q028_B_CONTROL_INC),$(Q028_B_CONTROL_BIN),B,CONTROL))
+$(eval $(call Q028_GENERATE_INC,$(Q028_C_ACTIVE_INC),$(Q028_C_ACTIVE_BIN),C,ACTIVE))
+$(eval $(call Q028_GENERATE_INC,$(Q028_C_CONTROL_INC),$(Q028_C_CONTROL_BIN),C,CONTROL))
 
 # Build physics_divide binary from source (VR60 Phase 3B)
 $(SH2_PHYS_DIV_BIN): $(SH2_PHYS_DIV_SRC) | dirs

@@ -6,6 +6,64 @@
 ; Global hardware register definitions (canonical — do not redefine locally)
         include "modules/shared/definitions.asm"
 
+; Q-028 is a validation-only wrapper around the existing Slave cmd-$02
+; descriptor consumer.  BASELINE, CONTROL, and ACTIVE family arms are always
+; separate ROMs and cannot compose with any earlier validation/default gate.
+        ifd     VR60_Q028_STAGE_CONTROL
+        ifd     VR60_Q028_VALIDATION
+        else
+        assert  0,"VR60_Q028_STAGE_CONTROL requires VR60_Q028_VALIDATION"
+        endif
+        endif
+        ifd     VR60_Q028_VALIDATION
+        ifd     VR60_Q028_BASELINE
+        assert  0,"Q-028 validation and baseline are mutually exclusive"
+        endif
+        endif
+        ifd     VR60_Q028_FAMILY_A
+        ifd     VR60_Q028_FAMILY_B
+        assert  0,"Q-028 requires exactly one family"
+        endif
+        ifd     VR60_Q028_FAMILY_C
+        assert  0,"Q-028 requires exactly one family"
+        endif
+        endif
+        ifd     VR60_Q028_FAMILY_B
+        ifd     VR60_Q028_FAMILY_C
+        assert  0,"Q-028 requires exactly one family"
+        endif
+        endif
+        ifd     VR60_Q028_VALIDATION
+        ifd     VR60_Q028_FAMILY_A
+        else
+        ifd     VR60_Q028_FAMILY_B
+        else
+        ifd     VR60_Q028_FAMILY_C
+        else
+        assert  0,"Q-028 validation requires one family"
+        endif
+        endif
+        endif
+        ifd     VR60_Q020_CMDINT_PROBE
+        assert  0,"Q-028 and Q-020 CMDINT probe are mutually exclusive"
+        endif
+        ifd     VR60_MODE1_VALIDATION
+        assert  0,"Q-028 and mode-1 validation are mutually exclusive"
+        endif
+        ifd     VR60_MODE2_VALIDATION
+        assert  0,"Q-028 and mode-2 validation are mutually exclusive"
+        endif
+        ifd     VR60_Q023_MAILBOX_VALIDATION
+        assert  0,"Q-028 and Q-023 mailbox validation are mutually exclusive"
+        endif
+        ifd     VR60_Q026_VALIDATION
+        assert  0,"Q-028 and Q-026 validation are mutually exclusive"
+        endif
+        ifd     VR60_Q027_VALIDATION
+        assert  0,"Q-028 and Q-027 validation are mutually exclusive"
+        endif
+        endif
+
 ; Q-027 is a validation-only Master-COMM0 stock-dispatch gate.  Its handler,
 ; unified external vectors, startup shim, lifecycle wrapper, and two-edge
 ; transport are indivisible and cannot compose with any earlier gate/default.

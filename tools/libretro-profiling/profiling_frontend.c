@@ -16,6 +16,118 @@
 #include <stdarg.h>
 #include <limits.h>
 
+/* Small self-contained SHA-256 implementation used only to bind passive
+ * Q-028 host artifacts.  Keeping it here avoids an unpinned crypto-library
+ * dependency in the validation frontend. */
+struct q028_sha256_ctx {
+    uint32_t h[8];
+    uint64_t bytes;
+    unsigned char block[64];
+    size_t used;
+};
+
+static uint32_t q028_rotr32(uint32_t v, unsigned n) {
+    return (v >> n) | (v << (32 - n));
+}
+
+static void q028_sha256_block(struct q028_sha256_ctx *ctx,
+                              const unsigned char *p) {
+    static const uint32_t k[64] = {
+        0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+        0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+        0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+        0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+        0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+        0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+        0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+        0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
+    };
+    uint32_t w[64], a, b, c, d, e, f, g, h, t1, t2;
+    unsigned i;
+    for (i = 0; i < 16; i++)
+        w[i] = (uint32_t)p[i*4] << 24 | (uint32_t)p[i*4+1] << 16 |
+               (uint32_t)p[i*4+2] << 8 | p[i*4+3];
+    for (; i < 64; i++) {
+        uint32_t s0 = q028_rotr32(w[i-15],7) ^ q028_rotr32(w[i-15],18) ^ (w[i-15] >> 3);
+        uint32_t s1 = q028_rotr32(w[i-2],17) ^ q028_rotr32(w[i-2],19) ^ (w[i-2] >> 10);
+        w[i] = w[i-16] + s0 + w[i-7] + s1;
+    }
+    a=ctx->h[0]; b=ctx->h[1]; c=ctx->h[2]; d=ctx->h[3];
+    e=ctx->h[4]; f=ctx->h[5]; g=ctx->h[6]; h=ctx->h[7];
+    for (i = 0; i < 64; i++) {
+        uint32_t s1=q028_rotr32(e,6)^q028_rotr32(e,11)^q028_rotr32(e,25);
+        uint32_t ch=(e&f)^((~e)&g);
+        uint32_t s0=q028_rotr32(a,2)^q028_rotr32(a,13)^q028_rotr32(a,22);
+        uint32_t maj=(a&b)^(a&c)^(b&c);
+        t1=h+s1+ch+k[i]+w[i]; t2=s0+maj;
+        h=g; g=f; f=e; e=d+t1; d=c; c=b; b=a; a=t1+t2;
+    }
+    ctx->h[0]+=a; ctx->h[1]+=b; ctx->h[2]+=c; ctx->h[3]+=d;
+    ctx->h[4]+=e; ctx->h[5]+=f; ctx->h[6]+=g; ctx->h[7]+=h;
+}
+
+static void q028_sha256_init(struct q028_sha256_ctx *ctx) {
+    static const uint32_t initial[8] = {
+        0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,
+        0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19
+    };
+    memcpy(ctx->h, initial, sizeof(initial));
+    ctx->bytes = 0; ctx->used = 0;
+}
+
+static void q028_sha256_update(struct q028_sha256_ctx *ctx,
+                               const void *data, size_t size) {
+    const unsigned char *p = data;
+    ctx->bytes += size;
+    while (size) {
+        size_t take = 64 - ctx->used;
+        if (take > size) take = size;
+        memcpy(ctx->block + ctx->used, p, take);
+        ctx->used += take; p += take; size -= take;
+        if (ctx->used == 64) {
+            q028_sha256_block(ctx, ctx->block);
+            ctx->used = 0;
+        }
+    }
+}
+
+static void q028_sha256_final(struct q028_sha256_ctx *ctx, char out[65]) {
+    uint64_t bits = ctx->bytes * 8;
+    unsigned char pad[128] = {0x80};
+    unsigned char digest[32];
+    size_t pad_len = ctx->used < 56 ? 56 - ctx->used : 120 - ctx->used;
+    unsigned i;
+    q028_sha256_update(ctx, pad, pad_len);
+    for (i = 0; i < 8; i++) pad[i] = (unsigned char)(bits >> (56 - i*8));
+    q028_sha256_update(ctx, pad, 8);
+    for (i = 0; i < 8; i++) {
+        digest[i*4]=(unsigned char)(ctx->h[i]>>24);
+        digest[i*4+1]=(unsigned char)(ctx->h[i]>>16);
+        digest[i*4+2]=(unsigned char)(ctx->h[i]>>8);
+        digest[i*4+3]=(unsigned char)ctx->h[i];
+    }
+    for (i = 0; i < 32; i++) sprintf(out + i*2, "%02x", digest[i]);
+    out[64] = '\0';
+}
+
+static bool q028_sha256_file(const char *path, char out[65], long *size_out) {
+    struct q028_sha256_ctx ctx;
+    unsigned char buffer[32768];
+    FILE *stream = fopen(path, "rb");
+    size_t got;
+    long total = 0;
+    if (!stream) return false;
+    q028_sha256_init(&ctx);
+    while ((got = fread(buffer, 1, sizeof(buffer), stream)) != 0) {
+        q028_sha256_update(&ctx, buffer, got);
+        total += (long)got;
+    }
+    if (ferror(stream) || fclose(stream) != 0) return false;
+    q028_sha256_final(&ctx, out);
+    if (size_out) *size_out = total;
+    return true;
+}
+
 /* Libretro input device IDs */
 #define RETRO_DEVICE_ID_JOYPAD_B        0
 #define RETRO_DEVICE_ID_JOYPAD_Y        1
@@ -38,6 +150,22 @@ static int input_script_frames = 0;
 static FILE *input_record_stream = NULL;
 static char *input_record_path = NULL;
 static unsigned int input_record_frame = 0;
+static const char *video_dump_dir = NULL;
+static FILE *video_dump_manifest = NULL;
+static int video_dump_start = -1;
+static int video_dump_end = -1;
+static unsigned int video_dump_errors = 0;
+static unsigned int video_callbacks_this_run = 0;
+static unsigned int video_pixel_format_requests = 0;
+static int video_run_active = 0;
+static int video_pixel_format = -1;
+static char video_session_path[1024];
+static unsigned long long video_callback_ordinal = 0;
+static int q028_video_capture = 1;
+static FILE *q028_applied_input_stream = NULL;
+static const char *q028_applied_input_path = NULL;
+static unsigned int q028_applied_input_rows = 0;
+static unsigned int q028_applied_input_errors = 0;
 
 /* Libretro types (minimal subset) */
 typedef void (*lr_video_refresh_t)(const void *data, unsigned width,
@@ -78,6 +206,9 @@ struct lr_log_callback {
 #define LR_ENVIRONMENT_SET_PIXEL_FORMAT       10
 #define LR_ENVIRONMENT_GET_VARIABLE           15
 #define LR_ENVIRONMENT_SET_MEMORY_MAPS        36
+
+/* enum retro_pixel_format values from libretro.h. */
+#define LR_PIXEL_FORMAT_RGB565                 2
 
 /* Function pointer types */
 typedef void (*fn_retro_init)(void);
@@ -136,11 +267,61 @@ static fn_vrd_debug_sh2_regs_size core_debug_sh2_regs_size;
 /* Stub callbacks */
 static void stub_video_refresh(const void *data, unsigned width,
                                unsigned height, size_t pitch) {
-    (void)data;
-    (void)width;
-    (void)height;
-    (void)pitch;
-    /* Do nothing - headless mode */
+    FILE *stream;
+    char path[1024];
+    char digest[65] = "-";
+    const unsigned char *row = data;
+    struct q028_sha256_ctx sha;
+    unsigned y;
+    int ok = 1;
+
+    if (!video_dump_manifest)
+        return;
+    if (!video_run_active) {
+        video_dump_errors++;
+        return;
+    }
+    video_callbacks_this_run++;
+    video_callback_ordinal++;
+    if (current_frame < video_dump_start || current_frame > video_dump_end)
+        return;
+    if (!data || width != 320 || height != 224 || pitch != 640 ||
+        video_pixel_format != LR_PIXEL_FORMAT_RGB565 ||
+        video_pixel_format_requests == 0 || strlen(video_dump_dir) > 900) {
+        video_dump_errors++;
+        return;
+    }
+    if (q028_video_capture) {
+        snprintf(path, sizeof(path), "%s/frame-%04d.rgb565",
+            video_dump_dir, current_frame);
+        stream = fopen(path, "wbx");
+        if (!stream) {
+            video_dump_errors++;
+            return;
+        }
+        q028_sha256_init(&sha);
+        for (y = 0; y < height; y++, row += pitch) {
+            q028_sha256_update(&sha, row, width * 2);
+            if (fwrite(row, 1, width * 2, stream) != width * 2) {
+                ok = 0;
+                break;
+            }
+        }
+        if (fclose(stream) != 0) ok = 0;
+        q028_sha256_final(&sha, digest);
+    }
+    else {
+        strcpy(path, "-");
+    }
+    if (!ok || fprintf(video_dump_manifest,
+            "%llu,%d,%d,%u,1,%u,%u,%zu,RGB565,%u,%u,%s,%s\n",
+            video_callback_ordinal, current_frame, current_frame,
+            video_callbacks_this_run, width, height, pitch,
+            q028_video_capture, q028_video_capture ? 143360 : 0,
+            digest, q028_video_capture ? strrchr(path, '/') ?
+                strrchr(path, '/') + 1 : path : "-") < 0 ||
+        fflush(video_dump_manifest) != 0)
+        video_dump_errors++;
 }
 
 static void stub_audio_sample(int16_t left, int16_t right) {
@@ -190,6 +371,20 @@ static bool environment_callback(unsigned cmd, void *data) {
             *(const char **)data = ".";
             return true;
         case LR_ENVIRONMENT_SET_PIXEL_FORMAT:
+            if (video_dump_manifest) {
+                int requested;
+                if (!data) {
+                    video_dump_errors++;
+                    return false;
+                }
+                requested = *(const int *)data;
+                video_pixel_format_requests++;
+                if (requested != LR_PIXEL_FORMAT_RGB565) {
+                    video_dump_errors++;
+                    return false;
+                }
+                video_pixel_format = requested;
+            }
             return true;
         case LR_ENVIRONMENT_GET_VARIABLE:
             return false;
@@ -402,7 +597,25 @@ static bool resolve_frame_input(void) {
 
 static bool run_emulated_frame(void) {
     if (current_frame == INT_MAX || !resolve_frame_input()) return false;
+    if (q028_applied_input_stream) {
+        if (q028_applied_input_rows != (unsigned int)current_frame ||
+            fprintf(q028_applied_input_stream, "%d,0x%04X\n",
+                    current_frame, current_input) < 0 ||
+            fflush(q028_applied_input_stream) != 0) {
+            q028_applied_input_errors++;
+            return false;
+        }
+        q028_applied_input_rows++;
+    }
+    video_callbacks_this_run = 0;
+    video_run_active = 1;
     core_run();
+    video_run_active = 0;
+    if (video_dump_manifest && current_frame >= video_dump_start &&
+        current_frame <= video_dump_end && video_callbacks_this_run != 1) {
+        video_dump_errors++;
+        return false;
+    }
     current_frame++;
     return input_record_current_frame();
 }
@@ -693,9 +906,68 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    video_dump_dir = getenv("VRD_VIDEO_DUMP_DIR");
+    if (video_dump_dir && *video_dump_dir) {
+        const char *start = getenv("VRD_VIDEO_DUMP_START");
+        const char *end = getenv("VRD_VIDEO_DUMP_END");
+        const char *capture = getenv("VRD_Q028_VIDEO_CAPTURE");
+        char manifest_path[1024];
+        if (!start || !end || strlen(video_dump_dir) > 900) {
+            fprintf(stderr, "Video dump requires bounded start/end and path\n");
+            return 1;
+        }
+        video_dump_start = atoi(start);
+        video_dump_end = atoi(end);
+        if (video_dump_start < 0 || video_dump_end < video_dump_start ||
+            video_dump_end >= max_frames) {
+            fprintf(stderr, "Invalid video dump frame bounds\n");
+            return 1;
+        }
+        if (capture && strcmp(capture, "0") != 0 && strcmp(capture, "1") != 0) {
+            fprintf(stderr, "VRD_Q028_VIDEO_CAPTURE must be 0 or 1\n");
+            return 1;
+        }
+        q028_video_capture = !capture || strcmp(capture, "0") != 0;
+        snprintf(manifest_path, sizeof(manifest_path), "%s/video-frames.csv",
+            video_dump_dir);
+        snprintf(video_session_path, sizeof(video_session_path),
+            "%s/video-session.csv", video_dump_dir);
+        video_dump_manifest = fopen(manifest_path, "wx");
+        if (!video_dump_manifest ||
+            fprintf(video_dump_manifest,
+                "callback_ordinal,frame,retro_run,callback_in_run,data_nonnull,width,height,pitch,pixel_format,captured,bytes,sha256,path\n") < 0) {
+            fprintf(stderr, "Cannot initialize video dump manifest\n");
+            if (video_dump_manifest) fclose(video_dump_manifest);
+            return 1;
+        }
+    }
+
     const char *input_script_path = getenv("VRD_INPUT_SCRIPT");
     if (input_script_path && !load_input_script(input_script_path, max_frames)) {
         return 1;
+    }
+    q028_applied_input_path = getenv("VRD_Q028_APPLIED_INPUT_LOG");
+    if (q028_applied_input_path && *q028_applied_input_path) {
+        static const char expected_fixture[] =
+            "2df0ffe53cad0c7d7a5d70c1819051685905a60ff96727a6256e6a300116fbbf";
+        char fixture_hash[65];
+        long fixture_size = 0;
+        if (!input_script_path || max_frames != 1340 ||
+            getenv("VRD_RECORD_INPUT") ||
+            !q028_sha256_file(input_script_path, fixture_hash, &fixture_size) ||
+            fixture_size != 14981 || strcmp(fixture_hash, expected_fixture) != 0) {
+            fprintf(stderr, "Q-028 applied-input logging requires the pinned 1340-frame fixture and forbids VRD_RECORD_INPUT\n");
+            return 1;
+        }
+        q028_applied_input_stream = fopen(q028_applied_input_path, "wx");
+        if (!q028_applied_input_stream ||
+            fprintf(q028_applied_input_stream, "frame,mask\n") < 0 ||
+            fflush(q028_applied_input_stream) != 0) {
+            fprintf(stderr, "Cannot initialize Q-028 applied-input log\n");
+            if (q028_applied_input_stream) fclose(q028_applied_input_stream);
+            q028_applied_input_stream = NULL;
+            return 1;
+        }
     }
 
     if (profile_log) {
@@ -900,12 +1172,45 @@ int main(int argc, char **argv) {
     }
 
     /* Cleanup */
+    /* Debugger recording is explicitly started/stopped by debugger commands.
+     * An unclosed recording remains partial and is removed. */
     if (input_record_stream) input_record_abort();
     core_unload_game();
     free(rom_data);
     core_deinit();
     dlclose(handle);
     free(input_script_masks);
+    if (q028_applied_input_stream) {
+        if (q028_applied_input_rows != 1340 || q028_applied_input_errors != 0 ||
+            fflush(q028_applied_input_stream) != 0 ||
+            fclose(q028_applied_input_stream) != 0) {
+            fprintf(stderr, "Q-028 applied-input log failed closed: rows=%u errors=%u\n",
+                    q028_applied_input_rows, q028_applied_input_errors);
+            run_status = 1;
+        }
+        q028_applied_input_stream = NULL;
+    }
+    if (video_dump_manifest) {
+        FILE *session;
+        if (video_pixel_format != LR_PIXEL_FORMAT_RGB565 ||
+            video_pixel_format_requests == 0)
+            video_dump_errors++;
+        if (fclose(video_dump_manifest) != 0)
+            video_dump_errors++;
+        video_dump_manifest = NULL;
+        session = fopen(video_session_path, "wx");
+        if (!session || fprintf(session,
+                "pixel_format,requests,start,end,errors\n"
+                "RGB565,%u,%d,%d,%u\n",
+                video_pixel_format_requests, video_dump_start, video_dump_end,
+                video_dump_errors) < 0 || fclose(session) != 0)
+            video_dump_errors++;
+    }
+    if (video_dump_errors) {
+        fprintf(stderr, "Video dump failed closed: errors=%u\n",
+            video_dump_errors);
+        run_status = 1;
+    }
 
     if (profile_log) {
         printf("Profile data written to: %s\n", profile_log);

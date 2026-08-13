@@ -22,7 +22,7 @@ This file is the short, current answer to “what works now?” Older roadmap en
 | SH2 physics and AI ports | Yes | No; reachable only through the disabled cmd `$3F` path | Assembly/reference work exists; gameplay authority not proven |
 | SH2 collision ports | Yes | No | Reference-model tested, not dispatched by the live pipeline |
 | `render_state_patcher` | Yes | No useful effect | Verified no-op for the renderer's consumed inputs |
-| C254 render-bridge probe | Yes | Dormant | Correct descriptor family identified; live effect not tested in 1P |
+| Q-028 cmd `$02` descriptor-family probe | Validation triplets only | **Disabled/unreachable in the promoted default** | **BLOCKED / INCONCLUSIVE_ENGINE_SCHEDULE:** all existing outputs diagnostic/ineligible; fresh two-engine evidence required |
 | 68000 physics bypass | Yes | **Disabled in 1P** | Legacy 68000 path intentionally remains authoritative |
 
 “Built,” “assembled,” or “installed in a jump table” does not mean “executing in 1P,” and “executing” does not mean “behaviorally validated.” Every status table should preserve those distinctions.
@@ -310,10 +310,17 @@ Evidence is at
 This does not validate the legacy shared-lane parameters, render equivalence, a bridge,
 collision, authority, cadence, real hardware, CPU budget, or FPS, and cannot promote cmd `$3F`.
 
-The current active work item is the next independent stage: **reversible A/B/C probes into the
-C128/C178/C254 descriptor families actually consumed by cmd `$02`**. Preserve the promoted
-mode-0 default and the separately scoped mode-1/mode-2/Q-026/Q-027 results. Do not promote the
-legacy cmd `$3F` shared-lane pipeline or combine the bridge with authority or cadence changes.
+**Q-028 status: BLOCKED / INCONCLUSIVE_ENGINE_SCHEDULE.** The prior
+`INCONCLUSIVE_COMPOSITE` acceptance is retracted: it was based on interpreter-only completion despite the
+approved requirement for two uninterrupted normal-DRC repeats of every A/B/C
+BASELINE/CONTROL/ACTIVE arm. Existing interpreter and DRC-A outputs are diagnostic only and establish no
+accepted family result. B/C normal-DRC evidence is absent. No exact-index, bridge, authority, cadence,
+CPU-budget, FPS, host-presentation, or real-hardware claim is accepted. Q-028 remains the active gate until
+a separately audited immutable DRC schedule, fresh two-engine recapture, complete retained raw evidence,
+and the repaired fail-closed mutation matrix pass a fresh completed-diff audit.
+
+The active work item is the separately audited Q-028 v3-v7 repair and fresh two-engine
+recapture. Later renderer discovery and every bridge/authority/cadence stage remain behind it.
 
 The archived VR60-011 suite satisfies this prerequisite with the VR60 hook bypassed:
 

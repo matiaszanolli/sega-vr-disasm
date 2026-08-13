@@ -55,6 +55,24 @@ Q026_ACTIVE_ROM = $(BUILD_DIR)/vr60_q026_player_active.32x
 Q026_CONTROL_ROM = $(BUILD_DIR)/vr60_q026_player_stage_control.32x
 Q026_ROM_MANIFEST = $(TOOLS_DIR)/libretro-profiling/q026_player_rom_pair.json
 Q026_ROM_VERIFY = $(TOOLS_DIR)/libretro-profiling/verify_q026_player_rom_pair.py
+Q026_RUNTIME_CAPTURE = analysis/evidence/vr60-q026-player-cmdint-gate/runtime/run.json
+Q026_RUNTIME_RESULT = analysis/evidence/vr60-q026-player-cmdint-gate/runtime/result.json
+Q026_RUNTIME_VERIFY = $(TOOLS_DIR)/libretro-profiling/q026_player_runtime.py
+Q026_PROFILE_FRONTEND = $(Q020_PROFILE_DIR)/q026_profiling_frontend
+Q026_PROFILE_CORE = $(Q020_PROFILE_DIR)/q026_picodrive_libretro.so
+Q026_PICODRIVE_PREPARE = $(Q020_PROFILE_DIR)/prepare_q026_picodrive.py
+Q026_RUNTIME_TOOLS_VERIFY = $(Q020_PROFILE_DIR)/verify_q026_runtime_tools.py
+# Q-026 ROM rules appear before the shared SH2 variable catalog, so their
+# complete source/generated layout must be defined before those rules expand.
+SH2_Q026_HANDLER_SRC = disasm/sh2/expansion/q026_player_shadow.s
+SH2_Q026_HANDLER_BIN = $(BUILD_DIR)/sh2/q026_player_shadow.bin
+SH2_Q026_HANDLER_INC = disasm/sh2/generated/q026_player_shadow.inc
+SH2_Q026_ISR_SRC = disasm/sh2/expansion/q026_external_isr.s
+SH2_Q026_ISR_BIN = $(BUILD_DIR)/sh2/q026_external_isr.bin
+SH2_Q026_ISR_CORE_BIN = $(BUILD_DIR)/sh2/q026_external_isr_core.bin
+SH2_Q026_ISR_INIT_BIN = $(BUILD_DIR)/sh2/q026_external_isr_init.bin
+SH2_Q026_ISR_CORE_INC = disasm/sh2/generated/q026_external_isr_core.inc
+SH2_Q026_ISR_INIT_INC = disasm/sh2/generated/q026_external_isr_init.inc
 Q020_CMDINT_PROBE_ROM = $(BUILD_DIR)/vr60_q020_cmdint_probe.32x
 Q020_CMDINT_PROBE_MANIFEST = $(TOOLS_DIR)/libretro-profiling/q020_cmdint_probe.json
 Q020_CMDINT_PROBE_VERIFY = $(TOOLS_DIR)/libretro-profiling/verify_q020_cmdint_probe.py
@@ -77,7 +95,7 @@ ASMFLAGS = -Fbin -m68000 -no-opt -spaces -quiet
 M68K_SRC = $(DISASM_DIR)/vrd.asm
 VR60_1P_HOOK_SITE_SRC = $(DISASM_DIR)/modules/68k/game/scene/game_frame_orch_013.asm
 VR60_1P_STAGING_HOOK_SRC = $(DISASM_DIR)/modules/68k/sh2/vr60_1p_staging_hook.asm
-.PHONY: all control-rom mode0-roms mode0-default-verify mode1-roms mode1-runtime-tools mode1-gate-validate mode2-roms mode2-gate-validate q023-mailbox-roms q026-player-roms q020-cmdint-probe q020-runtime-tools clean disasm tools test profile-frame profile-pc
+.PHONY: all control-rom mode0-roms mode0-default-verify mode1-roms mode1-runtime-tools mode1-gate-validate mode2-roms mode2-gate-validate q023-mailbox-roms q026-player-roms q026-runtime-tools q026-runtime-validate q020-cmdint-probe q020-runtime-tools clean disasm tools test profile-frame profile-pc
 
 # ============================================================================
 # Main targets
@@ -288,6 +306,25 @@ $(Q026_ROM_MANIFEST): $(Q026_ACTIVE_ROM) $(Q026_CONTROL_ROM) $(OUTPUT_ROM) $(MOD
 		--handler-bin $(SH2_Q026_HANDLER_BIN) --handler-elf $(BUILD_DIR)/sh2/q026_player_shadow.elf \
 		--isr-bin $(SH2_Q026_ISR_BIN) --isr-elf $(BUILD_DIR)/sh2/q026_external_isr.elf \
 		--manifest $(Q026_ROM_MANIFEST)
+
+# Rebuild the isolated Q-026 passive recorder.  It observes canonical 68K
+# system-register callbacks and Master SH2 system/SDRAM/framebuffer writes
+# after the emulated access, without adding any emulated read.
+q026-runtime-tools:
+	$(CC) -O2 -Wall -Wextra -o $(Q026_PROFILE_FRONTEND) $(Q020_PROFILE_DIR)/profiling_frontend.c -ldl
+	$(PYTHON) $(Q026_PICODRIVE_PREPARE) --source-root $(Q020_PICODRIVE_DIR)
+	$(MAKE) -C $(Q020_PICODRIVE_DIR) -f Makefile.libretro clean
+	$(MAKE) -C $(Q020_PICODRIVE_DIR) -f Makefile.libretro platform=unix
+	cp $(Q020_PICODRIVE_DIR)/picodrive_libretro.so $(Q026_PROFILE_CORE)
+	$(PYTHON) $(Q026_RUNTIME_TOOLS_VERIFY) \
+		--frontend $(Q026_PROFILE_FRONTEND) --core $(Q026_PROFILE_CORE)
+
+# Revalidate the immutable two-repeat-per-arm trustworthy-normal-1P archive.
+# This passes only the bounded direct-CMDINT precursor and cannot promote Q-026.
+q026-runtime-validate: q026-player-roms $(Q026_RUNTIME_CAPTURE) $(Q026_RUNTIME_RESULT)
+	$(PYTHON) $(Q026_RUNTIME_TOOLS_VERIFY) \
+		--frontend $(Q026_PROFILE_FRONTEND) --core $(Q026_PROFILE_CORE)
+	$(PYTHON) $(Q026_RUNTIME_VERIFY) validate $(Q026_RUNTIME_CAPTURE)
 
 # Q-020 validation-only Master CMD interrupt probe. This build is deliberately
 # separate from mode-1 validation and can never be promoted as the default ROM.
@@ -872,15 +909,6 @@ SH2_Q020_CMDINT_PROBE_BIN = $(BUILD_DIR)/sh2/q020_cmdint_probe_isr.bin
 SH2_Q020_CMDINT_PROBE_INC = $(SH2_GEN_DIR)/q020_cmdint_probe_isr.inc
 
 # Q-026 validation-only bounded player-physics handler and unified ISR.
-SH2_Q026_HANDLER_SRC = $(SH2_EXP_DIR)/q026_player_shadow.s
-SH2_Q026_HANDLER_BIN = $(BUILD_DIR)/sh2/q026_player_shadow.bin
-SH2_Q026_HANDLER_INC = $(SH2_GEN_DIR)/q026_player_shadow.inc
-SH2_Q026_ISR_SRC = $(SH2_EXP_DIR)/q026_external_isr.s
-SH2_Q026_ISR_BIN = $(BUILD_DIR)/sh2/q026_external_isr.bin
-SH2_Q026_ISR_CORE_BIN = $(BUILD_DIR)/sh2/q026_external_isr_core.bin
-SH2_Q026_ISR_INIT_BIN = $(BUILD_DIR)/sh2/q026_external_isr_init.bin
-SH2_Q026_ISR_CORE_INC = $(SH2_GEN_DIR)/q026_external_isr_core.inc
-SH2_Q026_ISR_INIT_INC = $(SH2_GEN_DIR)/q026_external_isr_init.inc
 
 # physics_divide (VR60 Phase 3B: division infrastructure)
 SH2_PHYS_DIV_SRC = $(SH2_EXP_DIR)/physics_divide.asm
@@ -3489,6 +3517,9 @@ help:
 	@echo "  mode0-roms           - Rebuild and verify the accepted mode-0 evidence pair"
 	@echo "  mode0-default-verify - Prove the ordinary default equals accepted ACTIVE"
 	@echo "  q023-mailbox-roms    - Build/verify the inactive cmd-$3F mailbox pair"
+	@echo "  q026-player-roms     - Build/verify bounded direct-CMDINT precursor pair"
+	@echo "  q026-runtime-tools   - Rebuild/pin isolated Q-026 passive recorder"
+	@echo "  q026-runtime-validate - Revalidate the two-repeat-per-arm Q-026 archive"
 	@echo ""
 	@echo "SH2 Assembly:"
 	@echo "  sh2-assembly   - Build SH2 sources to dc.w includes"

@@ -1,0 +1,211 @@
+{
+  "authority_transferred": false,
+  "bridge_enabled": false,
+  "cadence_changed": false,
+  "capture_sha256": "2589fe921b53fea881099d32d1b7268740a7ed205b6067d8ee9732600a7223fc",
+  "cmd3f_enabled": false,
+  "collision_enabled": false,
+  "eligible": true,
+  "fps_claim": null,
+  "limitations": [
+    "Q-026 validates one bounded direct player-physics CMDINT invocation only",
+    "cmd $3F shadow, render bridge, collision/equivalence, authority, cadence, and FPS remain open",
+    "COMM2_HI is proven zero at the exact ACTIVE edge; unrelated renderer traffic may be busy at frame boundaries",
+    "startup canary persistence was disproven by the retained failed pilot; admission-local refresh is validated"
+  ],
+  "non_promotable": true,
+  "promotable": false,
+  "repeats": {
+    "active-1": {
+      "after_sha256": "4e4607a0de55c687050e0b622dae25372ece397d1442dc04f047ed4ffd0b724b",
+      "before_sha256": "2398c10d257a2129609e6ec502032dca0e223a0d3281a350555724e2d7795098",
+      "caller_trace_sha256": "113bb517e2b3092f23327d4cbb7945ce4227a08e1c869a71336f009a2d579d5b",
+      "changed_entity_bytes": [
+        14,
+        15,
+        23,
+        118,
+        119,
+        123,
+        236,
+        237,
+        238,
+        239,
+        247
+      ],
+      "comm_post": [
+        257,
+        58,
+        0
+      ],
+      "comm_pre": [
+        257,
+        58,
+        0
+      ],
+      "debug_comm1_2": [
+        "0100013a",
+        "0100003a",
+        "0100013a"
+      ],
+      "debug_comm7": [
+        "0000",
+        "0000",
+        "0000"
+      ],
+      "edge_events": 1,
+      "handler_writes": 36,
+      "isr_writes": 29,
+      "profile_equivalence_sha256": "d9a33d96d937bb7cf8d0a73b17bece07b4a6017cd43b6c1213a867255f7e2bdd",
+      "seed_sha256": "2398c10d257a2129609e6ec502032dca0e223a0d3281a350555724e2d7795098",
+      "terminal_master": "Master SH2: PC=0600443A PR=060011F4 SR=FFFF2020 GBR=0600F400 VBR=06000000 MACH=FFFFFFFF MACL=0000555C state=00000004 poll_addr=00000024 poll_cnt=9 R0 =00000001 R1 =20004024 R2 =0000007D R3 =2601AEC0 R4 =000000CF R5 =FFFFFEC7 R6 =0601AF00 R7 =00000000 R8 =06016378 R9 =0601AEEC R10=00000000 R11=00000008 R12=FFFFFFFC R13=FFFFFF00 R14=C0000700 R15=0600FF78",
+      "terminal_slave": "Slave SH2: PC=C00000B4 PR=C00000B8 SR=00000020 GBR=20004100 VBR=06000140 MACH=FFFFFFEB MACL=00001800 state=00000000 poll_addr=00000000 poll_cnt=0 R0 =00000200 R1 =24016ACC R2 =00000002 R3 =000000DE R4 =00000909 R5 =24016C00 R6 =00000009 R7 =00000009 R8 =060194C8 R9 =060194E4 R10=00004000 R11=00006000 R12=00CC4000 R13=00DF2000 R14=C0000188 R15=0600FFF4",
+      "terminal_watch": {
+        "0x2600BC04": "0x2",
+        "0x2600BC08": "0x1",
+        "0x2600BC0C": "0x1",
+        "0x2600FB90": "0x5132534B"
+      },
+      "watch_equivalence_sha256": "1479dd699f7c2605e848524d189ea5e85eee6c75e654b7a840b0a63535f68fe5",
+      "write_trace_sha256": "15421ac408b4972785451bd676417544bee513dfe7080469d080df411600ed94"
+    },
+    "active-2": {
+      "after_sha256": "4e4607a0de55c687050e0b622dae25372ece397d1442dc04f047ed4ffd0b724b",
+      "before_sha256": "2398c10d257a2129609e6ec502032dca0e223a0d3281a350555724e2d7795098",
+      "caller_trace_sha256": "113bb517e2b3092f23327d4cbb7945ce4227a08e1c869a71336f009a2d579d5b",
+      "changed_entity_bytes": [
+        14,
+        15,
+        23,
+        118,
+        119,
+        123,
+        236,
+        237,
+        238,
+        239,
+        247
+      ],
+      "comm_post": [
+        257,
+        58,
+        0
+      ],
+      "comm_pre": [
+        257,
+        58,
+        0
+      ],
+      "debug_comm1_2": [
+        "0100013a",
+        "0100003a",
+        "0100013a"
+      ],
+      "debug_comm7": [
+        "0000",
+        "0000",
+        "0000"
+      ],
+      "edge_events": 1,
+      "handler_writes": 36,
+      "isr_writes": 29,
+      "profile_equivalence_sha256": "d9a33d96d937bb7cf8d0a73b17bece07b4a6017cd43b6c1213a867255f7e2bdd",
+      "seed_sha256": "2398c10d257a2129609e6ec502032dca0e223a0d3281a350555724e2d7795098",
+      "terminal_master": "Master SH2: PC=0600443A PR=060011F4 SR=FFFF2020 GBR=0600F400 VBR=06000000 MACH=FFFFFFFF MACL=0000555C state=00000004 poll_addr=00000024 poll_cnt=9 R0 =00000001 R1 =20004024 R2 =0000007D R3 =2601AEC0 R4 =000000CF R5 =FFFFFEC7 R6 =0601AF00 R7 =00000000 R8 =06016378 R9 =0601AEEC R10=00000000 R11=00000008 R12=FFFFFFFC R13=FFFFFF00 R14=C0000700 R15=0600FF78",
+      "terminal_slave": "Slave SH2: PC=C00000B4 PR=C00000B8 SR=00000020 GBR=20004100 VBR=06000140 MACH=FFFFFFEB MACL=00001800 state=00000000 poll_addr=00000000 poll_cnt=0 R0 =00000200 R1 =24016ACC R2 =00000002 R3 =000000DE R4 =00000909 R5 =24016C00 R6 =00000009 R7 =00000009 R8 =060194C8 R9 =060194E4 R10=00004000 R11=00006000 R12=00CC4000 R13=00DF2000 R14=C0000188 R15=0600FFF4",
+      "terminal_watch": {
+        "0x2600BC04": "0x2",
+        "0x2600BC08": "0x1",
+        "0x2600BC0C": "0x1",
+        "0x2600FB90": "0x5132534B"
+      },
+      "watch_equivalence_sha256": "1479dd699f7c2605e848524d189ea5e85eee6c75e654b7a840b0a63535f68fe5",
+      "write_trace_sha256": "15421ac408b4972785451bd676417544bee513dfe7080469d080df411600ed94"
+    },
+    "control-1": {
+      "after_sha256": "2398c10d257a2129609e6ec502032dca0e223a0d3281a350555724e2d7795098",
+      "before_sha256": "2398c10d257a2129609e6ec502032dca0e223a0d3281a350555724e2d7795098",
+      "caller_trace_sha256": "113bb517e2b3092f23327d4cbb7945ce4227a08e1c869a71336f009a2d579d5b",
+      "changed_entity_bytes": [],
+      "comm_post": [
+        0,
+        0,
+        0
+      ],
+      "comm_pre": [
+        0,
+        0,
+        0
+      ],
+      "debug_comm1_2": [
+        "0100013a",
+        "0100003a",
+        "0100013a"
+      ],
+      "debug_comm7": [
+        "0000",
+        "0000",
+        "0000"
+      ],
+      "edge_events": 0,
+      "handler_writes": 0,
+      "isr_writes": 0,
+      "profile_equivalence_sha256": "d9a33d96d937bb7cf8d0a73b17bece07b4a6017cd43b6c1213a867255f7e2bdd",
+      "seed_sha256": "2398c10d257a2129609e6ec502032dca0e223a0d3281a350555724e2d7795098",
+      "terminal_master": "Master SH2: PC=0600443A PR=060011F4 SR=FFFF2020 GBR=0600F400 VBR=06000000 MACH=FFFFFFFF MACL=0000555C state=00000004 poll_addr=00000024 poll_cnt=9 R0 =00000001 R1 =20004024 R2 =0000007D R3 =2601AEC0 R4 =000000CF R5 =FFFFFEC7 R6 =0601AF00 R7 =00000000 R8 =06016378 R9 =0601AEEC R10=00000000 R11=00000008 R12=FFFFFFFC R13=FFFFFF00 R14=C0000700 R15=0600FF78",
+      "terminal_slave": "Slave SH2: PC=C00000B4 PR=C00000B8 SR=00000020 GBR=20004100 VBR=06000140 MACH=FFFFFFEB MACL=00001800 state=00000000 poll_addr=00000000 poll_cnt=0 R0 =00000200 R1 =24016ACC R2 =00000002 R3 =000000DE R4 =00000909 R5 =24016C00 R6 =00000009 R7 =00000009 R8 =060194C8 R9 =060194E4 R10=00004000 R11=00006000 R12=00CC4000 R13=00DF2000 R14=C0000188 R15=0600FFF4",
+      "terminal_watch": {
+        "0x2600BC04": "0x0",
+        "0x2600BC08": "0x0",
+        "0x2600BC0C": "0x0",
+        "0x2600FB90": "0x0"
+      },
+      "watch_equivalence_sha256": "1479dd699f7c2605e848524d189ea5e85eee6c75e654b7a840b0a63535f68fe5",
+      "write_trace_sha256": "15421ac408b4972785451bd676417544bee513dfe7080469d080df411600ed94"
+    },
+    "control-2": {
+      "after_sha256": "2398c10d257a2129609e6ec502032dca0e223a0d3281a350555724e2d7795098",
+      "before_sha256": "2398c10d257a2129609e6ec502032dca0e223a0d3281a350555724e2d7795098",
+      "caller_trace_sha256": "113bb517e2b3092f23327d4cbb7945ce4227a08e1c869a71336f009a2d579d5b",
+      "changed_entity_bytes": [],
+      "comm_post": [
+        0,
+        0,
+        0
+      ],
+      "comm_pre": [
+        0,
+        0,
+        0
+      ],
+      "debug_comm1_2": [
+        "0100013a",
+        "0100003a",
+        "0100013a"
+      ],
+      "debug_comm7": [
+        "0000",
+        "0000",
+        "0000"
+      ],
+      "edge_events": 0,
+      "handler_writes": 0,
+      "isr_writes": 0,
+      "profile_equivalence_sha256": "d9a33d96d937bb7cf8d0a73b17bece07b4a6017cd43b6c1213a867255f7e2bdd",
+      "seed_sha256": "2398c10d257a2129609e6ec502032dca0e223a0d3281a350555724e2d7795098",
+      "terminal_master": "Master SH2: PC=0600443A PR=060011F4 SR=FFFF2020 GBR=0600F400 VBR=06000000 MACH=FFFFFFFF MACL=0000555C state=00000004 poll_addr=00000024 poll_cnt=9 R0 =00000001 R1 =20004024 R2 =0000007D R3 =2601AEC0 R4 =000000CF R5 =FFFFFEC7 R6 =0601AF00 R7 =00000000 R8 =06016378 R9 =0601AEEC R10=00000000 R11=00000008 R12=FFFFFFFC R13=FFFFFF00 R14=C0000700 R15=0600FF78",
+      "terminal_slave": "Slave SH2: PC=C00000B4 PR=C00000B8 SR=00000020 GBR=20004100 VBR=06000140 MACH=FFFFFFEB MACL=00001800 state=00000000 poll_addr=00000000 poll_cnt=0 R0 =00000200 R1 =24016ACC R2 =00000002 R3 =000000DE R4 =00000909 R5 =24016C00 R6 =00000009 R7 =00000009 R8 =060194C8 R9 =060194E4 R10=00004000 R11=00006000 R12=00CC4000 R13=00DF2000 R14=C0000188 R15=0600FFF4",
+      "terminal_watch": {
+        "0x2600BC04": "0x0",
+        "0x2600BC08": "0x0",
+        "0x2600BC0C": "0x0",
+        "0x2600FB90": "0x0"
+      },
+      "watch_equivalence_sha256": "1479dd699f7c2605e848524d189ea5e85eee6c75e654b7a840b0a63535f68fe5",
+      "write_trace_sha256": "15421ac408b4972785451bd676417544bee513dfe7080469d080df411600ed94"
+    }
+  },
+  "schema": "vrd-vr60-q026-player-cmdint-runtime-v1",
+  "scope": "bounded_direct_cmdint_player_physics_precursor",
+  "status": "PASS"
+}

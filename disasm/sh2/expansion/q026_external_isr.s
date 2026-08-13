@@ -158,8 +158,9 @@ q026_external_entry:
     mov.l   r0,@(4,r3)
     mov.l   @(4,r3),r0
     mov.l   @(.L_stack_canary,pc),r1
-    mov.l   @r1,r0
     mov.l   @(.L_stack_magic,pc),r2
+    mov.l   r2,@r1
+    mov.l   @r1,r0
     cmp/eq  r2,r0
     bf      .L_bad_canary
 

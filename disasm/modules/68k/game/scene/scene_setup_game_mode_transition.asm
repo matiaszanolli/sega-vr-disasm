@@ -136,7 +136,7 @@ scene_setup_game_mode_transition:
 
 ; Mode 0 loading handler
         ifd     VR60_Q026_VALIDATION
-        move.l  #$0089C914,$00FF0002            ; Q-026 lifecycle reset wrapper
+        move.l  #$0089C930,$00FF0002            ; Q-026 lifecycle reset wrapper
         else
         ifd     VR60_Q020_CMDINT_PROBE
         move.l  #$0089C914,$00FF0002            ; validation-only CMDINT probe wrapper

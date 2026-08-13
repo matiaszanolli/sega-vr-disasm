@@ -1,6 +1,6 @@
 ; Q-026 validation-only lifecycle wrapper.
 ;
-; Fixed placement: file $01C914 / 68K $0089C914.  It re-arms the shared
+; Fixed placement: file $01C930 / 68K $0089C930.  It re-arms the shared
 ; lifecycle flag before tail-entering the untouched normal-1P loader.
 
 q026_scene_entry_wrapper:

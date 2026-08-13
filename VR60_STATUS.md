@@ -18,6 +18,7 @@ This file is the short, current answer to “what works now?” Older roadmap en
 | cmd `$3E` globals transfer (mode 1) | Validation pair only | **Disabled/unreachable in the promoted default** | **Isolated validation-stage PASS:** CMDINT Gate B passed; not promoted and not real-hardware proof |
 | cmd `$3E` AI-entity transfer (mode 2) | Validation pair only | **Disabled/unreachable in the promoted default** | **Isolated validation-stage PASS:** exact first-post-transfer CMDINT/DREQ transport; not persistent ownership, promotion, or real-hardware proof |
 | cmd `$3F` SH2 game-frame pipeline | Yes | **Disabled in 1P** | **Q-023 static gate passed:** a validation-only artifact selects corrected `$2600BC00`; runtime shadow/COMM behavior remains unverified |
+| Q-026 direct player-physics CMDINT precursor | Validation pair only | **Disabled/unreachable in the promoted default** | **Isolated validation-stage PASS:** one bounded direct invocation; not cmd `$3F`, authority, cadence, or FPS validation |
 | SH2 physics and AI ports | Yes | No; reachable only through the disabled cmd `$3F` path | Assembly/reference work exists; gameplay authority not proven |
 | SH2 collision ports | Yes | No | Reference-model tested, not dispatched by the live pipeline |
 | `render_state_patcher` | Yes | No useful effect | Verified no-op for the renderer's consumed inputs |
@@ -279,9 +280,22 @@ load, its sole aligned literal ownership, the cmd `$3F` jump, and every accepted
 identity remain pinned. The manifest deliberately records `static_eligible: true` but
 `eligible: false`, `promotable: false`, and `cmd3f_enabled: false`; this is not runtime evidence.
 
+**Q-026 passed its bounded direct-CMDINT validation stage on 2026-08-12.** The isolated
+ACTIVE/STAGE-CONTROL pair differs only at the exact eight-byte CMD edge and preserves the
+ordinary/Q-020/Q-021/Q-023 identities. Two trustworthy normal-1P repeats per arm prove one
+exact 320-byte mode-0 seed in both arms, one player-physics CMD entry/completion in ACTIVE and
+zero in CONTROL, allowed-only SDRAM/stack writes, preserved entity fields `+$CE/+$D2/+$D6/+$DA`,
+and pair/repeat-equivalent scene/state/caller/framebuffer/dual-SH2 state. At the exact ACTIVE
+edge, COMM1/2/7 are unchanged (`0101/003A/0000`) and COMM2_HI is zero. The retained failed pilot
+disproved startup-canary persistence; the approved admission-local write/read and post-return
+check pass. Evidence is at
+[analysis/evidence/vr60-q026-player-cmdint-gate](analysis/evidence/vr60-q026-player-cmdint-gate/README.md).
+This is not cmd `$3F` shadow execution, collision/equivalence, a bridge, authority transfer,
+cadence/scaling, real-hardware, CPU-budget, or FPS proof.
+
 The current active work item is **isolated, observable cmd `$3F` shadow execution using the
-Q-023-corrected handler**. Preserve the promoted mode-0 default and the separately scoped
-mode-1/mode-2 validation results. Keep the 68000 authoritative, and do not combine shadow
+Q-023-corrected handler**, informed but not promoted by Q-026. Preserve the promoted mode-0
+default and the separately scoped mode-1/mode-2/Q-026 validation results. Keep the 68000 authoritative, and do not combine shadow
 execution, renderer bridging, authority transfer, or cadence changes into one gate.
 
 The archived VR60-011 suite satisfies this prerequisite with the VR60 hook bypassed:
@@ -320,5 +334,6 @@ The project is complete only when a reproducible 1P run demonstrates all of the 
 - `analysis/evidence/vr60-q020-mode1-cmdint-gate/README.md` — isolated mode-1 CMDINT/DREQ gate
 - `analysis/evidence/vr60-q021-mode2-cmdint-gate/README.md` — isolated first-boundary mode-2 transport gate and limitations
 - `analysis/evidence/vr60-q023-mailbox-correction/README.md` — inactive, source-built cmd `$3F` mailbox correction
+- `analysis/evidence/vr60-q026-player-cmdint-gate/README.md` — bounded direct player-physics CMDINT precursor
 - `tools/libretro-profiling/retroarch_replay_to_csv.py` — fail-closed visual replay to canonical input bridge
 - `tools/libretro-profiling/VRD_PROFILING.md` — measurement procedure and validity gates

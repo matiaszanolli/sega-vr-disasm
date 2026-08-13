@@ -1,0 +1,151 @@
+{
+  "artifacts": {
+    "active-1.caller.trace": {
+      "sha256": "620aa87e8cc4a9acc6fa8865e7888071ddf9f4c8d84fc74dcf76d30f814a8854",
+      "size": 1053
+    },
+    "active-1.commands": {
+      "sha256": "ff931d0c1587178aa81c1ed5291524fdbed82683f7507f987bd10391aeec60f7",
+      "size": 645
+    },
+    "active-1.debug.txt": {
+      "sha256": "cbc91fd0673edaebd27251e45309d8cf9b446d1496e445725663e4e25f163d25",
+      "size": 10887
+    },
+    "active-1.mmio.trace": {
+      "sha256": "8d07f41bc001f43b4c9dd3c588f8fcce60da77495f38ccf8f0a2c4d8dc413e11",
+      "size": 36705
+    },
+    "active-1.profile.csv": {
+      "sha256": "08e70eadb96f768f95af2576ae7ffec8c9c3cf844afb613f94f0a669af4c7552",
+      "size": 74193
+    },
+    "active-1.watch.csv": {
+      "sha256": "96b8e77eed454e65772a0ccf7e69ad07b832c31bef2e5df3cea73559f7f6d9f8",
+      "size": 36180
+    },
+    "active-1.write.trace": {
+      "sha256": "c3534797bb40dcd8d1f87bf790144a3fc300701cb4c5e4e7264cc303e480a293",
+      "size": 58858
+    },
+    "active-2.caller.trace": {
+      "sha256": "620aa87e8cc4a9acc6fa8865e7888071ddf9f4c8d84fc74dcf76d30f814a8854",
+      "size": 1053
+    },
+    "active-2.commands": {
+      "sha256": "ff931d0c1587178aa81c1ed5291524fdbed82683f7507f987bd10391aeec60f7",
+      "size": 645
+    },
+    "active-2.debug.txt": {
+      "sha256": "462d106bed69665881f956f35dd78f832489e6b35818a4c42a5b2a19a395846f",
+      "size": 10887
+    },
+    "active-2.mmio.trace": {
+      "sha256": "8d07f41bc001f43b4c9dd3c588f8fcce60da77495f38ccf8f0a2c4d8dc413e11",
+      "size": 36705
+    },
+    "active-2.profile.csv": {
+      "sha256": "08e70eadb96f768f95af2576ae7ffec8c9c3cf844afb613f94f0a669af4c7552",
+      "size": 74193
+    },
+    "active-2.watch.csv": {
+      "sha256": "96b8e77eed454e65772a0ccf7e69ad07b832c31bef2e5df3cea73559f7f6d9f8",
+      "size": 36180
+    },
+    "active-2.write.trace": {
+      "sha256": "c3534797bb40dcd8d1f87bf790144a3fc300701cb4c5e4e7264cc303e480a293",
+      "size": 58858
+    },
+    "control-1.caller.trace": {
+      "sha256": "620aa87e8cc4a9acc6fa8865e7888071ddf9f4c8d84fc74dcf76d30f814a8854",
+      "size": 1053
+    },
+    "control-1.commands": {
+      "sha256": "ff931d0c1587178aa81c1ed5291524fdbed82683f7507f987bd10391aeec60f7",
+      "size": 645
+    },
+    "control-1.debug.txt": {
+      "sha256": "cfa1928a58407249397f1a89e391826dbfc4ca9889cbd70fc75288c1930ad08f",
+      "size": 10896
+    },
+    "control-1.mmio.trace": {
+      "sha256": "08d17fe217e0d732580d9e6bb1afda6003abf2063bc521095016b166a13767b9",
+      "size": 32851
+    },
+    "control-1.profile.csv": {
+      "sha256": "5047febfb45442164012ec401ac33215a3e283e068a9e14d2c2c281763b3975e",
+      "size": 74193
+    },
+    "control-1.watch.csv": {
+      "sha256": "f82fcfda5edea1cbaa26279ac83fa68ece678aa23c5212c8297f825584c43538",
+      "size": 36054
+    },
+    "control-1.write.trace": {
+      "sha256": "c3534797bb40dcd8d1f87bf790144a3fc300701cb4c5e4e7264cc303e480a293",
+      "size": 58858
+    },
+    "control-2.caller.trace": {
+      "sha256": "620aa87e8cc4a9acc6fa8865e7888071ddf9f4c8d84fc74dcf76d30f814a8854",
+      "size": 1053
+    },
+    "control-2.commands": {
+      "sha256": "ff931d0c1587178aa81c1ed5291524fdbed82683f7507f987bd10391aeec60f7",
+      "size": 645
+    },
+    "control-2.debug.txt": {
+      "sha256": "6596a4f9592faa34cf6825f0ef28a32e75cf6710c2c44e4f9f5d7e29924cbf17",
+      "size": 10896
+    },
+    "control-2.mmio.trace": {
+      "sha256": "08d17fe217e0d732580d9e6bb1afda6003abf2063bc521095016b166a13767b9",
+      "size": 32851
+    },
+    "control-2.profile.csv": {
+      "sha256": "5047febfb45442164012ec401ac33215a3e283e068a9e14d2c2c281763b3975e",
+      "size": 74193
+    },
+    "control-2.watch.csv": {
+      "sha256": "f82fcfda5edea1cbaa26279ac83fa68ece678aa23c5212c8297f825584c43538",
+      "size": 36054
+    },
+    "control-2.write.trace": {
+      "sha256": "c3534797bb40dcd8d1f87bf790144a3fc300701cb4c5e4e7264cc303e480a293",
+      "size": 58858
+    }
+  },
+  "authority_transferred": false,
+  "bridge_enabled": false,
+  "cadence_changed": false,
+  "cmd3f_enabled": false,
+  "collision_enabled": false,
+  "eligible": false,
+  "failed_pilot_diagnostics": {
+    "failed_pilot_log": {
+      "path": "q026-active-pilot.txt",
+      "sha256": "b56f839bee2af09953c83dd85fdc0cc8912c65710a1b599189099417c42f2e6b",
+      "size": 2836
+    },
+    "failed_pilot_watch": {
+      "path": "q026-active-watch.csv",
+      "sha256": "5b506f2d4da0079293f1735bc059eefffa21257517b86d83be265f169306d427",
+      "size": 65107
+    }
+  },
+  "fixture": "trustworthy_normal_1p_autoplay_from_boot",
+  "frames": 1280,
+  "non_promotable": true,
+  "organic_gameplay": true,
+  "promotable": false,
+  "repeats_per_arm": 2,
+  "roms": {
+    "active": "c9358ad4ff04d7420c7bef1f45c163afb4506efae4990c4b48a475188e0b76f8",
+    "control": "240dfd0a8df87a8118982849f354bc720b0011d480221f2031e3ceeb6dc1a66d"
+  },
+  "schema": "vrd-vr60-q026-player-cmdint-runtime-v1",
+  "scope": "bounded_direct_cmdint_player_physics_precursor",
+  "status": "CAPTURE_COMPLETE",
+  "toolchain": {
+    "core": "17d16aa506cef1bc215b290b20248b458b22b54374ae342a72eb2f3c2033e906",
+    "frontend": "626c2c148aa1dca10f2893bc6e9ac59dad237f5043763567ef73b0f9868bcc50"
+  }
+}

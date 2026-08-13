@@ -849,8 +849,13 @@ vdp_wait_test:                   ; $02050C
         dc.w    $0490        ; $020876
         dc.w    $0230        ; $020878  cmd $3E → expansion ROM $023016B0 (VR60 Phase 7: shifted)
         dc.w    $16B0        ; $02087A
+        ifd     VR60_Q026_VALIDATION
+        dc.w    $0600        ; $02087C  Q-026 direct-only: no cmd $3F registration
+        dc.w    $0490        ; $02087E  stock invalid-command handler
+        else
         dc.w    $0230        ; $02087C  cmd $3F → expansion ROM $02301500 (VR60 Phase 0)
         dc.w    $1500        ; $02087E
+        endif
         dc.w    $4F22        ; $020880
         dc.w    $D105        ; $020882
         dc.w    $E000        ; $020884

@@ -1,0 +1,32 @@
+run 1262
+read 68k 0x00FF6A00 320
+read master 0x0600F20C 320
+read master 0x2600BC00 16
+read master 0x2600FB90 4
+read master 0x2600FC00 16
+read master 0x20004022 4
+read master 0x2000402E 2
+regs master
+regs slave
+run 1
+read 68k 0x00FF6A00 320
+read master 0x0600F20C 320
+read master 0x2600BC00 16
+read master 0x2600FB90 4
+read master 0x2600FC00 16
+read master 0x20004022 4
+read master 0x2000402E 2
+regs master
+regs slave
+run 17
+read 68k 0x00FF0002 4
+read 68k 0x00FFC87E 2
+read 68k 0x00FF7B40 1
+read master 0x2600BC00 16
+read master 0x2600FB90 4
+read master 0x2600FC00 16
+read master 0x20004022 4
+read master 0x2000402E 2
+regs master
+regs slave
+quit

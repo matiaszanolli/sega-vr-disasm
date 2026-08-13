@@ -83,9 +83,8 @@
 ; --- Q-020 validation-only reset wrappers/helpers ---
 ; Ordinary mode 0 leaves this entire interval as the original $FF padding.
         ifd     VR60_Q026_VALIDATION
-        dcb.b   ($01C914-*),$FF
         include "modules/68k/sh2/q026_player_cmdint.asm"
-        assert  *=$01C920,"Q-026 lifecycle wrapper must end at file $01C920"
+        assert  *=$01C93E,"Q-026 lifecycle wrapper must end at file $01C93E"
         else
         ifd     VR60_Q020_CMDINT_PROBE
         include "modules/68k/sh2/q020_cmdint_probe.asm"

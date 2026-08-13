@@ -73,13 +73,14 @@
 | Path | Purpose | Key Topics | Note |
 |------|---------|-----------|------|
 | tools/libretro-profiling/README_68K_PC_PROFILING.md | How to profile VRD | Frame-level + PC-level hotspots, toolchain, baseline setup | Profiling how-to |
-| tools/libretro-profiling/VRD_PROFILING.md | Current profiling and normal-1P control gates | Unchanged continuous `validate_1p_control.py`; accepted DRC `validate_1p_lifecycle_suite.py`; Q-020 mode-0 exact pair/payload/chronology gate | Current VR60 measurement authority; VR60-011 baseline and Q-020 mode 0 passed; isolated modes 1 and 2 passed separately; Q-023 mailbox correction is next |
+| tools/libretro-profiling/VRD_PROFILING.md | Current profiling and normal-1P control gates | Unchanged continuous `validate_1p_control.py`; accepted DRC `validate_1p_lifecycle_suite.py`; Q-020 mode-0 exact pair/payload/chronology gate | Current VR60 measurement authority; VR60-011 baseline and Q-020 mode 0 passed; isolated modes 1, 2, and Q-026 passed separately; cmd `$3F` shadow remains next |
 | tools/libretro-profiling/validate_mode0_gate.py | Q-020 mode-0 acceptance validator | Exact 12-slot matrix, frame-0 debugger reads, source/stage and 320B destination proof, raw caller/write chronology, paired framebuffer rule, post-results COMM3 chronology | Mode-0 sub-gate PASS; policy `VR60-Q020-mode0-gate-v2` |
 | analysis/evidence/vr60-q020-mode0-gate/README.md | Accepted Q-020 mode-0 evidence | ACTIVE/control hashes, no-frame preflight, exact payload/sentinel, deterministic 12-run lifecycle matrix, preserved failed result and corrected PASS, normalized archive | Ordinary default promoted to exact ACTIVE `6f2768f2…2523900`; mode 1 remains disabled |
 | analysis/evidence/vr60-q020-cmdint-probe/README.md | Q-020 CMDINT diagnostic-feasibility evidence | Cold/normal/VRES/seeded-name routes, level-8 ISR, FRT workaround, CMD clear/readback/re-arm, literal ownership, patched/canonical PicoDrive comparison, exact 15-artifact archive | Probe-only PASS `8766714e…6a91e7`; non-promotable, non-organic name fixture, mode 1 still disabled |
 | analysis/evidence/vr60-q020-mode1-cmdint-gate/README.md | Q-020 mode-1 CMDINT Gate-B evidence | Zero-COMM two-edge transport, exact 64B/FULL/DMAC/TE/re-arm chronology, 8 route captures, safe-boundary VRES, busy-reset diagnostic, fail-closed composition | Isolated validation-stage PASS `96365860…ff4470` / `39177456…34e9fd`; default unchanged, mode 1 unpromoted |
 | analysis/evidence/vr60-q021-mode2-cmdint-gate/README.md | Q-021 mode-2 first-boundary CMDINT/DREQ evidence | Exact 3,840B source/FIFO/destination equality, 1,920 FIFO words, 480 FULL groups, stack-boundary proof, 8 route captures, safe-boundary VRES, fail-closed composition | Isolated validation-stage PASS `96d79e3f…ee276` / `da5ce4ec…309b8`; default and mode 1 unchanged; later destination ownership remains unknown |
 | analysis/evidence/vr60-q023-mailbox-correction/README.md | Q-023 inactive cmd `$3F` mailbox correction | Source-built `$2200BC00->$2600BC00` pair, sole file-$301638 byte delta, `$D449` literal ownership, accepted default/mode identities | Static-only PASS `8709aed4…5a59ef` / exact-default CONTROL `6f2768f2…2523900`; cmd `$3F` remains unreachable |
+| analysis/evidence/vr60-q026-player-cmdint-gate/README.md | Q-026 bounded player-physics direct-CMDINT gate | Exact eight-byte ACTIVE/CONTROL edge, one accepted 320B seed, ISR/stack/canary/write/field/COMM/liveness bounds, retained failed pilot | Isolated non-promotable PASS `c9358ad4…b76f8` / `240dfd0a…a66d`; cmd `$3F`, bridge, collision, authority, cadence, and FPS remain open |
 | tools/libretro-profiling/validate_1p_lifecycle_suite.py | VR60-011 complete-lifecycle capture and aggregate validator | Sterile DRC/no-PC capture, composed exact FAME hook, all-row caller provenance, strict caller/write grammars, exact C87E cycle/Master completion, per-frame Slave and per-window/tail Master executed cycles, exact C07C chain, predeclared boundaries, duplicate rejection, 3/1800/3960/18000 floors | Separate v2 policy; 43 focused lifecycle tests pass. Reviewed Big Forest/Bay Bridge/Acropolis suite passed |
 | tools/libretro-profiling/vr60_lifecycle_suite.schema.json | VR60-011 reviewed manifest schema | Exact ROM/tool/state/input/source/raw artifact pins, predeclared lifecycle boundaries, no extra policy fields | Use with the lifecycle validator; generated fixture entries require review before suite inclusion |
 | analysis/evidence/vr60-011-lifecycle-suite/README.md | Accepted VR60-011 baseline evidence | Three DRC lifecycles, exact E/R boundaries, 31,137 active frames, deterministic x2 replay, tool/patch identities, normalized raw archive | Baseline blocker cleared; Q-020 mode 0 subsequently passed |
@@ -636,6 +637,16 @@ the aligned literal at relative `$138`. The cmd `$3F` jump and all accepted mode
 identities remain exact. Neither arm enables cmd `$3F`; runtime mailbox, COMM, shadow execution,
 renderer, authority, cadence, FPS, reset, and real-hardware claims remain open.
 
+35. **Q-026 passes only as a bounded direct player-physics CMDINT precursor.** ACTIVE
+`c9358ad4…b76f8` and STAGE-CONTROL `240dfd0a…a66d` differ only at the exact eight-byte CMD
+edge and preserve every ordinary/Q-020/Q-021/Q-023 identity. Two trustworthy normal-1P repeats
+per arm prove one exact 320-byte seed, one ACTIVE entry/completion and zero CONTROL direct work,
+allowed-only writes, preserved `+$CE/+$D2/+$D6/+$DA`, unchanged COMM1/2/7, COMM2_HI zero at
+the exact admission edge, and exact continuing pair/repeat evidence. A failed pilot disproved
+startup-canary persistence; the accepted ISR refreshes and reads it at admission before switching
+stacks, then checks it after return. This does not validate cmd `$3F`, collision/equivalence,
+renderer bridging, authority, cadence, FPS, arbitrary interrupts, or real hardware.
+
 ---
 
 ## Section 4: Where-to-Find Cross-Reference
@@ -655,6 +666,7 @@ renderer, authority, cadence, FPS, reset, and real-hardware claims remain open.
 | Q-020 cmd `$3E` mode-1 isolated validation gate | VR60_STATUS.md § Q-020 mode 1 passed its isolated validation stage on 2026-08-11 | `analysis/evidence/vr60-q020-mode1-cmdint-gate/README.md`; `tools/libretro-profiling/validate_mode1_gate_composition.py`; `disasm/modules/68k/sh2/vr60_mode1_validation.asm`; `disasm/sh2/expansion/cmd3e_mode1_validation.asm` |
 | Q-021 cmd `$3E` mode-2 isolated first-boundary gate | VR60_STATUS.md § Q-021 mode 2 passed its isolated validation stage on 2026-08-12 | `analysis/evidence/vr60-q021-mode2-cmdint-gate/README.md`; `tools/libretro-profiling/validate_mode2_gate_composition.py`; `tools/libretro-profiling/mode2_cmdint_runtime.py`; `disasm/sh2/expansion/cmd3e_mode2_validation.asm` |
 | Q-023 cmd `$3F` inactive mailbox correction | VR60_ROADMAP.md Q-023 | `analysis/evidence/vr60-q023-mailbox-correction/README.md`; `tools/libretro-profiling/verify_q023_mailbox_rom_pair.py`; `disasm/sh2/expansion/cmd3f_vr60_gameframe.asm` |
+| Q-026 bounded player-physics direct-CMDINT gate | VR60_STATUS.md § Q-026 passed its bounded direct-CMDINT validation stage | `analysis/evidence/vr60-q026-player-cmdint-gate/README.md`; `tools/libretro-profiling/verify_q026_player_rom_pair.py`; `tools/libretro-profiling/q026_player_runtime.py`; `disasm/sh2/expansion/q026_external_isr.s` |
 | Expansion ROM layout + active handlers | disasm/sections/expansion_300000.asm | BACKLOG.md §B-003/B-004 |
 | B-003 async cmd_27 design | BACKLOG.md §B-003 | analysis/68K_SH2_COMMUNICATION.md §B-003 |
 | B-004 single-shot cmd_22 design | BACKLOG.md §B-004 | analysis/68K_SH2_COMMUNICATION.md §B-004 |

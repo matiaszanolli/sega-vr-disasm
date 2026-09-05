@@ -287,6 +287,44 @@ controls plus canonical replacement-metadata roundtrip in
 `test_q028_dt_record_proof.py` (two tests, zero skips). That standalone
 test is not actual DT acceptance. Launch requires ledger success, coordinated
 clean build and resource check; unobserved CPU/view pairs remain outside actual coverage.
+Checkpoint `992a529` has fresh checkpoint-only approval. DT29 session 53133
+ran at `diagnostics/q028-v10-actual-dt-r1/`; its current-reader full
+control passed 135,978,338 events, 195.670 seconds, peak RSS 4,119,601,152 bytes,
+source manifest `ad444e06…1a4a4632`. All 28 mutations subsequently passed below.
+Pre-pilot review additionally identifies required actual WRAM mutable/mask/copy
+mutations, bootstrap/reset/chunk/agent cases, explicit finite-inventory
+mutations and final probe-identity checks; existing standalone tests are not
+equivalent coverage. See the newest roadmap requirements table.
+WRAM operand source-review target: raw sequence 135,013,642 writes FF0008=0010,
+135,013,645 fetches FF0006/31FC, 135,013,646 writes FFFFC87A=0010.
+`WramState.fetch` currently validates firstword/static mask, not an independent
+live extension witness. Standalone differing reconstructed operands both pass.
+Actual one-value mutation 29767 then terminated with the current reader
+accepting all 135,978,338 events despite FF0008 write0011 / later consumer0010.
+New `q028-v10-wram-operand-r1/` result `b27146e9…406df1`, transformation
+`287c30c6…9ce267`, harness `ee1a5b22…0d6881`; copied source PASS receipts have
+`source-` names. Root proved exactly one changed byte at chunk0541 offset654912,
+all543 other raw chunks unchanged by exact source-manifest joins, and unchanged
+consumer/footer/bootstrap/ledger. Original and changed chunk SHAs are
+`470b6379…54c277` / `dcc4fb45…336a74`. This is a direct-reader consistency gap,
+not whole-pilot bypass or gameplay failure. Worker is researching a repair for
+all approved mutable fields; fresh design approval is required before code.
+DT53133 subsequently completed exit 0 with all29 cases passing. Root verified
+the exact case/receipt/error/transform joins, all104 changed-chunk hashes and
+all544 unchanged source stat identities. Aggregate `30e7cbb5…091b68`, reader
+time5642.014s, peakRSS4,119,601,152B; current toolchain closure also PASS.
+All reader handles are terminal; this covers readerf347, not the operand gap.
+Witness revision `dfc50860…3084ed` is proposed only. Same-engine interpreter
+comparison is corrected; the managed-writer/source-bound inventory is explicit.
+R-WRAM-OUTPUT-1 remains open: common prewrite admission across core RFILE,
+frontend FILE and shared stdout/stderr, including terminal buffering, is not
+closed by a witness-only counter. Terminal host observation stays before
+PicoExit; later teardown is outside this observation interval. Resolve the
+accounting design before fresh implementation review; existing caps stay fixed.
+Ordinary clean build 24260 exited 0 with accepted ROM `6f2768f2…2523900` unchanged.
+No production change is approved; all required post-fix gates remain.
+Six-frame raw only contains boot copy/clear for these addresses; it cannot
+substitute for the actual later mutable-operand capture.
 Storage follow-up: retained ineligible r2's 1,987 raw chunks independently
 sum to 23,835,857,344 bytes, exceeding the old v7 aggregate uncompressed
 archive cap (17,179,869,184 bytes) before other artifacts. Existing

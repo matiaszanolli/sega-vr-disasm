@@ -401,6 +401,90 @@ explicitly outside this 29-case actual matrix. The newly approved WRAM EOF
 correction and its all-template/actual-prefix tests precede this run; final
 tool-input closure and fresh completed-diff review remain required afterward.
 
+**2026-09-04 checkpoint and next evidence review:** local commit `992a529`
+retains the 19 reviewed source/test/documentation files; a fresh Auditor
+approved the checkpoint only. Raw diagnostics and the stale canonical JSON
+remain untracked and unchanged. DT29 session 53133 ran in
+`diagnostics/q028-v10-actual-dt-r1/`. Its unchanged full-stream control passed
+all 135,978,338 records on reader `f3476592…55a1d65` in 195.670 seconds,
+peak RSS 4,119,601,152 bytes. Source manifest `ad444e06…1a4a4632` matches the
+ledger runs. The four observed CPU/view groups are Master 2/3 and Slave 2/4;
+Master 4 and Slave 3 are explicitly unobserved, not fabricated coverage.
+The other 28 cases and aggregate subsequently passed; see terminal verification below.
+
+Pre-pilot requirements review found further open test work; DT29 success
+alone will not authorize the pilot:
+
+| Required evidence | Current boundary | Remaining work |
+|---|---|---|
+| WRAM mutable operand, mask, stale view and copy mutations | `test_q028_image_domains.py` covers standalone state; actual WRAM harness covers boot-copy EOF only | Actual captured-artifact mutations through the production reader, with exact unchanged-field proof |
+| Bootstrap/reset, missing chunk, bad count and false-N/A agent mutations | Actual six-/400-frame harness currently declares seven different structural mutations | Complete the original v10 proposal's remaining actual-artifact cases at their production validation boundary |
+| Finite 120-span / 321-start inventory | Positive exact-byte/exclusion checks and one truncated island pass | Explicit overlapping-instruction, changed span/source identity, missing sibling and data-promotion mutations required by the mutable-image amendment |
+| Final identities and audit | Current 14-input closure and ordinary ROM pass; checkpoint approval only | Verify retained probe identities and all final evidence, then obtain completed-diff approval |
+
+The mutable-operand test needs particular care. `WramState.fetch` checks the
+current first word and the static masked identity; it does not itself compare
+live extension bytes to an independent fetch witness. A standalone control
+with/without a legitimate FF0002 write produces different reconstructed JSR
+operands while both masked fetches pass. That is not an actual-reader bypass
+proof. A narrow raw scan found a concrete actual test target: sequence
+135,013,642 writes `0010` to FF0008; sequence 135,013,645 fetches `31FC` at
+FF0006; sequence 135,013,646 writes `0010` to FFFFC87A. A one-value mutation
+of the establishing write, preserving the later consumer and every unrelated
+record, was authorized as the next diagnostic. The six-frame capture has
+only the boot copy/clear in this address range, so it cannot substitute for
+this later mutable-operand test. Avoid concurrent large readers unless fresh
+resource checks explicitly support them; do not rebuild while DT29 is live.
+
+The actual operand diagnostic 29767 subsequently terminated exit 0 with
+`DIRECT_READER_ACCEPTED_INCONSISTENT_WRAM_OPERAND`: current reader accepted
+all 135,978,338 records and two WRAM installations despite changing the
+establishing value from `0010` to `0011` while the later consumer remains
+`0010`. Runtime was 204.497 seconds including map load; peak RSS was
+4,135,686,144 bytes. A fresh 12,598,018,048-byte MemAvailable check and an
+independent 8-GiB floor permitted this one parallel diagnostic; pilot caps
+did not change. Retained `diagnostics/q028-v10-wram-operand-r1/` contains
+result `b27146e9…406df1`, transformation `287c30c6…9ce267`, and exact harness
+`ee1a5b22…0d6881`. Copied source PASS receipts are explicitly prefixed `source-`.
+Root independently compared the complete changed chunk: only byte offset
+654,912 differs, corresponding to bit 0 of the selected record's value.
+Its original SHA `470b6379…54c277` matches the immutable source manifest;
+the mutant is `dcc4fb45…336a74`. All 543 other chunks retain exact original
+device/inode/size/mtime joins; footer, bootstrap and host ledger are unchanged.
+This establishes a direct-reader operand-consistency gap, not a whole-pilot
+bypass or an emulated gameplay fault. Original capture bytes remain intact.
+Worker is researching a source-backed repair for all approved mutable fields;
+no production change is authorized before a fresh design audit. The frozen
+DT suite continued independently; its results cannot close this new WRAM
+obligation.
+
+**2026-09-05 DT29 terminal verification:** session 53133 completed exit 0,
+all 29 declared cases passed. Root independently joined the exact case set,
+per-case/aggregate receipts, expected errors, four observed CPU/view groups,
+transformation hashes and all 104 changed-chunk digests; all 544 original
+source-chunk stat identities remain unchanged. Aggregate result SHA is
+`30e7cbb5…091b68`; summed reader time is 5,642.014 seconds and peak RSS is
+4,119,601,152 bytes. Both premature-fetch and unfinished-final-DT cases fail
+for their specific provenance conditions in every observed group. Current
+production tool-input/source/output closure also passes. No reader remains
+live. This closes the frozen DT matrix for reader `f3476592…55a1d65`, not
+the operand gap, remaining coverage table, full pilot or Q-028 acceptance.
+
+Worker's revised WRAM witness amendment `dfc50860…3084ed` records exact
+full active-template host bytes at each WRAM fetch and at the terminal
+boundary, independently joined to replayed raw writes and host-ledger rows.
+It is **not implementation-approved**. The revision corrects the comparison to
+the same source-selected SH2-interpreter engine/settings and enumerates managed
+writers, buffering owners and unchanged resource limits. Terminal observation
+stays before `PicoExit`, within the existing observer interval. The explicit
+design question **R-WRAM-OUTPUT-1** remains open: shared prewrite admission must
+cover core RFILE, frontend native FILE and shared stdout/stderr, including
+terminal buffering. A witness-only counter or retrospective size check cannot
+prove that aggregate bound. Resolve this accounting boundary before fresh
+implementation review; no cap increase or full pilot is authorized.
+Ordinary clean build session 24260 terminated exit 0 after the documentation
+update; accepted ROM remains `6f2768f2…2523900`. No production inputs changed.
+
 Read-only downstream inspection also found that the campaign launcher still
 uses the old `access.csv` path, the campaign validator does not consume v8
 chunks, and its command/FS predicates are not driven by the prospective

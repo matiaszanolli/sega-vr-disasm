@@ -165,7 +165,8 @@ def pinned_sources() -> tuple[dict[str, bytes], list[dict]]:
         raise ImageError("bootstrap recipe source-pack identity")
     closure = json.loads((HERE / "q028_picodrive_git_closure_v9.json").read_bytes())
     wanted = {"pico/32x/memory.c", "pico/32x/32x.c", "pico/pico_int.h",
-              "cpu/fame/famec_opcodes.h", "cpu/fame/famec.c", "pico/sek.c"}
+              "cpu/fame/famec_opcodes.h", "cpu/fame/famec.c", "pico/sek.c",
+              "cpu/sh2/mame/sh2.c", "cpu/sh2/mame/sh2pico.c"}
     leaves = {row["final_relative_path"]: row for row in closure["leaves"]
               if row["final_relative_path"] in wanted}
     result, inventory = {}, []
@@ -322,6 +323,9 @@ def auxiliary_rows(rom: bytes) -> tuple[list[dict], dict, str]:
                 "sha256": expected, "size": size, "destination": 0xC0000000,
                 "source": literals[1], "read_pc": 0x06000000+loop+6-0x20000,
                 "write_pc": 0x06000000+loop+8-0x20000,
+                "dt_pc": 0x06000000+loop+10-0x20000,
+                "dt_opcode": words[5], "dt_address_mask": 0xC7FFFFFF,
+                "dt_read_source": "cpu/sh2/mame/sh2.c:DT:BUSY_LOOP_HACKS",
                 "loop_bytes": rom[loop:start].hex()})
             arrays.append(f"static const unsigned char vrd_q028_sram_{index}[]={{" +
                           ",".join(str(x) for x in data) + "};")
@@ -333,11 +337,12 @@ def auxiliary_rows(rom: bytes) -> tuple[list[dict], dict, str]:
         view=copy["view"]
         arrays.append(f"{{{view}u,0x{copy['source']:x}u,{copy['copy_size']}u,{copy['code_size']}u,{copy['copy_width']}u,vrd_q028_wram_{view},vrd_q028_wram_mask_{view}}},")
     arrays.append("};")
-    arrays.append("struct vrd_q028_sram_image { unsigned int view, source, size, read_pc, write_pc; const unsigned char *bytes; };")
+    arrays.append("struct vrd_q028_sram_image { unsigned int view, source, size, read_pc, write_pc, dt_pc, dt_opcode, dt_mask; const unsigned char *bytes; };")
     arrays.append("static const struct vrd_q028_sram_image vrd_q028_sram_images[]={")
     for copy in copies:
-        arrays.append("{%du,0x%xu,%du,0x%xu,0x%xu,vrd_q028_sram_%d}," % (
-            copy["view"], copy["source"], copy["size"], copy["read_pc"], copy["write_pc"], copy["view"]))
+        arrays.append("{%du,0x%xu,%du,0x%xu,0x%xu,0x%xu,0x%xu,0x%xu,vrd_q028_sram_%d}," % (
+            copy["view"], copy["source"], copy["size"], copy["read_pc"], copy["write_pc"],
+            copy["dt_pc"],copy["dt_opcode"],copy["dt_address_mask"],copy["view"]))
     arrays.append("};")
     return rows, manifest, "\n".join(arrays)
 

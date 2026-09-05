@@ -99,8 +99,9 @@ class ChildResourceTests(unittest.TestCase):
                    "VRD_Q028_ACCESS_LOG": str(root),
                    "VRD_Q028_RUN_KIND": access.QUARANTINE_TOKEN}
             try:
-                gate.run([os.environ["Q028_TEST_FRONTEND"], str(repo / "build/vr_rebuild.32x"), str(frames)],
-                         repo, root / "producer.log", env)
+                producer = gate.run([os.environ["Q028_TEST_FRONTEND"], str(repo / "build/vr_rebuild.32x"), str(frames)],
+                                    repo, root / "producer.log", env)
+                (root / "producer-resource.json").write_bytes(access.canonical(producer))
             except gate.GateError:
                 self.fail((root / "producer.log").read_text())
             footer_path = root / "access-footer-v8.json"

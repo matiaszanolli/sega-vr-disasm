@@ -284,6 +284,8 @@ def read_events(root: Path, site_map: dict) -> tuple[dict,list[str]]:
         pending=next(ledger,None)
     if pending is not None: raise AccessError("host ledger beyond EOF/unconsumed entry")
     if footer.get("host_rewrites")!=idle.summary(): raise AccessError("host ledger/footer reconciliation")
+    try: state.finish()
+    except ImageStateError as error: raise AccessError(str(error)) from error
     return {"event_count":sequence,"counts":dict(sorted(counts.items())),
             "chunks":chunk_rows,"record_bytes":sum(x["size"] for x in chunk_rows),
             "idl":idl,"cpu_instruction_instances":cpu_instances,

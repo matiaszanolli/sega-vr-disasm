@@ -80,6 +80,30 @@ class ImageDomainTests(unittest.TestCase):
         state.data(0,0x881234,0xFF0008,2,0,True)
         with self.assertRaises(ImageStateError): state.fetch(0,0xFF0000,0x4EB9,7)
 
+    def test_wram_all_nonterminal_copy_prefixes_fail_eof(self):
+        self.assertEqual({image["view"] for image in self.manifest["wram_copies"]},{5,6,7})
+        for view in (5,6,7):
+            state=ImageState(self.manifest)
+            state.finish()
+            image=state.wram.copies[view]
+            width=image["copy_width"]
+            for offset in range(0,image["copy_size"],width):
+                pc=image["copy_pcs"][offset//width] if view==5 else image["copy_pcs"][0]
+                value=int.from_bytes(image["data"][offset:offset+width],"big")
+                for write in (False,True):
+                    with self.subTest(view=view,offset=offset,write=write):
+                        address=(image["destination"] if write else image["source"])+offset
+                        state.data(0,pc,address,width,value,write)
+                        if write and offset+width==image["copy_size"]:
+                            self.assertIsNone(state.wram.installing)
+                            self.assertEqual(state.wram.active,view)
+                            self.assertEqual(state.wram.installs,1)
+                            state.finish()
+                        else:
+                            self.assertEqual(state.wram.active,0)
+                            with self.assertRaisesRegex(ImageStateError,r"^incomplete WRAM installation at EOF$"):
+                                state.finish()
+
     def test_wram_wrong_copy_and_mask(self):
         state=ImageState(self.manifest)
         with self.assertRaises(ImageStateError): state.data(0,0x880FDE,0x880F92,2,0,False)
@@ -140,6 +164,45 @@ class ImageDomainTests(unittest.TestCase):
             value = int.from_bytes(image["data"][offset:offset+4], "big")
             state.data(cpu, image["read_pc"], image["source"]+offset, 4, value, False)
             state.data(cpu, image["write_pc"], image["destination"]+offset, 4, value, True)
+            state.data(cpu,image["dt_pc"],image["dt_pc"]&image["dt_address_mask"],2,image["dt_opcode"],False)
+
+    def test_all_sram_dt_phases_and_final_activation(self):
+        for view,expected_pc,size in ((2,0x06002536,1748),(3,0x06003352,1608),(4,0x06003A5C,580)):
+            for cpu in (1,2):
+                state=ImageState(self.manifest); image=state.copies[view]
+                self.assertEqual((image["dt_pc"],image["dt_opcode"],image["size"]),(expected_pc,0x4710,size))
+                for offset in range(0,size,4):
+                    value=int.from_bytes(image["data"][offset:offset+4],"big")
+                    state.data(cpu,image["read_pc"],image["source"]+offset,4,value,False)
+                    state.data(cpu,image["write_pc"],image["destination"]+offset,4,value,True)
+                    self.assertEqual(state.active[cpu],0)
+                    with self.assertRaisesRegex(ImageStateError,"EOF"): state.finish()
+                    state.data(cpu,expected_pc,expected_pc,2,0x4710,False)
+                self.assertEqual(state.active[cpu],view); state.finish()
+                with self.assertRaisesRegex(ImageStateError,"outside installation"):
+                    state.data(cpu,expected_pc,expected_pc,2,0x4710,False)
+
+    def test_sram_dt_missing_moved_duplicate_and_wrong_fields(self):
+        for change in ("pc","address","width","value","write","cpu","missing"):
+            state=ImageState(self.manifest); image=state.copies[2]
+            value=int.from_bytes(image["data"][:4],"big")
+            state.data(1,image["read_pc"],image["source"],4,value,False)
+            with self.assertRaises(ImageStateError):
+                state.data(1,image["dt_pc"],image["dt_pc"],2,0x4710,False)
+            state.data(1,image["write_pc"],image["destination"],4,value,True)
+            fields=[1,image["dt_pc"],image["dt_pc"],2,0x4710,False]
+            index={"cpu":0,"pc":1,"address":2,"width":3,"value":4,"write":5}.get(change)
+            if index is not None: fields[index]=True if change=="write" else fields[index]+1
+            else: fields=[1,image["read_pc"],image["source"]+4,4,int.from_bytes(image["data"][4:8],"big"),False]
+            with self.assertRaises(ImageStateError): state.data(*fields)
+            self.assertEqual(state.active[1],0)
+        state=ImageState(self.manifest); image=state.copies[2]
+        value=int.from_bytes(image["data"][:4],"big")
+        state.data(1,image["read_pc"],image["source"],4,value,False)
+        state.data(1,image["write_pc"],image["destination"],4,value,True)
+        state.data(2,0x6001000,0x6002000,2,0,False)
+        state.data(1,image["dt_pc"],image["dt_pc"],2,0x4710,False)
+        with self.assertRaises(ImageStateError): state.data(1,image["dt_pc"],image["dt_pc"],2,0x4710,False)
 
     def test_reset_exact_order_and_no_later_synthetic_phase(self):
         state = ImageState(self.manifest)

@@ -59,6 +59,52 @@ the complete observer file at that checkpoint was
 
 Run from the repository workspace with `python3` and the pinned build tools.
 The script reports the actual current function/file hashes; a later run is
-not a reproduction of the recorded identity if those hashes change. This is
-**standalone source-state validation**, not a full core build, actual host-RAM
-snapshot test, binary-reader acceptance, resource pilot, or FPS result.
+not a reproduction of the recorded identity if those hashes change.
+
+The post-`e180875` extension also compiles the exact host-RAM comparison block
+with a small word-swapped host-memory stub. It passes 372 individual byte
+mismatches across every allowed WRAM instruction start and 27 matching,
+range and CPU/view controls. Every check preserves host bytes, model bytes
+and active view; only the expected error counter changes. The extra installs
+bring the transition count to 283, with the same five rejected copy mutations.
+Exact comparison-block SHA-256:
+`ac50cb371a184da5ff78a4dcddb2a02b6ef8e77ec16229edcb3d6693ee729395`;
+observer SHA-256:
+`0288b3a6067150fb1850b2c5473bbe8b7451c00249ad7fde36915718f753d30b`.
+This tests the real C comparison against stubbed host memory, not a running
+PicoDrive memory snapshot. Both versions remain **standalone validation**,
+not actual-core binary-reader acceptance, a resource pilot or an FPS result.
+
+## Standalone host restoration ordering
+
+`q028_idle_restore_parity.py --source-root <retained-build-source>` extracts
+the exact original `SekFinishIdleDet` from the hash-verified immutable source
+pack and its exact reviewed post-overlay function from the supplied build.
+It compiles both with host-memory/callback stubs. All 20 approved opcode
+variants restore identical bytes, and each patched callback reports the
+original word and final restored word in the original reverse-target order.
+Two unmatched controls emit no callback; repeated teardown remains a no-op.
+This verifies full-expression callback ordering, not actual-core ledger or
+EOF acceptance. The original and patched normalized function hashes are
+`ebff9a2d6f5c8e48f95327c02b38f0cfd64f5acaac9a8bc7cab3339320c268a2`
+and `8621954f5ac53571743b26a50490a2ca88e5716d8798be755f2143bec2cb222b`.
+The reviewed patched `pico/sek.c` hash is
+`46777d9bce8d88d7e5034aff5e65ec2f158c18660d36cf7a53a9429f012c83d7`.
+
+## Full execution-field comparison across the DT repair
+
+`q028_compare_attribution.c` compares two captured streams, with arguments
+`OLD_DIRECTORY NEW_DIRECTORY CHUNK_COUNT`. It permits only site-map header
+identity changes and resolution of previously unattributed SH2 SRAM records:
+attribution bit, site index and opcode hash. Every other record field and
+every already-attributed record must remain byte-identical. It is a focused
+diagnostic comparator, not a structural/semantic production validator.
+
+Old `q028-v10-bounded-400-r1` versus new `q028-v10-dt-bounded-400-r1`, 544
+chunks each, passed all 135,978,338 records. Exactly 219,125 Master and
+317,966 Slave SRAM records gained attribution. Source SHA-256 is
+`68cc351ae8bfa549f8749c9f5985effbdf3177accc7b982fd3a8250c789c7cd0`;
+compiled binary SHA-256 is
+`7ec58897b2c596060068c2376fcc5524dc16fcbabac750067567c83aae71e0dc`.
+The receipt is `independent-execution-comparison.json` in the new run directory.
+Neither this comparison nor the old failed capture supplies acceptance.

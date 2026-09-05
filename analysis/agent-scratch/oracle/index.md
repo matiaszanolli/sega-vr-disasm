@@ -195,6 +195,107 @@ and unchanged-raw checks pass after these assertions; complete runtime rerun,
 Retained snapshots and exact limitations:
 `analysis/evidence/vr60-q028-renderer-descriptor-probe/diagnostics/checkpoint-20260904/README.md`.
 
+After checkpoint `e180875`, actual-core session 91919 passed the full final
+six-frame harness (517,467 events, seven actual-artifact mutations, zero
+skips). `/tmp/q028-v10-smoke-r4` retains its original chunks and receipts.
+The actual terminal-frame mutation now passes production-reader rejection;
+400-frame SRAM/host-rewrite coverage and the expanded matrix remain open.
+
+Bounded 400-r1 subsequently completed with four observer errors and 537,091
+unattributed events. Independent full scan localizes all of those to SRAM
+on both SH2s starting at frame 398; no M68K gap. Diagnose exact copy/view
+chronology, not the now-accounted-for finite M68K or idle-word domains.
+Retained raw location: `diagnostics/q028-v10-bounded-400-r1/` under Q-028
+evidence. This failure is ineligible; SRAM root cause is not yet established.
+Standalone exact-C host comparison extension separately rejects 372 byte
+mismatches and passes 27 controls with observed/model bytes unchanged.
+Source follow-up proves all four SRAM errors: pinned
+`cpu/sh2/mame/sh2.c:795–817` performs an observer-visible word reread in
+`DT` under `BUSY_LOOP_HACKS`, between correct copy pairs. Exact DT PCs are
+`06002536`, `06003352`, `06003A5C`; read value is `4710` in this capture.
+Current tracking rejects those extra reads; a finite source/phase/identity
+amendment is being prepared for fresh review. Preserve the raw reads and
+emulator behavior. This diagnosis does not make failed 400-r1 eligible.
+Fresh implementation-only approval: DT amendment `baa6dc80…edf8391` requires
+exact per-CPU read32/write32/DT-read16 triplets and final-DT activation.
+Independent `replay_sram_phases.py` in failed 400-r1 replays 978,338 unchanged
+records, verifies all four copies (437/437/402/145 longwords), compares all
+386,491 SRAM fetch words to current payloads, and accounts for every 537,091
+unattributed record with no in-image invalidations. Diagnostic corroboration
+only; fresh actual-core and complete mutation validation remain mandatory.
+Host restoration ordering has an independent exact pre/post-source C harness:
+`diagnostics/r2-full-raw-scan/q028_idle_restore_parity.py` under Q-028 evidence.
+All 20 aliases, two unmatched controls and repeated teardown pass with final
+bytes unchanged and callbacks observing only final restored words. This
+standalone check does not satisfy actual-ledger/EOF artifact coverage.
+Implemented DT phase has 18 passing focused tests and standalone exact C/Python
+parity of 11,940 transitions / 84 malformed phases. Reproduce with retained
+`diagnostics/r2-full-raw-scan/q028_sram_phase_parity.py`; current function hash
+is `e9867e5a…64d2b2`. Fresh regenerated-core/binary validation is still required.
+Fresh core pair subsequently reproduces `9f7e5bf7…40775da`; all actual
+tool-input/output joins pass. Fresh six-frame test 20098 passes. The new
+400-frame producer has zero errors/unattributed/unknown/dropped; production
+reader 26276 is still running. Full old/new raw execution-field comparison
+passes all 135,978,338 records with only the expected 537,091 SRAM attribution
+metadata resolutions. Retained comparator: `q028_compare_attribution.c` in
+`diagnostics/r2-full-raw-scan/`; output is in `q028-v10-dt-bounded-400-r1/`.
+Reader/harness 26276 is now terminal PASS (exit 0, 243.365 seconds, zero
+skips): all 135,978,338 events, four SRAM installs, 27 host rewrites and
+seven existing actual-artifact mutations. Retained positive/mutation receipts
+close the bounded regression only. Expanded ledger/DT/WRAM/EOF matrix and
+fresh completed-diff approval remain prerequisites for a full resource pilot.
+Actual WRAM EOF proof 18778 demonstrates that direct `read_events` returns
+on an incomplete 22,594-event boot-copy prefix; complete 22,616-event control
+also returns, with one installed template. Record bytes equal original fresh
+six-frame prefixes. Proposed one-condition closure amendment `6ffb6f70…d2f207f`
+was initially held by the fresh-auditor thread limit. Capacity subsequently
+opened; fresh `auditor_q028_eof_capacity_check` independently verified the
+payload prefixes and approved implementation only. Fresh `worker_q028_eof`
+implemented the exact condition. All 57 unfinished prefixes and three complete
+controls pass; Worker ran 19 focused tests, root independently ran 17 related
+tests, zero skips. Clean build 71418 reproduces the accepted ROM. New actual
+prefix result `dc83ae16…4a664272` in `q028-v10-wram-eof-r2/` rejects the
+22,594-record incomplete copy and accepts the 22,616-record complete control;
+root cmp-verified both payloads. Reader `f3476592…55a1d65` differs by exactly
+two lines from the previous build snapshot. Observer/core/maps remain unchanged.
+Clean pair 33769 passed in `/tmp/q028-v10-eof-build-pair-r1`, receipt
+`e0d3d96e…138ad7a`; Worker and root independently passed all 14 current
+tool/snapshot joins, source postimages and compiled outputs. Ordinary clean
+build 92950 also reproduces the accepted ROM. No auditor reuse was needed. DT29 and
+the full pilot remain unlaunched; no acceptance claim follows.
+Actual ledger batch 92910 terminated exit 1 with ten passing cases and one
+expected-error mismatch: reordered installs correctly fail with `unconsumed
+host ledger boundary`. Raw proof and failed receipt are retained. Only adding
+that exact error to the test expectation is authorized; eight selected cases
+must continue in a new directory after clean build/resource checks, without
+changing the reader or rerunning the ten completed cases. No aggregate PASS.
+Clean build 86494 then passed with the accepted ROM; continuation 77302
+terminated exit 0 at `diagnostics/q028-v10-actual-ledger-r2/`, all eight cases
+passing. Root verified exactly 18 unique passes across r1/r2, excluding the
+preserved historical failure. Source manifests are byte-identical at
+`ad444e06…1a4a4632`; r2 aggregate `786883a3…7b1e8a2`; production
+tool-input/source/output closure passed before the WRAM EOF guard. The constructed EOF
+restore traversed all 135,978,338 unchanged records
+(boundary 135,978,338/frame 400, original 27 ledger rows unchanged). The
+unique-case ledger matrix is now complete (18 cases), but the DT/WRAM
+matrix and subsequent pilot/acceptance remain unproven. This
+positive control is not an organically captured emulator teardown.
+DT harness `7120e398…7343841` prepares 29 actual cases,
+including four source-bound premature SRAM fetches; its serialized-record
+comparison independently passes seven transformations and 28 corruption
+controls plus canonical replacement-metadata roundtrip in
+`test_q028_dt_record_proof.py` (two tests, zero skips). That standalone
+test is not actual DT acceptance. Launch requires ledger success, coordinated
+clean build and resource check; unobserved CPU/view pairs remain outside actual coverage.
+Storage follow-up: retained ineligible r2's 1,987 raw chunks independently
+sum to 23,835,857,344 bytes, exceeding the old v7 aggregate uncompressed
+archive cap (17,179,869,184 bytes) before other artifacts. Existing
+`q028_archive.py` copies all packages into default temporary staging and
+creates a further tar; this host's `/tmp` is only 16,081,719,296 bytes total.
+A separate reviewed storage/archiver amendment is required before campaign
+archiving; this diagnostic size does not forecast the repaired campaign,
+and no current pilot cap has been changed.
+
 **Q-028 status: BLOCKED / INCONCLUSIVE_ENGINE_SCHEDULE.** The prior
 `INCONCLUSIVE_COMPOSITE` acceptance is retracted: it was based on interpreter-only completion despite the
 approved requirement for two uninterrupted normal-DRC repeats of every A/B/C

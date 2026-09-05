@@ -185,6 +185,11 @@ static void vrd_q028_sram_access(unsigned int cpu, unsigned int pc,
     unsigned int i, expected;
     if (cpu == 0 || cpu > 2) return;
     state = &vrd_q028_sram_state[cpu];
+    if (!state->installing) {
+        for (i=0;i<3;i++) if (pc==vrd_q028_sram_images[i].dt_pc) {
+            vrd_q028_errors++; return;
+        }
+    }
     if (!state->installing && !write && width == 4) {
         for (i = 0; i < 3; i++) {
             image = &vrd_q028_sram_images[i];
@@ -196,6 +201,14 @@ static void vrd_q028_sram_access(unsigned int cpu, unsigned int pc,
     }
     if (state->installing) {
         image = &vrd_q028_sram_images[state->installing - 1];
+        if (state->pending==2) {
+            if (write || width!=2 || pc!=image->dt_pc || raw!=(image->dt_pc&image->dt_mask) || value!=image->dt_opcode) {
+                state->installing=state->active=0; vrd_q028_errors++; return;
+            }
+            if (state->offset==image->size) { state->active=image->view; state->installing=0; }
+            else state->pending=0;
+            return;
+        }
         expected = ((unsigned int)image->bytes[state->offset] << 24) |
             ((unsigned int)image->bytes[state->offset+1] << 16) |
             ((unsigned int)image->bytes[state->offset+2] << 8) | image->bytes[state->offset+3];
@@ -206,10 +219,7 @@ static void vrd_q028_sram_access(unsigned int cpu, unsigned int pc,
         }
         if (!write) state->pending = 1;
         else {
-            state->pending = 0; state->offset += 4;
-            if (state->offset == image->size) {
-                state->active = image->view; state->installing = 0;
-            }
+            state->pending = 2; state->offset += 4;
         }
     }
     else if (write && state->active) {
@@ -1451,7 +1461,8 @@ static void vrd_q028_finish(const char *reason)
         vrd_q028_errors++;
     no_open_context = vrd_q028_agent == VRD_Q028_AGENT_NONE &&
         vrd_q028_fetch_cpu == 0 && vrd_q028_irq_depth[0] == 0 &&
-        vrd_q028_irq_depth[1] == 0 && !vrd_q028_cmd02_active && !vrd_q028_invocation_active;
+        vrd_q028_irq_depth[1] == 0 && !vrd_q028_cmd02_active && !vrd_q028_invocation_active &&
+        !vrd_q028_sram_state[1].installing && !vrd_q028_sram_state[2].installing;
     if (!no_open_context || !vrd_q028_bios_verified) vrd_q028_errors++;
     if (vrd_q028_wram_state.installing) vrd_q028_errors++;
     if (vrd_q028_host_log) {

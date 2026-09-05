@@ -18,15 +18,15 @@ static const struct vrd_q028_wram_image vrd_q028_wram_images[]={
 {6u,0x880f92u,24u,24u,2u,vrd_q028_wram_6,vrd_q028_wram_mask_6},
 {7u,0x880faau,20u,20u,2u,vrd_q028_wram_7,vrd_q028_wram_mask_7},
 };
-struct vrd_q028_sram_image { unsigned int view, source, size, read_pc, write_pc; const unsigned char *bytes; };
+struct vrd_q028_sram_image { unsigned int view, source, size, read_pc, write_pc, dt_pc, dt_opcode, dt_mask; const unsigned char *bytes; };
 static const struct vrd_q028_sram_image vrd_q028_sram_images[]={
-{2u,0x600254cu,1748u,0x6002532u,0x6002534u,vrd_q028_sram_2},
-{3u,0x6003368u,1608u,0x600334eu,0x6003350u,vrd_q028_sram_3},
-{4u,0x6003a70u,580u,0x6003a58u,0x6003a5au,vrd_q028_sram_4},
+{2u,0x600254cu,1748u,0x6002532u,0x6002534u,0x6002536u,0x4710u,0xc7ffffffu,vrd_q028_sram_2},
+{3u,0x6003368u,1608u,0x600334eu,0x6003350u,0x6003352u,0x4710u,0xc7ffffffu,vrd_q028_sram_3},
+{4u,0x6003a70u,580u,0x6003a58u,0x6003a5au,0x6003a5cu,0x4710u,0xc7ffffffu,vrd_q028_sram_4},
 };
 static const unsigned char VRD_Q028_IMAGE_HASH_PREFIX[8]={111,39,104,242,207,252,133,205};
 static const unsigned char VRD_Q028_TOOL_HASH_PREFIX[8]={16,75,41,204,255,215,177,186};
-static const unsigned char VRD_Q028_SITE_HASH_PREFIX[8]={226,182,196,94,6,39,130,112};
+static const unsigned char VRD_Q028_SITE_HASH_PREFIX[8]={167,21,154,243,106,161,42,139};
 struct vrd_q028_site_row { uint32_t pc, first, opcode_hash; uint16_t opcode_word; uint8_t cpu, view, fetch_width; };
 static const struct vrd_q028_site_row vrd_q028_sites[227740]={
 {0x00000200u,1u,0x3c4ed5a7u,0x4ef9u,0,0,6},

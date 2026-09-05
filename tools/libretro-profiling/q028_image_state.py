@@ -179,33 +179,48 @@ class ImageState:
             self.wram.data(cpu,pc,raw,width,value,write)
             return
         state = self.installing[cpu]
+        if state is None and any(pc==image["dt_pc"] for image in self.copies.values()):
+            raise ImageStateError("SRAM DT reread outside installation")
         if state is None and not write and width == 4:
             for image in self.copies.values():
                 if pc == image["read_pc"] and raw == image["source"]:
-                    state = self.installing[cpu] = [image["view"], 0, False]
+                    state = self.installing[cpu] = [image["view"], 0, 0]
                     self.active[cpu] = 0
                     break
         if state is not None:
             view, offset, pending = state
             image = self.copies[view]
+            if pending==2:
+                if (write or width!=2 or pc!=image["dt_pc"]
+                        or raw!=(image["dt_pc"]&image["dt_address_mask"])
+                        or value!=image["dt_opcode"]):
+                    raise ImageStateError("SRAM exact DT reread phase")
+                if offset==image["size"]:
+                    self.active[cpu]=view
+                    self.installing[cpu]=None
+                    self.installs[cpu]+=1
+                else: state[2]=0
+                return
             if (width != 4 or write != pending
                     or pc != image["write_pc" if write else "read_pc"]
                     or raw != (image["destination"] if write else image["source"]) + offset
                     or value != int.from_bytes(image["data"][offset:offset+4], "big")):
                 raise ImageStateError("SRAM source-copy transaction/order/value")
             if not write:
-                state[2] = True
+                state[2] = 1
             else:
                 state[1] += 4
-                state[2] = False
-                if state[1] == image["size"]:
-                    self.active[cpu] = view
-                    self.installing[cpu] = None
-                    self.installs[cpu] += 1
+                state[2] = 2
         elif write and self.active[cpu]:
             image = self.copies[self.active[cpu]]
             if raw < image["destination"] + image["size"] and raw+width > image["destination"]:
                 self.active[cpu] = 0
+
+    def finish(self):
+        if any(state is not None for state in self.installing[1:]):
+            raise ImageStateError("incomplete SRAM installation at EOF")
+        if self.wram.installing is not None:
+            raise ImageStateError("incomplete WRAM installation at EOF")
 
 
 class CommState:

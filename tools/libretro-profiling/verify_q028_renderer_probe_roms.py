@@ -321,7 +321,6 @@ def verify(repo: Path) -> dict[str, object]:
                 "bytes": 0xC000, "q028_longword_pairs": 74,
                 "external_master_bios": False},
         "ownership": {"direct_aligned_owners": 0,
-                      "constructed_owners": 0,
                       "classified_unaligned_pattern": "file 0x2018A5 = 0x0202BC35",
                       "runtime_all_access_proof_required": True},
         "fixed_pcs": {f"0x{offset + 0x05FE0000:08X}": f"0x{word:04X}"

@@ -15,40 +15,13 @@ race_start_countdown_sequence:
         MOVE.W  (-14164).W,D0                   ; $009EC0
         MOVEA.L $009ECA(PC,D0.W),A1             ; $009EC4
         JMP     (A1)                            ; $009EC8
-        DC.W    $0088                           ; $009ECA
-        DC.W    $A04E                           ; $009ECC
-        DC.W    $0088                           ; $009ECE
-        SUB.B  D7,(A6)                          ; $009ED0
-        DC.W    $0088                           ; $009ED2
-        SUB.B  D7,$0088(A2)                     ; $009ED4
-        subx.w  -(a2),-(a7)             ; $9F4A
-        DC.W    $0088                           ; $009EDA
-        SUB.W  D7,$0088(A4)                     ; $009EDC
-        subx.l  -(a6),-(a7)             ; $9F8E
-        DC.W    $0088                           ; $009EE2
-        DC.W    $9FBC                           ; $009EE4
-        DC.W    $0088                           ; $009EE6
-        DC.W    $A04E                           ; $009EE8
-        DC.W    $0088                           ; $009EEA
-        MOVE.W  (A2)+,-$78(A6,D0.W)             ; $009EEC
-        MOVE.W  -(A6),-$78(A6,D0.W)             ; $009EF0
-        DC.W    $3DD4                           ; $009EF4
-        DC.W    $0088                           ; $009EF6
-        MOVE.W  A0,D7                           ; $009EF8
-        DC.W    $0088                           ; $009EFA
-        MOVEA.W (A0)+,A7                        ; $009EFC
-        DC.W    $0088                           ; $009EFE
-        MOVEA.W -(A4),A7                        ; $009F00
-        DC.W    $0088                           ; $009F02
-        DC.W    $3E7E                           ; $009F04
-        DC.W    $0088                           ; $009F06
-        MOVE.W  -(A2),(A7)                      ; $009F08
-        DC.W    $0088                           ; $009F0A
-        MOVE.W  D6,(A7)+                        ; $009F0C
-        DC.W    $0088                           ; $009F0E
-        MOVE.W  -$78(A6,D0.W),(A7)+             ; $009F10
-        MOVE.W  $4278(A4),-(A7)                 ; $009F14
-        DC.W    $90B0                           ; $009F18
+        ; 19 absolute phase pointers, $009ECA-$009F15 (DATA, not opcodes).
+        dc.l    $0088A04E,$00889F16,$00889F2A,$00889F4A
+        dc.l    $00889F6C,$00889F8E,$00889FBC,$0088A04E
+        dc.l    $00883D9A,$00883DA6,$00883DD4,$00883E08
+        dc.l    $00883E58,$00883E64,$00883E7E,$00883EA2
+        dc.l    $00883EC6,$00883EF6,$00883F2C
+        CLR.W   ($FFFF90B0).W                   ; $009F16: true second entry
         CLR.W  (-14166).W                       ; $009F1A
         MOVE.B  #$01,$00FF6990                  ; $009F1E
         ADDQ.W  #4,(-14164).W                   ; $009F26

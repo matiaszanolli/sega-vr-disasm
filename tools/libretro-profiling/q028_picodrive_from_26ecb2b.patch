@@ -1,0 +1,571 @@
+--- a/platform/libretro/libretro.c
++++ b/platform/libretro/libretro.c
+@@ -351,14 +351,17 @@
+         unsigned int, unsigned int));
+ extern void Pico32xVrdMmioTraceMasterUninstall(void);
+ 
++#include "q028_all_access_observer.inc"
++
+ /* One owner composes exact write-PC capture and exact caller capture.  This
+  * keeps both diagnostics on normal FAME batching and preserves any callback
+  * that was installed before VRD tracing. */
+ static void vrd_instruction_start(unsigned int pc)
+ {
++    vrd_q028_m68k_instruction(pc);
+     if (vrd_write_trace_log)
+         vrd_write_trace_pc = pc;
+-    if (vrd_mmio_trace_log)
++    if (vrd_mmio_trace_log || vrd_q028_log)
+         vrd_mmio_trace_pc = pc;
+     if (vrd_caller_trace_log && vrd_caller_trace_addr >= 0 &&
+         (unsigned int)vrd_caller_trace_addr == pc) {
+@@ -384,7 +387,7 @@
+ {
+     if (vrd_instruction_hook_installed ||
+         (!vrd_write_trace_log && !vrd_caller_trace_log &&
+-         !vrd_mmio_trace_log))
++         !vrd_mmio_trace_log && !vrd_q028_log))
+         return;
+     vrd_instruction_orig_start = PicoCpuFM68k.instruction_start;
+     PicoCpuFM68k.instruction_start = vrd_instruction_start;
+@@ -2660,6 +2663,8 @@
+       break;
+    }
+ 
++   vrd_q028_m68k_install();
++
+    strncpy(pico_overlay_path, content_path, sizeof(pico_overlay_path)-4);
+    if (PicoIn.AHW & PAHW_PICO)
+       environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, desc_pico);
+@@ -2998,7 +3003,7 @@
+       else
+          PicoIn.opt &= ~POPT_EN_DRC;
+    }
+-   if (getenv("VRD_PROFILE_PC"))   /* VRD: SH2 interpreter required for PC sampling */
++   if (getenv("VRD_PROFILE_PC") || getenv("VRD_Q028_ACCESS_LOG"))
+       PicoIn.opt &= ~POPT_EN_DRC;
+ #endif
+ #ifdef _3DS
+@@ -3520,6 +3525,7 @@
+    }
+ 
+    PicoFrame();
++   vrd_q028_capture_frame();
+ 
+    /* VRD Tier 2: per-frame runtime inspection (independent of profile logs) */
+    if (PicoIn.AHW & PAHW_32X) {
+@@ -3795,11 +3801,13 @@
+    buff = (char*)vout_buf + vout_offset;
+ #endif
+ 
++   vrd_q028_callback_dispatch((short *)buff, vout_width, vout_height, vout_width * 2);
+    video_cb((short *)buff, vout_width, vout_height, vout_width * 2);
+ }
+ 
+ void retro_init(void)
+ {
++   vrd_q028_early_init();
+    unsigned dci_version = 0;
+    struct retro_log_callback log;
+    int level;
+@@ -3891,6 +3899,7 @@
+       vrd_write_trace_finish(0, vrd_profile_frame, "core_deinit");
+    if (vrd_caller_trace_log)
+       vrd_caller_trace_finish(0, vrd_profile_frame, "core_deinit");
++   vrd_q028_finish("core_deinit");
+    vrd_instruction_hook_uninstall();
+    PicoExit();
+ 
+--- a/pico/32x/32x.c
++++ b/pico/32x/32x.c
+@@ -7,6 +7,13 @@
+  * See COPYING file in the top-level directory.
+  */
+ #include "../pico_int.h"
++
++#ifdef __LIBRETRO__
++extern void vrd_q028_idl_begin(unsigned int external_bios);
++extern void vrd_q028_idl_end(void);
++extern void vrd_q028_fs_preapply(const char *site,
++  unsigned int old_fbctl, unsigned int new_fs);
++#endif
+ #include "../sound/ym2612.h"
+ #include <cpu/sh2/compiler.h>
+ 
+@@ -178,6 +185,10 @@
+   sh2_reset(&ssh2);
+   sh2_peripheral_reset(&msh2);
+   sh2_peripheral_reset(&ssh2);
++
++#ifdef __LIBRETRO__
++  vrd_q028_idl_begin(p32x_bios_m != NULL);
++#endif
+ 
+   // if we don't have BIOS set, perform it's work here.
+   // MSH2
+@@ -208,6 +219,9 @@
+     }
+     // program will set M_OK
+   }
++#ifdef __LIBRETRO__
++  vrd_q028_idl_end();
++#endif
+ 
+   // SSH2
+   if (p32x_bios_s == NULL) {
+@@ -332,6 +346,10 @@
+ 
+   // FB swap waits until vblank
+   if ((Pico32x.vdp_regs[0x0a/2] ^ Pico32x.pending_fb) & P32XV_FS) {
++#ifdef __LIBRETRO__
++    vrd_q028_fs_preapply("vblank", Pico32x.vdp_regs[0x0a/2],
++      (Pico32x.pending_fb & P32XV_FS) != 0);
++#endif
+     Pico32x.vdp_regs[0x0a/2] ^= P32XV_FS;
+     Pico32xSwapDRAM(Pico32x.pending_fb ^ P32XV_FS);
+   }
+--- a/pico/32x/memory.c
++++ b/pico/32x/memory.c
+@@ -45,6 +45,11 @@
+ #include <cpu/sh2/compiler.h>
+ DRC_DECLARE_SR;
+ 
++#ifdef __LIBRETRO__
++extern void vrd_q028_fs_preapply(const char *site,
++  unsigned int old_fbctl, unsigned int new_fs);
++#endif
++
+ static const char str_mars[] = "MARS";
+ 
+ void *p32x_bios_g, *p32x_bios_m, *p32x_bios_s;
+@@ -703,6 +708,10 @@
+       Pico32x.pending_fb = d;
+       // if we are blanking and FS bit is changing
+       if (((r[0x0a/2] & P32XV_VBLK) || (r[0] & P32XV_Mx) == 0) && ((r[0x0a/2] ^ d) & P32XV_FS)) {
++#ifdef __LIBRETRO__
++        vrd_q028_fs_preapply("blank", r[0x0a/2],
++          (d & P32XV_FS) != 0);
++#endif
+         r[0x0a/2] ^= P32XV_FS;
+         Pico32xSwapDRAM(d ^ P32XV_FS);
+         elprintf(EL_32X, "VDP FS: %d", r[0x0a/2] & P32XV_FS);
+@@ -1924,6 +1933,11 @@
+ static sh2_read_handler *vrd_mmio_trace_master_orig_read16;
+ static sh2_write_handler *vrd_mmio_trace_master_orig_write8;
+ static vrd_mmio_trace_master_observer_t *vrd_mmio_trace_master_observer;
++extern void vrd_q028_sh2_access(SH2 *sh2, unsigned int address,
++  unsigned int value, unsigned int op, unsigned int width);
++extern void vrd_q028_memcpy_source(SH2 *sh2, unsigned int src,
++  unsigned int count, unsigned int size, const unsigned char *source);
++extern void vrd_q028_bios_snapshot(unsigned int bios_null, unsigned int cartridge);
+ 
+ /* DRC memory handlers are entered with the emulated SR live in DRC_SR_REG.
+  * Keep this trampoline in the same translation unit as the normal handlers,
+@@ -2039,9 +2053,13 @@
+   sh2_map += SH2MAP_ADDR2OFFS_R(a);
+   p = sh2_map->addr;
+   if (!map_flag_set(p))
+-    return *(s8 *)((p << 1) + MEM_BE2(a & sh2_map->mask));
++    p = *(s8 *)((p << 1) + MEM_BE2(a & sh2_map->mask));
+   else
+-    return ((sh2_read_handler *)(p << 1))(a, sh2);
++    p = ((sh2_read_handler *)(p << 1))(a, sh2);
++#ifdef __LIBRETRO__
++  vrd_q028_sh2_access(sh2, a, p, 0, 1);
++#endif
++  return p;
+ }
+ 
+ u32 REGPARM(2) p32x_sh2_read16(u32 a, SH2 *sh2)
+@@ -2052,9 +2070,13 @@
+   sh2_map += SH2MAP_ADDR2OFFS_R(a);
+   p = sh2_map->addr;
+   if (!map_flag_set(p))
+-    return *(s16 *)((p << 1) + (a & sh2_map->mask));
++    p = *(s16 *)((p << 1) + (a & sh2_map->mask));
+   else
+-    return ((sh2_read_handler *)(p << 1))(a, sh2);
++    p = ((sh2_read_handler *)(p << 1))(a, sh2);
++#ifdef __LIBRETRO__
++  vrd_q028_sh2_access(sh2, a, p, 0, 2);
++#endif
++  return p;
+ }
+ 
+ u32 REGPARM(2) p32x_sh2_read32(u32 a, SH2 *sh2)
+@@ -2066,9 +2088,13 @@
+   p = sh2_map->addr;
+   if (!map_flag_set(p)) {
+     u32 *pd = (u32 *)((p << 1) + (a & sh2_map->mask));
+-    return CPU_BE2(*pd);
++    p = CPU_BE2(*pd);
+   } else
+-    return ((sh2_read_handler *)(p << 1))(a, sh2);
++    p = ((sh2_read_handler *)(p << 1))(a, sh2);
++#ifdef __LIBRETRO__
++  vrd_q028_sh2_access(sh2, a, p, 0, 4);
++#endif
++  return p;
+ }
+ 
+ void REGPARM(3) p32x_sh2_write8(u32 a, u32 d, SH2 *sh2)
+@@ -2078,6 +2104,9 @@
+ 
+   wh = sh2_wmap[SH2MAP_ADDR2OFFS_W(a)];
+   wh(a, d, sh2);
++#ifdef __LIBRETRO__
++  vrd_q028_sh2_access(sh2, a, d, 1, 1);
++#endif
+ }
+ 
+ void REGPARM(3) p32x_sh2_write16(u32 a, u32 d, SH2 *sh2)
+@@ -2087,6 +2116,9 @@
+ 
+   wh = sh2_wmap[SH2MAP_ADDR2OFFS_W(a)];
+   wh(a, d, sh2);
++#ifdef __LIBRETRO__
++  vrd_q028_sh2_access(sh2, a, d, 1, 2);
++#endif
+ }
+ 
+ void REGPARM(3) p32x_sh2_write32(u32 a, u32 d, SH2 *sh2)
+@@ -2096,6 +2128,9 @@
+ 
+   wh = sh2_wmap[SH2MAP_ADDR2OFFS_W(a)];
+   wh(a, d, sh2);
++#ifdef __LIBRETRO__
++  vrd_q028_sh2_access(sh2, a, d, 1, 4);
++#endif
+ }
+ 
+ void *p32x_sh2_get_mem_ptr(u32 a, u32 *mask, SH2 *sh2)
+@@ -2145,6 +2180,10 @@
+     return 0;
+   ps += src & mask;
+   len = count * size;
++#ifdef __LIBRETRO__
++  /* Optimized source reads bypass the normal read callbacks. */
++  vrd_q028_memcpy_source(sh2, src, count, size, ps);
++#endif
+ 
+   // DRAM in byte access is always in overwrite mode
+   if (pd == sh2->p_dram && size == 1)
+@@ -2468,6 +2507,10 @@
+   int i;
+ 
+   get_bios();
++#ifdef __LIBRETRO__
++  vrd_q028_bios_snapshot(p32x_bios_g == NULL && p32x_bios_m == NULL && p32x_bios_s == NULL,
++    !Pico.m.ncart_in && !(PicoIn.AHW & PAHW_MCD));
++#endif
+ 
+   // cartridge area becomes unmapped
+   // XXX: we take the easy way and don't unmap ROM,
+--- a/pico/32x/draw.c
++++ b/pico/32x/draw.c
+@@ -7,6 +7,11 @@
+  * See COPYING file in the top-level directory.
+  */
+ #include "../pico_int.h"
++
++#ifdef __LIBRETRO__
++extern void vrd_q028_render_select(unsigned int fbctl, int offs,
++  int lines, int sync_line, int draw_mode, int skip_frame);
++#endif
+ 
+ // NB: 32X officially doesn't support H32 mode. However, it does work since the
+ // cartridge slot carries the EDCLK signal which is always H40 clock and is used
+@@ -292,6 +297,10 @@
+ 
+   Pico.est.DrawLineDest = (char *)DrawLineDestBase32x + offs * DrawLineDestIncrement32x;
+   Pico.est.DrawLineDestIncr = DrawLineDestIncrement32x;
++#ifdef __LIBRETRO__
++  vrd_q028_render_select(Pico32x.vdp_regs[0x0a/2], offs, lines,
++    Pico32x.sync_line, Pico32xDrawMode, PicoIn.skipFrame);
++#endif
+   dram = Pico32xMem->dram[Pico32x.vdp_regs[0x0a/2] & P32XV_FS];
+ 
+   if (Pico32xDrawMode == PDM32X_BOTH)
+--- a/pico/32x/sh2soc.c
++++ b/pico/32x/sh2soc.c
+@@ -29,6 +29,19 @@
+ #include <cpu/sh2/compiler.h>
+ DRC_DECLARE_SR;
+ 
++#ifdef __LIBRETRO__
++extern unsigned int vrd_q028_bus_begin(unsigned int agent);
++extern void vrd_q028_bus_end(unsigned int previous);
++#define VRD_Q028_AGENT_M_DMAC0 2
++#define VRD_Q028_AGENT_M_DMAC1 3
++#define VRD_Q028_AGENT_S_DMAC0 4
++#define VRD_Q028_AGENT_S_DMAC1 5
++#define VRD_Q028_AGENT_M_DREQ0 6
++#define VRD_Q028_AGENT_S_DREQ0 7
++#define VRD_Q028_AGENT_M_DREQ1 8
++#define VRD_Q028_AGENT_S_DREQ1 9
++#endif
++
+ // DMAC handling
+ struct dma_chan {
+   u32 sar, dar;  // src, dst addr
+@@ -85,6 +98,12 @@
+ static void dmac_transfer_one(SH2 *sh2, struct dma_chan *chan)
+ {
+   u32 size, d;
++#ifdef __LIBRETRO__
++  struct dmac *dmac = (void *)&sh2->peri_regs[0x180 / 4];
++  unsigned int q028_previous = vrd_q028_bus_begin(sh2->is_slave ?
++    (chan == &dmac->chan[0] ? VRD_Q028_AGENT_S_DMAC0 : VRD_Q028_AGENT_S_DMAC1) :
++    (chan == &dmac->chan[0] ? VRD_Q028_AGENT_M_DMAC0 : VRD_Q028_AGENT_M_DMAC1));
++#endif
+ 
+   size = (chan->chcr >> 10) & 3;
+   switch (size) {
+@@ -115,6 +134,9 @@
+     if (chan->chcr & (1 << 14))
+       chan->dar += 16;
+     chan->tcr -= 4;
++#ifdef __LIBRETRO__
++    vrd_q028_bus_end(q028_previous);
++#endif
+     return;
+   }
+   chan->tcr--;
+@@ -128,6 +150,9 @@
+     chan->sar -= size;
+   if (chan->chcr & (1 << 12))
+     chan->sar += size;
++#ifdef __LIBRETRO__
++  vrd_q028_bus_end(q028_previous);
++#endif
+ }
+ 
+ // optimization for copying around memory with SH2 DMA
+@@ -135,6 +160,10 @@
+ {
+   u32 size = (chan->chcr >> 10) & 3, up = chan->chcr & (1 << 14);
+   int count;
++#ifdef __LIBRETRO__
++  struct dmac *dmac = (void *)&sh2->peri_regs[0x180 / 4];
++  unsigned int q028_previous;
++#endif
+ 
+   if (!up || chan->tcr < 4)
+     return;
+@@ -142,7 +171,15 @@
+   if (size == 3) size = 2;  // 4-word xfer mode still counts in words
+   // XXX check TCR being a multiple of 4 in 4-word xfer mode?
+   // XXX check alignment of sar/dar, generating a bus error if unaligned?
++#ifdef __LIBRETRO__
++  q028_previous = vrd_q028_bus_begin(sh2->is_slave ?
++    (chan == &dmac->chan[0] ? VRD_Q028_AGENT_S_DMAC0 : VRD_Q028_AGENT_S_DMAC1) :
++    (chan == &dmac->chan[0] ? VRD_Q028_AGENT_M_DMAC0 : VRD_Q028_AGENT_M_DMAC1));
++#endif
+   count = p32x_sh2_memcpy(chan->dar, chan->sar, chan->tcr, 1 << size, sh2);
++#ifdef __LIBRETRO__
++  vrd_q028_bus_end(q028_previous);
++#endif
+ 
+   chan->sar += count << size;
+   chan->dar += count << size;
+@@ -493,6 +530,10 @@
+ {
+   unsigned short dreqlen = Pico32x.regs[0x10 / 2];
+   int i;
++#ifdef __LIBRETRO__
++  unsigned int q028_previous = vrd_q028_bus_begin(sh2->is_slave ?
++    VRD_Q028_AGENT_S_DREQ0 : VRD_Q028_AGENT_M_DREQ0);
++#endif
+ 
+   // debug/sanity checks
+   if (chan->tcr < dreqlen || chan->tcr > dreqlen + 4)
+@@ -525,10 +566,17 @@
+     dmac_transfer_complete(sh2, chan);
+   else
+     sh2_end_run(sh2, 16);
++#ifdef __LIBRETRO__
++  vrd_q028_bus_end(q028_previous);
++#endif
+ }
+ 
+ static void dreq1_do(SH2 *sh2, struct dma_chan *chan)
+ {
++#ifdef __LIBRETRO__
++  unsigned int q028_previous = vrd_q028_bus_begin(sh2->is_slave ?
++    VRD_Q028_AGENT_S_DREQ1 : VRD_Q028_AGENT_M_DREQ1);
++#endif
+   // debug/sanity checks
+   if ((chan->chcr & 0xc308) != 0x0000)
+     elprintf(EL_32XP|EL_ANOMALY, "dreq1: bad control: %04x", chan->chcr);
+@@ -540,6 +588,9 @@
+   sh2->state &= ~SH2_STATE_SLEEP;
+   if (chan->tcr == 0)
+     dmac_transfer_complete(sh2, chan);
++#ifdef __LIBRETRO__
++  vrd_q028_bus_end(q028_previous);
++#endif
+ }
+ 
+ void p32x_dreq0_trigger(void)
+--- a/cpu/sh2/sh2.c
++++ b/cpu/sh2/sh2.c
+@@ -12,6 +12,10 @@
+ #include "../debug.h"
+ #include "compiler.h"
+ 
++#ifdef __LIBRETRO__
++extern void vrd_q028_sh2_irq(SH2 *sh2, unsigned int entering);
++#endif
++
+ #define I 0xf0
+ 
+ int sh2_init(SH2 *sh2, int is_slave, SH2 *other_sh2)
+@@ -51,6 +55,9 @@
+ 
+ void sh2_do_irq(SH2 *sh2, int level, int vector)
+ {
++#ifdef __LIBRETRO__
++	vrd_q028_sh2_irq(sh2, 1);
++#endif
+ 	sh2->sr &= 0x3f3;
+ 
+ 	sh2->r[15] -= 4;
+--- a/cpu/sh2/mame/sh2pico.c
++++ b/cpu/sh2/mame/sh2pico.c
+@@ -1,4 +1,11 @@
+ #include "../sh2.h"
++
++#ifdef __LIBRETRO__
++extern void vrd_q028_sh2_fetch_begin(SH2 *sh2, unsigned int address);
++extern void vrd_q028_sh2_fetch_end(SH2 *sh2, unsigned int address);
++extern void vrd_q028_sh2_instruction(SH2 *sh2, unsigned int pc,
++    unsigned int opcode);
++#endif
+ 
+ #ifdef DRC_CMP
+ #include "../compiler.h"
+@@ -123,7 +130,13 @@
+ 		if (sh2->delay)
+ 		{
+ 			sh2->ppc = sh2->delay;
++#ifdef __LIBRETRO__
++			vrd_q028_sh2_fetch_begin(sh2, sh2->delay);
++#endif
+ 			opcode = (UINT32)(UINT16)RW(sh2, sh2->delay);
++#ifdef __LIBRETRO__
++			vrd_q028_sh2_fetch_end(sh2, sh2->delay);
++#endif
+ 
+ 			// TODO: more branch types
+ 			if ((opcode >> 13) == 5) { // BRA/BSR
+@@ -141,8 +154,18 @@
+ 		else
+ 		{
+ 			sh2->ppc = sh2->pc;
++#ifdef __LIBRETRO__
++			vrd_q028_sh2_fetch_begin(sh2, sh2->pc);
++#endif
+ 			opcode = (UINT32)(UINT16)RW(sh2, sh2->pc);
+-		}
++#ifdef __LIBRETRO__
++			vrd_q028_sh2_fetch_end(sh2, sh2->pc);
++#endif
++		}
++
++#ifdef __LIBRETRO__
++		vrd_q028_sh2_instruction(sh2, sh2->ppc, opcode);
++#endif
+ 
+ 		sh2->delay = 0;
+ 		sh2->pc += 2;
+@@ -236,14 +259,30 @@
+ 		if (sh2->delay)
+ 		{
+ 			sh2->ppc = sh2->delay;
++#ifdef __LIBRETRO__
++			vrd_q028_sh2_fetch_begin(sh2, sh2->delay);
++#endif
+ 			opcode = (UINT32)(UINT16)RW(sh2, sh2->delay);
++#ifdef __LIBRETRO__
++			vrd_q028_sh2_fetch_end(sh2, sh2->delay);
++#endif
+ 			sh2->pc -= 2;
+ 		}
+ 		else
+ 		{
+ 			sh2->ppc = sh2->pc;
++#ifdef __LIBRETRO__
++			vrd_q028_sh2_fetch_begin(sh2, sh2->pc);
++#endif
+ 			opcode = (UINT32)(UINT16)RW(sh2, sh2->pc);
+-		}
++#ifdef __LIBRETRO__
++			vrd_q028_sh2_fetch_end(sh2, sh2->pc);
++#endif
++		}
++
++#ifdef __LIBRETRO__
++		vrd_q028_sh2_instruction(sh2, sh2->ppc, opcode);
++#endif
+ 
+ 		sh2->delay = 0;
+ 		sh2->pc += 2;
+--- a/cpu/fame/famec_opcodes.h
++++ b/cpu/fame/famec_opcodes.h
+@@ -40299,6 +40299,9 @@
+ 
+ OPCODE(idle_detector_bcc8)
+ {
++#ifdef __LIBRETRO__
++	extern void vrd_q028_idle_install(unsigned short *, unsigned int, unsigned int, unsigned int, void *);
++#endif
+ 	int frame_count, cond_true, bytes, ret, newop;
+ 	u16 *dest_pc;
+ 
+@@ -40317,7 +40320,11 @@
+ 	ret = SekRegisterIdlePatch(GET_PC - 2, Opcode, newop, ctx);
+ 	switch (ret)
+ 	{
+-		case 0: PC[-1] = newop; break;
++		case 0: PC[-1] = newop;
++#ifdef __LIBRETRO__
++			vrd_q028_idle_install(PC-1, GET_PC-2, Opcode, newop, ctx);
++#endif
++			break;
+ 		case 1: break;
+ 		case 2: JumpTable[Opcode] = (Opcode & 0x0f00) ?
+ 				((Opcode & 0x0100) ? CAST_OP(0x6701) : CAST_OP(0x6601)) :
+--- a/pico/sek.c
++++ b/pico/sek.c
+@@ -431,12 +431,31 @@
+   while (idledet_count > 0)
+   {
+     unsigned short *op = idledet_ptrs[--idledet_count];
++#ifdef __LIBRETRO__
++    extern void vrd_q028_idle_restore(unsigned short *, unsigned int, unsigned int);
++    unsigned int q028_old = *op;
++#endif
+     if      ((*op & 0xfd00) == 0x7100)
++    {
+       *op &= 0xff, *op |= 0x6600;
++#ifdef __LIBRETRO__
++      vrd_q028_idle_restore(op, q028_old, *op);
++#endif
++    }
+     else if ((*op & 0xfd00) == 0x7500)
++    {
+       *op &= 0xff, *op |= 0x6700;
++#ifdef __LIBRETRO__
++      vrd_q028_idle_restore(op, q028_old, *op);
++#endif
++    }
+     else if ((*op & 0xfd00) == 0x7d00)
++    {
+       *op &= 0xff, *op |= 0x6000;
++#ifdef __LIBRETRO__
++      vrd_q028_idle_restore(op, q028_old, *op);
++#endif
++    }
+     else
+       elprintf(EL_STATUS|EL_IDLE, "idle: don't know how to restore %04x", *op);
+   }

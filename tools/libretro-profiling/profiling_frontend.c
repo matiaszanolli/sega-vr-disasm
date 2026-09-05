@@ -198,6 +198,11 @@ struct lr_log_callback {
     lr_log_printf_t log;
 };
 
+struct lr_variable {
+    const char *key;
+    const char *value;
+};
+
 /* Environment commands */
 #define LR_ENVIRONMENT_GET_LOG_INTERFACE      27
 #define LR_ENVIRONMENT_GET_SYSTEM_DIRECTORY   9
@@ -386,8 +391,17 @@ static bool environment_callback(unsigned cmd, void *data) {
                 video_pixel_format = requested;
             }
             return true;
-        case LR_ENVIRONMENT_GET_VARIABLE:
+        case LR_ENVIRONMENT_GET_VARIABLE: {
+            struct lr_variable *var = (struct lr_variable *)data;
+            const char *run_kind = getenv("VRD_Q028_RUN_KIND");
+            if (var && var->key && run_kind &&
+                strcmp(run_kind, "Q028_RESOURCE_PILOT_V9") == 0 &&
+                strcmp(var->key, "picodrive_drc") == 0) {
+                var->value = "disabled";
+                return true;
+            }
             return false;
+        }
         case LR_ENVIRONMENT_SET_MEMORY_MAPS:
             return true;
         default:

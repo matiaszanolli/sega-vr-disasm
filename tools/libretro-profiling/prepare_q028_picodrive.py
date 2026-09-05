@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import subprocess
 from pathlib import Path
 
 
@@ -16,15 +17,19 @@ FILES = (
     "pico/32x/sh2soc.c",
     "cpu/sh2/sh2.c",
     "cpu/sh2/mame/sh2pico.c",
+    "cpu/fame/famec_opcodes.h",
+    "pico/sek.c",
 )
 
 # Q-027 postimages plus the unchanged Q-027-era 32X/reset sources.  The
 # implementation verifier pins these to concrete hashes before release.
 PREIMAGE_SHA256 = {
+    "cpu/fame/famec_opcodes.h": "8b1a5a58c5ad730012aec5254dcc02632371dceab15c9144210ca08ae2a4ee7e",
+    "pico/sek.c": "1ed81eaf9afea78223d1cd9f8bd1fdec1b91c9be17ed20c26b2573fa51defc82",
     "platform/libretro/libretro.c":
-        "334d1107f8ad5def3062a64f189f1df6918d2f6225ae337c6fafd789cdaa1376",
+        "c74187653f1738f8aee213ae717797fe5f2ccab6ac1e732660e20bac34e0b4d8",
     "pico/32x/memory.c":
-        "214bff20e1afa77a305ff3f3e054d50db4a4e2779ab625d0f41a72696249e48c",
+        "c00ff962cbb01e7e2ea3824ab397cf32f311356d91f93ceffb083f17ed106a19",
     "pico/32x/draw.c":
         "b038807d5afc2a48a20e85f6579805e8d62e760085bb68e49414e1eb3d9a5b8f",
     "pico/32x/sh2soc.c":
@@ -38,12 +43,14 @@ PREIMAGE_SHA256 = {
 }
 
 SOURCE_SHA256 = {
+    "cpu/fame/famec_opcodes.h": "139ffde782eda373dab983e3fda727f65e671bf6b9638f87809ae4e465b56ea0",
+    "pico/sek.c": "46777d9bce8d88d7e5034aff5e65ec2f158c18660d36cf7a53a9429f012c83d7",
     "platform/libretro/libretro.c":
-        "1398fe4464c711bf3338adab609134a1c7302d637311e34c263709c3758da8dd",
+        "ba8616c1a6ee25878851ddb1887171b2533d176f64db741872ee660762bc8987",
     "pico/32x/32x.c":
         "5e1d824ed49145eef28763cdb2cfae18c6976771a2b5c3fc3c826612254c92cd",
     "pico/32x/memory.c":
-        "41337596d16b77effa21669117a93e6a12296fccef498109f4a0f1d78a4ba7d0",
+        "e1520948265b1fe11a235111834a5985fd3c9f654d55aa25815802979554eb9a",
     "pico/32x/draw.c":
         "6ad6b82e28897304088c4bfa7f8998b5c88b8158034b208df8054c76722a3703",
     "pico/32x/sh2soc.c":
@@ -54,7 +61,11 @@ SOURCE_SHA256 = {
         "8536800f11a167039f9c460ecd0b4d1bb4403ecc35b31270827abbe2627ea91e",
 }
 OBSERVER_SHA256 = \
-    "cefe3abc8151fbdf5d5a9f5ab89a098360ac79a34c900e401a34bb73c43f0398"
+    "0288b3a6067150fb1850b2c5473bbe8b7451c00249ad7fde36915718f753d30b"
+SITE_MAP_SHA256 = \
+    "6ab86f19c791a0856ed5f89977b89f63ca2a55ed8d5e9132ac4c42c73c77502f"
+PATCH_SHA256 = \
+    "be5cfecb8d471b153bba7f92d9010b1bac6e82aedbd56962f10e0321482bbbad"
 
 
 def sha256_path(path: Path) -> str:
@@ -72,6 +83,35 @@ def replace_exact(source: str, old: str, new: str, label: str,
         f"Q-028 overlay precondition {label}: old_count={old_count} "
         f"new_count={new_count} expected={count}"
     )
+
+
+def transform_idle_fame(path: Path) -> None:
+    source=path.read_text()
+    source=replace_exact(source,"OPCODE(idle_detector_bcc8)\n{\n",
+        "OPCODE(idle_detector_bcc8)\n{\n#ifdef __LIBRETRO__\n"
+        "\textern void vrd_q028_idle_install(unsigned short *, unsigned int, unsigned int, unsigned int, void *);\n#endif\n",
+        "idle-install-declaration")
+    source=replace_exact(source,"\t\tcase 0: PC[-1] = newop; break;\n",
+        "\t\tcase 0: PC[-1] = newop;\n#ifdef __LIBRETRO__\n"
+        "\t\t\tvrd_q028_idle_install(PC-1, GET_PC-2, Opcode, newop, ctx);\n#endif\n\t\t\tbreak;\n",
+        "idle-install-after-write")
+    path.write_text(source)
+
+
+def transform_idle_restore(path: Path) -> None:
+    original=path.read_bytes(); newline="\r\n" if b"\r\n" in original else "\n"
+    source=original.decode().replace("\r\n","\n")
+    source=replace_exact(source,"    unsigned short *op = idledet_ptrs[--idledet_count];\n",
+        "    unsigned short *op = idledet_ptrs[--idledet_count];\n#ifdef __LIBRETRO__\n"
+        "    extern void vrd_q028_idle_restore(unsigned short *, unsigned int, unsigned int);\n"
+        "    unsigned int q028_old = *op;\n#endif\n","idle-restore-original-word")
+    for real in ("6600","6700","6000"):
+        expression=f"      *op &= 0xff, *op |= 0x{real};\n"
+        source=replace_exact(source,expression,
+            "    {\n"+expression+"#ifdef __LIBRETRO__\n"
+            "      vrd_q028_idle_restore(op, q028_old, *op);\n#endif\n    }\n",
+            "idle-restore-complete-expression-"+real)
+    path.write_bytes(source.replace("\n",newline).encode())
 
 
 def transform_libretro(path: Path, include_path: Path) -> None:
@@ -207,8 +247,14 @@ def transform_memory(path: Path) -> None:
         "extern void vrd_q028_sh2_access(SH2 *sh2, unsigned int address,\n"
         "  unsigned int value, unsigned int op, unsigned int width);\n"
         "extern void vrd_q028_memcpy_source(SH2 *sh2, unsigned int src,\n"
-        "  unsigned int count, unsigned int size);\n",
+        "  unsigned int count, unsigned int size, const unsigned char *source);\n"
+        "extern void vrd_q028_bios_snapshot(unsigned int bios_null, unsigned int cartridge);\n",
         "memory-declarations")
+    source = replace_exact(source, "  get_bios();\n",
+        "  get_bios();\n#ifdef __LIBRETRO__\n"
+        "  vrd_q028_bios_snapshot(p32x_bios_g == NULL && p32x_bios_m == NULL && p32x_bios_s == NULL,\n"
+        "    !Pico.m.ncart_in && !(PicoIn.AHW & PAHW_MCD));\n#endif\n",
+        "bootstrap-image-snapshot")
     source = replace_exact(source,
         "        r[0x0a/2] ^= P32XV_FS;\n"
         "        Pico32xSwapDRAM(d ^ P32XV_FS);",
@@ -249,10 +295,10 @@ def transform_memory(path: Path) -> None:
                f"  vrd_q028_sh2_access(sh2, a, d, 1, {width});\n"
                "#endif\n}")
         source = replace_exact(source, old, new, f"sh2-write-{width}")
-    source = replace_exact(source, "  len = count * size;\n",
-        "  len = count * size;\n#ifdef __LIBRETRO__\n"
+    source = replace_exact(source, "  ps += src & mask;\n  len = count * size;\n",
+        "  ps += src & mask;\n  len = count * size;\n#ifdef __LIBRETRO__\n"
         "  /* Optimized source reads bypass the normal read callbacks. */\n"
-        "  vrd_q028_memcpy_source(sh2, src, count, size);\n#endif\n",
+        "  vrd_q028_memcpy_source(sh2, src, count, size, ps);\n#endif\n",
         "optimized-memcpy")
     path.write_text(source)
 
@@ -367,34 +413,42 @@ def transform_sh2soc(path: Path) -> None:
 
 def verify_sources(source_root: Path) -> bool:
     observer = source_root / "platform/libretro/q028_all_access_observer.inc"
-    return (observer.is_file() and sha256_path(observer) == OBSERVER_SHA256 and
+    site_map = source_root / "platform/libretro/q028_static_site_map.inc"
+    return (observer.is_file() and site_map.is_file() and
+            sha256_path(observer) == OBSERVER_SHA256 and
+            sha256_path(site_map) == SITE_MAP_SHA256 and
             all(SOURCE_SHA256[name] != "PENDING" and
                 sha256_path(source_root / name) == SOURCE_SHA256[name]
                 for name in FILES))
 
 
 def prepare(source_root: Path, tool_root: Path) -> str:
-    if sha256_path(tool_root / "q028_all_access_observer.inc") != \
-            OBSERVER_SHA256:
+    if sha256_path(tool_root / "q028_all_access_observer.inc") != OBSERVER_SHA256 or \
+            sha256_path(tool_root / "q028_static_site_map.inc") != SITE_MAP_SHA256:
         raise ValueError("Q-028 observer include identity mismatch")
     if verify_sources(source_root):
-        return "already-applied"
+        raise ValueError("already-applied Q-028 shortcut is forbidden")
     actual = {name: sha256_path(source_root / name) for name in FILES}
     if actual != PREIMAGE_SHA256:
         raise ValueError(f"Q-028 overlay preimage mismatch: {actual}")
-    transform_libretro(source_root / FILES[0],
-                       tool_root / "q028_all_access_observer.inc")
+    patch = tool_root / "q028_picodrive_from_26ecb2b.patch"
+    if sha256_path(patch) != PATCH_SHA256:
+        raise ValueError("Q-028 unified patch identity mismatch")
+    result = subprocess.run(["git", "apply", "--check", str(patch)],
+                            cwd=source_root, text=True, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, check=False)
+    if result.returncode:
+        raise ValueError(f"Q-028 unified patch precondition: {result.stderr.strip()}")
+    subprocess.run(["git", "apply", str(patch)], cwd=source_root, check=True)
     generated_observer = source_root / "platform/libretro/q028_all_access_observer.inc"
     if generated_observer.exists():
         raise ValueError("Q-028 generated observer already exists in a preimage")
     generated_observer.write_bytes(
         (tool_root / "q028_all_access_observer.inc").read_bytes())
-    transform_32x(source_root / FILES[1])
-    transform_memory(source_root / FILES[2])
-    transform_draw(source_root / FILES[3])
-    transform_sh2soc(source_root / FILES[4])
-    transform_sh2_core(source_root / FILES[5])
-    transform_interpreter(source_root / FILES[6])
+    generated_site_map = source_root / "platform/libretro/q028_static_site_map.inc"
+    if generated_site_map.exists():
+        raise ValueError("Q-028 generated site map already exists in a preimage")
+    generated_site_map.write_bytes((tool_root / "q028_static_site_map.inc").read_bytes())
     actual = {name: sha256_path(source_root / name) for name in FILES}
     if any(value == "PENDING" for value in SOURCE_SHA256.values()):
         raise ValueError(f"Q-028 overlay postimages require pinning: {actual}")

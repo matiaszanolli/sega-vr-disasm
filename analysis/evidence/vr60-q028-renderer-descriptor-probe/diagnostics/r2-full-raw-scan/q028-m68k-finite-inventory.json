@@ -1,0 +1,3814 @@
+{
+  "status": "PROPOSED_SOURCE_REVIEW_ONLY_NOT_ADMISSION",
+  "rom_sha256": "6f2768f2cffc85cdc815a67c9f13837112829edac3f0921a57454e79e2523900",
+  "listing_sha256": "9e32636ca20a7d38aace34f00b2eaecd0b4bca5e99f8ee60289418496258b91c",
+  "decoder": {
+    "path": "/usr/bin/m68k-linux-gnu-objdump",
+    "sha256": "2730ece3e51380fdada3b9a9221f30a1123248843656481a43b008c9bcf62fd7",
+    "version": "GNU objdump (GNU Binutils for Ubuntu) 2.46\nCopyright (C) 2026 Free Software Foundation, Inc.\nThis program is free software; you may redistribute it under the terms of\nthe GNU General Public License version 3 or (at your option) any later version.\nThis program has absolutely no warranty.\n",
+    "architecture": "m68k:68000"
+  },
+  "spans": [
+    {
+      "start": "001138",
+      "end": "00113a",
+      "sha256": "be009176304dc3057bc4b3ddfdccf6820bab8cffa98f5d894426920a96b0b25a"
+    },
+    {
+      "start": "0011ca",
+      "end": "0011cc",
+      "sha256": "35b1511a7dfb7944e02e73995c8949adca8dbf369a396ddb19f4da4e8936d3e0"
+    },
+    {
+      "start": "0011ea",
+      "end": "0011ec",
+      "sha256": "1fc590562575eae979d6124ba2be0d07ccd0fdda4a6f751b06ba953c6a46ae9c"
+    },
+    {
+      "start": "0011f6",
+      "end": "0011f8",
+      "sha256": "2d2746297bc7ff447b15dbecd36eae211042fcde4374875373185b09b3d0f7f9"
+    },
+    {
+      "start": "001344",
+      "end": "001346",
+      "sha256": "55043de8e1bd01307fa2f18e9ea61e8e5397855dc8332746262e357b92418fa0"
+    },
+    {
+      "start": "001382",
+      "end": "001384",
+      "sha256": "e1d9b613561a738f2644dd3ec59eb4f32f58d5507817fc5d008f88ae1431db5c"
+    },
+    {
+      "start": "00194e",
+      "end": "001952",
+      "sha256": "9c3bb8d37b9efede39317b0ea8e1376f0bd029861cc64dd570f282004d1a10d4"
+    },
+    {
+      "start": "001964",
+      "end": "001968",
+      "sha256": "7224ddbf238f4f2b9a23b1e8cf6920974f5c6e9641b5a0d5cc028dcbd73f2191"
+    },
+    {
+      "start": "0021ee",
+      "end": "002200",
+      "sha256": "08ce43d138d8c201887c2461093221c46b4e364cd4df5ce38f60db7395e40769"
+    },
+    {
+      "start": "0027da",
+      "end": "0027dc",
+      "sha256": "042ac5b8da4052545d4b28fe223994711495be3cdeeb8a1f3e2a9d7d8bbae87c"
+    },
+    {
+      "start": "002992",
+      "end": "002996",
+      "sha256": "dd7743bfa5d9227265cb80747d46e78f6f546fa9717488ceee90575aafda1b4c"
+    },
+    {
+      "start": "002a4e",
+      "end": "002a50",
+      "sha256": "4681cdc87bb327b45666708aa6b8ea9b84a92ff76d5e8b093966f5ae3e2a82d8"
+    },
+    {
+      "start": "002a56",
+      "end": "002a58",
+      "sha256": "6e0aebf04f7cf693cf259d61b54b6a5c7205cf939dfd369de9b0269159b35b61"
+    },
+    {
+      "start": "004b7c",
+      "end": "004b80",
+      "sha256": "ffb4e76d5520ef633e9fcd19f9ec2bd09023800de156615617a99155aefd1b03"
+    },
+    {
+      "start": "004c40",
+      "end": "004c42",
+      "sha256": "a89aad5cb9834d06e8ebfa5695b54d1ac6bdba2c3deb109738472e69db48b911"
+    },
+    {
+      "start": "004c66",
+      "end": "004c6a",
+      "sha256": "72a90811afce5aedc8f552b6f965df8f360949025aaea8d7b88bf3d33d35d3ae"
+    },
+    {
+      "start": "0054b2",
+      "end": "0054b6",
+      "sha256": "23bf868d8c7f8fabc77d8ee11eaa5b85162a9b57ba0b36688f88e7c09c061d92"
+    },
+    {
+      "start": "0054c6",
+      "end": "0054ca",
+      "sha256": "5d192d8e33cea55d1f8919c80b63749f5ebdf55a2acce5d75d15edf05ee0e6f1"
+    },
+    {
+      "start": "005874",
+      "end": "005878",
+      "sha256": "801b54592bf39ffb4185a42122965d03bc1cd59e0a98437a4419da18c2bd5564"
+    },
+    {
+      "start": "0058bc",
+      "end": "0058c0",
+      "sha256": "5a6b6c867e6b3aee5142a84bd6f00b1f062caca46011f51022b5620c1058a4a2"
+    },
+    {
+      "start": "0058c8",
+      "end": "0058cc",
+      "sha256": "0c819cefcba97bd38ed4ed234f3a11e8d2b1835b65ac8066b968c5e7071b4692"
+    },
+    {
+      "start": "0058e6",
+      "end": "0058e8",
+      "sha256": "adfdb1d6e1efaa77d5bc245cd418de8eb930610f114b304e1a32f4394ffcd42a"
+    },
+    {
+      "start": "0058ee",
+      "end": "0058f0",
+      "sha256": "536d221b681129c9a90945b700340e029b8bd7f8d0687f9a20a0bb2bbb1c3dbf"
+    },
+    {
+      "start": "005b40",
+      "end": "005b44",
+      "sha256": "969cc2b9a9bfbda40ab23c087cc6d62511afe3a3374a318d74ca7ac45f64b402"
+    },
+    {
+      "start": "005b92",
+      "end": "005b96",
+      "sha256": "ea1c58faa3864a7cace055f5fdb3da4919ca0369bd6d398d015b987aa82de1f7"
+    },
+    {
+      "start": "005cc0",
+      "end": "005cc4",
+      "sha256": "bad971a0cd68db82fb17c0232b4c9012aa0dad1df2c560377abff3f371bc280d"
+    },
+    {
+      "start": "005d58",
+      "end": "005d5c",
+      "sha256": "0bbe736f0b1cb5aac060b036738de376eb90a9bf1fe9333155c56d587d272518"
+    },
+    {
+      "start": "007002",
+      "end": "007006",
+      "sha256": "296db22388c79173f36be4e2975bf0be7ce7a0e4fa624ed86e0510d72c6ff675"
+    },
+    {
+      "start": "00720c",
+      "end": "007210",
+      "sha256": "973a6945d052ad63ccec4c2e52aabafd2ec3bd2cd5ec74f712249004a535df57"
+    },
+    {
+      "start": "00740c",
+      "end": "007410",
+      "sha256": "ac37b886f19704a5e838024c85f9cf63a9ebc569ed5be26940dc0737be1ba5dc"
+    },
+    {
+      "start": "007416",
+      "end": "00741a",
+      "sha256": "e5a13bd4abcae365babc01de47381257f105a90dc5fdf7a833a4c32cac9f76dc"
+    },
+    {
+      "start": "007abc",
+      "end": "007abe",
+      "sha256": "9ea4d7eccfe9c659b1c37c3f9f104d3d24e56f5a1228cbce1784e03156de492b"
+    },
+    {
+      "start": "007b90",
+      "end": "007b92",
+      "sha256": "0e6cef1adb2f24ddbb23562c82cfc15675abf33e041480146af752e0c6bcd68a"
+    },
+    {
+      "start": "007b94",
+      "end": "007b96",
+      "sha256": "a8dbf511a76d08dae5a318aef478aca11d226211f2e6fcaadfe32bf5f3ba0943"
+    },
+    {
+      "start": "007ba0",
+      "end": "007ba2",
+      "sha256": "018407f59bfcd1c06f884efe470427502b922387bd4ea372c77d479c06379bb9"
+    },
+    {
+      "start": "007ba8",
+      "end": "007baa",
+      "sha256": "1dd18114f996093a675de96e0d73308723647b9a516656d1c65d95e13d7a0c93"
+    },
+    {
+      "start": "007c52",
+      "end": "007c54",
+      "sha256": "1fc590562575eae979d6124ba2be0d07ccd0fdda4a6f751b06ba953c6a46ae9c"
+    },
+    {
+      "start": "0081d8",
+      "end": "008202",
+      "sha256": "7e3b24b4fe0a6886713f8ec61466fba09670aebfc013729dcb29218b14b48deb"
+    },
+    {
+      "start": "00918a",
+      "end": "00918e",
+      "sha256": "8fe2ad47e300b0d66fb47c2ee68c21370be099c337a679f0f119d82fb0ea55af"
+    },
+    {
+      "start": "009f16",
+      "end": "009f1a",
+      "sha256": "fb603a640a0f9c6504d51b4be6de4fa172d27b3a09c28a17170459383d91139e"
+    },
+    {
+      "start": "00a18e",
+      "end": "00a192",
+      "sha256": "973a6945d052ad63ccec4c2e52aabafd2ec3bd2cd5ec74f712249004a535df57"
+    },
+    {
+      "start": "00a1fc",
+      "end": "00a200",
+      "sha256": "1d2d032ae49f76557e05cfcb1e79cf190895893730e5e59bcc8d3c76fbb47eb0"
+    },
+    {
+      "start": "00b7a2",
+      "end": "00b7a4",
+      "sha256": "5f03d38d6ed6f10457dbf6a6b98d083b1be6181f70c925fc021216d15c881018"
+    },
+    {
+      "start": "00b7ea",
+      "end": "00b7ec",
+      "sha256": "6026812e86b8253ec488ed2ae16242c8b882fe8aafc9d97dd5b29332d62fbe04"
+    },
+    {
+      "start": "00bc1c",
+      "end": "00bc30",
+      "sha256": "b9483155898c55e3f9640dbcb4ea8e35d044961ee5cb118e27045f0a72f24cf4"
+    },
+    {
+      "start": "00c7e8",
+      "end": "00c7ee",
+      "sha256": "cbbcb611ae30485945fc235c067e3114f15aa536d85baad0ad8e5912df2bdfa9"
+    },
+    {
+      "start": "00cc72",
+      "end": "00cc74",
+      "sha256": "1ceeabf0c6a5a30bad12cdac0e3ab015a7188a42e6aebb556aad00bb9cd693ad"
+    },
+    {
+      "start": "00d5ae",
+      "end": "00d5b2",
+      "sha256": "b12e13bd94328745b1818e632b45f21dbf5b35f6cd713aaa1e92b07f1aeeb460"
+    },
+    {
+      "start": "00d5e8",
+      "end": "00d5ec",
+      "sha256": "33c1ea05513a7ebe63c9d7b4f3557334c229da36308ff9984cddfd9a1becff73"
+    },
+    {
+      "start": "00d618",
+      "end": "00d61c",
+      "sha256": "c3be1f43eeafc0daca998a95ddb9eada84b6917efdc0c2a942912a58054e5d3d"
+    },
+    {
+      "start": "00d630",
+      "end": "00d634",
+      "sha256": "930482b484da19e93ce96a49f9ea73ec716643fa06a8b4abfae833a5def942ef"
+    },
+    {
+      "start": "00d640",
+      "end": "00d644",
+      "sha256": "0f405af7b8cc0fa00fc4cf33813f4b3b5ae98be6e800293631dd6e54b8b7b27e"
+    },
+    {
+      "start": "00d67c",
+      "end": "00d680",
+      "sha256": "7ea3f371b0d2d1b0ec3b28cd7e1a90cce3b0fa884202efed39049fb49c3da726"
+    },
+    {
+      "start": "00d68c",
+      "end": "00d690",
+      "sha256": "a9700aebd038caae7f3030fd50aecfa97d9bc814270aaab771c54a3873cede43"
+    },
+    {
+      "start": "00dade",
+      "end": "00dae2",
+      "sha256": "40ce7e32047466b3335e1587875fb3d7b856742de5a3e0ed6ac961cad786e789"
+    },
+    {
+      "start": "00dcfa",
+      "end": "00dcfe",
+      "sha256": "8da8120f00a47cd4fc92ec2458ea1ebe78f023a51881e01330319de305798176"
+    },
+    {
+      "start": "00dd32",
+      "end": "00dd36",
+      "sha256": "bc6393651481f6f639d8912b64e6b2760a3a35c7ebe1e6615a27f4652b62c361"
+    },
+    {
+      "start": "00dd50",
+      "end": "00dd54",
+      "sha256": "0ee18f1a3b14fb1cc1a07c236284d1dcf8787d1c8060a5f2d8feac2dfebb1e07"
+    },
+    {
+      "start": "00e206",
+      "end": "00e20a",
+      "sha256": "d559face644a7ae56e459bcba53d3596abd60d49c81742afd33582cf353b9ec1"
+    },
+    {
+      "start": "00e722",
+      "end": "00e726",
+      "sha256": "6c65063cc1f46e277ea2e609b2586f2794d6d8d13d8255ce87868bd6cb54344c"
+    },
+    {
+      "start": "00e774",
+      "end": "00e778",
+      "sha256": "7346d68d4c0b26c943771bc11d3e7a2640017355a16c4fc8611340279d28be64"
+    },
+    {
+      "start": "00e784",
+      "end": "00e788",
+      "sha256": "c212d36d51e501bb46bd8ad659f0c726af56ea4840222c69172b75e885467d9c"
+    },
+    {
+      "start": "00e794",
+      "end": "00e798",
+      "sha256": "090223aa738784194cf401b77f671aded03448e823339bae0b8b4f66f3095bea"
+    },
+    {
+      "start": "00e7a4",
+      "end": "00e7a8",
+      "sha256": "bf00b239087ad32ed5c713baa28b858c4d2e8d9fa2128f40f9a96298c08bbfdd"
+    },
+    {
+      "start": "00e94e",
+      "end": "00e952",
+      "sha256": "723dffa2c90cef5cb3e8e20ffad5ea3353be8f13f7d5e1999f6a3e145d9c41b9"
+    },
+    {
+      "start": "00e966",
+      "end": "00e96a",
+      "sha256": "c0b16c1fda623dfc5521f5f2d3cfd418b564cd24eab3a23d3546c6403a99568f"
+    },
+    {
+      "start": "00edee",
+      "end": "00edf2",
+      "sha256": "d459257c1f0d735e15ba0ef493c36dbaa8d9c379dc2e3c70df6473768fb40bf7"
+    },
+    {
+      "start": "00ee12",
+      "end": "00ee16",
+      "sha256": "0b3a70345c9accae8c279d21e9118cddb045a16302ba193a9d125bd16accd9b7"
+    },
+    {
+      "start": "012810",
+      "end": "012814",
+      "sha256": "15d2ffd4da77aeced5edba41573c41da0ac8ba6e3f604d4e28d1bf0aa23e2b43"
+    },
+    {
+      "start": "01287a",
+      "end": "01287e",
+      "sha256": "01480c075e676eccb16fa4adfadf5dc2769388a9179024424c2a956d1773f2a7"
+    },
+    {
+      "start": "0128fc",
+      "end": "012900",
+      "sha256": "36b4b8caf385f781bc15500f5a816cbb902b9a53ddba91e272e17041383e3744"
+    },
+    {
+      "start": "012a40",
+      "end": "012a46",
+      "sha256": "1d5c4897d333c3a41b4eef5a1680f5e12ad3977e909708fca42c78e5a7a50dfc"
+    },
+    {
+      "start": "012e2a",
+      "end": "012e2e",
+      "sha256": "44bba2ab841554c06ade6ef07e59f15e11819e21e4b2cc87fed6ec1fdbb71b7c"
+    },
+    {
+      "start": "012e56",
+      "end": "012e5a",
+      "sha256": "dd31895d292b4c7ba6ca9e5fc98e2ae20af79049298a0b6e7a7bfee5c20bf90c"
+    },
+    {
+      "start": "0188ec",
+      "end": "0189ee",
+      "sha256": "446519c40420ee20154934b87ee22bf82527b538903855e5081fcb6919654e04"
+    },
+    {
+      "start": "03021e",
+      "end": "030220",
+      "sha256": "ca999315d49fcf0cb276ee4229c4a44c93c0df52e0fbbabe307ef56a13d15f18"
+    },
+    {
+      "start": "030224",
+      "end": "030226",
+      "sha256": "1dd18114f996093a675de96e0d73308723647b9a516656d1c65d95e13d7a0c93"
+    },
+    {
+      "start": "03022e",
+      "end": "030232",
+      "sha256": "f6928d6117df9a667f50f10383ca0ada3287cd4a10f3f0126320c86d35b22695"
+    },
+    {
+      "start": "030536",
+      "end": "03053a",
+      "sha256": "732a0394f89b1a37832358321d26d086a991ece83e5d28a221582581bfb834aa"
+    },
+    {
+      "start": "030570",
+      "end": "030574",
+      "sha256": "305a68fd6dfc689a6e8b661cc9f1b65c9be40df450545f22b4172ec7dddf18f6"
+    },
+    {
+      "start": "030580",
+      "end": "030584",
+      "sha256": "ff5639d2dadf7de9a9d1e2a711443f12f49bbd45d55b5c5c23d071fad00f55b7"
+    },
+    {
+      "start": "030588",
+      "end": "03058c",
+      "sha256": "413db5f0416f755e4bcbb4167f6d80d01cd22231ab67c3c529c965af085d13fa"
+    },
+    {
+      "start": "030598",
+      "end": "03059c",
+      "sha256": "adab812313b0b49a84d395ee1226a30b8ce5558e27a41a620aa86bd62d6f77a7"
+    },
+    {
+      "start": "0305a8",
+      "end": "0305ac",
+      "sha256": "502d0ce8c76c2f92ae88c2963e6959e85bd57678157f2428d69f057611b653a1"
+    },
+    {
+      "start": "0305b0",
+      "end": "0305b2",
+      "sha256": "31a47d3cd061c12fcd373f1c480d48b29882757d6dd3550904a185e43b43c421"
+    },
+    {
+      "start": "0305b6",
+      "end": "0305b8",
+      "sha256": "206c8ba93562d78dcd8b47ceb4f6df933ae59a1a99d1308fff7a0e9cd5dfb008"
+    },
+    {
+      "start": "0305c4",
+      "end": "030604",
+      "sha256": "c3a88e298c19051a1272a27ebf8dd4a04432cca0ab73e4f9c0cac6e47788830f"
+    },
+    {
+      "start": "030620",
+      "end": "030624",
+      "sha256": "457418c578bbe0a009944f7398f750dca1b15b2b0dca19e48912db496c43d623"
+    },
+    {
+      "start": "030a8a",
+      "end": "030a8e",
+      "sha256": "100ddbad96e0e6dfc51fea64bdbe737db43f3795bb8545be3ab1013fbe6d375f"
+    },
+    {
+      "start": "030bb8",
+      "end": "030bbc",
+      "sha256": "e99f79a8232c1324aa7397a3024fe93986d6c099060b8f2d99519974b7ebd106"
+    },
+    {
+      "start": "030c0e",
+      "end": "030c12",
+      "sha256": "7a0ea4f156a8f681140715751ba79620078226bf51d82fe1ba5adad2e2153af9"
+    },
+    {
+      "start": "030c22",
+      "end": "030c26",
+      "sha256": "c32caa950e6ba388659d2b6eab4832013e55e78900aace9a5c619135548c2458"
+    },
+    {
+      "start": "030c6a",
+      "end": "030c6e",
+      "sha256": "577f7aacba07f8c322826708946e7a308da11d67146206f31bc149aeea1551df"
+    },
+    {
+      "start": "030c84",
+      "end": "030c88",
+      "sha256": "ab13b841ed3f7c25a54e6d588cb34a1a4ae2c87d4d2d2768e8f36d7ad14334a2"
+    },
+    {
+      "start": "030c9c",
+      "end": "030ca0",
+      "sha256": "ac0261cd3d9c350d57603dc619efabd9ebbd51f72b471800f58a26783fd1fbc6"
+    },
+    {
+      "start": "030cd2",
+      "end": "030cd4",
+      "sha256": "1eaee1369048ec4e64addd282758f27e99e46ddea34e0be79fe07304e66bd8ad"
+    },
+    {
+      "start": "030d52",
+      "end": "030d56",
+      "sha256": "e4d7cac5bf004aee0a31785b1497db212fec64cbeb48f93a42878ed4011b5f24"
+    },
+    {
+      "start": "030d5c",
+      "end": "030d60",
+      "sha256": "98444f63be0bbbeb4ff110014609b469508a34a53d541b36561fd9e915c7a807"
+    },
+    {
+      "start": "030de4",
+      "end": "030de6",
+      "sha256": "d4be602d8ba1acc68d94340e85ff10f7ba6e45eaad857ebcd0a6afe0051dc11a"
+    },
+    {
+      "start": "030e4a",
+      "end": "030e4e",
+      "sha256": "550aa102c15391927f06e8210d0dd32c273e7bbee18da62482c870e46e4a1a3f"
+    },
+    {
+      "start": "030e5a",
+      "end": "030e5e",
+      "sha256": "4cf0c624c068c0bd3dc619c9601d00737c439a6f2c66e3b621a7b2f2ee93ebad"
+    },
+    {
+      "start": "030e86",
+      "end": "030e92",
+      "sha256": "80c405bbbb33d94ae79a231e93de887cf0635312675e95d08168afaf5d4dfb32"
+    },
+    {
+      "start": "030eac",
+      "end": "030eb0",
+      "sha256": "d0d5129596fdd4946dc590a40ad1f985a90646d7e006c96b249b9dc1595895fa"
+    },
+    {
+      "start": "030eba",
+      "end": "030ec2",
+      "sha256": "1711ff4fe0e11a0fed6ef4a9e1751e5137a4ec33ff8475a19d81ff001641eaff"
+    },
+    {
+      "start": "030ec6",
+      "end": "030ec8",
+      "sha256": "ac7110edcd8aa5e33d8203ef02f5e65591a308f24050afc2cb9aab99b660c772"
+    },
+    {
+      "start": "030f22",
+      "end": "030f26",
+      "sha256": "0a6c629d5a2645619ec1e91936f01c81272fa44f7c9cce1c5a014a28c17de197"
+    },
+    {
+      "start": "030f42",
+      "end": "030f44",
+      "sha256": "1f5b6ecd07b3622cec7d95a79b988c3dc8b0267997cbf23eed736d27803b6565"
+    },
+    {
+      "start": "030f48",
+      "end": "030f4a",
+      "sha256": "4be3e167f75a33bf5f6f1b7faed456c33c9597de88d9ffa5b5565f1d260f9ab3"
+    },
+    {
+      "start": "030f4e",
+      "end": "030f50",
+      "sha256": "4be3e167f75a33bf5f6f1b7faed456c33c9597de88d9ffa5b5565f1d260f9ab3"
+    },
+    {
+      "start": "030f54",
+      "end": "030f56",
+      "sha256": "347d24dc737b782945c62ea1c9963638e742e403ce8b7e457569df25253aafda"
+    },
+    {
+      "start": "030f70",
+      "end": "030f72",
+      "sha256": "f0d5b4d85390981d713e2a89c5716f604631d9f24c25666866041dd80e048aca"
+    },
+    {
+      "start": "030f98",
+      "end": "030f9c",
+      "sha256": "bbb0ad73d5e807b57e31b2a7ab5b85f948aa5a46efb7856fe595694e74c3cc78"
+    },
+    {
+      "start": "03109e",
+      "end": "03111a",
+      "sha256": "62baf1d6004132fa7cc06ee485eae74809a6af7bc2be4b18903dfc79047cc6f9"
+    },
+    {
+      "start": "031124",
+      "end": "031144",
+      "sha256": "d950033f9dc4d625875fe64ea9ee512592f53594920f8a3ea58b40fd0b366166"
+    },
+    {
+      "start": "031160",
+      "end": "031164",
+      "sha256": "368c6dc7e57af43c3838485469d446ee4cf94221c555450309b1908f2e30c0c0"
+    },
+    {
+      "start": "031194",
+      "end": "031198",
+      "sha256": "996530f402cd7de7b0d19f326ba7216d88392707e0f0ed8f6d6e687f7639a74e"
+    },
+    {
+      "start": "0311d2",
+      "end": "0311d6",
+      "sha256": "783fa2530f39c39f0dd0df9104b44bb567e5abbd3576bce98ca63a2d139bbc98"
+    },
+    {
+      "start": "031232",
+      "end": "03123a",
+      "sha256": "42aea8a092e04116f9c3e67bc226715317ef9a60c9e36e40b96b34c30ee8bf0b"
+    },
+    {
+      "start": "031522",
+      "end": "031524",
+      "sha256": "b46778214673142f18a8de34b7ede6287e22bb8b65384048e930563ee9085e6c"
+    },
+    {
+      "start": "031538",
+      "end": "03153a",
+      "sha256": "01351cc1144941c07967ed7f74961a91dcbed5228e91c483b7c662b935611f32"
+    }
+  ],
+  "rows": [
+    {
+      "file_pc": "001138",
+      "end": "00113a",
+      "bytes": "6106",
+      "instruction": "bsrs 0x1140",
+      "source": "disasm/modules/68k/game/data/tile_decompressor_setup.asm",
+      "source_row": "DC.W    $6106               ; BSR.S  $001140; $001138",
+      "instruction_sha256": "be009176304dc3057bc4b3ddfdccf6820bab8cffa98f5d894426920a96b0b25a"
+    },
+    {
+      "file_pc": "0011ca",
+      "end": "0011cc",
+      "bytes": "66b6",
+      "instruction": "bnes 0x1182",
+      "source": "disasm/modules/68k/game/data/tile_decompressor_inner_loop_a.asm",
+      "source_row": "DC.W    $66B6               ; BNE.S  $001182; $0011CA",
+      "instruction_sha256": "35b1511a7dfb7944e02e73995c8949adca8dbf369a396ddb19f4da4e8936d3e0"
+    },
+    {
+      "file_pc": "0011ea",
+      "end": "0011ec",
+      "bytes": "6602",
+      "instruction": "bnes 0x11ee",
+      "source": "disasm/modules/68k/game/data/tile_data_stream_byte_read.asm",
+      "source_row": "DC.W    $6602               ; BNE.S  $0011EE; $0011EA",
+      "instruction_sha256": "1fc590562575eae979d6124ba2be0d07ccd0fdda4a6f751b06ba953c6a46ae9c"
+    },
+    {
+      "file_pc": "0011f6",
+      "end": "0011f8",
+      "bytes": "64ee",
+      "instruction": "bccs 0x11e6",
+      "source": "disasm/modules/68k/game/data/tile_decompressor_engine.asm",
+      "source_row": "DC.W    $64EE               ; BCC.S  $0011E6; $0011F6",
+      "instruction_sha256": "2d2746297bc7ff447b15dbecd36eae211042fcde4374875373185b09b3d0f7f9"
+    },
+    {
+      "file_pc": "001344",
+      "end": "001346",
+      "bytes": "6428",
+      "instruction": "bccs 0x136e",
+      "source": "disasm/modules/68k/game/data/tile_bit_stream_unpacker.asm",
+      "source_row": "DC.W    $6428               ; BCC.S  $00136E; $001344",
+      "instruction_sha256": "55043de8e1bd01307fa2f18e9ea61e8e5397855dc8332746262e357b92418fa0"
+    },
+    {
+      "file_pc": "001382",
+      "end": "001384",
+      "bytes": "60d8",
+      "instruction": "bras 0x135c",
+      "source": "disasm/modules/68k/game/data/tile_bit_stream_refill_with_mask_table.asm",
+      "source_row": "DC.W    $60D8               ; BRA.S  $00135C; $001382",
+      "instruction_sha256": "e1d9b613561a738f2644dd3ec59eb4f32f58d5507817fc5d008f88ae1431db5c"
+    },
+    {
+      "file_pc": "00194e",
+      "end": "001952",
+      "bytes": "4ebaff0e",
+      "instruction": "jsr %pc@(0x185e)",
+      "source": "disasm/modules/68k/game/state/controller_input_init.asm",
+      "source_row": "dc.w    $4EBA,$FF0E                      ; jsr zbus_request(pc) \u2192 $00185E",
+      "instruction_sha256": "9c3bb8d37b9efede39317b0ea8e1376f0bd029861cc64dd570f282004d1a10d4"
+    },
+    {
+      "file_pc": "001964",
+      "end": "001968",
+      "bytes": "4ebafef8",
+      "instruction": "jsr %pc@(0x185e)",
+      "source": "disasm/modules/68k/game/state/controller_input_init.asm",
+      "source_row": "dc.w    $4EBA,$FEF8                      ; jsr zbus_request(pc) \u2192 $00185E",
+      "instruction_sha256": "7224ddbf238f4f2b9a23b1e8cf6920974f5c6e9641b5a0d5cc028dcbd73f2191"
+    },
+    {
+      "file_pc": "0021ee",
+      "end": "0021f4",
+      "bytes": "11fc000ac827",
+      "instruction": "moveb #10,0xffffc827",
+      "source": "disasm/sections/code_200.asm",
+      "source_row": "dc.w    $11FC        ; $0021EE",
+      "instruction_sha256": "d0c2dc8e00c150c499f18565753aa5381dc21b4b3c5ee3b2e74062875b1af990"
+    },
+    {
+      "file_pc": "0021f4",
+      "end": "0021fa",
+      "bytes": "11fc000fc828",
+      "instruction": "moveb #15,0xffffc828",
+      "source": "disasm/sections/code_200.asm",
+      "source_row": "dc.w    $11FC        ; $0021F4",
+      "instruction_sha256": "f4cd7edcbb5259fbceb7dcbeadf709eac71d444f629233d9fcf12e008e12301c"
+    },
+    {
+      "file_pc": "0021fa",
+      "end": "0021fe",
+      "bytes": "4a78c8c8",
+      "instruction": "tstw 0xffffc8c8",
+      "source": "disasm/sections/code_200.asm",
+      "source_row": "dc.w    $4A78        ; $0021FA - TST.W $C8C8",
+      "instruction_sha256": "1f3aeb9c099c2c6cdccc1679a68c7cf3557b9cea588d05aed225e306ebf4fa4b"
+    },
+    {
+      "file_pc": "0021fe",
+      "end": "002200",
+      "bytes": "6704",
+      "instruction": "beqs 0x2204",
+      "source": "disasm/sections/code_200.asm",
+      "source_row": "dc.w    $6704        ; $0021FE - BEQ.S $002204",
+      "instruction_sha256": "e885e3158427e739dfdd9e627b01c78a18688c4799a693e15ee60b5c9d7cd391"
+    },
+    {
+      "file_pc": "0027da",
+      "end": "0027dc",
+      "bytes": "6142",
+      "instruction": "bsrs 0x281e",
+      "source": "disasm/modules/68k/game/render/gfx_32x_framebuffer_palette_fill.asm",
+      "source_row": "DC.W    $6142               ; BSR.S  $00281E; $0027DA",
+      "instruction_sha256": "042ac5b8da4052545d4b28fe223994711495be3cdeeb8a1f3e2a9d7d8bbae87c"
+    },
+    {
+      "file_pc": "002992",
+      "end": "002996",
+      "bytes": "6600014a",
+      "instruction": "bnew 0x2ade",
+      "source": "disasm/modules/68k/game/camera/camera_param_calc.asm",
+      "source_row": "DC.W    $6600,$014A         ; BNE.W  $002ADE; $002992",
+      "instruction_sha256": "dd7743bfa5d9227265cb80747d46e78f6f546fa9717488ceee90575aafda1b4c"
+    },
+    {
+      "file_pc": "002a4e",
+      "end": "002a50",
+      "bytes": "6722",
+      "instruction": "beqs 0x2a72",
+      "source": "disasm/modules/68k/game/camera/camera_param_calc.asm",
+      "source_row": "DC.W    $6722               ; BEQ.S  $002A72; $002A4E",
+      "instruction_sha256": "4681cdc87bb327b45666708aa6b8ea9b84a92ff76d5e8b093966f5ae3e2a82d8"
+    },
+    {
+      "file_pc": "002a56",
+      "end": "002a58",
+      "bytes": "671a",
+      "instruction": "beqs 0x2a72",
+      "source": "disasm/modules/68k/game/camera/camera_param_calc.asm",
+      "source_row": "DC.W    $671A               ; BEQ.S  $002A72; $002A56",
+      "instruction_sha256": "6e0aebf04f7cf693cf259d61b54b6a5c7205cf939dfd369de9b0269159b35b61"
+    },
+    {
+      "file_pc": "004b7c",
+      "end": "004b80",
+      "bytes": "4eba567e",
+      "instruction": "jsr %pc@(0xa1fc)",
+      "source": "disasm/modules/68k/game/race/race_scene_init_004a32.asm",
+      "source_row": "DC.W    $4EBA,$567E         ; JSR     $00A1FC(PC); $004B7C",
+      "instruction_sha256": "ffb4e76d5520ef633e9fcd19f9ec2bd09023800de156615617a99155aefd1b03"
+    },
+    {
+      "file_pc": "004c40",
+      "end": "004c42",
+      "bytes": "6648",
+      "instruction": "bnes 0x4c8a",
+      "source": "disasm/modules/68k/game/race/race_scene_init_004a32.asm",
+      "source_row": "DC.W    $6648               ; BNE.S  $004C8A; $004C40",
+      "instruction_sha256": "a89aad5cb9834d06e8ebfa5695b54d1ac6bdba2c3deb109738472e69db48b911"
+    },
+    {
+      "file_pc": "004c66",
+      "end": "004c6a",
+      "bytes": "4ebad586",
+      "instruction": "jsr %pc@(0x21ee)",
+      "source": "disasm/modules/68k/game/race/race_scene_init_004a32.asm",
+      "source_row": "DC.W    $4EBA,$D586         ; JSR     $0021EE(PC); $004C66",
+      "instruction_sha256": "72a90811afce5aedc8f552b6f965df8f360949025aaea8d7b88bf3d33d35d3ae"
+    },
+    {
+      "file_pc": "0054b2",
+      "end": "0054b6",
+      "bytes": "4eba4d48",
+      "instruction": "jsr %pc@(0xa1fc)",
+      "source": "disasm/modules/68k/game/race/race_scene_init_0053b0.asm",
+      "source_row": "DC.W    $4EBA,$4D48         ; JSR     $00A1FC(PC); $0054B2",
+      "instruction_sha256": "23bf868d8c7f8fabc77d8ee11eaa5b85162a9b57ba0b36688f88e7c09c061d92"
+    },
+    {
+      "file_pc": "0054c6",
+      "end": "0054ca",
+      "bytes": "4eba77aa",
+      "instruction": "jsr %pc@(0xcc72)",
+      "source": "disasm/modules/68k/game/race/race_scene_init_0053b0.asm",
+      "source_row": "DC.W    $4EBA,$77AA         ; JSR     $00CC72(PC); $0054C6",
+      "instruction_sha256": "5d192d8e33cea55d1f8919c80b63749f5ebdf55a2acce5d75d15edf05ee0e6f1"
+    },
+    {
+      "file_pc": "005874",
+      "end": "005878",
+      "bytes": "43fa001e",
+      "instruction": "lea %pc@(0x5894),%a1",
+      "source": "disasm/modules/68k/game/scene/sh2_handler_dispatch_scene_init.asm",
+      "source_row": "dc.w    $43FA,$001E                      ; lea match_table(pc),a1 \u2192 $005894",
+      "instruction_sha256": "801b54592bf39ffb4185a42122965d03bc1cd59e0a98437a4419da18c2bd5564"
+    },
+    {
+      "file_pc": "0058bc",
+      "end": "0058c0",
+      "bytes": "4ebaf0ec",
+      "instruction": "jsr %pc@(0x49aa)",
+      "source": "disasm/modules/68k/game/scene/sh2_handler_dispatch_scene_init.asm",
+      "source_row": "dc.w    $4EBA,$F0EC                      ; jsr SetDisplayParams(pc) \u2192 $0049AA",
+      "instruction_sha256": "5a6b6c867e6b3aee5142a84bd6f00b1f062caca46011f51022b5620c1058a4a2"
+    },
+    {
+      "file_pc": "0058c8",
+      "end": "0058cc",
+      "bytes": "4eba12c0",
+      "instruction": "jsr %pc@(0x6b8a)",
+      "source": "disasm/modules/68k/game/scene/sh2_handler_dispatch_scene_init.asm",
+      "source_row": "dc.w    $4EBA,$12C0                      ; jsr track_init(pc) \u2192 $006B8A",
+      "instruction_sha256": "0c819cefcba97bd38ed4ed234f3a11e8d2b1835b65ac8066b968c5e7071b4692"
+    },
+    {
+      "file_pc": "0058e6",
+      "end": "0058e8",
+      "bytes": "6708",
+      "instruction": "beqs 0x58f0",
+      "source": "disasm/modules/68k/game/scene/sh2_handler_dispatch_scene_init.asm",
+      "source_row": "dc.w    $6708                            ; beq.s $0058F0 \u2192 external (bits clear)",
+      "instruction_sha256": "adfdb1d6e1efaa77d5bc245cd418de8eb930610f114b304e1a32f4394ffcd42a"
+    },
+    {
+      "file_pc": "0058ee",
+      "end": "0058f0",
+      "bytes": "66f8",
+      "instruction": "bnes 0x58e8",
+      "source": "disasm/modules/68k/game/entity/object_table_lookup_loop.asm",
+      "source_row": "dc.w    $66F8                           ; BNE.S $0058E8 ; $0058EE: \u2014 non-zero \u2192 branch to prev fn",
+      "instruction_sha256": "536d221b681129c9a90945b700340e029b8bd7f8d0687f9a20a0bb2bbb1c3dbf"
+    },
+    {
+      "file_pc": "005b40",
+      "end": "005b44",
+      "bytes": "4eba2696",
+      "instruction": "jsr %pc@(0x81d8)",
+      "source": "disasm/modules/68k/game/render/entity_render_pipeline.asm",
+      "source_row": "DC.W    $4EBA,$2696         ; JSR     $0081D8(PC); $005B40",
+      "instruction_sha256": "969cc2b9a9bfbda40ab23c087cc6d62511afe3a3374a318d74ca7ac45f64b402"
+    },
+    {
+      "file_pc": "005b92",
+      "end": "005b96",
+      "bytes": "4eba4d4c",
+      "instruction": "jsr %pc@(0xa8e0)",
+      "source": "disasm/modules/68k/game/render/entity_render_pipeline.asm",
+      "source_row": "DC.W    $4EBA,$4D4C         ; JSR     $00A8E0(PC); $005B92",
+      "instruction_sha256": "ea1c58faa3864a7cace055f5fdb3da4919ca0369bd6d398d015b987aa82de1f7"
+    },
+    {
+      "file_pc": "005cc0",
+      "end": "005cc4",
+      "bytes": "4eba2516",
+      "instruction": "jsr %pc@(0x81d8)",
+      "source": "disasm/modules/68k/game/render/entity_render_pipeline.asm",
+      "source_row": "DC.W    $4EBA,$2516         ; JSR     $0081D8(PC); $005CC0",
+      "instruction_sha256": "bad971a0cd68db82fb17c0232b4c9012aa0dad1df2c560377abff3f371bc280d"
+    },
+    {
+      "file_pc": "005d58",
+      "end": "005d5c",
+      "bytes": "4eba247e",
+      "instruction": "jsr %pc@(0x81d8)",
+      "source": "disasm/modules/68k/game/entity/player_entity_frame_update.asm",
+      "source_row": "DC.W    $4EBA,$247E         ; JSR     $0081D8(PC); $005D58",
+      "instruction_sha256": "0bbe736f0b1cb5aac060b036738de376eb90a9bf1fe9333155c56d587d272518"
+    },
+    {
+      "file_pc": "007002",
+      "end": "007006",
+      "bytes": "6600346c",
+      "instruction": "bnew 0xa470",
+      "source": "disasm/modules/68k/object/counter_guard.asm",
+      "source_row": "dc.w    $6600,$346C             ; BNE.W $A470 (external handler)",
+      "instruction_sha256": "296db22388c79173f36be4e2975bf0be7ce7a0e4fa624ed86e0510d72c6ff675"
+    },
+    {
+      "file_pc": "00720c",
+      "end": "007210",
+      "bytes": "43fa003a",
+      "instruction": "lea %pc@(0x7248),%a1",
+      "source": "disasm/modules/68k/game/render/object_visibility_collector.asm",
+      "source_row": "dc.w    $43FA,$003A         ; lea     $007248(pc),A1  ; pointer table (after function)",
+      "instruction_sha256": "973a6945d052ad63ccec4c2e52aabafd2ec3bd2cd5ec74f712249004a535df57"
+    },
+    {
+      "file_pc": "00740c",
+      "end": "007410",
+      "bytes": "45fa001e",
+      "instruction": "lea %pc@(0x742c),%a2",
+      "source": "disasm/modules/68k/game/track/track_data_index_calc_table_lookup.asm",
+      "source_row": "dc.w    $45FA,$001E                     ; $00740C  lea $00742C(pc),a2 \u2014 normal table",
+      "instruction_sha256": "ac37b886f19704a5e838024c85f9cf63a9ebc569ed5be26940dc0737be1ba5dc"
+    },
+    {
+      "file_pc": "007416",
+      "end": "00741a",
+      "bytes": "45fa0044",
+      "instruction": "lea %pc@(0x745c),%a2",
+      "source": "disasm/modules/68k/game/track/track_data_index_calc_table_lookup.asm",
+      "source_row": "dc.w    $45FA,$0044                     ; $007416  lea $00745C(pc),a2 \u2014 alternate table",
+      "instruction_sha256": "e5a13bd4abcae365babc01de47381257f105a90dc5fdf7a833a4c32cac9f76dc"
+    },
+    {
+      "file_pc": "007abc",
+      "end": "007abe",
+      "bytes": "6618",
+      "instruction": "bnes 0x7ad6",
+      "source": "disasm/modules/68k/game/physics/entity_heading_init.asm",
+      "source_row": "DC.W    $6618               ; BNE.S  $007AD6; $007ABC",
+      "instruction_sha256": "9ea4d7eccfe9c659b1c37c3f9f104d3d24e56f5a1228cbce1784e03156de492b"
+    },
+    {
+      "file_pc": "007b90",
+      "end": "007b92",
+      "bytes": "672c",
+      "instruction": "beqs 0x7bbe",
+      "source": "disasm/modules/68k/game/collision/directional_collision_probe.asm",
+      "source_row": "DC.W    $672C               ; BEQ.S  $007BBE; $007B90  ; no fwd \u2192 falls thru",
+      "instruction_sha256": "0e6cef1adb2f24ddbb23562c82cfc15675abf33e041480146af752e0c6bcd68a"
+    },
+    {
+      "file_pc": "007b94",
+      "end": "007b96",
+      "bytes": "6628",
+      "instruction": "bnes 0x7bbe",
+      "source": "disasm/modules/68k/game/collision/directional_collision_probe.asm",
+      "source_row": "DC.W    $6628               ; BNE.S  $007BBE; $007B94  ; diff \u2192 falls thru",
+      "instruction_sha256": "a8dbf511a76d08dae5a318aef478aca11d226211f2e6fcaadfe32bf5f3ba0943"
+    },
+    {
+      "file_pc": "007ba0",
+      "end": "007ba2",
+      "bytes": "6622",
+      "instruction": "bnes 0x7bc4",
+      "source": "disasm/modules/68k/game/collision/directional_collision_probe.asm",
+      "source_row": "DC.W    $6622               ; BNE.S  $007BC4; $007BA0  ; hit \u2192 continue",
+      "instruction_sha256": "018407f59bfcd1c06f884efe470427502b922387bd4ea372c77d479c06379bb9"
+    },
+    {
+      "file_pc": "007ba8",
+      "end": "007baa",
+      "bytes": "661a",
+      "instruction": "bnes 0x7bc4",
+      "source": "disasm/modules/68k/game/collision/directional_collision_probe.asm",
+      "source_row": "DC.W    $661A               ; BNE.S  $007BC4; $007BA8  ; hit \u2192 continue",
+      "instruction_sha256": "1dd18114f996093a675de96e0d73308723647b9a516656d1c65d95e13d7a0c93"
+    },
+    {
+      "file_pc": "007c52",
+      "end": "007c54",
+      "bytes": "6602",
+      "instruction": "bnes 0x7c56",
+      "source": "disasm/modules/68k/game/physics/entity_speed_guard.asm",
+      "source_row": "DC.W    $6602               ; BNE.S  $007C56; $007C52",
+      "instruction_sha256": "1fc590562575eae979d6124ba2be0d07ccd0fdda4a6f751b06ba953c6a46ae9c"
+    },
+    {
+      "file_pc": "0081d8",
+      "end": "0081de",
+      "bytes": "082800060002",
+      "instruction": "btst #6,%a0@(2)",
+      "source": "disasm/sections/code_6200.asm",
+      "source_row": "dc.w    $0828        ; $0081D8",
+      "instruction_sha256": "54e7c8dfc18353c39930b4a63c21826707ae209f96d5b36a7f7cf2e4ab09e3f4"
+    },
+    {
+      "file_pc": "0081de",
+      "end": "0081e0",
+      "bytes": "672a",
+      "instruction": "beqs 0x820a",
+      "source": "disasm/sections/code_6200.asm",
+      "source_row": "dc.w    $672A        ; $0081DE",
+      "instruction_sha256": "461cc7bd614b69b7fa888f5003cac0b1c1d7d587fa6960a9ca8074e771f3bfbb"
+    },
+    {
+      "file_pc": "0081e0",
+      "end": "0081e6",
+      "bytes": "0268bfff0002",
+      "instruction": "andiw #-16385,%a0@(2)",
+      "source": "disasm/sections/code_6200.asm",
+      "source_row": "dc.w    $0268        ; $0081E0",
+      "instruction_sha256": "3fe1baca82b04c1422be7bb03d41277d28daef5788929b9f664962933dd64776"
+    },
+    {
+      "file_pc": "0081e6",
+      "end": "0081ea",
+      "bytes": "3038c8cc",
+      "instruction": "movew 0xffffc8cc,%d0",
+      "source": "disasm/sections/code_6200.asm",
+      "source_row": "dc.w    $3038        ; $0081E6",
+      "instruction_sha256": "6872b2442c6342cd1cc33a9be1d4a089c6c09087e2d73743b6e34d78d7c51c64"
+    },
+    {
+      "file_pc": "0081ea",
+      "end": "0081ec",
+      "bytes": "d040",
+      "instruction": "addw %d0,%d0",
+      "source": "disasm/sections/code_6200.asm",
+      "source_row": "dc.w    $D040        ; $0081EA",
+      "instruction_sha256": "b1b92572667769b3b93c559e0989fded73c9ceb9fa83c36c0cc6128f28cc2d5c"
+    },
+    {
+      "file_pc": "0081ec",
+      "end": "0081f0",
+      "bytes": "d078c89c",
+      "instruction": "addw 0xffffc89c,%d0",
+      "source": "disasm/sections/code_6200.asm",
+      "source_row": "dc.w    $D078        ; $0081EC",
+      "instruction_sha256": "d98fb21e5c48c6cde8c758cf89b42ad147c5e5beed876c7b82e0f5df99d8b008"
+    },
+    {
+      "file_pc": "0081f0",
+      "end": "0081f4",
+      "bytes": "103b00ce",
+      "instruction": "moveb %pc@(0x81c0,%d0:w),%d0",
+      "source": "disasm/sections/code_6200.asm",
+      "source_row": "dc.w    $103B        ; $0081F0",
+      "instruction_sha256": "1f7a2623811efe331ac8de1bed6e664dd5e8bc0a2c18384b5cfacfb2cbda5a9f"
+    },
+    {
+      "file_pc": "0081f4",
+      "end": "0081f8",
+      "bytes": "d178c050",
+      "instruction": "addw %d0,0xffffc050",
+      "source": "disasm/sections/code_6200.asm",
+      "source_row": "dc.w    $D178        ; $0081F4",
+      "instruction_sha256": "a7a9c2bb69cc9079e8b8a592d2f271396878de5a7bddbe96399509fc5cd006e4"
+    },
+    {
+      "file_pc": "0081f8",
+      "end": "0081fc",
+      "bytes": "4278c8aa",
+      "instruction": "clrw 0xffffc8aa",
+      "source": "disasm/sections/code_6200.asm",
+      "source_row": "dc.w    $4278        ; $0081F8",
+      "instruction_sha256": "3d7dca1cff03d72bd9e58b2ebf6ac123c228c23bc1fc722adae1b0c43d4de85c"
+    },
+    {
+      "file_pc": "0081fc",
+      "end": "008202",
+      "bytes": "0c3800bec8a4",
+      "instruction": "cmpib #-66,0xffffc8a4",
+      "source": "disasm/sections/code_6200.asm",
+      "source_row": "dc.w    $0C38        ; $0081FC",
+      "instruction_sha256": "3879e96109e07f67d384f6c3130f950ddc046d48d6b5d5e12b2a26ecb306768b"
+    },
+    {
+      "file_pc": "00918a",
+      "end": "00918e",
+      "bytes": "66000174",
+      "instruction": "bnew 0x9300",
+      "source": "disasm/modules/68k/game/physics/entity_speed_acceleration_and_braking.asm",
+      "source_row": "DC.W    $6600,$0174         ; BNE.W  $009300; $00918A  ; skip \u2192 end of func",
+      "instruction_sha256": "8fe2ad47e300b0d66fb47c2ee68c21370be099c337a679f0f119d82fb0ea55af"
+    },
+    {
+      "file_pc": "009f16",
+      "end": "009f1a",
+      "bytes": "427890b0",
+      "instruction": "clrw 0xffff90b0",
+      "source": "disasm/modules/68k/game/race/race_start_countdown_sequence.asm",
+      "source_row": "MOVE.W  $4278(A4),-(A7)                 ; $009F14",
+      "instruction_sha256": "fb603a640a0f9c6504d51b4be6de4fa172d27b3a09c28a17170459383d91139e"
+    },
+    {
+      "file_pc": "00a18e",
+      "end": "00a192",
+      "bytes": "43fa003a",
+      "instruction": "lea %pc@(0xa1ca),%a1",
+      "source": "disasm/modules/68k/game/physics/track_physics_param_table_loader.asm",
+      "source_row": "DC.W    $43FA,$003A         ; LEA     $00A1CA(PC),A1; $00A18E",
+      "instruction_sha256": "973a6945d052ad63ccec4c2e52aabafd2ec3bd2cd5ec74f712249004a535df57"
+    },
+    {
+      "file_pc": "00a1fc",
+      "end": "00a200",
+      "bytes": "3038c8ca",
+      "instruction": "movew 0xffffc8ca,%d0",
+      "source": "disasm/sections/code_8200.asm",
+      "source_row": "dc.w    $3038        ; $00A1FC",
+      "instruction_sha256": "1d2d032ae49f76557e05cfcb1e79cf190895893730e5e59bcc8d3c76fbb47eb0"
+    },
+    {
+      "file_pc": "00b7a2",
+      "end": "00b7a4",
+      "bytes": "6656",
+      "instruction": "bnes 0xb7fa",
+      "source": "disasm/modules/68k/game/camera/camera_state_selector.asm",
+      "source_row": "dc.w    $6656                            ; bne.s $00B7FA \u2192 external handler",
+      "instruction_sha256": "5f03d38d6ed6f10457dbf6a6b98d083b1be6181f70c925fc021216d15c881018"
+    },
+    {
+      "file_pc": "00b7ea",
+      "end": "00b7ec",
+      "bytes": "6616",
+      "instruction": "bnes 0xb802",
+      "source": "disasm/modules/68k/game/render/display_state_bit_10_guard.asm",
+      "source_row": "DC.W    $6616               ; BNE.S  $00B802; $00B7EA",
+      "instruction_sha256": "6026812e86b8253ec488ed2ae16242c8b882fe8aafc9d97dd5b29332d62fbe04"
+    },
+    {
+      "file_pc": "00bc1c",
+      "end": "00bc20",
+      "bytes": "600000ac",
+      "instruction": "braw 0xbcca",
+      "source": "disasm/modules/68k/game/scene/scene_command_disp.asm",
+      "source_row": "DC.W    $6000,$00AC         ; BRA.W  $00BCCA; $00BC1C",
+      "instruction_sha256": "562b819a3ba9064906b7ae986f021f851fc51e4678c9453e1daaf3f44b157248"
+    },
+    {
+      "file_pc": "00bc20",
+      "end": "00bc24",
+      "bytes": "60000108",
+      "instruction": "braw 0xbd2a",
+      "source": "disasm/modules/68k/game/scene/scene_command_disp.asm",
+      "source_row": "DC.W    $6000,$0108         ; BRA.W  $00BD2A; $00BC20",
+      "instruction_sha256": "3fa4cd55dca090797aa5e08f39b3f10125cd00d608107275043b6d4847aae5d0"
+    },
+    {
+      "file_pc": "00bc24",
+      "end": "00bc28",
+      "bytes": "60000104",
+      "instruction": "braw 0xbd2a",
+      "source": "disasm/modules/68k/game/scene/scene_command_disp.asm",
+      "source_row": "DC.W    $6000,$0104         ; BRA.W  $00BD2A; $00BC24",
+      "instruction_sha256": "13e24aa7786e131159bc53f94f645a83b0f824bff20690617ed75af9d2c6974c"
+    },
+    {
+      "file_pc": "00bc28",
+      "end": "00bc2c",
+      "bytes": "600000d6",
+      "instruction": "braw 0xbd00",
+      "source": "disasm/modules/68k/game/scene/scene_command_disp.asm",
+      "source_row": "DC.W    $6000,$00D6         ; BRA.W  $00BD00; $00BC28",
+      "instruction_sha256": "5f1dd9ed10b8a6abcd9bca145a225af600d4ac785c34a097df4b2d7d86171f8d"
+    },
+    {
+      "file_pc": "00bc2c",
+      "end": "00bc30",
+      "bytes": "60000170",
+      "instruction": "braw 0xbd9e",
+      "source": "disasm/modules/68k/game/scene/scene_command_disp.asm",
+      "source_row": "DC.W    $6000,$0170         ; BRA.W  $00BD9E; $00BC2C",
+      "instruction_sha256": "4e8a50582bf184039c1e5e7829842e3c9c92eb06e434ea7e9e2520aa86c17213"
+    },
+    {
+      "file_pc": "00c7e8",
+      "end": "00c7ee",
+      "bytes": "41f90089af3c",
+      "instruction": "lea 0x89af3c,%a0",
+      "source": "disasm/modules/68k/game/track/track_graphics_and_sound_loader.asm",
+      "source_row": "ORI.L  #$41F90089,D3                    ; $00C7E6",
+      "instruction_sha256": "cbbcb611ae30485945fc235c067e3114f15aa536d85baad0ad8e5912df2bdfa9"
+    },
+    {
+      "file_pc": "00cc72",
+      "end": "00cc74",
+      "bytes": "4e75",
+      "instruction": "rts",
+      "source": "disasm/sections/code_c200.asm",
+      "source_row": "dc.w    $4E75        ; $00CC72 \u2014 $4E75 = RTS stub (empty function placeholder)",
+      "instruction_sha256": "1ceeabf0c6a5a30bad12cdac0e3ab015a7188a42e6aebb556aad00bb9cd693ad"
+    },
+    {
+      "file_pc": "00d5ae",
+      "end": "00d5b2",
+      "bytes": "4eba0c0c",
+      "instruction": "jsr %pc@(0xe1bc)",
+      "source": "disasm/modules/68k/game/render/sh2_display_and_palette_init.asm",
+      "source_row": "DC.W    $4EBA,$0C0C         ; JSR     $00E1BC(PC); $00D5AE ; sh2_palette_load",
+      "instruction_sha256": "b12e13bd94328745b1818e632b45f21dbf5b35f6cd713aaa1e92b07f1aeeb460"
+    },
+    {
+      "file_pc": "00d5e8",
+      "end": "00d5ec",
+      "bytes": "61000d2c",
+      "instruction": "bsrw 0xe316",
+      "source": "disasm/modules/68k/game/render/sh2_display_and_palette_init.asm",
+      "source_row": "DC.W    $6100,$0D2C         ; BSR.W  $00E316; $00D5E8 ; sh2_send_cmd_wait",
+      "instruction_sha256": "33c1ea05513a7ebe63c9d7b4f3557334c229da36308ff9984cddfd9a1becff73"
+    },
+    {
+      "file_pc": "00d618",
+      "end": "00d61c",
+      "bytes": "61000cfc",
+      "instruction": "bsrw 0xe316",
+      "source": "disasm/modules/68k/game/render/sh2_display_and_palette_init.asm",
+      "source_row": "DC.W    $6100,$0CFC         ; BSR.W  $00E316; $00D618 ; sh2_send_cmd_wait",
+      "instruction_sha256": "c3be1f43eeafc0daca998a95ddb9eada84b6917efdc0c2a942912a58054e5d3d"
+    },
+    {
+      "file_pc": "00d630",
+      "end": "00d634",
+      "bytes": "61000ce4",
+      "instruction": "bsrw 0xe316",
+      "source": "disasm/modules/68k/game/render/sh2_display_and_palette_init.asm",
+      "source_row": "DC.W    $6100,$0CE4         ; BSR.W  $00E316; $00D630 ; sh2_send_cmd_wait",
+      "instruction_sha256": "930482b484da19e93ce96a49f9ea73ec716643fa06a8b4abfae833a5def942ef"
+    },
+    {
+      "file_pc": "00d640",
+      "end": "00d644",
+      "bytes": "61000cd4",
+      "instruction": "bsrw 0xe316",
+      "source": "disasm/modules/68k/game/render/sh2_display_and_palette_init.asm",
+      "source_row": "DC.W    $6100,$0CD4         ; BSR.W  $00E316; $00D640 ; sh2_send_cmd_wait",
+      "instruction_sha256": "0f405af7b8cc0fa00fc4cf33813f4b3b5ae98be6e800293631dd6e54b8b7b27e"
+    },
+    {
+      "file_pc": "00d67c",
+      "end": "00d680",
+      "bytes": "61000c98",
+      "instruction": "bsrw 0xe316",
+      "source": "disasm/modules/68k/game/render/sh2_display_and_palette_init.asm",
+      "source_row": "DC.W    $6100,$0C98         ; BSR.W  $00E316; $00D67C ; sh2_send_cmd_wait",
+      "instruction_sha256": "7ea3f371b0d2d1b0ec3b28cd7e1a90cce3b0fa884202efed39049fb49c3da726"
+    },
+    {
+      "file_pc": "00d68c",
+      "end": "00d690",
+      "bytes": "61000c88",
+      "instruction": "bsrw 0xe316",
+      "source": "disasm/modules/68k/game/render/sh2_display_and_palette_init.asm",
+      "source_row": "DC.W    $6100,$0C88         ; BSR.W  $00E316; $00D68C ; sh2_send_cmd_wait",
+      "instruction_sha256": "a9700aebd038caae7f3030fd50aecfa97d9bc814270aaab771c54a3873cede43"
+    },
+    {
+      "file_pc": "00dade",
+      "end": "00dae2",
+      "bytes": "6100087a",
+      "instruction": "bsrw 0xe35a",
+      "source": "disasm/modules/68k/game/render/scene_param_adjustment_and_dma_upload.asm",
+      "source_row": "DC.W    $6100,$087A         ; BSR.W  $00E35A; $00DADE ; sh2_send_cmd",
+      "instruction_sha256": "40ce7e32047466b3335e1587875fb3d7b856742de5a3e0ed6ac961cad786e789"
+    },
+    {
+      "file_pc": "00dcfa",
+      "end": "00dcfe",
+      "bytes": "6100065e",
+      "instruction": "bsrw 0xe35a",
+      "source": "disasm/modules/68k/game/scene/sh2_object_and_sprite_update_orch.asm",
+      "source_row": "DC.W    $6100,$065E         ; BSR.W  $00E35A; $00DCFA ; sh2_send_cmd",
+      "instruction_sha256": "8da8120f00a47cd4fc92ec2458ea1ebe78f023a51881e01330319de305798176"
+    },
+    {
+      "file_pc": "00dd32",
+      "end": "00dd36",
+      "bytes": "61000626",
+      "instruction": "bsrw 0xe35a",
+      "source": "disasm/modules/68k/game/scene/sh2_object_and_sprite_update_orch.asm",
+      "source_row": "DC.W    $6100,$0626         ; BSR.W  $00E35A; $00DD32 ; sh2_send_cmd",
+      "instruction_sha256": "bc6393651481f6f639d8912b64e6b2760a3a35c7ebe1e6615a27f4652b62c361"
+    },
+    {
+      "file_pc": "00dd50",
+      "end": "00dd54",
+      "bytes": "61000608",
+      "instruction": "bsrw 0xe35a",
+      "source": "disasm/modules/68k/game/scene/sh2_object_and_sprite_update_orch.asm",
+      "source_row": "DC.W    $6100,$0608         ; BSR.W  $00E35A; $00DD50 ; sh2_send_cmd",
+      "instruction_sha256": "0ee18f1a3b14fb1cc1a07c236284d1dcf8787d1c8060a5f2d8feac2dfebb1e07"
+    },
+    {
+      "file_pc": "00e206",
+      "end": "00e20a",
+      "bytes": "51cbffc2",
+      "instruction": "dbf %d3,0xe1ca",
+      "source": "disasm/sections/code_e200.asm",
+      "source_row": "dc.w    $51CB,$FFC2     ; $00E206: DBRA D3,$E1CA (loop in code_c200)",
+      "instruction_sha256": "d559face644a7ae56e459bcba53d3596abd60d49c81742afd33582cf353b9ec1"
+    },
+    {
+      "file_pc": "00e722",
+      "end": "00e726",
+      "bytes": "4ebafa98",
+      "instruction": "jsr %pc@(0xe1bc)",
+      "source": "disasm/modules/68k/game/render/sh2_split_screen_display_init.asm",
+      "source_row": "DC.W    $4EBA,$FA98         ; JSR     $00E1BC(PC); $00E722 ; sh2_palette_load",
+      "instruction_sha256": "6c65063cc1f46e277ea2e609b2586f2794d6d8d13d8255ce87868bd6cb54344c"
+    },
+    {
+      "file_pc": "00e774",
+      "end": "00e778",
+      "bytes": "4ebafba0",
+      "instruction": "jsr %pc@(0xe316)",
+      "source": "disasm/modules/68k/game/render/sh2_split_screen_display_init.asm",
+      "source_row": "DC.W    $4EBA,$FBA0         ; JSR     $00E316(PC); $00E774 ; sh2_send_cmd_wait",
+      "instruction_sha256": "7346d68d4c0b26c943771bc11d3e7a2640017355a16c4fc8611340279d28be64"
+    },
+    {
+      "file_pc": "00e784",
+      "end": "00e788",
+      "bytes": "4ebafb90",
+      "instruction": "jsr %pc@(0xe316)",
+      "source": "disasm/modules/68k/game/render/sh2_split_screen_display_init.asm",
+      "source_row": "DC.W    $4EBA,$FB90         ; JSR     $00E316(PC); $00E784 ; sh2_send_cmd_wait",
+      "instruction_sha256": "c212d36d51e501bb46bd8ad659f0c726af56ea4840222c69172b75e885467d9c"
+    },
+    {
+      "file_pc": "00e794",
+      "end": "00e798",
+      "bytes": "4ebafb80",
+      "instruction": "jsr %pc@(0xe316)",
+      "source": "disasm/modules/68k/game/render/sh2_split_screen_display_init.asm",
+      "source_row": "DC.W    $4EBA,$FB80         ; JSR     $00E316(PC); $00E794 ; sh2_send_cmd_wait",
+      "instruction_sha256": "090223aa738784194cf401b77f671aded03448e823339bae0b8b4f66f3095bea"
+    },
+    {
+      "file_pc": "00e7a4",
+      "end": "00e7a8",
+      "bytes": "4ebafb70",
+      "instruction": "jsr %pc@(0xe316)",
+      "source": "disasm/modules/68k/game/render/sh2_split_screen_display_init.asm",
+      "source_row": "DC.W    $4EBA,$FB70         ; JSR     $00E316(PC); $00E7A4 ; sh2_send_cmd_wait",
+      "instruction_sha256": "bf00b239087ad32ed5c713baa28b858c4d2e8d9fa2128f40f9a96298c08bbfdd"
+    },
+    {
+      "file_pc": "00e94e",
+      "end": "00e952",
+      "bytes": "4ebafa0a",
+      "instruction": "jsr %pc@(0xe35a)",
+      "source": "disasm/modules/68k/game/render/sh2_geometry_transfer_and_palette_cycle_handler.asm",
+      "source_row": "DC.W    $4EBA,$FA0A         ; JSR     $00E35A(PC); $00E94E",
+      "instruction_sha256": "723dffa2c90cef5cb3e8e20ffad5ea3353be8f13f7d5e1999f6a3e145d9c41b9"
+    },
+    {
+      "file_pc": "00e966",
+      "end": "00e96a",
+      "bytes": "4ebaf9f2",
+      "instruction": "jsr %pc@(0xe35a)",
+      "source": "disasm/modules/68k/game/render/sh2_geometry_transfer_and_palette_cycle_handler.asm",
+      "source_row": "DC.W    $4EBA,$F9F2         ; JSR     $00E35A(PC); $00E966",
+      "instruction_sha256": "c0b16c1fda623dfc5521f5f2d3cfd418b564cd24eab3a23d3546c6403a99568f"
+    },
+    {
+      "file_pc": "00edee",
+      "end": "00edf2",
+      "bytes": "4ebaf56a",
+      "instruction": "jsr %pc@(0xe35a)",
+      "source": "disasm/modules/68k/game/scene/sh2_scene_object_update_with_lookup_tables.asm",
+      "source_row": "DC.W    $4EBA,$F56A         ; JSR     $00E35A(PC); $00EDEE ; sh2_send_cmd",
+      "instruction_sha256": "d459257c1f0d735e15ba0ef493c36dbaa8d9c379dc2e3c70df6473768fb40bf7"
+    },
+    {
+      "file_pc": "00ee12",
+      "end": "00ee16",
+      "bytes": "4ebaf546",
+      "instruction": "jsr %pc@(0xe35a)",
+      "source": "disasm/modules/68k/game/scene/sh2_scene_object_update_with_lookup_tables.asm",
+      "source_row": "DC.W    $4EBA,$F546         ; JSR     $00E35A(PC); $00EE12 ; sh2_send_cmd",
+      "instruction_sha256": "0b3a70345c9accae8c279d21e9118cddb045a16302ba193a9d125bd16accd9b7"
+    },
+    {
+      "file_pc": "012810",
+      "end": "012814",
+      "bytes": "4ebab9aa",
+      "instruction": "jsr %pc@(0xe1bc)",
+      "source": "disasm/modules/68k/game/menu/camera_replay_screen_init.asm",
+      "source_row": "DC.W    $4EBA,$B9AA         ; JSR     $00E1BC(PC); $012810",
+      "instruction_sha256": "15d2ffd4da77aeced5edba41573c41da0ac8ba6e3f604d4e28d1bf0aa23e2b43"
+    },
+    {
+      "file_pc": "01287a",
+      "end": "01287e",
+      "bytes": "4ebaba9a",
+      "instruction": "jsr %pc@(0xe316)",
+      "source": "disasm/modules/68k/game/menu/camera_replay_screen_init.asm",
+      "source_row": "DC.W    $4EBA,$BA9A         ; JSR     $00E316(PC); $01287A",
+      "instruction_sha256": "01480c075e676eccb16fa4adfadf5dc2769388a9179024424c2a956d1773f2a7"
+    },
+    {
+      "file_pc": "0128fc",
+      "end": "012900",
+      "bytes": "4ebaba18",
+      "instruction": "jsr %pc@(0xe316)",
+      "source": "disasm/modules/68k/game/menu/camera_replay_screen_init.asm",
+      "source_row": "DC.W    $4EBA,$BA18         ; JSR     $00E316(PC); $0128FC",
+      "instruction_sha256": "36b4b8caf385f781bc15500f5a816cbb902b9a53ddba91e272e17041383e3744"
+    },
+    {
+      "file_pc": "012a40",
+      "end": "012a46",
+      "bytes": "4eb900882080",
+      "instruction": "jsr 0x882080",
+      "source": "disasm/modules/68k/game/scene/scene_state_disp_track_data_tables.asm",
+      "source_row": "dc.w    $4EB9                           ; $012A40: JSR (abs.L)",
+      "instruction_sha256": "1d5c4897d333c3a41b4eef5a1680f5e12ad3977e909708fca42c78e5a7a50dfc"
+    },
+    {
+      "file_pc": "012e2a",
+      "end": "012e2e",
+      "bytes": "4ebab52e",
+      "instruction": "jsr %pc@(0xe35a)",
+      "source": "disasm/modules/68k/game/camera/camera_selection_main_loop.asm",
+      "source_row": "DC.W    $4EBA,$B52E         ; JSR     $00E35A(PC); $012E2A ; sh2_send_cmd",
+      "instruction_sha256": "44bba2ab841554c06ade6ef07e59f15e11819e21e4b2cc87fed6ec1fdbb71b7c"
+    },
+    {
+      "file_pc": "012e56",
+      "end": "012e5a",
+      "bytes": "4ebab502",
+      "instruction": "jsr %pc@(0xe35a)",
+      "source": "disasm/modules/68k/game/camera/camera_selection_main_loop.asm",
+      "source_row": "DC.W    $4EBA,$B502         ; JSR     $00E35A(PC); $012E56 ; sh2_send_cmd",
+      "instruction_sha256": "dd31895d292b4c7ba6ca9e5fc98e2ae20af79049298a0b6e7a7bfee5c20bf90c"
+    },
+    {
+      "file_pc": "0188ec",
+      "end": "0188ee",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0188EC",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0188ee",
+      "end": "0188f0",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0188EE",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0188f0",
+      "end": "0188f2",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0188F0",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0188f2",
+      "end": "0188f4",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0188F2",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0188f4",
+      "end": "0188f6",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0188F4",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0188f6",
+      "end": "0188f8",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0188F6",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0188f8",
+      "end": "0188fa",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0188F8",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0188fa",
+      "end": "0188fc",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0188FA",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0188fc",
+      "end": "0188fe",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0188FC",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0188fe",
+      "end": "018900",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0188FE",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018900",
+      "end": "018902",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018900",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018902",
+      "end": "018904",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018902",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018904",
+      "end": "018906",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018904",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018906",
+      "end": "018908",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018906",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018908",
+      "end": "01890a",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018908",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "01890a",
+      "end": "01890c",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $01890A",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "01890c",
+      "end": "01890e",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $01890C",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "01890e",
+      "end": "018910",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $01890E",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018910",
+      "end": "018912",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018910",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018912",
+      "end": "018914",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018912",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018914",
+      "end": "018916",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018914",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018916",
+      "end": "018918",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018916",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018918",
+      "end": "01891a",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018918",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "01891a",
+      "end": "01891c",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $01891A",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "01891c",
+      "end": "01891e",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $01891C",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "01891e",
+      "end": "018920",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $01891E",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018920",
+      "end": "018922",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018920",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018922",
+      "end": "018924",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018922",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018924",
+      "end": "018926",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018924",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018926",
+      "end": "018928",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018926",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018928",
+      "end": "01892a",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018928",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "01892a",
+      "end": "01892c",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $01892A",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "01892c",
+      "end": "01892e",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $01892C",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "01892e",
+      "end": "018930",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $01892E",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018930",
+      "end": "018932",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018930",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018932",
+      "end": "018934",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018932",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018934",
+      "end": "018936",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018934",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018936",
+      "end": "018938",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018936",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018938",
+      "end": "01893a",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018938",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "01893a",
+      "end": "01893c",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $01893A",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "01893c",
+      "end": "01893e",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $01893C",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "01893e",
+      "end": "018940",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $01893E",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018940",
+      "end": "018942",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018940",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018942",
+      "end": "018944",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018942",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018944",
+      "end": "018946",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018944",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018946",
+      "end": "018948",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018946",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018948",
+      "end": "01894a",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018948",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "01894a",
+      "end": "01894c",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $01894A",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "01894c",
+      "end": "01894e",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $01894C",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "01894e",
+      "end": "018950",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $01894E",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018950",
+      "end": "018952",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018950",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018952",
+      "end": "018954",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018952",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018954",
+      "end": "018956",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018954",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018956",
+      "end": "018958",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018956",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018958",
+      "end": "01895a",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018958",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "01895a",
+      "end": "01895c",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $01895A",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "01895c",
+      "end": "01895e",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $01895C",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "01895e",
+      "end": "018960",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $01895E",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018960",
+      "end": "018962",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018960",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018962",
+      "end": "018964",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018962",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018964",
+      "end": "018966",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018964",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018966",
+      "end": "018968",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018966",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018968",
+      "end": "01896a",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018968",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "01896a",
+      "end": "01896c",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $01896A",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "01896c",
+      "end": "01896e",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $01896C",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "01896e",
+      "end": "018970",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $01896E",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018970",
+      "end": "018972",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018970",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018972",
+      "end": "018974",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018972",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018974",
+      "end": "018976",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018974",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018976",
+      "end": "018978",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018976",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018978",
+      "end": "01897a",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018978",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "01897a",
+      "end": "01897c",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $01897A",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "01897c",
+      "end": "01897e",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $01897C",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "01897e",
+      "end": "018980",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $01897E",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018980",
+      "end": "018982",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018980",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018982",
+      "end": "018984",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018982",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018984",
+      "end": "018986",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018984",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018986",
+      "end": "018988",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018986",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018988",
+      "end": "01898a",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018988",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "01898a",
+      "end": "01898c",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $01898A",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "01898c",
+      "end": "01898e",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $01898C",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "01898e",
+      "end": "018990",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $01898E",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018990",
+      "end": "018992",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018990",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018992",
+      "end": "018994",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018992",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018994",
+      "end": "018996",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018994",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018996",
+      "end": "018998",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018996",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "018998",
+      "end": "01899a",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $018998",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "01899a",
+      "end": "01899c",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $01899A",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "01899c",
+      "end": "01899e",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $01899C",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "01899e",
+      "end": "0189a0",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $01899E",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189a0",
+      "end": "0189a2",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189A0",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189a2",
+      "end": "0189a4",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189A2",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189a4",
+      "end": "0189a6",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189A4",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189a6",
+      "end": "0189a8",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189A6",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189a8",
+      "end": "0189aa",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189A8",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189aa",
+      "end": "0189ac",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189AA",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189ac",
+      "end": "0189ae",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189AC",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189ae",
+      "end": "0189b0",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189AE",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189b0",
+      "end": "0189b2",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189B0",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189b2",
+      "end": "0189b4",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189B2",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189b4",
+      "end": "0189b6",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189B4",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189b6",
+      "end": "0189b8",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189B6",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189b8",
+      "end": "0189ba",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189B8",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189ba",
+      "end": "0189bc",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189BA",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189bc",
+      "end": "0189be",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189BC",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189be",
+      "end": "0189c0",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189BE",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189c0",
+      "end": "0189c2",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189C0",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189c2",
+      "end": "0189c4",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189C2",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189c4",
+      "end": "0189c6",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189C4",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189c6",
+      "end": "0189c8",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189C6",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189c8",
+      "end": "0189ca",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189C8",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189ca",
+      "end": "0189cc",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189CA",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189cc",
+      "end": "0189ce",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189CC",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189ce",
+      "end": "0189d0",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189CE",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189d0",
+      "end": "0189d2",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189D0",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189d2",
+      "end": "0189d4",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189D2",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189d4",
+      "end": "0189d6",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189D4",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189d6",
+      "end": "0189d8",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189D6",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189d8",
+      "end": "0189da",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189D8",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189da",
+      "end": "0189dc",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189DA",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189dc",
+      "end": "0189de",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189DC",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189de",
+      "end": "0189e0",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189DE",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189e0",
+      "end": "0189e2",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189E0",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189e2",
+      "end": "0189e4",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189E2",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189e4",
+      "end": "0189e6",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189E4",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189e6",
+      "end": "0189e8",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189E6",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189e8",
+      "end": "0189ea",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189E8",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189ea",
+      "end": "0189ec",
+      "bytes": "3499",
+      "instruction": "movew %a1@+,%a2@",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $3499        ; $0189EA",
+      "instruction_sha256": "04e6e4cf2b84eb0954895be2341e7801afba35ff2b4c68736b9ed97277f12430"
+    },
+    {
+      "file_pc": "0189ec",
+      "end": "0189ee",
+      "bytes": "4e75",
+      "instruction": "rts",
+      "source": "disasm/sections/code_18200.asm",
+      "source_row": "dc.w    $4E75        ; $0189EC",
+      "instruction_sha256": "1ceeabf0c6a5a30bad12cdac0e3ab015a7188a42e6aebb556aad00bb9cd693ad"
+    },
+    {
+      "file_pc": "03021e",
+      "end": "030220",
+      "bytes": "6720",
+      "instruction": "beqs 0x30240",
+      "source": "disasm/modules/68k/game/sound/fm_channel_timer_check.asm",
+      "source_row": "DC.W    $6720               ; BEQ.S  $030240; $03021E",
+      "instruction_sha256": "ca999315d49fcf0cb276ee4229c4a44c93c0df52e0fbbabe307ef56a13d15f18"
+    },
+    {
+      "file_pc": "030224",
+      "end": "030226",
+      "bytes": "661a",
+      "instruction": "bnes 0x30240",
+      "source": "disasm/modules/68k/game/sound/fm_channel_timer_check.asm",
+      "source_row": "DC.W    $661A               ; BNE.S  $030240; $030224",
+      "instruction_sha256": "1dd18114f996093a675de96e0d73308723647b9a516656d1c65d95e13d7a0c93"
+    },
+    {
+      "file_pc": "03022e",
+      "end": "030232",
+      "bytes": "6b00000a",
+      "instruction": "bmiw 0x3023a",
+      "source": "disasm/modules/68k/game/sound/fm_channel_timer_check.asm",
+      "source_row": "DC.W    $6B00,$000A         ; BMI.W  $03023A; $03022E",
+      "instruction_sha256": "f6928d6117df9a667f50f10383ca0ada3287cd4a10f3f0126320c86d35b22695"
+    },
+    {
+      "file_pc": "030536",
+      "end": "03053a",
+      "bytes": "41fa25f8",
+      "instruction": "lea %pc@(0x32b30),%a0",
+      "source": "disasm/modules/68k/game/sound/fm_sound_priority_check.asm",
+      "source_row": "DC.W    $41FA,$25F8         ; LEA     $032B30(PC),A0; $030536",
+      "instruction_sha256": "732a0394f89b1a37832358321d26d086a991ece83e5d28a221582581bfb834aa"
+    },
+    {
+      "file_pc": "030570",
+      "end": "030574",
+      "bytes": "67000684",
+      "instruction": "beqw 0x30bf6",
+      "source": "disasm/modules/68k/game/sound/fm_sound_command_disp.asm",
+      "source_row": "DC.W    $6700,$0684         ; BEQ.W  $030BF6; $030570",
+      "instruction_sha256": "305a68fd6dfc689a6e8b661cc9f1b65c9be40df450545f22b4172ec7dddf18f6"
+    },
+    {
+      "file_pc": "030580",
+      "end": "030584",
+      "bytes": "6500060e",
+      "instruction": "bcsw 0x30b90",
+      "source": "disasm/modules/68k/game/sound/fm_sound_command_disp.asm",
+      "source_row": "DC.W    $6500,$060E         ; BCS.W  $030B90; $030580",
+      "instruction_sha256": "ff5639d2dadf7de9a9d1e2a711443f12f49bbd45d55b5c5c23d071fad00f55b7"
+    },
+    {
+      "file_pc": "030588",
+      "end": "03058c",
+      "bytes": "63000092",
+      "instruction": "blsw 0x3061c",
+      "source": "disasm/modules/68k/game/sound/fm_sound_command_disp.asm",
+      "source_row": "DC.W    $6300,$0092         ; BLS.W  $03061C; $030588",
+      "instruction_sha256": "413db5f0416f755e4bcbb4167f6d80d01cd22231ab67c3c529c965af085d13fa"
+    },
+    {
+      "file_pc": "030598",
+      "end": "03059c",
+      "bytes": "630001fe",
+      "instruction": "blsw 0x30798",
+      "source": "disasm/modules/68k/game/sound/fm_sound_command_disp.asm",
+      "source_row": "DC.W    $6300,$01FE         ; BLS.W  $030798; $030598",
+      "instruction_sha256": "adab812313b0b49a84d395ee1226a30b8ce5558e27a41a620aa86bd62d6f77a7"
+    },
+    {
+      "file_pc": "0305a8",
+      "end": "0305ac",
+      "bytes": "650002e8",
+      "instruction": "bcsw 0x30892",
+      "source": "disasm/modules/68k/game/sound/fm_sound_command_disp.asm",
+      "source_row": "DC.W    $6500,$02E8         ; BCS.W  $030892; $0305A8",
+      "instruction_sha256": "502d0ce8c76c2f92ae88c2963e6959e85bd57678157f2428d69f057611b653a1"
+    },
+    {
+      "file_pc": "0305b0",
+      "end": "0305b2",
+      "bytes": "6552",
+      "instruction": "bcss 0x30604",
+      "source": "disasm/modules/68k/game/sound/fm_sound_command_disp.asm",
+      "source_row": "DC.W    $6552               ; BCS.S  $030604; $0305B0",
+      "instruction_sha256": "31a47d3cd061c12fcd373f1c480d48b29882757d6dd3550904a185e43b43c421"
+    },
+    {
+      "file_pc": "0305b6",
+      "end": "0305b8",
+      "bytes": "6302",
+      "instruction": "blss 0x305ba",
+      "source": "disasm/modules/68k/game/sound/fm_sound_command_disp.asm",
+      "source_row": "DC.W    $6302               ; BLS.S  $0305BA; $0305B6",
+      "instruction_sha256": "206c8ba93562d78dcd8b47ceb4f6df933ae59a1a99d1308fff7a0e9cd5dfb008"
+    },
+    {
+      "file_pc": "0305c4",
+      "end": "0305c8",
+      "bytes": "60000496",
+      "instruction": "braw 0x30a5c",
+      "source": "disasm/modules/68k/game/sound/fm_system_command_disp.asm",
+      "source_row": "DC.W    $6000,$0496         ; BRA.W  $030A5C; $0305C4",
+      "instruction_sha256": "7b44d567ea258ca0e9db6ceb42de48d7dc9b4ff8a0b7d17c1741d34d54fdc170"
+    },
+    {
+      "file_pc": "0305c8",
+      "end": "0305cc",
+      "bytes": "60000384",
+      "instruction": "braw 0x3094e",
+      "source": "disasm/modules/68k/game/sound/fm_system_command_disp.asm",
+      "source_row": "DC.W    $6000,$0384         ; BRA.W  $03094E; $0305C8",
+      "instruction_sha256": "671bc50551b42c63555bfab05658c39c394007dd7ca190e4e7e93784281ea9e4"
+    },
+    {
+      "file_pc": "0305cc",
+      "end": "0305d0",
+      "bytes": "60000424",
+      "instruction": "braw 0x309f2",
+      "source": "disasm/modules/68k/game/sound/fm_system_command_disp.asm",
+      "source_row": "DC.W    $6000,$0424         ; BRA.W  $0309F2; $0305CC",
+      "instruction_sha256": "e26330ef5c64b26bac45e08da6c78e44b6d2cce503201c2b29da6b7423d994e5"
+    },
+    {
+      "file_pc": "0305d0",
+      "end": "0305d4",
+      "bytes": "600005be",
+      "instruction": "braw 0x30b90",
+      "source": "disasm/modules/68k/game/sound/fm_system_command_disp.asm",
+      "source_row": "DC.W    $6000,$05BE         ; BRA.W  $030B90; $0305D0",
+      "instruction_sha256": "a17ebbf8ad86c0277f8d846458f4d288930ae121fb28e6dbb67625533eceb360"
+    },
+    {
+      "file_pc": "0305d4",
+      "end": "0305d8",
+      "bytes": "600005ba",
+      "instruction": "braw 0x30b90",
+      "source": "disasm/modules/68k/game/sound/fm_system_command_disp.asm",
+      "source_row": "DC.W    $6000,$05BA         ; BRA.W  $030B90; $0305D4",
+      "instruction_sha256": "7271ca562cb8e690462f18b82b6024be00ab0f591f8ccaa8f02ed507e3d551b5"
+    },
+    {
+      "file_pc": "0305d8",
+      "end": "0305dc",
+      "bytes": "600005b6",
+      "instruction": "braw 0x30b90",
+      "source": "disasm/modules/68k/game/sound/fm_system_command_disp.asm",
+      "source_row": "DC.W    $6000,$05B6         ; BRA.W  $030B90; $0305D8",
+      "instruction_sha256": "5ca658402cb1ec809b43b8b7c6b1b6773c2a998b168682937ebe7dfe6655b6ab"
+    },
+    {
+      "file_pc": "0305dc",
+      "end": "0305e0",
+      "bytes": "600005b2",
+      "instruction": "braw 0x30b90",
+      "source": "disasm/modules/68k/game/sound/fm_system_command_disp.asm",
+      "source_row": "DC.W    $6000,$05B2         ; BRA.W  $030B90; $0305DC",
+      "instruction_sha256": "eca99588257bc8e72d67220c1d1f9d24caf9eb656639d516720476f523af6ca7"
+    },
+    {
+      "file_pc": "0305e0",
+      "end": "0305e4",
+      "bytes": "600005ae",
+      "instruction": "braw 0x30b90",
+      "source": "disasm/modules/68k/game/sound/fm_system_command_disp.asm",
+      "source_row": "DC.W    $6000,$05AE         ; BRA.W  $030B90; $0305E0",
+      "instruction_sha256": "cc2e586d81483557ca244f1640f0e9db082c3536b889a6c839bd0aacb41ed5d0"
+    },
+    {
+      "file_pc": "0305e4",
+      "end": "0305e8",
+      "bytes": "600005aa",
+      "instruction": "braw 0x30b90",
+      "source": "disasm/modules/68k/game/sound/fm_system_command_disp.asm",
+      "source_row": "DC.W    $6000,$05AA         ; BRA.W  $030B90; $0305E4",
+      "instruction_sha256": "dd33aac7967840b709a51ec55c87fab05837158f14926a698aa7ab3f02a90d20"
+    },
+    {
+      "file_pc": "0305e8",
+      "end": "0305ec",
+      "bytes": "600005a6",
+      "instruction": "braw 0x30b90",
+      "source": "disasm/modules/68k/game/sound/fm_system_command_disp.asm",
+      "source_row": "DC.W    $6000,$05A6         ; BRA.W  $030B90; $0305E8",
+      "instruction_sha256": "a8b124e51c7ddb564af89862c0ff0f495e2344d4b09c3f9bc0fb0a4773cfe714"
+    },
+    {
+      "file_pc": "0305ec",
+      "end": "0305f0",
+      "bytes": "600005a2",
+      "instruction": "braw 0x30b90",
+      "source": "disasm/modules/68k/game/sound/fm_system_command_disp.asm",
+      "source_row": "DC.W    $6000,$05A2         ; BRA.W  $030B90; $0305EC",
+      "instruction_sha256": "e9b2697e604ad250525b8978a0135b62339d537513366c240c30841d81bb9837"
+    },
+    {
+      "file_pc": "0305f0",
+      "end": "0305f4",
+      "bytes": "6000059e",
+      "instruction": "braw 0x30b90",
+      "source": "disasm/modules/68k/game/sound/fm_system_command_disp.asm",
+      "source_row": "DC.W    $6000,$059E         ; BRA.W  $030B90; $0305F0",
+      "instruction_sha256": "ac74ceb7e8e90329fd96e512ea79aef220bfe2a4c0f4db7514c24e4d465cc384"
+    },
+    {
+      "file_pc": "0305f4",
+      "end": "0305f8",
+      "bytes": "6000059a",
+      "instruction": "braw 0x30b90",
+      "source": "disasm/modules/68k/game/sound/fm_system_command_disp.asm",
+      "source_row": "DC.W    $6000,$059A         ; BRA.W  $030B90; $0305F4",
+      "instruction_sha256": "1d9640dccf1bb2d0a4cf9ea2ae32a0eefe62cb930896af9a45840652711f281d"
+    },
+    {
+      "file_pc": "0305f8",
+      "end": "0305fc",
+      "bytes": "60000596",
+      "instruction": "braw 0x30b90",
+      "source": "disasm/modules/68k/game/sound/fm_system_command_disp.asm",
+      "source_row": "DC.W    $6000,$0596         ; BRA.W  $030B90; $0305F8",
+      "instruction_sha256": "03ed794e8d13d0edd8418fecc11a011b8e9aca6df703bd199f04f0ca0f65a496"
+    },
+    {
+      "file_pc": "0305fc",
+      "end": "030600",
+      "bytes": "60000592",
+      "instruction": "braw 0x30b90",
+      "source": "disasm/modules/68k/game/sound/fm_system_command_disp.asm",
+      "source_row": "DC.W    $6000,$0592         ; BRA.W  $030B90; $0305FC",
+      "instruction_sha256": "2a325f70976b99f8a8be20c27a075ea6deaeff2811b03d16cfdd26a5d54ea1a4"
+    },
+    {
+      "file_pc": "030600",
+      "end": "030604",
+      "bytes": "6000058e",
+      "instruction": "braw 0x30b90",
+      "source": "disasm/modules/68k/game/sound/fm_system_command_disp.asm",
+      "source_row": "DC.W    $6000,$058E         ; BRA.W  $030B90; $030600",
+      "instruction_sha256": "bf451c2f2a024d939fcbd7149ffc042e67bde008cbde81cb92f9da509a41980a"
+    },
+    {
+      "file_pc": "030620",
+      "end": "030624",
+      "bytes": "49fa2496",
+      "instruction": "lea %pc@(0x32ab8),%a4",
+      "source": "disasm/modules/68k/game/sound/fm_instrument_setup.asm",
+      "source_row": "DC.W    $49FA,$2496         ; LEA     $032AB8(PC),A4; $030620 ; instrument table",
+      "instruction_sha256": "457418c578bbe0a009944f7398f750dca1b15b2b0dca19e48912db496c43d623"
+    },
+    {
+      "file_pc": "030a8a",
+      "end": "030a8e",
+      "bytes": "67000104",
+      "instruction": "beqw 0x30b90",
+      "source": "disasm/modules/68k/game/sound/fm_envelope_tick_update.asm",
+      "source_row": "DC.W    $6700,$0104         ; BEQ.W  $030B90; $030A8A",
+      "instruction_sha256": "100ddbad96e0e6dfc51fea64bdbe737db43f3795bb8545be3ab1013fbe6d375f"
+    },
+    {
+      "file_pc": "030bb8",
+      "end": "030bbc",
+      "bytes": "6000040e",
+      "instruction": "braw 0x30fc8",
+      "source": "disasm/modules/68k/game/sound/fm_sound_driver_reset.asm",
+      "source_row": "DC.W    $6000,$040E         ; BRA.W  $030FC8; $030BB8",
+      "instruction_sha256": "e99f79a8232c1324aa7397a3024fe93986d6c099060b8f2d99519974b7ebd106"
+    },
+    {
+      "file_pc": "030c0e",
+      "end": "030c12",
+      "bytes": "41fa0a78",
+      "instruction": "lea %pc@(0x31688),%a0",
+      "source": "disasm/modules/68k/game/sound/z80_sound_program_upload_fm_key_on.asm",
+      "source_row": "DC.W    $41FA,$0A78         ; LEA     $031688(PC),A0; $030C0E",
+      "instruction_sha256": "7a0ea4f156a8f681140715751ba79620078226bf51d82fe1ba5adad2e2153af9"
+    },
+    {
+      "file_pc": "030c22",
+      "end": "030c26",
+      "bytes": "41fa0cf1",
+      "instruction": "lea %pc@(0x31915),%a0",
+      "source": "disasm/modules/68k/game/sound/z80_sound_program_upload_fm_key_on.asm",
+      "source_row": "DC.W    $41FA,$0CF1         ; LEA     $031915(PC),A0; $030C22",
+      "instruction_sha256": "c32caa950e6ba388659d2b6eab4832013e55e78900aace9a5c619135548c2458"
+    },
+    {
+      "file_pc": "030c6a",
+      "end": "030c6e",
+      "bytes": "6000ff24",
+      "instruction": "braw 0x30b90",
+      "source": "disasm/modules/68k/game/sound/z80_sound_program_upload_fm_key_on.asm",
+      "source_row": "DC.W    $6000,$FF24         ; BRA.W  $030B90; $030C6A",
+      "instruction_sha256": "577f7aacba07f8c322826708946e7a308da11d67146206f31bc149aeea1551df"
+    },
+    {
+      "file_pc": "030c84",
+      "end": "030c88",
+      "bytes": "60000034",
+      "instruction": "braw 0x30cba",
+      "source": "disasm/modules/68k/game/sound/z80_sound_program_upload_fm_key_on.asm",
+      "source_row": "DC.W    $6000,$0034         ; BRA.W  $030CBA; $030C84",
+      "instruction_sha256": "ab13b841ed3f7c25a54e6d588cb34a1a4ae2c87d4d2d2768e8f36d7ad14334a2"
+    },
+    {
+      "file_pc": "030c9c",
+      "end": "030ca0",
+      "bytes": "6000001c",
+      "instruction": "braw 0x30cba",
+      "source": "disasm/modules/68k/game/sound/fm_init_channel.asm",
+      "source_row": "DC.W    $6000,$001C         ; BRA.W  $030CBA; $030C9C",
+      "instruction_sha256": "ac0261cd3d9c350d57603dc619efabd9ebbd51f72b471800f58a26783fd1fbc6"
+    },
+    {
+      "file_pc": "030cd2",
+      "end": "030cd4",
+      "bytes": "6620",
+      "instruction": "bnes 0x30cf4",
+      "source": "disasm/modules/68k/game/sound/fm_write_cond.asm",
+      "source_row": "DC.W    $6620               ; BNE.S  $030CF4; $030CD2",
+      "instruction_sha256": "1eaee1369048ec4e64addd282758f27e99e46ddea34e0be79fe07304e66bd8ad"
+    },
+    {
+      "file_pc": "030d52",
+      "end": "030d56",
+      "bytes": "6700009e",
+      "instruction": "beqw 0x30df2",
+      "source": "disasm/modules/68k/game/sound/fm_fade_in_out_proc.asm",
+      "source_row": "DC.W    $6700,$009E         ; BEQ.W  $030DF2; $030D52",
+      "instruction_sha256": "e4d7cac5bf004aee0a31785b1497db212fec64cbeb48f93a42878ed4011b5f24"
+    },
+    {
+      "file_pc": "030d5c",
+      "end": "030d60",
+      "bytes": "67000094",
+      "instruction": "beqw 0x30df2",
+      "source": "disasm/modules/68k/game/sound/fm_fade_in_out_proc.asm",
+      "source_row": "DC.W    $6700,$0094         ; BEQ.W  $030DF2; $030D5C",
+      "instruction_sha256": "98444f63be0bbbeb4ff110014609b469508a34a53d541b36561fd9e915c7a807"
+    },
+    {
+      "file_pc": "030de4",
+      "end": "030de6",
+      "bytes": "6b08",
+      "instruction": "bmis 0x30dee",
+      "source": "disasm/modules/68k/game/sound/fm_fade_in_out_proc.asm",
+      "source_row": "DC.W    $6B08               ; BMI.S  $030DEE; $030DE4",
+      "instruction_sha256": "d4be602d8ba1acc68d94340e85ff10f7ba6e45eaad857ebcd0a6afe0051dc11a"
+    },
+    {
+      "file_pc": "030e4a",
+      "end": "030e4e",
+      "bytes": "600000ca",
+      "instruction": "braw 0x30f16",
+      "source": "disasm/modules/68k/game/sound/psg_channel_proc.asm",
+      "source_row": "DC.W    $6000,$00CA         ; BRA.W  $030F16; $030E4A",
+      "instruction_sha256": "550aa102c15391927f06e8210d0dd32c273e7bbee18da62482c870e46e4a1a3f"
+    },
+    {
+      "file_pc": "030e5a",
+      "end": "030e5e",
+      "bytes": "60000072",
+      "instruction": "braw 0x30ece",
+      "source": "disasm/modules/68k/game/sound/psg_channel_proc.asm",
+      "source_row": "DC.W    $6000,$0072         ; BRA.W  $030ECE; $030E5A",
+      "instruction_sha256": "4cf0c624c068c0bd3dc619c9601d00737c439a6f2c66e3b621a7b2f2ee93ebad"
+    },
+    {
+      "file_pc": "030e86",
+      "end": "030e8a",
+      "bytes": "6000f34a",
+      "instruction": "braw 0x301d2",
+      "source": "disasm/modules/68k/game/sound/psg_channel_proc.asm",
+      "source_row": "DC.W    $6000,$F34A         ; BRA.W  $0301D2; $030E86",
+      "instruction_sha256": "339afc494fa38ef4727579fb601b2fac59d8f3c596ed9fb1f90c3b1d3a6c31f1"
+    },
+    {
+      "file_pc": "030e8a",
+      "end": "030e8e",
+      "bytes": "4ebaf326",
+      "instruction": "jsr %pc@(0x301b2)",
+      "source": "disasm/modules/68k/game/sound/psg_channel_proc.asm",
+      "source_row": "DC.W    $4EBA,$F326         ; JSR     $0301B2(PC); $030E8A",
+      "instruction_sha256": "54f407fd377f6b9603125c21b2a2c06657b18b32823737f2b7c37f0de89a69a9"
+    },
+    {
+      "file_pc": "030e8e",
+      "end": "030e92",
+      "bytes": "6000f342",
+      "instruction": "braw 0x301d2",
+      "source": "disasm/modules/68k/game/sound/psg_channel_proc.asm",
+      "source_row": "DC.W    $6000,$F342         ; BRA.W  $0301D2; $030E8E",
+      "instruction_sha256": "704ba29307050c302d926a9da5c1f6fc427bf55865077803c0ac915453c8450e"
+    },
+    {
+      "file_pc": "030eac",
+      "end": "030eb0",
+      "bytes": "6000f324",
+      "instruction": "braw 0x301d2",
+      "source": "disasm/modules/68k/game/sound/psg_channel_proc.asm",
+      "source_row": "DC.W    $6000,$F324         ; BRA.W  $0301D2; $030EAC",
+      "instruction_sha256": "d0d5129596fdd4946dc590a40ad1f985a90646d7e006c96b249b9dc1595895fa"
+    },
+    {
+      "file_pc": "030eba",
+      "end": "030ebe",
+      "bytes": "4ebaf316",
+      "instruction": "jsr %pc@(0x301d2)",
+      "source": "disasm/modules/68k/game/sound/psg_channel_proc.asm",
+      "source_row": "DC.W    $4EBA,$F316         ; JSR     $0301D2(PC); $030EBA",
+      "instruction_sha256": "f5597b5656f40b30ec2b6069537446fb29e093cd9c50ead0692cd2eb9990d172"
+    },
+    {
+      "file_pc": "030ebe",
+      "end": "030ec2",
+      "bytes": "600000f2",
+      "instruction": "braw 0x30fb2",
+      "source": "disasm/modules/68k/game/sound/psg_channel_proc.asm",
+      "source_row": "DC.W    $6000,$00F2         ; BRA.W  $030FB2; $030EBE",
+      "instruction_sha256": "d6676fceefc069dcd3dfc31fdb57e711cd7c4125b71ccfd201c01e9ebdeeb740"
+    },
+    {
+      "file_pc": "030ec6",
+      "end": "030ec8",
+      "bytes": "6a0c",
+      "instruction": "bpls 0x30ed4",
+      "source": "disasm/modules/68k/game/sound/psg_channel_proc.asm",
+      "source_row": "DC.W    $6A0C               ; BPL.S  $030ED4; $030EC6",
+      "instruction_sha256": "ac7110edcd8aa5e33d8203ef02f5e65591a308f24050afc2cb9aab99b660c772"
+    },
+    {
+      "file_pc": "030f22",
+      "end": "030f26",
+      "bytes": "41fa1ad6",
+      "instruction": "lea %pc@(0x329fa),%a0",
+      "source": "disasm/modules/68k/game/sound/psg_volume_envelope_proc.asm",
+      "source_row": "DC.W    $41FA,$1AD6         ; LEA     $0329FA(PC),A0; $030F22",
+      "instruction_sha256": "0a6c629d5a2645619ec1e91936f01c81272fa44f7c9cce1c5a014a28c17de197"
+    },
+    {
+      "file_pc": "030f42",
+      "end": "030f44",
+      "bytes": "674c",
+      "instruction": "beqs 0x30f90",
+      "source": "disasm/modules/68k/game/sound/psg_volume_envelope_proc.asm",
+      "source_row": "DC.W    $674C               ; BEQ.S  $030F90; $030F42",
+      "instruction_sha256": "1f5b6ecd07b3622cec7d95a79b988c3dc8b0267997cbf23eed736d27803b6565"
+    },
+    {
+      "file_pc": "030f48",
+      "end": "030f4a",
+      "bytes": "6752",
+      "instruction": "beqs 0x30f9c",
+      "source": "disasm/modules/68k/game/sound/psg_volume_envelope_proc.asm",
+      "source_row": "DC.W    $6752               ; BEQ.S  $030F9C; $030F48",
+      "instruction_sha256": "4be3e167f75a33bf5f6f1b7faed456c33c9597de88d9ffa5b5565f1d260f9ab3"
+    },
+    {
+      "file_pc": "030f4e",
+      "end": "030f50",
+      "bytes": "6752",
+      "instruction": "beqs 0x30fa2",
+      "source": "disasm/modules/68k/game/sound/psg_volume_envelope_proc.asm",
+      "source_row": "DC.W    $6752               ; BEQ.S  $030FA2; $030F4E",
+      "instruction_sha256": "4be3e167f75a33bf5f6f1b7faed456c33c9597de88d9ffa5b5565f1d260f9ab3"
+    },
+    {
+      "file_pc": "030f54",
+      "end": "030f56",
+      "bytes": "6754",
+      "instruction": "beqs 0x30faa",
+      "source": "disasm/modules/68k/game/sound/psg_volume_envelope_proc.asm",
+      "source_row": "DC.W    $6754               ; BEQ.S  $030FAA; $030F54",
+      "instruction_sha256": "347d24dc737b782945c62ea1c9963638e742e403ce8b7e457569df25253aafda"
+    },
+    {
+      "file_pc": "030f70",
+      "end": "030f72",
+      "bytes": "6610",
+      "instruction": "bnes 0x30f82",
+      "source": "disasm/modules/68k/game/sound/psg_volume_envelope_proc.asm",
+      "source_row": "DC.W    $6610               ; BNE.S  $030F82; $030F70",
+      "instruction_sha256": "f0d5b4d85390981d713e2a89c5716f604631d9f24c25666866041dd80e048aca"
+    },
+    {
+      "file_pc": "030f98",
+      "end": "030f9c",
+      "bytes": "60000018",
+      "instruction": "braw 0x30fb2",
+      "source": "disasm/modules/68k/game/sound/psg_envelope_command_handler.asm",
+      "source_row": "DC.W    $6000,$0018         ; BRA.W  $030FB2; $030F98",
+      "instruction_sha256": "bbb0ad73d5e807b57e31b2a7ab5b85f948aa5a46efb7856fe595694e74c3cc78"
+    },
+    {
+      "file_pc": "03109e",
+      "end": "0310a2",
+      "bytes": "60000118",
+      "instruction": "braw 0x311b8",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$0118         ; BRA.W  $0311B8; $03109E",
+      "instruction_sha256": "c0e8b7d9f10a487b3deac176788c5798c62477b4893c059812318fefb2593772"
+    },
+    {
+      "file_pc": "0310a2",
+      "end": "0310a6",
+      "bytes": "60000134",
+      "instruction": "braw 0x311d8",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$0134         ; BRA.W  $0311D8; $0310A2",
+      "instruction_sha256": "a0a494771a8f00cd98d51cf816a41990c8545af169b624ce457c260f54b96866"
+    },
+    {
+      "file_pc": "0310a6",
+      "end": "0310aa",
+      "bytes": "6000013a",
+      "instruction": "braw 0x311e2",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$013A         ; BRA.W  $0311E2; $0310A6",
+      "instruction_sha256": "646c1d7c38facaa8a0e2090e79ca06bbcf8cbd35074888af66907070c7d66aec"
+    },
+    {
+      "file_pc": "0310aa",
+      "end": "0310ae",
+      "bytes": "6000013c",
+      "instruction": "braw 0x311e8",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$013C         ; BRA.W  $0311E8; $0310AA",
+      "instruction_sha256": "88392a6a3dee08f2ee05d3ec0a2e06a3f97c7d81e93101d9072ea72076fb6fc0"
+    },
+    {
+      "file_pc": "0310ae",
+      "end": "0310b2",
+      "bytes": "60000140",
+      "instruction": "braw 0x311f0",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$0140         ; BRA.W  $0311F0; $0310AE",
+      "instruction_sha256": "7a98ea529c9c5632d829ec2d3bb83b6b63645470e4032227b38a9bee79163825"
+    },
+    {
+      "file_pc": "0310b2",
+      "end": "0310b6",
+      "bytes": "60000164",
+      "instruction": "braw 0x31218",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$0164         ; BRA.W  $031218; $0310B2",
+      "instruction_sha256": "a2d0824395cb6e3a9c980610c4c1a1af52e2c814b7a935329724afa5044432c1"
+    },
+    {
+      "file_pc": "0310b6",
+      "end": "0310ba",
+      "bytes": "60000170",
+      "instruction": "braw 0x31228",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$0170         ; BRA.W  $031228; $0310B6",
+      "instruction_sha256": "4e8a50582bf184039c1e5e7829842e3c9c92eb06e434ea7e9e2520aa86c17213"
+    },
+    {
+      "file_pc": "0310ba",
+      "end": "0310be",
+      "bytes": "6000017e",
+      "instruction": "braw 0x3123a",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$017E         ; BRA.W  $03123A; $0310BA",
+      "instruction_sha256": "108c98900ddf27f96ed12d7f8f2ec5594cbe31569016893676aab0530619532d"
+    },
+    {
+      "file_pc": "0310be",
+      "end": "0310c2",
+      "bytes": "60000180",
+      "instruction": "braw 0x31240",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$0180         ; BRA.W  $031240; $0310BE",
+      "instruction_sha256": "ecdc1556bff2516eb6fe4cf61ca0dae80992c35b1fec6144c79704e4b63d1abc"
+    },
+    {
+      "file_pc": "0310c2",
+      "end": "0310c6",
+      "bytes": "60000186",
+      "instruction": "braw 0x3124a",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$0186         ; BRA.W  $03124A; $0310C2",
+      "instruction_sha256": "2148a17480283ac3e0bbc3f02f3684d1f116d9c1b76cb8dacd81996be705288d"
+    },
+    {
+      "file_pc": "0310c6",
+      "end": "0310ca",
+      "bytes": "600001d4",
+      "instruction": "braw 0x3129c",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$01D4         ; BRA.W  $03129C; $0310C6",
+      "instruction_sha256": "678a564c1e1959ed3daa9d67463605e93a08eb41009f5a81cd7928ea11ade945"
+    },
+    {
+      "file_pc": "0310ca",
+      "end": "0310ce",
+      "bytes": "600001da",
+      "instruction": "braw 0x312a6",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$01DA         ; BRA.W  $0312A6; $0310CA",
+      "instruction_sha256": "1c8c185a736d27f7b974f3871e065667f086bf3555b1eb2d851f41f1a7f07fe1"
+    },
+    {
+      "file_pc": "0310ce",
+      "end": "0310d2",
+      "bytes": "600001dc",
+      "instruction": "braw 0x312ac",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$01DC         ; BRA.W  $0312AC; $0310CE",
+      "instruction_sha256": "6356d08daa8461b7a762246948c1fb544de4dc6aa63e604519da1e47ca3a8be8"
+    },
+    {
+      "file_pc": "0310d2",
+      "end": "0310d6",
+      "bytes": "600001e0",
+      "instruction": "braw 0x312b4",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$01E0         ; BRA.W  $0312B4; $0310D2",
+      "instruction_sha256": "db44a581d70be39b190a9cd0c1cca653f6a07f74fa537a901c742f1c9432ca8d"
+    },
+    {
+      "file_pc": "0310d6",
+      "end": "0310da",
+      "bytes": "600001e4",
+      "instruction": "braw 0x312bc",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$01E4         ; BRA.W  $0312BC; $0310D6",
+      "instruction_sha256": "04bc1d20a62367c2711089e58d5829662836489a48e3ec1d603319a3b726e75e"
+    },
+    {
+      "file_pc": "0310da",
+      "end": "0310de",
+      "bytes": "600001e8",
+      "instruction": "braw 0x312c4",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$01E8         ; BRA.W  $0312C4; $0310DA",
+      "instruction_sha256": "4e0c3d0b3da01b3e57bf701a352228c256aa4182aa5267e31a0404a7bfce3271"
+    },
+    {
+      "file_pc": "0310de",
+      "end": "0310e2",
+      "bytes": "60000302",
+      "instruction": "braw 0x313e2",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$0302         ; BRA.W  $0313E2; $0310DE",
+      "instruction_sha256": "d4a93bc39ff85640ece6cfda6d038a73f481bc337a38acbfe9cbf5023fbf56fe"
+    },
+    {
+      "file_pc": "0310e2",
+      "end": "0310e6",
+      "bytes": "60000322",
+      "instruction": "braw 0x31406",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$0322         ; BRA.W  $031406; $0310E2",
+      "instruction_sha256": "93bc2168c6fbe2b3628d7b01125469a0dfdb95790e7d7a8128a249cd4f2f37d1"
+    },
+    {
+      "file_pc": "0310e6",
+      "end": "0310ea",
+      "bytes": "60000330",
+      "instruction": "braw 0x31418",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$0330         ; BRA.W  $031418; $0310E6",
+      "instruction_sha256": "55c6fd43cead99845f151142d6ad5e888c1ff3806b6aa9acdefb1f7e6814fa5d"
+    },
+    {
+      "file_pc": "0310ea",
+      "end": "0310ee",
+      "bytes": "600003f0",
+      "instruction": "braw 0x314dc",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$03F0         ; BRA.W  $0314DC; $0310EA",
+      "instruction_sha256": "a9eed8a02a7947bbc9057add4e5b15a294ed60cb23e68d977b1b1df810c8d201"
+    },
+    {
+      "file_pc": "0310ee",
+      "end": "0310f2",
+      "bytes": "60000406",
+      "instruction": "braw 0x314f6",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$0406         ; BRA.W  $0314F6; $0310EE",
+      "instruction_sha256": "f51017b5b6b1284cddbc255e05db1bbdf917f421a4e4adcff608953976a315b1"
+    },
+    {
+      "file_pc": "0310f2",
+      "end": "0310f6",
+      "bytes": "60000408",
+      "instruction": "braw 0x314fc",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$0408         ; BRA.W  $0314FC; $0310F2",
+      "instruction_sha256": "2c65c44a03425f27e2dade43d5a2b4295d614d99834bdcd20bee09a0bccd7517"
+    },
+    {
+      "file_pc": "0310f6",
+      "end": "0310fa",
+      "bytes": "6000040a",
+      "instruction": "braw 0x31502",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$040A         ; BRA.W  $031502; $0310F6",
+      "instruction_sha256": "427a79371c8b23c487c1b53b3173c31d9e12c9bedb0c9562ff49b1db71ebba6c"
+    },
+    {
+      "file_pc": "0310fa",
+      "end": "0310fe",
+      "bytes": "60000412",
+      "instruction": "braw 0x3150e",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$0412         ; BRA.W  $03150E; $0310FA",
+      "instruction_sha256": "73efe6904e27f2267fdca05bd25483ca6200d3c6f0a385109ff435737b820a15"
+    },
+    {
+      "file_pc": "0310fe",
+      "end": "031102",
+      "bytes": "60000428",
+      "instruction": "braw 0x31528",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$0428         ; BRA.W  $031528; $0310FE",
+      "instruction_sha256": "1f9f67b26b1c8ed8cbec67a38899bfac65891a3a2d48ea257832e77ca98fec00"
+    },
+    {
+      "file_pc": "031102",
+      "end": "031106",
+      "bytes": "60000436",
+      "instruction": "braw 0x3153a",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$0436         ; BRA.W  $03153A; $031102",
+      "instruction_sha256": "10097e7ce3be7ba0eb1999e38498bd264fbb800d6ecbdcc58589f4782181be63"
+    },
+    {
+      "file_pc": "031106",
+      "end": "03110a",
+      "bytes": "60000446",
+      "instruction": "braw 0x3154e",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$0446         ; BRA.W  $03154E; $031106",
+      "instruction_sha256": "6f6e3b1950252a93fdd61d4b7109fb1ace5079cb0e16921c5fdababd72a2bc25"
+    },
+    {
+      "file_pc": "03110a",
+      "end": "03110e",
+      "bytes": "60000448",
+      "instruction": "braw 0x31554",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$0448         ; BRA.W  $031554; $03110A",
+      "instruction_sha256": "31e0d6e65051811c3cb2c511bc8be95f35bc7b53f60f3c708863e6ddf52364ce"
+    },
+    {
+      "file_pc": "03110e",
+      "end": "031112",
+      "bytes": "6000044c",
+      "instruction": "braw 0x3155c",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$044C         ; BRA.W  $03155C; $03110E",
+      "instruction_sha256": "f30e3d8363259c603c9526b78437bf891acf0fc95cbe276b55e3256847d7ff97"
+    },
+    {
+      "file_pc": "031112",
+      "end": "031116",
+      "bytes": "60000450",
+      "instruction": "braw 0x31564",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$0450         ; BRA.W  $031564; $031112",
+      "instruction_sha256": "0b8559d5b578971a771ee66d697e973241a3c9bdf1d7f215ec7226f5418598ec"
+    },
+    {
+      "file_pc": "031116",
+      "end": "03111a",
+      "bytes": "60000454",
+      "instruction": "braw 0x3156c",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$0454         ; BRA.W  $03156C; $031116",
+      "instruction_sha256": "e57e409feb11116b2497c308425403f496f170fc8c3d0c22624234211575a278"
+    },
+    {
+      "file_pc": "031124",
+      "end": "031128",
+      "bytes": "6000044e",
+      "instruction": "braw 0x31574",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$044E         ; BRA.W  $031574; $031124",
+      "instruction_sha256": "0869efb9a8136c52af5edbadc2d848b9a3becb9b8076d2399f3131719d89e522"
+    },
+    {
+      "file_pc": "031128",
+      "end": "03112c",
+      "bytes": "6000046e",
+      "instruction": "braw 0x31598",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$046E         ; BRA.W  $031598; $031128",
+      "instruction_sha256": "cb1aece2f7e637f207a6e3a65ce284d71f9b1266b59d3cc0ad0ce1036037008e"
+    },
+    {
+      "file_pc": "03112c",
+      "end": "031130",
+      "bytes": "60000522",
+      "instruction": "braw 0x31650",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$0522         ; BRA.W  $031650; $03112C",
+      "instruction_sha256": "d5ac89f06a812f8614be73a4f1197fa3f3efc041aa34482cb1b90bea3ece06da"
+    },
+    {
+      "file_pc": "031130",
+      "end": "031134",
+      "bytes": "60000534",
+      "instruction": "braw 0x31666",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$0534         ; BRA.W  $031666; $031130",
+      "instruction_sha256": "5846ba561fd2cb29c858a61736aa08ccb365af3dede996bb5bb726885226cc01"
+    },
+    {
+      "file_pc": "031134",
+      "end": "031138",
+      "bytes": "6000054a",
+      "instruction": "braw 0x31680",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$054A         ; BRA.W  $031680; $031134",
+      "instruction_sha256": "0294bbc4adbfbea5da34151cfa8c0526895c34e00f20f8edc0a20f07673bf7af"
+    },
+    {
+      "file_pc": "031138",
+      "end": "03113c",
+      "bytes": "6000004e",
+      "instruction": "braw 0x31188",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$004E         ; BRA.W  $031188; $031138",
+      "instruction_sha256": "1bb6bb702cc9221576686c7384b550a1f0d9b387e3a003e67623c2add1d6b574"
+    },
+    {
+      "file_pc": "03113c",
+      "end": "031140",
+      "bytes": "6000003e",
+      "instruction": "braw 0x3117c",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$003E         ; BRA.W  $03117C; $03113C",
+      "instruction_sha256": "1c165c4abe8fcd638b6eb162667a211d9c677cc7dbb1088f1c3eb63df24b9a26"
+    },
+    {
+      "file_pc": "031140",
+      "end": "031144",
+      "bytes": "60000024",
+      "instruction": "braw 0x31166",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$0024         ; BRA.W  $031166; $031140",
+      "instruction_sha256": "6e7b90e970db9a0da97b83f9e6afee2d25bc51254b3c97e346ec43d12b930d0b"
+    },
+    {
+      "file_pc": "031160",
+      "end": "031164",
+      "bytes": "600001f8",
+      "instruction": "braw 0x3135a",
+      "source": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "source_row": "DC.W    $6000,$01F8         ; BRA.W  $03135A; $031160",
+      "instruction_sha256": "368c6dc7e57af43c3838485469d446ee4cf94221c555450309b1908f2e30c0c0"
+    },
+    {
+      "file_pc": "031194",
+      "end": "031196",
+      "bytes": "6720",
+      "instruction": "beqs 0x311b6",
+      "source": "disasm/modules/68k/game/sound/pitch_bend_apply.asm",
+      "source_row": "DC.W    $6720               ; BEQ.S  $0311B6; $031194",
+      "instruction_sha256": "ca999315d49fcf0cb276ee4229c4a44c93c0df52e0fbbabe307ef56a13d15f18"
+    },
+    {
+      "file_pc": "031196",
+      "end": "031198",
+      "bytes": "6b10",
+      "instruction": "bmis 0x311a8",
+      "source": "disasm/modules/68k/game/sound/pitch_bend_apply.asm",
+      "source_row": "DC.W    $6B10               ; BMI.S  $0311A8; $031196",
+      "instruction_sha256": "26374562f75ceaff7f07adea1722cab5f347956dc21cfd74619f055cc08c2e96"
+    },
+    {
+      "file_pc": "0311d2",
+      "end": "0311d6",
+      "bytes": "6000face",
+      "instruction": "braw 0x30ca2",
+      "source": "disasm/modules/68k/game/sound/fm_set_panning.asm",
+      "source_row": "DC.W    $6000,$FACE         ; BRA.W  $030CA2; $0311D2",
+      "instruction_sha256": "783fa2530f39c39f0dd0df9104b44bb567e5abbd3576bce98ca63a2d139bbc98"
+    },
+    {
+      "file_pc": "031232",
+      "end": "031236",
+      "bytes": "6b00fbc0",
+      "instruction": "bmiw 0x30df4",
+      "source": "disasm/modules/68k/game/sound/volume_adjust_write.asm",
+      "source_row": "DC.W    $6B00,$FBC0         ; BMI.W  $030DF4; $031232",
+      "instruction_sha256": "57a16dc53b8140623e1f2b366ac4c53fa1a01a941d255eb5508e2b26d62d8b36"
+    },
+    {
+      "file_pc": "031236",
+      "end": "03123a",
+      "bytes": "60000122",
+      "instruction": "braw 0x3135a",
+      "source": "disasm/modules/68k/game/sound/volume_adjust_write.asm",
+      "source_row": "DC.W    $6000,$0122         ; BRA.W  $03135A; $031236",
+      "instruction_sha256": "2b8878ca9ed0b1ed56e8b9e99c93c57e7dca82dcdb27ad0f9cc480972583aa23"
+    },
+    {
+      "file_pc": "031522",
+      "end": "031524",
+      "bytes": "66de",
+      "instruction": "bnes 0x31502",
+      "source": "disasm/modules/68k/game/sound/sequence_loop_counter.asm",
+      "source_row": "DC.W    $66DE               ; BNE.S  $031502; $031522",
+      "instruction_sha256": "b46778214673142f18a8de34b7ede6287e22bb8b65384048e930563ee9085e6c"
+    },
+    {
+      "file_pc": "031538",
+      "end": "03153a",
+      "bytes": "60c8",
+      "instruction": "bras 0x31502",
+      "source": "disasm/modules/68k/game/sound/sequence_call_return_stack.asm",
+      "source_row": "DC.W    $60C8               ; BRA.S  $031502; $031538",
+      "instruction_sha256": "01351cc1144941c07967ed7f74961a91dcbed5228e91c483b7c662b935611f32"
+    }
+  ],
+  "data_exclusions": [
+    [
+      "009eca",
+      "009f16"
+    ],
+    [
+      "00c7c2",
+      "00c7e8"
+    ],
+    [
+      "00bc30",
+      "00bc40"
+    ],
+    [
+      "030fe0",
+      "031094"
+    ]
+  ],
+  "extension_exclusions": [
+    [
+      "008200",
+      "008202"
+    ]
+  ],
+  "sources": [
+    {
+      "path": "disasm/modules/68k/game/camera/camera_param_calc.asm",
+      "sha256": "8e8535eb951d2b3f24b25ff5881f312b706a2a960b16ffd2b8d8bfa38e752f21"
+    },
+    {
+      "path": "disasm/modules/68k/game/camera/camera_selection_main_loop.asm",
+      "sha256": "3ce2c013b15efaa0ef62b92f140017a4b5affd6b25c20e7950731d6d00093476"
+    },
+    {
+      "path": "disasm/modules/68k/game/camera/camera_state_selector.asm",
+      "sha256": "98545e36852590a21ad820bb837e220924f7b2f4f045cd6a31125035821fd248"
+    },
+    {
+      "path": "disasm/modules/68k/game/collision/directional_collision_probe.asm",
+      "sha256": "6680cd72b152d7e0009c4e73a94ce806168f4370e3c2c9232b766d6d31b3f946"
+    },
+    {
+      "path": "disasm/modules/68k/game/data/tile_bit_stream_refill_with_mask_table.asm",
+      "sha256": "3fdad4396112355f26c2f8251e66d9a36ccba6128d6950626a145d46c952b26a"
+    },
+    {
+      "path": "disasm/modules/68k/game/data/tile_bit_stream_unpacker.asm",
+      "sha256": "6c784c53da743710ebcd561be58eb6bc01473f9418c59c23b3325e9c312f6f3a"
+    },
+    {
+      "path": "disasm/modules/68k/game/data/tile_data_stream_byte_read.asm",
+      "sha256": "ed68907d466698cde662cfefe126ced6588cacff602a53a6a91f2bd1c24bd1b0"
+    },
+    {
+      "path": "disasm/modules/68k/game/data/tile_decompressor_engine.asm",
+      "sha256": "d1fb2807decfddc5817a47894c4bd9cd0caa98ce3794a8ae694676d3769d42e6"
+    },
+    {
+      "path": "disasm/modules/68k/game/data/tile_decompressor_inner_loop_a.asm",
+      "sha256": "300bbc8797368912ce0d4e803b87d824956fd9876227afde7c4ba48f5855b31e"
+    },
+    {
+      "path": "disasm/modules/68k/game/data/tile_decompressor_setup.asm",
+      "sha256": "22480e87e2f25d8cdee60b9ac1658a419ff5594ec70345fafcb7b6fdf125ee43"
+    },
+    {
+      "path": "disasm/modules/68k/game/entity/object_table_lookup_loop.asm",
+      "sha256": "f43e378851491311f0b8442b4a5f10cded2a1f3e01f74a47caaa5ba57f999418"
+    },
+    {
+      "path": "disasm/modules/68k/game/entity/player_entity_frame_update.asm",
+      "sha256": "3897db325a9717cd895cf6b631fa0c7232de090edc083beb3ace25fe6b0ee35a"
+    },
+    {
+      "path": "disasm/modules/68k/game/menu/camera_replay_screen_init.asm",
+      "sha256": "b7bc3bd1a9f5f74bd1630f6436cb0ebadcee35f5e324ac0a6537376a82a3f10c"
+    },
+    {
+      "path": "disasm/modules/68k/game/physics/entity_heading_init.asm",
+      "sha256": "5e87b58e13d939d67170006ba987f3c46f1a052ac0067c1f86158883627dc8f3"
+    },
+    {
+      "path": "disasm/modules/68k/game/physics/entity_speed_acceleration_and_braking.asm",
+      "sha256": "2c51f63c389a21e0e96ac16bb32e7c60c4882c762841aa9d9be65d8294785e18"
+    },
+    {
+      "path": "disasm/modules/68k/game/physics/entity_speed_guard.asm",
+      "sha256": "90b085dc4a3bdaa6f9b56ad522b7267f0f837110d8c93431c28a29ba0d5c4d27"
+    },
+    {
+      "path": "disasm/modules/68k/game/physics/track_physics_param_table_loader.asm",
+      "sha256": "c4fd77f237e46735922d00d54d4d99f5ea51656c36c6685e1703bb07b00fbd0a"
+    },
+    {
+      "path": "disasm/modules/68k/game/race/race_scene_init_004a32.asm",
+      "sha256": "1a900b29ac3d789ae5d22cecb25c8251db9d10059df19bdfd1d63e3a5a6da1ca"
+    },
+    {
+      "path": "disasm/modules/68k/game/race/race_scene_init_0053b0.asm",
+      "sha256": "f47e24776821094838574fcd6d2250dc5900482b07e80b5e5557042fc6ac8f37"
+    },
+    {
+      "path": "disasm/modules/68k/game/race/race_start_countdown_sequence.asm",
+      "sha256": "f84cff68b7ba073a0acb76f07862fc2a6e2303e3942b84aa13ff2da5f4ce8535"
+    },
+    {
+      "path": "disasm/modules/68k/game/render/display_state_bit_10_guard.asm",
+      "sha256": "fb7b54599dd4c08a50408d198a2846f99359024371ff7762f3d1bbb0299b66e5"
+    },
+    {
+      "path": "disasm/modules/68k/game/render/entity_render_pipeline.asm",
+      "sha256": "e591b2bf5420ef4b34609ab8c501979bbe3cf6b276050fe1c3ebc50865ec4f3d"
+    },
+    {
+      "path": "disasm/modules/68k/game/render/gfx_32x_framebuffer_palette_fill.asm",
+      "sha256": "6aec403a2007d0466c2d613fd9052982dbe8a43a0c38b1953bd34f8a3cfd2ce4"
+    },
+    {
+      "path": "disasm/modules/68k/game/render/object_visibility_collector.asm",
+      "sha256": "0e397848deb3b56fb17c2c192cd6447f200037efe73e832407aa4df647aabf04"
+    },
+    {
+      "path": "disasm/modules/68k/game/render/scene_param_adjustment_and_dma_upload.asm",
+      "sha256": "2cd706c081ab9a8ff3d6608be50fa333659e6d25a0dd9badbaaaadcf0ae1a7ee"
+    },
+    {
+      "path": "disasm/modules/68k/game/render/sh2_display_and_palette_init.asm",
+      "sha256": "9c5f7cc2a030943807d6c69e441c4a043650253bfa824bc711801bbdf5d6fe86"
+    },
+    {
+      "path": "disasm/modules/68k/game/render/sh2_geometry_transfer_and_palette_cycle_handler.asm",
+      "sha256": "530d33722b0cd8893848358c4756ede116a10c7c48976b123c5915d08fdf63d1"
+    },
+    {
+      "path": "disasm/modules/68k/game/render/sh2_split_screen_display_init.asm",
+      "sha256": "d0bb83b358d54267f722f2f991a6efda4f4e95f3b4f276f91897ec607efd89e2"
+    },
+    {
+      "path": "disasm/modules/68k/game/scene/scene_command_disp.asm",
+      "sha256": "fad0481f116b945a3b89d9a520fd42a2c3215ccc244d1fa073eb5d8820cd3c38"
+    },
+    {
+      "path": "disasm/modules/68k/game/scene/scene_state_disp_track_data_tables.asm",
+      "sha256": "acf0751be2ee34647062dbc0913df38c9a779f894962bf91ec8b85ce18e2a2dd"
+    },
+    {
+      "path": "disasm/modules/68k/game/scene/sh2_handler_dispatch_scene_init.asm",
+      "sha256": "588c69d690f1f69fd349f4742942811c02f73ca105a513a5df05035e12207c6b"
+    },
+    {
+      "path": "disasm/modules/68k/game/scene/sh2_object_and_sprite_update_orch.asm",
+      "sha256": "3dab79b50ed530707594f1a8f706654359866043253389d87f2e63dbca53c338"
+    },
+    {
+      "path": "disasm/modules/68k/game/scene/sh2_scene_object_update_with_lookup_tables.asm",
+      "sha256": "7c4758bd3c86b286747d19036566b4673e8796902e78be4dde6eaa80260bbd40"
+    },
+    {
+      "path": "disasm/modules/68k/game/sound/fm_channel_timer_check.asm",
+      "sha256": "5b06fc5d78ca736663ab09b61e2d10881bb4625a708d15eefc7f21ae96ff84ac"
+    },
+    {
+      "path": "disasm/modules/68k/game/sound/fm_envelope_tick_update.asm",
+      "sha256": "3fbd62400d43c9860f79eaffa9ecba5841d0baa4edabbae73d3ff543de65f392"
+    },
+    {
+      "path": "disasm/modules/68k/game/sound/fm_fade_in_out_proc.asm",
+      "sha256": "05ed23bb8a3b8caa2ace4354c338a6421d0276f0b64c4ed5e89e5ddc6ee979e2"
+    },
+    {
+      "path": "disasm/modules/68k/game/sound/fm_init_channel.asm",
+      "sha256": "68e6c27c50f049e3c224d18935764dfbc822b1d93bbf3fa09b2d298af2972286"
+    },
+    {
+      "path": "disasm/modules/68k/game/sound/fm_instrument_setup.asm",
+      "sha256": "fc816ca4222ba52e1599611601c2896f4c380205fde97343f6e3c9f3c37e08ef"
+    },
+    {
+      "path": "disasm/modules/68k/game/sound/fm_set_panning.asm",
+      "sha256": "de3fad89d1aad92e8b64400f5540bb6ef82fc5237fcb834a4b29dcd67a85f82b"
+    },
+    {
+      "path": "disasm/modules/68k/game/sound/fm_sound_command_disp.asm",
+      "sha256": "8f44ae15242400105d7f8ab82c9854d967006781c5a1c3d159be899c42e4cb5c"
+    },
+    {
+      "path": "disasm/modules/68k/game/sound/fm_sound_driver_reset.asm",
+      "sha256": "456043c274bfd37cb55caad9472786162d77c41bd2b50306082840effccff606"
+    },
+    {
+      "path": "disasm/modules/68k/game/sound/fm_sound_priority_check.asm",
+      "sha256": "decbd87d4162f5386f9a0457f6a72cd28b73ca68d9be944693aa1c91aef463cb"
+    },
+    {
+      "path": "disasm/modules/68k/game/sound/fm_system_command_disp.asm",
+      "sha256": "370c32b170e5437bb1c826b02f25fdc06dbe8278400ac620195f77c0cefde237"
+    },
+    {
+      "path": "disasm/modules/68k/game/sound/fm_write_cond.asm",
+      "sha256": "1cf65bfaa1b5cf956c426dceadb4da22459abd56f5f837ee6337b0caf0592ad8"
+    },
+    {
+      "path": "disasm/modules/68k/game/sound/pitch_bend_apply.asm",
+      "sha256": "43cb1ce5e7bb492fadc4cafce96b376e5aa1183d520045d7f1ee68ab658c7566"
+    },
+    {
+      "path": "disasm/modules/68k/game/sound/psg_channel_proc.asm",
+      "sha256": "19c73a64afb4dca6955d7a343b2c63c6df68aac25dca7ef5c81cfba56ccdcc3f"
+    },
+    {
+      "path": "disasm/modules/68k/game/sound/psg_envelope_command_handler.asm",
+      "sha256": "3ba525e07e43b03bad0f598f2334878cf0050a236823ad1b6f5fe927aa780ed3"
+    },
+    {
+      "path": "disasm/modules/68k/game/sound/psg_freq_table_special_command_disp.asm",
+      "sha256": "511d6193268e94b577d1f0f6fa692611fb861c6b71ae51b8415672efe2647400"
+    },
+    {
+      "path": "disasm/modules/68k/game/sound/psg_volume_envelope_proc.asm",
+      "sha256": "64c90a26b6298417a30ea2f27f84d440270377948b6c7a54b7f5a3138aef352a"
+    },
+    {
+      "path": "disasm/modules/68k/game/sound/sequence_call_return_stack.asm",
+      "sha256": "26ce9dfb7555cf3bde7d4ad8ccec5e3b1ad57b2cd18b6172987fe4f852533c69"
+    },
+    {
+      "path": "disasm/modules/68k/game/sound/sequence_loop_counter.asm",
+      "sha256": "726f3e4377f47148363b22fa6b4067a920a0532cb26303481b6d9b74c17e68fb"
+    },
+    {
+      "path": "disasm/modules/68k/game/sound/volume_adjust_write.asm",
+      "sha256": "396245cac08734f2a6f731d322a633ac656a97f69c61159148f04c872b990706"
+    },
+    {
+      "path": "disasm/modules/68k/game/sound/z80_sound_program_upload_fm_key_on.asm",
+      "sha256": "8be3dacd28684f4a91137cf271fe0ce807814eda802149622f83b432b41bb27c"
+    },
+    {
+      "path": "disasm/modules/68k/game/state/controller_input_init.asm",
+      "sha256": "9bd45e9512f39968316803b6d762e3fd866c27b72e4d387dc68be604237fc491"
+    },
+    {
+      "path": "disasm/modules/68k/game/track/track_data_index_calc_table_lookup.asm",
+      "sha256": "e53471c978d44011bd2838182e1beca5c2178a97a403f1b137acafa7a4b24f55"
+    },
+    {
+      "path": "disasm/modules/68k/game/track/track_graphics_and_sound_loader.asm",
+      "sha256": "bd4e67373c0b028b885bd828524b80345bf321b60571827546407d6d4198d5e0"
+    },
+    {
+      "path": "disasm/modules/68k/object/counter_guard.asm",
+      "sha256": "4b049c850b581288828a503a6de0bbc38447418d914443bc5c8098b04351d91a"
+    },
+    {
+      "path": "disasm/sections/code_18200.asm",
+      "sha256": "5b268a80af9bad6d85dff6301e838c371f0724b1a290a57df2974aa64cdab245"
+    },
+    {
+      "path": "disasm/sections/code_200.asm",
+      "sha256": "ba50920f190750cccc54729a671beac95bcd387f12da1707a60274b37111c950"
+    },
+    {
+      "path": "disasm/sections/code_6200.asm",
+      "sha256": "8312e521d4f198bf7bd6949022e0dc158672557ee9d752a2cff8aba744060314"
+    },
+    {
+      "path": "disasm/sections/code_8200.asm",
+      "sha256": "1ef1ee1a8f86bc6cc91cba9b1db668398bdc52271076ce44a084bc6d3d5543b6"
+    },
+    {
+      "path": "disasm/sections/code_c200.asm",
+      "sha256": "e206d549462b323b079a3cd166357ed8d8052e3eab8032d0168c5b99b463f147"
+    },
+    {
+      "path": "disasm/sections/code_e200.asm",
+      "sha256": "f9852d6348445af33270dcf699764e109b899d06d8ee550b68a208843c0b660f"
+    }
+  ],
+  "exclusion_bytes": [
+    {
+      "start": "009eca",
+      "end": "009f16",
+      "bytes": "0088a04e00889f1600889f2a00889f4a00889f6c00889f8e00889fbc0088a04e00883d9a00883da600883dd400883e0800883e5800883e6400883e7e00883ea200883ec600883ef600883f2c",
+      "sha256": "752748afc078441ef4f314c9df06606ce4708471ab412e0d4db685b28ca6f5f5"
+    },
+    {
+      "start": "00c7c2",
+      "end": "00c7e8",
+      "bytes": "04a904830471046e04620456044404330429040e03f303e203d703c103c0003a005000640083",
+      "sha256": "3b9278aba70b313dfde3aa2dc0f7d605131e329a76980aaaf5b000a543752dba"
+    },
+    {
+      "start": "00bc30",
+      "end": "00bc40",
+      "bytes": "0088bda60088bda80088bdc80088bda6",
+      "sha256": "7f40089df84f84c521cf7e57969213f8b1db68b28c2d79fe6eafc15a7b7a56ac"
+    },
+    {
+      "start": "030fe0",
+      "end": "031094",
+      "bytes": "0356032602f902ce02a50280025c023a021a01fb01df01c401ab0193017d016701530140012e011d010d00fe00ef00e200d600c900be00b400a900a00097008f0087007f00780071006b0065005f005a00550050004b004700430040003c0039003600330030002d002b00280026002400220020001f001d001b001a00180017001600150013001200110010000f000e000d000c000b000a00090008000700060005000400030002000100000000000000000000",
+      "sha256": "c59db43677448f91b098e4a6ff627a8a0c83464493c450eadc2d46416357e893"
+    },
+    {
+      "start": "008200",
+      "end": "008202",
+      "bytes": "c8a4",
+      "sha256": "4421f49c8ea9c4edb93a3eecfe38ffa4293ba24110f55444ef980df48578a973"
+    }
+  ]
+}

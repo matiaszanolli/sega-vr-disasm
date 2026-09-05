@@ -145,7 +145,6 @@
   "ordinary_identity": "6f2768f2cffc85cdc815a67c9f13837112829edac3f0921a57454e79e2523900",
   "ownership": {
     "classified_unaligned_pattern": "file 0x2018A5 = 0x0202BC35",
-    "constructed_owners": 0,
     "direct_aligned_owners": 0,
     "runtime_all_access_proof_required": true
   },

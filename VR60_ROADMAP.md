@@ -64,6 +64,189 @@ CPU-budget, FPS, host-presentation, or real-hardware claim is accepted. Q-028 re
 a separately audited immutable DRC schedule, fresh two-engine recapture, complete retained raw evidence,
 and the repaired fail-closed mutation matrix pass a fresh completed-diff audit.
 
+**2026-08-20 pre-capture repair progress:** the v8 observer's opcode-aware site
+key had drifted from the retained generated C map and its fail-closed identity
+pin.  Regenerating from the exact approved listing (`9e32636c…b91c`) and
+ordinary ROM (`6f2768f2…23900`) produced the matching opcode-aware JSON/C site
+map (`f4e9876c…774b`); the observer is pinned at `3ba9531b…c021`.  The offline
+recursive source pack then completed two clean builds with byte-identical cores
+(`f9e01a81…5557`, 5,642,416 bytes) and frontends (`7883729f…79ab`, 36,768
+bytes).  Owner regeneration/validation, the static A/B/C triplet rebuild, and
+14 existing focused Q-028 tests pass.  The quarantined 1,340-frame resource
+pilot has not run: `/mnt/data` has 199,020,318,720 available bytes, below the
+immutable 240,518,168,576-byte launch floor.  An authorized `/mnt/audio`
+attempt passed capacity but its NTFS/FUSE mount could not preserve the pinned
+Git mode for `.gitignore`, so materialization failed before emulation and left
+only a 30 MiB quarantined partial tree.  The only observed qualifying ext4
+mount, `/var/lib/docker`, had 263 GB free but is not writable by this user.
+Do not lower the floor, weaken mode identity, or infer a schedule from this
+tooling result; a writable Unix-semantics staging filesystem, the pilot,
+prospective schedule freeze, fresh 40-package campaign, mutation pass, and
+completed-diff audit remain required.
+
+**2026-09-04 staging prerequisite resolved:** a full mount inventory found
+owner-writable ext4 at `/run/media/matias/Downloads`, with
+1,545,815,298,048 available bytes at inspection. The unchanged v9
+`producer-pilot` ran in the new, quarantined directory
+`/run/media/matias/Downloads/vr60-q028-resource-pilot-20260904`.
+The ordinary ROM and recursive source pack retain their pinned hashes
+(`6f2768f2…23900` and `745cfa19…b85c18`). No floor, source-mode check,
+or capture policy was changed. Both clean builds matched the prior core and
+frontend hashes. A fresh audit then found two host-tooling defects: the footer
+emits agent keys in enum order although its reader requires canonical sorted
+JSON, and peak-RSS reporting subtracts cumulative child maxima. The exact
+producer was deliberately terminated with SIGTERM (gate exit 1, child exit
+-15); its raw prefix and clean builds are retained unchanged. This is not a
+timeout or resource failure. Correct the producer ordering and per-child
+measurement, verify the real footer/reader boundary, and use a fresh pilot
+directory. No schedule, family, bridge, or FPS result was established.
+
+The two corrections now pass a fresh completed-diff audit: footer agent keys
+are lexically ordered with unchanged event IDs, and the launcher records
+per-child `wait4` RSS. Observer `967e0c81…52df3a` produces identical clean
+cores `67c93765…84c7d9` (5,642,456 bytes); frontend and ordinary ROM remain
+unchanged. All 14 focused tests pass, including a real-core six-frame footer
+and rejection of reordered keys. The corrected pilot is approved for the new
+directory `/run/media/matias/Downloads/vr60-q028-resource-pilot-20260904-r2`;
+its actual completion and resource measurements remain required.
+
+**2026-09-04 corrected-pilot diagnosis:** r2 completed all 1,340 producer
+frames and retained 496,577,712 events in 1,987 chunks (about 23 GiB on disk),
+then the production reader rejected record 0 with `fetch slot`. The attempted
+early stop was not delivered; session 61766 ended naturally with gate exit 1.
+No resource limit was hit, but this is not a resource-pilot PASS: the footer
+also reports 1,212 errors and 63,806,555 unattributed events. The complete raw
+capture remains quarantined at the r2 path above.
+
+The source/record comparison proves a missing fetch-slot sentinel assignment,
+unmodelled pre-instruction reset reads, and missing built-in PicoDrive BIOS
+sites. Command-observer errors exactly match 1,239 byte submits minus 28
+tracked cmd-02 low-byte writes plus one hardcoded terminal-count failure;
+this observer incorrectly treats other command submissions as errors.
+The footer also records 47,038 Master DREQ0 hook entries / 188,152 records,
+contradicting the pilot's hardcoded N/A inventory. Complete the bounded
+producer/reader/domain diagnosis before another patch or full run; do not
+relax validation, normalize captured bytes, or accept the resource figures as
+a passing gate. A real-core short regression must parse every access chunk,
+reset/IDL chronology, and footer counts, not just the JSON footer.
+
+Further linked-source diagnosis identifies two additional instruction domains:
+the bounded 437-longword copy from `$0600254C` to `$C0000000` (copy loop at
+file `$02252C`), and 68000 sound code reached at `$008B0000`, excluded by the
+analyzer's file-address cutoff `$020200`. The linked listing also represents
+executed instructions at file `$00169C`, `$0019AC`, and `$0019B4` as `dc.w`,
+which the analyzer discards; the standalone mnemonic `vint_handler.asm` is
+not the linked source for `$00169C`. A fresh listing build reproduces the
+unchanged ordinary ROM hash. Repair instruction spans from linked sources,
+not from the observer's fallback two-byte fetch width. The Master COMM0
+command log and Slave COMM2 cmd-2 renderer counter are distinct routes;
+their observed counts (28 and 67) must not be forced equal.
+
+The initial [v10 repair proposal](analysis/agent-scratch/worker/q028-v10-repair-proposal.md)
+received a fresh **BLOCKED** design review: finite executable-domain boundaries,
+runtime BIOS-byte binding, COMM observation semantics, and SRAM code/data policy
+must be concrete before implementation. Revised reset and SRAM view-identity
+mechanisms were accepted in principle, not as a completed-diff approval.
+Additional source checks show the old `ack` logger actually watches COMM1_LO:
+`$06004464` sets DMA bit 1, whereas `$06004400` clears COMM0_HI and
+`$0600440A` sets done bit 0. Cmd-22 also has parameter-consumption and
+self-redispatch paths. Preserve these distinct events; do not infer one generic
+submit/ack lifecycle or require global Master idleness at the fixed terminal
+without an independently justified contract.
+
+The amended design (`1dd62401…69ce9fa`) subsequently received **APPROVED FOR
+IMPLEMENTATION**, limited to passive host instrumentation. It fixes finite
+decoder domains, byte-compared generated BIOS images, boot-only reset phases,
+conservative per-CPU SRAM copy provenance, and raw-sequence-derived COMM facts.
+Full raw-group closure, actual-artifact binary tests, reproducible builds, and
+a fresh completed-diff audit remain prerequisites to another full pilot.
+Implementation has begun; no acceptance or FPS result follows from design approval.
+Further source review identified an additional M68K identity issue to resolve
+separately: the `$FF0000` JSR trampoline is mutable at `$FF0002`, and two
+linked source variants share opcode `$4EB9` but have different extension words.
+A first-word lookup cannot establish its full live instruction-byte identity.
+Do not apply immutable SRAM rules to this deliberate scene-dispatch mechanism.
+
+**2026-09-04 full diagnostic scan closed:** the independent packed-record
+classifier consumed all 496,577,712 r2 events, including 340,285,941 fetches.
+All fetch slots are the observed erroneous zero; exactly four pre-instruction
+SH2 reset reads have context mismatches, with no later context mismatch.
+The 63,806,555 unattributed records reconcile exactly with the footer.
+The 4,054-group CSV and classifier are retained under
+`analysis/evidence/vr60-q028-renderer-descriptor-probe/diagnostics/r2-full-raw-scan/`.
+This is diagnostic classification, not a production-reader PASS.
+
+Source review explains later M68K word changes: pinned FAME idle detection
+rewrites selected backward branches directly in host memory starting at frame
+360, including the WRAM branch at FF0014. Preserve those actual fetched words;
+do not disable idle detection or normalize the evidence. An ordered host-write
+ledger and explicit mutable-template identities are proposed separately.
+The finite source inventory now contains 321 instructions / 120 spans,
+including all 256 additional diagnostic starts plus 65 source-only siblings.
+It identifies three false historical instruction boundaries (C7E6,9F14,8200)
+and requires exact table/extension exclusions and byte-identical source
+presentation corrections. The combined amendment `d230ca49…924f772` and
+finite inventory `a0995579…70edee8` received fresh **APPROVED FOR
+IMPLEMENTATION ONLY**. The Auditor independently verified all spans and
+source identities. The design distinguishes the boot copy's 20 code bytes
+from its 12 data bytes, binds host installs to the immediately preceding real
+branch fetch, and applies legitimate terminal ledger rows without fabricating
+events. Implementation of this additional scope is authorized and underway;
+no completed-diff or full-pilot approval is implied.
+An independent word-pair comparison also accounts for all 32,785 changed
+M68K fetches at 41 sites using registered FAME aliases, with no unexplained
+pair. This corroborates the source model, not a runtime acceptance result.
+Seven source-state tests and two resource tests pass; clean ordinary builds
+remain `6f2768f2…23900`. New-core binary tests have **not** run. Require a
+bounded real-core run beyond both idle onset (360) and SRAM use (398), plus
+actual-artifact mutations, two clean core builds and completed-diff approval
+before another full pilot. Q-028, the render bridge, authority transfer and
+actual 60 Hz remain unvalidated.
+
+The first approved implementation stage now corrects the three assembly
+presentations without changing the ordinary ROM hash, admits only the finite
+reviewed spans, and excludes the identified data/extension starts. A fresh
+listing validates 22,464 M68K rows / 1,296 source entries. Ten image/domain
+tests pass without skips, including mutable-WRAM and boot-data cases.
+WRAM metadata and producer/reader state tracking are implemented but have
+not been core-compiled; host-rewrite ledger integration is underway. These
+source-stage results are not a repaired-core or runtime acceptance result.
+
+Further source-stage checks pass: twelve image/domain tests now include all
+ten registered FAME branch opcodes with both handler aliases, restoration,
+fetch-bound chronology and stale WRAM reinstall rejection. An independent
+standalone harness compiles the exact C WRAM tracker and compares it with
+the Python model: 223 valid transitions agree and five malformed copy
+transactions fail closed. Harness and identity are retained in the diagnostic
+evidence directory. The ledger producer/reader and source callback transforms
+are implemented; generated-map refresh and actual core compilation are next.
+No standalone test substitutes for the required full binary runtime tests.
+
+**2026-09-04 user-requested implementation checkpoint:** two repaired cores
+now reproduce SHA-256 `b3bd2d55…ceb69b7`. A real six-frame regression reads
+517,467 binary events and passes IDL/COMM/empty-ledger checks plus six
+actual-artifact mutations. This does not reach the host-rewrite or SRAM
+execution domains. The initial IDL failure exposed incorrect validator bases:
+the accepted ROM header and pinned reset source derive `02020000 -> 06000000`,
+length `C000`. Fresh review approved that source-bound correction, including
+comparison of each source value with ROM bytes. Sixteen focused tests and
+checks of unchanged raw data pass after the final IDL-value and terminal-frame
+assertions; the full actual-core harness has not rerun after those assertions.
+The ordinary ROM remains byte-identical. Compressed map, six-frame artifacts,
+review inputs and historical build snapshots are retained under
+`analysis/evidence/vr60-q028-renderer-descriptor-probe/diagnostics/checkpoint-20260904/`.
+This is a **non-promotable WIP checkpoint**: canonical JSON promotion, the
+400-frame regression, expanded actual-artifact mutations, refreshed final
+two-build closure and fresh completed-diff approval remain required before
+another resource pilot. No renderer, authority or 60 FPS claim changes.
+
+Read-only downstream inspection also found that the campaign launcher still
+uses the old `access.csv` path, the campaign validator does not consume v8
+chunks, and its command/FS predicates are not driven by the prospective
+engine-specific schedule. Existing v7 archive budgets need a separate,
+resource-backed proposal while preserving all 40 complete raw packages.
+These are Q-028 repair prerequisites, not authority or cadence work.
+
 This repair precedes later renderer discovery. An engine-specific schedule cannot be inferred
 from another engine; required raw evidence must be tracked rather than merely reproducible; a
 boolean equivalence assertion is not a comparison; and mutation coverage means changing real

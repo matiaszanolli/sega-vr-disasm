@@ -84,6 +84,117 @@
 | analysis/evidence/vr60-q027-cmd3f-transport-gate/README.md | Q-027 bounded COMM0/stock-table `$3F` player-shadow gate | Exact two-edge park/normalize/publish protocol, fixed mailbox, Q-026-identical player result, interpreter transient/convergence table, uninterrupted DRC corroboration, ineligible diagnostic archive | Isolated validation-stage PASS after fresh completed-diff audit; non-promotable and not render/shared-lane/authority/cadence/FPS validation |
 | analysis/evidence/vr60-q028-renderer-descriptor-probe/README.md | Q-028 cmd `$02` renderer descriptor-family probe | v3-v7 repair contract, direct render selector/callback bijection, applied-input/raw archive/static-owner/mutation/index requirements; old archive inventory | `BLOCKED / INCONCLUSIVE_ENGINE_SCHEDULE`; every prior interpreter/DRC-A output is `INELIGIBLE` diagnostic evidence and establishes no family result |
 
+Q-028 pre-capture tooling (2026-08-20): exact listing `9e32636c…b91c` plus
+ordinary ROM `6f2768f2…23900` regenerate the opcode-aware site map/include at
+`f4e9876c…774b`; observer `3ba9531b…c021`.  The offline recursive source pack
+produces identical A/B clean cores `f9e01a81…5557` and frontends
+`7883729f…79ab`.  The resource pilot remains unrun because `/mnt/data`
+available bytes (199,020,318,720) are below its immutable launch floor
+(240,518,168,576).  `/mnt/audio` passes capacity but its NTFS/FUSE mode
+semantics fail the pinned `.gitignore` materialization identity; the observed
+ext4 `/var/lib/docker` mount has enough space but is not user-writable.  Use a
+writable Unix-semantics staging filesystem, never a lower floor, weakened mode
+check, or `/tmp` workaround.
+
+Q-028 staging update (2026-09-04): the full mount inventory also exposes
+owner-writable ext4 `/run/media/matias/Downloads` (1,545,815,298,048 available
+bytes at inspection). The unchanged v9 resource pilot was launched at
+`/run/media/matias/Downloads/vr60-q028-resource-pilot-20260904`. This supersedes
+the earlier staging impasse. The first pilot was deliberately stopped after
+audit found enum-ordered footer keys incompatible with the canonical reader
+and incorrect subtraction of cumulative child RSS maxima. Its clean builds
+matched the prior pinned binaries; raw prefix/builds remain retained. Fix the
+producer/measurement before a fresh pilot, without relaxing the parser.
+The footer-order/per-child-RSS fixes passed a fresh completed-diff audit and
+14 focused tests. Corrected observer `967e0c81…52df3a`, core
+`67c93765…84c7d9`; frontend, ordinary ROM, and resource policy are unchanged.
+Fresh pilot target: `/run/media/matias/Downloads/vr60-q028-resource-pilot-20260904-r2`.
+Check its live handle or terminal artifacts; the earlier session 2711 is
+terminal. All pilot outputs remain quarantined and ineligible for schedule,
+family, bridge, or FPS claims.
+
+Q-028 r2 terminal diagnosis (2026-09-04): session 61766 ended with gate exit 1
+after a complete 1,340-frame producer run; no SIGTERM was delivered. Raw data:
+496,577,712 events / 1,987 chunks; reader rejects the first fetch slot (0
+instead of 0xFFFF). Footer reports 1,212 errors, 63,806,555 unattributed
+events, and active Master DREQ0 despite N/A inventory. Investigate the full
+producer/reader contract: reset-vector reads precede instructions (SH7604
+manual §§4.1.2/4.2.2); PicoDrive generates built-in BIOS code at startup
+(`pico/32x/memory.c`, `get_bios`), absent from the ordinary ROM site map;
+byte-only cmd-02 tracking misclassifies other command submissions. The
+captured prefix/full run must stay unchanged and diagnostic. Require complete
+short real-core binary-stream validation before the next full pilot.
+
+Additional Q-028 domain omissions: linked `sections/code_200.asm` encodes
+file `$00169C` as `dc.w $227B,$0014`; `joypad_read_port.asm` similarly encodes
+`$0019AC/$0019B4`. The standalone mnemonic V-INT file is not linked there.
+`parse_listing` discards these and all addresses >= `$020200`, including
+executed sound code at file `$030000`. SRAM code has a source-proven bounded
+437-longword copy `$0600254C -> $C0000000` at file `$02252C`. Track Master
+COMM0 commands separately from the Slave COMM2 renderer counter; their 28
+versus 67 cmd-2 counts are not an equivalence requirement.
+
+COMM logger correction: its `ack` rows target COMM1_LO `$20004023`, not
+COMM0_HI. Linked `$06004464` sets DMA bit 1; func_084 clears COMM0_HI at
+`$06004400` and sets done bit 0 at `$0600440A`. See
+`disasm/sh2/expansion/cmd22_single_shot.asm` for early parameter-consumption,
+self-redispatch, and trigger-restoration behavior. Generic submit/ack equality
+is invalid. The v10 design proposal is in
+`analysis/agent-scratch/worker/q028-v10-repair-proposal.md`; its first fresh
+audit blocked implementation pending concrete domain/BIOS/COMM/SRAM policies.
+The amended proposal `1dd62401…69ce9fa` was approved for passive host-tool
+implementation only; full pilot/diff acceptance remains pending. Additional
+M68K provenance issue: linked file `$0F92` and `$0FAA` both map opcode `$4EB9`
+to `$FF0000` with different extensions, and scene changes deliberately write
+the JSR operand at `$FF0002`. First-opcode equality is not full live-byte identity.
+
+Q-028 full r2 scan closed: all 496,577,712 events / 340,285,941 fetches,
+exactly four boot-reset context mismatches, and exactly 63,806,555
+unattributed records. Retained CSV/classifier:
+`analysis/evidence/vr60-q028-renderer-descriptor-probe/diagnostics/r2-full-raw-scan/`.
+Pinned `cpu/fame/famec_opcodes.h:idle_detector_bcc8`,
+`cpu/fame/famec.c:INSTALL_IDLE`, and `pico/sek.c:SekFinishIdleDet` establish
+direct host opcode install/restore writes after frame 360. These are engine
+virtual opcodes, not legal new M68000 instructions; retain raw words and
+model their ordered provenance. Mutable WRAM and host-ledger proposal:
+`analysis/agent-scratch/worker/q028-mutable-images-amendment.md`.
+Finite source inventory/review: `q028-m68k-finite-inventory-review.md` beside
+that proposal, with 321 instructions / 120 spans. Correct false table/code
+boundaries C7E6 and 9F14 and the cross-section CMPI.B extension at 8200;
+exclude known table rows rather than accepting their misleading mnemonics.
+The new amendment `d230ca49…924f772` and finite inventory `a0995579…70edee8`
+are approved for implementation only. Required details include boot copy
+32B/code20B/data12B separation, exact preceding-fetch host install binding,
+and EOF ledger consumption without synthetic events. Runtime/core tests and
+fresh completed-diff approval remain pending; no pilot approval follows.
+All 32,785 changed M68K fetches in the diagnostic aggregate (40 ROM sites
+plus FF0014) independently match three registered FAME aliases:
+66F6→73F6, 66F8→73F8 and 67F6→77F6. No unexplained pair was found; retain
+the full source-defined model rather than reducing it to observed aliases.
+First implementation stage: byte-identical assembly corrections and finite
+span/exclusion checks are in place; fresh listing validates 22,464 M68K rows
+and 1,296 source entries. Ten image/domain tests pass with no skips. WRAM
+tracking is implemented but uncompiled in a new core; host ledger integration
+is in progress. Verify current Worker findings before attempting a capture.
+Later source-stage checkpoint: twelve image/domain tests pass, including all
+source-defined idle aliases. Standalone exact-C WRAM parity passes 223 state
+transitions and five rejected malformed copies; retained harness is
+`diagnostics/r2-full-raw-scan/q028_wram_parity.py` under Q-028 evidence.
+Ledger producer/reader and callback transforms are implemented, awaiting new
+core compilation and actual-artifact validation. This is not runtime proof.
+
+User-requested checkpoint (2026-09-04): repaired core pair now matches
+`b3bd2d55…ceb69b7`; actual six-frame binary regression passes 517,467 records
+and six artifact mutations, without reaching host rewrites or SRAM installs.
+IDL source/destination/length must derive from the hash-bound ROM header:
+`02020000 -> 06000000`, `C000`, per pinned `pico/32x/32x.c:202–211`; every
+source longword must equal ROM bytes. Raw frames must be below the actual
+footer terminal, not merely below the 1,340-frame cap. Sixteen focused tests
+and unchanged-raw checks pass after these assertions; complete runtime rerun,
+400-frame domains, full mutation matrix and refreshed closure remain open.
+Retained snapshots and exact limitations:
+`analysis/evidence/vr60-q028-renderer-descriptor-probe/diagnostics/checkpoint-20260904/README.md`.
+
 **Q-028 status: BLOCKED / INCONCLUSIVE_ENGINE_SCHEDULE.** The prior
 `INCONCLUSIVE_COMPOSITE` acceptance is retracted: it was based on interpreter-only completion despite the
 approved requirement for two uninterrupted normal-DRC repeats of every A/B/C

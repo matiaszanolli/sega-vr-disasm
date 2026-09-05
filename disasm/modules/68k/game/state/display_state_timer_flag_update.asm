@@ -3,14 +3,16 @@
 ; ROM Range: $008200-$008246 (70 bytes)
 ; ============================================================================
 ; Category: game
-; Purpose: ANDs -(A4) with D4 (flag check); if result nonzero writes $BF
+; Purpose: Continues CMPI.B #$BE,$C8A4.w begun at $0081FC in code_6200.
+;   The word at $008200 is its address extension, not an AND.L opcode.
+;   If the comparison is unequal, writes $BF
 ;   to $C8A4 (SFX). Decrements timer ($C04E); when zero or $C8AB bit 2
 ;   set: writes D0 (0 or 1) to VDP display flag ($FF6960).
 ;   If $C305 nonzero or $C04E != $3C: exits early (past fn).
 ;   Otherwise checks object (A0) field +$02 bit 1: if set, clears bit 9
 ;   of field +$02 (ANDI #$FDFF).
 ;
-; Uses: D0, D4, A0, A4
+; Uses: D0, A0
 ; RAM:
 ;   $C04E: display timer (word, decremented)
 ;   $C305: sub-counter (byte, checked nonzero)
@@ -19,7 +21,7 @@
 ; ============================================================================
 
 display_state_timer_flag_update:
-        and.l   -(A4),D4                       ; $008200  D4 &= -(A4) (flag check)
+        dc.w    $C8A4                          ; $008200: CMPI.B address extension
         beq.s   .check_timer                    ; $008202  zero → skip SFX
         move.b  #$BF,($FFFFC8A4).w             ; $008204  SFX = $BF
 .check_timer:

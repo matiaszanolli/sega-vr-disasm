@@ -14,20 +14,11 @@
 ; ============================================================================
 
 track_graphics_and_sound_loader:
-        SUBI.L  #$04830471,$046E(A1)            ; $00C7C2
-        SUBI.W  #$0456,-(A2)                    ; $00C7CA
-        SUBI.W  #$0433,D4                       ; $00C7CE
-        DC.W    $0429                           ; $00C7D2
-        DC.W    $040E                           ; $00C7D4
-        DC.W    $03F3                           ; $00C7D6
-        BSET    D1,-(A2)                        ; $00C7D8
-        BSET    D1,(A7)                         ; $00C7DA
-        BSET    D1,D1                           ; $00C7DC
-        BSET    D1,D0                           ; $00C7DE
-        DC.W    $003A                           ; $00C7E0
-        ORI.W  #$0064,(A0)                      ; $00C7E2
-        ORI.L  #$41F90089,D3                    ; $00C7E6
-        DC.W    $AF3C                           ; $00C7EC
+        ; Animation DATA ($00C7C2-$00C7DF), followed by four timing words.
+        dc.w    $04A9,$0483,$0471,$046E,$0462,$0456,$0444,$0433
+        dc.w    $0429,$040E,$03F3,$03E2,$03D7,$03C1,$03C0
+        dc.w    $003A,$0050,$0064,$0083          ; $00C7E0 timing DATA
+        LEA     $0089AF3C,A0                    ; $00C7E8: hardware-init entry
         LEA     (-4344).W,A1                    ; $00C7EE
         JSR     $008813B4                       ; $00C7F2
         LEA     $0089B6AC,A1                    ; $00C7F8
